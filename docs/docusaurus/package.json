@@ -14,7 +14,7 @@
     "write-heading-ids": "docusaurus write-heading-ids",
     "lint": "standard --fix",
     "snippet-check": "node scripts/remark-named-snippets/snippet.js",
-    "check-links": "linkinator ./build/**/*.{html,htm} --skip https://github.com",
+    "check-links": "linkinator https://docs.greatexpectations.io/ --recurse",
     "test": "jest"
   },
   "dependencies": {
