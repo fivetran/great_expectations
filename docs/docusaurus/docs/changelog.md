@@ -10,6 +10,9 @@ title: Changelog
 - Deprecation warnings are accompanied by a moniker (as a code comment) indicating when they were deprecated.  For example: `# deprecated-v0.13`
 - Changes to methods and parameters due to deprecation are also noted in the relevant docstrings.
 
+### 0.18.22
+* [BUGFIX] Fix datadocs icons (v0.18) ([#10561](https://github.com/great-expectations/great_expectations/pull/10561))
+
 ### 0.18.21
 * [BUGFIX] Using `{batch}` keyword in `UnexpectedRowsQuery` (#10392) ([#10411](https://github.com/great-expectations/great_expectations/pull/10411))
 * [BUGFIX] 0.18.x Ignore unsupported INTERVAL type as part of CDM ([#10414](https://github.com/great-expectations/great_expectations/pull/10414))
