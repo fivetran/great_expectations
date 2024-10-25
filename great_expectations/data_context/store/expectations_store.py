@@ -235,7 +235,7 @@ class ExpectationsStore(Store):
             return result
         except gx_exceptions.StoreBackendError as exc:
             raise gx_exceptions.ExpectationSuiteError(  # noqa: TRY003
-                f"An ExpectationSuite named {value.name} already exists."
+                f"An error occurred while trying to save ExpectationSuite: {exc.message}"
             ) from exc
 
     def _update(self, key, value, **kwargs):  # type: ignore[explicit-override] # FIXME
