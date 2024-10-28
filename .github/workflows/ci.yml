@@ -326,7 +326,7 @@ jobs:
       - name: Run Linkinator
         uses: JustinBeckwith/linkinator-action@v1
         with:
-          args: 'build --ignore-ssl-errors --fail-on-404 --recurse'
+          args: "build --ignore-ssl-errors --fail-on-404 --recurse"
 
   cloud-tests:
     needs: [unit-tests, static-analysis, ci-is-on-main-repo]
