@@ -1,6 +1,5 @@
 import copy
 import datetime
-import logging
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -9,7 +8,6 @@ import pytest
 import great_expectations as gx
 from great_expectations.core.util import nested_update
 from great_expectations.util import (
-    convert_json_string_to_be_python_compliant,
     convert_ndarray_datetime_to_float_dtype_utc_timezone,
     convert_ndarray_float_to_datetime_tuple,
     convert_ndarray_to_datetime_dtype_best_effort,
@@ -118,76 +116,6 @@ def test_nested_update_lists():
         },
         "suite.failure": {"metric.blarg": [""]},
     }
-
-
-@pytest.mark.unit
-def test_convert_json_string_to_be_python_compliant_null_replacement(caplog):
-    text = """
-    "id": null,
-    "expectation_context": {"description": null},
-    """
-    expected = """
-    "id": None,
-    "expectation_context": {"description": None},
-    """
-
-    with caplog.at_level(logging.INFO):
-        res = convert_json_string_to_be_python_compliant(text)
-
-    assert res == expected
-    assert "Replaced 'id: null' with 'id: None' before writing to file" in caplog.text
-    assert (
-        "Replaced 'description: null' with 'description: None' before writing to file"
-        in caplog.text
-    )
-
-
-@pytest.mark.unit
-def test_convert_json_string_to_be_python_compliant_bool_replacement(caplog):
-    text = """
-    "meta": {},
-    "kwargs": {
-        "column": "input_date",
-        "max_value": "2027-09-03 00:00:00",
-        "min_value": "2015-01-01 00:00:00",
-        "parse_strings_as_datetimes": true,
-        "catch_exceptions": false
-    },
-    """
-    expected = """
-    "meta": {},
-    "kwargs": {
-        "column": "input_date",
-        "max_value": "2027-09-03 00:00:00",
-        "min_value": "2015-01-01 00:00:00",
-        "parse_strings_as_datetimes": True,
-        "catch_exceptions": False
-    },
-    """
-
-    with caplog.at_level(logging.INFO):
-        res = convert_json_string_to_be_python_compliant(text)
-
-    assert res == expected
-    assert (
-        "Replaced '\"parse_strings_as_datetimes\": true' with '\"parse_strings_as_datetimes\": True' before writing to file"  # noqa: E501
-        in caplog.text
-    )
-    assert (
-        "Replaced '\"catch_exceptions\": false' with '\"catch_exceptions\": False' before writing to file"  # noqa: E501
-        in caplog.text
-    )
-
-
-@pytest.mark.unit
-def test_convert_json_string_to_be_python_compliant_no_replacement():
-    text = """
-    "kwargs": {"max_value": 10000, "min_value": 10000},
-    "expectation_type": "expect_table_row_count_to_be_between",
-    "meta": {},
-    """
-    res = convert_json_string_to_be_python_compliant(text)
-    assert res == text
 
 
 @pytest.mark.unit
