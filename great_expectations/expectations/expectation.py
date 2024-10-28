@@ -318,8 +318,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             for prop in schema["properties"].values():
                 if overrides := prop.pop("schema_overrides", None):
                     assert isinstance(overrides, dict)
-                    for key, value in overrides.items():
-                        prop[key] = value
+                    prop.update(overrides)
 
     id: Union[str, None] = None
     meta: Union[dict, None] = None
