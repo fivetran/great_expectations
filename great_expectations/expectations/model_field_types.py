@@ -31,7 +31,7 @@ ValueSetField = Annotated[
             "anyOf": [
                 {
                     "title": "Value Set",
-                    "description": "A set of objects used for comparison.",
+                    "description": VALUE_SET_DESCRIPTION,
                     "oneOf": [
                         {
                             "title": "Text",
