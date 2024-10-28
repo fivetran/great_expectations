@@ -122,7 +122,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/expectations/metrics/metric_provider.py Name: MetricProvider",
     "File: great_expectations/expectations/metrics/metric_provider.py Name: metric_partial",
     "File: great_expectations/expectations/metrics/metric_provider.py Name: metric_value",
-    "File: great_expectations/expectations/model_field_types.py Name: validate",
     "File: great_expectations/expectations/regex_based_column_map_expectation.py Name: validate_configuration",
     "File: great_expectations/expectations/set_based_column_map_expectation.py Name: validate_configuration",
     "File: great_expectations/experimental/metric_repository/metric_retriever.py Name: get_validator",
