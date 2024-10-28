@@ -484,6 +484,11 @@ SqlPartitioner = Union[
 ]
 
 
+class SqlAddBatchDefinitionError(Exception):
+    def __init__(self, msg: str):
+        super().__init__(f"Failed adding batch definition: {msg}")
+
+
 @public_api
 class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT]):
     """A _SQLAsset Mixin
@@ -712,6 +717,58 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
             partitioner=partitioner,
         )
 
+    @override
+    def add_batch_definition(
+        self,
+        name: str,
+        partitioner: Optional[ColumnPartitioner] = None,
+    ) -> BatchDefinition[ColumnPartitioner]:
+        if partitioner:
+            self.validate_add_batch_definition(partitioner)
+        return super().add_batch_definition(name, partitioner)
+
+    @public_api
+    def validate_add_batch_definition(self, partitioner: Optional[ColumnPartitioner]) -> None:
+        """Validates that the batch definition column is of a permissible type
+
+        This isn't meant to be called directly. This is called internally when a batch definition
+         is added. Data asset implementers can override this for their specific data asset.
+
+        Raises:
+            SqlAddBatchDefinitionError: The specified column to partition on is not of
+                a permissible type for batching (ie date or datetime) or no data is
+                present in this column.
+        """
+        engine: sqlalchemy.Engine = self.datasource.get_engine()
+        with engine.connect() as connection:
+            selectable = self.as_selectable()
+            column = sa.sql.column(partitioner.column_name)
+            try:
+                # We query the table for a non-null value to leverage sqlalchemy
+                # to convert the column into a python date or datetime which we will
+                # use for batching.
+                # The con of this approach are:
+                #  * We require data to be present
+                #
+                # Alternatively we could look at the schema but then we need to know
+                # what types for this particular database engine map to a python date or
+                # datetime.
+                # The drawback of this approach is we can't add a batch definition if
+                # there is no data in the table (or this column is always null).
+                row = connection.execute(sa.select(column, selectable).limit(1))
+            except Exception as query_error:
+                LOGGER.info(f"{self.name} `.test_connection()` query failed: {query_error!r}")
+                raise SqlAddBatchDefinitionError(
+                    msg=f"Attempt to read an example non-null '{column}' value from '{selectable}'"
+                    " failed so column type can't be verified to be a date or datetime."
+                ) from query_error
+
+            r = row.first()
+            if not r or not isinstance(r[0], (datetime, date)):
+                raise SqlAddBatchDefinitionError(
+                    msg=f"'{column}' column from '{selectable}' is not a date or datetime type."
+                )
+
     @public_api
     def add_batch_definition_whole_table(self, name: str) -> BatchDefinition:
         return self.add_batch_definition(
@@ -930,7 +987,7 @@ class TableAsset(_SQLAsset):
 
         This can be used in a from clause for a query against this data.
         """
-        return sa.text(self.qualified_name)  # type: ignore[return-value]
+        return sa.table(self.table_name, schema=self.schema_name)
 
     @override
     def _create_batch_spec_kwargs(self) -> dict[str, Any]:

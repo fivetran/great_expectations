@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import contextlib
 import logging
 import warnings
+from datetime import date, datetime, timezone
 from pprint import pformat as pf
 from typing import TYPE_CHECKING, Any, Generator
 from unittest import mock
@@ -14,6 +16,7 @@ from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent import GxDatasourceWarning, SQLDatasource
 from great_expectations.datasource.fluent.sql_datasource import (
     DEFAULT_QUOTE_CHARACTERS,
+    SqlAddBatchDefinitionError,
     TableAsset,
     to_lower_if_not_quoted,
 )
@@ -440,6 +443,92 @@ class TestTableAsset:
             schema_name=schema_name,
         )
         assert table_asset.schema_name == schema_name
+
+
+@contextlib.contextmanager
+def expect_no_error():
+    yield
+
+
+@pytest.mark.unit
+class TestSqlDatasourceAddBatchDefinitionWithPartitioner:
+    class FakeResult:
+        def __init__(self, queried_row: Any):
+            self._queried_row = queried_row
+
+        def first(self):
+            # Sqlalchemy will return None if there are no rows when first is called.
+            # We can mock that behavior by setting the queried value to None.
+            return self._queried_row
+
+    class FakeConnection:
+        def __init__(self, queried_row: Any):
+            self._queried_row = queried_row
+
+        def execute(self, *args, **kwargs):
+            return TestSqlDatasourceAddBatchDefinitionWithPartitioner.FakeResult(self._queried_row)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb): ...
+
+    class FakeEngine:
+        def __init__(self, queried_row: Any):
+            self._queried_row = queried_row
+
+        def connect(self):
+            return TestSqlDatasourceAddBatchDefinitionWithPartitioner.FakeConnection(
+                self._queried_row
+            )
+
+    @pytest.mark.parametrize(
+        "queried_row, expect_error_or_no",
+        [
+            pytest.param(
+                [datetime(2024, 10, 28, 0, 0, 0, tzinfo=timezone.utc)],
+                expect_no_error(),
+                id="datetime",
+            ),
+            pytest.param([date(2024, 10, 28)], expect_no_error(), id="date"),
+            pytest.param(
+                ["not a datetime"], pytest.raises(SqlAddBatchDefinitionError), id="invalid type"
+            ),
+            pytest.param([None], pytest.raises(SqlAddBatchDefinitionError), id="None row returned"),
+            pytest.param(None, pytest.raises(SqlAddBatchDefinitionError), id="No rows returned"),
+            pytest.param([], pytest.raises(SqlAddBatchDefinitionError), id="Empty row returned"),
+        ],
+    )
+    def test_add_batch_definition_to_table_asset(
+        self,
+        sql_datasource_table_asset_test_connection_noop: SQLDatasource,
+        monkeypatch: pytest.MonkeyPatch,
+        queried_row: Any,
+        expect_error_or_no: contextlib.AbstractContextManager,
+    ):
+        # Setup
+        # Monkeypatch SQLDatasource so we return a fake engine which returns a fixed db result.
+        monkeypatch.setattr(
+            SQLDatasource,
+            "get_engine",
+            lambda _: TestSqlDatasourceAddBatchDefinitionWithPartitioner.FakeEngine(queried_row),
+        )
+
+        # Add our asset to the datasource
+        my_datasource: SQLDatasource = sql_datasource_table_asset_test_connection_noop
+        table_asset = my_datasource.add_table_asset(
+            name="my_table_asset",
+            table_name="my_table",
+            schema_name="my_schema",
+        )
+
+        # Act and assert: Add a batch definition and obse
+        with expect_error_or_no:
+            table_asset.add_batch_definition_daily("my_batch_def", "column_name")
+
+    # Tests I considered adding but have not.
+    # 1. Engine dies on connect
+    # 2. Connection dies on execute
 
 
 if __name__ == "__main__":
