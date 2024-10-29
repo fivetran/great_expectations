@@ -63,7 +63,9 @@ class MicrosoftTeamsRenderer(Renderer):
     def _build_header_block(
         self, checkpoint_name: str, success: bool, run_time: dt.datetime
     ) -> dict:
-        success_text = "Success ✅" if success else "Failure ❌"
+        success_text = (
+            f"Success {self._SUCCESS_EMOJI}" if success else f"Failure {self._FAILURE_EMOJI}"
+        )
         return {
             "type": "ColumnSet",
             "columns": [
