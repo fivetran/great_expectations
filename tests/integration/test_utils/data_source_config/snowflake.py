@@ -3,29 +3,16 @@ from typing import Dict, Union
 
 import pandas as pd
 import pytest
-from snowflake.sqlalchemy.custom_types import (
-    ARRAY,
-    BYTEINT,
-    CHARACTER,
-    DEC,
-    DOUBLE,
-    FIXED,
-    GEOGRAPHY,
-    GEOMETRY,
-    NUMBER,
-    OBJECT,
-    STRING,
-    TEXT,
-    TIMESTAMP_LTZ,
-    TIMESTAMP_NTZ,
-    TIMESTAMP_TZ,
-    TINYINT,
-    VARBINARY,
-    VARIANT,
-)
-from sqlalchemy import Column, MetaData, Table, create_engine, insert
 
 from great_expectations.compatibility.pydantic import BaseSettings
+from great_expectations.compatibility.snowflake import snowflaketypes
+from great_expectations.compatibility.sqlalchemy import (
+    Column,
+    MetaData,
+    Table,
+    create_engine,
+    insert,
+)
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -34,24 +21,24 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 
 SnowflakeColumnType = Union[
-    type[ARRAY],
-    type[BYTEINT],
-    type[CHARACTER],
-    type[DEC],
-    type[DOUBLE],
-    type[FIXED],
-    type[GEOGRAPHY],
-    type[GEOMETRY],
-    type[NUMBER],
-    type[OBJECT],
-    type[STRING],
-    type[TEXT],
-    type[TIMESTAMP_LTZ],
-    type[TIMESTAMP_NTZ],
-    type[TIMESTAMP_TZ],
-    type[TINYINT],
-    type[VARBINARY],
-    type[VARIANT],
+    type[snowflaketypes.ARRAY],
+    type[snowflaketypes.BYTEINT],
+    type[snowflaketypes.CHARACTER],
+    type[snowflaketypes.DEC],
+    type[snowflaketypes.DOUBLE],
+    type[snowflaketypes.FIXED],
+    type[snowflaketypes.GEOGRAPHY],
+    type[snowflaketypes.GEOMETRY],
+    type[snowflaketypes.NUMBER],
+    type[snowflaketypes.OBJECT],
+    type[snowflaketypes.STRING],
+    type[snowflaketypes.TEXT],
+    type[snowflaketypes.TIMESTAMP_LTZ],
+    type[snowflaketypes.TIMESTAMP_NTZ],
+    type[snowflaketypes.TIMESTAMP_TZ],
+    type[snowflaketypes.TINYINT],
+    type[snowflaketypes.VARBINARY],
+    type[snowflaketypes.VARIANT],
 ]
 
 
