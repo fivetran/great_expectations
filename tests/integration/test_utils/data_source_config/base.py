@@ -19,14 +19,12 @@ if TYPE_CHECKING:
 
 _ColumnTypes = TypeVar("_ColumnTypes")
 
-AssetConfig = Mapping[str, _ColumnTypes]
-
 
 @dataclass(frozen=True)
 class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     name: Optional[str] = None
-    column_types: Optional[AssetConfig] = None
-    extra_assets: Optional[Mapping[str, AssetConfig]] = None
+    column_types: Optional[Mapping[str, _ColumnTypes]] = None
+    extra_assets: Optional[Mapping[str, Mapping[str, _ColumnTypes]]] = None
 
     @property
     @abstractmethod

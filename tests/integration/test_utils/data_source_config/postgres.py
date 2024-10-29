@@ -1,5 +1,5 @@
 from random import randint
-from typing import Dict, Mapping, Union
+from typing import Mapping, Union
 
 import pandas as pd
 import pytest
@@ -216,12 +216,12 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
             for table in self.extra_tables.values():
                 table.drop(self.engine)
 
-    def get_column_types(self) -> Dict[str, PostgresColumnType]:
+    def get_column_types(self) -> Mapping[str, PostgresColumnType]:
         if self.config.column_types is None:
             return {}
         return self.config.column_types
 
-    def get_extra_column_types(self, table_name: str) -> Dict[str, PostgresColumnType]:
+    def get_extra_column_types(self, table_name: str) -> Mapping[str, PostgresColumnType]:
         extra_assets = self.config.extra_assets
         if not extra_assets:
             return {}
