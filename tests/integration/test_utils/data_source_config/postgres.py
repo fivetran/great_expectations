@@ -175,14 +175,13 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
         columns = [Column(name, type) for name, type in self.get_column_types().items()]
         self.table = Table(self.table_name, self.metadata, *columns, schema=self.schema)
         self.metadata.create_all(self.engine)
-        with self.engine.connect() as conn:
+        with self.engine.begin() as conn:
             # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
             # index and the values are a dict of column names mapped to column values.
             # Then we pass that list of dicts in as parameters to our insert statement.
             #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
             #   [...] [('1', 'foo'), ('2', 'bar')]
             conn.execute(insert(self.table), list(self.data.to_dict("index").values()))
-            conn.commit()
 
     @override
     def teardown(self) -> None:
