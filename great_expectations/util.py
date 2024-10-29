@@ -1,17 +1,14 @@
 from __future__ import annotations
 
 import copy
-import cProfile
 import datetime
 import decimal
 import importlib
 import inspect
-import io
 import json
 import logging
 import os
 import pathlib
-import pstats
 import re
 import sys
 import time
@@ -46,7 +43,6 @@ import pandas as pd
 from dateutil.parser import parse
 from packaging import version
 
-from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility import pydantic, pyspark, sqlalchemy
 from great_expectations.compatibility.sqlalchemy import LegacyRow, Row
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -122,48 +118,8 @@ def camel_to_snake(name: str) -> str:
     return p2.sub(r"\1_\2", name).lower()
 
 
-def underscore(word: str) -> str:
-    """
-    **Borrowed from inflection.underscore**
-    Make an underscored, lowercase form from the expression in the string.
-
-    Example::
-
-        >>> underscore("DeviceType")
-        'device_type'
-
-    As a rule of thumb you can think of :func:`underscore` as the inverse of
-    :func:`camelize`, though there are cases where that does not hold::
-
-        >>> camelize(underscore("IOError"))
-        'IoError'
-
-    """
-    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", word)
-    word = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", word)
-    word = word.replace("-", "_")
-    return word.lower()
-
-
 def hyphen(txt: str):
     return txt.replace("_", "-")
-
-
-def profile(func: Callable) -> Callable:
-    @wraps(func)
-    def profile_function_call(*args, **kwargs) -> Any:
-        pr: cProfile.Profile = cProfile.Profile()
-        pr.enable()
-        retval: Any = func(*args, **kwargs)
-        pr.disable()
-        s: io.StringIO = io.StringIO()
-        sortby: str = pstats.SortKey.CUMULATIVE  # "cumulative"
-        ps: pstats.Stats = pstats.Stats(pr, stream=s).sort_stats(sortby)
-        ps.print_stats()
-        print(s.getvalue())
-        return retval
-
-    return profile_function_call
 
 
 def measure_execution_time(
@@ -370,48 +326,6 @@ def gen_directory_tree_str(startpath: PathStr):
             output_str += f"{subindent}{f}\n"
 
     return output_str
-
-
-# NOTE: Can delete once CLI is removed
-def convert_json_string_to_be_python_compliant(code: str) -> str:
-    """Cleans JSON-formatted string to adhere to Python syntax
-
-    Substitute instances of 'null' with 'None' in string representations of Python dictionaries.
-    Additionally, substitutes instances of 'true' or 'false' with their Python equivalents.
-
-    Args:
-        code: JSON string to update
-
-    Returns:
-        Clean, Python-compliant string
-
-    """
-    code = _convert_nulls_to_None(code)
-    code = _convert_json_bools_to_python_bools(code)
-    return code
-
-
-# NOTE: Can delete once CLI is removed
-def _convert_nulls_to_None(code: str) -> str:
-    pattern = r'"([a-zA-Z0-9_]+)": null'
-    result = re.findall(pattern, code)
-    for match in result:
-        code = code.replace(f'"{match}": null', f'"{match}": None')
-        logger.info(f"Replaced '{match}: null' with '{match}: None' before writing to file")
-    return code
-
-
-# NOTE: Can delete once CLI is removed
-def _convert_json_bools_to_python_bools(code: str) -> str:
-    pattern = r'"([a-zA-Z0-9_]+)": (true|false)'
-    result = re.findall(pattern, code)
-    for match in result:
-        identifier, boolean = match
-        curr = f'"{identifier}": {boolean}'
-        updated = f'"{identifier}": {boolean.title()}'  # true -> True | false -> False
-        code = code.replace(curr, updated)
-        logger.info(f"Replaced '{curr}' with '{updated}' before writing to file")
-    return code
 
 
 def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913
@@ -1181,7 +1095,6 @@ def convert_to_json_serializable(
 ) -> None: ...
 
 
-@public_api  # - complexity 32
 def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
     data: JSONConvertable,
 ) -> JSONValues:
