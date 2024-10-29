@@ -122,7 +122,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/expectations/metrics/metric_provider.py Name: MetricProvider",
     "File: great_expectations/expectations/metrics/metric_provider.py Name: metric_partial",
     "File: great_expectations/expectations/metrics/metric_provider.py Name: metric_value",
-    "File: great_expectations/expectations/model_field_types.py Name: validate",
     "File: great_expectations/expectations/regex_based_column_map_expectation.py Name: validate_configuration",
     "File: great_expectations/expectations/set_based_column_map_expectation.py Name: validate_configuration",
     "File: great_expectations/experimental/metric_repository/metric_retriever.py Name: get_validator",
@@ -151,4 +150,9 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/validator/validator.py Name: remove_expectation",
     "File: great_expectations/validator/validator.py Name: save_expectation_suite",
     "File: great_expectations/validator/validator.py Name: validate",
+    "File: great_expectations/expectations/core/expect_column_kl_divergence_to_be_less_than.py Name: ExpectColumnKLDivergenceToBeLessThan",
+    "File: great_expectations/expectations/core/expect_column_mean_to_be_between.py Name: ExpectColumnMeanToBeBetween",
+    "File: great_expectations/expectations/core/expect_column_median_to_be_between.py Name: ExpectColumnMedianToBeBetween",
+    "File: great_expectations/expectations/core/expect_column_quantile_values_to_be_between.py Name: ExpectColumnQuantileValuesToBeBetween",
+    "File: great_expectations/expectations/core/expect_column_value_z_scores_to_be_less_than.py Name: ExpectColumnValueZScoresToBeLessThan",
 ]

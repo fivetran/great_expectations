@@ -5,7 +5,7 @@ import string
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TYPE_CHECKING, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Dict, Generic, Optional, TypeVar, Union
 
 import great_expectations as gx
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
@@ -14,11 +14,16 @@ from great_expectations.datasource.fluent.interfaces import Batch
 if TYPE_CHECKING:
     import pandas as pd
     import pytest
+    from pytest import FixtureRequest
+
+
+_ColumnTypes = TypeVar("_ColumnTypes")
 
 
 @dataclass(frozen=True)
-class DataSourceTestConfig(ABC):
+class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     name: Optional[str] = None
+    column_types: Union[Dict[str, _ColumnTypes], None] = None
 
     @property
     @abstractmethod
@@ -33,7 +38,7 @@ class DataSourceTestConfig(ABC):
         ...
 
     @abstractmethod
-    def create_batch_setup(self, data: pd.DataFrame) -> BatchTestSetup:
+    def create_batch_setup(self, data: pd.DataFrame, request: FixtureRequest) -> BatchTestSetup:
         """Create a batch setup object for this data source."""
 
     @property
