@@ -49,7 +49,7 @@ class MicrosoftTeamsRenderer(Renderer):
         blocks.append(
             self._build_header_block(
                 checkpoint_name=checkpoint_result.name,
-                success=checkpoint_result.success,
+                success=checkpoint_result.success or False,
                 run_time=checkpoint_result.run_id.run_time,
             )
         )
