@@ -23,17 +23,14 @@ def parameterize_batch_for_data_sources(
     extra_data: Optional[Mapping[str, pd.DataFrame]] = None,
 ) -> Callable[[_F], _F]:
     """Test decorator that parametrizes a test function with batches for various data sources.
-
     This injects a `batch_for_datasource` parameter into the test function for each data source
     type.
 
-    example use with multiple data sources:
+    example use:
         @parameterize_batch_for_data_sources(
-            data_source_configs=[
-                PandasFilesystemCsvDatasourceTestConfig(),
-                PostgreSQLDatasourceTestConfig(column_types={"a": POSTGRESQL_TYPES.INTEGER}),
-            ],
+            data_source_configs=[DataSourceType.FOO, DataSourceType.BAR],
             data=pd.DataFrame{"col_name": [1, 2]},
+            # description="test_stuff",
         )
         def test_stuff(batch_for_datasource) -> None:
             ...
