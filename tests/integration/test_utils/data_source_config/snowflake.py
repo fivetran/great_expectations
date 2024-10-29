@@ -3,10 +3,7 @@ from typing import Dict, Union
 
 import pandas as pd
 import pytest
-from sqlalchemy import Column, MetaData, Table, create_engine, insert
-
-from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.snowflake.snowflaketypes import (
+from snowflake.sqlalchemy.custom_types import (
     ARRAY,
     BYTEINT,
     CHARACTER,
@@ -26,6 +23,9 @@ from great_expectations.compatibility.snowflake.snowflaketypes import (
     VARBINARY,
     VARIANT,
 )
+from sqlalchemy import Column, MetaData, Table, create_engine, insert
+
+from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -101,7 +101,7 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
         data: pd.DataFrame,
     ) -> None:
         self.table_name = f"snowflake_expectation_test_table_{randint(0, 1000000)}"
-        self.snowflake_connection_config = SnowflakeConnectionConfig()
+        self.snowflake_connection_config = SnowflakeConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
         self.engine = create_engine(url=self.snowflake_connection_config.connection_string)
         self.metadata = MetaData()
         self.table: Union[Table, None] = None
