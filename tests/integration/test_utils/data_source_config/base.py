@@ -5,7 +5,7 @@ import string
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TYPE_CHECKING, Generic, Optional, TypeVar, Union, Dict
+from typing import TYPE_CHECKING, Dict, Generic, Optional, TypeVar, Union
 
 import great_expectations as gx
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext

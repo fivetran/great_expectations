@@ -1,31 +1,31 @@
 from random import randint
-from typing import Union, Dict
+from typing import Dict, Union
 
 import pandas as pd
 import pytest
 from sqlalchemy import Column, MetaData, Table, create_engine, insert
 
+from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.snowflake.snowflaketypes import (
-    TEXT,
+    ARRAY,
+    BYTEINT,
     CHARACTER,
     DEC,
     DOUBLE,
     FIXED,
+    GEOGRAPHY,
+    GEOMETRY,
     NUMBER,
-    BYTEINT,
+    OBJECT,
     STRING,
+    TEXT,
+    TIMESTAMP_LTZ,
+    TIMESTAMP_NTZ,
+    TIMESTAMP_TZ,
     TINYINT,
     VARBINARY,
     VARIANT,
-    OBJECT,
-    ARRAY,
-    TIMESTAMP_TZ,
-    TIMESTAMP_LTZ,
-    TIMESTAMP_NTZ,
-    GEOGRAPHY,
-    GEOMETRY,
 )
-
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -33,31 +33,29 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 
-
 SnowflakeColumnType = Union[
-    type[TEXT],
+    type[ARRAY],
+    type[BYTEINT],
     type[CHARACTER],
     type[DEC],
     type[DOUBLE],
     type[FIXED],
+    type[GEOGRAPHY],
+    type[GEOMETRY],
     type[NUMBER],
-    type[BYTEINT],
+    type[OBJECT],
     type[STRING],
+    type[TEXT],
+    type[TIMESTAMP_LTZ],
+    type[TIMESTAMP_NTZ],
+    type[TIMESTAMP_TZ],
     type[TINYINT],
     type[VARBINARY],
     type[VARIANT],
-    type[OBJECT],
-    type[ARRAY],
-    type[TIMESTAMP_TZ],
-    type[TIMESTAMP_LTZ],
-    type[TIMESTAMP_NTZ],
-    type[GEOGRAPHY],
-    type[GEOMETRY],
 ]
 
 
 class SnowflakeDatasourceTestConfig(DataSourceTestConfig[SnowflakeColumnType]):
-
     @property
     @override
     def label(self) -> str:
@@ -78,6 +76,24 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig[SnowflakeColumnType]):
         )
 
 
+class SnowflakeConnectionConfig(BaseSettings):
+    SNOWFLAKE_USER: str
+    SNOWFLAKE_PW: str
+    SNOWFLAKE_ACCOUNT: str
+    SNOWFLAKE_DATABASE: str
+    SNOWFLAKE_SCHEMA: str
+    SNOWFLAKE_WAREHOUSE: str
+    SNOWFLAKE_ROLE: str = "PUBLIC"
+
+    @property
+    def connection_string(self) -> str:
+        return (
+            f"snowflake://{self.SNOWFLAKE_USER}:{self.SNOWFLAKE_PW}"
+            f"@{self.SNOWFLAKE_ACCOUNT}/{self.SNOWFLAKE_DATABASE}/{self.SNOWFLAKE_SCHEMA}"
+            f"?warehouse={self.SNOWFLAKE_WAREHOUSE}&role={self.SNOWFLAKE_ROLE}"
+        )
+
+
 class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
     def __init__(
         self,
@@ -85,11 +101,10 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
         data: pd.DataFrame,
     ) -> None:
         self.table_name = f"snowflake_expectation_test_table_{randint(0, 1000000)}"
-        self.connection_string = "postgresql+psycopg2://postgres@localhost:5432/test_ci"
-        self.engine = create_engine(url=self.connection_string)
+        self.snowflake_connection_config = SnowflakeConnectionConfig()
+        self.engine = create_engine(url=self.snowflake_connection_config.connection_string)
         self.metadata = MetaData()
         self.table: Union[Table, None] = None
-        self.schema = "public"
         super().__init__(config=config, data=data)
 
     @override
@@ -97,12 +112,11 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
         name = self._random_resource_name()
         return (
             self._context.data_sources.add_snowflake(
-                name=name, connection_string=self.connection_string
+                name=name, connection_string=self.snowflake_connection_config.connection_string
             )
             .add_table_asset(
                 name=name,
                 table_name=self.table_name,
-                schema_name=self.schema,
             )
             .add_batch_definition_whole_table(name=name)
             .get_batch()
@@ -111,10 +125,13 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
     @override
     def setup(self) -> None:
         column_types = self.get_column_types()
-        columns = [
-            Column(name, column_type) for name, column_type in column_types.items()
-        ]
-        self.table = Table(self.table_name, self.metadata, *columns, schema=self.schema)
+        columns = [Column(name, column_type) for name, column_type in column_types.items()]
+        self.table = Table(
+            self.table_name,
+            self.metadata,
+            *columns,
+            schema=self.snowflake_connection_config.SNOWFLAKE_SCHEMA,
+        )
         self.metadata.create_all(self.engine)
         with self.engine.connect() as conn:
             # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
