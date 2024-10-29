@@ -142,6 +142,7 @@ except (ImportError, AttributeError):
 
 class SNOWFLAKE_TYPES:
     """Namespace for Snowflake dialect types."""
+
     ARRAY = ARRAY
     BYTEINT = BYTEINT
     CHARACTER = CHARACTER

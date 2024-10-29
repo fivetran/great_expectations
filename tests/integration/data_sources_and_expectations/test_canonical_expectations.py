@@ -7,8 +7,8 @@ from tests.integration.test_utils.data_source_config import (
     PandasFilesystemCsvDatasourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.snowflake import (
-    SnowflakeDatasourceTestConfig,
     SNOWFLAKE_TYPES,
+    SnowflakeDatasourceTestConfig,
 )
 
 
