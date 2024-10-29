@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar
 
 import pandas as pd
@@ -7,6 +8,13 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 
 _F = TypeVar("_F", bound=Callable)
+
+
+@dataclass(frozen=True)
+class _TestConfig:
+    data_source_config: DataSourceTestConfig
+    data: pd.DataFrame
+    extra_data: Mapping[str, pd.DataFrame]
 
 
 def parameterize_batch_for_data_sources(
@@ -34,7 +42,11 @@ def parameterize_batch_for_data_sources(
     def decorator(func: _F) -> _F:
         pytest_params = [
             pytest.param(
-                (config, data, extra_data or {}),
+                _TestConfig(
+                    data_source_config=config,
+                    data=data,
+                    extra_data=extra_data or {},
+                ),
                 id=config.test_id,
                 marks=[config.pytest_mark],
             )
@@ -55,15 +67,13 @@ def batch_for_datasource(request: pytest.FixtureRequest) -> Generator[Batch, Non
     """Fixture that yields a batch for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
     """
-    data_source_config, data, extra_data = request.param
+    config = request.param
+    assert isinstance(config, _TestConfig)
 
-    assert isinstance(data_source_config, DataSourceTestConfig)
-    assert isinstance(data, pd.DataFrame)
-
-    batch_setup = data_source_config.create_batch_setup(
+    batch_setup = config.data_source_config.create_batch_setup(
         request=request,
-        data=data,
-        extra_data=extra_data,
+        data=config.data,
+        extra_data=config.extra_data,
     )
 
     batch_setup.setup()
