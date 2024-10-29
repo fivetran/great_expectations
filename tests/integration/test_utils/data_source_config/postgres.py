@@ -1,5 +1,5 @@
 from random import randint
-from typing import Dict, Union
+from typing import Dict, Mapping, Union
 
 import pandas as pd
 import pytest
@@ -132,11 +132,15 @@ class PostgreSQLDatasourceTestConfig(DataSourceTestConfig[PostgresColumnType]):
 
     @override
     def create_batch_setup(
-        self, data: pd.DataFrame, request: pytest.FixtureRequest
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
         return PostgresBatchTestSetup(
             data=data,
             config=self,
+            extra_data=extra_data,
         )
 
 
@@ -145,13 +149,16 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
         self,
         config: PostgreSQLDatasourceTestConfig,
         data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         self.table_name = f"postgres_expectation_test_table_{randint(0, 1000000)}"
         self.connection_string = "postgresql+psycopg2://postgres@localhost:5432/test_ci"
         self.engine = create_engine(url=self.connection_string)
         self.metadata = MetaData()
         self.table: Union[Table, None] = None
+        self.extra_tables: Union[Mapping[str, Table], None] = None
         self.schema = "public"
+        self.extra_data = extra_data
         super().__init__(config=config, data=data)
 
     @override
@@ -174,6 +181,18 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
     def setup(self) -> None:
         columns = [Column(name, type) for name, type in self.get_column_types().items()]
         self.table = Table(self.table_name, self.metadata, *columns, schema=self.schema)
+
+        self.extra_tables = {
+            table_name: Table(
+                table_name,
+                self.metadata,
+                Column(col_name, col_type),
+                schema=self.schema,
+            )
+            for table_name in self.extra_data
+            for col_name, col_type in self.get_extra_column_types(table_name).items()
+        }
+
         self.metadata.create_all(self.engine)
         with self.engine.connect() as conn:
             # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
@@ -181,15 +200,30 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
             # Then we pass that list of dicts in as parameters to our insert statement.
             #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
             #   [...] [('1', 'foo'), ('2', 'bar')]
-            conn.execute(insert(self.table), list(self.data.to_dict("index").values()))
-            conn.commit()
+            with conn.begin():
+                conn.execute(insert(self.table), list(self.data.to_dict("index").values()))
+                for table_name, table_data in self.extra_data.items():
+                    conn.execute(
+                        insert(self.extra_tables[table_name]),
+                        list(table_data.to_dict("index").values()),
+                    )
 
     @override
     def teardown(self) -> None:
         if self.table is not None:
             self.table.drop(self.engine)
+        if self.extra_tables:
+            for table in self.extra_tables.values():
+                table.drop(self.engine)
 
     def get_column_types(self) -> Dict[str, PostgresColumnType]:
         if self.config.column_types is None:
             return {}
         return self.config.column_types
+
+    def get_extra_column_types(self, table_name: str) -> Dict[str, PostgresColumnType]:
+        extra_assets = self.config.extra_assets
+        if not extra_assets:
+            return {}
+        else:
+            return extra_assets[table_name]

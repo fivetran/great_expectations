@@ -1,4 +1,5 @@
 import pathlib
+from typing import Mapping
 
 import pandas as pd
 import pytest
@@ -24,8 +25,13 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
 
     @override
     def create_batch_setup(
-        self, data: pd.DataFrame, request: pytest.FixtureRequest
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
+        assert not extra_data, "extra_data is not supported for this data source."
+
         tmp_path = request.getfixturevalue("tmp_path")
         assert isinstance(tmp_path, pathlib.Path)
 

@@ -78,3 +78,52 @@ def test_expect_column_mean_to_be_between(batch_for_datasource):
     expectation = gxe.ExpectColumnMeanToBeBetween(column="a", min_value=2, max_value=3)
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+class TestExpectTableRowCountToEqualOtherTable:
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            PostgreSQLDatasourceTestConfig(
+                column_types={"col_a": POSTGRESQL_TYPES.INTEGER},
+                extra_assets={"test_table_two": {"col_b": POSTGRESQL_TYPES.VARCHAR}},
+            ),
+        ],
+        data=pd.DataFrame({"a": [1, 2, 3, 4]}),
+        extra_data={"test_table_two": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
+    )
+    def test_success(self, batch_for_datasource):
+        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name="test_table_two")
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            PostgreSQLDatasourceTestConfig(
+                column_types={"col_a": POSTGRESQL_TYPES.INTEGER},
+                extra_assets={"test_table_two": {"col_b": POSTGRESQL_TYPES.VARCHAR}},
+            ),
+        ],
+        data=pd.DataFrame({"a": [1, 2, 3, 4]}),
+        extra_data={"test_table_two": pd.DataFrame({"col_b": ["just_this_one!"]})},
+    )
+    def test_different_counts(self, batch_for_datasource):
+        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name="test_table_two")
+        result = batch_for_datasource.validate(expectation)
+        assert not result.success
+        assert result.result["observed_value"] == {
+            "self": 4,
+            "other": 1,
+        }
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            PostgreSQLDatasourceTestConfig(
+                column_types={"col_a": POSTGRESQL_TYPES.INTEGER},
+            ),
+        ],
+        data=pd.DataFrame({"a": [1, 2, 3, 4]}),
+    )
+    def test_missing_table(self, batch_for_datasource):
+        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name="where_am_i")
+        result = batch_for_datasource.validate(expectation)
+        assert not result.success
