@@ -155,8 +155,7 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
         self.connection_string = "postgresql+psycopg2://postgres@localhost:5432/test_ci"
         self.engine = create_engine(url=self.connection_string)
         self.metadata = MetaData()
-        self.table: Union[Table, None] = None
-        self.extra_tables: Union[Mapping[str, Table], None] = None
+        self.tables: Union[list[Table], None] = None
         self.schema = "public"
         self.extra_data = extra_data
         super().__init__(config=config, data=data)
@@ -179,15 +178,15 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
 
     @override
     def setup(self) -> None:
-        self.table = self._create_table(name=self.table_name, columns=self.get_column_types())
-
-        self.extra_tables = {
+        main_table = self._create_table(name=self.table_name, columns=self.get_column_types())
+        extra_tables = {
             table_name: self._create_table(
                 name=table_name,
                 columns=self.get_extra_column_types(table_name),
             )
             for table_name in self.extra_data
         }
+        self.tables = [main_table, *extra_tables.values()]
 
         self.metadata.create_all(self.engine)
         with self.engine.connect() as conn:
@@ -197,19 +196,17 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
             #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
             #   [...] [('1', 'foo'), ('2', 'bar')]
             with conn.begin():
-                conn.execute(insert(self.table), list(self.data.to_dict("index").values()))
+                conn.execute(insert(main_table), list(self.data.to_dict("index").values()))
                 for table_name, table_data in self.extra_data.items():
                     conn.execute(
-                        insert(self.extra_tables[table_name]),
+                        insert(extra_tables[table_name]),
                         list(table_data.to_dict("index").values()),
                     )
 
     @override
     def teardown(self) -> None:
-        if self.table is not None:
-            self.table.drop(self.engine)
-        if self.extra_tables:
-            for table in self.extra_tables.values():
+        if self.tables:
+            for table in self.tables:
                 table.drop(self.engine)
 
     def _create_table(self, name: str, columns: Mapping[str, PostgresColumnType]) -> Table:
