@@ -5,7 +5,7 @@ import string
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TYPE_CHECKING, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Dict, Generic, Optional, TypeVar, Union
 
 import great_expectations as gx
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
@@ -17,9 +17,13 @@ if TYPE_CHECKING:
     from pytest import FixtureRequest
 
 
+_ColumnTypes = TypeVar("_ColumnTypes")
+
+
 @dataclass(frozen=True)
-class DataSourceTestConfig(ABC):
+class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     name: Optional[str] = None
+    column_types: Union[Dict[str, _ColumnTypes], None] = None
 
     @property
     @abstractmethod
