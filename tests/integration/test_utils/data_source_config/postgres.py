@@ -186,11 +186,13 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
             table_name: Table(
                 table_name,
                 self.metadata,
-                Column(col_name, col_type),
+                *[
+                    Column(col_name, col_type)
+                    for col_name, col_type in self.get_extra_column_types(table_name).items()
+                ],
                 schema=self.schema,
             )
             for table_name in self.extra_data
-            for col_name, col_type in self.get_extra_column_types(table_name).items()
         }
 
         self.metadata.create_all(self.engine)
