@@ -265,13 +265,13 @@ except (ImportError, AttributeError):
 try:
     from sqlalchemy import create_engine
 except (ImportError, AttributeError):
-    create_engine = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment]
+    create_engine = SQLALCHEMY_NOT_IMPORTED
 
 
 try:
     from sqlalchemy import insert
 except (ImportError, AttributeError):
-    insert = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment]
+    insert = SQLALCHEMY_NOT_IMPORTED
 
 try:
     __version__: str | None = sqlalchemy.__version__
