@@ -179,18 +179,12 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
 
     @override
     def setup(self) -> None:
-        columns = [Column(name, type) for name, type in self.get_column_types().items()]
-        self.table = Table(self.table_name, self.metadata, *columns, schema=self.schema)
+        self.table = self._create_table(name=self.table_name, columns=self.get_column_types())
 
         self.extra_tables = {
-            table_name: Table(
-                table_name,
-                self.metadata,
-                *[
-                    Column(col_name, col_type)
-                    for col_name, col_type in self.get_extra_column_types(table_name).items()
-                ],
-                schema=self.schema,
+            table_name: self._create_table(
+                name=table_name,
+                columns=self.get_extra_column_types(table_name),
             )
             for table_name in self.extra_data
         }
@@ -217,6 +211,10 @@ class PostgresBatchTestSetup(BatchTestSetup[PostgreSQLDatasourceTestConfig]):
         if self.extra_tables:
             for table in self.extra_tables.values():
                 table.drop(self.engine)
+
+    def _create_table(self, name: str, columns: Mapping[str, PostgresColumnType]) -> Table:
+        column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
+        return Table(name, self.metadata, *column_list, schema=self.schema)
 
     def get_column_types(self) -> Mapping[str, PostgresColumnType]:
         if self.config.column_types is None:
