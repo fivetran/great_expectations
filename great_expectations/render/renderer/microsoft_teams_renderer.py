@@ -20,6 +20,16 @@ logger = logging.getLogger(__name__)
 
 
 class MicrosoftTeamsRenderer(Renderer):
+    """
+    Responsible for formatting validation results and data docs links into a Microsoft Teams webhook
+    message payload.
+
+    Relevant links/documentation:
+        * Payload schema: https://adaptivecards.io/explorer/
+        * Interactive UI editor: https://adaptivecards.io/designer/
+
+    """
+
     _MICROSOFT_TEAMS_CONTENT_TYPE = "application/vnd.microsoft.card.adaptive"
     _MICROSOFT_TEAMS_SCHEMA_URL = "http://adaptivecards.io/schemas/adaptive-card.json"
     _MICROSOFT_TEAMS_SCHEMA_VERSION = 1.5
