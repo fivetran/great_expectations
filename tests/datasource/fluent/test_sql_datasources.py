@@ -5,7 +5,7 @@ import logging
 import warnings
 from datetime import date, datetime, timezone
 from pprint import pformat as pf
-from typing import TYPE_CHECKING, Any, Generator
+from typing import TYPE_CHECKING, Any, Callable, Generator
 from unittest import mock
 
 import pytest
@@ -13,6 +13,7 @@ from pytest import param
 
 from great_expectations.compatibility import sqlalchemy
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+from great_expectations.core.partitioners import ColumnPartitionerDaily
 from great_expectations.datasource.fluent import GxDatasourceWarning, SQLDatasource
 from great_expectations.datasource.fluent.sql_datasource import (
     DEFAULT_QUOTE_CHARACTERS,
@@ -445,13 +446,26 @@ class TestTableAsset:
         assert table_asset.schema_name == schema_name
 
 
-@contextlib.contextmanager
-def expect_no_error():
-    yield
+class ExpectNoError:
+    def __enter__(self): ...
+
+    def __exit__(self, exc_type, exc_val, exc_tb): ...
+
+
+def add_table_asset(my_datasource: SQLDatasource):
+    return my_datasource.add_table_asset(
+        name="my_table_asset",
+        table_name="my_table",
+        schema_name="my_schema",
+    )
+
+
+def add_query_asset(my_datasource: SQLDatasource):
+    return my_datasource.add_query_asset(name="my_query_asset", query="select * from my_table")
 
 
 @pytest.mark.unit
-class TestSqlDatasourceAddBatchDefinitionWithPartitioner:
+class TestSqlDatasourceValidateBatchDefinition:
     class FakeResult:
         def __init__(self, queried_row: Any):
             self._queried_row = queried_row
@@ -466,7 +480,7 @@ class TestSqlDatasourceAddBatchDefinitionWithPartitioner:
             self._queried_row = queried_row
 
         def execute(self, *args, **kwargs):
-            return TestSqlDatasourceAddBatchDefinitionWithPartitioner.FakeResult(self._queried_row)
+            return TestSqlDatasourceValidateBatchDefinition.FakeResult(self._queried_row)
 
         def __enter__(self):
             return self
@@ -478,53 +492,63 @@ class TestSqlDatasourceAddBatchDefinitionWithPartitioner:
             self._queried_row = queried_row
 
         def connect(self):
-            return TestSqlDatasourceAddBatchDefinitionWithPartitioner.FakeConnection(
-                self._queried_row
-            )
+            return TestSqlDatasourceValidateBatchDefinition.FakeConnection(self._queried_row)
 
     @pytest.mark.parametrize(
         "queried_row, expect_error_or_no",
         [
             pytest.param(
                 [datetime(2024, 10, 28, 0, 0, 0, tzinfo=timezone.utc)],
-                expect_no_error(),
+                lambda: ExpectNoError(),
                 id="datetime",
             ),
-            pytest.param([date(2024, 10, 28)], expect_no_error(), id="date"),
+            pytest.param([date(2024, 10, 28)], lambda: ExpectNoError(), id="date"),
             pytest.param(
-                ["not a datetime"], pytest.raises(SqlAddBatchDefinitionError), id="invalid type"
+                ["not a datetime"],
+                lambda: pytest.raises(SqlAddBatchDefinitionError),
+                id="invalid type",
             ),
-            pytest.param([None], pytest.raises(SqlAddBatchDefinitionError), id="None row returned"),
-            pytest.param(None, pytest.raises(SqlAddBatchDefinitionError), id="No rows returned"),
-            pytest.param([], pytest.raises(SqlAddBatchDefinitionError), id="Empty row returned"),
+            pytest.param(
+                [None], lambda: pytest.raises(SqlAddBatchDefinitionError), id="None row returned"
+            ),
+            pytest.param(
+                None, lambda: pytest.raises(SqlAddBatchDefinitionError), id="No rows returned"
+            ),
+            pytest.param(
+                [], lambda: pytest.raises(SqlAddBatchDefinitionError), id="Empty row returned"
+            ),
         ],
     )
-    def test_add_batch_definition_to_table_asset(
+    @pytest.mark.parametrize(
+        "add_sql_asset",
+        [
+            pytest.param(add_table_asset, id="table asset"),
+            pytest.param(add_query_asset, id="query asset"),
+        ],
+    )
+    def test_validate_batch_definition(
         self,
         sql_datasource_table_asset_test_connection_noop: SQLDatasource,
         monkeypatch: pytest.MonkeyPatch,
         queried_row: Any,
-        expect_error_or_no: contextlib.AbstractContextManager,
+        expect_error_or_no: Callable[[], contextlib.AbstractContextManager],
+        add_sql_asset,
     ):
         # Setup
         # Monkeypatch SQLDatasource so we return a fake engine which returns a fixed db result.
         monkeypatch.setattr(
             SQLDatasource,
             "get_engine",
-            lambda _: TestSqlDatasourceAddBatchDefinitionWithPartitioner.FakeEngine(queried_row),
+            lambda _: TestSqlDatasourceValidateBatchDefinition.FakeEngine(queried_row),
         )
 
         # Add our asset to the datasource
         my_datasource: SQLDatasource = sql_datasource_table_asset_test_connection_noop
-        table_asset = my_datasource.add_table_asset(
-            name="my_table_asset",
-            table_name="my_table",
-            schema_name="my_schema",
-        )
+        my_asset = add_sql_asset(my_datasource)
 
-        # Act and assert: Add a batch definition and obse
-        with expect_error_or_no:
-            table_asset.add_batch_definition_daily("my_batch_def", "column_name")
+        # Act and assert: Add a batch definition and assert error
+        with expect_error_or_no():
+            my_asset.validate_batch_definition(ColumnPartitionerDaily(column_name="column_name"))
 
     # Tests I considered adding but have not.
     # 1. Engine dies on connect

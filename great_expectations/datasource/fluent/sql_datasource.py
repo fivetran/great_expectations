@@ -724,11 +724,11 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         partitioner: Optional[ColumnPartitioner] = None,
     ) -> BatchDefinition[ColumnPartitioner]:
         if partitioner:
-            self.validate_add_batch_definition(partitioner)
+            self.validate_batch_definition(partitioner)
         return super().add_batch_definition(name, partitioner)
 
     @public_api
-    def validate_add_batch_definition(self, partitioner: Optional[ColumnPartitioner]) -> None:
+    def validate_batch_definition(self, partitioner: Optional[ColumnPartitioner]) -> None:
         """Validates that the batch definition column is of a permissible type
 
         This isn't meant to be called directly. This is called internally when a batch definition
