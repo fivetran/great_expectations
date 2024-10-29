@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.snowflake import snowflaketypes
+from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import (
     Column,
     MetaData,
@@ -21,24 +21,24 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 
 SnowflakeColumnType = Union[
-    type[snowflaketypes.ARRAY],
-    type[snowflaketypes.BYTEINT],
-    type[snowflaketypes.CHARACTER],
-    type[snowflaketypes.DEC],
-    type[snowflaketypes.DOUBLE],
-    type[snowflaketypes.FIXED],
-    type[snowflaketypes.GEOGRAPHY],
-    type[snowflaketypes.GEOMETRY],
-    type[snowflaketypes.NUMBER],
-    type[snowflaketypes.OBJECT],
-    type[snowflaketypes.STRING],
-    type[snowflaketypes.TEXT],
-    type[snowflaketypes.TIMESTAMP_LTZ],
-    type[snowflaketypes.TIMESTAMP_NTZ],
-    type[snowflaketypes.TIMESTAMP_TZ],
-    type[snowflaketypes.TINYINT],
-    type[snowflaketypes.VARBINARY],
-    type[snowflaketypes.VARIANT],
+    type[SNOWFLAKE_TYPES.ARRAY],
+    type[SNOWFLAKE_TYPES.BYTEINT],
+    type[SNOWFLAKE_TYPES.CHARACTER],
+    type[SNOWFLAKE_TYPES.DEC],
+    type[SNOWFLAKE_TYPES.DOUBLE],
+    type[SNOWFLAKE_TYPES.FIXED],
+    type[SNOWFLAKE_TYPES.GEOGRAPHY],
+    type[SNOWFLAKE_TYPES.GEOMETRY],
+    type[SNOWFLAKE_TYPES.NUMBER],
+    type[SNOWFLAKE_TYPES.OBJECT],
+    type[SNOWFLAKE_TYPES.STRING],
+    type[SNOWFLAKE_TYPES.TEXT],
+    type[SNOWFLAKE_TYPES.TIMESTAMP_LTZ],
+    type[SNOWFLAKE_TYPES.TIMESTAMP_NTZ],
+    type[SNOWFLAKE_TYPES.TIMESTAMP_TZ],
+    type[SNOWFLAKE_TYPES.TINYINT],
+    type[SNOWFLAKE_TYPES.VARBINARY],
+    type[SNOWFLAKE_TYPES.VARIANT],
 ]
 
 

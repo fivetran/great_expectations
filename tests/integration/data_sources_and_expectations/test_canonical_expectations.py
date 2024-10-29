@@ -8,7 +8,7 @@ from tests.integration.test_utils.data_source_config import (
 )
 from tests.integration.test_utils.data_source_config.snowflake import (
     SnowflakeDatasourceTestConfig,
-    snowflaketypes,
+    SNOWFLAKE_TYPES,
 )
 
 
@@ -16,7 +16,7 @@ from tests.integration.test_utils.data_source_config.snowflake import (
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": snowflaketypes.NUMBER}),
+        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -30,7 +30,7 @@ def test_expect_column_min_to_be_between(batch_for_datasource) -> None:
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": snowflaketypes.NUMBER}),
+        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -44,7 +44,7 @@ def test_expect_column_max_to_be_between(batch_for_datasource) -> None:
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": snowflaketypes.NUMBER}),
+        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -58,7 +58,7 @@ def test_expect_column_to_exist(batch_for_datasource):
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": snowflaketypes.NUMBER}),
+        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -72,7 +72,7 @@ def test_expect_column_values_to_not_be_null(batch_for_datasource):
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": snowflaketypes.NUMBER}),
+        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
     ],
     data=pd.DataFrame({"a": [1, 2, 3, 4]}),
 )

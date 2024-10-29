@@ -134,6 +134,29 @@ try:
 except (ImportError, AttributeError):
     VARIANT = SNOWFLAKE_NOT_IMPORTED
 
+try:
+    from snowflake.sqlalchemy.custom_types import DOUBLE
+except (ImportError, AttributeError):
+    DOUBLE = SNOWFLAKE_NOT_IMPORTED
+
 
 class SNOWFLAKE_TYPES:
+    """Namespace for Snowflake dialect types."""
     ARRAY = ARRAY
+    BYTEINT = BYTEINT
+    CHARACTER = CHARACTER
+    DEC = DEC
+    DOUBLE = DOUBLE
+    FIXED = FIXED
+    GEOGRAPHY = GEOGRAPHY
+    GEOMETRY = GEOMETRY
+    NUMBER = NUMBER
+    OBJECT = OBJECT
+    STRING = STRING
+    TEXT = TEXT
+    TIMESTAMP_LTZ = TIMESTAMP_LTZ
+    TIMESTAMP_NTZ = TIMESTAMP_NTZ
+    TIMESTAMP_TZ = TIMESTAMP_TZ
+    TINYINT = TINYINT
+    VARBINARY = VARBINARY
+    VARIANT = VARIANT
