@@ -1,13 +1,13 @@
 import pandas as pd
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.snowflake import (
-    SNOWFLAKE_TYPES,
     SnowflakeDatasourceTestConfig,
 )
 
