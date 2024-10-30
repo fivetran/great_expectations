@@ -309,6 +309,6 @@ def test_validate_batch_definition(
         asset.validate_batch_definition(ColumnPartitionerDaily(column_name="column_name"))
 
 
-# Tests I considered adding but have not.
+# Tests I considered adding for test_validate_batch_definition but have not.
 # 1. Engine dies on connect
 # 2. Connection dies on execute
