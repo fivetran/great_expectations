@@ -55,7 +55,7 @@ In this dataset, the `transactions` table captures the details of each financial
 
 Validating the integrity of this financial data involves checking the consistency and accuracy of relationships between the `transactions` and `transfer_balances` tables, as well as verifying that business rules and constraints are met.
 
-## Key distribution Expectations
+## Key integrity Expectations
 
 Great Expectations provides several Expectations designed for validating relationships between data elements within a single table. However, if you want to validate data relationships across multiple tables, the current built-in Data Integrity Expectations won't work out of the box. To overcome this limitation, you have two options:
 
