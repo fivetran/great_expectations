@@ -25,7 +25,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
     topIcon 
     label="Retrieve a Batch of sample data"
     description="Retrieve a Batch of data to validate your Expectations against."
-    to="/docs/core/define_expectations/retrieve_a_batch_of_test_data" 
+    to="/core/define_expectations/retrieve_a_batch_of_test_data" 
     icon="/img/expectation_icon.svg" 
   />
   <LinkCard 
