@@ -40,9 +40,7 @@ data_asset = datasource.add_table_asset(name="data asset", table_name="transacti
 batch_definition = data_asset.add_batch_definition_whole_table("batch definition")
 batch = batch_definition.get_batch()
 
-suite = context.suites.add(
-    gx.ExpectationSuite(name="example integrity expectations")
-)
+suite = context.suites.add(gx.ExpectationSuite(name="example integrity expectations"))
 
 #############################
 # Start Expectation snippets.
@@ -50,8 +48,7 @@ suite = context.suites.add(
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectColumnPairValuesToBeEqual">
     gxe.ExpectColumnPairValuesToBeEqual(
-        column_A="reference_number",
-        column_B="confirmation_code"
+        column_A="reference_number", column_B="confirmation_code"
     )
     # </snippet>
 )

@@ -11,7 +11,6 @@ pytest --postgresql --docs-tests -k "data_quality_use_case_integration_workflow"
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_workflow.py full workflow">
 import great_expectations as gx
-import great_expectations.expectations as gxe
 
 # Create Data Context.
 context = gx.get_context()
