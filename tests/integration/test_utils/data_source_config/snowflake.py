@@ -82,7 +82,14 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
         name = self._random_resource_name()
         return (
             self._context.data_sources.add_snowflake(
-                name=name, connection_string=self.snowflake_connection_config.connection_string
+                name=name,
+                account=self.snowflake_connection_config.SNOWFLAKE_ACCOUNT,
+                user=self.snowflake_connection_config.SNOWFLAKE_USER,
+                password=self.snowflake_connection_config.SNOWFLAKE_PW,
+                database=self.snowflake_connection_config.SNOWFLAKE_DATABASE,
+                schema=self.snowflake_connection_config.SNOWFLAKE_SCHEMA,
+                warehouse=self.snowflake_connection_config.SNOWFLAKE_WAREHOUSE,
+                role=self.snowflake_connection_config.SNOWFLAKE_ROLE,
             )
             .add_table_asset(
                 name=name,
