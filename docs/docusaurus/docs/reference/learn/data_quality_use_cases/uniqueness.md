@@ -23,14 +23,18 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 ## Data preview
 
-The examples in this guide use a sample transaction dataset, available as a [CSV file on GitHub](https://raw.githubusercontent.com/great-expectations/great_expectations/develop/tests/test_sets/learn_data_quality_use_cases/uniqueness.csv).
+The examples in this guide use a sample customer dataset, available as a [CSV file on GitHub](https://raw.githubusercontent.com/great-expectations/great_expectations/develop/tests/test_sets/learn_data_quality_use_cases/customer_uniqueness.csv).
 
-| transfer_type     | sender_account_number  | recipient_fullname | transfer_amount | transfer_ts       |
-|----------|------------------------|--------------------|-----------------|---------------------|
-| domestic | 244084670977           | Jaxson Duke        | 9143.40         | 2024-05-01 01:12    |
-| domestic | 954005011218           | Nelson O’Connell   | 3285.21         | 2024-05-01 05:08    |
+| customer_id | first_name | last_name | email_address         | phone_number | country | government_id |
+|-------------|------------|-----------|------------------------|--------------|---------|---------------|
+| 1           | John       | Doe       | johndoe@email.com      | 1234567890   | USA     | 123-45-6789   |
+| 2           | Jane       | Smith     | jsmith@email.com       | 9876543210   | Canada  | 987-65-4321   |
+| 3           | Jon        | Doe       | jon.doe@email.com      | 1234567890   | USA     | 123-45-6789   |
+| 4           | J.         | Doe       | johndoe@email.com      | 1234567891   | USA     | 123-45-6789   |
 
-Uniqueness is particularly crucial for columns like `sender_account_number` and `transfer_ts`. When combined, fields such as `sender_account_number`, `recipient_fullname`, `transfer_amount`, and `transfer_ts` should form a unique identifier for each transaction. This ensures that each transfer is distinctly recorded and prevents issues like double-counting or missing transactions.
+In this dataset, rows 1, 3, and 4 likely represent the same person with slight variations in their registered information. This scenario is common in real-world customer databases and presents a challenge for maintaining data uniqueness and integrity.
+
+Uniqueness is particularly crucial for fields like `customer_id`, `email_address`, and `government_id`. However, due to data entry errors, multiple registrations, or system migrations, duplicates can still occur. When combined, fields such as `first_name`, `last_name`, `phone_number`, and `government_id` should ideally form a unique identifier for each customer. This ensures that each customer is distinctly recorded and prevents issues like fragmented customer profiles or incorrect communications.
 
 ## Key uniqueness Expectations
 
@@ -40,12 +44,12 @@ Uniqueness is particularly crucial for columns like `sender_account_number` and 
 
 This Expectation validates that the proportion of unique values in a column is between a specified minimum and maximum value. It's useful for ensuring a certain level of uniqueness in a column without requiring full uniqueness.
 
-For example, you might expect at least 80% of the `sender_account_number` values to be unique:
+For example, you might expect at least 90% of the `email_address` values to be unique:
 
 ```python
 gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
-    column="sender_account_number",
-    min_value=0.8,
+    column="email_address",
+    min_value=0.9,
     max_value=1.0
 )
 ```
@@ -56,13 +60,13 @@ gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
 
 This Expectation validates that the number of unique values in a column is between a specified minimum and maximum value. It's useful when you have a specific range in mind for the number of unique values that should be present.
 
-For example, you might expect the `recipient_fullname` column to contain between 1 and 2 unique values:
+For example, you might expect the `country` column to contain between 1 and 5 unique values:
 
 ```python
 gxe.ExpectColumnUniqueValueCountToBeBetween(
-    column="recipient_fullname",
+    column="country",
     min_value=1,
-    max_value=2
+    max_value=5
 )
 ```
 
@@ -73,11 +77,11 @@ gxe.ExpectColumnUniqueValueCountToBeBetween(
 
 This Expectation validates that each value in a column is unique. It's useful for ensuring there are no duplicates in a column that should contain only unique values, such as a primary key or a timestamp.
 
-For example, you might expect the `transfer_ts` column to contain only unique timestamps:
+For example, you might expect the `customer_id` column to contain only unique values:
 
 ```python
 gxe.ExpectColumnValuesToBeUnique(
-    column="transfer_ts"
+    column="customer_id"
 )
 ```
 
@@ -95,11 +99,11 @@ If your data allows for a small number of duplicates, consider using `ExpectColu
 
 This Expectation validates that the combination of values across multiple columns is unique for each row. It's useful for ensuring uniqueness across a set of columns that together form a unique identifier, such as a composite key.
 
-For example, you might expect the combination of `sender_account_number`, `recipient_fullname`, and `transfer_amount` to uniquely identify each transaction:
+For example, you might expect the combination of `first_name`, `last_name`, and `government_id` to uniquely identify each customer:
 
 ```python
 gxe.ExpectCompoundColumnsToBeUnique(
-    column_list=["sender_account_number", "recipient_fullname", "transfer_amount"],
+    column_list=["first_name", "last_name", "government_id"],
 )
 ```
 
@@ -110,11 +114,11 @@ gxe.ExpectCompoundColumnsToBeUnique(
 
 This Expectation validates that, for each row, the values across a specified set of columns are unique. It's useful for ensuring there are no duplicate values within a single row across multiple fields.
 
-For example, you might expect each transaction to have a unique `transfer_type` and `transfer_amount` combination:
+For example, you might expect each customer record to have a unique `email_address` and `phone_number` combination:
 
 ```python
 gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
-    column_list=["transfer_type", "transfer_amount"],
+  column_list=["email_address", "phone_number"],
 )
 ```
 
@@ -128,9 +132,9 @@ When validating uniqueness, consider the level of granularity required for your 
 
 ## Example: Validate uniqueness of a column
 
-**Context**: In many datasets, certain columns are expected to have a specific number of unique values. For example, in a transaction dataset, the `transfer_type` column might be expected to have a limited number of distinct values representing the different types of transfers supported. Monitoring the count of unique values in such columns can help detect data quality issues, such as the introduction of unexpected new transfer types or data entry errors.
+**Context**: In customer databases, certain columns are expected to contain unique values to ensure data integrity and prevent duplicate records. For example, the `government_id` column should contain unique values as it represents a unique identifier for each customer. Monitoring the uniqueness of such columns can help detect data quality issues, such as duplicate customer entries or data input errors.
 
-**Goal**: Using the `ExpectColumnUniqueValueCountToBeBetween` Expectation and either GX Core or GX Cloud, validate that the `transfer_type` column has an expected number of unique values.
+**Goal**: Using the `ExpectColumnValuesToBeUnique` Expectation and either GX Core or GX Cloud, validate that the `government_id` column contains only unique values.
 
 <Tabs
    defaultValue="gx_cloud"
@@ -143,16 +147,15 @@ When validating uniqueness, consider the level of granularity required for your 
 <TabItem value="gx_cloud" label="GX Cloud">
 Use the GX Cloud UI to walk through the following steps.
 
-1. Create a Postgres Data Asset for the `uniqueness_transfers` table, using the connection string:
+1. Create a Postgres Data Asset for the `uniqueness_customers` table, using the connection string:
 
   ```
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
   ```
 
-3. Add an **Expect column unique value count to be between** Expectation to the freshly created Data Asset.
+3. Add an **Expect column values to be unique** Expectation to the freshly created Data Asset.
 4. Populate the Expectation:
-   * Select `transfer_type` as the **Column**.
-   * Provide a **Min Value** of `2` and a **Max Value** of `4`.
+   * Select `government_id` as the **Column**.
 5. Save the Expectation.
 6. Click the **Validate** button.
 7. Review Validation Results.
@@ -167,9 +170,9 @@ Run the following GX Core workflow.
 
 </Tabs>
 
-**GX solution**: GX enables validating the count of unique values in a column. By setting a min and max value, you can ensure that the number of distinct values falls within an expected range. This can be done using either GX Core or GX Cloud.
+**GX solution**: GX enables validating the uniqueness of values in a column. By using the `ExpectColumnValuesToBeUnique` Expectation, you can ensure that each value in the specified column appears only once. This can be done using either GX Core or GX Cloud.
 
-In this example, we expect the `transfer_type` column to have between 2 and 4 unique values. The `ExpectColumnUniqueValueCountToBeBetween` Expectation allows us to codify this requirement and validate it against our data. If new transfer types are introduced or if data errors lead to unexpected values, the validation will fail, alerting us to potential data quality issues.
+In this example, we expect the `government_id` column to contain only unique values. The `ExpectColumnValuesToBeUnique` Expectation allows us to codify this requirement and validate it against our data. If duplicate government IDs are found, the validation will fail, alerting us to potential data quality issues such as duplicate customer records or data entry errors.
 
 ## Scenarios
 
