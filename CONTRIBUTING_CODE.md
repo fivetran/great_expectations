@@ -64,7 +64,7 @@ To submit a custom package to Great Expectations for consideration, see [CONTRIB
 
 A [virtual environment](https://peps.python.org/pep-0405) allows you to install an independent set of Python packages to their own site directory, isolated from the base/system install of Python.
 
-Great Expectations requires a Python version from 3.8 to 3.11.
+Great Expectations requires a Python version from 3.9 to 3.12.
 
 ### Python
 
