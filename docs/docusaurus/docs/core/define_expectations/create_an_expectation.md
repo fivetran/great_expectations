@@ -40,7 +40,7 @@ An Expectation is a verifiable assertion about your data. Expectations make impl
    from great_expectations import expectations as gxe
    ```
 
-2. Determine the Expectation's parameters
+2. Determine the Expectation's required parameters
 
    To determine the parameters your Expectation uses to evaluate data, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with the a description of the value that should be provided.
 

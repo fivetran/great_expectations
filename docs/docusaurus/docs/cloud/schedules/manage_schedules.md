@@ -14,7 +14,7 @@ Add schedules to your GX Cloud Expectation Suites to take advantage of automated
 
 3. Click the **Expectations** tab and then select the Expectation Suite you'd like to apply a schedule to.
 
-4. Ensure you have an Expectation in the Expectation Suite. Unpause the schedule for the Expectation Suite using the toggle in the Scheduling component.
+4. Ensure you have an Expectation in the Expectation Suite.
 
 5. To edit the default schedule, click the edit icon in the Scheduling component.
 
