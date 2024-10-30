@@ -1,5 +1,5 @@
 from random import randint
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 import pandas as pd
 import pytest
@@ -91,7 +91,9 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
     @override
     def setup(self) -> None:
         column_types = self.get_column_types()
-        columns = [Column(name, column_type) for name, column_type in column_types.items()]
+        columns: List[Column] = [
+            Column(name, column_type) for name, column_type in column_types.items()
+        ]
         self.table = Table(
             self.table_name,
             self.metadata,
