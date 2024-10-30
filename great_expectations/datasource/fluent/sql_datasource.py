@@ -24,7 +24,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Never, TypeAlias
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
@@ -81,7 +81,6 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 if TYPE_CHECKING:
     from sqlalchemy.sql import quoted_name  # noqa: TID251 # type-checking only
 
-    from great_expectations.compatibility import sqlalchemy
     from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.datasource.fluent import BatchParameters
     from great_expectations.datasource.fluent.interfaces import (
@@ -489,6 +488,13 @@ class SqlAddBatchDefinitionError(Exception):
         super().__init__(f"Failed adding batch definition: {msg}")
 
 
+SQLAssetPartitioner: TypeAlias = Union[
+    ColumnPartitionerYearly,
+    ColumnPartitionerMonthly,
+    ColumnPartitionerDaily,
+]
+
+
 @public_api
 class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT]):
     """A _SQLAsset Mixin
@@ -728,7 +734,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         return super().add_batch_definition(name, partitioner)
 
     @public_api
-    def validate_batch_definition(self, partitioner: Optional[ColumnPartitioner]) -> None:
+    def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
         """Validates that the batch definition column is of a permissible type
 
         This isn't meant to be called directly. This is called internally when a batch definition
@@ -739,10 +745,21 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 a permissible type for batching (ie date or datetime) or no data is
                 present in this column.
         """
-        engine: sqlalchemy.Engine = self.datasource.get_engine()
+        # We only support certain partitioners for using as batch definitions.
+        assert isinstance(
+            partitioner,
+            (
+                ColumnPartitionerYearly,
+                ColumnPartitionerMonthly,
+                ColumnPartitionerDaily,
+            ),
+        )
+        # A _SQLAsset must have a SQLDatasource
+        assert isinstance(self.datasource, SQLDatasource)
+        engine: sa.Engine = self.datasource.get_engine()
         with engine.connect() as connection:
-            selectable = self.as_selectable()
-            column = sa.sql.column(partitioner.column_name)
+            selectable: sa.Selectable = self.as_selectable()
+            column: sa.ColumnClause[Never] = sa.sql.column(partitioner.column_name)
             try:
                 # We query the table for a non-null value to leverage sqlalchemy
                 # to convert the column into a python date or datetime which we will
@@ -755,7 +772,9 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 # datetime.
                 # The drawback of this approach is we can't add a batch definition if
                 # there is no data in the table (or this column is always null).
-                row = connection.execute(sa.select(column, selectable).limit(1))
+                row = connection.execute(
+                    sa.select(column, selectable).limit(1)  # type: ignore[call-overload]  # sqlalchemy typing is missing variants
+                )
             except Exception as query_error:
                 LOGGER.info(f"{self.name} `.test_connection()` query failed: {query_error!r}")
                 raise SqlAddBatchDefinitionError(
@@ -861,7 +880,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         """
         raise NotImplementedError
 
-    def as_selectable(self) -> sqlalchemy.Selectable:
+    def as_selectable(self) -> sa.Selectable:
         """Returns a Selectable that can be used to query this data
 
         Returns:
@@ -884,7 +903,7 @@ class QueryAsset(_SQLAsset):
         return v
 
     @override
-    def as_selectable(self) -> sqlalchemy.Selectable:
+    def as_selectable(self) -> sa.Selectable:
         """Returns the Selectable that is used to retrieve the data.
 
         This can be used in a subselect FROM clause for queries against this data.
@@ -933,10 +952,8 @@ class TableAsset(_SQLAsset):
     def _resolve_quoted_name(cls, table_name: str) -> str | quoted_name:
         table_name_is_quoted: bool = cls._is_bracketed_by_quotes(table_name)
 
-        from great_expectations.compatibility import sqlalchemy
-
-        if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
-            if isinstance(table_name, sqlalchemy.quoted_name):
+        if sa.quoted_name:  # type: ignore[truthy-function]
+            if isinstance(table_name, sa.quoted_name):
                 return table_name
 
             if table_name_is_quoted:
@@ -945,7 +962,7 @@ class TableAsset(_SQLAsset):
                 # TODO: We need to handle nested quotes
                 table_name = table_name.strip("'").strip('"')
 
-            return sqlalchemy.quoted_name(
+            return sa.quoted_name(
                 value=table_name,
                 quote=table_name_is_quoted,
             )
@@ -960,8 +977,8 @@ class TableAsset(_SQLAsset):
             TestConnectionError: If the connection test fails.
         """
         datasource: SQLDatasource = self.datasource
-        engine: sqlalchemy.Engine = datasource.get_engine()
-        inspector: sqlalchemy.Inspector = sa.inspect(engine)
+        engine: sa.Engine = datasource.get_engine()
+        inspector: sa.Inspector = sa.inspect(engine)
 
         if self.schema_name and self.schema_name not in inspector.get_schema_names():
             raise TestConnectionError(  # noqa: TRY003
@@ -982,7 +999,7 @@ class TableAsset(_SQLAsset):
             ) from query_error
 
     @override
-    def as_selectable(self) -> sqlalchemy.Selectable:
+    def as_selectable(self) -> sa.Selectable:
         """Returns the table as a sqlalchemy Selectable.
 
         This can be used in a from clause for a query against this data.
@@ -1106,7 +1123,7 @@ class SQLDatasource(Datasource):
 
     # private attrs
     _cached_connection_string: Union[str, ConfigStr] = pydantic.PrivateAttr("")
-    _engine: Union[sqlalchemy.Engine, None] = pydantic.PrivateAttr(None)
+    _engine: Union[sa.Engine, None] = pydantic.PrivateAttr(None)
 
     # These are instance var because ClassVars can't contain Type variables. See
     # https://peps.python.org/pep-0526/#class-and-instance-variable-annotations
@@ -1119,7 +1136,7 @@ class SQLDatasource(Datasource):
         """Returns the default execution engine type."""
         return SqlAlchemyExecutionEngine
 
-    def get_engine(self) -> sqlalchemy.Engine:
+    def get_engine(self) -> sa.Engine:
         if self.connection_string != self._cached_connection_string or not self._engine:
             try:
                 self._engine = self._create_engine()
@@ -1130,7 +1147,7 @@ class SQLDatasource(Datasource):
             self._cached_connection_string = self.connection_string
         return self._engine
 
-    def _create_engine(self) -> sqlalchemy.Engine:
+    def _create_engine(self) -> sa.Engine:
         model_dict = self.dict(
             exclude=self._get_exec_engine_excludes(),
             config_provider=self._config_provider,
@@ -1180,7 +1197,7 @@ class SQLDatasource(Datasource):
             TestConnectionError: If the connection test fails.
         """  # noqa: E501
         try:
-            engine: sqlalchemy.Engine = self.get_engine()
+            engine: sa.Engine = self.get_engine()
             engine.connect()
         except Exception as e:
             raise TestConnectionError(cause=e) from e
