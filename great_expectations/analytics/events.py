@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import ClassVar, List
+from typing import ClassVar, List, Literal
 
 from great_expectations.analytics.actions import (
     CHECKPOINT_CREATED,
@@ -272,13 +272,16 @@ class MicrosoftTeamsNotificationActionRanEvent(Event):
 
     def __init__(
         self,
+        notify_type: Literal["all", "failure", "success"],
         checkpoint_id: str | None = None,
     ):
+        self.notify_type = notify_type
         self.checkpoint_id = checkpoint_id
 
     @override
     def _properties(self) -> dict:
         return {
+            "notify_type": self.notify_type,
             "checkpoint_id": self.checkpoint_id,
             **super()._properties(),
         }

@@ -481,7 +481,11 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
         )
 
         checkpoint = checkpoint_result.checkpoint_config
-        submit_event(event=MicrosoftTeamsNotificationActionRanEvent(checkpoint_id=checkpoint.id))
+        submit_event(
+            event=MicrosoftTeamsNotificationActionRanEvent(
+                notify_type=self.notify_on, checkpoint_id=checkpoint.id
+            )
+        )
 
         return {"microsoft_teams_notification_result": teams_notif_result}
 
