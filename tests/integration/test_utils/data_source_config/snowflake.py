@@ -5,7 +5,26 @@ import pandas as pd
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
+from great_expectations.compatibility.snowflake import (
+    ARRAY,
+    BYTEINT,
+    CHARACTER,
+    DEC,
+    DOUBLE,
+    FIXED,
+    GEOGRAPHY,
+    GEOMETRY,
+    NUMBER,
+    OBJECT,
+    STRING,
+    TEXT,
+    TIMESTAMP_LTZ,
+    TIMESTAMP_NTZ,
+    TIMESTAMP_TZ,
+    TINYINT,
+    VARBINARY,
+    VARIANT,
+)
 from great_expectations.compatibility.sqlalchemy import (
     Column,
     MetaData,
@@ -21,24 +40,24 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 
 SnowflakeColumnType = Union[
-    type[SNOWFLAKE_TYPES.ARRAY],
-    type[SNOWFLAKE_TYPES.BYTEINT],
-    type[SNOWFLAKE_TYPES.CHARACTER],
-    type[SNOWFLAKE_TYPES.DEC],
-    type[SNOWFLAKE_TYPES.DOUBLE],
-    type[SNOWFLAKE_TYPES.FIXED],
-    type[SNOWFLAKE_TYPES.GEOGRAPHY],
-    type[SNOWFLAKE_TYPES.GEOMETRY],
-    type[SNOWFLAKE_TYPES.NUMBER],
-    type[SNOWFLAKE_TYPES.OBJECT],
-    type[SNOWFLAKE_TYPES.STRING],
-    type[SNOWFLAKE_TYPES.TEXT],
-    type[SNOWFLAKE_TYPES.TIMESTAMP_LTZ],
-    type[SNOWFLAKE_TYPES.TIMESTAMP_NTZ],
-    type[SNOWFLAKE_TYPES.TIMESTAMP_TZ],
-    type[SNOWFLAKE_TYPES.TINYINT],
-    type[SNOWFLAKE_TYPES.VARBINARY],
-    type[SNOWFLAKE_TYPES.VARIANT],
+    type[ARRAY],
+    type[BYTEINT],
+    type[CHARACTER],
+    type[DEC],
+    type[DOUBLE],
+    type[FIXED],
+    type[GEOGRAPHY],
+    type[GEOMETRY],
+    type[NUMBER],
+    type[OBJECT],
+    type[STRING],
+    type[TEXT],
+    type[TIMESTAMP_LTZ],
+    type[TIMESTAMP_NTZ],
+    type[TIMESTAMP_TZ],
+    type[TINYINT],
+    type[VARBINARY],
+    type[VARIANT],
 ]
 
 
