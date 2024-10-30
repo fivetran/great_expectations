@@ -21,7 +21,7 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 
 
-class SnowflakeDatasourceTestConfig(DataSourceTestConfig[SnowflakeType]):
+class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
