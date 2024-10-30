@@ -66,7 +66,7 @@ In this section, we'll cover the first option by discussing built-in Expectation
 
 :::TODO:::
 
-![Add an integrity Expectation in GX Cloud](integrity_resources/integrity_add_expectation.gif)
+![Add an integrity Expectation in GX Cloud](#)
 
 ### Expect Column Pair Values To Be Equal
 
