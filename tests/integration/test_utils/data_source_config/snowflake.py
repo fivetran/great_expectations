@@ -22,7 +22,7 @@ from tests.integration.test_utils.data_source_config.base import (
 if TYPE_CHECKING:
     from great_expectations.compatibility.snowflake import SnowflakeType
 
-_SnowflakeType = TypeVar("_SnowflakeType", bound=SnowflakeType)
+_SnowflakeType = TypeVar("_SnowflakeType")
 
 
 class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
