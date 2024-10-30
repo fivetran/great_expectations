@@ -3,6 +3,7 @@ from datetime import date, datetime, timezone
 from typing import Any, Callable
 
 import pytest
+import sqlalchemy.sql
 
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.partitioners import (
@@ -109,7 +110,7 @@ class FakeEngine:
 
 @pytest.fixture
 def datasource(mocker) -> SQLDatasource:
-    return mocker.MagicMock(spec=SQLDatasource)
+    return mocker.Mock(spec=SQLDatasource)
 
 
 @pytest.fixture
@@ -125,12 +126,14 @@ def datasource_with_mocked_get_engine(datasource) -> SQLDatasource:
 
 
 @pytest.fixture
-def asset(datasource) -> _SQLAsset:
+def asset(datasource, monkeypatch) -> _SQLAsset:
     asset = _SQLAsset[SQLDatasource](name="test_asset", type="_sql_asset")
     asset._datasource = datasource  # same pattern Datasource uses to init Asset
 
     # _SQLAsset is abstract so we patch in some no-op implementations
-    _SQLAsset[SQLDatasource].as_selectable = lambda _: None
+    monkeypatch.setattr(
+        _SQLAsset[SQLDatasource], "as_selectable", lambda _: sqlalchemy.sql.table("table")
+    )
 
     return asset
 
