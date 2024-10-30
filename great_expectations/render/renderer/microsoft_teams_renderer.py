@@ -200,6 +200,9 @@ class MicrosoftTeamsRenderer(Renderer):
     ) -> dict:
         data_docs_page_links = self._get_data_docs_page_links(data_docs_pages)
         actions = [
+            # We would normally use Action.OpenUrl here, but Teams does not support
+            # non HTTP/HTTPS URI schemes. As Data Docs utilze file:///, we use Action.ShowCard
+            # to display the link in a card.
             {
                 "type": "Action.ShowCard",
                 "title": "View Data Docs",
