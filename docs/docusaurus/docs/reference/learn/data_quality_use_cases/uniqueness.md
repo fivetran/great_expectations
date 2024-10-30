@@ -6,7 +6,7 @@ title: 'Validate data uniqueness with GX'
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Data uniqueness is a fundamental aspect of data quality that ensures distinct values are present where expected in a dataset. Uniqueness constraints are often applied to columns that serve as primary keys, unique identifiers, or timestamps. Validating uniqueness is critical for maintaining data integrity, preventing duplication, and enabling accurate analysis.
+Data uniqueness is a fundamental aspect of data quality that ensures distinct values are present only once where expected in a dataset. Uniqueness constraints are often applied to columns that serve as primary keys, unique identifiers, or timestamps. Validating uniqueness is critical for maintaining data integrity, preventing duplication, and enabling accurate analysis.
 
 Failing to validate uniqueness can lead to various data quality issues:
 
