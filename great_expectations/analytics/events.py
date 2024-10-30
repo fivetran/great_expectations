@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import ClassVar, List, Literal
 
 from great_expectations.analytics.actions import (
@@ -183,7 +183,7 @@ class CheckpointCreatedEvent(_CheckpointEvent):
     def _properties(self) -> dict:
         return {
             "validation_definition_ids": self.validation_definition_ids,
-            "actions": self.actions,
+            "actions": [asdict(action) for action in self.actions],
             **super()._properties(),
         }
 
@@ -285,12 +285,11 @@ class NotificationActionRanEvent(Event):
         notify_type: Literal["all", "failure", "success"],
         checkpoint_id: str | None,
     ):
+        self.type = type
         self.notify_type = notify_type
+        self.checkpoint_id = checkpoint_id
         super().__init__(
             action=NOTIFICATION_ACTION_RAN,
-            type=type,
-            notify_type=notify_type,
-            checkpoint_id=checkpoint_id,
         )
 
     @override

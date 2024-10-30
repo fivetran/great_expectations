@@ -1,13 +1,14 @@
 import pytest
 
 from great_expectations.analytics.events import (
+    ActionInfo,
+    CheckpointCreatedEvent,
     DataContextInitializedEvent,
     ExpectationSuiteCreatedEvent,
     ExpectationSuiteDeletedEvent,
     ExpectationSuiteExpectationCreatedEvent,
     ExpectationSuiteExpectationDeletedEvent,
     ExpectationSuiteExpectationUpdatedEvent,
-    MicrosoftTeamsNotificationActionRanEvent,
 )
 
 
@@ -71,10 +72,28 @@ from great_expectations.analytics.events import (
             id="ExpectationSuiteDeletedEvent",
         ),
         pytest.param(
-            MicrosoftTeamsNotificationActionRanEvent(
-                checkpoint_id="a7a0ec12-9a01-4c02-938c-975826df87d3"
+            CheckpointCreatedEvent(
+                checkpoint_id="a7a0ec12-9a01-4c02-938c-975826df87d3",
+                validation_definition_ids=[
+                    "b60bed67-268c-413d-8ad2-77b549314a51",
+                    "b217cac6-1a6d-4b3f-bd63-3fd28c11add5",
+                ],
+                actions=[
+                    ActionInfo(type="email", notify_on="failure"),
+                    ActionInfo(type="microsoft", notify_on="all"),
+                ],
             ),
-            {"checkpoint_id": "a7a0ec12-9a01-4c02-938c-975826df87d3"},
+            {
+                "checkpoint_id": "a7a0ec12-9a01-4c02-938c-975826df87d3",
+                "validation_definition_ids": [
+                    "b60bed67-268c-413d-8ad2-77b549314a51",
+                    "b217cac6-1a6d-4b3f-bd63-3fd28c11add5",
+                ],
+                "actions": [
+                    {"type": "email", "notify_on": "failure"},
+                    {"type": "microsoft", "notify_on": "all"},
+                ],
+            },
             id="MicrosoftTeamsNotificationActionRanEvent",
         ),
     ],
