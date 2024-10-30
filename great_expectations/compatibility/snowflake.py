@@ -36,109 +36,128 @@ except (ImportError, AttributeError):
 IS_SNOWFLAKE_INSTALLED: Final[bool] = snowflake is not SNOWFLAKE_NOT_IMPORTED
 
 try:
-    from snowflake.sqlalchemy.custom_types import ARRAY
+    from snowflake.sqlalchemy.custom_types import ARRAY as _ARRAY
 except (ImportError, AttributeError):
-    ARRAY = SNOWFLAKE_NOT_IMPORTED
+    _ARRAY = SNOWFLAKE_NOT_IMPORTED
 
 try:
-    from snowflake.sqlalchemy.custom_types import BYTEINT
+    from snowflake.sqlalchemy.custom_types import BYTEINT as _BYTEINT
 except (ImportError, AttributeError):
-    BYTEINT = SNOWFLAKE_NOT_IMPORTED
-
-
-try:
-    from snowflake.sqlalchemy.custom_types import CHARACTER
-except (ImportError, AttributeError):
-    CHARACTER = SNOWFLAKE_NOT_IMPORTED
+    _BYTEINT = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import DEC
+    from snowflake.sqlalchemy.custom_types import CHARACTER as _CHARACTER
 except (ImportError, AttributeError):
-    DEC = SNOWFLAKE_NOT_IMPORTED
+    _CHARACTER = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import FIXED
+    from snowflake.sqlalchemy.custom_types import DEC as _DEC
 except (ImportError, AttributeError):
-    FIXED = SNOWFLAKE_NOT_IMPORTED
-
-try:
-    from snowflake.sqlalchemy.custom_types import GEOGRAPHY
-except (ImportError, AttributeError):
-    GEOGRAPHY = SNOWFLAKE_NOT_IMPORTED
+    _DEC = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import GEOMETRY
+    from snowflake.sqlalchemy.custom_types import FIXED as _FIXED
 except (ImportError, AttributeError):
-    GEOMETRY = SNOWFLAKE_NOT_IMPORTED
+    _FIXED = SNOWFLAKE_NOT_IMPORTED
+
+try:
+    from snowflake.sqlalchemy.custom_types import GEOGRAPHY as _GEOGRAPHY
+except (ImportError, AttributeError):
+    _GEOGRAPHY = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import NUMBER
+    from snowflake.sqlalchemy.custom_types import GEOMETRY as _GEOMETRY
 except (ImportError, AttributeError):
-    NUMBER = SNOWFLAKE_NOT_IMPORTED
+    _GEOMETRY = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import OBJECT
+    from snowflake.sqlalchemy.custom_types import NUMBER as _NUMBER
 except (ImportError, AttributeError):
-    OBJECT = SNOWFLAKE_NOT_IMPORTED
+    _NUMBER = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import STRING
+    from snowflake.sqlalchemy.custom_types import OBJECT as _OBJECT
 except (ImportError, AttributeError):
-    STRING = SNOWFLAKE_NOT_IMPORTED
+    _OBJECT = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import TEXT
+    from snowflake.sqlalchemy.custom_types import STRING as _STRING
 except (ImportError, AttributeError):
-    TEXT = SNOWFLAKE_NOT_IMPORTED
+    _STRING = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import TIMESTAMP_LTZ
+    from snowflake.sqlalchemy.custom_types import TEXT as _TEXT
 except (ImportError, AttributeError):
-    TIMESTAMP_LTZ = SNOWFLAKE_NOT_IMPORTED
+    _TEXT = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import TIMESTAMP_NTZ
+    from snowflake.sqlalchemy.custom_types import TIMESTAMP_LTZ as _TIMESTAMP_LTZ
 except (ImportError, AttributeError):
-    TIMESTAMP_NTZ = SNOWFLAKE_NOT_IMPORTED
+    _TIMESTAMP_LTZ = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import TIMESTAMP_TZ
+    from snowflake.sqlalchemy.custom_types import TIMESTAMP_NTZ as _TIMESTAMP_NTZ
 except (ImportError, AttributeError):
-    TIMESTAMP_TZ = SNOWFLAKE_NOT_IMPORTED
+    _TIMESTAMP_NTZ = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import TINYINT
+    from snowflake.sqlalchemy.custom_types import TIMESTAMP_TZ as _TIMESTAMP_TZ
 except (ImportError, AttributeError):
-    TINYINT = SNOWFLAKE_NOT_IMPORTED
+    _TIMESTAMP_TZ = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import VARBINARY
+    from snowflake.sqlalchemy.custom_types import TINYINT as _TINYINT
 except (ImportError, AttributeError):
-    VARBINARY = SNOWFLAKE_NOT_IMPORTED
+    _TINYINT = SNOWFLAKE_NOT_IMPORTED
 
 
 try:
-    from snowflake.sqlalchemy.custom_types import VARIANT
+    from snowflake.sqlalchemy.custom_types import VARBINARY as _VARBINARY
 except (ImportError, AttributeError):
-    VARIANT = SNOWFLAKE_NOT_IMPORTED
+    _VARBINARY = SNOWFLAKE_NOT_IMPORTED
+
 
 try:
-    from snowflake.sqlalchemy.custom_types import DOUBLE
+    from snowflake.sqlalchemy.custom_types import VARIANT as _VARIANT
 except (ImportError, AttributeError):
-    DOUBLE = SNOWFLAKE_NOT_IMPORTED
+    _VARIANT = SNOWFLAKE_NOT_IMPORTED
 
+try:
+    from snowflake.sqlalchemy.custom_types import DOUBLE as _DOUBLE
+except (ImportError, AttributeError):
+    _DOUBLE = SNOWFLAKE_NOT_IMPORTED
+
+
+
+
+
+# the following types allow us to write a union of Snowflake types, which might not be installed
+class ARRAY:
+    ...
+
+
+class NUMBER:
+    ...
+
+
+class STRING:
+    ...
+
+
+class DEC:
+    ...
 
 class SNOWFLAKE_TYPES:
     """Namespace for Snowflake dialect types."""
