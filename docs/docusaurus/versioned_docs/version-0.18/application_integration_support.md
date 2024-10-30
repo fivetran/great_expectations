@@ -34,7 +34,7 @@ The following table defines the Python versions supported by GX Cloud and GX OSS
 
 | GX Cloud | GX OSS      |
 | -------- | ----------- |
-| N/A      | 3.8 to 3.11 |
+| N/A      | 3.8 to 3.12 |
 
 ### GX versions
 
