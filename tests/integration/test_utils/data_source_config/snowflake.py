@@ -5,26 +5,7 @@ import pandas as pd
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.snowflake import (
-    ARRAY,
-    BYTEINT,
-    CHARACTER,
-    DEC,
-    DOUBLE,
-    FIXED,
-    GEOGRAPHY,
-    GEOMETRY,
-    NUMBER,
-    OBJECT,
-    STRING,
-    TEXT,
-    TIMESTAMP_LTZ,
-    TIMESTAMP_NTZ,
-    TIMESTAMP_TZ,
-    TINYINT,
-    VARBINARY,
-    VARIANT,
-)
+from great_expectations.compatibility.snowflake import SnowflakeType
 from great_expectations.compatibility.sqlalchemy import (
     Column,
     MetaData,
@@ -39,29 +20,8 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 
-SnowflakeColumnType = Union[
-    type[ARRAY],
-    type[BYTEINT],
-    type[CHARACTER],
-    type[DEC],
-    type[DOUBLE],
-    type[FIXED],
-    type[GEOGRAPHY],
-    type[GEOMETRY],
-    type[NUMBER],
-    type[OBJECT],
-    type[STRING],
-    type[TEXT],
-    type[TIMESTAMP_LTZ],
-    type[TIMESTAMP_NTZ],
-    type[TIMESTAMP_TZ],
-    type[TINYINT],
-    type[VARBINARY],
-    type[VARIANT],
-]
 
-
-class SnowflakeDatasourceTestConfig(DataSourceTestConfig[SnowflakeColumnType]):
+class SnowflakeDatasourceTestConfig(DataSourceTestConfig[SnowflakeType]):
     @property
     @override
     def label(self) -> str:
@@ -153,7 +113,7 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
         if self.table is not None:
             self.table.drop(self.engine)
 
-    def get_column_types(self) -> Dict[str, SnowflakeColumnType]:
+    def get_column_types(self) -> Dict[str, SnowflakeType]:
         if self.config.column_types is None:
             raise NotImplementedError("Column inference not implemented")
         else:
