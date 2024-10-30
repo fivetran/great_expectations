@@ -229,12 +229,6 @@ In this example, we expect the `transfer_type` column to have between 2 and 4 un
 
 **GX solution**: Use `ExpectColumnDistinctValuesToEqualSet` to validate that the distinct values in the payment type column exactly match the set of allowed payment types. If unexpected values are found, investigate and resolve the discrepancy.
 
-### Monitoring for missing sensor readings
-
-**Context**: In IoT systems, sensors are expected to send readings at regular intervals. Missing readings could indicate sensor malfunctions, network issues, or data pipeline problems.
-
-**GX solution**: Use `ExpectColumnValuesCounts` to check that the number of readings per sensor per time period (e.g., hourly) matches the expected count. If counts are lower than expected, investigate the cause of the missing readings.
-
 ### Ensuring consistency in product categories
 
 **Context**: In an e-commerce system, product categories are used for navigation, filtering, and analysis. Inconsistent or unexpected category values can lead to a poor user experience and skewed analytics.
