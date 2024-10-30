@@ -126,44 +126,6 @@ Note that this Expectation allows for duplicate rows as long as the specified co
 When validating uniqueness, consider the level of granularity required for your use case. Column-level Expectations like `ExpectColumnValuesToBeUnique` ensure uniqueness within a single column, while row-level Expectations like `ExpectCompoundColumnsToBeUnique` validate uniqueness across multiple columns. Choose the appropriate Expectation based on whether you need to validate a unique identifier, a composite key, or a combination of fields that should be unique within each row.
 :::
 
-
-### Sets-based Expectations
-
-Great Expectations provides a group of Expectations to validate that column values belong to, contain, or equal specific sets. The table below lists the available Expectations in this category.
-
-| Expectation Name | Validation Type | View in the Expectation Gallery |
-| :-- | :-- | :-- |
-| Expect Column Distinct Values To Be In Set | Distinct Values in Set | [ExpectColumnDistinctValuesToBeInSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_be_in_set) |
-| Expect Column Distinct Values To Contain Set | Distinct Values Contain Set | [ExpectColumnDistinctValuesToContainSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_contain_set) |
-| Expect Column Distinct Values To Equal Set | Distinct Values Equal Set | [ExpectColumnDistinctValuesToEqualSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_equal_set) |
-| Expect Column Most Common Value To Be In Set | Most Common Value in Set | [ExpectColumnMostCommonValueToBeInSet](https://greatexpectations.io/expectations/expect_column_most_common_value_to_be_in_set) |
-| Expect Column Pair Values To Be In Set | Column Pair Values in Set | [ExpectColumnPairValuesToBeInSet ](https://greatexpectations.io/expectations/expect_column_pair_values_to_be_in_set) |
-| Expect Column Values To Be In Set | Column Values in Set | [ExpectColumnValuesToBeInSet ](https://greatexpectations.io/expectations/expect_column_values_to_be_in_set) |
-| Expect Column Values To Not Be In Set | Column Values Not in Set | [ExpectColumnValuesToNotBeInSet](https://greatexpectations.io/expectations/expect_column_values_to_not_be_in_set) |
-
-To use these Expectations, provide the `column` name and the `value_set` containing the expected values. For example, if using
-
-```python
-gxe.ExpectColumnValuesToBeInSet(
-    column="test",
-    value_set=[1, 2],
-)
-```
-
-For `ExpectColumnPairValuesToBeInSet`, specify the `column_A`, `column_B`, and `value_pairs_set`.
-
-```python
-gxe.ExpectColumnPairValuesToBeInSet(
-    column_A="test",
-    column_B="test2",
-    value_pairs_set=[(2,1), (1,1)],
-)
-```
-
-:::tip[Choosing between cardinality and sets-based Expectations]
-Cardinality Expectations are best suited for validating uniqueness and duplicate counts, while sets-based Expectations are ideal for validating against known sets of values.
-:::
-
 ## Example: Validate uniqueness of a column
 
 **Context**: In many datasets, certain columns are expected to have a specific number of unique values. For example, in a transaction dataset, the `transfer_type` column might be expected to have a limited number of distinct values representing the different types of transfers supported. Monitoring the count of unique values in such columns can help detect data quality issues, such as the introduction of unexpected new transfer types or data entry errors.
@@ -222,12 +184,6 @@ In this example, we expect the `transfer_type` column to have between 2 and 4 un
 **Context**: In a customer database, each customer should have a unique identifier. Duplicate customer IDs can lead to severe data integrity issues, such as incorrectly merged customer profiles, misdirected communications, or inaccurate analytics. If not caught early, resolving duplicate records can become a complex, error-prone, and resource-intensive process.
 
 **GX solution**: Use `ExpectColumnValuesToBeUnique` to ensure that the customer ID column contains only unique values. If duplicates are found, investigate and resolve them to maintain data integrity.
-
-### Validating allowed payment types
-
-**Context**: In an e-commerce system, the payment type field should only contain valid, predefined values (e.g., "credit_card", "debit_card", "paypal"). Unexpected payment types could indicate data entry errors or system issues.
-
-**GX solution**: Use `ExpectColumnDistinctValuesToEqualSet` to validate that the distinct values in the payment type column exactly match the set of allowed payment types. If unexpected values are found, investigate and resolve the discrepancy.
 
 ### Detecting anomalies in user agent strings
 
