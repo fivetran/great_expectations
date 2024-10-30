@@ -94,7 +94,7 @@ from great_expectations.analytics.events import (
                     {"type": "microsoft", "notify_on": "all"},
                 ],
             },
-            id="MicrosoftTeamsNotificationActionRanEvent",
+            id="CheckpointCreatedEvent",
         ),
     ],
 )
