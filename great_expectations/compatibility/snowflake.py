@@ -19,7 +19,7 @@ class SNOWFLAKE_NOT_IMPORTED(NotImported):
     def __getattr__(self, attr: str) -> NoReturn:
         if attr == "__typing_subst__":
             raise AttributeError
-        super().__getattr__(attr)
+        raise ModuleNotFoundError(self.__dict__["gx_error_message"])
 
 
 try:
