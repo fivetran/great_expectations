@@ -1,11 +1,10 @@
 from random import randint
-from typing import Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Union
 
 import pandas as pd
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.snowflake import SnowflakeType
 from great_expectations.compatibility.sqlalchemy import (
     Column,
     MetaData,
@@ -19,6 +18,9 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.compatibility.snowflake import SnowflakeType
 
 
 class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
