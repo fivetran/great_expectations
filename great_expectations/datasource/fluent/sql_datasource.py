@@ -24,7 +24,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Annotated, Never, TypeAlias
+from typing_extensions import Annotated, Never
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
@@ -486,13 +486,6 @@ SqlPartitioner = Union[
 class SqlAddBatchDefinitionError(Exception):
     def __init__(self, msg: str):
         super().__init__(f"Failed adding batch definition: {msg}")
-
-
-SQLAssetPartitioner: TypeAlias = Union[
-    ColumnPartitionerYearly,
-    ColumnPartitionerMonthly,
-    ColumnPartitionerDaily,
-]
 
 
 @public_api
