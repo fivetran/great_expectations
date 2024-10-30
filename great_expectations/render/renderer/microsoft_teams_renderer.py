@@ -177,7 +177,7 @@ class MicrosoftTeamsRenderer(Renderer):
         ]
 
     def _get_data_docs_page_links(
-        self, data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]]
+        self, data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]] | None
     ) -> list[str]:
         links: list[str] = []
 
