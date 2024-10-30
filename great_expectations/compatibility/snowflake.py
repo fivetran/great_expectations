@@ -3,25 +3,10 @@ from __future__ import annotations
 from typing import Final
 
 from great_expectations.compatibility.not_imported import NotImported
-from great_expectations.compatibility.typing_extensions import override
 
-
-class SNOWFLAKE_NOT_IMPORTED(NotImported):
-    def __init__(self):
-        super().__init__(
-            message=(
-                "snowflake connection components are not installed, "
-                "please 'pip install snowflake-sqlalchemy snowflake-connector-python'"
-            )
-        )
-
-    @override
-    def __getattr__(self, attr: str) -> tuple[()]:  # type: ignore[override]
-        # __parameters__ is called by
-        if attr == "__parameters__":
-            return ()
-        super().__getattr__(attr)
-
+SNOWFLAKE_NOT_IMPORTED = NotImported(
+    "snowflake connection components are not installed, please 'pip install snowflake-sqlalchemy snowflake-connector-python'"  # noqa: E501
+)
 
 try:
     import snowflake
