@@ -142,7 +142,7 @@ class ValidationAction(BaseModel):
         return None
 
     @staticmethod
-    def _substitute_config_str_if_needed(value: str | None) -> str | None:
+    def _substitute_config_str_if_needed(value: Union[str, ConfigStr, None]) -> Optional[str]:
         from great_expectations.data_context.data_context.context_factory import project_manager
 
         config_provider = project_manager.get_config_provider()
@@ -666,7 +666,10 @@ class EmailAction(ValidationAction):
             return {"email_result": ""}
 
         title, html = self.renderer.render(checkpoint_result=checkpoint_result)
-        substituted_receiver_emails = self._substitute_config_str_if_needed(self.receiver_emails)
+        substituted_receiver_emails = (
+            self._substitute_config_str_if_needed(self.receiver_emails) or ""
+        )
+
         receiver_emails_list = list(
             map(lambda x: x.strip(), substituted_receiver_emails.split(","))
         )
