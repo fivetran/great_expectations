@@ -43,12 +43,12 @@ The examples in this guide use a sample dataset of financial transactions and tr
 2. `transfer_balances` table ([CSV](https://raw.githubusercontent.com/great-expectations/great_expectations/develop/tests/test_sets/learn_data_quality_use_cases/integrity_transfer_balances.csv)):
 
 ```
-| transaction_id | transfer_amount | adjustment | sender_debit | recipient_credit |
-|----------------|-----------------|------------|--------------|------------------|
-| 1001           | 250.00          | 0.00       | -250.00      | 250.00           |
-| 1002           | 40.00           | 0.00       | -40.00       | 40.00            |
-| 1003           | 1200.00         | 5.00       | -1200.00     | 1195.00          |
-| 1004           | 80.00           | 2.50       | -80.00       | 82.50            |
+| transfer_id | transaction_id | sender_id | recipient_id | amount  | transaction_date | reference_number | confirmation_code |
+|-------------|----------------|-----------|--------------|---------|------------------|------------------|-------------------|
+| T1001       | 1001           | 501       | 502          | 250.00  | 2024-01-15       | 1001             | 1001              |
+| T1002       | 1002           | 502       | 503          | 40.00   | 2024-01-15       | 1002             | 1002              |
+| T1003       | 1003           | 503       | 501          | 1200.00 | 2024-01-16       | 1003             | 1003              |
+| T1004       | 1004           | 504       | 502          | 80.00   | 2024-01-16       | 1004             | 1004              |
 ```
 
 In this dataset, the `transactions` table captures the details of each financial transaction, including the sender, recipient, amount, and associated reference and confirmation codes. The `transaction_balance` table provides additional information for sum-to-zero checks on each transfer, ensuring that the total debits and credits for each transaction balance out correctly, even with adjustments.
