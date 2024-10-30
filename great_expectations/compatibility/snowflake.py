@@ -161,3 +161,9 @@ class SNOWFLAKE_TYPES:
     TINYINT = TINYINT
     VARBINARY = VARBINARY
     VARIANT = VARIANT
+
+
+try:
+    from snowflake.sqlalchemy.custom_types import SnowflakeType
+except (ImportError, AttributeError):
+    SnowflakeType = SNOWFLAKE_NOT_IMPORTED

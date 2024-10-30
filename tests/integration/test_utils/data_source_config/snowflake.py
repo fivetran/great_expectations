@@ -1,29 +1,34 @@
 from random import randint
-from typing import Dict, Union
+from typing import Dict, List, Type, Union
 
 import pandas as pd
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.snowflake import (
-    ARRAY,
-    BYTEINT,
-    CHARACTER,
-    DEC,
-    DOUBLE,
-    FIXED,
-    GEOGRAPHY,
-    GEOMETRY,
-    NUMBER,
-    OBJECT,
-    STRING,
-    TEXT,
-    TIMESTAMP_LTZ,
-    TIMESTAMP_NTZ,
-    TIMESTAMP_TZ,
-    TINYINT,
-    VARBINARY,
-    VARIANT,
+    ARRAY as _ARRAY,
+)
+from great_expectations.compatibility.snowflake import (
+    # BYTEINT as _BYTEINT,
+    # CHARACTER as _CHARACTER,
+    # DEC as _DEC,
+    # DOUBLE as _DOUBLE,
+    # FIXED as _FIXED,
+    # GEOGRAPHY as _GEOGRAPHY,
+    # GEOMETRY as _GEOMETRY,
+    NUMBER as _NUMBER,
+    # OBJECT as _OBJECT,
+    # STRING as _STRING,
+    # TEXT as _TEXT,
+    # TIMESTAMP_LTZ as _TIMESTAMP_LTZ,
+    # TIMESTAMP_NTZ as _TIMESTAMP_NTZ,
+    # TIMESTAMP_TZ as _TIMESTAMP_TZ,
+    # TINYINT as _TINYINT,
+    # VARBINARY as _VARBINARY,
+    # VARIANT as _,
+)
+from great_expectations.compatibility.snowflake import (
+    SnowflakeType,
 )
 from great_expectations.compatibility.sqlalchemy import (
     Column,
@@ -39,25 +44,41 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 
+
+class SnowflakeTypeBase:
+    type: type[SnowflakeType]
+
+    def __new__(self, *args, **kwargs) -> SnowflakeType:
+        return self.type(*args, **kwargs)
+
+
+class ARRAY(SnowflakeTypeBase):
+    type = _ARRAY
+
+
+class NUMBER(SnowflakeTypeBase):
+    type = _NUMBER
+
+
 SnowflakeColumnType = Union[
     type[ARRAY],
-    type[BYTEINT],
-    type[CHARACTER],
-    type[DEC],
-    type[DOUBLE],
-    type[FIXED],
-    type[GEOGRAPHY],
-    type[GEOMETRY],
+    # type[BYTEINT],
+    # type[CHARACTER],
+    # type[DEC],
+    # type[DOUBLE],
+    # type[FIXED],
+    # type[GEOGRAPHY],
+    # type[GEOMETRY],
     type[NUMBER],
-    type[OBJECT],
-    type[STRING],
-    type[TEXT],
-    type[TIMESTAMP_LTZ],
-    type[TIMESTAMP_NTZ],
-    type[TIMESTAMP_TZ],
-    type[TINYINT],
-    type[VARBINARY],
-    type[VARIANT],
+    # type[OBJECT],
+    # type[STRING],
+    # type[TEXT],
+    # type[TIMESTAMP_LTZ],
+    # type[TIMESTAMP_NTZ],
+    # type[TIMESTAMP_TZ],
+    # type[TINYINT],
+    # type[VARBINARY],
+    # type[VARIANT],
 ]
 
 
@@ -131,7 +152,9 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
     @override
     def setup(self) -> None:
         column_types = self.get_column_types()
-        columns = [Column(name, column_type) for name, column_type in column_types.items()]
+        columns: List[Column] = [
+            Column(name, column_type) for name, column_type in column_types.items()
+        ]
         self.table = Table(
             self.table_name,
             self.metadata,
@@ -153,8 +176,16 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
         if self.table is not None:
             self.table.drop(self.engine)
 
-    def get_column_types(self) -> Dict[str, SnowflakeColumnType]:
+    def get_column_types(self) -> Dict[str, SnowflakeType]:
         if self.config.column_types is None:
             raise NotImplementedError("Column inference not implemented")
         else:
-            return self.config.column_types
+            # ensure we've filtered out our indirection types
+            translated_type_dict: Dict[str, Union[SnowflakeType, Type[SnowflakeType]]] = {}
+            for column_name, column_type in self.config.column_types.items():
+                if isinstance(column_type, SnowflakeTypeBase):
+                    translated_type_dict[column_name] = column_type.type
+                else:
+                    translated_type_dict[column_name] = column_type
+
+            return translated_type_dict
