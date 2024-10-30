@@ -229,12 +229,6 @@ In this example, we expect the `transfer_type` column to have between 2 and 4 un
 
 **GX solution**: Use `ExpectColumnDistinctValuesToEqualSet` to validate that the distinct values in the payment type column exactly match the set of allowed payment types. If unexpected values are found, investigate and resolve the discrepancy.
 
-### Ensuring consistency in product categories
-
-**Context**: In an e-commerce system, product categories are used for navigation, filtering, and analysis. Inconsistent or unexpected category values can lead to a poor user experience and skewed analytics.
-
-**GX solution**: Use `ExpectColumnDistinctValuesToBeInSet` to validate that the distinct values in the product category column are in a set of the allowed category values. If unexpected categories are found, update the allowed categories or correct the data.
-
 ### Detecting anomalies in user agent strings
 
 **Context**: In web analytics, user agent strings provide information about visitors' browsers and devices. Anomalies in user agent strings, such as a high proportion of unexpected or unique values, could indicate bot traffic or potential security issues.
