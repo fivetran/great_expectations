@@ -61,7 +61,7 @@ SnowflakeColumnType = Union[
 ]
 
 
-class SnowflakeDatasourceTestConfig(DataSourceTestConfig[SnowflakeColumnType]):
+class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
@@ -100,7 +100,7 @@ class SnowflakeConnectionConfig(BaseSettings):
         )
 
 
-class SnowflakeBatchTestSetup(BatchTestSetup):
+class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
     def __init__(
         self,
         config: SnowflakeDatasourceTestConfig,
