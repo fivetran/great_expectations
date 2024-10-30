@@ -265,7 +265,7 @@ except (ImportError, AttributeError):
 try:
     from sqlalchemy import create_engine
 except (ImportError, AttributeError):
-    create_engine = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment]
+    create_engine = SQLALCHEMY_NOT_IMPORTED  # type: ignore[assignment]
 
 
 try:
