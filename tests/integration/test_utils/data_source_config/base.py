@@ -19,9 +19,6 @@ if TYPE_CHECKING:
 _ColumnTypes = TypeVar("_ColumnTypes")
 
 
-_ColumnTypes = TypeVar("_ColumnTypes")
-
-
 @dataclass(frozen=True)
 class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     name: Optional[str] = None
