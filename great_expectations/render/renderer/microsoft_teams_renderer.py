@@ -205,7 +205,7 @@ class MicrosoftTeamsRenderer(Renderer):
             # to display the link in a card.
             {
                 "type": "Action.ShowCard",
-                "title": "View Data Docs",
+                "title": "View Data Docs URL",
                 "card": {
                     "type": "AdaptiveCard",
                     "body": [
