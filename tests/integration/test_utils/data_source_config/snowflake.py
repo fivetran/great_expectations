@@ -40,24 +40,24 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 
 SnowflakeColumnType = Union[
-    ARRAY,
-    BYTEINT,
-    CHARACTER,
-    DEC,
-    DOUBLE,
-    FIXED,
-    GEOGRAPHY,
-    GEOMETRY,
-    NUMBER,
-    OBJECT,
-    STRING,
-    TEXT,
-    TIMESTAMP_LTZ,
-    TIMESTAMP_NTZ,
-    TIMESTAMP_TZ,
-    TINYINT,
-    VARBINARY,
-    VARIANT,
+    type[ARRAY],
+    type[BYTEINT],
+    type[CHARACTER],
+    type[DEC],
+    type[DOUBLE],
+    type[FIXED],
+    type[GEOGRAPHY],
+    type[GEOMETRY],
+    type[NUMBER],
+    type[OBJECT],
+    type[STRING],
+    type[TEXT],
+    type[TIMESTAMP_LTZ],
+    type[TIMESTAMP_NTZ],
+    type[TIMESTAMP_TZ],
+    type[TINYINT],
+    type[VARBINARY],
+    type[VARIANT],
 ]
 
 
@@ -131,9 +131,7 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
     @override
     def setup(self) -> None:
         column_types = self.get_column_types()
-        columns: list[Column] = [
-            Column(name, column_type) for name, column_type in column_types.items()
-        ]
+        columns = [Column(name, column_type) for name, column_type in column_types.items()]
         self.table = Table(
             self.table_name,
             self.metadata,
