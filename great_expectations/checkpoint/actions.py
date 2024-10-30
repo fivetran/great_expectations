@@ -22,6 +22,10 @@ import requests
 from typing_extensions import Annotated
 
 from great_expectations._docs_decorators import public_api
+from great_expectations.analytics.client import submit as submit_event
+from great_expectations.analytics.events import (
+    MicrosoftTeamsNotificationActionRanEvent,
+)
 from great_expectations.checkpoint.util import (
     send_email,
     send_microsoft_teams_notifications,
@@ -475,6 +479,10 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
         teams_notif_result = send_microsoft_teams_notifications(
             payload=payload, microsoft_teams_webhook=self.teams_webhook
         )
+
+        checkpoint = checkpoint_result.checkpoint_config
+        submit_event(event=MicrosoftTeamsNotificationActionRanEvent(checkpoint_id=checkpoint.id))
+
         return {"microsoft_teams_notification_result": teams_notif_result}
 
 

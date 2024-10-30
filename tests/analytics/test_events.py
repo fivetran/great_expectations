@@ -7,6 +7,7 @@ from great_expectations.analytics.events import (
     ExpectationSuiteExpectationCreatedEvent,
     ExpectationSuiteExpectationDeletedEvent,
     ExpectationSuiteExpectationUpdatedEvent,
+    MicrosoftTeamsNotificationActionRanEvent,
 )
 
 
@@ -68,6 +69,13 @@ from great_expectations.analytics.events import (
                 "expectation_suite_id": "fbb7ada0-600d-458d-a4f7-c6c30cb759b4",
             },
             id="ExpectationSuiteDeletedEvent",
+        ),
+        pytest.param(
+            MicrosoftTeamsNotificationActionRanEvent(
+                checkpoint_id="a7a0ec12-9a01-4c02-938c-975826df87d3"
+            ),
+            {"checkpoint_id": "a7a0ec12-9a01-4c02-938c-975826df87d3"},
+            id="MicrosoftTeamsNotificationActionRanEvent",
         ),
     ],
 )

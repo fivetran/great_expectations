@@ -14,6 +14,7 @@ from great_expectations.analytics.actions import (
     EXPECTATION_SUITE_EXPECTATION_CREATED,
     EXPECTATION_SUITE_EXPECTATION_DELETED,
     EXPECTATION_SUITE_EXPECTATION_UPDATED,
+    MICROSOFT_TEAMS_NOTIFICATION_ACTION_RAN,
     VALIDATION_DEFINITION_CREATED,
     VALIDATION_DEFINITION_DELETED,
 )
@@ -262,4 +263,22 @@ class DomainObjectAllDeserializationEvent(Event):
         return {
             "error_type": self.error_type,
             "store_name": self.store_name,
+        }
+
+
+@dataclass
+class MicrosoftTeamsNotificationActionRanEvent(Event):
+    _allowed_actions: ClassVar[List[Action]] = [MICROSOFT_TEAMS_NOTIFICATION_ACTION_RAN]
+
+    def __init__(
+        self,
+        checkpoint_id: str | None = None,
+    ):
+        self.checkpoint_id = checkpoint_id
+
+    @override
+    def _properties(self) -> dict:
+        return {
+            "checkpoint_id": self.checkpoint_id,
+            **super()._properties(),
         }
