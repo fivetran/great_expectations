@@ -6,8 +6,8 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.postgres import PostgreSQLDatasourceTestConfig
 
 
 @parameterize_batch_for_data_sources(
