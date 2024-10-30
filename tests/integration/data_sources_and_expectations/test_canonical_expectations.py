@@ -8,8 +8,6 @@ from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
-)
-from tests.integration.test_utils.data_source_config.snowflake import (
     SnowflakeDatasourceTestConfig,
 )
 
