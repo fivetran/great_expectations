@@ -32,7 +32,7 @@ An Expectation is a verifiable assertion about your data. Expectations make impl
 
 1. Choose an Expectation to create.
 
-   GX comes with many built in Expectations to cover your data quality needs.  You can find a catalog of these Expectations in the [Expectation Gallery](https://greatexpectations.io/expectations/).  When browsing the Expectation Gallery you can filter the available Expectations by the data quality issue they address and by the Data Sources they support.  There is also a search bar that will let you filter Expectations by matching text in their name or docstring.
+   GX comes with many built in Expectations to cover your data quality needs.  You can find a catalog of these Expectations in the [Expectation Gallery](https://greatexpectations.io/expectations/).  When browsing the Expectation Gallery you can filter the available Expectations by the data quality issue they address and by the Data Sources they support.  There is also a search bar that will let you filter Expectations by matching text in their name or description.
 
    In your code, you will find the classes for Expectations in the `expectations` module:
 
