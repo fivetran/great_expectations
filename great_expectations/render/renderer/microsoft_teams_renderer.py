@@ -33,7 +33,7 @@ class MicrosoftTeamsRenderer(Renderer):
     _MICROSOFT_TEAMS_CONTENT_TYPE = "application/vnd.microsoft.card.adaptive"
     _MICROSOFT_TEAMS_SCHEMA_URL = "http://adaptivecards.io/schemas/adaptive-card.json"
     _MICROSOFT_TEAMS_SCHEMA_VERSION = 1.5
-    _GX_LOGO_URL = "https://pbs.twimg.com/profile_images/1600908333493338112/GQQEPSKg_400x400.jpg"
+    _GX_LOGO_URL = "https://www.greatexpectations.io/image/gx-logo-mark-400"
     _SUCCESS_EMOJI = "✅"
     _FAILURE_EMOJI = "❌"
     _NO_VALUE_PLACEHOLDER = "--"
@@ -161,12 +161,12 @@ class MicrosoftTeamsRenderer(Renderer):
         run_name = validation_result_identifier.run_id.run_name or self._NO_VALUE_PLACEHOLDER
         n_checks_succeeded = validation_result.statistics["successful_expectations"]
         n_checks = validation_result.statistics["evaluated_expectations"]
-        check_details_text = f"*{n_checks_succeeded}* of *{n_checks}* expectations were met"
+        check_details_text = f"*{n_checks_succeeded}* of *{n_checks}* Expectations were met"
 
         return [
-            {"title": "Data Asset Name: ", "value": asset_name},
-            {"title": "Suite Name: ", "value": suite_name},
-            {"title": "Run Name: ", "value": run_name},
+            {"title": "Data Asset name: ", "value": asset_name},
+            {"title": "Suite name: ", "value": suite_name},
+            {"title": "Run name: ", "value": run_name},
             {"title": "Summary:", "value": check_details_text},
         ]
 

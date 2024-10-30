@@ -18,19 +18,19 @@ def test_MicrosoftTeamsRenderer_render(v1_checkpoint_result: CheckpointResult):
     # Assert first validation result
     assert body[1]["text"] == "Validation Result (1 of 2) ❌"
     assert body[2]["facts"] == [
-        {"title": "Data Asset Name: ", "value": "my_first_asset"},
-        {"title": "Suite Name: ", "value": "my_bad_suite"},
-        {"title": "Run Name: ", "value": mock.ANY},
-        {"title": "Summary:", "value": "*3* of *5* expectations were met"},
+        {"title": "Data Asset name: ", "value": "my_first_asset"},
+        {"title": "Suite name: ", "value": "my_bad_suite"},
+        {"title": "Run name: ", "value": mock.ANY},
+        {"title": "Summary:", "value": "*3* of *5* Expectations were met"},
     ]
 
     # Assert second validation result
     assert body[3]["text"] == "Validation Result (2 of 2) ✅"
     assert body[4]["facts"] == [
-        {"title": "Data Asset Name: ", "value": "--"},
-        {"title": "Suite Name: ", "value": "my_good_suite"},
-        {"title": "Run Name: ", "value": mock.ANY},
-        {"title": "Summary:", "value": "*1* of *1* expectations were met"},
+        {"title": "Data Asset name: ", "value": "--"},
+        {"title": "Suite name: ", "value": "my_good_suite"},
+        {"title": "Run name: ", "value": mock.ANY},
+        {"title": "Summary:", "value": "*1* of *1* Expectations were met"},
     ]
 
 

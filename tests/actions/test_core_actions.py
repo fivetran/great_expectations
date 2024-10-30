@@ -471,30 +471,30 @@ class TestV1ActionRun:
         # Assert first validation
         assert body[1]["text"] == "Validation Result (1 of 2) ✅"
         assert body[2]["facts"] == [
-            {"title": "Data Asset Name: ", "value": "--"},
-            {"title": "Suite Name: ", "value": "suite_a"},
+            {"title": "Data Asset name: ", "value": "--"},
+            {"title": "Suite name: ", "value": "suite_a"},
             {
-                "title": "Run Name: ",
+                "title": "Run name: ",
                 "value": "prod_20240401",
             },
             {
                 "title": "Summary:",
-                "value": "*3* of *3* expectations were met",
+                "value": "*3* of *3* Expectations were met",
             },
         ]
 
         # Assert second validation
         assert body[3]["text"] == "Validation Result (2 of 2) ✅"
         assert body[4]["facts"] == [
-            {"title": "Data Asset Name: ", "value": "--"},
-            {"title": "Suite Name: ", "value": "suite_b"},
+            {"title": "Data Asset name: ", "value": "--"},
+            {"title": "Suite name: ", "value": "suite_b"},
             {
-                "title": "Run Name: ",
+                "title": "Run name: ",
                 "value": "prod_20240402",
             },
             {
                 "title": "Summary:",
-                "value": "*2* of *2* expectations were met",
+                "value": "*2* of *2* Expectations were met",
             },
         ]
 
