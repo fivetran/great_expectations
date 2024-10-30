@@ -1,12 +1,26 @@
 from __future__ import annotations
 
-from typing import Final
+from typing import Final, NoReturn
 
 from great_expectations.compatibility.not_imported import NotImported
+from great_expectations.compatibility.typing_extensions import override
 
-SNOWFLAKE_NOT_IMPORTED = NotImported(
-    "snowflake connection components are not installed, please 'pip install snowflake-sqlalchemy snowflake-connector-python'"  # noqa: E501
-)
+
+class SNOWFLAKE_NOT_IMPORTED(NotImported):
+    def __init__(self):
+        super().__init__(
+            message=(
+                "snowflake connection components are not installed, "
+                "please 'pip install snowflake-sqlalchemy snowflake-connector-python'"
+            )
+        )
+
+    @override
+    def __getattr__(self, attr: str) -> NoReturn:
+        if attr == "__typing_subst__":
+            raise AttributeError
+        super().__getattr__(attr)
+
 
 try:
     import snowflake
