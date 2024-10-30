@@ -61,7 +61,7 @@ def test_unexpected_rows_expectation_invalid_query_info_message(query: str, capl
 
 @pytest.mark.sqlite
 @pytest.mark.parametrize(
-    "query, expected_success, expected_observed_value, expected_unexpected_rows",
+    "query, expected_success, expected_observed_value, expected_count_unexpected_rows_returned",
     [
         pytest.param(
             "SELECT * FROM {batch} WHERE passenger_count > 7",
