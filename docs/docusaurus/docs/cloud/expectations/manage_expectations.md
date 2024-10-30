@@ -36,7 +36,7 @@ The following table lists the available GX Cloud Expectations.
 | Numerical Data     | `expect_column_mean_to_be_between`                        | Expect the column mean to be between a minimum and a maximum value.                                                        |
 | Numerical Data     | `expect_column_median_to_be_between`                      | Expect the column median to be between a minimum and a maximum value.                                                                  |
 | Numerical Data     | `expect_column_min_to_be_between`                         | Expect the column minimum to be between a minimum value and a maximum value.                                                           |
-| Pattern matching   | `expect_column_value_length_to_equal`                     | Expect the column entries to be strings with length between a minimum value and a maximum value.                           |
+| Pattern matching   | `expect_column_value_length_to_equal`                     | Expect the column entries to be strings with length equal to the provided value.                           |
 | Pattern matching   | `expect_column_value_length_to_be_between`                | Expect the column entries to be strings with length between a minimum value and a maximum value.                           |
 | Pattern matching   | `expect_column_values_to_match_like_pattern`              | Expect the column entries to be strings that match a given like pattern expression.                                                    |
 | Pattern matching   | `expect_column_values_to_match_like_pattern_list`         | Expect the column entries to be strings that match any of a provided list of like pattern expressions.                                 |
