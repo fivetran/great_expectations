@@ -47,6 +47,11 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
 
 
 class SnowflakeConnectionConfig(BaseSettings):
+    """This class retrieves these values from the environment.
+    If you're testing locally, you can use your Snowflake creds
+    and test against your own Snowflake account.
+    """
+
     SNOWFLAKE_USER: str
     SNOWFLAKE_PW: str
     SNOWFLAKE_ACCOUNT: str
