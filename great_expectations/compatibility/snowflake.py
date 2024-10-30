@@ -139,6 +139,11 @@ try:
 except (ImportError, AttributeError):
     DOUBLE = SNOWFLAKE_NOT_IMPORTED
 
+try:
+    from snowflake.sqlalchemy.custom_types import SnowflakeType
+except (ImportError, AttributeError):
+    SnowflakeType = SNOWFLAKE_NOT_IMPORTED
+
 
 class SNOWFLAKE_TYPES:
     """Namespace for Snowflake dialect types."""
