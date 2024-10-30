@@ -462,76 +462,39 @@ class TestV1ActionRun:
         mock_post.assert_called_once()
 
         body = mock_post.call_args.kwargs["json"]["attachments"][0]["content"]["body"]
-        checkpoint_summary = body[0]["items"][0]["columns"][0]["items"][0]["text"]
-        first_validation = body[1]["items"][0]["text"]
-        second_validation = body[2]["items"][0]["text"]
 
-        assert len(body) == 3
-        assert "Success !!!" in checkpoint_summary
-        assert first_validation == [
+        assert len(body) == 5
+
+        # Assert header
+        assert "Success" in body[0]["columns"][1]["items"][0]["text"]
+
+        # Assert first validation
+        assert body[1]["text"] == "Validation Result (1 of 2) ✅"
+        assert body[2]["facts"] == [
+            {"title": "Data Asset name: ", "value": "--"},
+            {"title": "Suite name: ", "value": "suite_a"},
             {
-                "color": "good",
-                "horizontalAlignment": "left",
-                "text": "**Batch Validation Status:** Success !!!",
-                "type": "TextBlock",
+                "title": "Run name: ",
+                "value": "prod_20240401",
             },
             {
-                "horizontalAlignment": "left",
-                "text": "**Data Asset Name:** __no_data_asset_name__",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Expectation Suite Name:** suite_a",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Run Name:** prod_20240401",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Batch ID:** None",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Summary:** *3* of *3* expectations were met",
-                "type": "TextBlock",
+                "title": "Summary:",
+                "value": "*3* of *3* Expectations were met",
             },
         ]
-        assert second_validation == [
+
+        # Assert second validation
+        assert body[3]["text"] == "Validation Result (2 of 2) ✅"
+        assert body[4]["facts"] == [
+            {"title": "Data Asset name: ", "value": "--"},
+            {"title": "Suite name: ", "value": "suite_b"},
             {
-                "color": "good",
-                "horizontalAlignment": "left",
-                "text": "**Batch Validation Status:** Success !!!",
-                "type": "TextBlock",
+                "title": "Run name: ",
+                "value": "prod_20240402",
             },
             {
-                "horizontalAlignment": "left",
-                "text": "**Data Asset Name:** __no_data_asset_name__",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Expectation Suite Name:** suite_b",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Run Name:** prod_20240402",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Batch ID:** None",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Summary:** *2* of *2* expectations were met",
-                "type": "TextBlock",
+                "title": "Summary:",
+                "value": "*2* of *2* Expectations were met",
             },
         ]
 
