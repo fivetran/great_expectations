@@ -100,7 +100,7 @@ class SnowflakeConnectionConfig(BaseSettings):
         )
 
 
-class SnowflakeBatchTestSetup(BatchTestSetup):
+class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
     def __init__(
         self,
         config: SnowflakeDatasourceTestConfig,
