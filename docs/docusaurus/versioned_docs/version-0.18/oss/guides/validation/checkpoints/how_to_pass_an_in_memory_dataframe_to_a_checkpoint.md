@@ -35,4 +35,4 @@ Alternatively, you can use `add_*` methods to add the asset and then retrieve a 
 ```python title="Python" name="docs/docusaurus/docs/oss/guides/validation/checkpoints/how_to_pass_an_in_memory_dataframe_to_a_checkpoint.py add_dataframe"
 ```
 
-In both examples, `batch_metadata` is an optional parameter that can associate metadata with the batch or DataFrame. When you work with DataFrames, this can help you distinguish Validation results.
+In both examples, `batch_metadata` is an optional parameter that can associate meta-data with the batch or DataFrame. When you work with DataFrames, this can help you distinguish Validation results.
