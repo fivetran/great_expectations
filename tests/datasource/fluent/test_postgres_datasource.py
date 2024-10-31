@@ -887,7 +887,7 @@ def test_adding_partitioner_persists_results(
         name="my_batch_definition",
         partitioner=ColumnPartitionerYearly(column_name="my_col"),
         # We skip validating we can generate batches because table is fake and won't validate.
-        validate_batchable=False,
+        validate_partitioner=False,
     )
 
     final_yaml: dict = YAMLHandler().load(  # type: ignore[assignment]
