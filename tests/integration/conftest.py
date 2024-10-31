@@ -26,6 +26,13 @@ def parameterize_batch_for_data_sources(
     This injects a `batch_for_datasource` parameter into the test function for each data source
     type.
 
+    Args:
+        data_source_configs: The data source configurations to test.
+        data: Data to load into the asset
+        extra_data: Mapping of {asset_name: data} to load into other assets. Only relevant for SQL
+                    mutli-table expectations.
+
+
     example use:
         @parameterize_batch_for_data_sources(
             data_source_configs=[DataSourceType.FOO, DataSourceType.BAR],
