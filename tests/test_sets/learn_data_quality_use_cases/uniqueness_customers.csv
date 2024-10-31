@@ -1,0 +1,5 @@
+customer_id,first_name,last_name,email_address,phone_number,country,government_id
+1,John,Doe,johndoe@email.com,1234567890,USA,123-45-6789
+2,Jane,Smith,jsmith@email.com,9876543210,Canada,987-65-4321
+3,Jon,Doe,jon.doe@email.com,1234567890,USA,123-45-6789
+4,J.,Doe,johndoe@email.com,1234567891,USA,123-45-6789
