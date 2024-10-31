@@ -1,4 +1,4 @@
-from typing import ClassVar
+from typing import ClassVar, Optional
 from unittest import mock
 
 import pytest
@@ -14,6 +14,7 @@ from great_expectations.expectations.metrics.query_metrics import (
     QueryColumn,
     QueryColumnPair,
     QueryMultipleColumns,
+    QueryRowCount,
     QueryTable,
     QueryTemplateValues,
 )
@@ -134,7 +135,7 @@ def test_sqlalchemy_query_metrics_that_return_records(
     mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
     metric_class: QueryMetricProvider,
     class_metric_value_kwargs: dict,
-    query_parameters: QueryParameters | None,
+    query_parameters: Optional[QueryParameters],
     batch_selectable: sa.Selectable,
 ):
     metric_value_kwargs = {
@@ -172,5 +173,49 @@ def test_sqlalchemy_query_metrics_that_return_records(
         )
     mock_get_sqlalchemy_records_from_substituted_batch_subquery.assert_called_once_with(
         substituted_batch_subquery=mock_substituted_batch_subquery,
+        execution_engine=mock_sqlalchemy_execution_engine,
+    )
+
+
+class MyQueryRowCount(QueryRowCount):
+    metric_name = "my_query.row_count"
+    value_keys = ("my_query",)
+
+    query_param_name: ClassVar[str] = "my_query"
+
+
+@pytest.mark.unit
+@mock.patch.object(sa, "text")
+@mock.patch.object(
+    QueryMetricProvider, "_get_substituted_batch_subquery_from_query_and_batch_selectable"
+)
+def test_sqlalchemy_query_row_count(
+    mock_get_substituted_batch_subquery_from_query_and_batch_selectable,
+    mock_sqlalchemy_text,
+    mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+    batch_selectable: sa.Selectable,
+):
+    metric_value_kwargs = {
+        "query_param": "my_query",
+        "my_query": "SELECT * FROM {batch} WHERE passenger_count > 7",
+    }
+
+    mock_substituted_batch_subquery = "SELECT * FROM (my_table) WHERE passenger_count > 7"
+    mock_get_substituted_batch_subquery_from_query_and_batch_selectable.return_value = (
+        mock_substituted_batch_subquery
+    )
+    mock_sqlalchemy_text.return_value = "*"
+    with mock.patch.object(mock_sqlalchemy_execution_engine, "execute_query"):
+        MyQueryRowCount._sqlalchemy(
+            cls=MyQueryRowCount,
+            execution_engine=mock_sqlalchemy_execution_engine,
+            metric_domain_kwargs={},
+            metric_value_kwargs=metric_value_kwargs,
+            metrics={},
+            runtime_configuration={},
+        )
+    mock_get_substituted_batch_subquery_from_query_and_batch_selectable.assert_called_once_with(
+        query=metric_value_kwargs["my_query"],
+        batch_selectable=batch_selectable,
         execution_engine=mock_sqlalchemy_execution_engine,
     )
