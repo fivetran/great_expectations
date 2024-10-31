@@ -552,6 +552,36 @@ class TestV1ActionRun:
         ]
 
     @pytest.mark.unit
+    def test_MicrosoftTeamsNotificationAction_run_webhook_substitution(
+        self, checkpoint_result: CheckpointResult
+    ):
+        config_provider = project_manager.get_config_provider()
+        assert isinstance(config_provider, mock.Mock)  # noqa: TID251 # just using for the instance compare
+
+        MS_TEAMS_WEBHOOK_VAR = "${ms_teams_webhook}"
+        MS_TEAMS_WEBHOOK_VALUE = "https://my_org.webhook.office.com/webhookb2/abc"
+
+        action = MicrosoftTeamsNotificationAction(
+            name="my_action",
+            teams_webhook=MS_TEAMS_WEBHOOK_VAR,
+        )
+
+        config_from_uncommitted_config = {MS_TEAMS_WEBHOOK_VAR: MS_TEAMS_WEBHOOK_VALUE}
+
+        config_provider.substitute_config.side_effect = lambda key: config_from_uncommitted_config[
+            key
+        ]
+        with mock.patch(
+            "great_expectations.checkpoint.actions.send_microsoft_teams_notifications"
+        ) as mock_send_notification:
+            action.run(checkpoint_result=checkpoint_result)
+
+        mock_send_notification.assert_called_once_with(
+            payload=mock.ANY,
+            microsoft_teams_webhook=MS_TEAMS_WEBHOOK_VALUE,
+        )
+
+    @pytest.mark.unit
     @pytest.mark.parametrize(
         "success, message",
         [
