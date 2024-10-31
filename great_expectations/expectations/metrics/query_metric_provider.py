@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, Sequence
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Sequence, Union
 
-from typing_extensions import NotRequired, TypedDict, Union
+from typing_extensions import NotRequired, TypedDict
 
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
