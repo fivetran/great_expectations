@@ -139,7 +139,9 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
                 table.drop(self.engine)
 
     def _create_table(self, name: str, columns: Mapping[str, Any]) -> Table:
-        column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
+        column_list: list[Column] = [
+            Column(col_name, col_type) for col_name, col_type in columns.items()
+        ]
         return Table(
             name,
             self.metadata,
