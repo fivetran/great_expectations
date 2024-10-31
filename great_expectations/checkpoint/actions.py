@@ -59,7 +59,6 @@ from great_expectations.util import convert_to_json_serializable  # noqa: TID251
 
 if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import CheckpointResult
-    from great_expectations.core.config_provider import _ConfigurationProvider
     from great_expectations.core.expectation_validation_result import (
         ExpectationSuiteValidationResult,
     )
@@ -140,6 +139,16 @@ class ValidationAction(BaseModel):
             return data_docs_pages
 
         return None
+
+    @staticmethod
+    def _substitute_config_str_if_needed(value: Union[str, ConfigStr, None]) -> Optional[str]:
+        from great_expectations.data_context.data_context.context_factory import project_manager
+
+        config_provider = project_manager.get_config_provider()
+        if isinstance(value, ConfigStr):
+            return value.get_config_value(config_provider=config_provider)
+        else:
+            return value
 
 
 def _should_notify(success: bool, notify_on: Literal["all", "failure", "success"]) -> bool:
@@ -316,18 +325,9 @@ class SlackNotificationAction(DataDocsAction):
         )
 
     def _send_slack_notification(self, payload: dict) -> dict:
-        from great_expectations.data_context.data_context.context_factory import project_manager
-
-        config_provider = project_manager.get_config_provider()
-        substituted_slack_webhook = self._substitute_slack_credential(
-            slack_credential=self.slack_webhook, config_provider=config_provider
-        )
-        substituted_slack_token = self._substitute_slack_credential(
-            slack_credential=self.slack_token, config_provider=config_provider
-        )
-        substituted_slack_channel = self._substitute_slack_credential(
-            slack_credential=self.slack_channel, config_provider=config_provider
-        )
+        substituted_slack_webhook = self._substitute_config_str_if_needed(self.slack_webhook)
+        substituted_slack_token = self._substitute_config_str_if_needed(self.slack_token)
+        substituted_slack_channel = self._substitute_config_str_if_needed(self.slack_channel)
 
         # this will actually send the POST request to the Slack webapp server
         slack_notif_result = send_slack_notification(
@@ -337,14 +337,6 @@ class SlackNotificationAction(DataDocsAction):
             slack_channel=substituted_slack_channel,
         )
         return {"slack_notification_result": slack_notif_result}
-
-    @staticmethod
-    def _substitute_slack_credential(
-        slack_credential: ConfigStr | str | None, config_provider: _ConfigurationProvider
-    ) -> str | None:
-        if not isinstance(slack_credential, ConfigStr):
-            return slack_credential
-        return slack_credential.get_config_value(config_provider=config_provider)
 
 
 @public_api
@@ -604,12 +596,12 @@ class EmailAction(ValidationAction):
 
     type: Literal["email"] = "email"
 
-    smtp_address: str
-    smtp_port: str
-    receiver_emails: str
-    sender_login: Optional[str] = None
-    sender_password: Optional[str] = None
-    sender_alias: Optional[str] = None
+    smtp_address: Union[ConfigStr, str]
+    smtp_port: Union[ConfigStr, str]
+    receiver_emails: Union[ConfigStr, str]
+    sender_login: Optional[Union[ConfigStr, str]] = None
+    sender_password: Optional[Union[ConfigStr, str]] = None
+    sender_alias: Optional[Union[ConfigStr, str]] = None
     use_tls: Optional[bool] = None
     use_ssl: Optional[bool] = None
     notify_on: Literal["all", "failure", "success"] = "all"
@@ -656,17 +648,23 @@ class EmailAction(ValidationAction):
             return {"email_result": ""}
 
         title, html = self.renderer.render(checkpoint_result=checkpoint_result)
-        receiver_emails_list = list(map(lambda x: x.strip(), self.receiver_emails.split(",")))
+        substituted_receiver_emails = (
+            self._substitute_config_str_if_needed(self.receiver_emails) or ""
+        )
+
+        receiver_emails_list = list(
+            map(lambda x: x.strip(), substituted_receiver_emails.split(","))
+        )
 
         # this will actually send the email
         email_result = send_email(
             title=title,
             html=html,
-            smtp_address=self.smtp_address,
-            smtp_port=self.smtp_port,
-            sender_login=self.sender_login,
-            sender_password=self.sender_password,
-            sender_alias=self.sender_alias,
+            smtp_address=self._substitute_config_str_if_needed(self.smtp_address),
+            smtp_port=self._substitute_config_str_if_needed(self.smtp_port),
+            sender_login=self._substitute_config_str_if_needed(self.sender_login),
+            sender_password=self._substitute_config_str_if_needed(self.sender_password),
+            sender_alias=self._substitute_config_str_if_needed(self.sender_alias),
             receiver_emails_list=receiver_emails_list,
             use_tls=self.use_tls,
             use_ssl=self.use_ssl,
