@@ -46,12 +46,7 @@ This Expectation validates that the proportion of unique values in a column is b
 
 For example, you might expect at least 90% of the `email_address` values to be unique:
 
-```python
-gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
-    column="email_address",
-    min_value=0.9,
-    max_value=1.0
-)
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnProportionOfUniqueValuesToBeBetween"
 ```
 
 <small>View `ExpectColumnProportionOfUniqueValuesToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_proportion_of_unique_values_to_be_between).</small>
@@ -62,12 +57,7 @@ This Expectation validates that the number of unique values in a column is betwe
 
 For example, you might expect the `country` column to contain between 1 and 5 unique values:
 
-```python
-gxe.ExpectColumnUniqueValueCountToBeBetween(
-    column="country",
-    min_value=1,
-    max_value=5
-)
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnUniqueValueCountToBeBetween"
 ```
 
 <small>View `ExpectColumnUniqueValueCountToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_unique_value_count_to_be_between).</small>
@@ -79,10 +69,7 @@ This Expectation validates that each value in a column is unique. It's useful fo
 
 For example, you might expect the `customer_id` column to contain only unique values:
 
-```python
-gxe.ExpectColumnValuesToBeUnique(
-    column="customer_id"
-)
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnValuesToBeUnique"
 ```
 
 If there are any duplicate values, they will be listed in `result.exceptions_list`, and the `unexpected_percent` will show the percentage of rows with duplicates.
@@ -101,10 +88,7 @@ This Expectation validates that the combination of values across multiple column
 
 For example, you might expect the combination of `first_name`, `last_name`, and `government_id` to uniquely identify each customer:
 
-```python
-gxe.ExpectCompoundColumnsToBeUnique(
-    column_list=["first_name", "last_name", "government_id"],
-)
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectCompoundColumnsToBeUnique"
 ```
 
 <small>View `ExpectCompoundColumnsToBeUnique` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_compound_columns_to_be_unique).</small>
@@ -116,10 +100,7 @@ This Expectation validates that, for each row, the values across a specified set
 
 For example, you might expect each customer record to have a unique `email_address` and `phone_number` combination:
 
-```python
-gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
-  column_list=["email_address", "phone_number"],
-)
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectSelectColumnValuesToBeUniqueWithinRecord"
 ```
 
 Note that this Expectation allows for duplicate rows as long as the specified columns have unique values within each row.
