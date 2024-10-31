@@ -721,8 +721,9 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         self,
         name: str,
         partitioner: Optional[ColumnPartitioner] = None,
+        validate_partitioner: bool = True,
     ) -> BatchDefinition[ColumnPartitioner]:
-        if partitioner:
+        if validate_partitioner and partitioner:
             self.validate_batch_definition(partitioner)
         return super().add_batch_definition(name, partitioner)
 
@@ -792,18 +793,27 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
     @public_api
     def add_batch_definition_yearly(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
         return self.add_batch_definition(
             name=name,
             partitioner=ColumnPartitionerYearly(
                 method_name="partition_on_year", column_name=column, sort_ascending=sort_ascending
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @public_api
     def add_batch_definition_monthly(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
         return self.add_batch_definition(
             name=name,
@@ -812,11 +822,16 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 column_name=column,
                 sort_ascending=sort_ascending,
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @public_api
     def add_batch_definition_daily(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
         return self.add_batch_definition(
             name=name,
@@ -825,6 +840,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 column_name=column,
                 sort_ascending=sort_ascending,
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @override
