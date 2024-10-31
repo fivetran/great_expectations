@@ -133,4 +133,4 @@ class TestExpectTableRowCountToEqualOtherTable:
     def test_missing_table(self, batch_for_datasource):
         expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name="where_am_i")
         result = batch_for_datasource.validate(expectation)
-        assert not result.success
+        assert not result.success, "We should not find the other table, since we didn't load it."
