@@ -1,5 +1,5 @@
 from random import randint
-from typing import TYPE_CHECKING, Dict, List, TypeVar, Union
+from typing import TYPE_CHECKING, Mapping, TypeVar, Union
 
 import pandas as pd
 import pytest
@@ -38,11 +38,15 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
 
     @override
     def create_batch_setup(
-        self, data: pd.DataFrame, request: pytest.FixtureRequest
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
         return SnowflakeBatchTestSetup(
             data=data,
             config=self,
+            extra_data=extra_data,
         )
 
 
@@ -74,12 +78,14 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
         self,
         config: SnowflakeDatasourceTestConfig,
         data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         self.table_name = f"snowflake_expectation_test_table_{randint(0, 1000000)}"
         self.snowflake_connection_config = SnowflakeConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
         self.engine = create_engine(url=self.snowflake_connection_config.connection_string)
         self.metadata = MetaData()
-        self.table: Union[Table, None] = None
+        self.tables: Union[list[Table], None] = None
+        self.extra_data = extra_data
         super().__init__(config=config, data=data)
 
     @override
@@ -106,16 +112,16 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
 
     @override
     def setup(self) -> None:
-        column_types: Dict[str, SnowflakeType] = self.get_column_types()
-        columns: List[Column] = [
-            Column(name, column_type) for name, column_type in column_types.items()
-        ]
-        self.table = Table(
-            self.table_name,
-            self.metadata,
-            *columns,
-            schema=self.snowflake_connection_config.SNOWFLAKE_SCHEMA,
-        )
+        main_table = self._create_table(name=self.table_name, columns=self.get_column_types())
+        extra_tables = {
+            table_name: self._create_table(
+                name=table_name,
+                columns=self.get_extra_column_types(table_name),
+            )
+            for table_name in self.extra_data
+        }
+        self.tables = [main_table, *extra_tables.values()]
+
         self.metadata.create_all(self.engine)
         with self.engine.connect() as conn:
             # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
@@ -123,16 +129,37 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
             # Then we pass that list of dicts in as parameters to our insert statement.
             #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
             #   [...] [('1', 'foo'), ('2', 'bar')]
-            conn.execute(insert(self.table), list(self.data.to_dict("index").values()))
-            conn.commit()
+            with conn.begin():
+                conn.execute(insert(main_table), list(self.data.to_dict("index").values()))
+                for table_name, table_data in self.extra_data.items():
+                    conn.execute(
+                        insert(extra_tables[table_name]),
+                        list(table_data.to_dict("index").values()),
+                    )
 
     @override
     def teardown(self) -> None:
-        if self.table is not None:
-            self.table.drop(self.engine)
+        if self.tables:
+            for table in self.tables:
+                table.drop(self.engine)
 
-    def get_column_types(self) -> Dict[str, _SnowflakeType]:
+    def _create_table(self, name: str, columns: Mapping[str, SnowflakeType]) -> Table:
+        column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
+        return Table(
+            name,
+            self.metadata,
+            *column_list,
+            schema=self.snowflake_connection_config.SNOWFLAKE_SCHEMA,
+        )
+
+    def get_column_types(self) -> Mapping[str, _SnowflakeType]:
         if self.config.column_types is None:
-            raise NotImplementedError("Column inference not implemented")
+            return {}
+        return self.config.column_types
+
+    def get_extra_column_types(self, table_name: str) -> Mapping[str, _SnowflakeType]:
+        extra_assets = self.config.extra_assets
+        if not extra_assets:
+            return {}
         else:
-            return self.config.column_types
+            return extra_assets[table_name]
