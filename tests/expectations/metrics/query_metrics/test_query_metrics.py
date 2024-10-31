@@ -136,7 +136,7 @@ def test_sqlalchemy_query_metrics_that_return_records(
     metric_class: QueryMetricProvider,
     class_metric_value_kwargs: dict,
     query_parameters: Optional[QueryParameters],
-    batch_selectable: sa.Selectable,
+    batch_selectable: sa.Table,
 ):
     metric_value_kwargs = {
         "query_param": "my_query",
@@ -193,7 +193,7 @@ def test_sqlalchemy_query_row_count(
     mock_get_substituted_batch_subquery_from_query_and_batch_selectable,
     mock_sqlalchemy_text,
     mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
-    batch_selectable: sa.Selectable,
+    batch_selectable: sa.Table,
 ):
     metric_value_kwargs = {
         "query_param": "my_query",

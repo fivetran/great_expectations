@@ -37,7 +37,7 @@ _batch_selectable = sa.Table("my_table", sa.MetaData(), schema=None)
 
 
 @pytest.fixture
-def batch_selectable():
+def batch_selectable() -> sa.Table:
     return _batch_selectable
 
 
@@ -54,7 +54,7 @@ class MockSqlAlchemyExecutionEngine(SqlAlchemyExecutionEngine):
         domain_kwargs: dict,
         domain_type: Union[str, MetricDomainTypes],
         accessor_keys: Optional[Iterable[str]] = None,
-    ) -> tuple[type(_batch_selectable), dict, dict]:
+    ) -> tuple[sa.Table, dict, dict]:
         return _batch_selectable, {}, {}
 
 
