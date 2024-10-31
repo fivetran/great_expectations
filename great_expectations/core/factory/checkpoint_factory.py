@@ -9,7 +9,6 @@ from great_expectations.analytics.events import (
     CheckpointCreatedEvent,
     CheckpointDeletedEvent,
 )
-from great_expectations.checkpoint.actions import UpdateDataDocsAction
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.factory.factory import Factory
@@ -61,9 +60,7 @@ class CheckpointFactory(Factory[Checkpoint]):
                     ActionInfo(
                         type=action.type,
                         # notify_on is not a property of all Actions
-                        notify_on=action.notify_on
-                        if not isinstance(action, UpdateDataDocsAction)
-                        else None,
+                        notify_on=getattr(action, "notify_on", None),
                     )
                     for action in checkpoint.actions
                 ],
