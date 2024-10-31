@@ -15,8 +15,6 @@ When we deprecate our public APIs, we will
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
 ### 1.2.1
-* [FEATURE] PostgreSQL Expectation Tests ([#10582](https://github.com/great-expectations/great_expectations/pull/10582))
-* [FEATURE] Snowflake Expectation Tests ([#10586](https://github.com/great-expectations/great_expectations/pull/10586))
 * [BUGFIX] Add redirect for deploy-gx-agent ([#10573](https://github.com/great-expectations/great_expectations/pull/10573))
 * [BUGFIX] Fix typing on `mostly` and `value_set` fields ([#10571](https://github.com/great-expectations/great_expectations/pull/10571))
 * [BUGFIX] `ExpectationSuite` equality should ignore expectation ordering ([#10562](https://github.com/great-expectations/great_expectations/pull/10562))
@@ -33,6 +31,8 @@ Before we completely remove the functionality in a new major release, there will
 * [DOCS] Fixes more small issues noticed during onboarding ([#10598](https://github.com/great-expectations/great_expectations/pull/10598))
 * [DOCS] Mark `MicrosoftTeamsNotificationAction` as first-class ([#10595](https://github.com/great-expectations/great_expectations/pull/10595))
 * [DOCS] Add lychee to spot broken urls ([#10585](https://github.com/great-expectations/great_expectations/pull/10585))
+* [MAINTENANCE] PostgreSQL Expectation Tests ([#10582](https://github.com/great-expectations/great_expectations/pull/10582))
+* [MAINTENANCE] Snowflake Expectation Tests ([#10586](https://github.com/great-expectations/great_expectations/pull/10586))
 * [MAINTENANCE] Reenable xfailed e2e tests ([#10555](https://github.com/great-expectations/great_expectations/pull/10555))
 * [MAINTENANCE] Add test to public api to ensure that decorated methods have decorated parent classes ([#10529](https://github.com/great-expectations/great_expectations/pull/10529))
 * [MAINTENANCE] Bump `ruff` and `mypy` versions to `0.7.1` and `1.13.0`, respectively ([#10565](https://github.com/great-expectations/great_expectations/pull/10565))
