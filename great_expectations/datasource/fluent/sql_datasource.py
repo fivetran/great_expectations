@@ -750,21 +750,23 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         # A _SQLAsset must have a SQLDatasource
         assert isinstance(self.datasource, SQLDatasource)
         engine: sa.Engine = self.datasource.get_engine()
+
+        # It would be better to introspect the database types and see which ones map to date or
+        # datetime. However, 3rd party types, such as Snowflakes TIMESTAMP_NTZ haven't implemented
+        # all the sqlalchemy abstract methods such as `python_type`.
+        # To make this more concrete I would have liked to do something like:
+        # insp = sqlalchemy.inspect(self.datasource.get_engine())
+        # cols = insp.get_columns(self.table_name, self.schema_name)
+        # for col in cols:
+        #     pytype = col['type'].python_type
+        #
+        # Instead we query the db for a non-null value to see if sqlalchemy converts
+        # this value to a python date or datetime. This means we REQUIRE that data is
+        # present for this validation to work.
         with engine.connect() as connection:
             selectable: sa.Selectable = self.as_selectable()
             column: sa.ColumnClause[Never] = sa.sql.column(partitioner.column_name)
             try:
-                # We query the table for a non-null value to leverage sqlalchemy
-                # to convert the column into a python date or datetime which we will
-                # use for batching.
-                # The con of this approach are:
-                #  * We require data to be present
-                #
-                # Alternatively we could look at the schema but then we need to know
-                # what types for this particular database engine map to a python date or
-                # datetime.
-                # The drawback of this approach is we can't add a batch definition if
-                # there is no data in the table (or this column is always null).
                 row = connection.execute(
                     sa.select(column, selectable).limit(1)  # type: ignore[call-overload]  # sqlalchemy typing is missing variants
                 )
