@@ -572,6 +572,21 @@ learn_data_quality_use_cases = [
         util_script="tests/test_utils.py",
         backend_dependencies=[BackendDependencies.POSTGRESQL],
     ),
+    # Uniqueness.
+    IntegrationTestFixture(
+        name="data_quality_use_case_uniqueness_expectations",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    IntegrationTestFixture(
+        name="data_quality_use_case_uniqueness_workflow",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
 ]
 
 # Extend the docs_tests list with the above sublists (only the docs_tests list is imported
