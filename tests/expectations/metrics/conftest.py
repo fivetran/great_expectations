@@ -54,7 +54,7 @@ class MockSqlAlchemyExecutionEngine(SqlAlchemyExecutionEngine):
         domain_kwargs: dict,
         domain_type: Union[str, MetricDomainTypes],
         accessor_keys: Optional[Iterable[str]] = None,
-    ) -> tuple[sa.Selectable, dict, dict]:
+    ) -> tuple[type(_batch_selectable), dict, dict]:
         return _batch_selectable, {}, {}
 
 
