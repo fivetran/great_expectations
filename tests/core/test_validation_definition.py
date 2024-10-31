@@ -141,7 +141,13 @@ def postgres_validation_definition(
             connection_string="postgresql+psycopg2://postgres:postgres@localhost:5432/test_ci",
         )
         .add_query_asset(name="my_asset", query="SELECT * FROM fake_table")
-        .add_batch_definition_monthly(name="my_batch_definition", column="not_very_real")
+        .add_batch_definition_monthly(
+            name="my_batch_definition",
+            column="not_very_real",
+            # We skip validating we can generate batches because fake_table is fake
+            # and won't validate.
+            validate_batchable=False,
+        )
     )
     return context.validation_definitions.add(
         ValidationDefinition(
