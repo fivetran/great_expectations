@@ -22,7 +22,7 @@ from tests.integration.test_utils.data_source_config.base import (
 _SnowflakeType = TypeVar("_SnowflakeType")
 
 
-class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
+class SnowflakeDatasourceTestConfig(DataSourceTestConfig[_SnowflakeType]):
     @property
     @override
     def label(self) -> str:
