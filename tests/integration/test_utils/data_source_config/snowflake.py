@@ -1,5 +1,5 @@
 from random import randint
-from typing import TYPE_CHECKING, Mapping, TypeVar, Union
+from typing import Mapping, TypeVar, Union
 
 import pandas as pd
 import pytest
@@ -18,9 +18,6 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
-
-if TYPE_CHECKING:
-    from great_expectations.compatibility.snowflake import SnowflakeType
 
 _SnowflakeType = TypeVar("_SnowflakeType")
 
@@ -143,7 +140,7 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
             for table in self.tables:
                 table.drop(self.engine)
 
-    def _create_table(self, name: str, columns: Mapping[str, SnowflakeType]) -> Table:
+    def _create_table(self, name: str, columns: Mapping[str, _SnowflakeType]) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
         return Table(
             name,
