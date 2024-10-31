@@ -37,7 +37,7 @@ _batch_selectable = sa.Table("my_table", sa.MetaData(), schema=None)
 
 
 @pytest.fixture
-def batch_selectable() -> sa.Selectable:
+def batch_selectable():
     return _batch_selectable
 
 
