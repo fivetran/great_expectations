@@ -1,5 +1,5 @@
 from random import randint
-from typing import Mapping, TypeVar, Union
+from typing import Any, Mapping, Union
 
 import pandas as pd
 import pytest
@@ -19,10 +19,8 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 
-_SnowflakeType = TypeVar("_SnowflakeType")
 
-
-class SnowflakeDatasourceTestConfig(DataSourceTestConfig[_SnowflakeType]):
+class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
@@ -140,7 +138,7 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
             for table in self.tables:
                 table.drop(self.engine)
 
-    def _create_table(self, name: str, columns: Mapping[str, _SnowflakeType]) -> Table:
+    def _create_table(self, name: str, columns: Mapping[str, Any]) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
         return Table(
             name,
@@ -149,12 +147,12 @@ class SnowflakeBatchTestSetup(BatchTestSetup[SnowflakeDatasourceTestConfig]):
             schema=self.snowflake_connection_config.SNOWFLAKE_SCHEMA,
         )
 
-    def get_column_types(self) -> Mapping[str, _SnowflakeType]:
+    def get_column_types(self) -> Mapping[str, Any]:
         if self.config.column_types is None:
             return {}
         return self.config.column_types
 
-    def get_extra_column_types(self, table_name: str) -> Mapping[str, _SnowflakeType]:
+    def get_extra_column_types(self, table_name: str) -> Mapping[str, Any]:
         extra_assets = self.config.extra_assets
         if not extra_assets:
             return {}
