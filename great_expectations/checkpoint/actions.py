@@ -463,11 +463,12 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
             checkpoint_result=checkpoint_result,
             data_docs_pages=data_docs_pages,
         )
-        # this will actually sent the POST request to the Microsoft Teams webapp server
+
         webhook = self._substitute_config_str_if_needed(self.teams_webhook)
-        if not webhook:
+        if not webhook:  # Necessary to appease mypy; this is guaranteed.
             raise ValueError("No Microsoft Teams webhook URL provided.")  # noqa: TRY003
 
+        # this will actually sent the POST request to the Microsoft Teams webapp server
         teams_notif_result = send_microsoft_teams_notifications(
             payload=payload,
             microsoft_teams_webhook=webhook,
