@@ -249,6 +249,30 @@ try:
 except (ImportError, AttributeError):
     Table = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment]
 
+
+try:
+    from sqlalchemy import Column
+except (ImportError, AttributeError):
+    Column = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment]
+
+
+try:
+    from sqlalchemy import MetaData
+except (ImportError, AttributeError):
+    MetaData = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment]
+
+
+try:
+    from sqlalchemy import create_engine
+except (ImportError, AttributeError):
+    create_engine = SQLALCHEMY_NOT_IMPORTED  # type: ignore[assignment]
+
+
+try:
+    from sqlalchemy import insert
+except (ImportError, AttributeError):
+    insert = SQLALCHEMY_NOT_IMPORTED
+
 try:
     __version__: str | None = sqlalchemy.__version__
 except (ImportError, AttributeError):

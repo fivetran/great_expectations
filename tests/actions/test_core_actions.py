@@ -35,7 +35,10 @@ from great_expectations.data_context.data_context.abstract_data_context import (
     AbstractDataContext,
 )
 from great_expectations.data_context.data_context.cloud_data_context import CloudDataContext
-from great_expectations.data_context.data_context.context_factory import set_context
+from great_expectations.data_context.data_context.context_factory import (
+    project_manager,
+    set_context,
+)
 from great_expectations.data_context.types.resource_identifiers import (
     ExpectationSuiteIdentifier,
     GXCloudIdentifier,
@@ -453,6 +456,56 @@ class TestV1ActionRun:
         assert out == {"email_result": mock_send_email()}
 
     @pytest.mark.unit
+    def test_EmailAction_run_smptp_address_substitution(self, checkpoint_result: CheckpointResult):
+        config_provider = project_manager.get_config_provider()
+        assert isinstance(config_provider, mock.Mock)  # noqa: TID251 # just using for the instance compare
+
+        SMPT_ADDRESS_KEY = "${smtp_address}"
+        SMPT_PORT_KEY = "${smtp_port}"
+        SENDER_LOGIN_KEY = "${sender_login}"
+        SENDER_ALIAS_KEY = "${sender_alias_login}"
+        SENDER_PASSWORD_KEY = "${sender_password_login}"
+        RECEIVER_EMAILS_KEY = "${receiver_emails}"
+
+        action = EmailAction(
+            name="my_action",
+            smtp_address=SMPT_ADDRESS_KEY,
+            smtp_port=SMPT_PORT_KEY,
+            sender_login=SENDER_LOGIN_KEY,
+            sender_alias=SENDER_ALIAS_KEY,
+            sender_password=SENDER_PASSWORD_KEY,
+            receiver_emails=RECEIVER_EMAILS_KEY,
+        )
+
+        config_from_uncommitted_config = {
+            SMPT_ADDRESS_KEY: "something.com",
+            SMPT_PORT_KEY: "123",
+            SENDER_LOGIN_KEY: "sender@greatexpectations.io",
+            SENDER_ALIAS_KEY: "alias@greatexpectations.io",
+            SENDER_PASSWORD_KEY: "sender_password_login",
+            RECEIVER_EMAILS_KEY: "foo@greatexpectations.io, bar@great_expectations.io",
+        }
+
+        config_provider.substitute_config.side_effect = lambda key: config_from_uncommitted_config[
+            key
+        ]
+        with mock.patch("great_expectations.checkpoint.actions.send_email") as mock_send_email:
+            action.run(checkpoint_result=checkpoint_result)
+
+        mock_send_email.assert_called_once_with(
+            title=mock.ANY,
+            html=mock.ANY,
+            receiver_emails_list=["foo@greatexpectations.io", "bar@great_expectations.io"],
+            sender_alias=config_from_uncommitted_config[SENDER_ALIAS_KEY],
+            sender_login=config_from_uncommitted_config[SENDER_LOGIN_KEY],
+            sender_password=config_from_uncommitted_config[SENDER_PASSWORD_KEY],
+            smtp_address=config_from_uncommitted_config[SMPT_ADDRESS_KEY],
+            smtp_port=config_from_uncommitted_config[SMPT_PORT_KEY],
+            use_ssl=mock.ANY,
+            use_tls=mock.ANY,
+        )
+
+    @pytest.mark.unit
     def test_MicrosoftTeamsNotificationAction_run(self, checkpoint_result: CheckpointResult):
         action = MicrosoftTeamsNotificationAction(name="my_action", teams_webhook="test")
 
@@ -462,76 +515,39 @@ class TestV1ActionRun:
         mock_post.assert_called_once()
 
         body = mock_post.call_args.kwargs["json"]["attachments"][0]["content"]["body"]
-        checkpoint_summary = body[0]["items"][0]["columns"][0]["items"][0]["text"]
-        first_validation = body[1]["items"][0]["text"]
-        second_validation = body[2]["items"][0]["text"]
 
-        assert len(body) == 3
-        assert "Success !!!" in checkpoint_summary
-        assert first_validation == [
+        assert len(body) == 5
+
+        # Assert header
+        assert "Success" in body[0]["columns"][1]["items"][0]["text"]
+
+        # Assert first validation
+        assert body[1]["text"] == "Validation Result (1 of 2) ✅"
+        assert body[2]["facts"] == [
+            {"title": "Data Asset name: ", "value": "--"},
+            {"title": "Suite name: ", "value": "suite_a"},
             {
-                "color": "good",
-                "horizontalAlignment": "left",
-                "text": "**Batch Validation Status:** Success !!!",
-                "type": "TextBlock",
+                "title": "Run name: ",
+                "value": "prod_20240401",
             },
             {
-                "horizontalAlignment": "left",
-                "text": "**Data Asset Name:** __no_data_asset_name__",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Expectation Suite Name:** suite_a",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Run Name:** prod_20240401",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Batch ID:** None",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Summary:** *3* of *3* expectations were met",
-                "type": "TextBlock",
+                "title": "Summary:",
+                "value": "*3* of *3* Expectations were met",
             },
         ]
-        assert second_validation == [
+
+        # Assert second validation
+        assert body[3]["text"] == "Validation Result (2 of 2) ✅"
+        assert body[4]["facts"] == [
+            {"title": "Data Asset name: ", "value": "--"},
+            {"title": "Suite name: ", "value": "suite_b"},
             {
-                "color": "good",
-                "horizontalAlignment": "left",
-                "text": "**Batch Validation Status:** Success !!!",
-                "type": "TextBlock",
+                "title": "Run name: ",
+                "value": "prod_20240402",
             },
             {
-                "horizontalAlignment": "left",
-                "text": "**Data Asset Name:** __no_data_asset_name__",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Expectation Suite Name:** suite_b",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Run Name:** prod_20240402",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Batch ID:** None",
-                "type": "TextBlock",
-            },
-            {
-                "horizontalAlignment": "left",
-                "text": "**Summary:** *2* of *2* expectations were met",
-                "type": "TextBlock",
+                "title": "Summary:",
+                "value": "*2* of *2* Expectations were met",
             },
         ]
 

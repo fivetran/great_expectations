@@ -62,6 +62,7 @@ def v1_checkpoint_result(mocker: pytest_mock.MockFixture):
         statistics={"successful_expectations": 3, "evaluated_expectations": 5},
         batch_id="my_batch",
         success=False,
+        result_url=None,
     )
     result_a.asset_name = "my_first_asset"
     result_b = mocker.MagicMock(
@@ -71,6 +72,7 @@ def v1_checkpoint_result(mocker: pytest_mock.MockFixture):
         statistics={"successful_expectations": 1, "evaluated_expectations": 1},
         batch_id="my_other_batch",
         success=True,
+        result_url=None,
     )
     result_b.asset_name = None
 

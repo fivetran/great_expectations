@@ -141,6 +141,16 @@ class ValidationAction(BaseModel):
 
         return None
 
+    @staticmethod
+    def _substitute_config_str_if_needed(value: Union[str, ConfigStr, None]) -> Optional[str]:
+        from great_expectations.data_context.data_context.context_factory import project_manager
+
+        config_provider = project_manager.get_config_provider()
+        if isinstance(value, ConfigStr):
+            return value.get_config_value(config_provider=config_provider)
+        else:
+            return value
+
 
 def _should_notify(success: bool, notify_on: Literal["all", "failure", "success"]) -> bool:
     return (
@@ -604,12 +614,12 @@ class EmailAction(ValidationAction):
 
     type: Literal["email"] = "email"
 
-    smtp_address: str
-    smtp_port: str
-    receiver_emails: str
-    sender_login: Optional[str] = None
-    sender_password: Optional[str] = None
-    sender_alias: Optional[str] = None
+    smtp_address: Union[ConfigStr, str]
+    smtp_port: Union[ConfigStr, str]
+    receiver_emails: Union[ConfigStr, str]
+    sender_login: Optional[Union[ConfigStr, str]] = None
+    sender_password: Optional[Union[ConfigStr, str]] = None
+    sender_alias: Optional[Union[ConfigStr, str]] = None
     use_tls: Optional[bool] = None
     use_ssl: Optional[bool] = None
     notify_on: Literal["all", "failure", "success"] = "all"
@@ -656,17 +666,23 @@ class EmailAction(ValidationAction):
             return {"email_result": ""}
 
         title, html = self.renderer.render(checkpoint_result=checkpoint_result)
-        receiver_emails_list = list(map(lambda x: x.strip(), self.receiver_emails.split(",")))
+        substituted_receiver_emails = (
+            self._substitute_config_str_if_needed(self.receiver_emails) or ""
+        )
+
+        receiver_emails_list = list(
+            map(lambda x: x.strip(), substituted_receiver_emails.split(","))
+        )
 
         # this will actually send the email
         email_result = send_email(
             title=title,
             html=html,
-            smtp_address=self.smtp_address,
-            smtp_port=self.smtp_port,
-            sender_login=self.sender_login,
-            sender_password=self.sender_password,
-            sender_alias=self.sender_alias,
+            smtp_address=self._substitute_config_str_if_needed(self.smtp_address),
+            smtp_port=self._substitute_config_str_if_needed(self.smtp_port),
+            sender_login=self._substitute_config_str_if_needed(self.sender_login),
+            sender_password=self._substitute_config_str_if_needed(self.sender_password),
+            sender_alias=self._substitute_config_str_if_needed(self.sender_alias),
             receiver_emails_list=receiver_emails_list,
             use_tls=self.use_tls,
             use_ssl=self.use_ssl,
