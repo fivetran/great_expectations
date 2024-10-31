@@ -53,9 +53,7 @@ suite.add_expectation(
 
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/schema_resources/schema_expectations.py ExpectColumnValuesToBeInTypeList">
-    gxe.ExpectColumnValuesToBeInTypeList(
-        column="account_type", type_list=["INTEGER", "STRING"]
-    )
+    gxe.ExpectColumnValuesToBeInTypeList(column="type", type_list=["INTEGER", "STRING"])
     # </snippet>
 )
 
