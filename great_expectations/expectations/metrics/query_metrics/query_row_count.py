@@ -14,14 +14,13 @@ from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.query_metric_provider import (
     QueryMetricProvider,
 )
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark
 
 
-class QueryTable(QueryMetricProvider):
-    metric_name = "query.table"
+class QueryRowCount(QueryMetricProvider):
+    metric_name = "query.row_count"
     value_keys = ("query",)
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
@@ -32,7 +31,7 @@ class QueryTable(QueryMetricProvider):
         metric_value_kwargs: dict,
         metrics: Dict[str, Any],
         runtime_configuration: dict,
-    ) -> list[dict]:
+    ) -> int:
         batch_selectable, _, _ = execution_engine.get_compute_domain(
             metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
         )
@@ -44,15 +43,15 @@ class QueryTable(QueryMetricProvider):
                 execution_engine=execution_engine,
             )
         )
-
+        count_column_name = "unexpected_row_count"
+        row_count_query = (
+            f"SELECT COUNT(*) as {count_column_name} FROM "
+            f"({substituted_batch_subquery}) AS substituted_batch_subquery"
+        )
         result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(substituted_batch_subquery)  # type: ignore[arg-type]
-        ).fetchmany(MAX_RESULT_RECORDS)
-
-        if isinstance(result, Sequence):
-            return [element._asdict() for element in result]
-        else:
-            return [result]
+            sa.text(row_count_query)  # type: ignore[arg-type]
+        ).fetchone()
+        return int(result[0])
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
@@ -62,7 +61,7 @@ class QueryTable(QueryMetricProvider):
         metric_value_kwargs: dict,
         metrics: Dict[str, Any],
         runtime_configuration: dict,
-    ) -> list[dict]:
+    ) -> int:
         query = cls._get_query_from_metric_value_kwargs(metric_value_kwargs)
 
         df: pyspark.DataFrame
@@ -74,6 +73,6 @@ class QueryTable(QueryMetricProvider):
         query = query.format(batch="tmp_view")
 
         engine: pyspark.SparkSession = execution_engine.spark
-        result: List[pyspark.Row] = engine.sql(query).limit(MAX_RESULT_RECORDS).collect()
+        result: List[pyspark.Row] = engine.sql(query).count().collect()
 
-        return [element.asDict() for element in result]
+        return int(result[0])

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, ClassVar, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Optional
 
 from typing_extensions import NotRequired, TypedDict
 
@@ -10,7 +10,6 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.expectations.metrics.metric_provider import MetricProvider
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.util import get_sqlalchemy_subquery_type
 
 if TYPE_CHECKING:
@@ -126,13 +125,13 @@ class QueryMetricProvider(MetricProvider):
             return {**query_parameters}
 
     @classmethod
-    def _get_sqlalchemy_records_from_query_and_batch_selectable(
+    def _get_substituted_batch_subquery_from_query_and_batch_selectable(
         cls,
         query: str,
         batch_selectable: sa.Selectable,
         execution_engine: SqlAlchemyExecutionEngine,
         query_parameters: Optional[QueryParameters] = None,
-    ) -> list[dict]:
+    ) -> str:
         parameters = cls._get_parameters_dict_from_query_parameters(query_parameters)
 
         if isinstance(batch_selectable, sa.Table):
@@ -164,11 +163,4 @@ class QueryMetricProvider(MetricProvider):
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
 
-        result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(query)  # type: ignore[arg-type]
-        ).fetchmany(MAX_RESULT_RECORDS)
-
-        if isinstance(result, Sequence):
-            return [element._asdict() for element in result]
-        else:
-            return [result]
+        return query
