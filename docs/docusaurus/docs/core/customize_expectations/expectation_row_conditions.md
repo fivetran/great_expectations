@@ -210,6 +210,7 @@ While conditions can be attached to most Expectations, the following Expectation
 
 * `expect_column_to_exist`
 * `expect_table_columns_to_match_ordered_list`
+* `expect_table_columns_to_match_set`
 * `expect_table_column_count_to_be_between`
 * `expect_table_column_count_to_equal`
 

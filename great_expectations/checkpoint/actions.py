@@ -59,7 +59,6 @@ from great_expectations.util import convert_to_json_serializable  # noqa: TID251
 
 if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import CheckpointResult
-    from great_expectations.core.config_provider import _ConfigurationProvider
     from great_expectations.core.expectation_validation_result import (
         ExpectationSuiteValidationResult,
     )
@@ -326,18 +325,9 @@ class SlackNotificationAction(DataDocsAction):
         )
 
     def _send_slack_notification(self, payload: dict) -> dict:
-        from great_expectations.data_context.data_context.context_factory import project_manager
-
-        config_provider = project_manager.get_config_provider()
-        substituted_slack_webhook = self._substitute_slack_credential(
-            slack_credential=self.slack_webhook, config_provider=config_provider
-        )
-        substituted_slack_token = self._substitute_slack_credential(
-            slack_credential=self.slack_token, config_provider=config_provider
-        )
-        substituted_slack_channel = self._substitute_slack_credential(
-            slack_credential=self.slack_channel, config_provider=config_provider
-        )
+        substituted_slack_webhook = self._substitute_config_str_if_needed(self.slack_webhook)
+        substituted_slack_token = self._substitute_config_str_if_needed(self.slack_token)
+        substituted_slack_channel = self._substitute_config_str_if_needed(self.slack_channel)
 
         # this will actually send the POST request to the Slack webapp server
         slack_notif_result = send_slack_notification(
@@ -347,14 +337,6 @@ class SlackNotificationAction(DataDocsAction):
             slack_channel=substituted_slack_channel,
         )
         return {"slack_notification_result": slack_notif_result}
-
-    @staticmethod
-    def _substitute_slack_credential(
-        slack_credential: ConfigStr | str | None, config_provider: _ConfigurationProvider
-    ) -> str | None:
-        if not isinstance(slack_credential, ConfigStr):
-            return slack_credential
-        return slack_credential.get_config_value(config_provider=config_provider)
 
 
 @public_api

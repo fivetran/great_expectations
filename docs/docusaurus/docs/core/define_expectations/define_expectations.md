@@ -21,6 +21,13 @@ import OverviewCard from '@site/src/components/OverviewCard';
     to="/core/define_expectations/create_an_expectation" 
     icon="/img/expectation_icon.svg" 
   />
+    <LinkCard 
+    topIcon 
+    label="Retrieve a Batch of sample data"
+    description="Retrieve a Batch of data to validate your Expectations against."
+    to="/core/define_expectations/retrieve_a_batch_of_test_data" 
+    icon="/img/expectation_icon.svg" 
+  />
   <LinkCard 
     topIcon 
     label="Test an Expectation"

@@ -53,8 +53,7 @@ Column-level schema Expectations ensure that the individual columns within your 
 
 #### Expect Column Values To Be Of Type
 
-Validates that the values within a column are of a specific data type. This is more stringent
-compared to the previous Expectation, suitable for scenarios needing strict type adherence.
+Validates that the values within a column are of a specific data type. This is useful for scenarios needing strict type adherence.
 
 **Use Case:** Handling data transferred using formats that do not embed schema
 (e.g., CSV), where apparent type changes can occur when new values appear.
