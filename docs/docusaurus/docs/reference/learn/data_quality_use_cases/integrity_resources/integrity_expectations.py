@@ -53,4 +53,23 @@ suite.add_expectation(
     # </snippet>
 )
 
+suite.add_expectation(
+    # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectMulticolumnSumToEqual">
+    gxe.ExpectMulticolumnSumToEqual(
+        column_list=["adjustment", "sender_debit", "recipient_credit"],
+        sum_total=0.0
+    )
+    # </snippet>
+)
+
+suite.add_expectation(
+    # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectColumnPairValuesAToBeGreaterThanB">
+    gxe.ExpectColumnPairValuesAToBeGreaterThanB(
+        column_A="transfer_amount",
+        column_B="adjustment",
+        or_equal=True
+    )
+    # </snippet>
+)
+
 results = batch.validate(suite)

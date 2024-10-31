@@ -74,11 +74,7 @@ Validates that values in one column match corresponding values in another column
 
 **Use Case**: Verify that the reference number and confirmation code match for each transaction.
 
-```python
-gxe.ExpectColumnPairValuesToBeEqual(
-    column_A="reference_number",
-    column_B="confirmation_code"
-)
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectColumnPairValuesToBeEqual"
 ```
 
 <small>View `ExpectColumnPairValuesToBeEqual` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_pair_values_to_be_equal).</small>
@@ -90,11 +86,7 @@ Ensures that the sum of multiple columns equals an expected value, useful for va
 
 **Use Case**: Validate sum-to-zero checks in the `transfer_balances` table.
 
-```python
-gxe.ExpectMulticolumnSumToEqual(
-    column_list=["adjustment", "sender_debit", "recipient_credit"],
-    sum_total=0.0
-)
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectMulticolumnSumToEqual"
 ```
 
 <small>View `ExpectMulticolumnSumToEqual` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_multicolumn_sum_to_equal).</small>
@@ -106,12 +98,7 @@ Verifies that values in one column are consistently greater than related values 
 
 **Use Case**: Ensure transfer amounts are always greater than or equal to adjustments.
 
-```python
-gxe.ExpectColumnPairValuesAToBeGreaterThanB(
-    column_A="transfer_amount",
-    column_B="adjustment",
-    or_equal=True
-)
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectColumnPairValuesAToBeGreaterThanB"
 ```
 
 <small>View `ExpectColumnPairValuesAToBeGreaterThanB` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_pair_values_a_to_be_greater_than_b).</small>
