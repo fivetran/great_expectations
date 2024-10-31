@@ -49,7 +49,7 @@ class QueryRowCount(QueryMetricProvider):
             f"({substituted_batch_subquery}) AS substituted_batch_subquery"
         )
         result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(row_count_query)  # type: ignore[arg-type]
+            sa.text(row_count_query)
         ).fetchone()
         return int(result[0])
 

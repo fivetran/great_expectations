@@ -173,7 +173,7 @@ class QueryMetricProvider(MetricProvider):
         execution_engine: SqlAlchemyExecutionEngine,
     ) -> list[dict]:
         result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(substituted_batch_subquery)  # type: ignore[arg-type]
+            sa.text(substituted_batch_subquery)
         ).fetchmany(MAX_RESULT_RECORDS)
 
         if isinstance(result, Sequence):
