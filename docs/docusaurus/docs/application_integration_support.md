@@ -22,10 +22,10 @@ The following table defines the GX Cloud, GX Core, and Community Supported integ
 
 | Integration Type                 | GX Cloud                              | GX Core                                                                                    | Community            |
 | -------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------ | -------------------- |
-| Data Sources<sup>1</sup>         | Snowflake<br/>Databricks (SQL)<br/> PostgreSQL<sup>2</sup> | Snowflake<br/>Databricks (SQL)<br/>PostgreSQL<br/>Sqlite<br/>BigQuery<br/>Spark<br/>Pandas | MSSQL<br/>MySQL<br/> |
+| Data Sources<sup>1</sup>         | Snowflake<br/>Databricks (SQL)<br/> PostgreSQL<sup>2</sup> | Snowflake<br/>Databricks (SQL)<br/>PostgreSQL<br/>SQLite<br/>BigQuery<br/>Spark<br/>Pandas | MSSQL<br/>MySQL<br/> |
 | Configuration Stores<sup>3</sup> | In-app                                | File system                                                                                | None                 |
 | Data Doc Stores                  | In-app                                | File system                                                                                | None                 |
-| Actions                          | Slack                                 | Slack <br/>Email                                                                           | None                 |
+| Actions                          | Slack                                 | Slack <br/>Email <br/>Microsoft Teams                                                      | None                 |
 | Credential Stores                | Environment variables                 | Environment variables <br/> YAML<sup>4</sup>                                               | None                 |
 | Orchestrator                     | Airflow <sup>5</sup> <sup>6</sup>     | Airflow <sup>5</sup> <sup>6</sup>                                                          | None                 |
 
