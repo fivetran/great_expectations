@@ -23,7 +23,7 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 ## Data preview
 
-The examples in this guide use a sample customer dataset, available as a [CSV file on GitHub](https://raw.githubusercontent.com/great-expectations/great_expectations/develop/tests/test_sets/learn_data_quality_use_cases/customer_uniqueness.csv).
+The examples in this guide use a sample customer dataset, available as a [CSV file on GitHub](https://raw.githubusercontent.com/great-expectations/great_expectations/develop/tests/test_sets/learn_data_quality_use_cases/uniqueness_customers.csv).
 
 | customer_id | first_name | last_name | email_address         | phone_number | country | government_id |
 |-------------|------------|-----------|------------------------|--------------|---------|---------------|
