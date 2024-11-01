@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import pandas as pd
 import sqlalchemy.dialects.postgresql as POSTGRESQL_TYPES
 
@@ -23,6 +25,63 @@ from tests.integration.test_utils.data_source_config import (
 )
 def test_expect_column_min_to_be_between(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(column="a", min_value=1, max_value=1)
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        PandasDataFrameDatasourceTestConfig(),
+        PandasFilesystemCsvDatasourceTestConfig(),
+        PostgreSQLDatasourceTestConfig(column_types={"date": POSTGRESQL_TYPES.DATE}),
+        SnowflakeDatasourceTestConfig(column_types={"date": SNOWFLAKE_TYPES.TIMESTAMP_TZ}),
+    ],
+    data=pd.DataFrame(
+        {
+            "date": [
+                str(datetime(year=2021, month=1, day=31, tzinfo=timezone.utc)),
+                str(datetime(year=2022, month=1, day=31, tzinfo=timezone.utc)),
+                str(datetime(year=2023, month=1, day=31, tzinfo=timezone.utc)),
+            ]
+        }
+    ),
+)
+def test_expect_column_min_to_be_between__dates(batch_for_datasource) -> None:
+    expectation = gxe.ExpectColumnMinToBeBetween(
+        column="date",
+        min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc),
+        max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc),
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        PandasDataFrameDatasourceTestConfig(),
+        PandasFilesystemCsvDatasourceTestConfig(),
+        PostgreSQLDatasourceTestConfig(column_types={"date": POSTGRESQL_TYPES.TIMESTAMP}),
+        SnowflakeDatasourceTestConfig(column_types={"date": SNOWFLAKE_TYPES.TIMESTAMP_TZ}),
+    ],
+    data=pd.DataFrame(
+        {
+            "date": [
+                # "2021-01-31",
+                # "2022-01-31",
+                # "2023-01-31",
+                str(datetime(year=2021, month=1, day=31, tzinfo=timezone.utc)),
+                str(datetime(year=2022, month=1, day=31, tzinfo=timezone.utc)),
+                str(datetime(year=2023, month=1, day=31, tzinfo=timezone.utc)),
+            ]
+        }
+    ),
+)
+def test_expect_column_max_to_be_between__dates(batch_for_datasource) -> None:
+    expectation = gxe.ExpectColumnMaxToBeBetween(
+        column="date",
+        min_value=datetime(year=2023, month=1, day=1, tzinfo=timezone.utc),
+        max_value=datetime(year=2024, month=1, day=1, tzinfo=timezone.utc),
+    )
     result = batch_for_datasource.validate(expectation)
     assert result.success
 
