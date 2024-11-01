@@ -5,9 +5,10 @@ import string
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TYPE_CHECKING, Generic, Mapping, Optional, TypeVar
+from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Type, TypeVar, Union
 
 import great_expectations as gx
+from great_expectations.compatibility.sqlalchemy import TypeEngine
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch
 
@@ -80,3 +81,20 @@ class BatchTestSetup(ABC, Generic[_ConfigT]):
     @cached_property
     def _context(self) -> AbstractDataContext:
         return gx.get_context(mode="ephemeral")
+
+
+class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
+    @property
+    @abstractmethod
+    def connection_string(self) -> str:
+        """Connection string used to connect to SQL backend."""
+
+    @property
+    @abstractmethod
+    def schema(self) -> Union[str, None]:
+        """Schema -- if any -- to use when connecting to SQL backend."""
+
+    @property
+    @abstractmethod
+    def inferrable_types_lookup(self) -> Dict[Type, TypeEngine]:
+        """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types."""
