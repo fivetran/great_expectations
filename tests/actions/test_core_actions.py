@@ -1027,7 +1027,7 @@ class TestV1ActionRun:
 
     @pytest.mark.unit
     def test_SlackNotificationAction_variable_substitution_token_and_channel(
-        self, mock_context, checkpoint_result
+        self, mock_context, checkpoint_result, mocked_posthog
     ):
         action = SlackNotificationAction(
             name="my_action", slack_token="${SLACK_TOKEN}", slack_channel="${SLACK_CHANNEL}"
