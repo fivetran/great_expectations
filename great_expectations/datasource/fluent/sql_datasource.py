@@ -81,6 +81,8 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 if TYPE_CHECKING:
     from sqlalchemy.sql import quoted_name  # noqa: TID251 # type-checking only
 
+    # We re-import sqlalchemy here to make type-checking and our compatability layer
+    # play nice with one another
     from great_expectations.compatibility import sqlalchemy
     from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.datasource.fluent import BatchParameters
@@ -964,8 +966,12 @@ class TableAsset(_SQLAsset):
     def _resolve_quoted_name(cls, table_name: str) -> str | quoted_name:
         table_name_is_quoted: bool = cls._is_bracketed_by_quotes(table_name)
 
-        if sa.quoted_name:  # type: ignore[truthy-function]
-            if isinstance(table_name, sa.quoted_name):
+        # We reimport sqlalchemy from our compatability layer because we make
+        # quoted_name a top level import there.
+        from great_expectations.compatibility import sqlalchemy
+
+        if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
+            if isinstance(table_name, sqlalchemy.quoted_name):
                 return table_name
 
             if table_name_is_quoted:
@@ -974,7 +980,7 @@ class TableAsset(_SQLAsset):
                 # TODO: We need to handle nested quotes
                 table_name = table_name.strip("'").strip('"')
 
-            return sa.quoted_name(
+            return sqlalchemy.quoted_name(
                 value=table_name,
                 quote=table_name_is_quoted,
             )
