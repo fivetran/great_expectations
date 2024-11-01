@@ -1,3 +1,5 @@
+from typing import Mapping
+
 import pandas as pd
 import pytest
 
@@ -13,7 +15,7 @@ class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "pandas-data-frame-datasource"
+        return "pandas-data-frame"
 
     @property
     @override
@@ -21,7 +23,13 @@ class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
         return pytest.mark.unit
 
     @override
-    def create_batch_setup(self, data: pd.DataFrame) -> BatchTestSetup:
+    def create_batch_setup(
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+    ) -> BatchTestSetup:
+        assert not extra_data, "extra_data is not supported for this data source."
         return PandasDataFrameBatchTestSetup(data=data, config=self)
 
 

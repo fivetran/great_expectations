@@ -1,2 +1,5 @@
-from .base import BatchTestSetup, DataSourceTestConfig
-from .pandas_data_frame import PandasDataFrameBatchTestSetup, PandasDataFrameDatasourceTestConfig
+from .base import DataSourceTestConfig
+from .pandas_data_frame import PandasDataFrameDatasourceTestConfig
+from .pandas_filesystem_csv import PandasFilesystemCsvDatasourceTestConfig
+from .postgres import PostgreSQLDatasourceTestConfig
+from .snowflake import SnowflakeDatasourceTestConfig

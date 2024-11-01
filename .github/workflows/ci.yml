@@ -302,6 +302,14 @@ jobs:
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && bash ../build_docs
 
+      - name: Run broken link checker
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
+          # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
+          # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
+          args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' 'docs/docusaurus/build/**/*.html'"
+
   docs-tests:
     runs-on: ubuntu-latest
     steps:

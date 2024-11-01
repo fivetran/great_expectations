@@ -78,9 +78,7 @@ def expectation_suite(
     context.suites.add(
         ExpectationSuite(
             name=expectation_suite_name,
-            expectations=[
-                ExpectColumnValuesToNotBeNull(column="name", mostly=1)  # type: ignore[arg-type]  # todo: fix in core-412
-            ],
+            expectations=[ExpectColumnValuesToNotBeNull(column="name", mostly=1)],
         )
     )
     yield context.suites.get(name=expectation_suite_name)
