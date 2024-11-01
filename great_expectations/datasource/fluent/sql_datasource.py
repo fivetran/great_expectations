@@ -81,6 +81,7 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 if TYPE_CHECKING:
     from sqlalchemy.sql import quoted_name  # noqa: TID251 # type-checking only
 
+    from great_expectations.compatibility import sqlalchemy
     from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.datasource.fluent import BatchParameters
     from great_expectations.datasource.fluent.interfaces import (
@@ -750,7 +751,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         )
         # A _SQLAsset must have a SQLDatasource
         assert isinstance(self.datasource, SQLDatasource)
-        engine: sa.Engine = self.datasource.get_engine()
+        engine: sqlalchemy.Engine = self.datasource.get_engine()
 
         # It would be better to introspect the database types and see which ones map to date or
         # datetime. However, 3rd party types, such as Snowflakes TIMESTAMP_NTZ haven't implemented
@@ -765,8 +766,8 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         # this value to a python date or datetime. This means we REQUIRE that data is
         # present for this validation to work.
         with engine.connect() as connection:
-            selectable: sa.Selectable = self.as_selectable()
-            column: sa.ColumnClause[Never] = sa.sql.column(partitioner.column_name)
+            selectable: sqlalchemy.Selectable = self.as_selectable()
+            column: sqlalchemy.ColumnClause[Never] = sa.sql.column(partitioner.column_name)
             try:
                 row = connection.execute(
                     sa.select(column, selectable).limit(1)  # type: ignore[call-overload]  # sqlalchemy typing is missing variants
@@ -891,7 +892,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         """
         raise NotImplementedError
 
-    def as_selectable(self) -> sa.Selectable:
+    def as_selectable(self) -> sqlalchemy.Selectable:
         """Returns a Selectable that can be used to query this data
 
         Returns:
@@ -914,7 +915,7 @@ class QueryAsset(_SQLAsset):
         return v
 
     @override
-    def as_selectable(self) -> sa.Selectable:
+    def as_selectable(self) -> sqlalchemy.Selectable:
         """Returns the Selectable that is used to retrieve the data.
 
         This can be used in a subselect FROM clause for queries against this data.
@@ -988,8 +989,8 @@ class TableAsset(_SQLAsset):
             TestConnectionError: If the connection test fails.
         """
         datasource: SQLDatasource = self.datasource
-        engine: sa.Engine = datasource.get_engine()
-        inspector: sa.Inspector = sa.inspect(engine)
+        engine: sqlalchemy.Engine = datasource.get_engine()
+        inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
         if self.schema_name and self.schema_name not in inspector.get_schema_names():
             raise TestConnectionError(  # noqa: TRY003
@@ -1010,7 +1011,7 @@ class TableAsset(_SQLAsset):
             ) from query_error
 
     @override
-    def as_selectable(self) -> sa.Selectable:
+    def as_selectable(self) -> sqlalchemy.Selectable:
         """Returns the table as a sqlalchemy Selectable.
 
         This can be used in a from clause for a query against this data.
@@ -1134,7 +1135,7 @@ class SQLDatasource(Datasource):
 
     # private attrs
     _cached_connection_string: Union[str, ConfigStr] = pydantic.PrivateAttr("")
-    _engine: Union[sa.Engine, None] = pydantic.PrivateAttr(None)
+    _engine: Union[sqlalchemy.Engine, None] = pydantic.PrivateAttr(None)
 
     # These are instance var because ClassVars can't contain Type variables. See
     # https://peps.python.org/pep-0526/#class-and-instance-variable-annotations
@@ -1147,7 +1148,7 @@ class SQLDatasource(Datasource):
         """Returns the default execution engine type."""
         return SqlAlchemyExecutionEngine
 
-    def get_engine(self) -> sa.Engine:
+    def get_engine(self) -> sqlalchemy.Engine:
         if self.connection_string != self._cached_connection_string or not self._engine:
             try:
                 self._engine = self._create_engine()
@@ -1158,7 +1159,7 @@ class SQLDatasource(Datasource):
             self._cached_connection_string = self.connection_string
         return self._engine
 
-    def _create_engine(self) -> sa.Engine:
+    def _create_engine(self) -> sqlalchemy.Engine:
         model_dict = self.dict(
             exclude=self._get_exec_engine_excludes(),
             config_provider=self._config_provider,
@@ -1208,7 +1209,7 @@ class SQLDatasource(Datasource):
             TestConnectionError: If the connection test fails.
         """  # noqa: E501
         try:
-            engine: sa.Engine = self.get_engine()
+            engine: sqlalchemy.Engine = self.get_engine()
             engine.connect()
         except Exception as e:
             raise TestConnectionError(cause=e) from e
