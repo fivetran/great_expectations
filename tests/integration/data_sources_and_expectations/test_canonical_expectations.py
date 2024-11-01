@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 
 import pandas as pd
-import sqlalchemy.dialects.postgresql as POSTGRESQL_TYPES
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
+from great_expectations.compatibility.sqlalchemy import sqltypes
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
@@ -18,7 +18,7 @@ from tests.integration.test_utils.data_source_config import (
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        PostgreSQLDatasourceTestConfig(column_types={"a": POSTGRESQL_TYPES.INTEGER}),
+        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
         SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
@@ -33,24 +33,24 @@ def test_expect_column_min_to_be_between(batch_for_datasource) -> None:
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        PostgreSQLDatasourceTestConfig(column_types={"date": POSTGRESQL_TYPES.DATE}),
-        SnowflakeDatasourceTestConfig(column_types={"date": SNOWFLAKE_TYPES.TIMESTAMP_TZ}),
+        PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        SnowflakeDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
     ],
     data=pd.DataFrame(
         {
             "date": [
-                str(datetime(year=2021, month=1, day=31, tzinfo=timezone.utc)),
-                str(datetime(year=2022, month=1, day=31, tzinfo=timezone.utc)),
-                str(datetime(year=2023, month=1, day=31, tzinfo=timezone.utc)),
+                datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date(),
+                datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date(),
+                datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date(),
             ]
         }
     ),
 )
-def test_expect_column_min_to_be_between__dates(batch_for_datasource) -> None:
+def test_expect_column_min_to_be_between__date(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
         column="date",
-        min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc),
-        max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc),
+        min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc).date(),
+        max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc).date(),
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success
@@ -60,27 +60,24 @@ def test_expect_column_min_to_be_between__dates(batch_for_datasource) -> None:
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        PostgreSQLDatasourceTestConfig(column_types={"date": POSTGRESQL_TYPES.TIMESTAMP}),
-        SnowflakeDatasourceTestConfig(column_types={"date": SNOWFLAKE_TYPES.TIMESTAMP_TZ}),
+        PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        SnowflakeDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
     ],
     data=pd.DataFrame(
         {
             "date": [
-                # "2021-01-31",
-                # "2022-01-31",
-                # "2023-01-31",
-                str(datetime(year=2021, month=1, day=31, tzinfo=timezone.utc)),
-                str(datetime(year=2022, month=1, day=31, tzinfo=timezone.utc)),
-                str(datetime(year=2023, month=1, day=31, tzinfo=timezone.utc)),
+                datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date(),
+                datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date(),
+                datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date(),
             ]
         }
     ),
 )
-def test_expect_column_max_to_be_between__dates(batch_for_datasource) -> None:
+def test_expect_column_max_to_be_between__date(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnMaxToBeBetween(
         column="date",
-        min_value=datetime(year=2023, month=1, day=1, tzinfo=timezone.utc),
-        max_value=datetime(year=2024, month=1, day=1, tzinfo=timezone.utc),
+        min_value=datetime(year=2023, month=1, day=1, tzinfo=timezone.utc).date(),
+        max_value=datetime(year=2024, month=1, day=1, tzinfo=timezone.utc).date(),
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success
@@ -91,7 +88,7 @@ def test_expect_column_max_to_be_between__dates(batch_for_datasource) -> None:
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
-        PostgreSQLDatasourceTestConfig(column_types={"a": POSTGRESQL_TYPES.INTEGER}),
+        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -106,7 +103,7 @@ def test_expect_column_max_to_be_between(batch_for_datasource) -> None:
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
-        PostgreSQLDatasourceTestConfig(column_types={"a": POSTGRESQL_TYPES.INTEGER}),
+        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -121,7 +118,7 @@ def test_expect_column_to_exist(batch_for_datasource):
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
-        PostgreSQLDatasourceTestConfig(column_types={"a": POSTGRESQL_TYPES.INTEGER}),
+        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -136,7 +133,7 @@ def test_expect_column_values_to_not_be_null(batch_for_datasource):
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
-        PostgreSQLDatasourceTestConfig(column_types={"a": POSTGRESQL_TYPES.INTEGER}),
+        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
     ],
     data=pd.DataFrame({"a": [1, 2, 3, 4]}),
 )
@@ -150,8 +147,8 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             PostgreSQLDatasourceTestConfig(
-                column_types={"col_a": POSTGRESQL_TYPES.INTEGER},
-                extra_assets={"test_table_two": {"col_b": POSTGRESQL_TYPES.VARCHAR}},
+                column_types={"col_a": sqltypes.INTEGER},
+                extra_assets={"test_table_two": {"col_b": sqltypes.VARCHAR}},
             ),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
@@ -165,8 +162,8 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             PostgreSQLDatasourceTestConfig(
-                column_types={"col_a": POSTGRESQL_TYPES.INTEGER},
-                extra_assets={"test_table_two": {"col_b": POSTGRESQL_TYPES.VARCHAR}},
+                column_types={"col_a": sqltypes.INTEGER},
+                extra_assets={"test_table_two": {"col_b": sqltypes.VARCHAR}},
             ),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
@@ -184,7 +181,7 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             PostgreSQLDatasourceTestConfig(
-                column_types={"col_a": POSTGRESQL_TYPES.INTEGER},
+                column_types={"col_a": sqltypes.INTEGER},
             ),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
