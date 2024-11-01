@@ -66,14 +66,6 @@
             "title": "Batch Id",
             "type": "string"
         },
-        "row_condition": {
-            "title": "Row Condition",
-            "type": "string"
-        },
-        "condition_parser": {
-            "title": "Condition Parser",
-            "type": "string"
-        },
         "column": {
             "title": "Column",
             "description": "The column name.",
@@ -82,12 +74,19 @@
         },
         "mostly": {
             "title": "Mostly",
-            "default": 1.0,
             "description": "Successful if at least `mostly` fraction of values match the expectation.",
-            "type": "number",
+            "default": 1,
             "minimum": 0.0,
             "maximum": 1.0,
-            "multipleOf": 0.01
+            "type": "number",
+            "multiple_of": 0.01
+        },
+        "row_condition": {
+            "title": "Row Condition",
+            "type": "string"
+        },
+        "condition_parser": {
+            "$ref": "#/definitions/ConditionParser"
         },
         "metadata": {
             "type": "object",
@@ -218,6 +217,17 @@
                 "offset"
             ],
             "additionalProperties": false
+        },
+        "ConditionParser": {
+            "title": "ConditionParser",
+            "description": "Type of parser to be used to interpret a Row Condition.",
+            "enum": [
+                "great_expectations",
+                "great_expectations__experimental__",
+                "pandas",
+                "spark"
+            ],
+            "type": "string"
         }
     }
 }

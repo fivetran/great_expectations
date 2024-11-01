@@ -1,6 +1,6 @@
 ---
-sidebar_label: 'Using GX with dbt'
-title: 'Using GX with dbt'
+sidebar_label: 'Use GX with dbt'
+title: 'Use GX with dbt'
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -18,7 +18,7 @@ As mentioned above, you will have PostgreSQL to store the data, dbt to transform
 Finally, to interact with our data, you will be using pgAdmin to query/view it (though you can use another database query tool if you want), the Great Expectations data docs to see our data quality results, Airflow to run our pipeline, and a CLI to interact with some of the services. 
 
 
-## Prerequiresites
+## Prerequisites
 :::note
 In addition to the prerequisites below, you are recommneded to use an IDE like VSCode to organize your project.
 :::
@@ -378,7 +378,7 @@ Add Postgres credentials:
     - Connection id: postgres
     - Connection Type: Postgres
     - Host: database
-    - Schema: postgres
+    - Database: postgres
     - Login: postgres
     - Password: postgres
     - Port: 5432

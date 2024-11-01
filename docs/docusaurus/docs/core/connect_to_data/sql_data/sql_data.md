@@ -10,7 +10,6 @@ import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
 import ConfigureCredentials from '../configure_credentials/_configure_credentials.md';
-import SecretsManagers from '../configure_credentials/_secrets_managers.md'
 import CreateSqlDataSource from './_create_a_data_source/_create_a_data_source.md';
 import CreateAsset from './_create_a_data_asset/_create_a_data_asset.md';
 import CreateBatchDefinition from './_create_a_batch_definition/_create_a_batch_definition.md'

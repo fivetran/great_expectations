@@ -26,18 +26,18 @@ The following table lists the available GX Cloud Expectations.
 | Data Integrity     | `expect_column_pair_values_to_be_equal`                   | Expect the values in column A to be the same as column B.                                                                              |  No |
 | Data Integrity     | `expect_multicolumn_sum_to_equal`                         | Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.             | No |
 | Distribution       | `expect_column_pair_values_A_to_be_greater_than_B`        | Expect the values in column A to be greater than column B.                                                                             | No |
-| Distribution       | `expect_column_values_to_be_between`                      | Expect the column entries to be between a minimum value and a maximum value (inclusive).                                               | No |
+| Distribution       | `expect_column_values_to_be_between`                      | Expect the column entries to be between a minimum value and a maximum value.                                               | No |
 | Distribution       | `expect_column_z_scores_to_be_less_than`                  | Expect the Z-scores of a column's values to be less than a given threshold.                                                            | No |
 | Distribution       | `expect_column_stdev_to_be_between`                       | Expect the column standard deviation to be between a minimum value and a maximum value.                                                | Yes |
 | Distribution       | `expect_column_sum_to_be_between`                         | Expect the column sum to be between a minimum value and a maximum value.                                                               | Yes |
 | Missingness        | `expect_column_values_to_be_null`                         | Expect the column values to be null.                                                                                                   | Yes |
 | Missingness        | `expect_column_values_to_not_be_null`                     | Expect the column values to not be null.                                                                                               | Yes |
 | Numerical Data     | `expect_column_max_to_be_between`                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes |
-| Numerical Data     | `expect_column_mean_to_be_between`                        | Expect the column mean to be between a minimum and a maximum value (inclusive).                                                        | Yes |
+| Numerical Data     | `expect_column_mean_to_be_between`                        | Expect the column mean to be between a minimum and a maximum value.                                                        | Yes |
 | Numerical Data     | `expect_column_median_to_be_between`                      | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes |
 | Numerical Data     | `expect_column_min_to_be_between`                         | Expect the column minimum to be between a minimum value and a maximum value.                                                           | Yes |
-| Pattern matching   | `expect_column_value_length_to_equal`                     | Expect the column entries to be strings with length between a minimum value and a maximum value (inclusive).                           | No |
-| Pattern matching   | `expect_column_value_length_to_be_between`                | Expect the column entries to be strings with length between a minimum value and a maximum value (inclusive).                           | No |
+| Pattern matching   | `expect_column_value_length_to_equal`                     | Expect the column entries to be strings with length equal to the provided value.                           | No |
+| Pattern matching   | `expect_column_value_length_to_be_between`                | Expect the column entries to be strings with length between a minimum value and a maximum value.                           | No |
 | Pattern matching   | `expect_column_values_to_match_like_pattern`              | Expect the column entries to be strings that match a given like pattern expression.                                                    | No |
 | Pattern matching   | `expect_column_values_to_match_like_pattern_list`         | Expect the column entries to be strings that match any of a provided list of like pattern expressions.                                 | No |
 | Pattern matching   | `expect_column_values_to_match_regex`                     | Expect the column entries to be strings that match a given regular expression.                                                         | No |
@@ -115,19 +115,19 @@ When you select your `n` run count, and:
 
 6. If you are adding your first expectation on this data asset, you may be able to select a time-based Batch interval for that asset.
 
-- A batch is a feature of the data asset, and allows you to validate your data incrementally. A batch interval can only be defined once per data asset.
+   - A batch is a feature of the data asset, and allows you to validate your data incrementally. A batch interval can only be defined once per data asset; you cannot change it after setting it.
 
-- In order to be able to select a batch interval, the data asset must have at least one DATE or DATETIME column.
+   - In order to be able to select a batch interval, the data asset must have at least one DATE or DATETIME column.
 
-- Select the **Entire table** tab to provide all Data Asset records to your Expectations and validations, or select the **Yearly**/**Monthly**/**Daily** tab to use subsets of Data Asset records for your Expectations and validations.
+   - Select the **Entire table** tab to provide all Data Asset records to your Expectations and validations, or select the **Yearly**/**Monthly**/**Daily** tab to use subsets of Data Asset records for your Expectations and validations.
 
-- Select **Yearly** to partition Data Asset records by year, select **Monthly** to partition Data Asset records by year and month, or select **Daily** to partition Data Asset records by year, month, and day.
+   - Select **Yearly** to partition Data Asset records by year, select **Monthly** to partition Data Asset records by year and month, or select **Daily** to partition Data Asset records by year, month, and day.
 
-- **Batch column** - Select a name column from a prefilled list of DATE and DATETIME columns containing the date and time data.
+   - **Batch column** - Select a name column from a prefilled list of DATE and DATETIME columns containing the date and time data.
 
 7. Complete the mandatory and optional fields for the Expectation. A recurring validation schedule will be applied automatically to your Expectation, based on the settings of your Expectation Suite.
 
-8. Click **Save** or click **Save & Add More** and then repeat steps 4 and 5 to add additional Expectations.
+8. Click **Save** or click **Save & Add More** and then repeat steps 5 and 7 to add additional Expectations.
 
 9. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 
@@ -139,7 +139,7 @@ When you select your `n` run count, and:
 
 3. Click the **Expectations** tab.
 
-4. Click **Edit Expectations** for the Expectation that you want to edit.
+4. Click **Edit Expectation** for the Expectation that you want to edit.
 
 5. Edit the Expectation configuration.
 

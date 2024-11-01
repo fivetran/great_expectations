@@ -22,9 +22,9 @@ When you run a validation on an Expectation, a Checkpoint is added. The Checkpoi
 
 4. Click **Validate**.
 
-5. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run History** pane.
+5. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
-6. Optional. Click **Share** to copy the URL for the Validation Results and share them with another GX Cloud user.
+6. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your organization.
 
 ## Run a Validation on a Data Asset containing partitions
 
@@ -48,9 +48,9 @@ To make the identification of Data Assets containing partitions easier, partitio
 
 6. Click **Validate**.
 
-7. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run History** pane.
+7. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
-8. Optional. Click **Share** to copy the URL for the Validation Results and share them with another GX Cloud user.
+8. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your organization.
 
 ## View Validation run history
 
@@ -79,6 +79,3 @@ To make the identification of Data Assets containing partitions easier, partitio
 6. Optional. Hover over a circle in the Validation timeline to view details about a specific Validation run, including the observed values.
 
     ![Validation timeline detail](/img/view_validation_timeline_detail.png)
-
-7. Optional. To hide the Validation timeline, click the **Validation timeline** (![Validation timeline icon](/img/validation_timeline.png)) icon.
-

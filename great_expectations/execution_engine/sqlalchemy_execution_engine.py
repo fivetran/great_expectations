@@ -54,6 +54,7 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_sampler import (
     SqlAlchemyDataSampler,
 )
+from great_expectations.expectations.model_field_types import ConditionParser
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251
 from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
 
@@ -653,7 +654,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         # Filtering by row condition.
         if "row_condition" in domain_kwargs and domain_kwargs["row_condition"] is not None:
             condition_parser = domain_kwargs["condition_parser"]
-            if condition_parser == "great_expectations__experimental__":
+            if condition_parser in [ConditionParser.GX, ConditionParser.GX_DEPRECATED]:
                 parsed_condition = parse_condition_to_sqlalchemy(domain_kwargs["row_condition"])
                 selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type]
             else:
@@ -1309,7 +1310,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
     @new_method_or_class(version="0.16.14")
     def execute_query(
-        self, query: sqlalchemy.Selectable
+        self, query: sqlalchemy.Selectable | sqlalchemy.TextClause
     ) -> sqlalchemy.CursorResult | sqlalchemy.LegacyCursorResult:
         """Execute a query using the underlying database engine.
 
@@ -1320,7 +1321,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
         """
         with self.get_connection() as connection:
-            result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
+            result = connection.execute(query)  # type: ignore[arg-type] # FIXME:Selectable overly broad
 
         return result
 

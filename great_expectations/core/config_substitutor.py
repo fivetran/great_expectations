@@ -130,7 +130,7 @@ class _ConfigurationSubstitutor:
                 raise gx_exceptions.MissingConfigVariableError(  # noqa: TRY003
                     f"""\n\nUnable to find a match for config substitution variable: `{config_variable_name}`.
     Please add this missing variable to your `uncommitted/config_variables.yml` file or your environment variables.
-    See https://docs.greatexpectations.io/docs/guides/setup/configuring_data_contexts/how_to_configure_credentials""",  # noqa: E501
+    See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials""",  # noqa: E501
                     missing_config_variable=config_variable_name,
                 )
 

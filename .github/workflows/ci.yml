@@ -197,7 +197,7 @@ jobs:
 
   unit-tests:
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.12+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -302,6 +302,14 @@ jobs:
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && bash ../build_docs
 
+      - name: Run broken link checker
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
+          # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
+          # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
+          args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' 'docs/docusaurus/build/**/*.html'"
+
   docs-tests:
     runs-on: ubuntu-latest
     steps:
@@ -397,7 +405,7 @@ jobs:
     needs: [unit-tests, static-analysis]
     if: github.event.pull_request.draft == false
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.12+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
       # aws
       AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
       AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION}}
@@ -422,7 +430,7 @@ jobs:
       fail-fast: false
       matrix:
         markers:
-          - athena or clickhouse or openpyxl or pyarrow or project or sqlite or aws_creds
+          - athena or openpyxl or pyarrow or project or sqlite or aws_creds
           - aws_deps
           - big
           - databricks
@@ -434,6 +442,7 @@ jobs:
           - spark
           - spark_connect
           - trino
+          - clickhouse
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         exclude:
           # TODO: would like to adopt `actionlint` pre-commit hook
@@ -443,12 +452,9 @@ jobs:
           - python-version: ${{ github.event_name == 'pull_request' && '3.11' }}
           - python-version: ${{ github.event_name == 'merge_group' && '3.10' }}
           - python-version: ${{ github.event_name == 'merge_group' && '3.11' }}
-          - python-version: "3.12" # need sqlalchemy 2.0 support
-            markers: snowflake
-          - python-version: "3.12" # clickhouse/pyathena need dependency update
-            markers: athena or clickhouse or openpyxl or pyarrow or project or sqlite or aws_creds
-          - python-version: "3.12" # numpy related issue
-            markers: databricks
+            # clickhouse needs dependency update
+          - python-version: "3.12"
+            markers: clickhouse
 
     steps:
       - name: Checkout
@@ -552,8 +558,6 @@ jobs:
         run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
 
   py312-min-versions:
-    env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.12+
     needs: [unit-tests, static-analysis]
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
@@ -612,12 +616,13 @@ jobs:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.12+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         exclude:
           - python-version: ${{ github.event_name == 'pull_request' && '3.10' }}
+          - python-version: ${{ github.event_name == 'pull_request' && '3.11' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
