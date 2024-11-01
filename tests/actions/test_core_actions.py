@@ -777,7 +777,7 @@ class TestV1ActionRun:
 
     @pytest.mark.unit
     def test_SlackNotificationAction_grabs_data_docs_pages(
-        self, checkpoint_result_with_assets: CheckpointResult
+        self, checkpoint_result_with_assets: CheckpointResult, mocked_posthog
     ):
         action = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
 
