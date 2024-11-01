@@ -775,7 +775,6 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                     sa.select(column, selectable).limit(1)  # type: ignore[call-overload]  # sqlalchemy typing is missing variants
                 )
             except Exception as query_error:
-                LOGGER.info(f"{self.name} `.test_connection()` query failed: {query_error!r}")
                 raise SqlAddBatchDefinitionError(
                     msg=f"Attempt to read an example non-null '{column}' value from '{selectable}'"
                     " failed so column type can't be verified to be a date or datetime."
