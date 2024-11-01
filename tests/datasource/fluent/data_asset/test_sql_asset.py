@@ -1,6 +1,5 @@
-import contextlib
 from datetime import date, datetime, timezone
-from typing import Any, Callable
+from typing import Any
 
 import pytest
 import sqlalchemy.sql
@@ -84,7 +83,15 @@ class FakeResult:
     def first(self):
         # Sqlalchemy will return None if there are no rows when first is called.
         # We can mock that behavior by setting the queried value to None.
-        return self._queried_row
+        queried_row = self._queried_row
+
+        class Result:
+            def __getattr__(self, attr: str):
+                if queried_row:
+                    return queried_row[0]
+                return None
+
+        return Result()
 
 
 class FakeConnection:
@@ -100,8 +107,15 @@ class FakeConnection:
     def __exit__(self, exc_type, exc_val, exc_tb): ...
 
 
+class FakeEngineError(Exception):
+    def __init__(self):
+        super().__init__("We expect at most 1 element in the queried row when using FakeError")
+
+
 class FakeEngine:
     def __init__(self, queried_row: Any):
+        if queried_row and len(queried_row) > 1:
+            raise FakeEngineError()
         self._queried_row = queried_row
 
     def connect(self):
@@ -234,12 +248,6 @@ def test_add_batch_definition_fluent_sql__add_batch_definition_daily(
     datasource.add_batch_definition.assert_called_once_with(expected_batch_definition)
 
 
-class ExpectNoError:
-    def __enter__(self): ...
-
-    def __exit__(self, exc_type, exc_val, exc_tb): ...
-
-
 def add_table_asset(datasource: SQLDatasource):
     return datasource.add_table_asset(
         name="my_table_asset",
@@ -254,41 +262,27 @@ def add_query_asset(datasource: SQLDatasource):
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "queried_row, expect_error_or_no",
+    "queried_row",
     [
         pytest.param(
-            [datetime(2024, 10, 28, 0, 0, 0, tzinfo=timezone.utc)],
-            lambda: ExpectNoError(),
-            id="datetime",
-        ),
-        pytest.param([date(2024, 10, 28)], lambda: ExpectNoError(), id="date"),
-        pytest.param(
             ["not a datetime"],
-            lambda: pytest.raises(SqlAddBatchDefinitionError),
             id="invalid type",
         ),
-        pytest.param(
-            [None], lambda: pytest.raises(SqlAddBatchDefinitionError), id="None row returned"
-        ),
-        pytest.param(
-            None, lambda: pytest.raises(SqlAddBatchDefinitionError), id="No rows returned"
-        ),
-        pytest.param(
-            [], lambda: pytest.raises(SqlAddBatchDefinitionError), id="Empty row returned"
-        ),
+        pytest.param([None], id="None row returned"),
+        pytest.param(None, id="No rows returned"),
+        pytest.param([], id="Empty row returned"),
     ],
 )
 @pytest.mark.parametrize(
     "add_sql_asset",
     [
         pytest.param(add_table_asset, id="table asset"),
-        # pytest.param(add_query_asset, id="query asset"),
+        pytest.param(add_query_asset, id="query asset"),
     ],
 )
-def test_validate_batch_definition(
+def test_validate_batch_definition_with_error(
     sql_datasource_table_asset_test_connection_noop: SQLDatasource,
     queried_row: Any,
-    expect_error_or_no: Callable[[], contextlib.AbstractContextManager],
     add_sql_asset,
     monkeypatch,
 ):
@@ -305,8 +299,53 @@ def test_validate_batch_definition(
     asset = add_sql_asset(datasource)
 
     # Act and assert: Add a batch definition and assert error
-    with expect_error_or_no():
+    with pytest.raises(SqlAddBatchDefinitionError):
         asset.validate_batch_definition(ColumnPartitionerDaily(column_name="column_name"))
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "queried_row",
+    [
+        pytest.param(
+            [datetime(2024, 10, 28, 0, 0, 0, tzinfo=timezone.utc)],
+            id="datetime",
+        ),
+        pytest.param([date(2024, 10, 28)], id="date"),
+    ],
+)
+@pytest.mark.parametrize(
+    "add_sql_asset",
+    [
+        pytest.param(add_table_asset, id="table asset"),
+        pytest.param(add_query_asset, id="query asset"),
+    ],
+)
+def test_validate_batch_definition(
+    sql_datasource_table_asset_test_connection_noop: SQLDatasource,
+    queried_row: Any,
+    add_sql_asset,
+    monkeypatch,
+):
+    # Setup
+    # Monkeypatch SQLDatasource so we return a fake engine which returns a fixed db result.
+    monkeypatch.setattr(
+        SQLDatasource,
+        "get_engine",
+        lambda _: FakeEngine(queried_row),
+    )
+    datasource = sql_datasource_table_asset_test_connection_noop
+
+    # Add our asset to the datasource
+    asset = add_sql_asset(datasource)
+
+    # Act
+    NoneOnSuccess = asset.validate_batch_definition(
+        ColumnPartitionerDaily(column_name="column_name")
+    )
+
+    # Assert
+    assert NoneOnSuccess is None
 
 
 # Tests I considered adding for test_validate_batch_definition but have not.

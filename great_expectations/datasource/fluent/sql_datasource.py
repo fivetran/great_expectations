@@ -69,7 +69,10 @@ from great_expectations.datasource.fluent.interfaces import (
     PartitionerProtocol,
     TestConnectionError,
 )
-from great_expectations.exceptions.exceptions import NoAvailableBatchesError
+from great_expectations.exceptions.exceptions import (
+    NoAvailableBatchesError,
+    SqlAddBatchDefinitionError,
+)
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.execution_engine.partition_and_sample.data_partitioner import (
     DatePart,
@@ -486,11 +489,6 @@ SqlPartitioner = Union[
 ]
 
 
-class SqlAddBatchDefinitionError(Exception):
-    def __init__(self, msg: str):
-        super().__init__(f"Failed adding batch definition: {msg}")
-
-
 @public_api
 class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT]):
     """A _SQLAsset Mixin
@@ -781,7 +779,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 ) from query_error
 
             r = row.first()
-            if not r or not isinstance(r[0], (datetime, date)):
+            if not r or not isinstance(getattr(r, partitioner.column_name), (datetime, date)):
                 raise SqlAddBatchDefinitionError(
                     msg=f"'{column}' column from '{selectable}' is not a date or datetime type."
                 )
