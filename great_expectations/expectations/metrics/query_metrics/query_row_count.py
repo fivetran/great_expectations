@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, Sequence, Union
 
+from great_expectations.compatibility.sqlalchemy import (
+    sqlalchemy as sa,
+)
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
@@ -10,20 +13,15 @@ from great_expectations.execution_engine import (
 from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.query_metric_provider import (
     QueryMetricProvider,
-    QueryParameters,
 )
-from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark
 
 
-class QueryColumn(QueryMetricProvider):
-    metric_name = "query.column"
-    value_keys = (
-        "column",
-        "query",
-    )
+class QueryRowCount(QueryMetricProvider):
+    metric_name = "query.row_count"
+    value_keys = ("query",)
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(
@@ -33,28 +31,27 @@ class QueryColumn(QueryMetricProvider):
         metric_value_kwargs: dict,
         metrics: Dict[str, Any],
         runtime_configuration: dict,
-    ) -> list[dict]:
+    ) -> int:
         batch_selectable, _, _ = execution_engine.get_compute_domain(
             metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
         )
         query = cls._get_query_from_metric_value_kwargs(metric_value_kwargs)
-        column: Optional[str] = metric_value_kwargs.get("column")
-        if column:
-            query_parameters = QueryParameters(column=column)
-        else:
-            raise ValueError("`column` must be provided.")  # noqa: TRY003
         substituted_batch_subquery = (
             cls._get_substituted_batch_subquery_from_query_and_batch_selectable(
                 query=query,
                 batch_selectable=batch_selectable,
                 execution_engine=execution_engine,
-                query_parameters=query_parameters,
             )
         )
-        return cls._get_sqlalchemy_records_from_substituted_batch_subquery(
-            substituted_batch_subquery=substituted_batch_subquery,
-            execution_engine=execution_engine,
+        count_column_name = "unexpected_row_count"
+        row_count_query = (
+            f"SELECT COUNT(*) as {count_column_name} FROM "
+            f"({substituted_batch_subquery}) AS substituted_batch_subquery"
         )
+        result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
+            sa.text(row_count_query)
+        ).fetchone()
+        return int(result[0])
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
@@ -64,7 +61,7 @@ class QueryColumn(QueryMetricProvider):
         metric_value_kwargs: dict,
         metrics: Dict[str, Any],
         runtime_configuration: dict,
-    ) -> list[dict]:
+    ) -> int:
         query = cls._get_query_from_metric_value_kwargs(metric_value_kwargs)
 
         df: pyspark.DataFrame
@@ -73,10 +70,7 @@ class QueryColumn(QueryMetricProvider):
         )
 
         df.createOrReplaceTempView("tmp_view")
-        column: Optional[str] = metric_value_kwargs.get("column")
-        query = query.format(col=column, batch="tmp_view")
+        query = query.format(batch="tmp_view")
 
         engine: pyspark.SparkSession = execution_engine.spark
-        result: List[pyspark.Row] = engine.sql(query).limit(MAX_RESULT_RECORDS).collect()
-
-        return [element.asDict() for element in result]
+        return engine.sql(query).count()

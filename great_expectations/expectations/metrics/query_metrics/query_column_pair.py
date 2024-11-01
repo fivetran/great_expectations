@@ -47,11 +47,17 @@ class QueryColumnPair(QueryMetricProvider):
             )
         else:
             raise ValueError("Both `column_A` and `column_B` must be provided.")  # noqa: TRY003
-        return cls._get_sqlalchemy_records_from_query_and_batch_selectable(
-            query=query,
-            batch_selectable=batch_selectable,
+        substituted_batch_subquery = (
+            cls._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query=query,
+                batch_selectable=batch_selectable,
+                execution_engine=execution_engine,
+                query_parameters=query_parameters,
+            )
+        )
+        return cls._get_sqlalchemy_records_from_substituted_batch_subquery(
+            substituted_batch_subquery=substituted_batch_subquery,
             execution_engine=execution_engine,
-            query_parameters=query_parameters,
         )
 
     @metric_value(engine=SparkDFExecutionEngine)

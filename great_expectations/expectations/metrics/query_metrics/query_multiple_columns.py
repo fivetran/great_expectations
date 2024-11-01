@@ -41,11 +41,18 @@ class QueryMultipleColumns(QueryMetricProvider):
         columns = metric_value_kwargs.get("columns")
         if not isinstance(columns, list):
             raise TypeError("Columns must be supplied as a list")  # noqa: TRY003
-        return cls._get_sqlalchemy_records_from_query_and_batch_selectable(
-            query=query,
-            batch_selectable=batch_selectable,
+
+        substituted_batch_subquery = (
+            cls._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query=query,
+                batch_selectable=batch_selectable,
+                execution_engine=execution_engine,
+                query_parameters=QueryParameters(columns=columns),
+            )
+        )
+        return cls._get_sqlalchemy_records_from_substituted_batch_subquery(
+            substituted_batch_subquery=substituted_batch_subquery,
             execution_engine=execution_engine,
-            query_parameters=QueryParameters(columns=columns),
         )
 
     @metric_value(engine=SparkDFExecutionEngine)
