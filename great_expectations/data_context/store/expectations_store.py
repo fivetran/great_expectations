@@ -235,7 +235,7 @@ class ExpectationsStore(Store):
             return result
         except gx_exceptions.StoreBackendError as exc:
             raise gx_exceptions.ExpectationSuiteError(  # noqa: TRY003
-                f"An ExpectationSuite named {value.name} already exists."
+                f"An error occurred while trying to save ExpectationSuite: {exc.message}"
             ) from exc
 
     def _update(self, key, value, **kwargs):  # type: ignore[explicit-override] # FIXME
@@ -267,12 +267,12 @@ class ExpectationsStore(Store):
         """
         suite["id"] = str(uuid.uuid4())
         if isinstance(suite, ExpectationSuite):
-            key = "expectation_configurations"
+            for expectation in suite.expectations:
+                expectation.id = str(uuid.uuid4())
         else:
-            # this will be true if a serialized suite is provided
-            key = "expectations"
-        for expectation_configuration in suite[key]:
-            expectation_configuration["id"] = str(uuid.uuid4())
+            for expectation in suite["expectations"]:
+                expectation["id"] = str(uuid.uuid4())
+
         return suite
 
     def _add_ids_on_update(self, suite: ExpectationSuite) -> ExpectationSuite:

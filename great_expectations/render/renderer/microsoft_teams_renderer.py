@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import datetime as dt
 import logging
 from typing import TYPE_CHECKING
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core import RunIdentifier
 from great_expectations.render.renderer.renderer import Renderer
 
 if TYPE_CHECKING:
@@ -20,7 +20,23 @@ logger = logging.getLogger(__name__)
 
 
 class MicrosoftTeamsRenderer(Renderer):
-    MICROSOFT_TEAMS_SCHEMA_URL = "http://adaptivecards.io/schemas/adaptive-card.json"
+    """
+    Responsible for formatting validation results and data docs links into a Microsoft Teams webhook
+    message payload.
+
+    Relevant links/documentation:
+        * Payload schema: https://adaptivecards.io/explorer/
+        * Interactive UI editor: https://adaptivecards.io/designer/
+
+    """
+
+    _MICROSOFT_TEAMS_CONTENT_TYPE = "application/vnd.microsoft.card.adaptive"
+    _MICROSOFT_TEAMS_SCHEMA_URL = "http://adaptivecards.io/schemas/adaptive-card.json"
+    _MICROSOFT_TEAMS_SCHEMA_VERSION = 1.5
+    _GX_LOGO_URL = "https://www.greatexpectations.io/image/gx-logo-mark-400"
+    _SUCCESS_EMOJI = "✅"
+    _FAILURE_EMOJI = "❌"
+    _NO_VALUE_PLACEHOLDER = "--"
 
     @override
     def render(
@@ -28,188 +44,195 @@ class MicrosoftTeamsRenderer(Renderer):
         checkpoint_result: CheckpointResult,
         data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]] | None = None,
     ) -> dict:
-        checkpoint_blocks: list[list[dict[str, str]]] = []
-        for result_identifier, result in checkpoint_result.run_results.items():
-            validation_blocks = self._render_validation_result(
-                validation_result=result, validation_result_suite_identifier=result_identifier
-            )
-            checkpoint_blocks.append(validation_blocks)
+        blocks: list[dict] = []
 
-        data_docs_block = self._render_data_docs_links(data_docs_pages=data_docs_pages)
-        return self._build_payload(
-            checkpoint_result=checkpoint_result,
-            checkpoint_blocks=checkpoint_blocks,
-            data_docs_block=data_docs_block,
+        blocks.append(
+            self._build_header_block(
+                checkpoint_name=checkpoint_result.name,
+                success=checkpoint_result.success or False,
+                run_time=checkpoint_result.run_id.run_time,
+            )
         )
 
-    def _render_validation_result(
+        for idx, (validation_result_identifier, validation_result) in enumerate(
+            checkpoint_result.run_results.items(), start=1
+        ):
+            validation_blocks = self._build_validation_result_blocks(
+                idx=idx,
+                total_validation_count=len(checkpoint_result.run_results),
+                validation_result_identifier=validation_result_identifier,
+                validation_result=validation_result,
+            )
+            blocks.extend(validation_blocks)
+
+        return self._build_payload(blocks=blocks, data_docs_pages=data_docs_pages)
+
+    def _build_header_block(
+        self, checkpoint_name: str, success: bool, run_time: dt.datetime
+    ) -> dict:
+        success_text = (
+            f"Success {self._SUCCESS_EMOJI}" if success else f"Failure {self._FAILURE_EMOJI}"
+        )
+        return {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": self._GX_LOGO_URL,
+                            "altText": checkpoint_name,
+                            "size": "small",
+                        }
+                    ],
+                    "width": "auto",
+                },
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "weight": "bolder",
+                            "text": f"{checkpoint_name} - {success_text}",
+                            "wrap": True,
+                        },
+                        {
+                            "type": "TextBlock",
+                            "spacing": "None",
+                            "text": f"Ran {run_time}",
+                            "isSubtle": True,
+                            "wrap": True,
+                        },
+                    ],
+                    "width": "stretch",
+                },
+            ],
+        }
+
+    def _build_validation_result_blocks(
         self,
+        idx: int,
+        total_validation_count: int,
+        validation_result_identifier: ValidationResultIdentifier,
         validation_result: ExpectationSuiteValidationResult,
-        validation_result_suite_identifier: ValidationResultIdentifier,
-    ) -> list[dict[str, str]]:
-        return [
-            self._render_status(validation_result=validation_result),
-            self._render_asset_name(validation_result=validation_result),
-            self._render_suite_name(validation_result=validation_result),
-            self._render_run_name(
-                validation_result_suite_identifier=validation_result_suite_identifier
-            ),
-            self._render_batch_id(validation_result=validation_result),
-            self._render_summary(validation_result=validation_result),
+    ) -> list[dict]:
+        success = validation_result.success
+        success_text = self._SUCCESS_EMOJI if success else self._FAILURE_EMOJI
+        color = "Good" if success else "Attention"
+
+        blocks = [
+            {
+                "type": "TextBlock",
+                "text": f"Validation Result ({idx} of {total_validation_count}) {success_text}",
+                "wrap": True,
+                "weight": "Bolder",
+                "style": "columnHeader",
+                "isSubtle": True,
+                "color": color,
+            },
+            {
+                "type": "FactSet",
+                "facts": self._build_validation_result_facts(
+                    validation_result_identifier=validation_result_identifier,
+                    validation_result=validation_result,
+                ),
+                "separator": True,
+            },
         ]
 
-    def _render_status(self, validation_result: ExpectationSuiteValidationResult) -> dict[str, str]:
-        status = "Success !!!" if validation_result.success else "Failure :("
-        return self._render_validation_result_element(
-            key="Batch Validation Status",
-            value=status,
-            validation_result=validation_result,
-        )
+        if validation_result.result_url:
+            blocks.append(
+                {
+                    "type": "ActionSet",
+                    "actions": [
+                        {
+                            "type": "Action.OpenUrl",
+                            "title": "View Result",
+                            "url": validation_result.result_url,
+                        }
+                    ],
+                }
+            )
 
-    def _render_asset_name(
-        self, validation_result: ExpectationSuiteValidationResult
-    ) -> dict[str, str]:
-        data_asset_name = validation_result.asset_name or "__no_data_asset_name__"
-        return self._render_validation_result_element(key="Data Asset Name", value=data_asset_name)
+        return blocks
 
-    def _render_suite_name(
-        self, validation_result: ExpectationSuiteValidationResult
-    ) -> dict[str, str]:
-        expectation_suite_name = validation_result.suite_name
-        return self._render_validation_result_element(
-            key="Expectation Suite Name", value=expectation_suite_name
-        )
-
-    def _render_run_name(
-        self, validation_result_suite_identifier: ValidationResultIdentifier
-    ) -> dict[str, str]:
-        run_id = validation_result_suite_identifier.run_id
-        run_name = run_id.run_name if isinstance(run_id, RunIdentifier) else run_id
-        return self._render_validation_result_element(key="Run Name", value=run_name)
-
-    def _render_batch_id(
-        self, validation_result: ExpectationSuiteValidationResult
-    ) -> dict[str, str]:
-        return self._render_validation_result_element(
-            key="Batch ID", value=validation_result.batch_id
-        )
-
-    def _render_summary(
-        self, validation_result: ExpectationSuiteValidationResult
-    ) -> dict[str, str]:
+    def _build_validation_result_facts(
+        self,
+        validation_result_identifier: ValidationResultIdentifier,
+        validation_result: ExpectationSuiteValidationResult,
+    ) -> list[dict]:
+        asset_name = validation_result.asset_name or self._NO_VALUE_PLACEHOLDER
+        suite_name = validation_result.suite_name
+        run_name = validation_result_identifier.run_id.run_name or self._NO_VALUE_PLACEHOLDER
         n_checks_succeeded = validation_result.statistics["successful_expectations"]
         n_checks = validation_result.statistics["evaluated_expectations"]
-        check_details_text = f"*{n_checks_succeeded}* of *{n_checks}* expectations were met"
-        return self._render_validation_result_element(key="Summary", value=check_details_text)
+        check_details_text = f"*{n_checks_succeeded}* of *{n_checks}* Expectations were met"
 
-    def _render_data_docs_links(
+        return [
+            {"title": "Data Asset name: ", "value": asset_name},
+            {"title": "Suite name: ", "value": suite_name},
+            {"title": "Run name: ", "value": run_name},
+            {"title": "Summary:", "value": check_details_text},
+        ]
+
+    def _get_data_docs_page_links(
         self, data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]] | None
-    ) -> list[dict[str, str]] | None:
-        if not data_docs_pages:
-            return None
+    ) -> list[str]:
+        links: list[str] = []
 
-        elements: list[dict[str, str]] = []
+        if not data_docs_pages:
+            return links
+
         for data_docs_page in data_docs_pages.values():
             for docs_link_key, docs_link in data_docs_page.items():
                 if docs_link_key == "class":
                     continue
-                report_element = self._get_report_element(docs_link)
-                elements.append(report_element)
 
-        return elements
+                links.append(docs_link)
 
-    def _concatenate_blocks(
-        self, title_block: dict, checkpoint_blocks: list[list[dict]]
-    ) -> list[dict]:
-        containers: list[dict] = [title_block]
-        for block in checkpoint_blocks:
-            validation_container = {
-                "type": "Container",
-                "height": "auto",
-                "separator": "true",
-                "items": [
-                    {
-                        "type": "TextBlock",
-                        "text": block,
-                        "horizontalAlignment": "left",
-                    }
-                ],
-            }
-            containers.append(validation_container)
-
-        return containers
+        return links
 
     def _build_payload(
         self,
-        checkpoint_result: CheckpointResult,
-        checkpoint_blocks: list[list[dict[str, str]]],
-        data_docs_block: list[dict[str, str]] | None,
+        blocks: list[dict],
+        data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]] | None,
     ) -> dict:
-        checkpoint_name = checkpoint_result.checkpoint_config.name
-        status = "Success !!!" if checkpoint_result.success else "Failure :("
-
-        title_block = {
-            "type": "Container",
-            "height": "auto",
-            "separator": "true",
-            "items": [
-                {
-                    "type": "ColumnSet",
-                    "columns": [
+        data_docs_page_links = self._get_data_docs_page_links(data_docs_pages)
+        actions = [
+            # We would normally use Action.OpenUrl here, but Teams does not support
+            # non HTTP/HTTPS URI schemes. As Data Docs utilze file:///, we use Action.ShowCard
+            # to display the link in a card.
+            {
+                "type": "Action.ShowCard",
+                "title": "View Data Docs URL",
+                "card": {
+                    "type": "AdaptiveCard",
+                    "body": [
                         {
-                            "type": "Column",
-                            "width": "stretch",
-                            "items": [
-                                {
-                                    "type": "TextBlock",
-                                    "text": f"Checkpoint Result: {checkpoint_name} ({status})",
-                                    "weight": "bolder",
-                                    "size": "large",
-                                    "wrap": "true",
-                                },
-                            ],
-                        }
+                            "type": "TextBlock",
+                            "text": link,
+                            "wrap": True,
+                        },
                     ],
+                    "$schema": self._MICROSOFT_TEAMS_SCHEMA_URL,
                 },
-            ],
-        }
+            }
+            for link in data_docs_page_links
+        ]
 
         return {
             "type": "message",
             "attachments": [
                 {
-                    "contentType": "application/vnd.microsoft.card.adaptive",
+                    "contentType": self._MICROSOFT_TEAMS_CONTENT_TYPE,
                     "content": {
-                        "$schema": self.MICROSOFT_TEAMS_SCHEMA_URL,
                         "type": "AdaptiveCard",
-                        "version": "1.0",
-                        "body": self._concatenate_blocks(
-                            title_block=title_block, checkpoint_blocks=checkpoint_blocks
-                        ),
-                        "actions": data_docs_block or [],
+                        "$schema": self._MICROSOFT_TEAMS_SCHEMA_URL,
+                        "version": self._MICROSOFT_TEAMS_SCHEMA_VERSION,
+                        "body": blocks,
+                        "actions": actions,
                     },
                 }
             ],
         }
-
-    @staticmethod
-    def _get_report_element(docs_link):
-        report_element = {
-            "type": "Action.OpenUrl",
-            "title": "Open data docs",
-            "url": docs_link,
-        }
-        return report_element
-
-    @staticmethod
-    def _render_validation_result_element(key, value, validation_result=None):
-        validation_result_element = {
-            "type": "TextBlock",
-            "text": f"**{key}:** {value}",
-            "horizontalAlignment": "left",
-        }
-        if validation_result and validation_result.success:
-            validation_result_element["color"] = "good"
-        elif validation_result and not validation_result.success:
-            validation_result_element["color"] = "attention"
-        return validation_result_element

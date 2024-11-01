@@ -62,12 +62,11 @@ from great_expectations.expectations.model_field_descriptions import (
     COLUMN_B_DESCRIPTION,
     COLUMN_DESCRIPTION,
     COLUMN_LIST_DESCRIPTION,
-    MOSTLY_DESCRIPTION,
     WINDOWS_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
     ConditionParser,
-    Mostly,
+    MostlyField,
 )
 from great_expectations.expectations.registry import (
     get_metric_kwargs,
@@ -296,6 +295,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
         @staticmethod
         def schema_extra(schema: Dict[str, Any], model: Type[Expectation]) -> None:
+            # Add metadata to the schema
             schema["properties"]["metadata"] = {
                 "type": "object",
                 "properties": {
@@ -311,6 +311,14 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                     },
                 },
             }
+
+            # Add extra fields to schema from custom schema_overrides
+            # schema_overrides is not a pydantic concept, but pydantic.Field allows
+            # us to pass through arbitrary fields.
+            for prop in schema["properties"].values():
+                if overrides := prop.pop("schema_overrides", None):
+                    assert isinstance(overrides, dict)
+                    prop.update(overrides)
 
     id: Union[str, None] = None
     meta: Union[dict, None] = None
@@ -339,6 +347,19 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
     _save_callback: Union[Callable[[Expectation], Expectation], None] = pydantic.PrivateAttr(
         default=None
     )
+
+    def __lt__(self, other: object) -> bool:
+        # Enables sorting of Expectations
+        if not isinstance(other, Expectation):
+            return False
+
+        if self.expectation_type != other.expectation_type:
+            return self.expectation_type < other.expectation_type
+
+        if self.id and other.id:
+            return self.id < other.id
+
+        return False
 
     @override
     def __eq__(self, other: object) -> bool:
@@ -1811,7 +1832,7 @@ class ColumnMapExpectation(BatchExpectation, ABC):
     """  # noqa: E501
 
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
-    mostly: Mostly = 1.0  # type: ignore[assignment] # TODO: Fix in CORE-412
+    mostly: MostlyField = 1
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
@@ -2079,7 +2100,7 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
 
     column_A: StrictStr = Field(min_length=1, description=COLUMN_A_DESCRIPTION)
     column_B: StrictStr = Field(min_length=1, description=COLUMN_B_DESCRIPTION)
-    mostly: Mostly = 1.0  # type: ignore[assignment] # TODO: Fix in CORE-412
+    mostly: MostlyField = 1
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
@@ -2335,7 +2356,7 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
     """  # noqa: E501
 
     column_list: List[StrictStr] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
-    mostly: Mostly = pydantic.Field(default=1.0, description=MOSTLY_DESCRIPTION)
+    mostly: MostlyField = 1
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
     ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (

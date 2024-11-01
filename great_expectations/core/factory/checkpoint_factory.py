@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Iterable
 from great_expectations._docs_decorators import public_api
 from great_expectations.analytics.client import submit as submit_event
 from great_expectations.analytics.events import (
+    ActionInfo,
     CheckpointCreatedEvent,
     CheckpointDeletedEvent,
 )
@@ -52,7 +53,16 @@ class CheckpointFactory(Factory[Checkpoint]):
             event=CheckpointCreatedEvent(
                 checkpoint_id=persisted_checkpoint.id,
                 validation_definition_ids=[
-                    vd.id for vd in persisted_checkpoint.validation_definitions
+                    validation_definition.id
+                    for validation_definition in checkpoint.validation_definitions
+                ],
+                actions=[
+                    ActionInfo(
+                        type=action.type,
+                        # notify_on is not a property of all Actions
+                        notify_on=getattr(action, "notify_on", None),
+                    )
+                    for action in checkpoint.actions
                 ],
             )
         )

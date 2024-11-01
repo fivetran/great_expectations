@@ -65,7 +65,10 @@ class UnexpectedRowsExpectation(BatchExpectation):
 
     unexpected_rows_query: str = pydantic.Field(description=UNEXPECTED_ROWS_QUERY_DESCRIPTION)
 
-    metric_dependencies: ClassVar[Tuple[str, ...]] = ("unexpected_rows_query.table",)
+    metric_dependencies: ClassVar[Tuple[str, ...]] = (
+        "unexpected_rows_query.table",
+        "unexpected_rows_query.row_count",
+    )
     success_keys: ClassVar[Tuple[str, ...]] = ("unexpected_rows_query",)
     domain_keys: ClassVar[Tuple[str, ...]] = (
         "batch_id",
@@ -138,7 +141,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
         execution_engine: ExecutionEngine | None = None,
     ) -> Union[ExpectationValidationResult, dict]:
         metric_value = metrics["unexpected_rows_query.table"]
-        unexpected_row_count = len(metric_value)
+        unexpected_row_count = metrics["unexpected_rows_query.row_count"]
         observed_value = f"{unexpected_row_count} unexpected "
         if unexpected_row_count == 1:
             observed_value += "row"
