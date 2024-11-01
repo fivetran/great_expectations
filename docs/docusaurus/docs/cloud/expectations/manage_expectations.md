@@ -30,8 +30,8 @@ The following table lists the available GX Cloud Expectations.
 | Distribution       | `expect_column_z_scores_to_be_less_than`                  | Expect the Z-scores of a column's values to be less than a given threshold.                                                            | No |
 | Distribution       | `expect_column_stdev_to_be_between`                       | Expect the column standard deviation to be between a minimum value and a maximum value.                                                | Yes |
 | Distribution       | `expect_column_sum_to_be_between`                         | Expect the column sum to be between a minimum value and a maximum value.                                                               | Yes |
-| Missingness        | `expect_column_values_to_be_null`                         | Expect the column values to be null.                                                                                                   | Yes |
-| Missingness        | `expect_column_values_to_not_be_null`                     | Expect the column values to not be null.                                                                                               | Yes |
+| Missingness        | `expect_column_values_to_be_null`                         | Expect the column values to be null.                                                                                                   | Coming soon |
+| Missingness        | `expect_column_values_to_not_be_null`                     | Expect the column values to not be null.                                                                                               | Coming soon |
 | Numerical Data     | `expect_column_max_to_be_between`                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes |
 | Numerical Data     | `expect_column_mean_to_be_between`                        | Expect the column mean to be between a minimum and a maximum value.                                                        | Yes |
 | Numerical Data     | `expect_column_median_to_be_between`                      | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes |
@@ -77,7 +77,7 @@ The optional `{batch}` named query references the Batch of data under test. When
 
 ## Dynamic Parameters
 
-Dynamic Parameters allow you to set up Expectations with automatically updating parameters based on new data, saving you the effort of maintaining Expectations as your data changes over time. Using stored validation history, GX Cloud will populate your Expectation parameters at runtime using the last `n` validation results, and your Expectation will succeed or fail based on a predetermined sensitivity to those results.
+Dynamic Parameters allow you to create Expectations whose parameters update based on new data. GX Cloud can populate new Expectation parameters at runtime using the last `n` validation results. For example, you can define an Expectation to validate that the maximum value within a column does not exceed 20% above a previously recorded value.
 
 You will be able to input:
 
