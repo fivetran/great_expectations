@@ -100,7 +100,6 @@ class SqliteDsn(pydantic.AnyUrl):
     host_required = False
 
 
-@public_api
 class SqliteTableAsset(SqlTableAsset):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -111,7 +110,6 @@ class SqliteTableAsset(SqlTableAsset):
 
     type: Literal["table"] = "table"
 
-    @public_api
     @override
     def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
         # TODO: Implement batch definition validation.
@@ -120,7 +118,6 @@ class SqliteTableAsset(SqlTableAsset):
         pass
 
 
-@public_api
 class SqliteQueryAsset(SqlQueryAsset):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -131,7 +128,6 @@ class SqliteQueryAsset(SqlQueryAsset):
 
     type: Literal["query"] = "query"
 
-    @public_api
     @override
     def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
         # TODO: Implement batch definition validation.
