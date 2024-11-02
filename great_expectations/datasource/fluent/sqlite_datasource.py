@@ -16,9 +16,7 @@ from typing import (
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.partitioners import (
-    PartitionerConvertedDatetime,
-)
+from great_expectations.core.partitioners import PartitionerConvertedDatetime
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.sql_datasource import (
     QueryAsset as SqlQueryAsset,
@@ -35,6 +33,9 @@ from great_expectations.datasource.fluent.sql_datasource import (
 if TYPE_CHECKING:
     # min version of typing_extension missing `Self`, so it can't be imported at runtime
 
+    from great_expectations.core.partitioners import (
+        ColumnPartitioner,
+    )
     from great_expectations.datasource.fluent.interfaces import (
         BatchMetadata,
         BatchParameters,
@@ -109,6 +110,13 @@ class SqliteTableAsset(SqlTableAsset):
 
     type: Literal["table"] = "table"
 
+    @override
+    def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
+        # TODO: Implement batch definition validation.
+        # sqlite stores datetimes as a string so we must override how we normally
+        # validate batch definitions.
+        pass
+
 
 class SqliteQueryAsset(SqlQueryAsset):
     def __init__(self, **kwargs):
@@ -119,6 +127,13 @@ class SqliteQueryAsset(SqlQueryAsset):
         )
 
     type: Literal["query"] = "query"
+
+    @override
+    def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
+        # TODO: Implement batch definition validation.
+        # sqlite stores datetimes as a string so we must override how we normally
+        # validate batch definitions.
+        pass
 
 
 @public_api

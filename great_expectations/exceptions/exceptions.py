@@ -461,3 +461,8 @@ class GXCloudConfigurationError(GreatExpectationsError):
 # Only used in tests
 class DatabaseConnectionError(GreatExpectationsError):
     """Error connecting to a database including during an integration test."""
+
+
+class SqlAddBatchDefinitionError(Exception):
+    def __init__(self, msg: str):
+        super().__init__(f"Failed adding batch definition: {msg}")

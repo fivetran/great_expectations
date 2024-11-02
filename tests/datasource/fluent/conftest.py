@@ -33,13 +33,14 @@ from great_expectations.core.batch_spec import (
     BatchMarkers,
     SqlAlchemyDatasourceBatchSpec,
 )
-from great_expectations.data_context import FileDataContext
+from great_expectations.data_context import EphemeralDataContext, FileDataContext
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent import (
     PandasAzureBlobStorageDatasource,
     PandasGoogleCloudStorageDatasource,
     SparkAzureBlobStorageDatasource,
     SparkGoogleCloudStorageDatasource,
+    SQLDatasource,
 )
 from great_expectations.datasource.fluent.config import GxConfig
 from great_expectations.datasource.fluent.interfaces import Datasource
@@ -48,6 +49,7 @@ from great_expectations.datasource.fluent.pandas_filesystem_datasource import (
 )
 from great_expectations.datasource.fluent.postgres_datasource import PostgresDatasource
 from great_expectations.datasource.fluent.sources import DataSourceManager
+from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from great_expectations.execution_engine import (
     ExecutionEngine,
     SqlAlchemyExecutionEngine,
@@ -67,6 +69,7 @@ if TYPE_CHECKING:
     from pytest import FixtureRequest
 
     from great_expectations.data_context import CloudDataContext
+
 
 CreateSourceFixture: TypeAlias = Callable[..., ContextManager[PostgresDatasource]]
 FLUENT_DATASOURCE_TEST_DIR: Final = pathlib.Path(__file__).parent
@@ -483,3 +486,24 @@ def _source(
 @pytest.fixture
 def create_source() -> ContextManager:
     return _source  # type: ignore[return-value]
+
+
+@pytest.fixture
+def sql_datasource_table_asset_test_connection_noop(
+    ephemeral_context_with_defaults: EphemeralDataContext,
+    monkeypatch: pytest.MonkeyPatch,
+    filter_gx_datasource_warnings: None,
+) -> SQLDatasource:
+    """
+    SQLDatasource instance where `TableAsset.test_connection()` always passes.
+    """
+    sql_datasource = ephemeral_context_with_defaults.data_sources.add_sql(
+        name="my_sql_datasource", connection_string="sqlite:///"
+    )
+    CNF_TEST_LOGGER.warning(f"Patching {sql_datasource.name} `.test_connection()` to a noop")
+
+    def noop(self: SQLDatasource | TableAsset):
+        CNF_TEST_LOGGER.warning(f"{self.__class__.__name__}.test_connection noop called")
+
+    monkeypatch.setattr(TableAsset, "test_connection", noop, raising=True)
+    return sql_datasource
