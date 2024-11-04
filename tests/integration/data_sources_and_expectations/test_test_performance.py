@@ -7,6 +7,7 @@ Note that we aren't testing to ensure we don't over-reuse BatchTestSetup instanc
 different TestConfigs; that would be caught by our regular tests.
 """
 
+from dataclasses import dataclass
 from typing import Mapping
 
 import pandas as pd
@@ -21,8 +22,11 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 
-setup_count = 0
-teardown_count = 0
+
+@dataclass
+class SetupTeardownCounts:
+    setup_count = 0
+    teardown_count = 0
 
 
 class DummyTestConfig(DataSourceTestConfig):
@@ -59,17 +63,21 @@ class DummyBatchTestSetup(BatchTestSetup):
 
     @override
     def setup(self) -> None:
-        global setup_count  # noqa: PLW0603
-        if setup_count:
+        counts = self._setup_teardown_counts()
+        if counts.setup_count:
             assert False, "Setup is not being cached"
-        setup_count += 1
+        counts.setup_count += 1
 
     @override
     def teardown(self) -> None:
-        global teardown_count  # noqa: PLW0603
-        if teardown_count:
+        counts = self._setup_teardown_counts()
+        if counts.teardown_count:
             assert False, "Teardown is not being cached"
-        teardown_count -= 1
+        counts.teardown_count -= 1
+
+    @classmethod
+    def _setup_teardown_counts(cls) -> SetupTeardownCounts:
+        return SetupTeardownCounts()
 
 
 @parameterize_batch_for_data_sources(
