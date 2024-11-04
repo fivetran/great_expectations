@@ -92,7 +92,7 @@ class TestExpectTableRowCountToEqualOtherTable:
         data_source_configs=[
             PostgreSQLDatasourceTestConfig(
                 column_types={"col_a": POSTGRESQL_TYPES.INTEGER},
-                extra_assets={"test_table_two": {"col_b": POSTGRESQL_TYPES.VARCHAR}},
+                extra_column_types={"test_table_two": {"col_b": POSTGRESQL_TYPES.VARCHAR}},
             ),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
@@ -107,7 +107,7 @@ class TestExpectTableRowCountToEqualOtherTable:
         data_source_configs=[
             PostgreSQLDatasourceTestConfig(
                 column_types={"col_a": POSTGRESQL_TYPES.INTEGER},
-                extra_assets={"test_table_two": {"col_b": POSTGRESQL_TYPES.VARCHAR}},
+                extra_column_types={"test_table_two": {"col_b": POSTGRESQL_TYPES.VARCHAR}},
             ),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
