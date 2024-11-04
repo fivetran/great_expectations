@@ -129,8 +129,12 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
     def infer_column_types(self, data: pd.DataFrame) -> Dict[str, TypeEngine]:
         inferred_column_types: Dict[str, TypeEngine] = {}
         for column, value_list in data.to_dict("list").items():
-            # todo
             python_type = type(value_list[0])
+            if not all(isinstance(val, python_type) for val in value_list):
+                raise RuntimeError(
+                    f"Cannot infer type of column {column}. "
+                    "Please provide an explicit column type in the test config."
+                )
             inferred_type = self.inferrable_types_lookup.get(python_type)
             if inferred_type:
                 inferred_column_types[str(column)] = inferred_type
