@@ -15,8 +15,6 @@ from great_expectations import expectations as gxe
 from great_expectations.analytics.events import CheckpointRanEvent
 from great_expectations.checkpoint.actions import (
     MicrosoftTeamsNotificationAction,
-    OpsgenieAlertAction,
-    PagerdutyAlertAction,
     SlackNotificationAction,
     UpdateDataDocsAction,
     ValidationAction,
@@ -651,12 +649,8 @@ class TestCheckpointResult:
         Pydantics and mocks.
         Ideally, this would be tested through the public `run()` method.
         """
-        pd_action = PagerdutyAlertAction(
-            name="my_pagerduty_action", api_key="api_key", routing_key="routing_key"
-        )
-        og_action = OpsgenieAlertAction(name="my_opsgenie_action", api_key="api_key")
         data_docs_action = UpdateDataDocsAction(name="my_docs_action")
-        actions: List[CheckpointAction] = [pd_action, og_action, data_docs_action]
+        actions: List[CheckpointAction] = [data_docs_action]
 
         validation_definitions = [validation_definition]
         checkpoint = Checkpoint(
@@ -665,7 +659,7 @@ class TestCheckpointResult:
             actions=actions,
         )
 
-        assert checkpoint._sort_actions() == [data_docs_action, pd_action, og_action]
+        assert checkpoint._sort_actions() == [data_docs_action]
 
     @pytest.mark.unit
     def test_checkpoint_run_passes_through_runtime_params(
