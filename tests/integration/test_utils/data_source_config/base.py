@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 import string
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from typing import TYPE_CHECKING, Generic, Mapping, Optional, TypeVar
 
@@ -23,7 +23,7 @@ _ColumnTypes = TypeVar("_ColumnTypes")
 class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     name: Optional[str] = None
     column_types: Optional[Mapping[str, _ColumnTypes]] = None
-    extra_assets: Optional[Mapping[str, Mapping[str, _ColumnTypes]]] = None
+    extra_column_types: Mapping[str, Mapping[str, _ColumnTypes]] = field(default_factory=dict)
 
     @property
     @abstractmethod
