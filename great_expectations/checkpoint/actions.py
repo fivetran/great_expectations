@@ -898,10 +898,7 @@ CheckpointAction = Annotated[
     Union[
         EmailAction,
         MicrosoftTeamsNotificationAction,
-        OpsgenieAlertAction,
-        PagerdutyAlertAction,
         SlackNotificationAction,
-        SNSNotificationAction,
         UpdateDataDocsAction,
     ],
     Field(discriminator="type"),
