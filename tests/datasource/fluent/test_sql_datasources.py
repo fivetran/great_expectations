@@ -20,7 +20,7 @@ from great_expectations.datasource.fluent.sql_datasource import (
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 if TYPE_CHECKING:
-    from pytest_mock import MockerFixture, MockType
+    from pytest_mock import MockerFixture
 
     from great_expectations.data_context import (
         EphemeralDataContext,
@@ -65,42 +65,6 @@ def create_engine_fake(monkeypatch: pytest.MonkeyPatch) -> None:
         return in_memory_sqlite_engine
 
     monkeypatch.setattr(sa, "create_engine", _fake_create_engine, raising=True)
-
-
-@pytest.fixture
-def sql_datasource(
-    ephemeral_context_with_defaults: EphemeralDataContext,
-    filter_gx_datasource_warnings: None,
-) -> SQLDatasource:
-    return ephemeral_context_with_defaults.data_sources.add_sql(
-        name="my_sql_datasource", connection_string="sqlite:///"
-    )
-
-
-@pytest.fixture
-def sql_datasource_table_asset_test_connection_noop(
-    monkeypatch: pytest.MonkeyPatch, sql_datasource: SQLDatasource
-) -> SQLDatasource:
-    """
-    Patch and return the sql_datasource fixture `TableAsset.test_connection()`
-    to be a noop and always pass.
-    """
-
-    LOGGER.warning(f"Patching {sql_datasource.name} `.test_connection()` to a noop")
-
-    def noop(self: SQLDatasource | TableAsset):
-        LOGGER.warning(f"{self.__class__.__name__}.test_connection noop called")
-
-    monkeypatch.setattr(TableAsset, "test_connection", noop, raising=True)
-    return sql_datasource
-
-
-@pytest.fixture
-def sql_datasource_noop_test_connection(
-    sql_datasource: SQLDatasource,
-    sql_datasource_test_connection_noop: MockType,
-) -> SQLDatasource:
-    return sql_datasource
 
 
 @pytest.mark.unit

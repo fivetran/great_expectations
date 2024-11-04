@@ -884,7 +884,10 @@ def test_adding_partitioner_persists_results(
         name="my_datasource",
         connection_string="postgresql://postgres:@localhost/not_a_real_db",
     ).add_query_asset(name="my_asset", query="select * from table").add_batch_definition(
-        name="my_batch_definition", partitioner=ColumnPartitionerYearly(column_name="my_col")
+        name="my_batch_definition",
+        partitioner=ColumnPartitionerYearly(column_name="my_col"),
+        # We skip validating we can generate batches because table is fake and won't validate.
+        validate_partitioner=False,
     )
 
     final_yaml: dict = YAMLHandler().load(  # type: ignore[assignment]
