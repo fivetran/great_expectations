@@ -8,6 +8,7 @@ different TestConfigs; that would be caught by our regular tests.
 """
 
 from dataclasses import dataclass
+from functools import cache
 from typing import Mapping
 
 import pandas as pd
@@ -63,20 +64,21 @@ class DummyBatchTestSetup(BatchTestSetup):
 
     @override
     def setup(self) -> None:
-        counts = self._setup_teardown_counts()
+        counts = DummyBatchTestSetup._get_setup_teardown_counts()
         if counts.setup_count:
             assert False, "Setup is not being cached"
         counts.setup_count += 1
 
     @override
     def teardown(self) -> None:
-        counts = self._setup_teardown_counts()
+        counts = DummyBatchTestSetup._get_setup_teardown_counts()
         if counts.teardown_count:
             assert False, "Teardown is not being cached"
         counts.teardown_count -= 1
 
-    @classmethod
-    def _setup_teardown_counts(cls) -> SetupTeardownCounts:
+    @cache
+    @staticmethod
+    def _get_setup_teardown_counts() -> SetupTeardownCounts:
         return SetupTeardownCounts()
 
 
