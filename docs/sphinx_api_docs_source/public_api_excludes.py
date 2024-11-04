@@ -827,17 +827,17 @@ DEFAULT_EXCLUDES: list[IncludeExcludeDefinition] = [
         name="get_batch_parameters_keys",
         filepath=pathlib.Path("great_expectations/datasource/fluent/sql_datasource.py"),
     ),
-        IncludeExcludeDefinition(
+    IncludeExcludeDefinition(
         reason="This action is not currently supported",
         name="OpsgenieAlertAction",
         filepath=pathlib.Path("great_expectations/checkpoint/actions.py"),
     ),
-        IncludeExcludeDefinition(
+    IncludeExcludeDefinition(
         reason="This action is not currently supported",
         name="PagerdutyAlertAction",
         filepath=pathlib.Path("great_expectations/checkpoint/actions.py"),
     ),
-        IncludeExcludeDefinition(
+    IncludeExcludeDefinition(
         reason="This action is not currently supported",
         name="SNSNotificationAction",
         filepath=pathlib.Path("great_expectations/checkpoint/actions.py"),
