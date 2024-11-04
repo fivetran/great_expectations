@@ -352,7 +352,6 @@ class SlackNotificationAction(DataDocsAction):
         return {"slack_notification_result": slack_notif_result}
 
 
-@public_api
 class PagerdutyAlertAction(ValidationAction):
     """Sends a PagerDuty event.
 
@@ -497,7 +496,6 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
         return {"microsoft_teams_notification_result": teams_notif_result}
 
 
-@public_api
 class OpsgenieAlertAction(ValidationAction):
     """Sends an Opsgenie alert.
 
@@ -814,7 +812,6 @@ class UpdateDataDocsAction(DataDocsAction):
         return data_docs_validation_results
 
 
-@public_api
 class SNSNotificationAction(ValidationAction):
     """Action that pushes validations results to an SNS topic with a subject of passed or failed.
 
