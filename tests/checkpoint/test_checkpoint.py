@@ -656,7 +656,7 @@ class TestCheckpointResult:
             name="my_teams_action", teams_webhook="teams_webhook"
         )
         data_docs_action = UpdateDataDocsAction(name="my_docs_action")
-        
+
         actions: List[CheckpointAction] = [slack_action, teams_action, data_docs_action]
 
         validation_definitions = [validation_definition]
