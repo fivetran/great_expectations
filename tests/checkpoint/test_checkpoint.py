@@ -666,7 +666,7 @@ class TestCheckpointResult:
             actions=actions,
         )
 
-        assert checkpoint._sort_actions() == [slack_action, teams_action, data_docs_action]
+        assert checkpoint._sort_actions() == [data_docs_action, slack_action, teams_action]
 
     @pytest.mark.unit
     def test_checkpoint_run_passes_through_runtime_params(
