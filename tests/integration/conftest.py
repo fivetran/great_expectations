@@ -110,35 +110,45 @@ def parameterize_batch_for_data_sources(
 # tests that use the same TestConfig will reuse the same BatchTestSetup. At the end of the test
 # session, _cleanup will clean up all the BatchTestSetups.
 
-cached_test_configs: dict[TestConfig, BatchTestSetup] = {}
+
+@pytest.fixture(scope="session")
+def _cached_test_configs() -> dict[TestConfig, BatchTestSetup]:
+    """Fixture to hold cached test configurations across tests."""
+    cached_test_configs: dict[TestConfig, BatchTestSetup] = {}
+
+    return cached_test_configs
 
 
 @pytest.fixture(scope="session")
-def _cleanup() -> Generator[None, None, None]:
+def _cleanup(
+    _cached_test_configs: Mapping[TestConfig, BatchTestSetup],
+) -> Generator[None, None, None]:
     """Fixture to do all teardown at the end of the test session."""
     yield
-    for batch_setup in cached_test_configs.values():
+    for batch_setup in _cached_test_configs.values():
         batch_setup.teardown()
 
 
 @pytest.fixture
-def batch_for_datasource(request: pytest.FixtureRequest, _cleanup) -> Generator[Batch, None, None]:
+def batch_for_datasource(
+    request: pytest.FixtureRequest, _cached_test_configs: dict[TestConfig, BatchTestSetup], _cleanup
+) -> Generator[Batch, None, None]:
     """Fixture that yields a batch for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
     """
     config = request.param
     assert isinstance(config, TestConfig)
 
-    if config not in cached_test_configs:
+    if config not in _cached_test_configs:
         batch_setup = config.data_source_config.create_batch_setup(
             request=request,
             data=config.data,
             extra_data=config.extra_data,
         )
-        cached_test_configs[config] = batch_setup
+        _cached_test_configs[config] = batch_setup
         batch_setup.setup()
 
-    batch_setup = cached_test_configs[config]
+    batch_setup = _cached_test_configs[config]
 
     set_context(batch_setup.context)  # ensure the right context is active
     yield batch_setup.make_batch()
