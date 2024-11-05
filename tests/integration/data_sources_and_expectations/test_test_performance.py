@@ -76,8 +76,8 @@ class DummyBatchTestSetup(BatchTestSetup):
             assert False, "Teardown is not being cached"
         counts.teardown_count -= 1
 
-    @cache
     @staticmethod
+    @cache
     def _get_setup_teardown_counts() -> SetupTeardownCounts:
         return SetupTeardownCounts()
 
