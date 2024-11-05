@@ -55,6 +55,8 @@ def test_schemas_updated():
 
 @pytest.mark.unit
 def test_schemas_valid_spec(safer_draft_7_validator: type[Draft7Validator]):
+    # https://json-schema.org/draft-07
+    # https://jsonforms.io/api/core/interfaces/jsonschema7
     schema_file_paths = Path(schemas.__file__).parent.glob("*.json")
     for file_path in schema_file_paths:
         with open(file_path) as schema_file:
