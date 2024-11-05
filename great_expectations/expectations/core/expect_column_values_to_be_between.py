@@ -159,7 +159,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
         Failing Case:
             Input:
                 ExpectColumnValuesToBeBetween(
-                    column="test",
+                    column="test2",
                     min_value=1,
                     max_value=7,
                     strict_min=False,
