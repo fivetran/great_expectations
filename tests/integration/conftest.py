@@ -106,7 +106,7 @@ def parameterize_batch_for_data_sources(
 # NOTE on performance setup/teardown:
 # When we get equivalent TestConfigs, we only instantiate one BatchTestSetup for all of them, and
 # only perform its setup/teardown once. batch_for_datasource instantiate the BatchTestSetup
-# immediately before the first test that needs it and store it in cached_test_configs. Subsequetn
+# immediately before the first test that needs it and store it in cached_test_configs. Subsequent
 # tests that use the same TestConfig will reuse the same BatchTestSetup. At the end of the test
 # session, _cleanup will clean up all the BatchTestSetups.
 
