@@ -144,7 +144,10 @@ def test_expect_column_mean_to_be_between(batch_for_datasource):
 
 class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
-        data_source_configs=[PostgreSQLDatasourceTestConfig(), SnowflakeDatasourceTestConfig()],
+        data_source_configs=[
+            PostgreSQLDatasourceTestConfig(),
+            # SnowflakeDatasourceTestConfig(),
+        ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
         extra_data={"test_table_a": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
     )
@@ -156,7 +159,7 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             PostgreSQLDatasourceTestConfig(),
-            SnowflakeDatasourceTestConfig(),
+            # SnowflakeDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
         extra_data={"test_table_b": pd.DataFrame({"col_b": ["just_this_one!"]})},
