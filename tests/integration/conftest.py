@@ -64,11 +64,10 @@ def parameterize_batch_for_data_sources(
     Args:
         data_source_configs: The data source configurations to test.
         data: Data to load into the asset
-        extra_data: Mapping of {asset_name: data} to load into other assets. Only relevant for SQL
-                    mutli-table expectations.
-                    TODO: Different test configs using the same extra_data
-                    keys will run into collisions, so take care to ensure unique names are used.
-                    Fix in CORE-586.
+        extra_data: Mapping of {asset_label: data} to load into other assets. Only relevant for SQL
+                    mutli-table expectations. NOTE: This is NOT the table name. The label is used to
+                    correlate the data with the types passed to
+                    DataSourceTestConfig.extra_column_types.
 
 
     example use:
@@ -169,8 +168,6 @@ def batch_for_datasource(
 def extra_table_names_for_datasource(
     batch_setup_for_datasource: BatchTestSetup,
 ) -> Generator[list[str], None, None]:
-    """Fixture that yields a batch for a specific data source type.
-    This must be used in conjunction with `indirect=True` to defer execution
-    """
+    """Fixture that yields extra table names"""
     assert isinstance(batch_setup_for_datasource, SQLBatchTestSetup)
     yield [t.name for t in batch_setup_for_datasource.extra_tables]
