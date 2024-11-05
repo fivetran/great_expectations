@@ -72,8 +72,12 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             name=self.table_name, df=self.data, column_types=self.config.column_types or {}
         )
         extra_table_data = [
-            TableData(name=name, df=df, column_types=self.config.extra_column_types.get(name, {}))
-            for name, df in self.extra_data.items()
+            TableData(
+                name=f"{self.config.label}_expectation_test_table_{label}_{self._random_resource_name()}",
+                df=df,
+                column_types=self.config.extra_column_types.get(label, {}),
+            )
+            for label, df in self.extra_data.items()
         ]
         all_table_data = [main_table_data, *extra_table_data]
 
