@@ -173,4 +173,4 @@ def extra_table_names_for_datasource(
     This must be used in conjunction with `indirect=True` to defer execution
     """
     assert isinstance(batch_setup_for_datasource, SQLBatchTestSetup)
-    yield [t.name for t in batch_setup_for_datasource.tables]
+    yield [t.name for t in batch_setup_for_datasource.extra_tables]

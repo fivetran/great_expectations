@@ -63,6 +63,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         self.engine = create_engine(url=self.connection_string)
         self.metadata = MetaData()
         self.tables: List[Table] = []
+        self.extra_tables: List[Table] = []
         super().__init__(config, data)
 
     @override
@@ -82,6 +83,8 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             table = self.create_table(table_data.name, columns=columns)
             self.tables.append(table)
             table_data.table = table
+            if table_data is not main_table_data:
+                self.extra_tables.append(table)
         self.metadata.create_all(self.engine)
 
         # insert data
