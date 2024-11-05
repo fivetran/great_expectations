@@ -44,7 +44,7 @@ def safer_draft_7_validator():
     validator = Draft7Validator
     validator.META_SCHEMA = {
         **Draft7Validator.META_SCHEMA,
-        # this ensures that only specified properties are used
+        # this ensures that only specified properties are used (e.g. multipleOf, not multiple_of)
         # otherwise, the spec says unspecified properties should be ignored
         "additionalProperties": False,
     }
