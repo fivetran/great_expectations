@@ -94,7 +94,7 @@ def parameterize_batch_for_data_sources(
             for config in data_source_configs
         ]
         parameterize_decorator = pytest.mark.parametrize(
-            batch_setup_for_datasource.__name__,
+            _batch_setup_for_datasource.__name__,
             pytest_params,
             indirect=True,
         )
@@ -130,12 +130,12 @@ def _cleanup(
 
 
 @pytest.fixture
-def batch_setup_for_datasource(
+def _batch_setup_for_datasource(
     request: pytest.FixtureRequest,
     _cached_test_configs: dict[TestConfig, BatchTestSetup],
     _cleanup,
 ) -> Generator[BatchTestSetup, None, None]:
-    """Fixture that yields a batch for a specific data source type.
+    """Fixture that yields a BatchSetup for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
     """
     config = request.param
@@ -155,19 +155,19 @@ def batch_setup_for_datasource(
 
 @pytest.fixture
 def batch_for_datasource(
-    batch_setup_for_datasource: BatchTestSetup,
+    _batch_setup_for_datasource: BatchTestSetup,
 ) -> Generator[Batch, None, None]:
     """Fixture that yields a batch for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
     """
-    set_context(batch_setup_for_datasource.context)
-    yield batch_setup_for_datasource.make_batch()
+    set_context(_batch_setup_for_datasource.context)
+    yield _batch_setup_for_datasource.make_batch()
 
 
 @pytest.fixture
 def extra_table_names_for_datasource(
-    batch_setup_for_datasource: BatchTestSetup,
+    _batch_setup_for_datasource: BatchTestSetup,
 ) -> Generator[list[str], None, None]:
     """Fixture that yields extra table names"""
-    assert isinstance(batch_setup_for_datasource, SQLBatchTestSetup)
-    yield [t.name for t in batch_setup_for_datasource.extra_tables]
+    assert isinstance(_batch_setup_for_datasource, SQLBatchTestSetup)
+    yield [t.name for t in _batch_setup_for_datasource.extra_tables]
