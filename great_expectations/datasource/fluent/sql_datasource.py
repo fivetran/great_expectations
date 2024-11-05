@@ -24,7 +24,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Never
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
@@ -69,7 +69,10 @@ from great_expectations.datasource.fluent.interfaces import (
     PartitionerProtocol,
     TestConnectionError,
 )
-from great_expectations.exceptions.exceptions import NoAvailableBatchesError
+from great_expectations.exceptions.exceptions import (
+    NoAvailableBatchesError,
+    SqlAddBatchDefinitionError,
+)
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.execution_engine.partition_and_sample.data_partitioner import (
     DatePart,
@@ -81,6 +84,8 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 if TYPE_CHECKING:
     from sqlalchemy.sql import quoted_name  # noqa: TID251 # type-checking only
 
+    # We re-import sqlalchemy here to make type-checking and our compatability layer
+    # play nice with one another
     from great_expectations.compatibility import sqlalchemy
     from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.datasource.fluent import BatchParameters
@@ -484,6 +489,7 @@ SqlPartitioner = Union[
 ]
 
 
+@public_api
 class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT]):
     """A _SQLAsset Mixin
 
@@ -711,6 +717,73 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
             partitioner=partitioner,
         )
 
+    @override
+    def add_batch_definition(
+        self,
+        name: str,
+        partitioner: Optional[ColumnPartitioner] = None,
+        validate_partitioner: bool = True,
+    ) -> BatchDefinition[ColumnPartitioner]:
+        if validate_partitioner and partitioner:
+            self.validate_batch_definition(partitioner)
+        return super().add_batch_definition(name, partitioner)
+
+    @public_api
+    def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
+        """Validates that the batch definition column is of a permissible type
+
+        This isn't meant to be called directly. This is called internally when a batch definition
+         is added. Data asset implementers can override this for their specific data asset.
+
+        Raises:
+            SqlAddBatchDefinitionError: The specified column to partition on is not of
+                a permissible type for batching (ie date or datetime) or no data is
+                present in this column.
+        """
+        # We only support certain partitioners for using as batch definitions.
+        assert isinstance(
+            partitioner,
+            (
+                ColumnPartitionerYearly,
+                ColumnPartitionerMonthly,
+                ColumnPartitionerDaily,
+            ),
+        )
+        # A _SQLAsset must have a SQLDatasource
+        assert isinstance(self.datasource, SQLDatasource)
+        engine: sqlalchemy.Engine = self.datasource.get_engine()
+
+        # It would be better to introspect the database types and see which ones map to date or
+        # datetime. However, 3rd party types, such as Snowflakes TIMESTAMP_NTZ haven't implemented
+        # all the sqlalchemy abstract methods such as `python_type`.
+        # To make this more concrete I would have liked to do something like:
+        # insp = sqlalchemy.inspect(self.datasource.get_engine())
+        # cols = insp.get_columns(self.table_name, self.schema_name)
+        # for col in cols:
+        #     pytype = col['type'].python_type
+        #
+        # Instead we query the db for a non-null value to see if sqlalchemy converts
+        # this value to a python date or datetime. This means we REQUIRE that data is
+        # present for this validation to work.
+        with engine.connect() as connection:
+            selectable: sqlalchemy.Selectable = self.as_selectable()
+            column: sqlalchemy.ColumnClause[Never] = sa.sql.column(partitioner.column_name)
+            try:
+                row = connection.execute(
+                    sa.select(column, selectable).limit(1)  # type: ignore[call-overload]  # sqlalchemy typing is missing variants
+                )
+            except Exception as query_error:
+                raise SqlAddBatchDefinitionError(
+                    msg=f"Attempt to read an example non-null '{column}' value from '{selectable}'"
+                    " failed so column type can't be verified to be a date or datetime."
+                ) from query_error
+
+            r = row.first()
+            if not r or not isinstance(getattr(r, partitioner.column_name), (datetime, date)):
+                raise SqlAddBatchDefinitionError(
+                    msg=f"'{column}' column from '{selectable}' is not a date or datetime type."
+                )
+
     @public_api
     def add_batch_definition_whole_table(self, name: str) -> BatchDefinition:
         return self.add_batch_definition(
@@ -720,18 +793,27 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
     @public_api
     def add_batch_definition_yearly(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
         return self.add_batch_definition(
             name=name,
             partitioner=ColumnPartitionerYearly(
                 method_name="partition_on_year", column_name=column, sort_ascending=sort_ascending
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @public_api
     def add_batch_definition_monthly(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
         return self.add_batch_definition(
             name=name,
@@ -740,11 +822,16 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 column_name=column,
                 sort_ascending=sort_ascending,
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @public_api
     def add_batch_definition_daily(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
         return self.add_batch_definition(
             name=name,
@@ -753,6 +840,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 column_name=column,
                 sort_ascending=sort_ascending,
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @override
@@ -875,6 +963,8 @@ class TableAsset(_SQLAsset):
     def _resolve_quoted_name(cls, table_name: str) -> str | quoted_name:
         table_name_is_quoted: bool = cls._is_bracketed_by_quotes(table_name)
 
+        # We reimport sqlalchemy from our compatability layer because we make
+        # quoted_name a top level import there.
         from great_expectations.compatibility import sqlalchemy
 
         if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
@@ -929,7 +1019,7 @@ class TableAsset(_SQLAsset):
 
         This can be used in a from clause for a query against this data.
         """
-        return sa.text(self.qualified_name)  # type: ignore[return-value]
+        return sa.table(self.table_name, schema=self.schema_name)
 
     @override
     def _create_batch_spec_kwargs(self) -> dict[str, Any]:

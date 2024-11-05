@@ -41,38 +41,9 @@ from great_expectations.expectations.metrics.table_metric_provider import (
     TableMetricProvider,
 )
 from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
+from tests.expectations.metrics.conftest import MockResult, MockSqlAlchemyExecutionEngine
 
 pytestmark = pytest.mark.unit
-
-
-class Dialect:
-    def __init__(self, dialect: str):
-        self.name = dialect
-
-
-class MockSaEngine:
-    def __init__(self, dialect: Dialect):
-        self.dialect = dialect
-
-    def connect(self) -> None:
-        pass
-
-
-class MockResult:
-    def fetchmany(self, recordcount: int):
-        return None
-
-
-class MockConnection:
-    def execute(self, query: str):
-        return MockResult()
-
-
-class MockSqlAlchemyExecutionEngine(SqlAlchemyExecutionEngine):
-    def __init__(self, create_temp_table: bool = True, *args, **kwargs):
-        self.engine = MockSaEngine(dialect=Dialect("sqlite"))  # type: ignore[assignment]
-        self._create_temp_table = create_temp_table
-        self._connection = MockConnection()
 
 
 @pytest.fixture
@@ -459,31 +430,47 @@ def test__get_parameters_dict_from_query_parameters(
         ),
     ],
 )
-def test__get_sqlalchemy_records_from_query_and_batch_selectable__query(
-    mock_sqlalchemy_text, batch_selectable: sa.Selectable, expected_query: str
+def test_get_sqlalchemy_records_from_query_and_batch_selectable__query(
+    mock_sqlalchemy_text,
+    mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
+    batch_selectable: sa.Selectable,
+    expected_query: str,
 ):
-    execution_engine = MockSqlAlchemyExecutionEngine()
     mock_sqlalchemy_text.return_value = "*"
-    with mock.patch.object(execution_engine, "execute_query"):
-        QueryMetricProvider._get_sqlalchemy_records_from_query_and_batch_selectable(
-            query="SELECT {column} FROM {batch} WHERE passenger_count > 7",
-            batch_selectable=batch_selectable,
-            execution_engine=execution_engine,
-            query_parameters=QueryParameters(column="my_column"),
+    with mock.patch.object(mock_sqlalchemy_execution_engine, "execute_query"):
+        substituted_batch_subquery = (
+            QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query="SELECT {column} FROM {batch} WHERE passenger_count > 7",
+                batch_selectable=batch_selectable,
+                execution_engine=mock_sqlalchemy_execution_engine,
+                query_parameters=QueryParameters(column="my_column"),
+            )
         )
+        QueryMetricProvider._get_sqlalchemy_records_from_substituted_batch_subquery(
+            substituted_batch_subquery=substituted_batch_subquery,
+            execution_engine=mock_sqlalchemy_execution_engine,
+        )
+    assert substituted_batch_subquery == expected_query
     mock_sqlalchemy_text.assert_called_with(expected_query)
 
 
 @pytest.mark.unit
 @mock.patch.object(MockResult, "fetchmany")
-def test__get_sqlalchemy_records_from_query_and_batch_selectable__record_count(
+def test_get_sqlalchemy_records_from_query_and_batch_selectable__record_count(
     mock_sqlalchemy_fetchmany,
+    mock_sqlalchemy_execution_engine: MockSqlAlchemyExecutionEngine,
 ):
-    execution_engine = MockSqlAlchemyExecutionEngine()
     mock_sqlalchemy_fetchmany.return_value = []
-    QueryMetricProvider._get_sqlalchemy_records_from_query_and_batch_selectable(
-        query="SELECT * FROM {batch} WHERE passenger_count > 7",
-        batch_selectable=sa.select("*").select_from(sa.text("my_table")).subquery(),
-        execution_engine=execution_engine,
+    substituted_batch_subquery = (
+        QueryMetricProvider._get_substituted_batch_subquery_from_query_and_batch_selectable(
+            query="SELECT * FROM {batch} WHERE passenger_count > 7",
+            batch_selectable=sa.select("*").select_from(sa.text("my_table")).subquery(),
+            execution_engine=mock_sqlalchemy_execution_engine,
+            query_parameters=QueryParameters(column="my_column"),
+        )
+    )
+    QueryMetricProvider._get_sqlalchemy_records_from_substituted_batch_subquery(
+        substituted_batch_subquery=substituted_batch_subquery,
+        execution_engine=mock_sqlalchemy_execution_engine,
     )
     mock_sqlalchemy_fetchmany.assert_called_with(MAX_RESULT_RECORDS)

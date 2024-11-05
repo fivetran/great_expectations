@@ -126,13 +126,13 @@ class QueryMetricProvider(MetricProvider):
             return {**query_parameters}
 
     @classmethod
-    def _get_sqlalchemy_records_from_query_and_batch_selectable(
+    def _get_substituted_batch_subquery_from_query_and_batch_selectable(
         cls,
         query: str,
         batch_selectable: sa.Selectable,
         execution_engine: SqlAlchemyExecutionEngine,
         query_parameters: Optional[QueryParameters] = None,
-    ) -> list[dict]:
+    ) -> str:
         parameters = cls._get_parameters_dict_from_query_parameters(query_parameters)
 
         if isinstance(batch_selectable, sa.Table):
@@ -164,8 +164,16 @@ class QueryMetricProvider(MetricProvider):
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
 
+        return query
+
+    @classmethod
+    def _get_sqlalchemy_records_from_substituted_batch_subquery(
+        cls,
+        substituted_batch_subquery: str,
+        execution_engine: SqlAlchemyExecutionEngine,
+    ) -> list[dict]:
         result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(query)  # type: ignore[arg-type]
+            sa.text(substituted_batch_subquery)
         ).fetchmany(MAX_RESULT_RECORDS)
 
         if isinstance(result, Sequence):

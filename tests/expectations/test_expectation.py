@@ -2,21 +2,29 @@ from __future__ import annotations
 
 import itertools
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.expectation_validation_result import ExpectationValidationResult
 from great_expectations.exceptions import InvalidExpectationConfigurationError
+from great_expectations.execution_engine.execution_engine import ExecutionEngine
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     ColumnPairMapExpectation,
+    Expectation,
     MulticolumnMapExpectation,
     _validate_dependencies_against_available_metrics,
 )
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
+)
+from great_expectations.expectations.model_field_types import (
+    MostlyField,  # type needed in pydantic validation
+    ValueSetField,  # type needed in pydantic validation
 )
 from great_expectations.expectations.window import Offset, Window
 from great_expectations.validator.metric_configuration import MetricConfiguration
@@ -438,3 +446,126 @@ def test_expectation_equality_ignores_rendered_content():
     expectation_b.rendered_content = None
 
     assert expectation_a == expectation_b
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "expectation_a, expectation_b, expected_result",
+    [
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(column="foo"), {}, False, id="different_objects"
+        ),
+        pytest.param(
+            gxe.ExpectColumnDistinctValuesToBeInSet(column="bar"),
+            gxe.ExpectColumnValuesToBeBetween(column="foo"),
+            True,
+            id="different_expectation_types",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(column="foo"),
+            gxe.ExpectColumnValuesToBeBetween(column="foo"),
+            False,
+            id="equivalent_expectations",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(
+                column="foo", id="bbbe648e-0a43-431b-81a0-04e68f1473ae"
+            ),
+            gxe.ExpectColumnValuesToBeBetween(
+                column="foo", id="aaae648e-0a43-431b-81a0-04e68f1473ae"
+            ),
+            False,
+            id="equiv_expectations_with_ids",
+        ),
+    ],
+)
+def test_expectations___lt__(expectation_a, expectation_b, expected_result):
+    assert (expectation_a < expectation_b) is expected_result
+
+
+@pytest.mark.unit
+def test_expectation_sorting():
+    expectation_a = gxe.ExpectColumnValuesToBeBetween(
+        column="foo", id="80b6d508-a843-426e-97c0-7ff64d35ac04"
+    )
+    expectation_b = gxe.ExpectColumnValuesToBeBetween(
+        column="foo", id="4cd1e63a-880b-46ea-93e8-c11636df18b8"
+    )
+    expectation_c = gxe.ExpectTableColumnCountToBeBetween()
+    expectation_d = gxe.ExpectColumnMaxToBeBetween(column="foo", min_value=0, max_value=10)
+    expectation_e = gxe.ExpectColumnMedianToBeBetween(column="foo", min_value=0, max_value=10)
+
+    expectations = [expectation_a, expectation_b, expectation_c, expectation_d, expectation_e]
+
+    assert sorted(expectations) == [
+        expectation_d,
+        expectation_e,
+        expectation_b,
+        expectation_a,
+        expectation_c,
+    ]
+
+
+class _SampleExpectation(Expectation):
+    mostly: MostlyField
+    value_set: ValueSetField
+
+    @override
+    def _validate(
+        self,
+        metrics: dict,
+        runtime_configuration: Optional[dict] = None,
+        execution_engine: Optional[ExecutionEngine] = None,
+    ) -> Union[ExpectationValidationResult, dict]:
+        # just satisfying the abc
+        return {}
+
+
+class TestCustomAnnotatedFields:
+    @pytest.mark.parametrize(
+        "mostly",
+        [
+            0,
+            0.0,
+            0.5,
+            0.55555,
+            1,
+            1.0,
+        ],
+    )
+    @pytest.mark.unit
+    def test_valid_mostly_values(self, mostly: float):
+        expectation = _SampleExpectation(mostly=mostly, value_set=[1, 2, 3])
+        assert expectation.mostly == mostly
+
+    @pytest.mark.parametrize(
+        "mostly",
+        [
+            None,
+            "one",
+            -1,
+            2,
+        ],
+    )
+    @pytest.mark.unit
+    def test_invalid_mostly_values(self, mostly: Any):
+        with pytest.raises(pydantic.ValidationError):
+            _SampleExpectation(mostly=mostly, value_set=[1, 2, 3])
+
+    @pytest.mark.parametrize(
+        "value_set",
+        [
+            ["a"],
+            [1],
+            {"a"},
+            {1},
+            [1, 2, 3],
+            ["a", "b", "c"],
+            None,
+            {"$PARAMETER": "my_param"},
+        ],
+    )
+    @pytest.mark.unit
+    def test_valid_value_set_values(self, value_set: Union[Sequence, set]):
+        expectation = _SampleExpectation(mostly=1, value_set=value_set)
+        assert expectation.value_set == value_set

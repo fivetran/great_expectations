@@ -1,6 +1,6 @@
 ---
-sidebar_label: 'Using GX with dbt'
-title: 'Using GX with dbt'
+sidebar_label: 'Use GX with dbt'
+title: 'Use GX with dbt'
 ---
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -378,7 +378,7 @@ Add Postgres credentials:
     - Connection id: postgres
     - Connection Type: Postgres
     - Host: database
-    - Schema: postgres
+    - Database: postgres
     - Login: postgres
     - Password: postgres
     - Port: 5432

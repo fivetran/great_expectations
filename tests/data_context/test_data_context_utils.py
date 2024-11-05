@@ -379,17 +379,20 @@ def test_sanitize_config_with_url_field(conn_string_with_embedded_password, conn
     assert PasswordMasker.MASKED_PASSWORD_STRING in res["credentials"]["url"]
 
 
+@pytest.mark.parametrize("key", ["connection_string", "conn_str"])
 @pytest.mark.unit
 def test_sanitize_config_with_nested_url_field(
-    conn_string_password, conn_string_with_embedded_password
+    conn_string_password,
+    conn_string_with_embedded_password,
+    key: str,
 ):
     # this case has a connection string in an execution_engine dict
-    config = {"execution_engine": {"connection_string": conn_string_with_embedded_password}}
+    config = {"execution_engine": {key: conn_string_with_embedded_password}}
     config_copy = safe_deep_copy(config)
     res = PasswordMasker.sanitize_config(config_copy)
     assert res != config
-    assert conn_string_password not in res["execution_engine"]["connection_string"]
-    assert PasswordMasker.MASKED_PASSWORD_STRING in res["execution_engine"]["connection_string"]
+    assert conn_string_password not in res["execution_engine"][key]
+    assert PasswordMasker.MASKED_PASSWORD_STRING in res["execution_engine"][key]
 
 
 @pytest.mark.unit

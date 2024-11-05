@@ -81,7 +81,7 @@
         },
         "value_set": {
             "title": "Value Set",
-            "description": "A list of potential values to match.",
+            "description": "A set of objects used for comparison.",
             "anyOf": [
                 {
                     "title": "Value Set",
@@ -290,6 +290,7 @@
             "title": "ConditionParser",
             "description": "Type of parser to be used to interpret a Row Condition.",
             "enum": [
+                "great_expectations",
                 "great_expectations__experimental__",
                 "pandas",
                 "spark"
