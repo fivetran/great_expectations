@@ -13,6 +13,7 @@ from tests.integration.test_utils.data_source_config.base import (
     dict_to_tuple,
     hash_data_frame,
 )
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 _F = TypeVar("_F", bound=Callable)
 
@@ -94,7 +95,7 @@ def parameterize_batch_for_data_sources(
             for config in data_source_configs
         ]
         parameterize_decorator = pytest.mark.parametrize(
-            batch_for_datasource.__name__,
+            batch_setup_for_datasource.__name__,
             pytest_params,
             indirect=True,
         )
@@ -130,9 +131,11 @@ def _cleanup(
 
 
 @pytest.fixture
-def batch_for_datasource(
-    request: pytest.FixtureRequest, _cached_test_configs: dict[TestConfig, BatchTestSetup], _cleanup
-) -> Generator[Batch, None, None]:
+def batch_setup_for_datasource(
+    request: pytest.FixtureRequest,
+    _cached_test_configs: dict[TestConfig, BatchTestSetup],
+    _cleanup,
+) -> Generator[BatchTestSetup, None, None]:
     """Fixture that yields a batch for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
     """
@@ -148,7 +151,26 @@ def batch_for_datasource(
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
 
-    batch_setup = _cached_test_configs[config]
+    yield _cached_test_configs[config]
 
-    set_context(batch_setup.context)  # ensure the right context is active
-    yield batch_setup.make_batch()
+
+@pytest.fixture
+def batch_for_datasource(
+    batch_setup_for_datasource: BatchTestSetup,
+) -> Generator[Batch, None, None]:
+    """Fixture that yields a batch for a specific data source type.
+    This must be used in conjunction with `indirect=True` to defer execution
+    """
+    set_context(batch_setup_for_datasource.context)
+    yield batch_setup_for_datasource.make_batch()
+
+
+@pytest.fixture
+def extra_table_names_for_datasource(
+    batch_setup_for_datasource: BatchTestSetup,
+) -> Generator[list[str], None, None]:
+    """Fixture that yields a batch for a specific data source type.
+    This must be used in conjunction with `indirect=True` to defer execution
+    """
+    assert isinstance(batch_setup_for_datasource, SQLBatchTestSetup)
+    yield [t.name for t in batch_setup_for_datasource.tables]
