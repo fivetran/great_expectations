@@ -73,7 +73,7 @@ http://legacy.016.docs.greatexpectations.io/* http://docs.greatexpectations.io 3
 /en/latest/guides/how_to_guides/miscellaneous/how_to_template.html https://legacy.docs.greatexpectations.io/en/latest/guides/how_to_guides/miscellaneous/how_to_template.html
 /en/latest/guides/how_to_guides/miscellaneous/how_to_add_and_test_a_new_sqlalchemydataset_class.html https://legacy.docs.greatexpectations.io/en/latest/guides/how_to_guides/miscellaneous/how_to_add_and_test_a_new_sqlalchemydataset_class.html
 /en/latest/guides/how_to_guides/miscellaneous/how_to_use_official_docker_images.html https://legacy.docs.greatexpectations.io/en/latest/guides/how_to_guides/miscellaneous/how_to_use_official_docker_images.html
-/en/latest/guides/how_to_guides/miscellaneous/how_to_setup_opsgenie_alert_notifications.html https://legacy.docs.greatexpectations.io/en/latest/guides/how_to_guides/miscellaneous/how_to_setup_opsgenie_alert_notifications.html
+/en/latest/guides/how_to_guides/miscellaneous/how_to_setup_opsgenie_alert_notifications.html /docs/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions
 /en/latest/guides/how_to_guides/configuring_metadata_stores.html https://legacy.docs.greatexpectations.io/en/latest/guides/how_to_guides/configuring_metadata_stores.html
 /en/latest/guides/how_to_guides/configuring_datasources/how_to_configure_an_athena_datasource.html https://legacy.docs.greatexpectations.io/en/latest/guides/how_to_guides/configuring_datasources/how_to_configure_an_athena_datasource.html
 /en/latest/guides/how_to_guides/configuring_datasources/how_to_configure_a_configuredassetdataconnector.html https://legacy.docs.greatexpectations.io/en/latest/guides/how_to_guides/configuring_datasources/how_to_configure_a_configuredassetdataconnector.html
