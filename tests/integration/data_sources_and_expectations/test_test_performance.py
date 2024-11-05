@@ -97,7 +97,6 @@ def test_caching_within_a_test(batch_for_datasource) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         DummyTestConfig(column_types={"a": POSTGRESQL_TYPES.INTEGER}),
-        DummyTestConfig(column_types={"a": POSTGRESQL_TYPES.INTEGER}),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
