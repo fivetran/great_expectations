@@ -181,9 +181,18 @@ class PasswordMasker:
         Returns:
             url with password masked e.g. "postgresql+psycopg2://username:***@host:65432/database"
         """  # noqa: E501
+
+        from great_expectations.datasource.fluent.config_str import ConfigStr
+
+        try:
+            ConfigStr.validate_template_str_format(url)
+            is_config_str = True
+        except ValueError:
+            is_config_str = False
+
         if url.startswith("DefaultEndpointsProtocol"):
             return cls._obfuscate_azure_blobstore_connection_string(url)
-        elif cls._is_config_str(url):
+        elif is_config_str:
             return url
         elif sa is not None and use_urlparse is False:
             try:
@@ -199,16 +208,6 @@ class PasswordMasker:
                 "SQLAlchemy is not installed, using urlparse to mask database url password which ignores **kwargs."  # noqa: E501
             )
         return cls._mask_db_url_no_sa(url=url)
-
-    @staticmethod
-    def _is_config_str(value: str) -> bool:
-        from great_expectations.datasource.fluent.config_str import ConfigStr
-
-        try:
-            ConfigStr.validate_template_str_format(value)
-            return True
-        except Exception:
-            return False
 
     @classmethod
     def _obfuscate_azure_blobstore_connection_string(cls, url: str) -> str:
