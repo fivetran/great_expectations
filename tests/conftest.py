@@ -120,6 +120,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "cloud",
     "databricks",
     "docs",
+    "e2e",
     "filesystem",
     "mssql",
     "mysql",
@@ -267,6 +268,11 @@ def pytest_addoption(parser):
         "--docs-tests",
         action="store_true",
         help="If set, run integration tests for docs",
+    )
+    parser.addoption(
+        "--e2e",
+        action="store_true",
+        help="If set, run E2E tests",
     )
     parser.addoption("--azure", action="store_true", help="If set, execute tests against Azure")
     parser.addoption(
