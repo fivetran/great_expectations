@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
+import jsonschema
 import pytest
+from jsonschema import Draft7Validator
 
 from great_expectations.expectations import core
 from great_expectations.expectations.core import schemas
@@ -37,3 +39,15 @@ def test_schemas_updated():
         new_schema = json.loads(all_models[cls_name].schema_json())
         old_schema = json.loads(schema)
         assert new_schema == old_schema, "json schemas not updated, run `invoke schemas --sync`"
+
+
+@pytest.mark.unit
+def test_schemas_valid_spec():
+    schema_file_paths = Path(schemas.__file__).parent.glob("*.json")
+    for file_path in schema_file_paths:
+        with open(file_path) as schema_file:
+            schema = json.load(schema_file)
+            try:
+                Draft7Validator.check_schema(schema)
+            except jsonschema.exceptions.ValidationError as e:
+                raise f"Schema is invalid according to Draft 7: {e.message}" from e
