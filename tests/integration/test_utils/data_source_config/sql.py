@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 class TableData:
     name: str
     df: pd.DataFrame
-    column_types: Dict[str, TypeEngine]
+    column_types: Mapping[str, TypeEngine]
     table: Union[Table, None] = None
 
 
@@ -83,11 +83,11 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
     @override
     def setup(self) -> None:
-        main_table_data = TableData(
+        main_table_data = self._create_table_data(
             name=self.table_name, df=self.data, column_types=self.config.column_types or {}
         )
         extra_table_data = [
-            TableData(
+            self._create_table_data(
                 name=self._create_table_name(label),
                 df=df,
                 column_types=self.config.extra_column_types.get(label, {}),
@@ -128,6 +128,11 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
     def create_table(self, name: str, columns: Mapping[str, TypeEngine]) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
         return Table(name, self.metadata, *column_list, schema=self.schema)
+
+    def _create_table_data(
+        self, name: str, df: pd.DataFrame, column_types: Mapping[str, TypeEngine]
+    ) -> TableData:
+        return TableData(name=name, df=df, column_types=column_types)
 
     def get_column_types(
         self,
