@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TYPE_CHECKING, Dict, Generic, List, Mapping, Optional, Type, Union
+from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Sequence, Type, Union
 
 from sqlalchemy import Engine
 from typing_extensions import override
@@ -61,8 +61,8 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         self.extra_data = extra_data
-        self.tables: List[Table] = []
-        self.extra_tables: List[Table] = []
+        # self.tables: List[Table] = []
+        # self.extra_tables: List[Table] = []
         super().__init__(config, data)
 
     @cached_property
@@ -96,6 +96,10 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             for label, df in self.extra_data.items()
         }
 
+    @cached_property
+    def tables(self) -> Sequence[Table]:
+        return [td.table for td in self.extra_table_data.values()]
+
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
         return "_".join([part for part in parts if part])
@@ -105,17 +109,11 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         all_table_data = [self.main_table_data, *self.extra_table_data.values()]
 
         # create tables
-        for table_data in all_table_data:
-            self.tables.append(table_data.table)
-            if table_data is not self.main_table_data:
-                self.extra_tables.append(table_data.table)
         self.metadata.create_all(self.engine)
 
         # insert data
         with self.engine.connect() as conn, conn.begin():
             for table_data in all_table_data:
-                if table_data.table is None:
-                    raise RuntimeError("Table must be created before data can be loaded.")
                 # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
                 # index and the values are a dict of column names mapped to column values.
                 # Then we pass that list of dicts in as parameters to our insert statement.
