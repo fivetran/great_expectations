@@ -14,11 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check PR title validity
+        if: "!contains(github.event.pull_request.title, '[FEATURE]') && !contains(github.event.pull_request.title, '[BUGFIX]') && !contains(github.event.pull_request.title, '[DOCS]') && !contains(github.event.pull_request.title, '[MAINTENANCE]') && !contains(github.event.pull_request.title, '[CONTRIB]') && !contains(github.event.pull_request.title, '[RELEASE]')"
         run: |
-          echo "${{ github.event.pull_request.title }}" | grep -E "^\\[(FEATURE|BUGFIX|DOCS|MAINTENANCE|CONTRIB|RELEASE)\\]"
-          if [ $? -ne 0 ]; then
           echo "Invalid PR title - please prefix with one of: [FEATURE] | [BUGFIX] | [DOCS] | [MAINTENANCE] | [CONTRIB] | [RELEASE]"
-            exit 1
-          fi
+          exit 1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
