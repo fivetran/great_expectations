@@ -61,7 +61,6 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         self.extra_data = extra_data
-        self.metadata = MetaData()
         self.tables: List[Table] = []
         self.extra_tables: List[Table] = []
         super().__init__(config, data)
