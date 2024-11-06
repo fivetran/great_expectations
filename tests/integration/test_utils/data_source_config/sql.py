@@ -99,7 +99,8 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
     @cached_property
     def tables(self) -> Sequence[Table]:
-        return [td.table for td in self.extra_table_data.values()]
+        extra_tables = [td.table for td in self.extra_table_data.values()]
+        return [self.main_table_data.table, *extra_tables]
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
