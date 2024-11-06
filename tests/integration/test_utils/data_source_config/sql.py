@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from great_expectations.compatibility.sqlalchemy import TypeEngine
 
 
-@dataclass
+@dataclass(frozen=True)
 class _TableData:
     name: str
     df: pd.DataFrame
