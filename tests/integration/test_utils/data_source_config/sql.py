@@ -75,12 +75,12 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
     @cached_property
     def table_name(self) -> str:
-        return self._create_table_name()
+        return self.main_table_data.name
 
     @cached_property
     def main_table_data(self) -> TableData:
         return self._create_table_data(
-            name=self.table_name,
+            name=self._create_table_name(),
             df=self.data,
             column_types=self.config.column_types or {},
         )
