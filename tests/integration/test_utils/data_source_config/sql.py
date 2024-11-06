@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from functools import cached_property
 from typing import TYPE_CHECKING, Dict, Generic, List, Mapping, Type, Union
 
 from typing_extensions import override
@@ -59,12 +60,15 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         self.extra_data = extra_data
-        self.table_name = f"{config.label}_expectation_test_table_{self._random_resource_name()}"
         self.engine = create_engine(url=self.connection_string)
         self.metadata = MetaData()
         self.tables: List[Table] = []
         self.extra_tables: List[Table] = []
         super().__init__(config, data)
+
+    @cached_property
+    def table_name(self) -> str:
+        return f"{self.config.label}_expectation_test_table_{self._random_resource_name()}"
 
     @override
     def setup(self) -> None:
