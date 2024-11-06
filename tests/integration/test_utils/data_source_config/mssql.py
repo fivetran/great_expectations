@@ -16,12 +16,12 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "mysql"
+        return "sysql"
 
     @property
     @override
     def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.mysql
+        return pytest.mark.mssql
 
     @override
     def create_batch_setup(
