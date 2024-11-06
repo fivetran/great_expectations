@@ -1,13 +1,27 @@
 import json
 from pathlib import Path
 
+import jsonschema
 import pytest
+from jsonschema import Draft7Validator
 
 from great_expectations.expectations import core
 from great_expectations.expectations.core import schemas
 from great_expectations.expectations.expectation import MetaExpectation
 
 expectation_dictionary = dict(core.__dict__)
+
+
+@pytest.fixture
+def safer_draft_7_validator() -> type[Draft7Validator]:
+    validator = Draft7Validator
+    validator.META_SCHEMA = {
+        **Draft7Validator.META_SCHEMA,
+        # this ensures that only specified properties are used (e.g. multipleOf, not multiple_of)
+        # otherwise, the spec says unspecified properties should be ignored
+        "additionalProperties": False,
+    }
+    return validator
 
 
 @pytest.mark.unit
@@ -37,3 +51,18 @@ def test_schemas_updated():
         new_schema = json.loads(all_models[cls_name].schema_json())
         old_schema = json.loads(schema)
         assert new_schema == old_schema, "json schemas not updated, run `invoke schemas --sync`"
+
+
+@pytest.mark.unit
+def test_schemas_valid_spec(safer_draft_7_validator: type[Draft7Validator]):
+    # https://json-schema.org/draft-07
+    # https://jsonforms.io/api/core/interfaces/jsonschema7
+    schema_file_paths = Path(schemas.__file__).parent.glob("*.json")
+    for file_path in schema_file_paths:
+        with open(file_path) as schema_file:
+            try:
+                safer_draft_7_validator.check_schema(json.load(schema_file))
+            except jsonschema.exceptions.SchemaError as e:
+                raise AssertionError(
+                    f"Invalid json schema for `{file_path.name}`: {e.message}"
+                ) from e
