@@ -77,15 +77,20 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
     def table_name(self) -> str:
         return self._create_table_name()
 
+    @cached_property
+    def main_table_data(self) -> TableData:
+        return self._create_table_data(
+            name=self.table_name,
+            df=self.data,
+            column_types=self.config.column_types or {},
+        )
+
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
         return "_".join([part for part in parts if part])
 
     @override
     def setup(self) -> None:
-        main_table_data = self._create_table_data(
-            name=self.table_name, df=self.data, column_types=self.config.column_types or {}
-        )
         extra_table_data = [
             self._create_table_data(
                 name=self._create_table_name(label),
@@ -94,7 +99,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             )
             for label, df in self.extra_data.items()
         ]
-        all_table_data = [main_table_data, *extra_table_data]
+        all_table_data = [self.main_table_data, *extra_table_data]
 
         # create tables
         for table_data in all_table_data:
@@ -102,7 +107,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             # table = self.create_table(table_data.name, columns=columns)
             self.tables.append(table_data.table)
             # table_data.table = table
-            if table_data is not main_table_data:
+            if table_data is not self.main_table_data:
                 self.extra_tables.append(table_data.table)
         self.metadata.create_all(self.engine)
 
