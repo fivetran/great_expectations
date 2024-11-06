@@ -171,7 +171,7 @@ class PasswordMasker:
     @classmethod
     def mask_db_url(cls, url: str, use_urlparse: bool = False, **kwargs) -> str:
         """
-        Mask password in database url.
+        Mask password in database url unless it is a substitution string, e.g. ConfigStr.
         Uses sqlalchemy engine parsing if sqlalchemy is installed, otherwise defaults to using urlparse from the stdlib which does not handle kwargs.
         Args:
             url: Database url e.g. "postgresql+psycopg2://username:password@host:65432/database"
