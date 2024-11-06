@@ -20,7 +20,7 @@ from tests.integration.test_utils.data_source_config.base import BatchTestSetup,
 if TYPE_CHECKING:
     import pandas as pd
 
-    from great_expectations.compatibility.sqlalchemy import Engine, TypeEngine
+    from great_expectations.compatibility.sqlalchemy import TypeEngine
 
 
 @dataclass
@@ -58,16 +58,10 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
+        self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
+        self.metadata = MetaData()
         super().__init__(config, data)
-
-    @cached_property
-    def engine(self) -> Engine:
-        return create_engine(url=self.connection_string)
-
-    @cached_property
-    def metadata(self) -> MetaData:
-        return MetaData()
 
     @cached_property
     def table_name(self) -> str:
