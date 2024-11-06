@@ -28,7 +28,6 @@ if TYPE_CHECKING:
 class _TableData:
     name: str
     df: pd.DataFrame
-    column_types: Mapping[str, TypeEngine]
     table: Table
 
 
@@ -137,7 +136,6 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         return _TableData(
             name=name,
             df=df,
-            column_types=column_types,
             table=table,
         )
 
