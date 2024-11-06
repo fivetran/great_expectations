@@ -71,6 +71,10 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         return create_engine(url=self.connection_string)
 
     @cached_property
+    def metadata(self) -> MetaData:
+        return MetaData()
+
+    @cached_property
     def table_name(self) -> str:
         return f"{self.config.label}_expectation_test_table_{self._random_resource_name()}"
 
