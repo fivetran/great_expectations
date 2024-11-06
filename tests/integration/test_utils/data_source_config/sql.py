@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from typing import TYPE_CHECKING, Dict, Generic, List, Mapping, Type, Union
+from typing import TYPE_CHECKING, Dict, Generic, List, Mapping, Optional, Type, Union
 
 from sqlalchemy import Engine
 from typing_extensions import override
@@ -76,7 +76,11 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
     @cached_property
     def table_name(self) -> str:
-        return f"{self.config.label}_expectation_test_table_{self._random_resource_name()}"
+        return self._create_table_name()
+
+    def _create_table_name(self, label: Optional[str] = None) -> str:
+        parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
+        return "_".join([part for part in parts if part])
 
     @override
     def setup(self) -> None:
@@ -85,7 +89,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         )
         extra_table_data = [
             TableData(
-                name=f"{self.config.label}_expectation_test_table_{label}_{self._random_resource_name()}",
+                name=self._create_table_name(label),
                 df=df,
                 column_types=self.config.extra_column_types.get(label, {}),
             )
