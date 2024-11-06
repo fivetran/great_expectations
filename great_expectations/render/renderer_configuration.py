@@ -458,7 +458,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     def _get_row_conditions_list_from_row_condition_str(
         row_condition_str: str,
     ) -> List[str]:
-        # divide the whole condition into smaller parts
+        # extract the variables to be substituted
         row_conditions_list = re.split(r"AND|OR|NOT(?! in)|col\(\"|\"\)", row_condition_str)
         row_conditions_list = [
             condition.strip() for condition in row_conditions_list if condition.strip()
