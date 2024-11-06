@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import TYPE_CHECKING, Dict, Generic, List, Mapping, Type, Union
 
+from sqlalchemy import Engine
 from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
@@ -20,7 +21,7 @@ from tests.integration.test_utils.data_source_config.base import BatchTestSetup,
 if TYPE_CHECKING:
     import pandas as pd
 
-    from great_expectations.compatibility.sqlalchemy import TypeEngine
+    from great_expectations.compatibility.sqlalchemy import Engine, TypeEngine
 
 
 @dataclass
@@ -60,11 +61,14 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         self.extra_data = extra_data
-        self.engine = create_engine(url=self.connection_string)
         self.metadata = MetaData()
         self.tables: List[Table] = []
         self.extra_tables: List[Table] = []
         super().__init__(config, data)
+
+    @cached_property
+    def engine(self) -> Engine:
+        return create_engine(url=self.connection_string)
 
     @cached_property
     def table_name(self) -> str:
