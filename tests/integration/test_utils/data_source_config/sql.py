@@ -85,28 +85,28 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             column_types=self.config.column_types or {},
         )
 
+    @cached_property
+    def extra_table_data(self) -> Mapping[str, TableData]:
+        return {
+            label: self._create_table_data(
+                name=self._create_table_name(label),
+                df=df,
+                column_types=self.config.extra_column_types.get(label, {}),
+            )
+            for label, df in self.extra_data.items()
+        }
+
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
         return "_".join([part for part in parts if part])
 
     @override
     def setup(self) -> None:
-        extra_table_data = [
-            self._create_table_data(
-                name=self._create_table_name(label),
-                df=df,
-                column_types=self.config.extra_column_types.get(label, {}),
-            )
-            for label, df in self.extra_data.items()
-        ]
-        all_table_data = [self.main_table_data, *extra_table_data]
+        all_table_data = [self.main_table_data, *self.extra_table_data.values()]
 
         # create tables
         for table_data in all_table_data:
-            # columns = self.get_column_types(table_data)
-            # table = self.create_table(table_data.name, columns=columns)
             self.tables.append(table_data.table)
-            # table_data.table = table
             if table_data is not self.main_table_data:
                 self.extra_tables.append(table_data.table)
         self.metadata.create_all(self.engine)
