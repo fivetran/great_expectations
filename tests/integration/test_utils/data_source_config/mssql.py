@@ -16,7 +16,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "sysql"
+        return "mssql"
 
     @property
     @override
@@ -47,14 +47,6 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
     @override
     def schema(self) -> Union[str, None]:
         return None
-
-    # @property
-    # @override
-    # def inferrable_types_lookup(self) -> Dict[Type, TypeEngine]:
-    #     overrides = {
-    #         str: sqltypes.VARCHAR(255),  # mysql requires a length for VARCHAR
-    #     }
-    #     return super().inferrable_types_lookup | overrides
 
     @override
     def make_batch(self) -> Batch:
