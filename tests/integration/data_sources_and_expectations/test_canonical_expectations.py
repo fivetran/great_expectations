@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Mapping
 
 import pandas as pd
 
@@ -155,9 +156,9 @@ class TestExpectTableRowCountToEqualOtherTable:
     def test_success(
         self,
         batch_for_datasource: Batch,
-        extra_table_names_for_datasource: list[str],
+        extra_table_names_for_datasource: Mapping[str, str],
     ):
-        other_table_name = extra_table_names_for_datasource[0]
+        other_table_name = extra_table_names_for_datasource["other_table"]
         expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
         result = batch_for_datasource.validate(expectation)
         assert result.success
@@ -175,9 +176,9 @@ class TestExpectTableRowCountToEqualOtherTable:
     def test_different_counts(
         self,
         batch_for_datasource: Batch,
-        extra_table_names_for_datasource: list[str],
+        extra_table_names_for_datasource: Mapping[str, str],
     ):
-        other_table_name = extra_table_names_for_datasource[0]
+        other_table_name = extra_table_names_for_datasource["other_table"]
         expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
         result = batch_for_datasource.validate(expectation)
         assert not result.success
