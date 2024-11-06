@@ -29,7 +29,7 @@ class TableData:
     name: str
     df: pd.DataFrame
     column_types: Mapping[str, TypeEngine]
-    table: Union[Table, None] = None
+    table: Table
 
 
 class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
@@ -98,12 +98,12 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
         # create tables
         for table_data in all_table_data:
-            columns = self.get_column_types(table_data)
-            table = self.create_table(table_data.name, columns=columns)
-            self.tables.append(table)
-            table_data.table = table
+            # columns = self.get_column_types(table_data)
+            # table = self.create_table(table_data.name, columns=columns)
+            self.tables.append(table_data.table)
+            # table_data.table = table
             if table_data is not main_table_data:
-                self.extra_tables.append(table)
+                self.extra_tables.append(table_data.table)
         self.metadata.create_all(self.engine)
 
         # insert data
@@ -132,16 +132,25 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
     def _create_table_data(
         self, name: str, df: pd.DataFrame, column_types: Mapping[str, TypeEngine]
     ) -> TableData:
-        return TableData(name=name, df=df, column_types=column_types)
+        columns = self._get_column_types(df=df, column_types=column_types)
+        table = self.create_table(name, columns=columns)
+        return TableData(
+            name=name,
+            df=df,
+            column_types=column_types,
+            table=table,
+        )
 
-    def get_column_types(
+    def _get_column_types(
         self,
-        table_data: TableData,
+        df: pd.DataFrame,
+        column_types: Mapping[str, TypeEngine],
+        # table_data: TableData,
     ) -> Mapping[str, TypeEngine]:
-        column_types = self.infer_column_types(table_data.df)
+        all_column_types = self.infer_column_types(df)
         # prefer explicit types if they're provided
-        column_types.update(table_data.column_types)
-        untyped_columns = set(table_data.df.columns) - set(column_types.keys())
+        all_column_types.update(column_types)
+        untyped_columns = set(df.columns) - set(all_column_types.keys())
         if untyped_columns:
             config_class_name = self.config.__class__.__name__
             message = (
@@ -151,7 +160,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
                 f"parameter when \ninstantiating {config_class_name}."
             )
             raise RuntimeError(message)
-        return column_types
+        return all_column_types
 
     def infer_column_types(self, data: pd.DataFrame) -> Dict[str, TypeEngine]:
         inferred_column_types: Dict[str, TypeEngine] = {}
