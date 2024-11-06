@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class TableData:
+class _TableData:
     name: str
     df: pd.DataFrame
     column_types: Mapping[str, TypeEngine]
@@ -76,18 +76,15 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         return self.main_table_data.name
 
     @cached_property
-    def main_table_data(self) -> TableData:
+    def main_table_data(self) -> _TableData:
         return self._create_table_data(
             name=self._create_table_name(),
             df=self.data,
             column_types=self.config.column_types or {},
         )
 
-    def ensure_all_table_data_created(self) -> Sequence[TableData]:
-        return [self.main_table_data, *self.extra_table_data.values()]
-
     @cached_property
-    def extra_table_data(self) -> Mapping[str, TableData]:
+    def extra_table_data(self) -> Mapping[str, _TableData]:
         return {
             label: self._create_table_data(
                 name=self._create_table_name(label),
@@ -102,14 +99,10 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         extra_tables = [td.table for td in self.extra_table_data.values()]
         return [self.main_table_data.table, *extra_tables]
 
-    def _create_table_name(self, label: Optional[str] = None) -> str:
-        parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
-        return "_".join([part for part in parts if part])
-
     @override
     def setup(self) -> None:
         # create tables
-        all_table_data = self.ensure_all_table_data_created()
+        all_table_data = self._ensure_all_table_data_created()
         self.metadata.create_all(self.engine)
 
         # insert data
@@ -129,16 +122,23 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         for table in self.tables:
             table.drop(self.engine)
 
-    def create_table(self, name: str, columns: Mapping[str, TypeEngine]) -> Table:
+    def _create_table(self, name: str, columns: Mapping[str, TypeEngine]) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
         return Table(name, self.metadata, *column_list, schema=self.schema)
 
+    def _create_table_name(self, label: Optional[str] = None) -> str:
+        parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
+        return "_".join([part for part in parts if part])
+
+    def _ensure_all_table_data_created(self) -> Sequence[_TableData]:
+        return [self.main_table_data, *self.extra_table_data.values()]
+
     def _create_table_data(
         self, name: str, df: pd.DataFrame, column_types: Mapping[str, TypeEngine]
-    ) -> TableData:
+    ) -> _TableData:
         columns = self._get_column_types(df=df, column_types=column_types)
-        table = self.create_table(name, columns=columns)
-        return TableData(
+        table = self._create_table(name, columns=columns)
+        return _TableData(
             name=name,
             df=df,
             column_types=column_types,
@@ -151,7 +151,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         column_types: Mapping[str, TypeEngine],
         # table_data: TableData,
     ) -> Mapping[str, TypeEngine]:
-        all_column_types = self.infer_column_types(df)
+        all_column_types = self._infer_column_types(df)
         # prefer explicit types if they're provided
         all_column_types.update(column_types)
         untyped_columns = set(df.columns) - set(all_column_types.keys())
@@ -166,7 +166,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             raise RuntimeError(message)
         return all_column_types
 
-    def infer_column_types(self, data: pd.DataFrame) -> Dict[str, TypeEngine]:
+    def _infer_column_types(self, data: pd.DataFrame) -> Dict[str, TypeEngine]:
         inferred_column_types: Dict[str, TypeEngine] = {}
         for column, value_list in data.to_dict("list").items():
             python_type = type(value_list[0])
