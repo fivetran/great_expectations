@@ -61,8 +61,6 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         self.extra_data = extra_data
-        # self.tables: List[Table] = []
-        # self.extra_tables: List[Table] = []
         super().__init__(config, data)
 
     @cached_property
@@ -85,6 +83,9 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             column_types=self.config.column_types or {},
         )
 
+    def ensure_all_table_data_created(self) -> Sequence[TableData]:
+        return [self.main_table_data, *self.extra_table_data.values()]
+
     @cached_property
     def extra_table_data(self) -> Mapping[str, TableData]:
         return {
@@ -106,9 +107,8 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
     @override
     def setup(self) -> None:
-        all_table_data = [self.main_table_data, *self.extra_table_data.values()]
-
         # create tables
+        all_table_data = self.ensure_all_table_data_created()
         self.metadata.create_all(self.engine)
 
         # insert data
