@@ -4,6 +4,7 @@ import pandas as pd
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.sqlalchemy import sqltypes
+from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
@@ -146,26 +147,38 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             PostgreSQLDatasourceTestConfig(),
-            # SnowflakeDatasourceTestConfig(),
+            SnowflakeDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
-        extra_data={"test_table_a": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
+        extra_data={"other_table": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
     )
-    def test_success(self, batch_for_datasource):
-        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name="test_table_a")
+    def test_success(
+        self,
+        batch_for_datasource: Batch,
+        extra_table_names_for_datasource: list[str],
+    ):
+        other_table_name = extra_table_names_for_datasource[0]
+        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
         result = batch_for_datasource.validate(expectation)
         assert result.success
 
     @parameterize_batch_for_data_sources(
         data_source_configs=[
-            PostgreSQLDatasourceTestConfig(),
-            # SnowflakeDatasourceTestConfig(),
+            PostgreSQLDatasourceTestConfig(
+                extra_column_types={"other_table": {"col_b": sqltypes.VARCHAR}}
+            ),
+            SnowflakeDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
-        extra_data={"test_table_b": pd.DataFrame({"col_b": ["just_this_one!"]})},
+        extra_data={"other_table": pd.DataFrame({"col_b": ["just_this_one!"]})},
     )
-    def test_different_counts(self, batch_for_datasource):
-        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name="test_table_b")
+    def test_different_counts(
+        self,
+        batch_for_datasource: Batch,
+        extra_table_names_for_datasource: list[str],
+    ):
+        other_table_name = extra_table_names_for_datasource[0]
+        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
         result = batch_for_datasource.validate(expectation)
         assert not result.success
         assert result.result["observed_value"] == {
