@@ -122,10 +122,6 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         for table in self.tables:
             table.drop(self.engine)
 
-    def _create_table(self, name: str, columns: Mapping[str, TypeEngine]) -> Table:
-        column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
-        return Table(name, self.metadata, *column_list, schema=self.schema)
-
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
         return "_".join([part for part in parts if part])
@@ -145,11 +141,14 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             table=table,
         )
 
+    def _create_table(self, name: str, columns: Mapping[str, TypeEngine]) -> Table:
+        column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
+        return Table(name, self.metadata, *column_list, schema=self.schema)
+
     def _get_column_types(
         self,
         df: pd.DataFrame,
         column_types: Mapping[str, TypeEngine],
-        # table_data: TableData,
     ) -> Mapping[str, TypeEngine]:
         all_column_types = self._infer_column_types(df)
         # prefer explicit types if they're provided
