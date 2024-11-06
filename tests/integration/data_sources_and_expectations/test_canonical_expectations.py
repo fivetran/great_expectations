@@ -147,7 +147,7 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             PostgreSQLDatasourceTestConfig(),
-            # SnowflakeDatasourceTestConfig(),
+            SnowflakeDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
         extra_data={"other_table": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
