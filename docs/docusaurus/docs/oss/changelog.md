@@ -17,7 +17,7 @@ Before we completely remove the functionality in a new major release, there will
 ### 1.2.2
 * [FEATURE] Add check for valid column type when calling add_batch_def in a sql asset ([#10590](https://github.com/great-expectations/great_expectations/pull/10590))
 * [FEATURE] Expectations tests against SQL backends infer column types ([#10622](https://github.com/great-expectations/great_expectations/pull/10622))
-* [BUGFIX] Parse spaces in row condition column name ([#10611](https://github.com/great-expectations/great_expectations/pull/10611)) (thanks @ashmortar)
+* [BUGFIX] Parse spaces in row condition column name ([#10611](https://github.com/great-expectations/great_expectations/pull/10611))
 * [BUGFIX] Batch Expectations correctly handle `date` min and max values ([#10613](https://github.com/great-expectations/great_expectations/pull/10613))
 * [BUGFIX] Mask conn_str in configs ([#10626](https://github.com/great-expectations/great_expectations/pull/10626))
 * [BUGFIX] Missing renderer params when `row_condition` is used ([#10632](https://github.com/great-expectations/great_expectations/pull/10632))
