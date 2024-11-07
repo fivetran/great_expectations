@@ -5,14 +5,16 @@ import string
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import TYPE_CHECKING, Generic, Mapping, Optional, TypeVar
+from typing import TYPE_CHECKING, Generic, Hashable, Mapping, Optional, TypeVar
+
+import pandas as pd
 
 import great_expectations as gx
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch
 
 if TYPE_CHECKING:
-    import pandas as pd
     import pytest
     from pytest import FixtureRequest
 
@@ -53,6 +55,33 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
 
         return "-".join(non_null_parts)
 
+    @override
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, DataSourceTestConfig):
+            return False
+        return all(
+            [
+                super().__eq__(value),
+                self.label == value.label,
+                self.pytest_mark == value.pytest_mark,
+            ]
+        )
+
+    @override
+    def __hash__(self) -> int:
+        hashable_col_types = dict_to_tuple(self.column_types) if self.column_types else None
+        hashable_extra_col_types = dict_to_tuple(
+            {k: dict_to_tuple(self.extra_column_types[k]) for k in sorted(self.extra_column_types)}
+        )
+        return hash(
+            (
+                self.__class__.name,
+                self.test_id,
+                hashable_col_types,
+                hashable_extra_col_types,
+            )
+        )
+
 
 _ConfigT = TypeVar("_ConfigT", bound=DataSourceTestConfig)
 
@@ -78,5 +107,13 @@ class BatchTestSetup(ABC, Generic[_ConfigT]):
         return "".join(random.choices(string.ascii_lowercase, k=10))
 
     @cached_property
-    def _context(self) -> AbstractDataContext:
+    def context(self) -> AbstractDataContext:
         return gx.get_context(mode="ephemeral")
+
+
+def dict_to_tuple(d: Mapping[str, Hashable]) -> tuple[tuple[str, Hashable], ...]:
+    return tuple((key, d[key]) for key in sorted(d))
+
+
+def hash_data_frame(df: pd.DataFrame) -> int:
+    return hash(tuple(pd.util.hash_pandas_object(df).array))

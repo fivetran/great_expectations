@@ -85,7 +85,7 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
     def make_batch(self) -> Batch:
         name = self._random_resource_name()
         return (
-            self._context.data_sources.add_snowflake(
+            self.context.data_sources.add_snowflake(
                 name=name,
                 account=self.snowflake_connection_config.SNOWFLAKE_ACCOUNT,
                 user=self.snowflake_connection_config.SNOWFLAKE_USER,

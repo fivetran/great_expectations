@@ -1,8 +1,9 @@
-from typing import Mapping, Union
+from typing import Dict, Mapping, Type, Union
 
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -12,16 +13,16 @@ from tests.integration.test_utils.data_source_config.base import (
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 
-class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
+class MySQLDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "postgresql"
+        return "mysql"
 
     @property
     @override
     def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.postgresql
+        return pytest.mark.mysql
 
     @override
     def create_batch_setup(
@@ -30,31 +31,37 @@ class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
-        return PostgresBatchTestSetup(
+        return MySQLBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
         )
 
 
-class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
-    @override
+class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
     @property
+    @override
     def connection_string(self) -> str:
-        return "postgresql+psycopg2://postgres@localhost:5432/test_ci"
+        return "mysql+pymysql://root@localhost/test_ci"
 
-    @override
     @property
+    @override
     def schema(self) -> Union[str, None]:
-        return "public"
+        return None
+
+    @property
+    @override
+    def inferrable_types_lookup(self) -> Dict[Type, TypeEngine]:
+        overrides = {
+            str: sqltypes.VARCHAR(255),  # mysql requires a length for VARCHAR
+        }
+        return super().inferrable_types_lookup | overrides
 
     @override
     def make_batch(self) -> Batch:
         name = self._random_resource_name()
         return (
-            self.context.data_sources.add_postgres(
-                name=name, connection_string=self.connection_string
-            )
+            self.context.data_sources.add_sql(name=name, connection_string=self.connection_string)
             .add_table_asset(
                 name=name,
                 table_name=self.table_name,
