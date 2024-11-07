@@ -20,7 +20,7 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
 from great_expectations.analytics import submit as submit_analytics_event
 from great_expectations.analytics.events import CheckpointRanEvent
-from great_expectations.checkpoint import (
+from great_expectations.checkpoint.actions import (
     ActionContext,
     CheckpointAction,
     UpdateDataDocsAction,
