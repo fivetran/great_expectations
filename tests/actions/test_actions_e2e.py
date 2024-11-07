@@ -56,17 +56,22 @@ def checkpoint_result(mocker) -> CheckpointResult:
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
-    "action_cls, action_creds",
+    "action_cls, action_creds, expected_action_result",
     [
         pytest.param(
             MicrosoftTeamsNotificationAction,
             {"teams_webhook": "${GX_MS_TEAMS_WEBHOOK}"},
+            {"microsoft_teams_notification_result": "Microsoft Teams notification succeeded."},
             id="ms_teams",
         ),
     ],
 )
 def test_actions_e2e(
-    action_cls: type[ValidationAction], action_creds: dict, checkpoint_result: CheckpointResult
+    action_cls: type[ValidationAction],
+    action_creds: dict,
+    expected_action_result: dict,
+    checkpoint_result: CheckpointResult,
 ):
     action = action_cls(name="e2e_action", **action_creds)
-    action.run(checkpoint_result=checkpoint_result)
+    result = action.run(checkpoint_result=checkpoint_result)
+    assert result == expected_action_result
