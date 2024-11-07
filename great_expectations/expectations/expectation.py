@@ -1656,6 +1656,16 @@ representation."""  # noqa: E501
 representation."""  # noqa: E501
                     )
 
+        if isinstance(min_value, datetime.date) or isinstance(max_value, datetime.date):
+            if not isinstance(metric_value, datetime.date):
+                try:
+                    metric_value = parse(metric_value).date()
+                except TypeError:
+                    raise ValueError(  # noqa: TRY003
+                        f"""Could not parse "metric_value" of {metric_value} (of type "{type(metric_value)!s}) into datetime \
+representation."""  # noqa: E501
+                    )
+
         # Checking if mean lies between thresholds
         if min_value is not None:
             if strict_min:

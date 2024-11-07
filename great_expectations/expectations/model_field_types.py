@@ -18,7 +18,7 @@ MostlyField = Annotated[
         ge=0.0,
         le=1.0,
         # This is just for the schema, it should not be validated on input
-        schema_overrides={"multiple_of": 0.01},
+        schema_overrides={"multipleOf": 0.01},
     ),
 ]
 

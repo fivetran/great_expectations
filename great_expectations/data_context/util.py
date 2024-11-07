@@ -163,7 +163,7 @@ class PasswordMasker:
     MASKED_PASSWORD_STRING = "***"
 
     # values with the following keys will be processed with cls.mask_db_url:
-    URL_KEYS = {"connection_string", "url"}
+    URL_KEYS = {"conn_str", "connection_string", "url"}
 
     # values with these keys will be directly replaced with cls.MASKED_PASSWORD_STRING:
     PASSWORD_KEYS = {"access_token", "password"}

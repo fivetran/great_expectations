@@ -12,16 +12,16 @@ from tests.integration.test_utils.data_source_config.base import (
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 
-class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
+class MSSQLDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "postgresql"
+        return "mssql"
 
     @property
     @override
     def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.postgresql
+        return pytest.mark.mssql
 
     @override
     def create_batch_setup(
@@ -30,31 +30,29 @@ class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
-        return PostgresBatchTestSetup(
+        return MSSQLBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
         )
 
 
-class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
-    @override
+class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
     @property
+    @override
     def connection_string(self) -> str:
-        return "postgresql+psycopg2://postgres@localhost:5432/test_ci"
+        return "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@localhost:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # it's okay
 
-    @override
     @property
+    @override
     def schema(self) -> Union[str, None]:
-        return "public"
+        return None
 
     @override
     def make_batch(self) -> Batch:
         name = self._random_resource_name()
         return (
-            self.context.data_sources.add_postgres(
-                name=name, connection_string=self.connection_string
-            )
+            self.context.data_sources.add_sql(name=name, connection_string=self.connection_string)
             .add_table_asset(
                 name=name,
                 table_name=self.table_name,

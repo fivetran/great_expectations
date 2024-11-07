@@ -22,6 +22,10 @@ import requests
 from typing_extensions import Annotated
 
 from great_expectations._docs_decorators import public_api
+from great_expectations.analytics.client import submit as submit_event
+from great_expectations.analytics.events import (
+    NotificationActionRanEvent,
+)
 from great_expectations.checkpoint.util import (
     send_email,
     send_microsoft_teams_notifications,
@@ -289,7 +293,16 @@ class SlackNotificationAction(DataDocsAction):
             run_id=checkpoint_result.run_id,
         )
 
-        return self._send_slack_notification(payload=payload)
+        result = self._send_slack_notification(payload=payload)
+
+        checkpoint = checkpoint_result.checkpoint_config
+        submit_event(
+            event=NotificationActionRanEvent(
+                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
+            )
+        )
+
+        return result
 
     def _render_validation_result(
         self,
@@ -339,7 +352,6 @@ class SlackNotificationAction(DataDocsAction):
         return {"slack_notification_result": slack_notif_result}
 
 
-@public_api
 class PagerdutyAlertAction(ValidationAction):
     """Sends a PagerDuty event.
 
@@ -473,10 +485,17 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
             payload=payload,
             microsoft_teams_webhook=webhook,
         )
+
+        checkpoint = checkpoint_result.checkpoint_config
+        submit_event(
+            event=NotificationActionRanEvent(
+                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
+            )
+        )
+
         return {"microsoft_teams_notification_result": teams_notif_result}
 
 
-@public_api
 class OpsgenieAlertAction(ValidationAction):
     """Sends an Opsgenie alert.
 
@@ -676,6 +695,13 @@ class EmailAction(ValidationAction):
             use_ssl=self.use_ssl,
         )
 
+        checkpoint = checkpoint_result.checkpoint_config
+        submit_event(
+            event=NotificationActionRanEvent(
+                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
+            )
+        )
+
         # sending payload back as dictionary
         return {"email_result": email_result}
 
@@ -786,7 +812,6 @@ class UpdateDataDocsAction(DataDocsAction):
         return data_docs_validation_results
 
 
-@public_api
 class SNSNotificationAction(ValidationAction):
     """Action that pushes validations results to an SNS topic with a subject of passed or failed.
 
@@ -873,10 +898,7 @@ CheckpointAction = Annotated[
     Union[
         EmailAction,
         MicrosoftTeamsNotificationAction,
-        OpsgenieAlertAction,
-        PagerdutyAlertAction,
         SlackNotificationAction,
-        SNSNotificationAction,
         UpdateDataDocsAction,
     ],
     Field(discriminator="type"),

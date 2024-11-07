@@ -58,7 +58,7 @@ class PandasFilesystemCsvBatchTestSetup(BatchTestSetup[PandasFilesystemCsvDataso
         path = self._base_dir
 
         return (
-            self._context.data_sources.add_pandas_filesystem(name=name, base_directory=path)
+            self.context.data_sources.add_pandas_filesystem(name=name, base_directory=path)
             .add_csv_asset(name=name)
             .add_batch_definition_path(name=name, path=self.csv_path)
             .get_batch()
