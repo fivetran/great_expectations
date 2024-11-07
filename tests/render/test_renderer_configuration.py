@@ -110,7 +110,7 @@ def test_successful_renderer_configuration_instantiation(
                 "condition_parser": "great_expectations",
                 "row_condition": 'PClass=="1st"',
             },
-            ['PClass is "1st"'],
+            ['PClass=="1st"'],
         ),
         (
             "expect_column_values_to_be_in_set",
@@ -120,7 +120,7 @@ def test_successful_renderer_configuration_instantiation(
                 "condition_parser": "great_expectations",
                 "row_condition": 'col("foo") > 5',
             },
-            ["col", '"foo"', "> 5"],
+            ["foo", "> 5"],
         ),
         (
             "expect_column_values_to_be_in_set",
@@ -130,7 +130,7 @@ def test_successful_renderer_configuration_instantiation(
                 "condition_parser": "great_expectations",
                 "row_condition": "foo == 1 | foo == 2",
             },
-            ["foo is 1", "foo is 2"],
+            ["foo == 1", "foo == 2"],
         ),
         (
             "expect_column_values_to_be_in_set",

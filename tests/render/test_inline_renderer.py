@@ -718,6 +718,39 @@ def test_inline_renderer_expectation_validation_result_serialization(
             ],
             id="description",
         ),
+        pytest.param(
+            ExpectationConfiguration(
+                type="expect_column_values_to_be_between",
+                kwargs={
+                    "column": "column_a",
+                    "min_value": 0,
+                    "max_value": 10,
+                    "row_condition": 'col("column_b")==5',
+                    "condition_parser": "great_expectations",
+                },
+            ),
+            [
+                {
+                    "value_type": "StringValueType",
+                    "name": AtomicPrescriptiveRendererType.SUMMARY,
+                    "value": {
+                        "template": "If "
+                        'col("$row_condition__0")$row_condition__1, '
+                        "then $column values must be greater than or equal to "
+                        "$min_value and less than or equal to $max_value.",
+                        "schema": {"type": "com.superconductive.rendered.string"},
+                        "params": {
+                            "column": {"schema": {"type": "string"}, "value": "column_a"},
+                            "min_value": {"schema": {"type": "number"}, "value": 0},
+                            "max_value": {"schema": {"type": "number"}, "value": 10},
+                            "row_condition__0": {"schema": {"type": "string"}, "value": "column_b"},
+                            "row_condition__1": {"schema": {"type": "string"}, "value": "==5"},
+                        },
+                    },
+                }
+            ],
+            id="row_condition",
+        ),
     ],
 )
 def test_inline_renderer_expectation_configuration_serialization(
