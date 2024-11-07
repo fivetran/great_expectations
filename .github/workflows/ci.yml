@@ -409,7 +409,7 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     env:
-      GX_MS_TEAMS_WEBHOOK: ${{vars.GX_MS_TEAMS_WEBHOOK}}
+      GX_MS_TEAMS_WEBHOOK: ${{ secrets.GX_MS_TEAMS_WEBHOOK }}
 
     steps:
       - name: Checkout
