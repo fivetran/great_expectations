@@ -13,7 +13,7 @@ from requests import Session
 import great_expectations as gx
 from great_expectations import expectations as gxe
 from great_expectations.analytics.events import CheckpointRanEvent
-from great_expectations.checkpoint.actions import (
+from great_expectations.checkpoint import (
     MicrosoftTeamsNotificationAction,
     SlackNotificationAction,
     UpdateDataDocsAction,

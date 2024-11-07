@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, List, Union
 
-from great_expectations.checkpoint.actions import ValidationAction
+from great_expectations.checkpoint import ValidationAction
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,

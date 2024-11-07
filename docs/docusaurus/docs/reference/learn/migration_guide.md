@@ -1405,7 +1405,7 @@ We provide a mapping from the V0 fields to the V1 fields along with any new V1 f
     <TabItem value="v0_checkpoint_api" label="V0 Checkpoint API">
     ```python
     import great_expectations as gx
-    from great_expectations.checkpoint.actions import EmailAction
+    from great_expectations.checkpoint import EmailAction
 
     context = gx.get_context(mode="file")
 
