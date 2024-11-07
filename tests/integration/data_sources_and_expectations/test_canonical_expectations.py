@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Mapping
 
 import pandas as pd
 
@@ -8,6 +9,7 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     MSSQLDatasourceTestConfig,
+    MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
@@ -18,6 +20,7 @@ from tests.integration.test_utils.data_source_config import (
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
@@ -34,6 +37,7 @@ def test_expect_column_min_to_be_between(batch_for_datasource) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
@@ -62,6 +66,7 @@ def test_expect_column_min_to_be_between__date(batch_for_datasource) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
@@ -90,6 +95,7 @@ def test_expect_column_max_to_be_between__date(batch_for_datasource) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
@@ -106,6 +112,7 @@ def test_expect_column_max_to_be_between(batch_for_datasource) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
@@ -122,6 +129,7 @@ def test_expect_column_to_exist(batch_for_datasource):
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
@@ -137,7 +145,7 @@ def test_expect_column_values_to_not_be_null(batch_for_datasource):
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
-        MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
@@ -155,6 +163,7 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
             SnowflakeDatasourceTestConfig(),
         ],
@@ -164,9 +173,9 @@ class TestExpectTableRowCountToEqualOtherTable:
     def test_success(
         self,
         batch_for_datasource: Batch,
-        extra_table_names_for_datasource: list[str],
+        extra_table_names_for_datasource: Mapping[str, str],
     ):
-        other_table_name = extra_table_names_for_datasource[0]
+        other_table_name = extra_table_names_for_datasource["other_table"]
         expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
         result = batch_for_datasource.validate(expectation)
         assert result.success
@@ -174,6 +183,7 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(
                 extra_column_types={"other_table": {"col_b": sqltypes.VARCHAR}}
             ),
@@ -185,9 +195,9 @@ class TestExpectTableRowCountToEqualOtherTable:
     def test_different_counts(
         self,
         batch_for_datasource: Batch,
-        extra_table_names_for_datasource: list[str],
+        extra_table_names_for_datasource: Mapping[str, str],
     ):
-        other_table_name = extra_table_names_for_datasource[0]
+        other_table_name = extra_table_names_for_datasource["other_table"]
         expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
         result = batch_for_datasource.validate(expectation)
         assert not result.success
@@ -199,6 +209,7 @@ class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
             MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
             SnowflakeDatasourceTestConfig(),
         ],

@@ -167,7 +167,7 @@ def batch_for_datasource(
 @pytest.fixture
 def extra_table_names_for_datasource(
     _batch_setup_for_datasource: BatchTestSetup,
-) -> Generator[list[str], None, None]:
+) -> Generator[Mapping[str, str], None, None]:
     """Fixture that yields extra table names"""
     assert isinstance(_batch_setup_for_datasource, SQLBatchTestSetup)
-    yield [t.name for t in _batch_setup_for_datasource.extra_tables]
+    yield {key: t.name for key, t in _batch_setup_for_datasource.extra_table_data.items()}

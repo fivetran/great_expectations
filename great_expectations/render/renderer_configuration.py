@@ -433,9 +433,9 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         _params: Optional[Dict[str, Dict[str, Union[str, Dict[str, RendererValueType]]]]] = (
             values.get("_params")
         )
-        if not values["params"]:
-            values["params"] = _RendererValueBase()
-        if _params and _params != values["params"]:
+        # this logic loads the params that exist
+        # upon RendererConfiguration instantiation, e.g. row_condition
+        if _params and len(values["params"].__dict__) == 0:
             renderer_param_definitions: Dict[str, Any] = {}
             for name in _params:
                 renderer_param_type: Type[BaseModel] = (
@@ -445,14 +445,12 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
                     Optional[renderer_param_type],
                     ...,
                 )
-            existing_params = values["params"].__dict__
-            combined_params = {**existing_params, **_params}
             renderer_params: Type[BaseModel] = create_model(
                 "RendererParams",
                 **renderer_param_definitions,
                 __base__=_RendererValueBase,
             )
-            values["params"] = renderer_params(**combined_params)
+            values["params"] = renderer_params(**_params)
 
         return values
 
@@ -460,8 +458,8 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     def _get_row_conditions_list_from_row_condition_str(
         row_condition_str: str,
     ) -> List[str]:
-        # divide the whole condition into smaller parts
-        row_conditions_list = re.split(r"AND|OR|NOT(?! in)|\(|\)", row_condition_str)
+        # extract the variables to be substituted
+        row_conditions_list = re.split(r"AND|OR|NOT(?! in)|col\(\"|\"\)", row_condition_str)
         row_conditions_list = [
             condition.strip() for condition in row_conditions_list if condition.strip()
         ]
@@ -479,7 +477,6 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             .replace(" or ", " OR ")
             .replace("~", " NOT ")
             .replace(" not ", " NOT ")
-            .replace("==", " is ")
         )
         row_condition_str = " ".join(row_condition_str.split())
 
