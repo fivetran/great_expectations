@@ -14,6 +14,29 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.2.2
+* [FEATURE] Add check for valid column type when calling add_batch_def in a sql asset ([#10590](https://github.com/great-expectations/great_expectations/pull/10590))
+* [FEATURE] Expectations tests against SQL backends infer column types ([#10622](https://github.com/great-expectations/great_expectations/pull/10622))
+* [BUGFIX] Parse spaces in row condition column name ([#10611](https://github.com/great-expectations/great_expectations/pull/10611))
+* [BUGFIX] Batch Expectations correctly handle `date` min and max values ([#10613](https://github.com/great-expectations/great_expectations/pull/10613))
+* [BUGFIX] Mask conn_str in configs ([#10626](https://github.com/great-expectations/great_expectations/pull/10626))
+* [BUGFIX] Missing renderer params when `row_condition` is used ([#10632](https://github.com/great-expectations/great_expectations/pull/10632))
+* [DOCS] Updated cloud action support posture to be in line with reality ([#10609](https://github.com/great-expectations/great_expectations/pull/10609))
+* [DOCS] Add dynamic parameters documentation ([#10483](https://github.com/great-expectations/great_expectations/pull/10483))
+* [DOCS] Fix column name in failing example for ExpectColumnValuesToBeB… ([#10620](https://github.com/great-expectations/great_expectations/pull/10620))
+* [DOCS] remove unsupported actions ([#10624](https://github.com/great-expectations/great_expectations/pull/10624))
+* [MAINTENANCE] Bump mermaid from 10.9.0 to 10.9.3 in /docs/docusaurus ([#10549](https://github.com/great-expectations/great_expectations/pull/10549))
+* [MAINTENANCE] Bump http-proxy-middleware from 2.0.6 to 2.0.7 in /docs/docusaurus ([#10566](https://github.com/great-expectations/great_expectations/pull/10566))
+* [MAINTENANCE] Mock posthog in action tests ([#10615](https://github.com/great-expectations/great_expectations/pull/10615))
+* [MAINTENANCE] Add another member to teams.yml ([#10616](https://github.com/great-expectations/great_expectations/pull/10616))
+* [MAINTENANCE] Validate Expectation JSON Schema follows meta-schema specification ([#10627](https://github.com/great-expectations/great_expectations/pull/10627))
+* [MAINTENANCE] Prevent unneeded test setup/teardown ([#10619](https://github.com/great-expectations/great_expectations/pull/10619))
+* [MAINTENANCE] dynamically generate extra table names in tests ([#10630](https://github.com/great-expectations/great_expectations/pull/10630))
+* [MAINTENANCE] test cleanup ([#10631](https://github.com/great-expectations/great_expectations/pull/10631))
+* [MAINTENANCE] Add mysql support to testing framework ([#10633](https://github.com/great-expectations/great_expectations/pull/10633))
+* [MAINTENANCE] Make PR Title Checker GH Action more secure ([#10636](https://github.com/great-expectations/great_expectations/pull/10636))
+* [MAINTENANCE] Add mssql support to testing framework ([#10634](https://github.com/great-expectations/great_expectations/pull/10634))
+
 ### 1.2.1
 * [BUGFIX] Add redirect for deploy-gx-agent ([#10573](https://github.com/great-expectations/great_expectations/pull/10573))
 * [BUGFIX] Fix typing on `mostly` and `value_set` fields ([#10571](https://github.com/great-expectations/great_expectations/pull/10571))
