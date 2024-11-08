@@ -68,7 +68,7 @@ To ensure the long-term quality of the GX Core codebase, we're not yet ready to 
 
 | GX Component         | Readiness          | Notes |
 | -------------------- | ------------------ | ----- |
-| Action               | 🟢 Ready           |       |
+| Action               | 🔴 Not ready       |       |
 | CredentialStore      | 🟢 Ready           |       |
 | BatchDefinition      | 🟡 Partially ready | Formerly known as splitters |
 | DataSource           | 🔴 Not ready       | Includes MetricProvider and ExecutionEngine |
