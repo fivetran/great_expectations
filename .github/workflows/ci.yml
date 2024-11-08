@@ -410,6 +410,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GX_MS_TEAMS_WEBHOOK: ${{ secrets.GX_MS_TEAMS_WEBHOOK }}
+      OUTDATED_MS_TEAMS_WEBHOOK: ${{ secrets.OUTDATED_MS_TEAMS_WEBHOOK }}
 
     steps:
       - name: Checkout
