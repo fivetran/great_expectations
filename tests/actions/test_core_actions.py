@@ -880,7 +880,7 @@ class TestUpdateDataDocsAction:
                         validation_identifier_a,
                         GXCloudIdentifier(
                             resource_type=GXCloudRESTResource.EXPECTATION_SUITE,
-                            resource_name=self.SUITE_A,
+                            resource_name=SUITE_A,
                         ),
                     ],
                     site_names=site_names,
@@ -892,7 +892,7 @@ class TestUpdateDataDocsAction:
                         validation_identifier_b,
                         GXCloudIdentifier(
                             resource_type=GXCloudRESTResource.EXPECTATION_SUITE,
-                            resource_name=self.SUITE_B,
+                            resource_name=SUITE_B,
                         ),
                     ],
                     site_names=site_names,
