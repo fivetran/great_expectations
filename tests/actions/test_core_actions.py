@@ -456,8 +456,9 @@ class TestMicrosoftTeamsNotificationAction:
             result = action.run(checkpoint_result=checkpoint_result)
 
         assert result == {"microsoft_teams_notification_result": None}
+        # Webhook was deleted, so we expect a 410 error
         assert caplog.records[-1].message.startswith(
-            "Request to Microsoft Teams API returned error"
+            "Request to Microsoft Teams API returned error 410: 410 Client Error: Gone for url"
         )
 
 
