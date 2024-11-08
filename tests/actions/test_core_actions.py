@@ -450,16 +450,13 @@ class TestMicrosoftTeamsNotificationAction:
 
         action = MicrosoftTeamsNotificationAction(
             name="test-action",
-            teams_webhook="${OUTDATED_MS_TEAMS_WEBHOOK}",  # Set as a secret in GH Actions
+            teams_webhook="https://fake.office.com/fake",
         )
         with caplog.at_level(logging.WARNING):
             result = action.run(checkpoint_result=checkpoint_result)
 
         assert result == {"microsoft_teams_notification_result": None}
-        # Webhook was deleted, so we expect a 410 error
-        assert caplog.records[-1].message.startswith(
-            "Request to Microsoft Teams API returned error 410: 410 Client Error: Gone for url"
-        )
+        assert caplog.records[-1].message.startswith("Failed to connect to Microsoft Teams webhook")
 
 
 class TestOpsgenieAlertAction:
