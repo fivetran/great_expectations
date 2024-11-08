@@ -431,12 +431,34 @@ class TestMicrosoftTeamsNotificationAction:
         gx.get_context(mode="ephemeral")
 
         action = MicrosoftTeamsNotificationAction(
-            name="test-action", teams_webhook="${GX_MS_TEAMS_WEBHOOK}"
+            name="test-action",
+            teams_webhook="${GX_MS_TEAMS_WEBHOOK}",  # Set as a secret in GH Actions
         )
         result = action.run(checkpoint_result=checkpoint_result)
         assert result == {
             "microsoft_teams_notification_result": "Microsoft Teams notification succeeded."
         }
+
+    @pytest.mark.integration
+    def test_run_integration_failure(
+        self,
+        checkpoint_result: CheckpointResult,
+        caplog,
+    ):
+        # Necessary to retrieve config provider
+        gx.get_context(mode="ephemeral")
+
+        action = MicrosoftTeamsNotificationAction(
+            name="test-action",
+            teams_webhook="${OUTDATED_MS_TEAMS_WEBHOOK}",  # Set as a secret in GH Actions
+        )
+        with caplog.at_level(logging.WARNING):
+            result = action.run(checkpoint_result=checkpoint_result)
+
+        assert result == {"microsoft_teams_notification_result": None}
+        assert caplog.records[-1].message.startswith(
+            "Request to Microsoft Teams API returned error"
+        )
 
 
 class TestOpsgenieAlertAction:
