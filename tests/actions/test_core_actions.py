@@ -12,7 +12,7 @@ import pytest
 import requests
 from requests import Session
 
-from great_expectations.checkpoint import (
+from great_expectations.checkpoint.actions import (
     ActionContext,
     APINotificationAction,
     EmailAction,
