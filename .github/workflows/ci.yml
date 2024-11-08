@@ -401,6 +401,54 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: cloud
 
+  integration-tests:
+    needs: [unit-tests, static-analysis, ci-is-on-main-repo]
+    if: github.event.pull_request.draft == false
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    env:
+      GX_MS_TEAMS_WEBHOOK: ${{ secrets.GX_MS_TEAMS_WEBHOOK }}
+      OUTDATED_MS_TEAMS_WEBHOOK: ${{ secrets.OUTDATED_MS_TEAMS_WEBHOOK }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -r test
+
+      - name: Run the tests
+        run:
+          invoke ci-tests 'integration' --verbose
+
+          # upload coverage report to codecov
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.1.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: great-expectations/great_expectations
+          flags: integration
+
+      # upload test results to codecov
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: integration
+
   marker-tests:
     needs: [unit-tests, static-analysis]
     if: github.event.pull_request.draft == false
@@ -646,6 +694,7 @@ jobs:
         docs-snippets,
         unit-tests,
         cloud-tests,
+        integration-tests,
         marker-tests,
         py39-min-versions,
         py310-min-versions,
@@ -694,6 +743,7 @@ jobs:
         docs-snippets,
         unit-tests,
         cloud-tests,
+        integration-tests,
         marker-tests,
         py39-min-versions,
         py310-min-versions,
