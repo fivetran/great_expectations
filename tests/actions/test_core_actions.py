@@ -13,6 +13,7 @@ import pytest
 import requests
 from requests import Session
 
+import great_expectations as gx
 from great_expectations.checkpoint.actions import (
     ActionContext,
     APINotificationAction,
@@ -1107,6 +1108,9 @@ class TestActionIntegration:
         expected_action_result: dict,
         checkpoint_result: CheckpointResult,
     ):
+        # Necessary to retrieve config provider
+        gx.get_context(mode="ephemeral")
+
         action = action_cls(name="test-action", **action_creds)
         result = action.run(checkpoint_result=checkpoint_result)
         assert result == expected_action_result

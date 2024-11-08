@@ -401,7 +401,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: cloud
 
-  e2e-tests:
+  integration-tests:
     needs: [unit-tests, static-analysis, ci-is-on-main-repo]
     if: github.event.pull_request.draft == false
     permissions:
@@ -430,7 +430,7 @@ jobs:
 
       - name: Run the tests
         run:
-          invoke ci-tests 'e2e' --verbose
+          invoke ci-tests 'integration' --verbose
 
           # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
@@ -438,7 +438,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: great-expectations/great_expectations
-          flags: e2e
+          flags: integration
 
       # upload test results to codecov
       - name: Upload test results to Codecov
@@ -446,7 +446,7 @@ jobs:
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          flags: e2e
+          flags: integration
 
   marker-tests:
     needs: [unit-tests, static-analysis]
@@ -693,7 +693,7 @@ jobs:
         docs-snippets,
         unit-tests,
         cloud-tests,
-        e2e-tests,
+        integration-tests,
         marker-tests,
         py39-min-versions,
         py310-min-versions,
@@ -742,7 +742,7 @@ jobs:
         docs-snippets,
         unit-tests,
         cloud-tests,
-        e2e-tests,
+        integration-tests,
         marker-tests,
         py39-min-versions,
         py310-min-versions,
