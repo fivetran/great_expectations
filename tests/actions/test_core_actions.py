@@ -53,8 +53,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-SUITE_A: str = "SUITE_A"
-SUITE_B: str = "SUITE_B"
+# Global constants to be referenced in both tests and fixtures
+SUITE_A: str = "suite_a"
+SUITE_B: str = "suite_b"
 BATCH_ID_A: str = "my_datasource-my_first_asset"
 BATCH_ID_B: str = "my_datasource-my_second_asset"
 
@@ -107,10 +108,6 @@ def checkpoint_result(mocker: MockerFixture):
 
 @pytest.fixture
 def checkpoint_result_with_assets(mocker: MockerFixture):
-    SUITE_A: str = "SUITE_A"
-    SUITE_B: str = "SUITE_B"
-    BATCH_ID_A: str = "my_datasource-my_first_asset"
-    BATCH_ID_B: str = "my_datasource-my_second_asset"
     utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzinfo=timezone.utc)
     return CheckpointResult(
         run_id=RunIdentifier(run_time=utc_datetime),
@@ -278,10 +275,10 @@ class TestEmailAction:
 
         # Should contain suite names and other relevant domain object identifiers in the body
         run_results = tuple(checkpoint_result.run_results.values())
-        SUITE_A = run_results[0].suite_name
-        SUITE_B = run_results[1].suite_name
+        suite_a = run_results[0].suite_name
+        suite_b = run_results[1].suite_name
         mock_html = mock_send_email.call_args.kwargs["html"]
-        assert SUITE_A in mock_html and SUITE_B in mock_html
+        assert suite_a in mock_html and suite_b in mock_html
 
         mock_send_email.assert_called_once_with(
             title=mock.ANY,
@@ -371,7 +368,7 @@ class TestMicrosoftTeamsNotificationAction:
         assert body[1]["text"] == "Validation Result (1 of 2) ✅"
         assert body[2]["facts"] == [
             {"title": "Data Asset name: ", "value": "--"},
-            {"title": "Suite name: ", "value": "SUITE_A"},
+            {"title": "Suite name: ", "value": SUITE_A},
             {
                 "title": "Run name: ",
                 "value": "prod_20240401",
@@ -386,7 +383,7 @@ class TestMicrosoftTeamsNotificationAction:
         assert body[3]["text"] == "Validation Result (2 of 2) ✅"
         assert body[4]["facts"] == [
             {"title": "Data Asset name: ", "value": "--"},
-            {"title": "Suite name: ", "value": "SUITE_B"},
+            {"title": "Suite name: ", "value": SUITE_B},
             {
                 "title": "Run name: ",
                 "value": "prod_20240402",
@@ -426,7 +423,7 @@ class TestMicrosoftTeamsNotificationAction:
         )
 
     @pytest.mark.integration
-    def test_run_integration(
+    def test_run_integration_success(
         self,
         checkpoint_result: CheckpointResult,
     ):
@@ -564,14 +561,14 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: __no_data_asset_name__  *Expectation Suite*: SUITE_A",
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501
                         },
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: __no_data_asset_name__  *Expectation Suite*: SUITE_B",
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501
                         },
                     },
                     {"type": "divider"},
@@ -602,7 +599,7 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: asset_1  *Expectation Suite*: SUITE_A  "
+                            "text": f"*Asset*: asset_1  *Expectation Suite*: {SUITE_A}  "
                             "<www.testing?slack=true|View Results>",
                         },
                     },
@@ -611,7 +608,7 @@ class TestSlackNotificationAction:
                         "text": {
                             "type": "mrkdwn",
                             "text": "*Asset*: asset_2_two_wow_whoa_vroom  "
-                            "*Expectation Suite*: SUITE_B",
+                            f"*Expectation Suite*: {SUITE_B}",
                         },
                     },
                     {"type": "divider"},
@@ -660,7 +657,7 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: asset_1  *Expectation Suite*: SUITE_A  "
+                            "text": f"*Asset*: asset_1  *Expectation Suite*: {SUITE_A}  "
                             "<www.testing?slack=true|View Results>",
                         },
                     },
@@ -676,7 +673,7 @@ class TestSlackNotificationAction:
                         "text": {
                             "type": "mrkdwn",
                             "text": "*Asset*: asset_2_two_wow_whoa_vroom  "
-                            "*Expectation Suite*: SUITE_B",
+                            f"*Expectation Suite*: {SUITE_B}",
                         },
                     },
                     {
