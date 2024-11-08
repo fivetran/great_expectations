@@ -523,8 +523,8 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
             return None
         except requests.HTTPError as e:
             logger.warning(
-                f"Request to Microsoft Teams API returned error {response.status_code}: {e}"
-            )  # type: ignore[possibly-undefined] # ok for httperror
+                f"Request to Microsoft Teams API returned error {response.status_code}: {e}"  # type: ignore[possibly-undefined] # ok for httperror
+            )
             return None
 
         return "Microsoft Teams notification succeeded."
