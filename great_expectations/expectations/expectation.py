@@ -1050,14 +1050,27 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
-        observed_value: str = cls._get_observed_value_from_evr(result=result)
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        name = "observed_value"
+
+        renderer_configuration.add_param(
+            name=name,
+            param_type=list(RendererValueType),
+            value=cls._get_observed_value_from_evr(result=result),
+        )
+
         value_obj = renderedAtomicValueSchema.load(
             {
-                "template": observed_value,
-                "params": {},
+                "template": f"${name}",
+                "params": renderer_configuration.params.dict(),
                 "schema": {"type": "com.superconductive.rendered.string"},
             }
         )
+
         rendered = RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=value_obj,

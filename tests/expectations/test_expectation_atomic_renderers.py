@@ -2092,9 +2092,9 @@ def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "--",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2121,9 +2121,9 @@ def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "1,776"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "1,776",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2148,9 +2148,9 @@ def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "foo",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2175,9 +2175,9 @@ def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "10% unexpected",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2202,9 +2202,9 @@ def test_atomic_diagnostic_observed_value_with_empty_result(get_diagnostic_rende
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "--",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
