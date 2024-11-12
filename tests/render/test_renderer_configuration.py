@@ -216,7 +216,9 @@ def test_renderer_configuration_add_param_validation(
         renderer_configuration.add_param(name="value", param_type=param_type)
 
     if param_type is RendererValueType.STRING:
-        exception_message = "Value was unable to be represented as a string: I'm not a string"
+        exception_message = (
+            f"Value was unable to be represented as a {RendererValueType.STRING}: I'm not a string"
+        )
     else:
         exception_message = f"Param type: <{param_type}> does not match value: <{value}>."
     assert any(
