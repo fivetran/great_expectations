@@ -184,11 +184,7 @@ class PasswordMasker:
 
         from great_expectations.datasource.fluent.config_str import ConfigStr
 
-        try:
-            ConfigStr.validate_template_str_format(url)
-            is_config_str = True
-        except ValueError:
-            is_config_str = False
+        is_config_str = ConfigStr.str_contains_config_template(url)
 
         if url.startswith("DefaultEndpointsProtocol"):
             return cls._obfuscate_azure_blobstore_connection_string(url)
