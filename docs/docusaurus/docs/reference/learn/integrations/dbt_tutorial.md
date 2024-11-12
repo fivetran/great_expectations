@@ -224,7 +224,7 @@ Start by naming the Notebook `customer_expectations.ipynb`, or a name of your ch
 ```python
 import great_expectations as gx
 import great_expectations.expectations as gxe
-from great_expectations.checkpoint.actions import UpdateDataDocsAction
+from great_expectations.checkpoint import UpdateDataDocsAction
 
 context = gx.get_context(mode="file")
 ```

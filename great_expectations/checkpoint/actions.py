@@ -418,31 +418,8 @@ class PagerdutyAlertAction(ValidationAction):
 class MicrosoftTeamsNotificationAction(ValidationAction):
     """Sends a Microsoft Teams notification to a given webhook.
 
-    ```yaml
-    - name: send_microsoft_teams_notification_on_validation_result
-    action:
-      class_name: MicrosoftTeamsNotificationAction
-      # put the actual webhook URL in the uncommitted/config_variables.yml file
-      # or pass in as environment variable
-      microsoft_teams_webhook: ${validation_notification_microsoft_teams_webhook}
-      notify_on: all
-      renderer:
-        # the class that implements the message to be sent
-        # this is the default implementation, but you can
-        # implement a custom one
-        module_name: great_expectations.render.renderer.microsoft_teams_renderer
-        class_name: MicrosoftTeamsRenderer
-    ```
-
     Args:
-        renderer: Specifies the renderer used to generate a query consumable by teams API, e.g.:
-            ```python
-            {
-               "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",
-               "class_name": "MicrosoftTeamsRenderer",
-            }
-            ```
-        microsoft_teams_webhook: Incoming Microsoft Teams webhook to which to send notifications.
+        teams_webhook: Incoming Microsoft Teams webhook to which to send notifications.
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
     """  # noqa: E501
 

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Generic, List, Mapping, Type, Union
+from functools import cached_property
+from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Sequence, Type, Union
 
 from typing_extensions import override
 
@@ -22,12 +23,11 @@ if TYPE_CHECKING:
     from great_expectations.compatibility.sqlalchemy import TypeEngine
 
 
-@dataclass
-class TableData:
+@dataclass(frozen=True)
+class _TableData:
     name: str
     df: pd.DataFrame
-    column_types: Dict[str, TypeEngine]
-    table: Union[Table, None] = None
+    table: Table
 
 
 class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
@@ -58,44 +58,48 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
-        self.extra_data = extra_data
-        self.table_name = f"{config.label}_expectation_test_table_{self._random_resource_name()}"
         self.engine = create_engine(url=self.connection_string)
+        self.extra_data = extra_data
         self.metadata = MetaData()
-        self.tables: List[Table] = []
-        self.extra_tables: List[Table] = []
         super().__init__(config, data)
 
-    @override
-    def setup(self) -> None:
-        main_table_data = TableData(
-            name=self.table_name, df=self.data, column_types=self.config.column_types or {}
+    @cached_property
+    def table_name(self) -> str:
+        return self.main_table_data.name
+
+    @cached_property
+    def main_table_data(self) -> _TableData:
+        return self._create_table_data(
+            name=self._create_table_name(),
+            df=self.data,
+            column_types=self.config.column_types or {},
         )
-        extra_table_data = [
-            TableData(
-                name=f"{self.config.label}_expectation_test_table_{label}_{self._random_resource_name()}",
+
+    @cached_property
+    def extra_table_data(self) -> Mapping[str, _TableData]:
+        return {
+            label: self._create_table_data(
+                name=self._create_table_name(label),
                 df=df,
                 column_types=self.config.extra_column_types.get(label, {}),
             )
             for label, df in self.extra_data.items()
-        ]
-        all_table_data = [main_table_data, *extra_table_data]
+        }
 
+    @cached_property
+    def tables(self) -> Sequence[Table]:
+        extra_tables = [td.table for td in self.extra_table_data.values()]
+        return [self.main_table_data.table, *extra_tables]
+
+    @override
+    def setup(self) -> None:
         # create tables
-        for table_data in all_table_data:
-            columns = self.get_column_types(table_data)
-            table = self.create_table(table_data.name, columns=columns)
-            self.tables.append(table)
-            table_data.table = table
-            if table_data is not main_table_data:
-                self.extra_tables.append(table)
+        all_table_data = self._ensure_all_table_data_created()
         self.metadata.create_all(self.engine)
 
         # insert data
         with self.engine.connect() as conn, conn.begin():
             for table_data in all_table_data:
-                if table_data.table is None:
-                    raise RuntimeError("Table must be created before data can be loaded.")
                 # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
                 # index and the values are a dict of column names mapped to column values.
                 # Then we pass that list of dicts in as parameters to our insert statement.
@@ -110,18 +114,37 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         for table in self.tables:
             table.drop(self.engine)
 
-    def create_table(self, name: str, columns: Mapping[str, TypeEngine]) -> Table:
+    def _create_table_name(self, label: Optional[str] = None) -> str:
+        parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
+        return "_".join([part for part in parts if part])
+
+    def _ensure_all_table_data_created(self) -> Sequence[_TableData]:
+        return [self.main_table_data, *self.extra_table_data.values()]
+
+    def _create_table_data(
+        self, name: str, df: pd.DataFrame, column_types: Mapping[str, TypeEngine]
+    ) -> _TableData:
+        columns = self._get_column_types(df=df, column_types=column_types)
+        table = self._create_table(name, columns=columns)
+        return _TableData(
+            name=name,
+            df=df,
+            table=table,
+        )
+
+    def _create_table(self, name: str, columns: Mapping[str, TypeEngine]) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
         return Table(name, self.metadata, *column_list, schema=self.schema)
 
-    def get_column_types(
+    def _get_column_types(
         self,
-        table_data: TableData,
+        df: pd.DataFrame,
+        column_types: Mapping[str, TypeEngine],
     ) -> Mapping[str, TypeEngine]:
-        column_types = self.infer_column_types(table_data.df)
+        all_column_types = self._infer_column_types(df)
         # prefer explicit types if they're provided
-        column_types.update(table_data.column_types)
-        untyped_columns = set(table_data.df.columns) - set(column_types.keys())
+        all_column_types.update(column_types)
+        untyped_columns = set(df.columns) - set(all_column_types.keys())
         if untyped_columns:
             config_class_name = self.config.__class__.__name__
             message = (
@@ -131,9 +154,9 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
                 f"parameter when \ninstantiating {config_class_name}."
             )
             raise RuntimeError(message)
-        return column_types
+        return all_column_types
 
-    def infer_column_types(self, data: pd.DataFrame) -> Dict[str, TypeEngine]:
+    def _infer_column_types(self, data: pd.DataFrame) -> Dict[str, TypeEngine]:
         inferred_column_types: Dict[str, TypeEngine] = {}
         for column, value_list in data.to_dict("list").items():
             python_type = type(value_list[0])

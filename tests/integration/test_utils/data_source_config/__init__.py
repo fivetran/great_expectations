@@ -1,5 +1,7 @@
 from .base import DataSourceTestConfig
 from .databricks import DatabricksDatasourceTestConfig
+from .mssql import MSSQLDatasourceTestConfig
+from .mysql import MySQLDatasourceTestConfig
 from .pandas_data_frame import PandasDataFrameDatasourceTestConfig
 from .pandas_filesystem_csv import PandasFilesystemCsvDatasourceTestConfig
 from .postgres import PostgreSQLDatasourceTestConfig

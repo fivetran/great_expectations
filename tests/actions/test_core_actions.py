@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-import json
 import logging
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from types import ModuleType
-from typing import TYPE_CHECKING, Iterator, Type
+from typing import TYPE_CHECKING, Iterator
 from unittest import mock
 
 import pytest
 import requests
 from requests import Session
 
+import great_expectations as gx
 from great_expectations.checkpoint.actions import (
     ActionContext,
     APINotificationAction,
@@ -22,7 +22,6 @@ from great_expectations.checkpoint.actions import (
     SlackNotificationAction,
     SNSNotificationAction,
     UpdateDataDocsAction,
-    ValidationAction,
 )
 from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
 from great_expectations.core.batch import IDDict, LegacyBatchDefinition
@@ -30,6 +29,7 @@ from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
 )
 from great_expectations.core.run_identifier import RunIdentifier
+from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
 from great_expectations.data_context.data_context.abstract_data_context import (
     AbstractDataContext,
@@ -53,198 +53,113 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# Global constants to be referenced in both tests and fixtures
+SUITE_A: str = "suite_a"
+SUITE_B: str = "suite_b"
+BATCH_ID_A: str = "my_datasource-my_first_asset"
+BATCH_ID_B: str = "my_datasource-my_second_asset"
+
+
 @pytest.fixture
-def mock_context(mocker: MockerFixture):
-    context = mocker.MagicMock(spec=AbstractDataContext)
-    set_context(context)
-    return context
+def mocked_posthog(mocker: MockerFixture):
+    yield mocker.patch("posthog.capture")
 
 
-class MockTeamsResponse:
-    def __init__(self, status_code: int, raise_for_status: bool = False):
-        self.status_code = status_code
-        self._raise_for_status = raise_for_status
-        self.text = "test_text"
-
-    def raise_for_status(self):
-        if self._raise_for_status:
-            raise requests.exceptions.HTTPError("test")
-
-
-class MockSlackResponse:
-    def __init__(self, status_code):
-        self.status_code = status_code
-        self.text = "ok"
-        self.content = json.dumps({"ok": "True"})
-
-    def json(self):
-        return {"ok": "True"}
-
-    def raise_for_status(self):
-        pass
-
-
-class MockCloudResponse:
-    def __init__(self, status_code):
-        self.status_code = status_code
-        self.text = "test_text"
-        self.content = json.dumps({"ok": "True"})
-
-
-@pytest.mark.unit
-def test_api_action_create_payload(mock_context):
-    mock_validation_results = []
-    expected_payload = {
-        "test_suite_name": "my_suite",
-        "data_asset_name": "my_schema.my_table",
-        "validation_results": [],
-    }
-    api_notification_action = APINotificationAction(
-        name="my_api_notification", url="http://www.example.com"
+@pytest.fixture
+def checkpoint_result(mocker: MockerFixture):
+    utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzinfo=timezone.utc)
+    return CheckpointResult(
+        run_id=RunIdentifier(run_time=utc_datetime),
+        run_results={
+            ValidationResultIdentifier(
+                expectation_suite_identifier=ExpectationSuiteIdentifier(
+                    name=SUITE_A,
+                ),
+                run_id=RunIdentifier(run_name="prod_20240401"),
+                batch_identifier=BATCH_ID_A,
+            ): ExpectationSuiteValidationResult(
+                success=True,
+                statistics={"successful_expectations": 3, "evaluated_expectations": 3},
+                results=[],
+                suite_name=SUITE_A,
+            ),
+            ValidationResultIdentifier(
+                expectation_suite_identifier=ExpectationSuiteIdentifier(
+                    name=SUITE_B,
+                ),
+                run_id=RunIdentifier(run_name="prod_20240402"),
+                batch_identifier=BATCH_ID_B,
+            ): ExpectationSuiteValidationResult(
+                success=True,
+                statistics={"successful_expectations": 2, "evaluated_expectations": 2},
+                results=[],
+                suite_name=SUITE_B,
+            ),
+        },
+        checkpoint_config=Checkpoint(
+            name="test-checkpoint",
+            validation_definitions=[
+                mocker.MagicMock(spec=ValidationDefinition),
+                mocker.MagicMock(spec=ValidationDefinition),
+            ],
+        ),
     )
-    payload = api_notification_action.create_payload(
-        "my_schema.my_table", "my_suite", mock_validation_results
+
+
+@pytest.fixture
+def checkpoint_result_with_assets(mocker: MockerFixture):
+    utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzinfo=timezone.utc)
+    return CheckpointResult(
+        run_id=RunIdentifier(run_time=utc_datetime),
+        run_results={
+            ValidationResultIdentifier(
+                expectation_suite_identifier=ExpectationSuiteIdentifier(
+                    name=SUITE_A,
+                ),
+                run_id=RunIdentifier(run_name="prod_20240401"),
+                batch_identifier=BATCH_ID_A,
+            ): ExpectationSuiteValidationResult(
+                success=True,
+                statistics={"successful_expectations": 3, "evaluated_expectations": 3},
+                results=[],
+                suite_name=SUITE_A,
+                meta={
+                    "active_batch_definition": LegacyBatchDefinition(
+                        datasource_name="test_environment",
+                        data_connector_name="general_azure_data_connector",
+                        data_asset_name="asset_1",
+                        batch_identifiers=IDDict(
+                            {"name": "alex", "timestamp": "20200809", "price": "1000"}
+                        ),
+                    )
+                },
+                result_url="www.testing",
+            ),
+            ValidationResultIdentifier(
+                expectation_suite_identifier=ExpectationSuiteIdentifier(
+                    name=SUITE_B,
+                ),
+                run_id=RunIdentifier(run_name="prod_20240402"),
+                batch_identifier=BATCH_ID_B,
+            ): ExpectationSuiteValidationResult(
+                success=True,
+                statistics={"successful_expectations": 2, "evaluated_expectations": 2},
+                results=[],
+                suite_name=SUITE_B,
+                meta={
+                    "active_batch_definition": LegacyBatchDefinition(
+                        datasource_name="test_environment",
+                        data_connector_name="general_azure_data_connector",
+                        data_asset_name="asset_2_two_wow_whoa_vroom",
+                        batch_identifiers=IDDict(
+                            {"name": "alex", "timestamp": "20200809", "price": "1000"}
+                        ),
+                    ),
+                },
+            ),
+        },
+        checkpoint_config=mocker.Mock(spec=Checkpoint, name="my_checkpoint"),
     )
-    assert payload == expected_payload
-
-
-class TestActionSerialization:
-    EXAMPLE_SLACK_WEBHOOK = "https://hooks.slack.com/services/test/slack/webhook"
-    EXAMPLE_TEAMS_WEBHOOK = "https://hooks.microsoft.com/services/test/teams/webhook"
-    EXAMPLE_API_KEY = "testapikey"
-    EXAMPLE_SMTP_ADDRESS = "smtp.test.com"
-    EXAMPLE_SMTP_PORT = 587
-    EXAMPLE_EMAILS = "bob@gmail.com, jim@hotmail.com"
-    EXAMPLE_SITE_NAMES = ["one_site", "two_site", "red_site", "blue_site"]
-    EXAMPLE_SNS_TOPIC_ARN = "my_test_arn"
-    EXAMPLE_URL = "http://www.example.com"
-
-    ACTION_INIT_PARAMS = {
-        SlackNotificationAction: {
-            "name": "my_slack_action",
-            "slack_webhook": EXAMPLE_SLACK_WEBHOOK,
-        },
-        MicrosoftTeamsNotificationAction: {
-            "name": "my_teams_action",
-            "teams_webhook": EXAMPLE_TEAMS_WEBHOOK,
-        },
-        OpsgenieAlertAction: {"name": "my_opsgenie_action", "api_key": EXAMPLE_API_KEY},
-        EmailAction: {
-            "name": "my_email_action",
-            "smtp_address": EXAMPLE_SMTP_ADDRESS,
-            "smtp_port": EXAMPLE_SMTP_PORT,
-            "receiver_emails": EXAMPLE_EMAILS,
-        },
-        UpdateDataDocsAction: {"name": "my_data_docs_action", "site_names": EXAMPLE_SITE_NAMES},
-        SNSNotificationAction: {"name": "my_sns_action", "sns_topic_arn": EXAMPLE_SNS_TOPIC_ARN},
-        APINotificationAction: {"name": "my_api_action", "url": EXAMPLE_URL},
-    }
-
-    SERIALIZED_ACTIONS = {
-        SlackNotificationAction: {
-            "name": "my_slack_action",
-            "notify_on": "all",
-            "notify_with": None,
-            "renderer": {
-                "class_name": "SlackRenderer",
-                "module_name": "great_expectations.render.renderer.slack_renderer",
-            },
-            "show_failed_expectations": False,
-            "slack_channel": None,
-            "slack_token": None,
-            "slack_webhook": EXAMPLE_SLACK_WEBHOOK,
-            "type": "slack",
-        },
-        MicrosoftTeamsNotificationAction: {
-            "name": "my_teams_action",
-            "notify_on": "all",
-            "renderer": {
-                "class_name": "MicrosoftTeamsRenderer",
-                "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",
-            },
-            "teams_webhook": EXAMPLE_TEAMS_WEBHOOK,
-            "type": "microsoft",
-        },
-        OpsgenieAlertAction: {
-            "name": "my_opsgenie_action",
-            "api_key": EXAMPLE_API_KEY,
-            "notify_on": "failure",
-            "priority": "P3",
-            "region": None,
-            "renderer": {
-                "class_name": "OpsgenieRenderer",
-                "module_name": "great_expectations.render.renderer.opsgenie_renderer",
-            },
-            "tags": None,
-            "type": "opsgenie",
-        },
-        EmailAction: {
-            "name": "my_email_action",
-            "notify_on": "all",
-            "notify_with": None,
-            "receiver_emails": EXAMPLE_EMAILS,
-            "renderer": {
-                "class_name": "EmailRenderer",
-                "module_name": "great_expectations.render.renderer.email_renderer",
-            },
-            "sender_alias": None,
-            "sender_login": None,
-            "sender_password": None,
-            "smtp_address": EXAMPLE_SMTP_ADDRESS,
-            "smtp_port": str(EXAMPLE_SMTP_PORT),
-            "type": "email",
-            "use_ssl": None,
-            "use_tls": None,
-        },
-        UpdateDataDocsAction: {
-            "name": "my_data_docs_action",
-            "site_names": EXAMPLE_SITE_NAMES,
-            "type": "update_data_docs",
-        },
-        SNSNotificationAction: {
-            "name": "my_sns_action",
-            "sns_message_subject": None,
-            "sns_topic_arn": EXAMPLE_SNS_TOPIC_ARN,
-            "type": "sns",
-        },
-        APINotificationAction: {
-            "name": "my_api_action",
-            "type": "api",
-            "url": EXAMPLE_URL,
-        },
-    }
-
-    @pytest.mark.parametrize(
-        "action_class, init_params",
-        [(k, v) for k, v in ACTION_INIT_PARAMS.items()],
-        ids=[k.__name__ for k in ACTION_INIT_PARAMS],
-    )
-    @pytest.mark.unit
-    def test_action_serialization_and_deserialization(
-        self,
-        mock_context,
-        action_class: Type[ValidationAction],
-        init_params: dict,
-    ):
-        expected = self.SERIALIZED_ACTIONS[action_class]
-
-        action = action_class(**init_params)
-        json_dict = action.json()
-        actual = json.loads(json_dict)
-
-        assert actual == expected
-
-    @pytest.mark.parametrize(
-        "action_class, serialized_action",
-        [(k, v) for k, v in SERIALIZED_ACTIONS.items()],
-        ids=[k.__name__ for k in SERIALIZED_ACTIONS],
-    )
-    @pytest.mark.unit
-    def test_action_deserialization(
-        self, action_class: Type[ValidationAction], serialized_action: dict
-    ):
-        actual = action_class.parse_obj(serialized_action)
-        assert isinstance(actual, action_class)
 
 
 @contextmanager
@@ -259,111 +174,25 @@ def mock_not_imported_module(
         setattr(parent_module, target_name, original)
 
 
-class TestV1ActionRun:
-    suite_a: str = "suite_a"
-    suite_b: str = "suite_b"
-    batch_id_a: str = "my_datasource-my_first_asset"
-    batch_id_b: str = "my_datasource-my_second_asset"
-
-    @pytest.fixture
-    def mocked_posthog(self, mocker: MockerFixture):
-        yield mocker.patch("posthog.capture")
-
-    @pytest.fixture
-    def checkpoint_result(self, mocker: MockerFixture):
-        utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(
-            tzinfo=timezone.utc
+class TestAPINotificationAction:
+    @pytest.mark.unit
+    def test_create_payload(self, mock_context):
+        mock_validation_results = []
+        expected_payload = {
+            "test_suite_name": "my_suite",
+            "data_asset_name": "my_schema.my_table",
+            "validation_results": [],
+        }
+        api_notification_action = APINotificationAction(
+            name="my_api_notification", url="http://www.example.com"
         )
-        return CheckpointResult(
-            run_id=RunIdentifier(run_time=utc_datetime),
-            run_results={
-                ValidationResultIdentifier(
-                    expectation_suite_identifier=ExpectationSuiteIdentifier(
-                        name=self.suite_a,
-                    ),
-                    run_id=RunIdentifier(run_name="prod_20240401"),
-                    batch_identifier=self.batch_id_a,
-                ): ExpectationSuiteValidationResult(
-                    success=True,
-                    statistics={"successful_expectations": 3, "evaluated_expectations": 3},
-                    results=[],
-                    suite_name=self.suite_a,
-                ),
-                ValidationResultIdentifier(
-                    expectation_suite_identifier=ExpectationSuiteIdentifier(
-                        name=self.suite_b,
-                    ),
-                    run_id=RunIdentifier(run_name="prod_20240402"),
-                    batch_identifier=self.batch_id_b,
-                ): ExpectationSuiteValidationResult(
-                    success=True,
-                    statistics={"successful_expectations": 2, "evaluated_expectations": 2},
-                    results=[],
-                    suite_name=self.suite_b,
-                ),
-            },
-            checkpoint_config=mocker.Mock(spec=Checkpoint, name="my_checkpoint"),
+        payload = api_notification_action.create_payload(
+            "my_schema.my_table", "my_suite", mock_validation_results
         )
-
-    @pytest.fixture
-    def checkpoint_result_with_assets(self, mocker: MockerFixture):
-        utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(
-            tzinfo=timezone.utc
-        )
-        return CheckpointResult(
-            run_id=RunIdentifier(run_time=utc_datetime),
-            run_results={
-                ValidationResultIdentifier(
-                    expectation_suite_identifier=ExpectationSuiteIdentifier(
-                        name=self.suite_a,
-                    ),
-                    run_id=RunIdentifier(run_name="prod_20240401"),
-                    batch_identifier=self.batch_id_a,
-                ): ExpectationSuiteValidationResult(
-                    success=True,
-                    statistics={"successful_expectations": 3, "evaluated_expectations": 3},
-                    results=[],
-                    suite_name=self.suite_a,
-                    meta={
-                        "active_batch_definition": LegacyBatchDefinition(
-                            datasource_name="test_environment",
-                            data_connector_name="general_azure_data_connector",
-                            data_asset_name="asset_1",
-                            batch_identifiers=IDDict(
-                                {"name": "alex", "timestamp": "20200809", "price": "1000"}
-                            ),
-                        )
-                    },
-                    result_url="www.testing",
-                ),
-                ValidationResultIdentifier(
-                    expectation_suite_identifier=ExpectationSuiteIdentifier(
-                        name=self.suite_b,
-                    ),
-                    run_id=RunIdentifier(run_name="prod_20240402"),
-                    batch_identifier=self.batch_id_b,
-                ): ExpectationSuiteValidationResult(
-                    success=True,
-                    statistics={"successful_expectations": 2, "evaluated_expectations": 2},
-                    results=[],
-                    suite_name=self.suite_b,
-                    meta={
-                        "active_batch_definition": LegacyBatchDefinition(
-                            datasource_name="test_environment",
-                            data_connector_name="general_azure_data_connector",
-                            data_asset_name="asset_2_two_wow_whoa_vroom",
-                            batch_identifiers=IDDict(
-                                {"name": "alex", "timestamp": "20200809", "price": "1000"}
-                            ),
-                        ),
-                    },
-                ),
-            },
-            checkpoint_config=mocker.Mock(spec=Checkpoint, name="my_checkpoint"),
-        )
+        assert payload == expected_payload
 
     @pytest.mark.unit
-    def test_APINotificationAction_run(self, checkpoint_result: CheckpointResult, mocked_posthog):
+    def test_run(self, checkpoint_result: CheckpointResult, mocked_posthog):
         url = "http://www.example.com"
         action = APINotificationAction(name="my_action", url=url)
 
@@ -375,20 +204,22 @@ class TestV1ActionRun:
             headers={"Content-Type": "application/json"},
             data=[
                 {
-                    "data_asset_name": self.batch_id_a,
-                    "test_suite_name": self.suite_a,
+                    "data_asset_name": BATCH_ID_A,
+                    "test_suite_name": SUITE_A,
                     "validation_results": [],
                 },
                 {
-                    "data_asset_name": self.batch_id_b,
-                    "test_suite_name": self.suite_b,
+                    "data_asset_name": BATCH_ID_B,
+                    "test_suite_name": SUITE_B,
                     "validation_results": [],
                 },
             ],
         )
 
+
+class TestEmailAction:
     @pytest.mark.unit
-    def test_EmailAction_equality(self):
+    def test_equality(self):
         """I know, this one seems silly. But this was a bug."""
         a = EmailAction(
             name="my_action",
@@ -422,7 +253,7 @@ class TestV1ActionRun:
             ),
         ],
     )
-    def test_EmailAction_run(
+    def test_run(
         self,
         checkpoint_result: CheckpointResult,
         emails: str,
@@ -464,7 +295,7 @@ class TestV1ActionRun:
         assert out == {"email_result": mock_send_email()}
 
     @pytest.mark.unit
-    def test_EmailAction_run_smptp_address_substitution(
+    def test_run_smptp_address_substitution(
         self, checkpoint_result: CheckpointResult, mocked_posthog
     ):
         config_provider = project_manager.get_config_provider()
@@ -515,10 +346,10 @@ class TestV1ActionRun:
             use_tls=mock.ANY,
         )
 
+
+class TestMicrosoftTeamsNotificationAction:
     @pytest.mark.unit
-    def test_MicrosoftTeamsNotificationAction_run(
-        self, checkpoint_result: CheckpointResult, mocked_posthog
-    ):
+    def test_run(self, checkpoint_result: CheckpointResult, mocked_posthog):
         action = MicrosoftTeamsNotificationAction(name="my_action", teams_webhook="test")
 
         with mock.patch.object(Session, "post") as mock_post:
@@ -537,7 +368,7 @@ class TestV1ActionRun:
         assert body[1]["text"] == "Validation Result (1 of 2) ✅"
         assert body[2]["facts"] == [
             {"title": "Data Asset name: ", "value": "--"},
-            {"title": "Suite name: ", "value": "suite_a"},
+            {"title": "Suite name: ", "value": SUITE_A},
             {
                 "title": "Run name: ",
                 "value": "prod_20240401",
@@ -552,7 +383,7 @@ class TestV1ActionRun:
         assert body[3]["text"] == "Validation Result (2 of 2) ✅"
         assert body[4]["facts"] == [
             {"title": "Data Asset name: ", "value": "--"},
-            {"title": "Suite name: ", "value": "suite_b"},
+            {"title": "Suite name: ", "value": SUITE_B},
             {
                 "title": "Run name: ",
                 "value": "prod_20240402",
@@ -564,9 +395,7 @@ class TestV1ActionRun:
         ]
 
     @pytest.mark.unit
-    def test_MicrosoftTeamsNotificationAction_run_webhook_substitution(
-        self, checkpoint_result: CheckpointResult, mocked_posthog
-    ):
+    def test_run_webhook_substitution(self, checkpoint_result: CheckpointResult, mocked_posthog):
         config_provider = project_manager.get_config_provider()
         assert isinstance(config_provider, mock.Mock)  # noqa: TID251 # just using for the instance compare
 
@@ -593,6 +422,44 @@ class TestV1ActionRun:
             microsoft_teams_webhook=MS_TEAMS_WEBHOOK_VALUE,
         )
 
+    @pytest.mark.integration
+    def test_run_integration_success(
+        self,
+        checkpoint_result: CheckpointResult,
+    ):
+        # Necessary to retrieve config provider
+        gx.get_context(mode="ephemeral")
+
+        action = MicrosoftTeamsNotificationAction(
+            name="test-action",
+            teams_webhook="${GX_MS_TEAMS_WEBHOOK}",  # Set as a secret in GH Actions
+        )
+        result = action.run(checkpoint_result=checkpoint_result)
+        assert result == {
+            "microsoft_teams_notification_result": "Microsoft Teams notification succeeded."
+        }
+
+    @pytest.mark.integration
+    def test_run_integration_failure(
+        self,
+        checkpoint_result: CheckpointResult,
+        caplog,
+    ):
+        # Necessary to retrieve config provider
+        gx.get_context(mode="ephemeral")
+
+        action = MicrosoftTeamsNotificationAction(
+            name="test-action",
+            teams_webhook="https://fake.office.com/fake",
+        )
+        with caplog.at_level(logging.WARNING):
+            result = action.run(checkpoint_result=checkpoint_result)
+
+        assert result == {"microsoft_teams_notification_result": None}
+        assert caplog.records[-1].message.startswith("Failed to connect to Microsoft Teams webhook")
+
+
+class TestOpsgenieAlertAction:
     @pytest.mark.unit
     @pytest.mark.parametrize(
         "success, message",
@@ -601,9 +468,7 @@ class TestV1ActionRun:
             pytest.param(False, "failed!", id="failure"),
         ],
     )
-    def test_OpsgenieAlertAction_run(
-        self, checkpoint_result: CheckpointResult, success: bool, message: str
-    ):
+    def test_run(self, checkpoint_result: CheckpointResult, success: bool, message: str):
         action = OpsgenieAlertAction(name="my_action", api_key="test", notify_on="all")
         checkpoint_result.success = success
 
@@ -614,10 +479,10 @@ class TestV1ActionRun:
         assert message in mock_post.call_args.kwargs["json"]["message"]
         assert output == {"opsgenie_alert_result": True}
 
+
+class TestPagerdutyAlertAction:
     @pytest.mark.unit
-    def test_PagerdutyAlertAction_run_emits_events(
-        self, checkpoint_result: CheckpointResult, mocker: MockerFixture
-    ):
+    def test_run_emits_events(self, checkpoint_result: CheckpointResult, mocker: MockerFixture):
         from great_expectations.checkpoint import actions
 
         with mock_not_imported_module(actions, "pypd", mocker):
@@ -673,9 +538,7 @@ class TestV1ActionRun:
     )
     @mock.patch("pypd.EventV2.create")
     @pytest.mark.unit
-    def test_PagerdutyAlertAction_run_does_not_emit_events(
-        self, mock_pypd_event, checkpoint_result: CheckpointResult
-    ):
+    def test_run_does_not_emit_events(self, mock_pypd_event, checkpoint_result: CheckpointResult):
         action = PagerdutyAlertAction(
             name="my_action", api_key="test", routing_key="test", notify_on="failure"
         )
@@ -687,8 +550,10 @@ class TestV1ActionRun:
 
         mock_pypd_event.assert_not_called()
 
+
+class TestSlackNotificationAction:
     @pytest.mark.unit
-    def test_SlackNotificationAction_equality(self):
+    def test_equality(self):
         """I kow, this one seems silly. But this was a bug."""
         a = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
         b = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
@@ -696,7 +561,7 @@ class TestV1ActionRun:
         assert a == b
 
     @pytest.mark.unit
-    def test_SlackNotificationAction_run(self, checkpoint_result: CheckpointResult, mocked_posthog):
+    def test_run(self, checkpoint_result: CheckpointResult, mocked_posthog):
         action = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
 
         with mock.patch.object(Session, "post") as mock_post:
@@ -716,14 +581,14 @@ class TestV1ActionRun:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: __no_data_asset_name__  *Expectation Suite*: suite_a",
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501
                         },
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: __no_data_asset_name__  *Expectation Suite*: suite_b",
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501
                         },
                     },
                     {"type": "divider"},
@@ -734,9 +599,7 @@ class TestV1ActionRun:
         assert output == {"slack_notification_result": "Slack notification succeeded."}
 
     @pytest.mark.unit
-    def test_SlackNotificationAction_run_with_assets(
-        self, checkpoint_result_with_assets: CheckpointResult, mocked_posthog
-    ):
+    def test_run_with_assets(self, checkpoint_result_with_assets: CheckpointResult, mocked_posthog):
         action = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
 
         with mock.patch.object(Session, "post") as mock_post:
@@ -756,7 +619,7 @@ class TestV1ActionRun:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: asset_1  *Expectation Suite*: suite_a  "
+                            "text": f"*Asset*: asset_1  *Expectation Suite*: {SUITE_A}  "
                             "<www.testing?slack=true|View Results>",
                         },
                     },
@@ -765,7 +628,7 @@ class TestV1ActionRun:
                         "text": {
                             "type": "mrkdwn",
                             "text": "*Asset*: asset_2_two_wow_whoa_vroom  "
-                            "*Expectation Suite*: suite_b",
+                            f"*Expectation Suite*: {SUITE_B}",
                         },
                     },
                     {"type": "divider"},
@@ -776,7 +639,7 @@ class TestV1ActionRun:
         assert output == {"slack_notification_result": "Slack notification succeeded."}
 
     @pytest.mark.unit
-    def test_SlackNotificationAction_grabs_data_docs_pages(
+    def test_grabs_data_docs_pages(
         self, checkpoint_result_with_assets: CheckpointResult, mocked_posthog
     ):
         action = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
@@ -814,7 +677,7 @@ class TestV1ActionRun:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: asset_1  *Expectation Suite*: suite_a  "
+                            "text": f"*Asset*: asset_1  *Expectation Suite*: {SUITE_A}  "
                             "<www.testing?slack=true|View Results>",
                         },
                     },
@@ -830,7 +693,7 @@ class TestV1ActionRun:
                         "text": {
                             "type": "mrkdwn",
                             "text": "*Asset*: asset_2_two_wow_whoa_vroom  "
-                            "*Expectation Suite*: suite_b",
+                            f"*Expectation Suite*: {SUITE_B}",
                         },
                     },
                     {
@@ -855,9 +718,33 @@ class TestV1ActionRun:
         assert output == {"slack_notification_result": "Slack notification succeeded."}
 
     @pytest.mark.unit
-    def test_SNSNotificationAction_run(
-        self, sns, checkpoint_result: CheckpointResult, mocked_posthog
+    def test_variable_substitution_webhook(self, mock_context, checkpoint_result, mocked_posthog):
+        action = SlackNotificationAction(name="my_action", slack_webhook="${SLACK_WEBHOOK}")
+
+        with mock.patch("great_expectations.checkpoint.actions.send_slack_notification"):
+            action.run(checkpoint_result)
+
+        mock_context.config_provider.substitute_config.assert_called_once_with("${SLACK_WEBHOOK}")
+
+    @pytest.mark.unit
+    def test_variable_substitution_token_and_channel(
+        self, mock_context, checkpoint_result, mocked_posthog
     ):
+        action = SlackNotificationAction(
+            name="my_action", slack_token="${SLACK_TOKEN}", slack_channel="${SLACK_CHANNEL}"
+        )
+
+        with mock.patch("great_expectations.checkpoint.actions.send_slack_notification"):
+            action.run(checkpoint_result)
+
+        assert mock_context.config_provider.substitute_config.call_count == 2
+        mock_context.config_provider.substitute_config.assert_any_call("${SLACK_CHANNEL}")
+        mock_context.config_provider.substitute_config.assert_any_call("${SLACK_TOKEN}")
+
+
+class TestSNSNotificationAction:
+    @pytest.mark.unit
+    def test_run(self, sns, checkpoint_result: CheckpointResult, mocked_posthog):
         subj_topic = "test-subj"
         created_subj = sns.create_topic(Name=subj_topic)
         arn = created_subj.get("TopicArn")
@@ -870,8 +757,10 @@ class TestV1ActionRun:
         result = action.run(checkpoint_result=checkpoint_result)
         assert "Successfully posted results" in result["result"]
 
+
+class TestUpdateDataDocsAction:
     @pytest.mark.unit
-    def test_UpdateDataDocsAction_equality(self):
+    def test_equality(self):
         """I kow, this one seems silly. But this was a bug for other actions."""
         a = UpdateDataDocsAction(name="my_action")
         b = UpdateDataDocsAction(name="my_action")
@@ -879,9 +768,7 @@ class TestV1ActionRun:
         assert a == b
 
     @pytest.mark.unit
-    def test_UpdateDataDocsAction_run(
-        self, mocker: MockerFixture, checkpoint_result: CheckpointResult, mocked_posthog
-    ):
+    def test_run(self, mocker: MockerFixture, checkpoint_result: CheckpointResult, mocked_posthog):
         # Arrange
         context = mocker.Mock(spec=AbstractDataContext)
         set_context(context)
@@ -920,7 +807,7 @@ class TestV1ActionRun:
                     dry_run=False,
                     resource_identifiers=[
                         validation_identifier_a,
-                        ExpectationSuiteIdentifier(name=self.suite_a),
+                        ExpectationSuiteIdentifier(name=SUITE_A),
                     ],
                     site_names=site_names,
                 ),
@@ -929,7 +816,7 @@ class TestV1ActionRun:
                     dry_run=False,
                     resource_identifiers=[
                         validation_identifier_b,
-                        ExpectationSuiteIdentifier(name=self.suite_b),
+                        ExpectationSuiteIdentifier(name=SUITE_B),
                     ],
                     site_names=site_names,
                 ),
@@ -947,7 +834,7 @@ class TestV1ActionRun:
         }
 
     @pytest.mark.cloud
-    def test_UpdateDataDocsAction_run_cloud(
+    def test_run_with_cloud(
         self, mocker: MockerFixture, checkpoint_result: CheckpointResult, mocked_posthog
     ):
         # Arrange
@@ -990,7 +877,7 @@ class TestV1ActionRun:
                         validation_identifier_a,
                         GXCloudIdentifier(
                             resource_type=GXCloudRESTResource.EXPECTATION_SUITE,
-                            resource_name=self.suite_a,
+                            resource_name=SUITE_A,
                         ),
                     ],
                     site_names=site_names,
@@ -1002,7 +889,7 @@ class TestV1ActionRun:
                         validation_identifier_b,
                         GXCloudIdentifier(
                             resource_type=GXCloudRESTResource.EXPECTATION_SUITE,
-                            resource_name=self.suite_b,
+                            resource_name=SUITE_B,
                         ),
                     ],
                     site_names=site_names,
@@ -1013,29 +900,3 @@ class TestV1ActionRun:
             validation_identifier_a: {},
             validation_identifier_b: {},
         }
-
-    @pytest.mark.unit
-    def test_SlackNotificationAction_variable_substitution_webhook(
-        self, mock_context, checkpoint_result, mocked_posthog
-    ):
-        action = SlackNotificationAction(name="my_action", slack_webhook="${SLACK_WEBHOOK}")
-
-        with mock.patch("great_expectations.checkpoint.actions.send_slack_notification"):
-            action.run(checkpoint_result)
-
-        mock_context.config_provider.substitute_config.assert_called_once_with("${SLACK_WEBHOOK}")
-
-    @pytest.mark.unit
-    def test_SlackNotificationAction_variable_substitution_token_and_channel(
-        self, mock_context, checkpoint_result, mocked_posthog
-    ):
-        action = SlackNotificationAction(
-            name="my_action", slack_token="${SLACK_TOKEN}", slack_channel="${SLACK_CHANNEL}"
-        )
-
-        with mock.patch("great_expectations.checkpoint.actions.send_slack_notification"):
-            action.run(checkpoint_result)
-
-        assert mock_context.config_provider.substitute_config.call_count == 2
-        mock_context.config_provider.substitute_config.assert_any_call("${SLACK_CHANNEL}")
-        mock_context.config_provider.substitute_config.assert_any_call("${SLACK_TOKEN}")

@@ -751,6 +751,29 @@ def test_inline_renderer_expectation_validation_result_serialization(
             ],
             id="row_condition",
         ),
+        pytest.param(
+            ExpectationConfiguration(
+                type="expect_column_value_z_scores_to_be_less_than",
+                kwargs={"column": "column_a", "threshold": 4, "double_sided": True},
+            ),
+            [
+                {
+                    "name": "atomic.prescriptive.summary",
+                    "value": {
+                        "params": {
+                            "column": {"schema": {"type": "string"}, "value": "column_a"},
+                            "threshold": {"schema": {"type": "number"}, "value": 4},
+                            "inverse_threshold": {"schema": {"type": "number"}, "value": -4},
+                        },
+                        "schema": {"type": "com.superconductive.rendered.string"},
+                        "template": "$column value z-scores must be greater "
+                        "than $inverse_threshold and less than $threshold.",
+                    },
+                    "value_type": "StringValueType",
+                }
+            ],
+            id="z_score_double_sided",
+        ),
     ],
 )
 def test_inline_renderer_expectation_configuration_serialization(

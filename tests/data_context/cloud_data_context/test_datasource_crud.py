@@ -45,7 +45,6 @@ def test_cloud_context_add_datasource_with_fds(
     assert cloud_api_fake.assert_call_count(url=post_url, count=2)
 
 
-@pytest.mark.e2e
 def test_cloud_context_datasource_crud_e2e() -> None:
     context = gx.get_context(cloud_mode=True)
     datasource_name = f"OSSTestDatasource_{''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))}"  # noqa: E501
