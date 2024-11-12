@@ -10,13 +10,14 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 
 class SqliteDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "sqlite"
+        return "_sqlite"
 
     @property
     @override
@@ -41,7 +42,7 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
         )
 
 
-class SqliteBatchTestSetup(BatchTestSetup[SqliteDatasourceTestConfig]):
+class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
     def __init__(
         self,
         config: SqliteDatasourceTestConfig,
@@ -49,30 +50,33 @@ class SqliteBatchTestSetup(BatchTestSetup[SqliteDatasourceTestConfig]):
         base_dir: pathlib.Path,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
-        super().__init__(config=config, data=data)
         self._base_dir = base_dir
-        self._extra_data = extra_data
+        super().__init__(config=config, data=data, extra_data=extra_data)
+
+    @property
+    @override
+    def connection_string(self) -> str:
+        return f"sqlite:///{self.db_file_path}"
+
+    @property
+    @override
+    def schema(self) -> None:
+        return None
+
+    @property
+    def db_file_path(self) -> pathlib.Path:
+        return self._base_dir / "database.db"
 
     @override
     def make_batch(self) -> Batch:
         name = self._random_resource_name()
-        path = self._base_dir
 
         return (
-            self.context.data_sources.add_pandas_filesystem(name=name, base_directory=path)
-            .add_csv_asset(name=name)
-            .add_batch_definition_path(name=name, path=self.csv_path)
+            self.context.data_sources.add_sqlite(
+                name=name,
+                connection_string=self.connection_string,
+            )
+            .add_table_asset(name=name, table_name=self.table_name)
+            .add_batch_definition_whole_table(name=name)
             .get_batch()
         )
-
-    @override
-    def setup(self) -> None:
-        file_path = self._base_dir / self.csv_path
-        self.data.to_csv(file_path, index=False)
-
-    @override
-    def teardown(self) -> None: ...
-
-    @property
-    def csv_path(self) -> pathlib.Path:
-        return pathlib.Path("data.csv")
