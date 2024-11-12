@@ -1,4 +1,4 @@
-from typing import Mapping, Union
+from typing import Mapping
 
 import pandas as pd
 import pytest
@@ -45,8 +45,8 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
 
     @property
     @override
-    def schema(self) -> Union[str, None]:
-        return None
+    def use_schema(self) -> bool:
+        return False
 
     @override
     def make_batch(self) -> Batch:

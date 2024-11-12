@@ -1,4 +1,4 @@
-from typing import Mapping, Union
+from typing import Mapping
 
 import pandas as pd
 import pytest
@@ -43,10 +43,10 @@ class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
     def connection_string(self) -> str:
         return "postgresql+psycopg2://postgres@localhost:5432/test_ci"
 
-    @override
     @property
-    def schema(self) -> Union[str, None]:
-        return "public"
+    @override
+    def use_schema(self) -> bool:
+        return False
 
     @override
     def make_batch(self) -> Batch:

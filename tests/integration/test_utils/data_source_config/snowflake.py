@@ -1,4 +1,4 @@
-from typing import Mapping, Union
+from typing import Mapping
 
 import pandas as pd
 import pytest
@@ -62,15 +62,15 @@ class SnowflakeConnectionConfig(BaseSettings):
 
 
 class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
-    @override
     @property
+    @override
     def connection_string(self) -> str:
         return self.snowflake_connection_config.connection_string
 
-    @override
     @property
-    def schema(self) -> Union[str, None]:
-        return self.snowflake_connection_config.SNOWFLAKE_SCHEMA
+    @override
+    def use_schema(self) -> bool:
+        return True
 
     def __init__(
         self,

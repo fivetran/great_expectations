@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Sequence, Type, Union
 
+from sqlalchemy import TextClause
 from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
@@ -38,8 +39,11 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
     @property
     @abstractmethod
-    def schema(self) -> Union[str, None]:
-        """Schema -- if any -- to use when connecting to SQL backend."""
+    def use_schema(self) -> bool:
+        """Whether to use a schema when connecting to SQL backend.
+
+        If `True`, a schema will be automatically created.
+        """
 
     @property
     def inferrable_types_lookup(self) -> Dict[Type, TypeEngine]:
@@ -91,6 +95,13 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         extra_tables = [td.table for td in self.extra_table_data.values()]
         return [self.main_table_data.table, *extra_tables]
 
+    @cached_property
+    def schema(self) -> Union[str, None]:
+        if self.use_schema:
+            return self._random_resource_name()
+        else:
+            return None
+
     @override
     def setup(self) -> None:
         # create tables
@@ -99,6 +110,10 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
         # insert data
         with self.engine.connect() as conn, conn.begin():
+            if self.use_schema:
+                schema = self.schema
+                assert schema
+                conn.execute(TextClause(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
             for table_data in all_table_data:
                 # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
                 # index and the values are a dict of column names mapped to column values.
