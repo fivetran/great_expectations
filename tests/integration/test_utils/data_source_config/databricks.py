@@ -1,8 +1,11 @@
-from typing import Dict, Mapping, Type
+from __future__ import annotations
 
-import pandas as pd
+from functools import cached_property
+from typing import TYPE_CHECKING, Dict, Mapping, Type
+
 import pytest
 
+from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
@@ -11,6 +14,9 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class DatabricksDatasourceTestConfig(DataSourceTestConfig):
@@ -42,16 +48,16 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @property
     @override
     def connection_string(self) -> str:
-        return (
-            "databricks://token:"
-            "${DATABRICKS_TOKEN}@${DATABRICKS_HOST}:443"
-            "?http_path=${DATABRICKS_HTTP_PATH}&catalog=ci&schema=" + self.schema
-        )
+        return self._databrics_connection_config.connection_string
 
     @property
     @override
-    def schema(self) -> str:
-        return "py310_i01ec4622764c4ab8b44f1ce35e713be9"
+    def schema(self) -> None:
+        return None
+
+    @cached_property
+    def _databrics_connection_config(self) -> DatabricksConnectionConfig:
+        return DatabricksConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
 
     @property
     @override
@@ -76,4 +82,24 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
             )
             .add_batch_definition_whole_table(name=name)
             .get_batch()
+        )
+
+
+class DatabricksConnectionConfig(BaseSettings):
+    """This class retrieves these values from the environment.
+    If you're testing locally, you can use your Snowflake creds
+    and test against your own Snowflake account.
+    """
+
+    databricks_token: str
+    databricks_host: str
+    databricks_http_path: str
+    databricks_schema: str = "py310_i000e256a394a403d88fd48822616355a"
+
+    @property
+    def connection_string(self) -> str:
+        return (
+            "databricks://token:"
+            f"{self.databricks_token}@{self.databricks_host}:443"
+            f"?http_path={self.databricks_http_path}&catalog=ci&schema={self.databricks_schema}"
         )
