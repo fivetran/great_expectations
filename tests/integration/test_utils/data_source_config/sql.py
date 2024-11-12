@@ -5,13 +5,13 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Sequence, Type, Union
 
-from sqlalchemy import TextClause
 from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
     Column,
     MetaData,
     Table,
+    TextClause,
     create_engine,
     insert,
     sqltypes,
