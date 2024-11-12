@@ -140,18 +140,27 @@
                     "type": "string",
                     "format": "regex"
                 },
-                "sort_ascending": {
-                    "title": "Sort Ascending",
-                    "default": true,
-                    "type": "boolean"
-                },
                 "param_names": {
                     "title": "Param Names",
                     "default": [
                         "year"
                     ],
                     "type": "array",
-                    "items": {}
+                    "minItems": 1,
+                    "maxItems": 1,
+                    "items": [
+                        {
+                            "enum": [
+                                "year"
+                            ],
+                            "type": "string"
+                        }
+                    ]
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -167,11 +176,6 @@
                     "type": "string",
                     "format": "regex"
                 },
-                "sort_ascending": {
-                    "title": "Sort Ascending",
-                    "default": true,
-                    "type": "boolean"
-                },
                 "param_names": {
                     "title": "Param Names",
                     "default": [
@@ -179,7 +183,27 @@
                         "month"
                     ],
                     "type": "array",
-                    "items": {}
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": [
+                        {
+                            "enum": [
+                                "year"
+                            ],
+                            "type": "string"
+                        },
+                        {
+                            "enum": [
+                                "month"
+                            ],
+                            "type": "string"
+                        }
+                    ]
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -195,11 +219,6 @@
                     "type": "string",
                     "format": "regex"
                 },
-                "sort_ascending": {
-                    "title": "Sort Ascending",
-                    "default": true,
-                    "type": "boolean"
-                },
                 "param_names": {
                     "title": "Param Names",
                     "default": [
@@ -208,7 +227,33 @@
                         "day"
                     ],
                     "type": "array",
-                    "items": {}
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                        {
+                            "enum": [
+                                "year"
+                            ],
+                            "type": "string"
+                        },
+                        {
+                            "enum": [
+                                "month"
+                            ],
+                            "type": "string"
+                        },
+                        {
+                            "enum": [
+                                "day"
+                            ],
+                            "type": "string"
+                        }
+                    ]
+                },
+                "sort_ascending": {
+                    "title": "Sort Ascending",
+                    "default": true,
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -223,6 +268,13 @@
                     "title": "Regex",
                     "type": "string",
                     "format": "regex"
+                },
+                "param_names": {
+                    "title": "Param Names",
+                    "default": [],
+                    "type": "array",
+                    "minItems": 0,
+                    "maxItems": 0
                 },
                 "sort_ascending": {
                     "title": "Sort Ascending",
@@ -271,7 +323,7 @@
         },
         "CSVAsset": {
             "title": "CSVAsset",
-            "description": "Base class for PathDataAssets which batch by applying a regex to file names.",
+            "description": "--Public API--Base class for PathDataAssets which batch by applying a regex to file names.",
             "type": "object",
             "properties": {
                 "name": {
@@ -882,7 +934,7 @@
         },
         "DirectoryCSVAsset": {
             "title": "DirectoryCSVAsset",
-            "description": "Base class for PathDataAssets which batch by combining the contents of a directory.",
+            "description": "--Public API--Base class for PathDataAssets which batch by combining the contents of a directory.",
             "type": "object",
             "properties": {
                 "name": {
@@ -1189,7 +1241,7 @@
         },
         "ParquetAsset": {
             "title": "ParquetAsset",
-            "description": "Base class for PathDataAssets which batch by applying a regex to file names.",
+            "description": "--Public API--Base class for PathDataAssets which batch by applying a regex to file names.",
             "type": "object",
             "properties": {
                 "name": {
@@ -1314,7 +1366,7 @@
         },
         "DirectoryParquetAsset": {
             "title": "DirectoryParquetAsset",
-            "description": "Base class for PathDataAssets which batch by combining the contents of a directory.",
+            "description": "--Public API--Base class for PathDataAssets which batch by combining the contents of a directory.",
             "type": "object",
             "properties": {
                 "name": {
@@ -1445,7 +1497,7 @@
         },
         "ORCAsset": {
             "title": "ORCAsset",
-            "description": "Base class for PathDataAssets which batch by applying a regex to file names.",
+            "description": "--Public API--Base class for PathDataAssets which batch by applying a regex to file names.",
             "type": "object",
             "properties": {
                 "name": {
@@ -1553,7 +1605,7 @@
         },
         "DirectoryORCAsset": {
             "title": "DirectoryORCAsset",
-            "description": "Base class for PathDataAssets which batch by combining the contents of a directory.",
+            "description": "--Public API--Base class for PathDataAssets which batch by combining the contents of a directory.",
             "type": "object",
             "properties": {
                 "name": {
@@ -1667,7 +1719,7 @@
         },
         "JSONAsset": {
             "title": "JSONAsset",
-            "description": "Base class for PathDataAssets which batch by applying a regex to file names.",
+            "description": "--Public API--Base class for PathDataAssets which batch by applying a regex to file names.",
             "type": "object",
             "properties": {
                 "name": {
@@ -1939,7 +1991,7 @@
         },
         "DirectoryJSONAsset": {
             "title": "DirectoryJSONAsset",
-            "description": "Base class for PathDataAssets which batch by combining the contents of a directory.",
+            "description": "--Public API--Base class for PathDataAssets which batch by combining the contents of a directory.",
             "type": "object",
             "properties": {
                 "name": {
@@ -2217,7 +2269,7 @@
         },
         "TextAsset": {
             "title": "TextAsset",
-            "description": "Base class for PathDataAssets which batch by applying a regex to file names.",
+            "description": "--Public API--Base class for PathDataAssets which batch by applying a regex to file names.",
             "type": "object",
             "properties": {
                 "name": {
@@ -2322,7 +2374,7 @@
         },
         "DirectoryTextAsset": {
             "title": "DirectoryTextAsset",
-            "description": "Base class for PathDataAssets which batch by combining the contents of a directory.",
+            "description": "--Public API--Base class for PathDataAssets which batch by combining the contents of a directory.",
             "type": "object",
             "properties": {
                 "name": {
@@ -2433,7 +2485,7 @@
         },
         "DeltaAsset": {
             "title": "DeltaAsset",
-            "description": "Base class for PathDataAssets which batch by applying a regex to file names.",
+            "description": "--Public API--Base class for PathDataAssets which batch by applying a regex to file names.",
             "type": "object",
             "properties": {
                 "name": {
@@ -2493,7 +2545,7 @@
         },
         "DirectoryDeltaAsset": {
             "title": "DirectoryDeltaAsset",
-            "description": "Base class for PathDataAssets which batch by combining the contents of a directory.",
+            "description": "--Public API--Base class for PathDataAssets which batch by combining the contents of a directory.",
             "type": "object",
             "properties": {
                 "name": {

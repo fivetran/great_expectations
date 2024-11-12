@@ -6,7 +6,7 @@ from unittest import mock
 
 import pytest
 
-from great_expectations.checkpoint.actions import SlackNotificationAction
+from great_expectations.checkpoint import SlackNotificationAction
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.data_context_key import StringKey

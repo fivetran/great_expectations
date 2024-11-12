@@ -661,7 +661,7 @@ markers = [
     "databricks: mark test as requiring databricks.",
     "docs: mark a test as a docs test.",
     "docs-spark: temporarily mark a test as a docs test that depends on spark.",
-    "e2e: mark test as an E2E test.",
+    "integration: mark test as an integration test.",
     "external_sqldialect: mark test as requiring install of an external sql dialect.",
     "filesystem: mark tests using the filesystem as the storage backend.",
     "mssql: mark a test as mssql-dependent.",

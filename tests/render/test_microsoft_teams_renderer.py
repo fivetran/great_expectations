@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 
 from great_expectations.checkpoint.checkpoint import CheckpointResult
@@ -10,38 +12,26 @@ def test_MicrosoftTeamsRenderer_render(v1_checkpoint_result: CheckpointResult):
     rendered_output = MicrosoftTeamsRenderer().render(v1_checkpoint_result)
     body = rendered_output["attachments"][0]["content"]["body"]
 
-    first_validation_result_text_blocks = body[1]["items"][0]["text"]
-    assert (
-        first_validation_result_text_blocks[0]["text"] == "**Batch Validation Status:** Failure :("
-    )
-    assert first_validation_result_text_blocks[1]["text"] == "**Data Asset Name:** my_first_asset"
-    assert (
-        first_validation_result_text_blocks[2]["text"] == "**Expectation Suite Name:** my_bad_suite"
-    )
-    assert first_validation_result_text_blocks[4]["text"] == "**Batch ID:** my_batch"
-    assert (
-        first_validation_result_text_blocks[5]["text"]
-        == "**Summary:** *3* of *5* expectations were met"
-    )
+    # Assert header
+    assert "Failure" in body[0]["columns"][1]["items"][0]["text"]
 
-    second_validation_result_text_blocks = body[2]["items"][0]["text"]
-    assert (
-        second_validation_result_text_blocks[0]["text"]
-        == "**Batch Validation Status:** Success !!!"
-    )
-    assert (
-        second_validation_result_text_blocks[1]["text"]
-        == "**Data Asset Name:** __no_data_asset_name__"
-    )
-    assert (
-        second_validation_result_text_blocks[2]["text"]
-        == "**Expectation Suite Name:** my_good_suite"
-    )
-    assert second_validation_result_text_blocks[4]["text"] == "**Batch ID:** my_other_batch"
-    assert (
-        second_validation_result_text_blocks[5]["text"]
-        == "**Summary:** *1* of *1* expectations were met"
-    )
+    # Assert first validation result
+    assert body[1]["text"] == "Validation Result (1 of 2) ❌"
+    assert body[2]["facts"] == [
+        {"title": "Data Asset name: ", "value": "my_first_asset"},
+        {"title": "Suite name: ", "value": "my_bad_suite"},
+        {"title": "Run name: ", "value": mock.ANY},
+        {"title": "Summary:", "value": "*3* of *5* Expectations were met"},
+    ]
+
+    # Assert second validation result
+    assert body[3]["text"] == "Validation Result (2 of 2) ✅"
+    assert body[4]["facts"] == [
+        {"title": "Data Asset name: ", "value": "--"},
+        {"title": "Suite name: ", "value": "my_good_suite"},
+        {"title": "Run name: ", "value": mock.ANY},
+        {"title": "Summary:", "value": "*1* of *1* Expectations were met"},
+    ]
 
 
 @pytest.mark.unit
@@ -57,4 +47,7 @@ def test_MicrosoftTeamsRender_render_with_data_docs_pages(
         checkpoint_result=v1_checkpoint_result, data_docs_pages=data_docs_pages
     )
 
-    assert rendered_output["attachments"][0]["content"]["actions"][0]["url"] == local_path
+    assert (
+        rendered_output["attachments"][0]["content"]["actions"][0]["card"]["body"][0]["text"]
+        == local_path
+    )

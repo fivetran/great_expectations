@@ -253,6 +253,11 @@ module.exports = {
         },
         {
           type: 'link',
+          label: 'Dynamic Parameters',
+          href: '/docs/cloud/expectations/manage_expectations#dynamic-parameters',
+        },
+        {
+          type: 'link',
           label: 'Add an Expectation',
           href: '/docs/cloud/expectations/manage_expectations#add-an-expectation',
         },
@@ -428,18 +433,18 @@ module.exports = {
       label: 'Data quality use cases',
       link: { type: 'doc', id: 'reference/learn/data_quality_use_cases/dq_use_cases_lp' },
       items: [
-        'reference/learn/data_quality_use_cases/schema',
-        'reference/learn/data_quality_use_cases/missingness',
-        'reference/learn/data_quality_use_cases/volume',
         'reference/learn/data_quality_use_cases/distribution',
-        'reference/learn/data_quality_use_cases/freshness'
+        'reference/learn/data_quality_use_cases/missingness',
+        'reference/learn/data_quality_use_cases/schema',
+        'reference/learn/data_quality_use_cases/volume'
       ]
     },
     {
       type: 'category',
-      label: 'Integrations',
+      label: 'Integration tutorials',
       link: { type: 'doc', id: 'reference/learn/integrations/integrations_lp' },
       items: [
+        'reference/learn/integrations/airflow_pipeline_tutorial',
         'reference/learn/integrations/dbt_tutorial',
       ]
     },
