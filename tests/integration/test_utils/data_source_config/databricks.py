@@ -51,7 +51,7 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @property
     @override
     def schema(self) -> str:
-        return "dev"
+        return "py310_i01ec4622764c4ab8b44f1ce35e713be9"
 
     @property
     @override
