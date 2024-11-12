@@ -58,7 +58,6 @@ from great_expectations.checkpoint import (
     UpdateDataDocsAction, 
 )
 
-
 context = gx.get_context()
 # Hide this
 set_up_context_for_example(context)
