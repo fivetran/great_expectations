@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import smtplib
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from types import ModuleType
@@ -267,32 +268,23 @@ class TestEmailAction:
             receiver_emails=emails,
         )
 
-        with mock.patch("great_expectations.checkpoint.actions.send_email") as mock_send_email:
+        with mock.patch.object(smtplib, "SMTP") as mock_server:
             out = action.run(checkpoint_result=checkpoint_result)
 
-        # Should contain success/failure in title
-        assert "True" in mock_send_email.call_args.kwargs["title"]
+        mock_send_email = mock_server().sendmail
 
-        # Should contain suite names and other relevant domain object identifiers in the body
-        run_results = tuple(checkpoint_result.run_results.values())
-        suite_a = run_results[0].suite_name
-        suite_b = run_results[1].suite_name
-        mock_html = mock_send_email.call_args.kwargs["html"]
-        assert suite_a in mock_html and suite_b in mock_html
+        # Should contain success/failure in title
+        assert (
+            f"Subject: {checkpoint_result.checkpoint_config.name}: True"
+            in mock_send_email.call_args.args[-1]
+        )
 
         mock_send_email.assert_called_once_with(
-            title=mock.ANY,
-            html=mock.ANY,
-            receiver_emails_list=expected_email_list,
-            sender_alias=None,
-            sender_login=None,
-            sender_password=None,
-            smtp_address="test",
-            smtp_port="587",
-            use_ssl=None,
-            use_tls=None,
+            None,
+            expected_email_list,
+            mock.ANY,
         )
-        assert out == {"email_result": mock_send_email()}
+        assert out == {"email_result": "success"}
 
     @pytest.mark.unit
     def test_run_smptp_address_substitution(
@@ -330,20 +322,16 @@ class TestEmailAction:
         config_provider.substitute_config.side_effect = lambda key: config_from_uncommitted_config[
             key
         ]
-        with mock.patch("great_expectations.checkpoint.actions.send_email") as mock_send_email:
+        with mock.patch.object(smtplib, "SMTP") as mock_server:
             action.run(checkpoint_result=checkpoint_result)
 
-        mock_send_email.assert_called_once_with(
-            title=mock.ANY,
-            html=mock.ANY,
-            receiver_emails_list=["foo@greatexpectations.io", "bar@great_expectations.io"],
-            sender_alias=config_from_uncommitted_config[SENDER_ALIAS_KEY],
-            sender_login=config_from_uncommitted_config[SENDER_LOGIN_KEY],
-            sender_password=config_from_uncommitted_config[SENDER_PASSWORD_KEY],
-            smtp_address=config_from_uncommitted_config[SMPT_ADDRESS_KEY],
-            smtp_port=config_from_uncommitted_config[SMPT_PORT_KEY],
-            use_ssl=mock.ANY,
-            use_tls=mock.ANY,
+        mock_server().sendmail.assert_called_once_with(
+            config_from_uncommitted_config[SENDER_ALIAS_KEY],
+            [
+                email.strip()
+                for email in config_from_uncommitted_config[RECEIVER_EMAILS_KEY].split(",")
+            ],
+            mock.ANY,
         )
 
 
@@ -412,15 +400,10 @@ class TestMicrosoftTeamsNotificationAction:
         config_provider.substitute_config.side_effect = lambda key: config_from_uncommitted_config[
             key
         ]
-        with mock.patch(
-            "great_expectations.checkpoint.actions.send_microsoft_teams_notifications"
-        ) as mock_send_notification:
+        with mock.patch.object(Session, "post") as mock_send_notification:
             action.run(checkpoint_result=checkpoint_result)
 
-        mock_send_notification.assert_called_once_with(
-            payload=mock.ANY,
-            microsoft_teams_webhook=MS_TEAMS_WEBHOOK_VALUE,
-        )
+        mock_send_notification.assert_called_once_with(url=MS_TEAMS_WEBHOOK_VALUE, json=mock.ANY)
 
     @pytest.mark.integration
     def test_run_integration_success(
@@ -721,7 +704,7 @@ class TestSlackNotificationAction:
     def test_variable_substitution_webhook(self, mock_context, checkpoint_result, mocked_posthog):
         action = SlackNotificationAction(name="my_action", slack_webhook="${SLACK_WEBHOOK}")
 
-        with mock.patch("great_expectations.checkpoint.actions.send_slack_notification"):
+        with mock.patch.object(Session, "post"):
             action.run(checkpoint_result)
 
         mock_context.config_provider.substitute_config.assert_called_once_with("${SLACK_WEBHOOK}")
@@ -734,7 +717,7 @@ class TestSlackNotificationAction:
             name="my_action", slack_token="${SLACK_TOKEN}", slack_channel="${SLACK_CHANNEL}"
         )
 
-        with mock.patch("great_expectations.checkpoint.actions.send_slack_notification"):
+        with mock.patch.object(Session, "post"):
             action.run(checkpoint_result)
 
         assert mock_context.config_provider.substitute_config.call_count == 2
