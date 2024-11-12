@@ -115,7 +115,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             table.drop(self.engine)
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
-        parts = [self.config.label, "expectation_test_table", label, self._random_resource_name()]
+        parts = ["expectation_test_table", label, self._random_resource_name()]
         return "_".join([part for part in parts if part])
 
     def _ensure_all_table_data_created(self) -> Sequence[_TableData]:

@@ -17,7 +17,7 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "_sqlite"
+        return "sqlite"
 
     @property
     @override
