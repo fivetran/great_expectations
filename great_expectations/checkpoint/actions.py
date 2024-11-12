@@ -352,7 +352,6 @@ class SlackNotificationAction(DataDocsAction):
         return {"slack_notification_result": slack_notif_result}
 
 
-@public_api
 class PagerdutyAlertAction(ValidationAction):
     """Sends a PagerDuty event.
 
@@ -419,31 +418,8 @@ class PagerdutyAlertAction(ValidationAction):
 class MicrosoftTeamsNotificationAction(ValidationAction):
     """Sends a Microsoft Teams notification to a given webhook.
 
-    ```yaml
-    - name: send_microsoft_teams_notification_on_validation_result
-    action:
-      class_name: MicrosoftTeamsNotificationAction
-      # put the actual webhook URL in the uncommitted/config_variables.yml file
-      # or pass in as environment variable
-      microsoft_teams_webhook: ${validation_notification_microsoft_teams_webhook}
-      notify_on: all
-      renderer:
-        # the class that implements the message to be sent
-        # this is the default implementation, but you can
-        # implement a custom one
-        module_name: great_expectations.render.renderer.microsoft_teams_renderer
-        class_name: MicrosoftTeamsRenderer
-    ```
-
     Args:
-        renderer: Specifies the renderer used to generate a query consumable by teams API, e.g.:
-            ```python
-            {
-               "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",
-               "class_name": "MicrosoftTeamsRenderer",
-            }
-            ```
-        microsoft_teams_webhook: Incoming Microsoft Teams webhook to which to send notifications.
+        teams_webhook: Incoming Microsoft Teams webhook to which to send notifications.
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
     """  # noqa: E501
 
@@ -497,7 +473,6 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
         return {"microsoft_teams_notification_result": teams_notif_result}
 
 
-@public_api
 class OpsgenieAlertAction(ValidationAction):
     """Sends an Opsgenie alert.
 
@@ -814,7 +789,6 @@ class UpdateDataDocsAction(DataDocsAction):
         return data_docs_validation_results
 
 
-@public_api
 class SNSNotificationAction(ValidationAction):
     """Action that pushes validations results to an SNS topic with a subject of passed or failed.
 
@@ -901,10 +875,7 @@ CheckpointAction = Annotated[
     Union[
         EmailAction,
         MicrosoftTeamsNotificationAction,
-        OpsgenieAlertAction,
-        PagerdutyAlertAction,
         SlackNotificationAction,
-        SNSNotificationAction,
         UpdateDataDocsAction,
     ],
     Field(discriminator="type"),

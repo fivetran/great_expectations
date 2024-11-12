@@ -1,12 +1,15 @@
 from datetime import datetime, timezone
+from typing import Mapping
 
 import pandas as pd
 
 import great_expectations.expectations as gxe
-from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
+from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
+    MSSQLDatasourceTestConfig,
+    MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
@@ -16,10 +19,12 @@ from tests.integration.test_utils.data_source_config import (
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
-        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
+        PostgreSQLDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -31,6 +36,8 @@ def test_expect_column_min_to_be_between(batch_for_datasource) -> None:
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
@@ -58,6 +65,8 @@ def test_expect_column_min_to_be_between__date(batch_for_datasource) -> None:
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
@@ -85,10 +94,12 @@ def test_expect_column_max_to_be_between__date(batch_for_datasource) -> None:
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
-        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
+        PostgreSQLDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -100,10 +111,12 @@ def test_expect_column_max_to_be_between(batch_for_datasource) -> None:
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
-        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
+        PostgreSQLDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -115,10 +128,12 @@ def test_expect_column_to_exist(batch_for_datasource):
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
-        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
+        PostgreSQLDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
     ],
     data=pd.DataFrame({"a": [1, 2]}),
 )
@@ -130,10 +145,11 @@ def test_expect_column_values_to_not_be_null(batch_for_datasource):
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        MySQLDatasourceTestConfig(),
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
-        SnowflakeDatasourceTestConfig(column_types={"a": SNOWFLAKE_TYPES.NUMBER}),
-        PostgreSQLDatasourceTestConfig(column_types={"a": sqltypes.INTEGER}),
+        PostgreSQLDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
     ],
     data=pd.DataFrame({"a": [1, 2, 3, 4]}),
 )
@@ -146,31 +162,43 @@ def test_expect_column_mean_to_be_between(batch_for_datasource):
 class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
-            PostgreSQLDatasourceTestConfig(
-                column_types={"col_a": sqltypes.INTEGER},
-                extra_assets={"test_table_two": {"col_b": sqltypes.VARCHAR}},
-            ),
+            MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(),
+            PostgreSQLDatasourceTestConfig(),
+            SnowflakeDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
-        extra_data={"test_table_two": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
+        extra_data={"other_table": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
     )
-    def test_success(self, batch_for_datasource):
-        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name="test_table_two")
+    def test_success(
+        self,
+        batch_for_datasource: Batch,
+        extra_table_names_for_datasource: Mapping[str, str],
+    ):
+        other_table_name = extra_table_names_for_datasource["other_table"]
+        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
         result = batch_for_datasource.validate(expectation)
         assert result.success
 
     @parameterize_batch_for_data_sources(
         data_source_configs=[
+            MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(
-                column_types={"col_a": sqltypes.INTEGER},
-                extra_assets={"test_table_two": {"col_b": sqltypes.VARCHAR}},
+                extra_column_types={"other_table": {"col_b": sqltypes.VARCHAR}}
             ),
+            SnowflakeDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
-        extra_data={"test_table_two": pd.DataFrame({"col_b": ["just_this_one!"]})},
+        extra_data={"other_table": pd.DataFrame({"col_b": ["just_this_one!"]})},
     )
-    def test_different_counts(self, batch_for_datasource):
-        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name="test_table_two")
+    def test_different_counts(
+        self,
+        batch_for_datasource: Batch,
+        extra_table_names_for_datasource: Mapping[str, str],
+    ):
+        other_table_name = extra_table_names_for_datasource["other_table"]
+        expectation = gxe.ExpectTableRowCountToEqualOtherTable(other_table_name=other_table_name)
         result = batch_for_datasource.validate(expectation)
         assert not result.success
         assert result.result["observed_value"] == {
@@ -180,9 +208,10 @@ class TestExpectTableRowCountToEqualOtherTable:
 
     @parameterize_batch_for_data_sources(
         data_source_configs=[
-            PostgreSQLDatasourceTestConfig(
-                column_types={"col_a": sqltypes.INTEGER},
-            ),
+            MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(),
+            PostgreSQLDatasourceTestConfig(),
+            SnowflakeDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
     )
