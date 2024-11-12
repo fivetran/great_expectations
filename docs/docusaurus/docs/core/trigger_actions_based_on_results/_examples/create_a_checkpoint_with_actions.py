@@ -52,10 +52,9 @@ os.environ["validation_notification_slack_channel"] = "my_slack_channel"
 
 # <snippet name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_checkpoint_with_actions.py - full code example">
 import great_expectations as gx
-
 from great_expectations.checkpoint import (
     SlackNotificationAction,
-    UpdateDataDocsAction, 
+    UpdateDataDocsAction,
 )
 
 context = gx.get_context()
