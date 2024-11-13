@@ -53,6 +53,8 @@ class SnowflakeConnectionConfig(BaseSettings):
 
     @property
     def connection_string(self) -> str:
+        # Note: we don't specify the schema here because it will be created dynamically, and we pass
+        # it into the `data_sources.add_snowflake` call.
         return (
             f"snowflake://{self.SNOWFLAKE_USER}:{self.SNOWFLAKE_PW}"
             f"@{self.SNOWFLAKE_ACCOUNT}/{self.SNOWFLAKE_DATABASE}"
