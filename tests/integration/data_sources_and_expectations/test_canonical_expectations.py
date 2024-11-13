@@ -15,6 +15,7 @@ from tests.integration.test_utils.data_source_config import (
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
+    SqliteDatasourceTestConfig,
 )
 
 ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
@@ -24,6 +25,7 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasFilesystemCsvDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
+    SqliteDatasourceTestConfig(),
 ]
 
 
@@ -45,6 +47,7 @@ def test_expect_column_min_to_be_between(batch_for_datasource) -> None:
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         SnowflakeDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        SqliteDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
     ],
     data=pd.DataFrame(
         {
@@ -74,6 +77,7 @@ def test_expect_column_min_to_be_between__date(batch_for_datasource) -> None:
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         SnowflakeDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        SqliteDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
     ],
     data=pd.DataFrame(
         {
@@ -142,6 +146,7 @@ class TestExpectTableRowCountToEqualOtherTable:
             MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
             SnowflakeDatasourceTestConfig(),
+            SqliteDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
         extra_data={"other_table": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
@@ -164,6 +169,7 @@ class TestExpectTableRowCountToEqualOtherTable:
                 extra_column_types={"other_table": {"col_b": sqltypes.VARCHAR}}
             ),
             SnowflakeDatasourceTestConfig(),
+            SqliteDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
         extra_data={"other_table": pd.DataFrame({"col_b": ["just_this_one!"]})},
@@ -188,6 +194,7 @@ class TestExpectTableRowCountToEqualOtherTable:
             MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
             SnowflakeDatasourceTestConfig(),
+            SqliteDatasourceTestConfig(),
         ],
         data=pd.DataFrame({"a": [1, 2, 3, 4]}),
     )
