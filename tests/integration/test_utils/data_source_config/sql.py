@@ -113,7 +113,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
             if self.use_schema:
                 schema = self.schema
                 assert schema
-                conn.execute(TextClause(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
+                conn.execute(TextClause(f"CREATE SCHEMA {schema}"))
             for table_data in all_table_data:
                 # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
                 # index and the values are a dict of column names mapped to column values.
@@ -128,6 +128,11 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
     def teardown(self) -> None:
         for table in self.tables:
             table.drop(self.engine)
+        with self.engine.connect() as conn, conn.begin():
+            if self.use_schema:
+                schema = self.schema
+                assert schema
+                conn.execute(TextClause(f"DROP SCHEMA {schema}"))
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = ["expectation_test_table", label, self._random_resource_name()]
