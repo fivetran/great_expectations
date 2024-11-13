@@ -135,7 +135,8 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
                 conn.execute(TextClause(f"DROP SCHEMA {schema}"))
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
-        parts = ["expectation_test_table", label, self._random_resource_name()]
+        schema = f"{self.schema}." if self.use_schema else None
+        parts = [schema, "expectation_test_table", label, self._random_resource_name()]
         return "_".join([part for part in parts if part])
 
     def _ensure_all_table_data_created(self) -> Sequence[_TableData]:

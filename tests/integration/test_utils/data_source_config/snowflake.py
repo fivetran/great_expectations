@@ -51,10 +51,11 @@ class SnowflakeConnectionConfig(BaseSettings):
     SNOWFLAKE_WAREHOUSE: str
     SNOWFLAKE_ROLE: str = "PUBLIC"
 
-    def connection_string(self, schema: str) -> str:
+    @property
+    def connection_string(self) -> str:
         return (
             f"snowflake://{self.SNOWFLAKE_USER}:{self.SNOWFLAKE_PW}"
-            f"@{self.SNOWFLAKE_ACCOUNT}/{self.SNOWFLAKE_DATABASE}/{schema}"
+            f"@{self.SNOWFLAKE_ACCOUNT}/{self.SNOWFLAKE_DATABASE}"
             f"?warehouse={self.SNOWFLAKE_WAREHOUSE}&role={self.SNOWFLAKE_ROLE}"
         )
 
@@ -65,7 +66,7 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
     def connection_string(self) -> str:
         schema = self.schema
         assert schema
-        return self.snowflake_connection_config.connection_string(schema)
+        return self.snowflake_connection_config.connection_string
 
     @property
     @override
