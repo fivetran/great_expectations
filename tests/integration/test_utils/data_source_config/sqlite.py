@@ -60,8 +60,8 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
 
     @property
     @override
-    def schema(self) -> None:
-        return None
+    def use_schema(self) -> bool:
+        return False
 
     @property
     def db_file_path(self) -> pathlib.Path:
