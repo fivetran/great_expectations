@@ -104,16 +104,18 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
 
     @override
     def setup(self) -> None:
-        # create tables
-        all_table_data = self._ensure_all_table_data_created()
-        self.metadata.create_all(self.engine)
-
-        # insert data
         with self.engine.connect() as conn, conn.begin():
+            # create schema if needed
             if self.use_schema:
                 schema = self.schema
                 assert schema
                 conn.execute(TextClause(f"CREATE SCHEMA {schema}"))
+
+            # create tables
+            all_table_data = self._ensure_all_table_data_created()
+            self.metadata.create_all(self.engine)
+
+            # insert data
             for table_data in all_table_data:
                 # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
                 # index and the values are a dict of column names mapped to column values.
@@ -135,8 +137,7 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
                 conn.execute(TextClause(f"DROP SCHEMA {schema}"))
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
-        schema = f"{self.schema}." if self.use_schema else None
-        parts = [schema, "expectation_test_table", label, self._random_resource_name()]
+        parts = ["expectation_test_table", label, self._random_resource_name()]
         return "_".join([part for part in parts if part])
 
     def _ensure_all_table_data_created(self) -> Sequence[_TableData]:
