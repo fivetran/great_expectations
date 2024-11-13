@@ -106,10 +106,9 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
     def setup(self) -> None:
         with self.engine.connect() as conn, conn.begin():
             # create schema if needed
-            if self.use_schema:
-                schema = self.schema
-                assert schema
-                conn.execute(TextClause(f"CREATE SCHEMA {schema}"))
+
+            if self.schema:
+                conn.execute(TextClause(f"CREATE SCHEMA {self.schema}"))
 
             # create tables
             all_table_data = self._ensure_all_table_data_created()
@@ -131,10 +130,8 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         for table in self.tables:
             table.drop(self.engine)
         with self.engine.connect() as conn, conn.begin():
-            if self.use_schema:
-                schema = self.schema
-                assert schema
-                conn.execute(TextClause(f"DROP SCHEMA {schema}"))
+            if self.schema:
+                conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = ["expectation_test_table", label, self._random_resource_name()]
