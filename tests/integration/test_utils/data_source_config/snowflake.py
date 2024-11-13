@@ -66,8 +66,6 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
     @property
     @override
     def connection_string(self) -> str:
-        schema = self.schema
-        assert schema
         return self.snowflake_connection_config.connection_string
 
     @property
