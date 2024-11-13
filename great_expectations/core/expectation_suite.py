@@ -212,6 +212,10 @@ class ExpectationSuite(SerializableDictDot):
     @public_api
     def delete_expectation(self, expectation: Expectation) -> Expectation:
         """Delete an Expectation from the collection.
+        The input Expectation must be in the suite and referenced by index.
+
+        Example:
+            >>> suite.delete_expectation(suite.expectations[0])
 
         Raises:
             KeyError: Expectation not found in suite.
