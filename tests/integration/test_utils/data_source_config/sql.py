@@ -129,8 +129,8 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
     def teardown(self) -> None:
         for table in self.tables:
             table.drop(self.engine)
-        with self.engine.connect() as conn, conn.begin():
-            if self.schema:
+        if self.schema:
+            with self.engine.connect() as conn, conn.begin():
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
