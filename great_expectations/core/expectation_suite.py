@@ -145,19 +145,13 @@ class ExpectationSuite(SerializableDictDot):
             )
         should_save_expectation = self._has_been_saved()
         expectation_is_unique = all(
-            expectation.configuration != existing_expectation.configuration
-            for existing_expectation in self.expectations
+            expectation != existing_expectation for existing_expectation in self.expectations
         )
         if expectation_is_unique:
             # suite is a set-like collection, so don't add if it not unique
-            self.expectations.append(expectation)
             if should_save_expectation:
-                try:
-                    expectation = self._store.add_expectation(suite=self, expectation=expectation)
-                    self.expectations[-1].id = expectation.id
-                except Exception as exc:
-                    self.expectations.pop()
-                    raise exc  # noqa: TRY201
+                expectation = self._store.add_expectation(suite=self, expectation=expectation)
+            self.expectations.append(expectation)
 
         expectation.register_save_callback(save_callback=self._save_expectation)
 
@@ -222,9 +216,7 @@ class ExpectationSuite(SerializableDictDot):
         Raises:
             KeyError: Expectation not found in suite.
         """
-        remaining_expectations = [
-            exp for exp in self.expectations if exp.configuration != expectation.configuration
-        ]
+        remaining_expectations = [exp for exp in self.expectations if exp != expectation]
         if len(remaining_expectations) != len(self.expectations) - 1:
             raise KeyError("No matching expectation was found.")  # noqa: TRY003
         self.expectations = remaining_expectations
