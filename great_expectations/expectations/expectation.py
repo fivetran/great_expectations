@@ -65,6 +65,8 @@ from great_expectations.expectations.model_field_descriptions import (
     WINDOWS_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
+    ConditionParserEnum,
+    ConditionParserException,
     MostlyField,
 )
 from great_expectations.expectations.registry import (
@@ -1816,6 +1818,13 @@ class ColumnAggregateExpectation(BatchExpectation, ABC):
                 }
             )
 
+    @pydantic.validator("condition_parser")
+    def condition_parser_allows_legacy_strings(cls, v):
+        if v not in ConditionParserEnum:
+            # error raised tells the user they should use what's in the public API
+            raise ConditionParserException(v)
+        return v
+
 
 class ColumnMapExpectation(BatchExpectation, ABC):
     """Base class for ColumnMapExpectations.
@@ -1872,6 +1881,13 @@ class ColumnMapExpectation(BatchExpectation, ABC):
                     }
                 }
             )
+
+    @pydantic.validator("condition_parser")
+    def condition_parser_allows_legacy_strings(cls, v):
+        if v not in ConditionParserEnum:
+            # error raised tells the user they should use what's in the public API
+            raise ConditionParserException(v)
+        return v
 
     @classmethod
     @override
@@ -2142,6 +2158,13 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
                 }
             )
 
+    @pydantic.validator("condition_parser")
+    def condition_parser_allows_legacy_strings(cls, v):
+        if v not in ConditionParserEnum:
+            # error raised tells the user they should use what's in the public API
+            raise ConditionParserException(v)
+        return v
+
     @classmethod
     @override
     def is_abstract(cls) -> bool:
@@ -2399,6 +2422,13 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
                     }
                 }
             )
+
+    @pydantic.validator("condition_parser")
+    def condition_parser_allows_legacy_strings(cls, v):
+        if v not in ConditionParserEnum:
+            # error raised tells the user they should use what's in the public API
+            raise ConditionParserException(v)
+        return v
 
     @classmethod
     @override
