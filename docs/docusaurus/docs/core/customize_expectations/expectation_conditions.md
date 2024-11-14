@@ -27,15 +27,15 @@ Great Expectations allows you to specify conditions for validating rows using th
 
 ### Procedure
 
-   In this procedure, it is assumed that your Data Context is stored in the variable `context`, and your Expectation Suite is stored in the variable `suite`. The `suite` can either be a newly created and empty Expectation Suite or an existing Expectation Suite retrieved from the Data Context.
-   
-   The examples in this procedure use passenger data from the Titanic, which includes details about the class of ticket held by the passenger and whether or not they survived the journey.
-   
-   1. Determine the `condition_parser` for your `row_condition`.
-
    <Tabs queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
    <TabItem value="pandas" label="pandas">
+
+      In this procedure, it is assumed that your Data Context is stored in the variable `context`, and your Expectation Suite is stored in the variable `suite`. The `suite` can either be a newly created and empty Expectation Suite or an existing Expectation Suite retrieved from the Data Context.
+      
+      The examples in this procedure use passenger data from the Titanic, which includes details about the class of ticket held by the passenger and whether or not they survived the journey.
+      
+      1. Determine the `condition_parser` for your `row_condition`.
 
       The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`.
 
@@ -43,11 +43,23 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    <TabItem value="spark" label="Spark">
 
+      In this procedure, it is assumed that your Data Context is stored in the variable `context`, and your Expectation Suite is stored in the variable `suite`. The `suite` can either be a newly created and empty Expectation Suite or an existing Expectation Suite retrieved from the Data Context.
+      
+      The examples in this procedure use passenger data from the Titanic, which includes details about the class of ticket held by the passenger and whether or not they survived the journey.
+      
+      1. Determine the `condition_parser` for your `row_condition`.
+
       The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with Spark, set this argument to `"great_expectations"`.
 
    </TabItem>
 
    <TabItem value="sql" label="SQL">
+
+      In this procedure, it is assumed that your Data Context is stored in the variable `context`, and your Expectation Suite is stored in the variable `suite`. The `suite` can either be a newly created and empty Expectation Suite or an existing Expectation Suite retrieved from the Data Context.
+      
+      The examples in this procedure use passenger data from the Titanic, which includes details about the class of ticket held by the passenger and whether or not they survived the journey.
+      
+      1. Determine the `condition_parser` for your `row_condition`.
 
       The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with SQL, set this argument to `"great_expectations"`.
 
