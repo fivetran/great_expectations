@@ -1,4 +1,4 @@
-from typing import Dict, Mapping, Type, Union
+from typing import Dict, Mapping, Type
 
 import pandas as pd
 import pytest
@@ -46,8 +46,8 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
 
     @property
     @override
-    def schema(self) -> Union[str, None]:
-        return None
+    def use_schema(self) -> bool:
+        return False
 
     @property
     @override

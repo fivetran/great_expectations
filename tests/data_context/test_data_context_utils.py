@@ -50,6 +50,13 @@ def test_load_class_raises_error_when_module_name_is_not_string():
             load_class(bad_input, "great_expectations.datasource")
 
 
+@pytest.mark.unit
+def test_mask_db_url__does_not_mask_config_strings():
+    config_str = "${MY_DB_URL}"
+    output = PasswordMasker.mask_db_url(config_str)
+    assert output == config_str
+
+
 @pytest.mark.filesystem
 @pytest.mark.filterwarnings(
     "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"

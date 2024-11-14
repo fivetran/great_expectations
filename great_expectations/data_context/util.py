@@ -171,7 +171,7 @@ class PasswordMasker:
     @classmethod
     def mask_db_url(cls, url: str, use_urlparse: bool = False, **kwargs) -> str:
         """
-        Mask password in database url.
+        Mask password in database url unless it is a substitution string, e.g. ConfigStr.
         Uses sqlalchemy engine parsing if sqlalchemy is installed, otherwise defaults to using urlparse from the stdlib which does not handle kwargs.
         Args:
             url: Database url e.g. "postgresql+psycopg2://username:password@host:65432/database"
@@ -181,8 +181,15 @@ class PasswordMasker:
         Returns:
             url with password masked e.g. "postgresql+psycopg2://username:***@host:65432/database"
         """  # noqa: E501
+
+        from great_expectations.datasource.fluent.config_str import ConfigStr
+
+        is_config_str = ConfigStr.str_contains_config_template(url)
+
         if url.startswith("DefaultEndpointsProtocol"):
             return cls._obfuscate_azure_blobstore_connection_string(url)
+        elif is_config_str:
+            return url
         elif sa is not None and use_urlparse is False:
             try:
                 engine = sa.create_engine(url, **kwargs)
