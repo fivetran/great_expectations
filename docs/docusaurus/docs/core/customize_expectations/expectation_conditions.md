@@ -29,27 +29,27 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    <Tabs queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
-In this procedure, it is assumed that your Data Context is stored in the variable `context`, and your Expectation Suite is stored in the variable `suite`. The `suite` can either be a newly created and empty Expectation Suite or an existing Expectation Suite retrieved from the Data Context.
-
-The examples in this procedure use passenger data from the Titanic, which includes details about the class of ticket held by the passenger and whether or not they survived the journey.
-
-1. Determine the `condition_parser` for your `row_condition`.
+   In this procedure, it is assumed that your Data Context is stored in the variable `context`, and your Expectation Suite is stored in the variable `suite`. The `suite` can either be a newly created and empty Expectation Suite or an existing Expectation Suite retrieved from the Data Context.
+   
+   The examples in this procedure use passenger data from the Titanic, which includes details about the class of ticket held by the passenger and whether or not they survived the journey.
+   
+   1. Determine the `condition_parser` for your `row_condition`.
 
    <TabItem value="pandas" label="pandas">
 
-   The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`.
+      The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`.
 
    </TabItem>
 
    <TabItem value="spark" label="Spark">
 
-   The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with Spark, set this argument to `"great_expectations"`.
+      The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with Spark, set this argument to `"great_expectations"`.
 
    </TabItem>
 
    <TabItem value="sql" label="SQL">
 
-   The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with SQL, set this argument to `"great_expectations"`.
+      The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with SQL, set this argument to `"great_expectations"`.
 
    </TabItem>
 
