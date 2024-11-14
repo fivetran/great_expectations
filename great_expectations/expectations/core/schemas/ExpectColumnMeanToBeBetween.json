@@ -79,8 +79,8 @@
         "condition_parser": {
             "title": "Condition Parser",
             "enum": [
-                "pandas",
-                "great_expectations"
+                "great_expectations",
+                "pandas"
             ],
             "type": "string"
         },
