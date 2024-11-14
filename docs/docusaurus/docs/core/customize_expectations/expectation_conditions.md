@@ -76,7 +76,7 @@ The examples in this procedure use passenger data from the Titanic, which includ
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - pandas example row_condition"
       ```
    
-      Do not use single quotes, newlines, or `\n` inside the specified `row_condition` as shown in the following examples:
+      Do not use single quotes, newlines, or `\n` in the specified `row_condition` as shown in the following examples:
 
       ```python title="Python" 
       row_condition = "PClass=='1st'"  # Don't do this. Single quotes aren't valid!
@@ -97,7 +97,7 @@ The examples in this procedure use passenger data from the Titanic, which includ
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - spark example row_condition"
       ```
    
-      Do not use single quotes, newlines, or `\n` inside the specified `row_condition` as shown in the following examples:
+      Do not use single quotes, newlines, or `\n` in the specified `row_condition` as shown in the following examples:
 
       ```python title="Python" 
       row_condition = "col('PClass')=='1st'"  # Don't do this. Single quotes aren't valid!
@@ -118,7 +118,7 @@ The examples in this procedure use passenger data from the Titanic, which includ
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - sql example row_condition"
       ```
    
-      Do not use single quotes, newlines, or `\n` inside the specified `row_condition` as shown in the following examples:
+      Do not use single quotes, newlines, or `\n` in the specified `row_condition` as shown in the following examples:
    
       ```python title="Python" 
       row_condition = "col('PClass')=='1st'"  # Don't do this. Single quotes aren't valid!
