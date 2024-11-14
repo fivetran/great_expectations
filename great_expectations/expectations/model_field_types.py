@@ -74,13 +74,6 @@ ValueSetField = Annotated[
 ConditionParser = Literal["great_expectations", "pandas"]
 
 
-class ConditionParserException(ValueError):
-    def __init__(self, value: str) -> None:
-        super().__init__(
-            f"unexpected value `{value}`, condition_parser must be one of {ConditionParser}"
-        )
-
-
 class ConditionParserEnum(str, Enum):
     """Type of parser to be used to interpret a Row Condition."""
 
