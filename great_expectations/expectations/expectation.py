@@ -1821,9 +1821,11 @@ class ColumnAggregateExpectation(BatchExpectation, ABC):
 
     @pydantic.validator("condition_parser")
     def condition_parser_allows_legacy_strings(cls, v):
-        if v not in ConditionParserEnum:
+        try:
+            ConditionParserEnum(v)
+        except ValueError as e:
             # error raised tells the user they should use what's in the public API
-            raise ConditionParserException(v)
+            raise ConditionParserException(v) from e
         return v
 
 
@@ -1885,9 +1887,11 @@ class ColumnMapExpectation(BatchExpectation, ABC):
 
     @pydantic.validator("condition_parser")
     def condition_parser_allows_legacy_strings(cls, v):
-        if v not in ConditionParserEnum:
+        try:
+            ConditionParserEnum(v)
+        except ValueError as e:
             # error raised tells the user they should use what's in the public API
-            raise ConditionParserException(v)
+            raise ConditionParserException(v) from e
         return v
 
     @classmethod
@@ -2161,9 +2165,11 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
 
     @pydantic.validator("condition_parser")
     def condition_parser_allows_legacy_strings(cls, v):
-        if v not in ConditionParserEnum:
+        try:
+            ConditionParserEnum(v)
+        except ValueError as e:
             # error raised tells the user they should use what's in the public API
-            raise ConditionParserException(v)
+            raise ConditionParserException(v) from e
         return v
 
     @classmethod
@@ -2426,9 +2432,11 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
 
     @pydantic.validator("condition_parser")
     def condition_parser_allows_legacy_strings(cls, v):
-        if v not in ConditionParserEnum:
+        try:
+            ConditionParserEnum(v)
+        except ValueError as e:
             # error raised tells the user they should use what's in the public API
-            raise ConditionParserException(v)
+            raise ConditionParserException(v) from e
         return v
 
     @classmethod
