@@ -47,7 +47,7 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @property
     @override
     def connection_string(self) -> str:
-        return self._databrics_connection_config.connection_string
+        return f"{self._databrics_connection_config.connection_string}&schema={self.schema}"
 
     @property
     @override
