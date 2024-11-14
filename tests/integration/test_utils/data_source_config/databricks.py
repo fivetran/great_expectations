@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from functools import cached_property
 from typing import TYPE_CHECKING, Mapping
 
 import pytest
 
+from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
@@ -46,11 +48,8 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @property
     @override
     def connection_string(self) -> str:
-        return (
-            "databricks://token:"
-            "${DATABRICKS_TOKEN}@${DATABRICKS_HOST}:443"
-            f"?http_path=${{DATABRICKS_HTTP_PATH}}&catalog=ci&schema={self.schema}"
-        )
+        assert self.schema
+        return self._databrics_connection_config.connection_string(self.schema)
 
     @property
     @override
@@ -64,6 +63,10 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
             str: sqltypes.VARCHAR(255),  # databricks requires a length for VARCHAR
         }
         return super().inferrable_types_lookup | overrides
+
+    @cached_property
+    def _databrics_connection_config(self) -> DatabricksConnectionConfig:
+        return DatabricksConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
 
     @override
     def make_batch(self) -> Batch:
@@ -80,4 +83,22 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
             )
             .add_batch_definition_whole_table(name=name)
             .get_batch()
+        )
+
+
+class DatabricksConnectionConfig(BaseSettings):
+    """This class retrieves these values from the environment.
+    If you're testing locally, you can use your Snowflake creds
+    and test against your own Snowflake account.
+    """
+
+    databricks_token: str
+    databricks_host: str
+    databricks_http_path: str
+
+    def connection_string(self, schema: str) -> str:
+        return (
+            "databricks://token:"
+            f"{self.databricks_token}@{self.databricks_host}:443"
+            f"?http_path={self.databricks_http_path}&catalog=ci&schema={schema}"
         )
