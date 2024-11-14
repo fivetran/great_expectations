@@ -27,16 +27,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
 ### Procedure
 
-<Tabs 
-   queryString="procedure"
-   defaultValue="instructions"
-   values={[
-      {value: 'instructions', label: 'Instructions'},
-      {value: 'sample_code', label: 'Sample code'}
-   ]}
->
-
-<TabItem value="instructions" label="Instructions">
+   <Tabs queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
 In this procedure, it is assumed that your Data Context is stored in the variable `context`, and your Expectation Suite is stored in the variable `suite`. The `suite` can either be a newly created and empty Expectation Suite or an existing Expectation Suite retrieved from the Data Context.
 
@@ -44,7 +35,25 @@ The examples in this procedure use passenger data from the Titanic, which includ
 
 1. Determine the `condition_parser` for your `row_condition`.
 
-   The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`. If you are adding Expectation conditions using Spark or SQLAlchemy, set this argument to `"great_expectations"`.
+   <TabItem value="pandas" label="pandas">
+
+   The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`.
+
+   </TabItem>
+
+   <TabItem value="spark" label="Spark">
+
+   The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with Spark, set this argument to `"great_expectations"`.
+
+   </TabItem>
+
+   <TabItem value="sql" label="SQL">
+
+   The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with SQL, set this argument to `"great_expectations"`.
+
+   </TabItem>
+
+   </Tabs>
 
    Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
@@ -219,40 +228,6 @@ The examples in this procedure use passenger data from the Titanic, which includ
    </TabItem>
 
    </Tabs>
-
-</TabItem>
-
-<TabItem value="sample_code" label="Sample code">
-
-```python title="Python"
-import great_expectations as gx
-import great_expectations.expectations as gxe
-from great_expectations.core.expectation_suite import ExpectationSuite
-
-context = gx.get_context()
-
-suite = context.suites.add(ExpectationSuite(name="my_expectation_suite"))
-
-expectation = suite.add_expectation(
-   gxe.ExpectColumnValuesToBeInSet(
-      column="Survived",
-      value_set=[0, 1]
-   )
-)
-
-conditional_expectation = suite.add_expectation(
-   gxe.ExpectColumnValuesToBeInSet(
-      column='Survived',
-      value_set=[1],
-      condition_parser='pandas',
-      row_condition='PClass=="1st"'
-   )
-)
-```
-
-</TabItem>
-
-</Tabs>
 
 ## Data Docs and Expectation conditions
 
