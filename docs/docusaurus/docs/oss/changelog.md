@@ -17,7 +17,7 @@ Before we completely remove the functionality in a new major release, there will
 ### 1.2.3
 * [BUGFIX] double-sided z score renderer ([#10648](https://github.com/great-expectations/great_expectations/pull/10648))
 * [BUGFIX] Stop masking config strings ([#10625](https://github.com/great-expectations/great_expectations/pull/10625))
-* [DOCS] actions not ready for contributions ([#10646](https://github.com/great-expectations/great_expectations/pull/10646))
+* [DOCS] Mark actions as not ready for contributions ([#10646](https://github.com/great-expectations/great_expectations/pull/10646))
 * [DOCS] MS Teams Action ([#10655](https://github.com/great-expectations/great_expectations/pull/10655))
 * [DOCS] Remove install instructions for redshift and trino ([#10660](https://github.com/great-expectations/great_expectations/pull/10660))
 * [MAINTENANCE] Clean up Azure CI configuration ([#10638](https://github.com/great-expectations/great_expectations/pull/10638))
