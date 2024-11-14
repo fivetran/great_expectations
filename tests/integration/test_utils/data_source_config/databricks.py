@@ -48,8 +48,8 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     def connection_string(self) -> str:
         return (
             "databricks://token:"
-            "{{DATABRICKS_TOKEN}}@{{DATABRICKS_HOST}}:443"
-            f"?http_path={{DATABRICKS_HTTP_PATH}}&catalog=ci&schema={self.schema}"
+            "$DATABRICKS_TOKEN@$DATABRICKS_HOST:443"
+            f"?http_path=$DATABRICKS_HTTP_PATH&catalog=ci&schema={self.schema}"
         )
 
     @property
