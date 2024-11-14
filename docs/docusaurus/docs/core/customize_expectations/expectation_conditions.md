@@ -39,18 +39,6 @@ Great Expectations allows you to specify conditions for validating rows using th
 
       The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`.
 
-      Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
-
-      2. Determine the `row_condition` expression.
-
-      The `row_condition` argument should be a boolean expression string that is evaluated for each row in the Batch that the Expectation validates. If the `row_condition` evaluates to `True`, the row will be included in the Expectation's validations. If it evaluates to `False`, the Expectation will be skipped for that row.
-
-      The syntax of the `row_condition` argument is based on the `condition_parser` specified earlier.
-
-      3. Create the Expectation.
-
-      An Expectation with conditions is created like a regular Expectation, with the addition of the `row_condition` and `condition_parser` parameters alongside the Expectation's other arguments.
-
    </TabItem>
 
    <TabItem value="spark" label="Spark">
@@ -62,18 +50,6 @@ Great Expectations allows you to specify conditions for validating rows using th
       1. Determine the `condition_parser` for your `row_condition`.
 
       The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with Spark, set this argument to `"great_expectations"`.
-
-      Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
-
-      2. Determine the `row_condition` expression.
-
-      The `row_condition` argument should be a boolean expression string that is evaluated for each row in the Batch that the Expectation validates. If the `row_condition` evaluates to `True`, the row will be included in the Expectation's validations. If it evaluates to `False`, the Expectation will be skipped for that row.
-
-      The syntax of the `row_condition` argument is based on the `condition_parser` specified earlier.
-
-      3. Create the Expectation.
-
-      An Expectation with conditions is created like a regular Expectation, with the addition of the `row_condition` and `condition_parser` parameters alongside the Expectation's other arguments.
 
    </TabItem>
 
@@ -87,21 +63,21 @@ Great Expectations allows you to specify conditions for validating rows using th
 
       The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with SQL, set this argument to `"great_expectations"`.
 
-      Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
-
-      2. Determine the `row_condition` expression.
-
-      The `row_condition` argument should be a boolean expression string that is evaluated for each row in the Batch that the Expectation validates. If the `row_condition` evaluates to `True`, the row will be included in the Expectation's validations. If it evaluates to `False`, the Expectation will be skipped for that row.
-
-      The syntax of the `row_condition` argument is based on the `condition_parser` specified earlier.
-
-      3. Create the Expectation.
-
-      An Expectation with conditions is created like a regular Expectation, with the addition of the `row_condition` and `condition_parser` parameters alongside the Expectation's other arguments.
-
    </TabItem>
 
    </Tabs>
+
+   Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
+
+2. Determine the `row_condition` expression.
+
+   The `row_condition` argument should be a boolean expression string that is evaluated for each row in the Batch that the Expectation validates. If the `row_condition` evaluates to `True`, the row will be included in the Expectation's validations. If it evaluates to `False`, the Expectation will be skipped for that row.
+
+   The syntax of the `row_condition` argument is based on the `condition_parser` specified earlier.
+
+3. Create the Expectation.
+
+   An Expectation with conditions is created like a regular Expectation, with the addition of the `row_condition` and `condition_parser` parameters alongside the Expectation's other arguments.
    
    <Tabs queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
