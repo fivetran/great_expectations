@@ -65,6 +65,8 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    </TabItem>
 
+   </Tabs>
+
    Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
 2. Determine the `row_condition` expression.
@@ -76,6 +78,8 @@ Great Expectations allows you to specify conditions for validating rows using th
 3. Create the Expectation.
 
    An Expectation with conditions is created like a regular Expectation, with the addition of the `row_condition` and `condition_parser` parameters alongside the Expectation's other arguments.
+   
+   <Tabs queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
    <TabItem value="pandas" label="pandas">
    
