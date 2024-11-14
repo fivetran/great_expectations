@@ -65,7 +65,6 @@ from great_expectations.expectations.model_field_descriptions import (
     WINDOWS_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
-    ConditionParser,
     MostlyField,
 )
 from great_expectations.expectations.registry import (
@@ -1791,7 +1790,7 @@ class ColumnAggregateExpectation(BatchExpectation, ABC):
 
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
     row_condition: Union[str, None] = None
-    condition_parser: Union[ConditionParser, None] = None
+    condition_parser: Union[Literal["pandas", "great_expectations"], None] = None
 
     domain_keys: ClassVar[Tuple[str, ...]] = (
         "batch_id",
@@ -1844,7 +1843,7 @@ class ColumnMapExpectation(BatchExpectation, ABC):
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
     mostly: MostlyField = 1
     row_condition: Union[str, None] = None
-    condition_parser: Union[ConditionParser, None] = None
+    condition_parser: Union[Literal["pandas", "great_expectations"], None] = None
 
     catch_exceptions: bool = True
 
@@ -2112,7 +2111,7 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
     column_B: StrictStr = Field(min_length=1, description=COLUMN_B_DESCRIPTION)
     mostly: MostlyField = 1
     row_condition: Union[str, None] = None
-    condition_parser: Union[ConditionParser, None] = None
+    condition_parser: Union[Literal["pandas", "great_expectations"], None] = None
 
     catch_exceptions: bool = True
 
@@ -2368,7 +2367,7 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
     column_list: List[StrictStr] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
     mostly: MostlyField = 1
     row_condition: Union[str, None] = None
-    condition_parser: Union[ConditionParser, None] = None
+    condition_parser: Union[Literal["pandas", "great_expectations"], None] = None
     ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (
         "all_values_are_missing"
     )
