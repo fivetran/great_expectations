@@ -18,7 +18,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
     topIcon 
     label="Restrict an Expectation with row conditions"
     description="Use `row_conditions` to restrict the data an Expectation evaluates"
-    to="/core/customize_expectations/expectation_row_conditions" 
+    to="/core/customize_expectations/expectation_conditions" 
     icon="/img/expectation_icon.svg" 
   />
   <LinkCard 

@@ -80,14 +80,14 @@ The data used in the examples for this procedure is passenger data for the Titan
    
    <TabItem value="pandas" label="pandas">
 
-      ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_row_conditions.py - pandas example row_condition"
+      ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - pandas example row_condition"
       ```
 
    </TabItem>
 
    <TabItem value="spark_sql" label="Spark/SQL">
 
-      ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_row_conditions.py - spark example row_condition"
+      ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - spark example row_condition"
       ```
 
    </TabItem>
@@ -153,12 +153,12 @@ The data used in the examples for this procedure is passenger data for the Titan
 
    For example, the following code creates a unconditional Expectation that the value of the `"Survived"` column is either 0 or 1:
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_row_conditions.py - example unconditional Expectation"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - example unconditional Expectation"
    ```
 
    And this code creates a Conditional version of the same Expectation that specifies the value of the `"Survived"` column is `1` if the individual was a first class passenger:
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_row_conditions.py - example conditional Expectation"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - example conditional Expectation"
    ```
 
 
