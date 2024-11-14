@@ -13,6 +13,7 @@ from tests.integration.test_utils.data_source_config import (
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
+    SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
 
@@ -65,6 +66,7 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        SparkFilesystemCsvDatasourceTestConfig(),
         MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
@@ -86,7 +88,7 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
         ),
     ],
 )
-def test_expect_column_min_to_be_between__sql_row_condition(
+def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
     batch_for_datasource, row_condition
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
