@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Dict, Mapping, Type
+from typing import TYPE_CHECKING, Mapping
 
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -58,14 +57,6 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @cached_property
     def _databrics_connection_config(self) -> DatabricksConnectionConfig:
         return DatabricksConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
-
-    @property
-    @override
-    def inferrable_types_lookup(self) -> Dict[Type, TypeEngine]:
-        overrides = {
-            str: sqltypes.VARCHAR(255),  # mysql requires a length for VARCHAR
-        }
-        return super().inferrable_types_lookup | overrides
 
     @override
     def make_batch(self) -> Batch:
