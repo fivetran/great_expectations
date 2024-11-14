@@ -15,6 +15,7 @@ from tests.integration.test_utils.data_source_config import (
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
+    SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
 
@@ -25,6 +26,7 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasFilesystemCsvDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
+    SparkFilesystemCsvDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
 
@@ -47,6 +49,7 @@ def test_expect_column_min_to_be_between(batch_for_datasource) -> None:
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         SnowflakeDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        SparkFilesystemCsvDatasourceTestConfig(),
         SqliteDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
     ],
     data=pd.DataFrame(
@@ -77,6 +80,7 @@ def test_expect_column_min_to_be_between__date(batch_for_datasource) -> None:
         PandasFilesystemCsvDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         SnowflakeDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        SparkFilesystemCsvDatasourceTestConfig(),
         SqliteDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
     ],
     data=pd.DataFrame(

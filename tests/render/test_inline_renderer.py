@@ -59,9 +59,9 @@ def test_inline_renderer_instantiation_error_message(
                 {
                     "name": AtomicDiagnosticRendererType.OBSERVED_VALUE,
                     "value": {
-                        "params": {},
+                        "params": {"observed_value": {"schema": {"type": "number"}, "value": 3}},
                         "schema": {"type": "com.superconductive.rendered.string"},
-                        "template": "3",
+                        "template": "$observed_value",
                     },
                     "value_type": "StringValueType",
                 },
@@ -89,9 +89,9 @@ def test_inline_renderer_instantiation_error_message(
                 {
                     "name": AtomicDiagnosticRendererType.OBSERVED_VALUE,
                     "value": {
-                        "params": {},
+                        "params": {"observed_value": {"schema": {"type": "number"}, "value": 19}},
                         "schema": {"type": "com.superconductive.rendered.string"},
-                        "template": "19",
+                        "template": "$observed_value",
                     },
                     "value_type": "StringValueType",
                 },
@@ -227,9 +227,14 @@ def test_inline_renderer_instantiation_error_message(
                 {
                     "name": AtomicDiagnosticRendererType.OBSERVED_VALUE,
                     "value": {
-                        "params": {},
+                        "params": {
+                            "observed_value": {
+                                "schema": {"type": "string"},
+                                "value": "0% unexpected",
+                            }
+                        },
                         "schema": {"type": "com.superconductive.rendered.string"},
-                        "template": "0% unexpected",
+                        "template": "$observed_value",
                     },
                     "value_type": "StringValueType",
                 },
