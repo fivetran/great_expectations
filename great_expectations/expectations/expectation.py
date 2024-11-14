@@ -1820,7 +1820,8 @@ class ColumnAggregateExpectation(BatchExpectation, ABC):
 
     @pydantic.validator("condition_parser")
     def condition_parser_allows_deprecated_strings(cls, v):
-        ConditionParserEnum(v)
+        if v is not None:
+            ConditionParserEnum(v)
         return v
 
 
@@ -1882,7 +1883,8 @@ class ColumnMapExpectation(BatchExpectation, ABC):
 
     @pydantic.validator("condition_parser")
     def condition_parser_allows_deprecated_strings(cls, v):
-        ConditionParserEnum(v)
+        if v is not None:
+            ConditionParserEnum(v)
         return v
 
     @classmethod
@@ -2156,7 +2158,8 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
 
     @pydantic.validator("condition_parser")
     def condition_parser_allows_deprecated_strings(cls, v):
-        ConditionParserEnum(v)
+        if v is not None:
+            ConditionParserEnum(v)
         return v
 
     @classmethod
@@ -2419,7 +2422,8 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
 
     @pydantic.validator("condition_parser")
     def condition_parser_allows_deprecated_strings(cls, v):
-        ConditionParserEnum(v)
+        if v is not None:
+            ConditionParserEnum(v)
         return v
 
     @classmethod
