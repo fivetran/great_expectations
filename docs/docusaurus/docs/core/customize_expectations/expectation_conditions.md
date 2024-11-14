@@ -79,7 +79,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    An Expectation with conditions is created like a regular Expectation, with the addition of the `row_condition` and `condition_parser` parameters alongside the Expectation's other arguments.
    
-   <Tabs queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
+   <Tabs  className="hidden" queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
    <TabItem value="pandas" label="pandas">
    
