@@ -1,5 +1,5 @@
 """
-This is an example script for how to use Expectation row conditions.
+This is an example script for how to use Expectation conditions.
 
 To test, run:
 pytest --docs-tests -k "docs_example_expectation_conditions" tests/integration/test_script_runner.py
@@ -49,8 +49,8 @@ batch = (
     .get_batch()
 )
 
-# An unconditional Expectation is defined without the `row_condition` or `condition_parser` parameters:
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - example unconditional Expectation">
+# An Expectation without conditions is defined without the `row_condition` or `condition_parser` parameters:
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - example Expectation without conditions">
 expectation = gx.expectations.ExpectColumnValuesToBeInSet(
     column="Survived", value_set=[0, 1]
 )
@@ -59,9 +59,9 @@ expectation = gx.expectations.ExpectColumnValuesToBeInSet(
 # Test the Expectation:
 print(batch.validate(expectation))
 
-# A Conditional Expectation for a pandas Data Source would be defined like this:
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - example conditional Expectation">
-conditional_expectation = gx.expectations.ExpectColumnValuesToBeInSet(
+# An Expectation condition for a pandas Data Source would be defined like this:
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - pandas example Expectation with conditions">
+expectation_with_condition = gx.expectations.ExpectColumnValuesToBeInSet(
     column="Survived",
     value_set=[1],
     # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - pandas example row_condition">
@@ -71,16 +71,30 @@ conditional_expectation = gx.expectations.ExpectColumnValuesToBeInSet(
 )
 # </snippet>
 
-# Test the Conditional Expectation:
-print(batch.validate(conditional_expectation))
+# Test the Expectation condition:
+print(batch.validate(expectation_with_condition))
 
-# A Conditional Expectation for a Spark or SQL Data Source would be defined like this:
-conditional_expectation = gx.expectations.ExpectColumnValuesToBeInSet(
+# A Conditional Expectation for a Spark Data Source would be defined like this:
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - spark example Expectation with conditions">
+expectation_with_condition = gx.expectations.ExpectColumnValuesToBeInSet(
     column="Survived",
     value_set=[1],
     # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - spark example row_condition">
-    condition_parser="spark",
-    row_condition='PClass=="1st"',
+    condition_parser="great_expectations",
+    row_condition='col("PClass")=="1st"',
     # </snippet>
 )
+# </snippet>
+
+# A Conditional Expectation for a SQL Data Source would be defined like this:
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - sql example Expectation with conditions">
+expectation_with_condition = gx.expectations.ExpectColumnValuesToBeInSet(
+    column="Survived",
+    value_set=[1],
+    # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - sql example row_condition">
+    condition_parser="great_expectations",
+    row_condition='col("PClass")=="1st"',
+    # </snippet>
+)
+# </snippet>
 # </snippet>
