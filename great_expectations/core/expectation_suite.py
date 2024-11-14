@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import uuid
@@ -144,10 +145,7 @@ class ExpectationSuite(SerializableDictDot):
                 "and set `Expectation.id = None`."
             )
         should_save_expectation = self._has_been_saved()
-        expectation_is_unique = all(
-            expectation != existing_expectation for existing_expectation in self.expectations
-        )
-        if expectation_is_unique:
+        if self._determine_if_expectation_is_unique(expectation):
             # suite is a set-like collection, so don't add if it not unique
             if should_save_expectation:
                 expectation = self._store.add_expectation(suite=self, expectation=expectation)
@@ -158,6 +156,15 @@ class ExpectationSuite(SerializableDictDot):
         self._submit_expectation_created_event(expectation=expectation)
 
         return expectation
+
+    def _determine_if_expectation_is_unique(self, expectation: Expectation) -> bool:
+        # Expectation is deemed unique if it is not already in the suite
+        # We do not consider the id of the expectation in this check
+        expectation_copies = copy.deepcopy(self.expectations)
+        for expectation_copy in expectation_copies:
+            expectation_copy.id = None
+
+        return expectation not in expectation_copies
 
     def _submit_expectation_created_event(self, expectation: Expectation) -> None:
         if expectation.__module__.startswith("great_expectations."):
