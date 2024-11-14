@@ -79,8 +79,8 @@ conditional_expectation = gx.expectations.ExpectColumnValuesToBeInSet(
     column="Survived",
     value_set=[1],
     # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_row_conditions.py - spark example row_condition">
-    condition_parser="spark",
-    row_condition='PClass=="1st"',
+    condition_parser="great_expectations",
+    row_condition='col("PClass")=="1st"',
     # </snippet>
 )
 # </snippet>
