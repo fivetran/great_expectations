@@ -87,11 +87,6 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
 
 
 class DatabricksConnectionConfig(BaseSettings):
-    """This class retrieves these values from the environment.
-    If you're testing locally, you can use your Snowflake creds
-    and test against your own Snowflake account.
-    """
-
     databricks_token: str
     databricks_host: str
     databricks_http_path: str
