@@ -1,9 +1,9 @@
-from typing import Dict, Mapping, Type
+import pathlib
+from typing import Mapping
 
 import pandas as pd
 import pytest
 
-from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -13,16 +13,16 @@ from tests.integration.test_utils.data_source_config.base import (
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 
-class MySQLDatasourceTestConfig(DataSourceTestConfig):
+class SqliteDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "mysql"
+        return "sqlite"
 
     @property
     @override
     def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.mysql
+        return pytest.mark.sqlite
 
     @override
     def create_batch_setup(
@@ -31,18 +31,32 @@ class MySQLDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
-        return MySQLBatchTestSetup(
+        tmp_path = request.getfixturevalue("tmp_path")
+        assert isinstance(tmp_path, pathlib.Path)
+
+        return SqliteBatchTestSetup(
             data=data,
             config=self,
+            base_dir=tmp_path,
             extra_data=extra_data,
         )
 
 
-class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
+class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
+    def __init__(
+        self,
+        config: SqliteDatasourceTestConfig,
+        data: pd.DataFrame,
+        base_dir: pathlib.Path,
+        extra_data: Mapping[str, pd.DataFrame],
+    ) -> None:
+        self._base_dir = base_dir
+        super().__init__(config=config, data=data, extra_data=extra_data)
+
     @property
     @override
     def connection_string(self) -> str:
-        return "mysql+pymysql://root@localhost/test_ci"
+        return f"sqlite:///{self.db_file_path}"
 
     @property
     @override
@@ -50,23 +64,19 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
         return False
 
     @property
-    @override
-    def inferrable_types_lookup(self) -> Dict[Type, TypeEngine]:
-        overrides = {
-            str: sqltypes.VARCHAR(255),  # mysql requires a length for VARCHAR
-        }
-        return super().inferrable_types_lookup | overrides
+    def db_file_path(self) -> pathlib.Path:
+        return self._base_dir / "database.db"
 
     @override
     def make_batch(self) -> Batch:
         name = self._random_resource_name()
+
         return (
-            self.context.data_sources.add_sql(name=name, connection_string=self.connection_string)
-            .add_table_asset(
+            self.context.data_sources.add_sqlite(
                 name=name,
-                table_name=self.table_name,
-                schema_name=self.schema,
+                connection_string=self.connection_string,
             )
+            .add_table_asset(name=name, table_name=self.table_name)
             .add_batch_definition_whole_table(name=name)
             .get_batch()
         )
