@@ -60,7 +60,6 @@ from great_expectations.execution_engine.partition_and_sample.sparkdf_data_sampl
     SparkDataSampler,
 )
 from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchData
-from great_expectations.expectations.model_field_types import ConditionParserEnum
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -665,9 +664,9 @@ illegal.  Please check your config."""  # noqa: E501
         row_condition = domain_kwargs.get("row_condition", None)
         if row_condition:
             condition_parser = domain_kwargs.get("condition_parser", None)
-            if condition_parser == ConditionParserEnum.SPARK:
+            if condition_parser == "spark":
                 data = data.filter(row_condition)
-            elif condition_parser in [ConditionParserEnum.GX, ConditionParserEnum.GX_DEPRECATED]:
+            elif condition_parser in ["great_expectations", "great_expectation__experimental__"]:
                 parsed_condition = parse_condition_to_spark(row_condition)
                 data = data.filter(parsed_condition)
             else:

@@ -66,7 +66,6 @@ from great_expectations.expectations.model_field_descriptions import (
 )
 from great_expectations.expectations.model_field_types import (
     ConditionParser,
-    ConditionParserEnum,
     MostlyField,
 )
 from great_expectations.expectations.registry import (
@@ -1818,12 +1817,6 @@ class ColumnAggregateExpectation(BatchExpectation, ABC):
                 }
             )
 
-    @pydantic.validator("condition_parser")
-    def condition_parser_allows_deprecated_strings(cls, v):
-        if v is not None:
-            ConditionParserEnum(v)
-        return v
-
 
 class ColumnMapExpectation(BatchExpectation, ABC):
     """Base class for ColumnMapExpectations.
@@ -1880,12 +1873,6 @@ class ColumnMapExpectation(BatchExpectation, ABC):
                     }
                 }
             )
-
-    @pydantic.validator("condition_parser")
-    def condition_parser_allows_deprecated_strings(cls, v):
-        if v is not None:
-            ConditionParserEnum(v)
-        return v
 
     @classmethod
     @override
@@ -2156,12 +2143,6 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
                 }
             )
 
-    @pydantic.validator("condition_parser")
-    def condition_parser_allows_deprecated_strings(cls, v):
-        if v is not None:
-            ConditionParserEnum(v)
-        return v
-
     @classmethod
     @override
     def is_abstract(cls) -> bool:
@@ -2419,12 +2400,6 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
                     }
                 }
             )
-
-    @pydantic.validator("condition_parser")
-    def condition_parser_allows_deprecated_strings(cls, v):
-        if v is not None:
-            ConditionParserEnum(v)
-        return v
 
     @classmethod
     @override

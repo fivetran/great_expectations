@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Literal, Sequence, Union
 
 from great_expectations.compatibility import pydantic
@@ -69,17 +68,6 @@ ValueSetField = Annotated[
 ]
 
 
-# Type errors will surface in static analysis if not using these strings,
-# but all strings in ConditionParserEnum will work at runtime
-ConditionParser = Literal["great_expectations", "pandas"]
-
-
-class ConditionParserEnum(str, Enum):
-    """Type of parser to be used to interpret a Row Condition."""
-
-    GX = "great_expectations"
-    # no longer part of public API, but remains to be non-breaking
-    GX_DEPRECATED = "great_expectations__experimental__"
-    PANDAS = "pandas"
-    # no longer part of public API, but remains to be non-breaking
-    SPARK = "spark"
+ConditionParser = Literal[
+    "great_expectations", "great_expectations__experimental__", "pandas", "spark"
+]

@@ -91,7 +91,9 @@
             "title": "Condition Parser",
             "enum": [
                 "great_expectations",
-                "pandas"
+                "great_expectations__experimental__",
+                "pandas",
+                "spark"
             ],
             "type": "string"
         },
