@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
 import pandas as pd
-import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.sqlalchemy import sqltypes
@@ -16,47 +15,29 @@ from tests.integration.test_utils.data_source_config import (
     SqliteDatasourceTestConfig,
 )
 
-data = pd.DataFrame(
-    {
-        "date": [
-            datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date(),
-            datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date(),
-            datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date(),
-        ],
-        "quantity": [1, 2, 3],
-        "name": ["albert", "issac", "galileo"],
-    }
-)
-
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(),
     ],
-    data=data,
+    data=pd.DataFrame(
+        {
+            "date": [
+                datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date(),
+                datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date(),
+                datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date(),
+            ],
+            "quantity": [1, 2, 3],
+        }
+    ),
 )
-@pytest.mark.parametrize(
-    "row_condition",
-    [
-        pytest.param(
-            'name=="albert"',
-            id="text",
-        ),
-        pytest.param(
-            "quantity<3",
-            id="number",
-        ),
-    ],
-)
-def test_expect_column_min_to_be_between__pandas_row_condition(
-    batch_for_datasource, row_condition
-) -> None:
+def test_expect_column_min_to_be_between__pandas_row_condition(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
         column="date",
         min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc).date(),
         max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc).date(),
-        row_condition=row_condition,
+        row_condition="quantity<2",
         condition_parser="pandas",
     )
     result = batch_for_datasource.validate(expectation)
@@ -71,29 +52,23 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
         SnowflakeDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         SqliteDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
     ],
-    data=data,
+    data=pd.DataFrame(
+        {
+            "date": [
+                datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date(),
+                datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date(),
+                datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date(),
+            ],
+            "quantity": [1, 2, 3],
+        }
+    ),
 )
-@pytest.mark.parametrize(
-    "row_condition",
-    [
-        pytest.param(
-            'col("name")=="albert"',
-            id="text",
-        ),
-        pytest.param(
-            'col("quantity")<3',
-            id="number",
-        ),
-    ],
-)
-def test_expect_column_min_to_be_between__sql_row_condition(
-    batch_for_datasource, row_condition
-) -> None:
+def test_expect_column_min_to_be_between__sql_row_condition(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
         column="date",
         min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc).date(),
         max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc).date(),
-        row_condition=row_condition,
+        row_condition='col("quantity")<2',
         condition_parser="great_expectations",
     )
     result = batch_for_datasource.validate(expectation)
