@@ -318,6 +318,11 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/reference/expectations/standard_arguments/* /docs/reference/learn/expectations/standard_arguments/:splat
 /docs/reference/expectations/* /docs/reference/learn/expectations/:splat
 /docs/reference/terms/* /docs/reference/learn/terms/:splat
+/docs/oss/contributing/contributing_maturity https://docs.greatexpectations.io/docs/core/introduction/community_resources/#contribute-code-or-documentation
+/docs/oss/guides/expectations/creating_custom_expectations/how_to_use_custom_expectations https://docs.greatexpectations.io/docs/core/customize_expectations/
+/docs/oss/guides/expectations/advanced/how_to_create_expectations_that_span_multiple_batches_using_suite_parameters https://docs.greatexpectations.io/docs/core/connect_to_data/filesystem_data/#create-a-batch-definition
+/docs/oss/guides/expectations/advanced/identify_failed_rows_expectations https://docs.greatexpectations.io/docs/core/trigger_actions_based_on_results/choose_a_result_format/#define-a-result-format-configuration
+/docs/oss/guides/expectations/advanced/how_to_dynamically_load_suite_parameters_from_a_database https://greatexpectations.io/expectations/
 
 
 ## Redirects for GX Core version 1.0 prerelease
@@ -339,14 +344,6 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
   # /docs/oss/guides/expectations/how_to_create_and_edit_expectations_with_instant_feedback_from_a_sample_batch_of_data
 
 
-# TODO: Revise/replace/redirect these files:
-  # /docs/oss/contributing/contributing_maturity
-  # /docs/oss/guides/expectations/creating_custom_expectations/how_to_use_custom_expectations
-  # /docs/oss/guides/expectations/advanced/how_to_create_expectations_that_span_multiple_batches_using_suite_parameters
-  # /docs/oss/guides/expectations/advanced/how_to_dynamically_load_suite_parameters_from_a_database
-  # /docs/oss/guides/expectations/advanced/identify_failed_rows_expectations
-
-
 ## Redirects for broken version 0.18 URLs
 
 /docs/oss/guides/validation/checkpoints/aG93X3RvX2 /docs/0.18/oss/guides/validation/checkpoints/checkpoint_lp
@@ -361,10 +358,26 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/reference/learn/conceptual_guides/* /docs/0.18/reference/learn/conceptual_guides/:splat
 /docs/reference/api/* /docs/0.18/reference/api/:splat
 
+## Redirects for old legacy version
+https://legacy.docs.greatexpectations.io/en/latest/reference/glossary_of_expectations.html* https://greatexpectations.io/expectations 301!
+https://legacy.docs.greatexpectations.io/en/latest/changelog/changelog.html https://docs.greatexpectations.io/docs/core/changelog 301!
+https://legacy.docs.greatexpectations.io/en/0.13.4/guides/how_to_guides/configuring_data_contexts/how_to_instantiate_a_data_context_on_a_databricks_spark_cluster.html https://docs.greatexpectations.io/docs/core/connect_to_data/ 301!
+https://legacy.docs.greatexpectations.io/en/0.* https://docs.greatexpectations.io/docs/core/introduction/ 301!
+https://legacy.docs.greatexpectations.io/en/v0.* https://docs.greatexpectations.io/docs/core/introduction/ 301!
+https://legacy.docs.greatexpectations.io/en/latest/custom_expectations.html https://docs.greatexpectations.io/docs/core/customize_expectations/use_sql_to_define_a_custom_expectation/ 301!
+https://legacy.docs.greatexpectations.io/en/latest/expectation_glossary.html https://greatexpectations.io/expectations/ 301!
+https://legacy.docs.greatexpectations.io/en/latest/expectations.html https://greatexpectations.io/expectations/ 301!
+https://legacy.docs.greatexpectations.io/en/latest/glossary.html https://docs.greatexpectations.io/docs/reference/learn/glossary/ 301!
+https://legacy.docs.greatexpectations.io/en/latest/result_format.html https://docs.greatexpectations.io/docs/core/trigger_actions_based_on_results/choose_a_result_format/ 301!
+https://legacy.docs.greatexpectations.io/en/latest/command_line.html https://docs.greatexpectations.io/docs/core/define_expectations/#overviewCard 301!
+
+
+https://legacy.docs.greatexpectations.io/en/latest/* https://docs.greatexpectations.io/docs/core/introduction/ 301!
+
 # Old docs (0.16 and below; note that 'legacy' is 0.13 and below)
 https://old.docs.greatexpectations.io/* https://docs.greatexpectations.io 301!
 http://old.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 https://legacy.016.docs.greatexpectations.io/* https://docs.greatexpectations.io 301!
 http://legacy.016.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
-http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
+https://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
