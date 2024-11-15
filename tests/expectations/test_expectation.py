@@ -379,17 +379,17 @@ def test_expectation_equality(column_a: str, column_b: str, expected: bool):
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "notes_a,notes_b",
+    "notes_a,notes_b,expected",
     [
-        pytest.param(None, None, id="both_none"),
-        pytest.param([], None, id="both_falsy"),
-        pytest.param("my_notes", None, id="missing_notes"),
-        pytest.param("my_notes", "my_other_notes", id="different_notes"),
-        pytest.param("my_notes", "my_notes", id="equivalent_notes"),
+        pytest.param(None, None, True, id="both_none"),
+        pytest.param([], None, True, id="both_falsy"),
+        pytest.param("my_notes", None, False, id="missing_notes"),
+        pytest.param("my_notes", "my_other_notes", False, id="different_notes"),
+        pytest.param("my_notes", "my_notes", True, id="equivalent_notes"),
     ],
 )
 def test_expectation_equality_with_notes(
-    notes_a: str | list[str] | None, notes_b: str | list[str] | None
+    notes_a: str | list[str] | None, notes_b: str | list[str] | None, expected: bool
 ):
     expectation_a = gxe.ExpectColumnValuesToBeBetween(
         column="foo", min_value=0, max_value=10, notes=notes_a
@@ -398,21 +398,23 @@ def test_expectation_equality_with_notes(
         column="foo", min_value=0, max_value=10, notes=notes_b
     )
 
-    assert expectation_a == expectation_b
+    assert (expectation_a == expectation_b) is expected
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "meta_a,meta_b",
+    "meta_a,meta_b,expected",
     [
-        pytest.param(None, None, id="both_none"),
-        pytest.param({}, None, id="both_falsy"),
-        pytest.param({"author": "Bob Dylan"}, None, id="missing_meta"),
-        pytest.param({"author": "Bob Dylan"}, {"author": "John Lennon"}, id="different_meta"),
-        pytest.param({"author": "Bob Dylan"}, {"author": "Bob Dylan"}, id="equivalent_meta"),
+        pytest.param(None, None, True, id="both_none"),
+        pytest.param({}, None, True, id="both_falsy"),
+        pytest.param({"author": "Bob Dylan"}, None, False, id="missing_meta"),
+        pytest.param(
+            {"author": "Bob Dylan"}, {"author": "John Lennon"}, False, id="different_meta"
+        ),
+        pytest.param({"author": "Bob Dylan"}, {"author": "Bob Dylan"}, True, id="equivalent_meta"),
     ],
 )
-def test_expectation_equality_with_meta(meta_a: dict | None, meta_b: dict | None):
+def test_expectation_equality_with_meta(meta_a: dict | None, meta_b: dict | None, expected: bool):
     expectation_a = gxe.ExpectColumnValuesToBeBetween(
         column="foo", min_value=0, max_value=10, meta=meta_a
     )
@@ -420,7 +422,7 @@ def test_expectation_equality_with_meta(meta_a: dict | None, meta_b: dict | None
         column="foo", min_value=0, max_value=10, meta=meta_b
     )
 
-    assert expectation_a == expectation_b
+    assert (expectation_a == expectation_b) is expected
 
 
 @pytest.mark.unit

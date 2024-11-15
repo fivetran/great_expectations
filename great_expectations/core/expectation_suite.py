@@ -177,11 +177,7 @@ class ExpectationSuite(SerializableDictDot):
         input_expectation = expectation.dict(exclude=exclude_params)
         suite_expectations = [e.dict(exclude=exclude_params) for e in self.expectations]
 
-        indices: list[int] = []
-        for i, expectation_dict in enumerate(suite_expectations):
-            if input_expectation == expectation_dict:
-                indices.append(i)
-
+        indices = [i for i, exp in enumerate(suite_expectations) if exp == input_expectation]
         return bool(indices), indices
 
     def _submit_expectation_created_event(self, expectation: Expectation) -> None:
