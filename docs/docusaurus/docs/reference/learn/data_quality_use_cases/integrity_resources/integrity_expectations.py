@@ -20,15 +20,20 @@ CONNECTION_STRING = "postgresql+psycopg2://postgres:@localhost/test_ci"
 
 GX_ROOT_DIR = pathlib.Path(gx.__file__).parent.parent
 
-# Add test data to database for testing.
-load_data_into_test_database(
-    table_name="transactions",
-    csv_path=str(
-        GX_ROOT_DIR
-        / "tests/test_sets/learn_data_quality_use_cases/integrity_transactions.csv"
-    ),
-    connection_string=CONNECTION_STRING,
-)
+
+def load_sample_data(sample_dataset_name: str):
+    """Add sample data to database for testing."""
+    load_data_into_test_database(
+        table_name=sample_dataset_name,
+        csv_path=str(
+            GX_ROOT_DIR
+            / f"tests/test_sets/learn_data_quality_use_cases/{sample_dataset_name}.csv"
+        ),
+        connection_string=CONNECTION_STRING,
+    )
+
+for sample_data in ["integrity_transfers", "integrity_transfer_balance", "integrity_transfer_transaction"]:
+    load_sample_data(sample_data)
 
 context = gx.get_context()
 
@@ -36,37 +41,49 @@ datasource = context.data_sources.add_postgres(
     "postgres database", connection_string=CONNECTION_STRING
 )
 
-data_asset = datasource.add_table_asset(name="data asset", table_name="transactions")
-batch_definition = data_asset.add_batch_definition_whole_table("batch definition")
-batch = batch_definition.get_batch()
+# Define transfer transaction data.
+data_asset_transfer_transaction = datasource.add_table_asset(name="transfer transaction", table_name="integrity_transfer_transaction")
+batch_definition_transfer_transaction = data_asset_transfer_transaction.add_batch_definition_whole_table("batch definition")
+batch_transfer_transaction = batch_definition_transfer_transaction.get_batch()
 
-suite = context.suites.add(gx.ExpectationSuite(name="example integrity expectations"))
+# Define transfer balance data.
+data_asset_transfer_balance = datasource.add_table_asset(name="transfer balance", table_name="integrity_transfer_transaction")
+batch_definition_transfer_balance = data_asset_transfer_balance.add_batch_definition_whole_table("batch definition")
+batch_transfer_balance = batch_definition_transfer_balance.get_batch()
+
+# Create Expectation Suites.
+suite_transfer_transaction = context.suites.add(gx.ExpectationSuite(name="transfer transaction: integrity expectations"))
+
+suite_transfer_balance = context.suites.add(gx.ExpectationSuite(name="transfer balance: integrity expectations"))
+
 
 #############################
 # Start Expectation snippets.
 
-suite.add_expectation(
+suite_transfer_transaction.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectColumnPairValuesToBeEqual">
     gxe.ExpectColumnPairValuesToBeEqual(
-        column_A="reference_number", column_B="confirmation_code"
+        column_A="sender_ref_no", column_B="recipient_conf_code"
     )
     # </snippet>
 )
 
-suite.add_expectation(
-    # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectMulticolumnSumToEqual">
-    gxe.ExpectMulticolumnSumToEqual(
-        column_list=["adjustment", "sender_debit", "recipient_credit"], sum_total=0.0
-    )
-    # </snippet>
-)
-
-suite.add_expectation(
+suite_transfer_transaction.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectColumnPairValuesAToBeGreaterThanB">
     gxe.ExpectColumnPairValuesAToBeGreaterThanB(
-        column_A="transfer_amount", column_B="adjustment", or_equal=True
+        column_A="received_ts", column_B="sent_ts", or_equal=True
     )
     # </snippet>
 )
 
-results = batch.validate(suite)
+suite_transfer_balance.add_expectation(
+    # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py ExpectMulticolumnSumToEqual">
+    gxe.ExpectMulticolumnSumToEqual(
+        column_list=["adjustment", "sender_debit", "recipient_credit"], sum_total=0
+    )
+    # </snippet>
+)
+
+# Test that Expectations run.
+batch_transfer_transaction.validate(suite_transfer_transaction)
+batch_transfer_balance.validate(suite_transfer_balance)

@@ -1,0 +1,5 @@
+transfer_balance_id,total_amount,adjustment,sender_debit,recipient_credit
+TB099,250.00,0.00,-250.00,250.00
+TB101,40.00,0.00,-40.00,40.00
+TB102,1195.00,5.00,-1200.00,1195.00
+TB103,80.00,2.50,-82.50,80.00

@@ -1,0 +1,5 @@
+transfer_id,amount,transaction_date,transfer_balance_id,transfer_txn_id
+1001,250.00,2024-11-14,TB099,TT1234
+1002,40.00,2024-11-14,TB101,TT1235
+1003,1195.00,2024-11-15,TB102,TT1236
+1004,80.00,2024-11-15,TB103,TT1237
