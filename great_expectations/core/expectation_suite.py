@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import json
 import logging
 import uuid
@@ -145,7 +144,9 @@ class ExpectationSuite(SerializableDictDot):
                 "and set `Expectation.id = None`."
             )
         should_save_expectation = self._has_been_saved()
-        if self._determine_if_expectation_is_unique(expectation):
+
+        already_added, _ = self._contains_equalish_expectation(expectation)
+        if not already_added:
             # suite is a set-like collection, so don't add if it not unique
             if should_save_expectation:
                 expectation = self._store.add_expectation(suite=self, expectation=expectation)
@@ -157,14 +158,26 @@ class ExpectationSuite(SerializableDictDot):
 
         return expectation
 
-    def _determine_if_expectation_is_unique(self, expectation: Expectation) -> bool:
-        # Expectation is deemed unique if it is not already in the suite
-        # We do not consider the id of the expectation in this check
-        expectation_copies = copy.deepcopy(self.expectations)
-        for expectation_copy in expectation_copies:
-            expectation_copy.id = None
+    def _contains_equalish_expectation(self, expectation: Expectation) -> tuple[bool, int]:
+        """
+        Helper method to determine if an expectation is already in the suite.
 
-        return expectation not in expectation_copies
+        Note that this check is less stringent than Expectation.__eq__ and excludes
+        a few fields that are not relevant for uniqueness in the suite:
+          - id
+          - rendered_content
+          - notes
+          - meta
+        """
+        exclude_params = {"id", "rendered_content", "notes", "meta"}
+
+        input_expectation = expectation.dict(exclude=exclude_params)
+        suite_expectations = [e.dict(exclude=exclude_params) for e in self.expectations]
+
+        for i, expectation_dict in enumerate(suite_expectations):
+            if input_expectation == expectation_dict:
+                return True, i
+        return False, -1
 
     def _submit_expectation_created_event(self, expectation: Expectation) -> None:
         if expectation.__module__.startswith("great_expectations."):
@@ -226,10 +239,11 @@ class ExpectationSuite(SerializableDictDot):
         Raises:
             KeyError: Expectation not found in suite.
         """
-        remaining_expectations = [exp for exp in self.expectations if exp != expectation]
-        if len(remaining_expectations) != len(self.expectations) - 1:
+        contains, pos = self._contains_equalish_expectation(expectation)
+        if not contains:
             raise KeyError("No matching expectation was found.")  # noqa: TRY003
-        self.expectations = remaining_expectations
+
+        del self.expectations[pos]
 
         if self._has_been_saved():
             # only persist on delete if the suite has already been saved
