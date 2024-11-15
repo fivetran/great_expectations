@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from numbers import Number
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
     Generic,
-    Iterable,
     List,
     Optional,
     Tuple,
@@ -19,7 +19,6 @@ from typing import (
 )
 
 import dateutil
-from dateutil.parser import ParserError
 from typing_extensions import TypeAlias, TypedDict
 
 from great_expectations.compatibility.pydantic import (
@@ -155,6 +154,66 @@ class CodeBlock(TypedDict):
     language: CodeBlockLanguage
 
 
+def make_exception_msg(v_type: RendererValueType, input: Any) -> str:
+    return f"Param type: <{v_type}> does not match value: <{input}>."
+
+
+def make_str_exception_msg(v_type: RendererValueType, input: Any) -> str:
+    message = f"Value was unable to be represented as a {v_type}"
+    try:
+        str(input)
+    except Exception as e:
+        message = f"{message}: {e}"
+    return message
+
+
+def safe_str(input: Any) -> bool:
+    try:
+        str(input)
+        return True
+    except Exception:
+        return False
+
+
+def safe_date(input: Any) -> bool:
+    try:
+        dateutil.parser.parse(input)
+        return True
+    except Exception:
+        return False
+
+
+PARAM_TYPE_TESTERS: Dict[
+    RendererValueType,
+    Tuple[
+        Callable[[Any], bool],
+        Callable[[RendererValueType, Any], str],
+    ],
+] = {
+    RendererValueType.ARRAY: (
+        lambda x: isinstance(x, (list, tuple, set)),
+        make_exception_msg,
+    ),
+    RendererValueType.BOOLEAN: (
+        lambda x: isinstance(x, bool),
+        make_exception_msg,
+    ),
+    RendererValueType.DATETIME: (
+        lambda x: isinstance(x, (date, datetime)) or safe_date(x),
+        make_exception_msg,
+    ),
+    RendererValueType.NUMBER: (
+        lambda x: isinstance(x, Number),
+        make_exception_msg,
+    ),
+    RendererValueType.OBJECT: (lambda x: True, make_exception_msg),
+    RendererValueType.STRING: (
+        lambda x: safe_str(x),
+        make_str_exception_msg,
+    ),
+}
+
+
 class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererParams]):
     """
     Configuration object built for each renderer. Operations to be performed strictly on this object at the renderer
@@ -225,42 +284,17 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             allow_mutation = False
 
         @root_validator(pre=True)
-        def _validate_param_type_matches_value(  # noqa: C901
-            cls, values: dict
-        ) -> dict:
+        def _validate_param_type_matches_value(cls, values: dict) -> dict:
             """
             This root_validator ensures that a value can be parsed by its RendererValueType.
             If RendererValueType.OBJECT is passed, it is treated as valid for any value.
             """
             param_type: RendererValueType = values["schema"]["type"]
             value: Any = values["value"]
-            if param_type == RendererValueType.STRING:
-                try:
-                    str(value)
-                except Exception as e:
-                    raise RendererConfigurationError(  # noqa: TRY003
-                        f"Value was unable to be represented as a string: {e!s}"
-                    )
-            else:
-                renderer_configuration_error = RendererConfigurationError(
-                    f"Param type: <{param_type}> does " f"not match value: <{value}>."
-                )
-                if param_type == RendererValueType.NUMBER:
-                    if not isinstance(value, Number):
-                        raise renderer_configuration_error
-                elif param_type == RendererValueType.DATETIME:
-                    if not isinstance(value, datetime):
-                        try:
-                            dateutil.parser.parse(value)
-                        except ParserError:
-                            raise renderer_configuration_error
-                elif param_type == RendererValueType.BOOLEAN:
-                    if value is not True and value is not False:
-                        raise renderer_configuration_error
-                elif param_type == RendererValueType.ARRAY:
-                    if not isinstance(value, Iterable):
-                        raise renderer_configuration_error
 
+            (tester, error) = PARAM_TYPE_TESTERS[param_type]
+            if not tester(value):
+                raise RendererConfigurationError(error(param_type, value))
             return values
 
         @override
@@ -433,9 +467,9 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         _params: Optional[Dict[str, Dict[str, Union[str, Dict[str, RendererValueType]]]]] = (
             values.get("_params")
         )
-        if not values["params"]:
-            values["params"] = _RendererValueBase()
-        if _params and _params != values["params"]:
+        # this logic loads the params that exist
+        # upon RendererConfiguration instantiation, e.g. row_condition
+        if _params and len(values["params"].__dict__) == 0:
             renderer_param_definitions: Dict[str, Any] = {}
             for name in _params:
                 renderer_param_type: Type[BaseModel] = (
@@ -445,14 +479,12 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
                     Optional[renderer_param_type],
                     ...,
                 )
-            existing_params = values["params"].__dict__
-            combined_params = {**existing_params, **_params}
             renderer_params: Type[BaseModel] = create_model(
                 "RendererParams",
                 **renderer_param_definitions,
                 __base__=_RendererValueBase,
             )
-            values["params"] = renderer_params(**combined_params)
+            values["params"] = renderer_params(**_params)
 
         return values
 
@@ -460,8 +492,8 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     def _get_row_conditions_list_from_row_condition_str(
         row_condition_str: str,
     ) -> List[str]:
-        # divide the whole condition into smaller parts
-        row_conditions_list = re.split(r"AND|OR|NOT(?! in)|\(|\)", row_condition_str)
+        # extract the variables to be substituted
+        row_conditions_list = re.split(r"AND|OR|NOT(?! in)|col\(\"|\"\)", row_condition_str)
         row_conditions_list = [
             condition.strip() for condition in row_conditions_list if condition.strip()
         ]
@@ -479,7 +511,6 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             .replace(" or ", " OR ")
             .replace("~", " NOT ")
             .replace(" not ", " NOT ")
-            .replace("==", " is ")
         )
         row_condition_str = " ".join(row_condition_str.split())
 

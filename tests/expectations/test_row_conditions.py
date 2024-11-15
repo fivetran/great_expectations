@@ -43,6 +43,14 @@ def test_condition_parser_with_dash_in_column_name():
 
 
 @pytest.mark.unit
+def test_condition_parser_with_space_in_column_name():
+    res = _parse_great_expectations_condition('col("pk 2") == "Two"')
+    assert res["column"] == "pk 2"
+    assert res["op"] == "=="
+    assert res["condition_value"] == "Two"
+
+
+@pytest.mark.unit
 def test_condition_parser_with_space_in_condition_value():
     res = _parse_great_expectations_condition('col("pk_2") == "Two Two"')
     assert res["column"] == "pk_2"

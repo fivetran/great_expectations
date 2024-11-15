@@ -52,6 +52,10 @@ os.environ["validation_notification_slack_channel"] = "my_slack_channel"
 
 # <snippet name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_checkpoint_with_actions.py - full code example">
 import great_expectations as gx
+from great_expectations.checkpoint import (
+    SlackNotificationAction,
+    UpdateDataDocsAction,
+)
 
 context = gx.get_context()
 # Hide this
@@ -68,7 +72,7 @@ validation_definitions = [
 # <snippet name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_checkpoint_with_actions.py - define an Action list">
 action_list = [
     # This Action sends a Slack Notification if an Expectation fails.
-    gx.checkpoint.SlackNotificationAction(
+    SlackNotificationAction(
         name="send_slack_notification_on_failed_expectations",
         slack_token="${validation_notification_slack_webhook}",
         slack_channel="${validation_notification_slack_channel}",
@@ -77,7 +81,7 @@ action_list = [
     ),
     # This Action updates the Data Docs static website with the Validation
     #   Results after the Checkpoint is run.
-    gx.checkpoint.UpdateDataDocsAction(
+    UpdateDataDocsAction(
         name="update_all_data_docs",
     ),
 ]

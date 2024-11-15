@@ -64,7 +64,7 @@ To submit a custom package to Great Expectations for consideration, see [CONTRIB
 
 A [virtual environment](https://peps.python.org/pep-0405) allows you to install an independent set of Python packages to their own site directory, isolated from the base/system install of Python.
 
-Great Expectations requires a Python version from 3.8 to 3.11.
+Great Expectations requires a Python version from 3.9 to 3.12.
 
 ### Python
 
@@ -107,7 +107,7 @@ Great Expectations requires a Python version from 3.8 to 3.11.
 
     To specify other dependencies, add a comma after `test` and enter the dependency name(s). **For example, ".[test, postgresql, trino]"**.
 
-    The supported extra dependencies include: `arrow`, `athena`, `aws_secrets`, `azure`, `azure_secrets`, `bigquery`, `clickhouse`, `cloud`, `dremio`, `excel`, `gcp`, `hive`, `mssql`, `mysql`, `pagerduty`, `postgresql`, `redshift`, `s3`, `snowflake`, `spark`, `teradata`, `test`, `trino`, `vertica`.
+    The supported extra dependencies include: `arrow`, `athena`, `aws_secrets`, `azure`, `azure_secrets`, `bigquery`, `clickhouse`, `cloud`, `dremio`, `excel`, `gcp`, `hive`, `mssql`, `mysql`, `postgresql`, `redshift`, `s3`, `snowflake`, `spark`, `teradata`, `test`, `trino`, `vertica`.
 
     Check below to see if any of your desired dependencies need system packages installed, **before `pip install`**.
 

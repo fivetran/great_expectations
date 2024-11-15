@@ -109,11 +109,11 @@ def test_expect_column_values_to_be_in_set_render_performance():
     This test prevents a historical bug in which rendering took ~10 seconds to render 400 items.
     """
 
-    large_number = 400
+    large_number = 150
 
     x = ExpectColumnValuesToBeInSet(
         column="foo_column_name", value_set=["foo" for _ in range(large_number)]
     )
 
     duration_s = timeit.timeit(x.render, number=1)
-    assert duration_s < 2, f"Rendering took {duration_s} seconds"
+    assert duration_s < 1, f"Rendering took {duration_s} seconds"

@@ -14,7 +14,7 @@ import PrereqFileDataContext from '../../_core_components/prerequisites/_file_da
 
 import EnvironmentFilesystem from './_backends/_local_or_networked.md'
 
-Data Docs translate Expectations, Validation Results, and other metadata into human-readable documentation that is saved as static web pages. Automatically compiling your data documentation from your data tests in the form of Data Docs keeps your documentation current.  This guide covers how to configure additional locations where Data Docs should be created.
+Data Docs translate Expectations, Validation Results, and other metadata into human-readable documentation that is saved as static web pages. Automatically compiling your data documentation from your data tests in the form of Data Docs keeps your documentation current.  This guide covers how to configure Data Docs.
 
 ### Prerequisites:
 

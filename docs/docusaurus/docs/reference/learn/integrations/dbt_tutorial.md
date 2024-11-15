@@ -224,7 +224,7 @@ Start by naming the Notebook `customer_expectations.ipynb`, or a name of your ch
 ```python
 import great_expectations as gx
 import great_expectations.expectations as gxe
-from great_expectations.checkpoint.actions import UpdateDataDocsAction
+from great_expectations.checkpoint import UpdateDataDocsAction
 
 context = gx.get_context(mode="file")
 ```
@@ -378,7 +378,7 @@ Add Postgres credentials:
     - Connection id: postgres
     - Connection Type: Postgres
     - Host: database
-    - Schema: postgres
+    - Database: postgres
     - Login: postgres
     - Password: postgres
     - Port: 5432

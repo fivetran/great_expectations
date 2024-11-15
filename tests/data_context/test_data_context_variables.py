@@ -471,7 +471,6 @@ def test_file_data_context_variables_e2e(
     assert config_saved_to_disk.plugins_directory == f"${env_var_name}"
 
 
-@pytest.mark.e2e
 @pytest.mark.cloud
 @pytest.mark.xfail(
     strict=False,
@@ -493,7 +492,6 @@ def test_cloud_data_context_variables_successfully_hits_cloud_endpoint(
     assert success is True
 
 
-@pytest.mark.e2e
 @pytest.mark.cloud
 @mock_patch(
     "great_expectations.data_context.data_context.serializable_data_context.SerializableDataContext._save_project_config"

@@ -130,7 +130,7 @@ To review additional options for configuring the ``config_variables.yml`` file o
 2. Optional. Replace the default ``local_site`` to maintain a single Azure Data Docs site.
 
 :::note
- Since the container is named ``$web``, setting ``container: $web`` in ``great_expectations.yml`` would cause GX to unsuccessfully try to find the ``web`` variable in ``config_variables.yml``. Use an escape char ``\`` before the ``$`` so the [substitute_config_variable](https://legacy.docs.greatexpectations.io/en/latest/autoapi/great_expectations/data_context/util/index.html?highlight=substitute_config_variable#great_expectations.data_context.util.substitute_config_variable) can locate the ``$web`` container.
+ Since the container is named ``$web``, setting ``container: $web`` in ``great_expectations.yml`` would cause GX to unsuccessfully try to find the ``web`` variable in ``config_variables.yml``. Use an escape char ``\`` before the ``$`` so the ``substitute_config_variable`` can locate the ``$web`` container.
 :::
 
 You can also configure GX to store your <TechnicalTag relative="../../../" tag="expectation" text="Expectations" /> and <TechnicalTag relative="../../../" tag="validation_result" text="Validation Results" /> in the Azure Storage account.

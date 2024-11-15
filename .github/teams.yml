@@ -9,6 +9,7 @@ devrel:
   - "@klavavej" # Kristen Lavavej
   - "@JessSaavedra" # Jessica Saavedra
   - "@deborahniesz" # Deborah Niesz
+  - "@Quantisan" # Paul Lam
 
 core:
   - "@DrewHoo" # Drew Hoover
@@ -37,6 +38,7 @@ core:
   - "@wookasz" # Łukasz Lempart
   - "@annabarr" # Anna Barr
   - "@alena-hutchinson" # Alena Hutchinson
+  - "@ashmortar" # Aaron Ross
 
 bot:
   - "@dependabot"
