@@ -94,13 +94,6 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
         self.config = config
         self.data = data
 
-    @cached_property
-    def name(self) -> str:
-        """Randomly generated name that can be shared between all default models (e.g. data sources,
-        assets, etc).
-        """
-        return self._random_resource_name()
-
     @property
     @abstractmethod
     def asset(self) -> _AssetT: ...

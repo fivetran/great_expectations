@@ -72,10 +72,10 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @override
     def asset(self) -> TableAsset:
         return self.context.data_sources.add_databricks_sql(
-            name=self.name,
+            name=self._random_resource_name(),
             connection_string=self.connection_string,
         ).add_table_asset(
-            name=self.name,
+            name=self._random_resource_name(),
             table_name=self.table_name,
             schema_name=self.schema,
         )

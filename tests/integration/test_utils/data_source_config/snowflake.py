@@ -89,7 +89,7 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         schema = self.schema
         assert schema
         return self.context.data_sources.add_snowflake(
-            name=self.name,
+            name=self._random_resource_name(),
             account=self.snowflake_connection_config.SNOWFLAKE_ACCOUNT,
             user=self.snowflake_connection_config.SNOWFLAKE_USER,
             password=self.snowflake_connection_config.SNOWFLAKE_PW,
@@ -98,6 +98,6 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
             warehouse=self.snowflake_connection_config.SNOWFLAKE_WAREHOUSE,
             role=self.snowflake_connection_config.SNOWFLAKE_ROLE,
         ).add_table_asset(
-            name=self.name,
+            name=self._random_resource_name(),
             table_name=self.table_name,
         )

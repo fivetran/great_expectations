@@ -41,13 +41,15 @@ class PandasDataFrameBatchTestSetup(
     @cached_property
     @override
     def asset(self) -> DataFrameAsset:
-        return self.context.data_sources.add_pandas(self.name).add_dataframe_asset(self.name)
+        return self.context.data_sources.add_pandas(
+            self._random_resource_name()
+        ).add_dataframe_asset(self._random_resource_name())
 
     @override
     def make_batch(self) -> Batch:
-        return self.asset.add_batch_definition_whole_dataframe(self.name).get_batch(
-            batch_parameters={"dataframe": self.data}
-        )
+        return self.asset.add_batch_definition_whole_dataframe(
+            self._random_resource_name()
+        ).get_batch(batch_parameters={"dataframe": self.data})
 
     @override
     def setup(self) -> None: ...
