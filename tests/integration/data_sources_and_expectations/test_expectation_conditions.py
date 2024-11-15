@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
-from great_expectations.compatibility.sqlalchemy import sqltypes
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
@@ -17,6 +17,10 @@ from tests.integration.test_utils.data_source_config import (
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.datasource.fluent.interfaces import Batch
+
 
 data = pd.DataFrame(
     {
@@ -56,7 +60,7 @@ data = pd.DataFrame(
     ],
 )
 def test_expect_column_min_to_be_between__pandas_row_condition(
-    batch_for_datasource, row_condition
+    batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
         column="date",
@@ -72,12 +76,12 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         SparkFilesystemCsvDatasourceTestConfig(),
-        DatabricksDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
-        MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
-        MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
-        PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
-        SnowflakeDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
-        SqliteDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
+        DatabricksDatasourceTestConfig(),
+        MSSQLDatasourceTestConfig(),
+        MySQLDatasourceTestConfig(),
+        PostgreSQLDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
+        SqliteDatasourceTestConfig(),
     ],
     data=data,
 )
@@ -99,7 +103,7 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
     ],
 )
 def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
-    batch_for_datasource, row_condition
+    batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
         column="date",
