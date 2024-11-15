@@ -32,7 +32,12 @@ def load_sample_data(sample_dataset_name: str):
         connection_string=CONNECTION_STRING,
     )
 
-for sample_data in ["integrity_transfers", "integrity_transfer_balance", "integrity_transfer_transaction"]:
+
+for sample_data in [
+    "integrity_transfers",
+    "integrity_transfer_balance",
+    "integrity_transfer_transaction",
+]:
     load_sample_data(sample_data)
 
 context = gx.get_context()
@@ -42,19 +47,31 @@ datasource = context.data_sources.add_postgres(
 )
 
 # Define transfer transaction data.
-data_asset_transfer_transaction = datasource.add_table_asset(name="transfer transaction", table_name="integrity_transfer_transaction")
-batch_definition_transfer_transaction = data_asset_transfer_transaction.add_batch_definition_whole_table("batch definition")
+data_asset_transfer_transaction = datasource.add_table_asset(
+    name="transfer transaction", table_name="integrity_transfer_transaction"
+)
+batch_definition_transfer_transaction = (
+    data_asset_transfer_transaction.add_batch_definition_whole_table("batch definition")
+)
 batch_transfer_transaction = batch_definition_transfer_transaction.get_batch()
 
 # Define transfer balance data.
-data_asset_transfer_balance = datasource.add_table_asset(name="transfer balance", table_name="integrity_transfer_transaction")
-batch_definition_transfer_balance = data_asset_transfer_balance.add_batch_definition_whole_table("batch definition")
+data_asset_transfer_balance = datasource.add_table_asset(
+    name="transfer balance", table_name="integrity_transfer_transaction"
+)
+batch_definition_transfer_balance = (
+    data_asset_transfer_balance.add_batch_definition_whole_table("batch definition")
+)
 batch_transfer_balance = batch_definition_transfer_balance.get_batch()
 
 # Create Expectation Suites.
-suite_transfer_transaction = context.suites.add(gx.ExpectationSuite(name="transfer transaction: integrity expectations"))
+suite_transfer_transaction = context.suites.add(
+    gx.ExpectationSuite(name="transfer transaction: integrity expectations")
+)
 
-suite_transfer_balance = context.suites.add(gx.ExpectationSuite(name="transfer balance: integrity expectations"))
+suite_transfer_balance = context.suites.add(
+    gx.ExpectationSuite(name="transfer balance: integrity expectations")
+)
 
 
 #############################
