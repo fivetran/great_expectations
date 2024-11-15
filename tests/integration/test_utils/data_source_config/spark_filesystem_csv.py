@@ -10,19 +10,18 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 
-class SqliteDatasourceTestConfig(DataSourceTestConfig):
+class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
     @property
     @override
     def label(self) -> str:
-        return "sqlite"
+        return "spark-filesystem-csv"
 
     @property
     @override
     def pytest_mark(self) -> pytest.MarkDecorator:
-        return pytest.mark.sqlite
+        return pytest.mark.spark
 
     @override
     def create_batch_setup(
@@ -31,52 +30,48 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
+        assert not extra_data, "extra_data is not supported for this data source yet."
+
         tmp_path = request.getfixturevalue("tmp_path")
         assert isinstance(tmp_path, pathlib.Path)
 
-        return SqliteBatchTestSetup(
+        return SparkFilesystemCsvBatchTestSetup(
             data=data,
             config=self,
             base_dir=tmp_path,
-            extra_data=extra_data,
         )
 
 
-class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
+class SparkFilesystemCsvBatchTestSetup(BatchTestSetup[SparkFilesystemCsvDatasourceTestConfig]):
     def __init__(
         self,
-        config: SqliteDatasourceTestConfig,
+        config: SparkFilesystemCsvDatasourceTestConfig,
         data: pd.DataFrame,
         base_dir: pathlib.Path,
-        extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
+        super().__init__(config=config, data=data)
         self._base_dir = base_dir
-        super().__init__(config=config, data=data, extra_data=extra_data)
-
-    @property
-    @override
-    def connection_string(self) -> str:
-        return f"sqlite:///{self.db_file_path}"
-
-    @property
-    @override
-    def use_schema(self) -> bool:
-        return False
-
-    @property
-    def db_file_path(self) -> pathlib.Path:
-        return self._base_dir / "database.db"
 
     @override
     def make_batch(self) -> Batch:
         name = self._random_resource_name()
+        path = self._base_dir
 
         return (
-            self.context.data_sources.add_sqlite(
-                name=name,
-                connection_string=self.connection_string,
-            )
-            .add_table_asset(name=name, table_name=self.table_name)
-            .add_batch_definition_whole_table(name=name)
+            self.context.data_sources.add_spark_filesystem(name=name, base_directory=path)
+            .add_csv_asset(name=name, header=True, infer_schema=True)
+            .add_batch_definition_path(name=name, path=self.csv_path)
             .get_batch()
         )
+
+    @override
+    def setup(self) -> None:
+        file_path = self._base_dir / self.csv_path
+        self.data.to_csv(file_path, index=False)
+
+    @override
+    def teardown(self) -> None: ...
+
+    @property
+    def csv_path(self) -> pathlib.Path:
+        return pathlib.Path("data.csv")

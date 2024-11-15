@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from pprint import pprint
 from typing import Callable, Dict, Union
 
@@ -2092,9 +2093,9 @@ def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "--",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2121,9 +2122,9 @@ def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "number"}, "value": 1776}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "1,776",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2148,9 +2149,9 @@ def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "foo",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2175,9 +2176,9 @@ def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "10% unexpected",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2202,9 +2203,107 @@ def test_atomic_diagnostic_observed_value_with_empty_result(get_diagnostic_rende
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "--",
+            "template": "$observed_value",
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "result, expected_template, expected_params",
+    [
+        (
+            {"observed_value": "foo"},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
+        ),
+        (
+            {"observed_value": False},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "boolean"}, "value": False}},
+        ),
+        (
+            {
+                "observed_value": datetime.strptime(
+                    "1999-12-31T23:59:59-00:00", "%Y-%m-%dT%H:%M:%S%z"
+                )
+            },
+            "$observed_value",
+            {
+                "observed_value": {
+                    "schema": {"type": "datetime"},
+                    "value": datetime.strptime("1999-12-31T23:59:59-00:00", "%Y-%m-%dT%H:%M:%S%z"),
+                }
+            },
+        ),
+        (
+            {"observed_value": "1999-12-31 23:59:59"},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "datetime"}, "value": "1999-12-31 23:59:59"}},
+        ),
+        (
+            {"observed_value": 1776},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "number"}, "value": 1776}},
+        ),
+        (
+            {"unexpected_percent": 10},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
+        ),
+        (
+            {"observed_value": ["%", "_"]},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "array"}, "value": ["%", "_"]}},
+        ),
+        (
+            {"observed_value": [1, 2, 3]},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "array"}, "value": [1, 2, 3]}},
+        ),
+        # when all value types are inferrable string will end up taking precendence over
+        # object otherwise object would overrride most other inference types as it
+        # is permissible to any value type
+        (
+            {"observed_value": {"foo": "bar"}},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": {"foo": "bar"}}},
+        ),
+        (
+            {"observed_value": None},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+        ),
+        (
+            {},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+        ),
+    ],
+)
+def test_atomic_diagnostic_observed_param_type_inference(
+    get_diagnostic_rendered_content, result, expected_template, expected_params
+):
+    expectation_config = {
+        "type": "expect_table_row_count_to_equal",
+        "kwargs": {},
+    }
+    update_dict = {
+        "expectation_config": ExpectationConfiguration(**expectation_config),
+        "result": result,
+    }
+    rendered_content = get_diagnostic_rendered_content(update_dict)
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": expected_params,
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": expected_template,
         },
         "value_type": "StringValueType",
     }
