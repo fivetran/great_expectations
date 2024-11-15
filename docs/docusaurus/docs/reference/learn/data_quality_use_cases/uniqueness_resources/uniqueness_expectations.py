@@ -40,9 +40,7 @@ data_asset = datasource.add_table_asset(name="data asset", table_name="customers
 batch_definition = data_asset.add_batch_definition_whole_table("batch definition")
 batch = batch_definition.get_batch()
 
-suite = context.suites.add(
-    gx.ExpectationSuite(name="example uniqueness expectations")
-)
+suite = context.suites.add(gx.ExpectationSuite(name="example uniqueness expectations"))
 
 #############################
 # Start Expectation snippets.
@@ -50,9 +48,7 @@ suite = context.suites.add(
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnProportionOfUniqueValuesToBeBetween">
     gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
-        column="email_address",
-        min_value=0.9,
-        max_value=1.0
+        column="email_address", min_value=0.9, max_value=1.0
     )
     # </snippet>
 )
@@ -60,18 +56,14 @@ suite.add_expectation(
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnUniqueValueCountToBeBetween">
     gxe.ExpectColumnUniqueValueCountToBeBetween(
-        column="country",
-        min_value=1,
-        max_value=5
+        column="country", min_value=1, max_value=5
     )
     # </snippet>
 )
 
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnValuesToBeUnique">
-    gxe.ExpectColumnValuesToBeUnique(
-        column="customer_id"
-    )
+    gxe.ExpectColumnValuesToBeUnique(column="customer_id")
     # </snippet>
 )
 
