@@ -8,6 +8,7 @@ from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
+    DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
     MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
@@ -20,6 +21,7 @@ from tests.integration.test_utils.data_source_config import (
 )
 
 ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    DatabricksDatasourceTestConfig(),
     MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PandasDataFrameDatasourceTestConfig(),
@@ -43,6 +45,7 @@ def test_expect_column_min_to_be_between(batch_for_datasource) -> None:
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        DatabricksDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         PandasDataFrameDatasourceTestConfig(),
@@ -74,6 +77,7 @@ def test_expect_column_min_to_be_between__date(batch_for_datasource) -> None:
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        DatabricksDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         PandasDataFrameDatasourceTestConfig(),
@@ -146,6 +150,7 @@ def test_expect_column_mean_to_be_between(batch_for_datasource):
 class TestExpectTableRowCountToEqualOtherTable:
     @parameterize_batch_for_data_sources(
         data_source_configs=[
+            DatabricksDatasourceTestConfig(),
             MSSQLDatasourceTestConfig(),
             MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
@@ -167,6 +172,7 @@ class TestExpectTableRowCountToEqualOtherTable:
 
     @parameterize_batch_for_data_sources(
         data_source_configs=[
+            DatabricksDatasourceTestConfig(),
             MSSQLDatasourceTestConfig(),
             MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(
@@ -194,6 +200,7 @@ class TestExpectTableRowCountToEqualOtherTable:
 
     @parameterize_batch_for_data_sources(
         data_source_configs=[
+            DatabricksDatasourceTestConfig(),
             MSSQLDatasourceTestConfig(),
             MySQLDatasourceTestConfig(),
             PostgreSQLDatasourceTestConfig(),
