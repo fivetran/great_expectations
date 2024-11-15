@@ -317,6 +317,46 @@ class TestCRUDMethods:
         context.expectations_store.update.assert_not_called()
 
     @pytest.mark.unit
+    def test_add_doesnt_duplicate_when_expectation_differs_meta(self, expectation):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        set_context(project=context)
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation.configuration],
+        )
+
+        dup_expectation = deepcopy(expectation)
+        dup_expectation.meta = {"author": "Guido van Rossum"}
+
+        assert expectation.meta != dup_expectation.meta
+
+        suite.add_expectation(expectation=dup_expectation)
+
+        assert len(suite.expectations) == 1
+        context.expectations_store.update.assert_not_called()
+
+    @pytest.mark.unit
+    def test_add_doesnt_duplicate_when_expectation_differs_notes(self, expectation):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        set_context(project=context)
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation.configuration],
+        )
+
+        dup_expectation = deepcopy(expectation)
+        dup_expectation.notes = "These are my notes!"
+
+        assert expectation.notes != dup_expectation.notes
+
+        suite.add_expectation(expectation=dup_expectation)
+
+        assert len(suite.expectations) == 1
+        context.expectations_store.update.assert_not_called()
+
+    @pytest.mark.unit
     def test_add_doesnt_mutate_suite_when_save_fails(self, expectation):
         context = Mock(spec=AbstractDataContext)
         context.expectations_store.add_expectation.side_effect = (
