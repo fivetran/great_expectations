@@ -481,6 +481,7 @@ jobs:
           - athena or openpyxl or pyarrow or project or sqlite or aws_creds
           - aws_deps
           - big
+          - bigquery
           - databricks
           - filesystem
           - mssql
