@@ -158,26 +158,31 @@ class ExpectationSuite(SerializableDictDot):
 
         return expectation
 
-    def _contains_equalish_expectation(self, expectation: Expectation) -> tuple[bool, int]:
+    def _contains_equalish_expectation(self, expectation: Expectation) -> tuple[bool, list[int]]:
         """
         Helper method to determine if an expectation is already in the suite.
 
         Note that this check is less stringent than Expectation.__eq__ and excludes
-        a few fields that are not relevant for uniqueness in the suite:
-          - id
-          - rendered_content
-          - notes
-          - meta
+        a few fields that are not relevant for uniqueness in the suite.
+
+        Args:
+            expectation: The expectation to check for.
+
+        Returns:
+            A tuple of a boolean indicating whether the expectation is already in the suite
+            and a list of indices of the expectation in the suite if it is.
         """
         exclude_params = {"id", "rendered_content", "notes", "meta"}
 
         input_expectation = expectation.dict(exclude=exclude_params)
         suite_expectations = [e.dict(exclude=exclude_params) for e in self.expectations]
 
+        indices: list[int] = []
         for i, expectation_dict in enumerate(suite_expectations):
             if input_expectation == expectation_dict:
-                return True, i
-        return False, -1
+                indices.append(i)
+
+        return bool(indices), indices
 
     def _submit_expectation_created_event(self, expectation: Expectation) -> None:
         if expectation.__module__.startswith("great_expectations."):
@@ -239,11 +244,12 @@ class ExpectationSuite(SerializableDictDot):
         Raises:
             KeyError: Expectation not found in suite.
         """
-        contains, pos = self._contains_equalish_expectation(expectation)
+        contains, indices = self._contains_equalish_expectation(expectation)
         if not contains:
             raise KeyError("No matching expectation was found.")  # noqa: TRY003
 
-        del self.expectations[pos]
+        for idx in indices:
+            del self.expectations[idx]
 
         if self._has_been_saved():
             # only persist on delete if the suite has already been saved
