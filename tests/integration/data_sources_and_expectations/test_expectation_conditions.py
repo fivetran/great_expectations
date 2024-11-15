@@ -7,6 +7,7 @@ import great_expectations.expectations as gxe
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
+    DatabricksDatasourceTestConfig,
     MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
@@ -75,6 +76,7 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         SparkFilesystemCsvDatasourceTestConfig(),
+        DatabricksDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         MSSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         MySQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
         PostgreSQLDatasourceTestConfig(column_types={"date": sqltypes.DATE}),
