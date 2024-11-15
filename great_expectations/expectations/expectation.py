@@ -368,17 +368,11 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
         # rendered_content is derived from the rest of the expectation, and can/should
         # be excluded from equality checks
-        exclude: set[str] = {"rendered_content"}
+        # notes and meta are simple metadata and should be excluded from equality checks
+        exclude: set[str] = {"rendered_content", "notes", "meta"}
 
         self_dict = self.dict(exclude=exclude)
         other_dict = other.dict(exclude=exclude)
-
-        # Simplify notes and meta equality - falsiness is equivalent
-        for attr in ("notes", "meta"):
-            self_val = self_dict.pop(attr, None) or None
-            other_val = other_dict.pop(attr, None) or None
-            if self_val != other_val:
-                return False
 
         return self_dict == other_dict
 
