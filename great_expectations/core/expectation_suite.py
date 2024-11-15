@@ -244,8 +244,7 @@ class ExpectationSuite(SerializableDictDot):
         if not contains:
             raise KeyError("No matching expectation was found.")  # noqa: TRY003
 
-        for idx in indices:
-            del self.expectations[idx]
+        self.expectations = [exp for i, exp in enumerate(self.expectations) if i not in indices]
 
         if self._has_been_saved():
             # only persist on delete if the suite has already been saved
