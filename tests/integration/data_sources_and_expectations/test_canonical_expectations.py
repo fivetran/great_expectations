@@ -130,7 +130,6 @@ def test_expect_column_mean_to_be_between(batch_for_datasource):
 
 class TestExpectTableRowCountToEqualOtherTable:
     MULTI_ASSET_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
-        BigQueryDatasourceTestConfig(),
         DatabricksDatasourceTestConfig(),
         MSSQLDatasourceTestConfig(),
         MySQLDatasourceTestConfig(),

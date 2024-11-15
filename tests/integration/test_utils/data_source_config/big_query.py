@@ -1,7 +1,8 @@
-from functools import cached_property
-from typing import Mapping
+from __future__ import annotations
 
-import pandas as pd
+from functools import cached_property
+from typing import TYPE_CHECKING, Mapping
+
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
@@ -12,6 +13,9 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class BigQueryDatasourceTestConfig(DataSourceTestConfig):
@@ -37,16 +41,6 @@ class BigQueryDatasourceTestConfig(DataSourceTestConfig):
             config=self,
             extra_data=extra_data,
         )
-
-
-class BigQueryConnectionConfig(BaseSettings):
-    GE_TEST_GCP_PROJECT: str
-    GE_TEST_BIGQUERY_DATASET: str
-    GOOGLE_APPLICATION_CREDENTIALS: str
-
-    @property
-    def connection_string(self) -> str:
-        return f"bigquery://{self.GE_TEST_GCP_PROJECT}/{self.GE_TEST_BIGQUERY_DATASET}?credentials_path={self.GOOGLE_APPLICATION_CREDENTIALS}"
 
 
 class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
@@ -79,3 +73,13 @@ class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
     @cached_property
     def big_query_connection_config(self) -> BigQueryConnectionConfig:
         return BigQueryConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
+
+
+class BigQueryConnectionConfig(BaseSettings):
+    GE_TEST_GCP_PROJECT: str
+    GE_TEST_BIGQUERY_DATASET: str
+    GOOGLE_APPLICATION_CREDENTIALS: str
+
+    @property
+    def connection_string(self) -> str:
+        return f"bigquery://{self.GE_TEST_GCP_PROJECT}/{self.GE_TEST_BIGQUERY_DATASET}?credentials_path={self.GOOGLE_APPLICATION_CREDENTIALS}"
