@@ -58,7 +58,9 @@ class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
     @property
     @override
     def use_schema(self) -> bool:
-        return False
+        # BigQuery calls its schemas "datasets". Their docs show that the sql way of defining a
+        # dataset is to create a schema: https://cloud.google.com/bigquery/docs/datasets#sql
+        return True
 
     @override
     def make_batch(self) -> Batch:
