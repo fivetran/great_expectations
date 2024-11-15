@@ -42,11 +42,19 @@ data = pd.DataFrame(
     [
         pytest.param(
             'name=="albert"',
-            id="text",
+            id="text - eq",
+        ),
+        pytest.param(
+            'name!="issac"',
+            id="text - ne",
         ),
         pytest.param(
             "quantity<3",
-            id="number",
+            id="number - lt",
+        ),
+        pytest.param(
+            "quantity==1",
+            id="number - eq",
         ),
     ],
 )
@@ -80,11 +88,19 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
     [
         pytest.param(
             'col("name")=="albert"',
-            id="text",
+            id="text - eq",
+        ),
+        pytest.param(
+            'col("name")!="issac"',
+            id="text - ne",
         ),
         pytest.param(
             'col("quantity")<3',
-            id="number",
+            id="number - lt",
+        ),
+        pytest.param(
+            'col("quantity")==1',
+            id="number - eq",
         ),
     ],
 )
