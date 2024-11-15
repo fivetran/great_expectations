@@ -27,7 +27,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
 ### Procedure
 
-   <Tabs queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
+<Tabs queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
    <TabItem value="pandas" label="pandas">
 
@@ -65,7 +65,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    </TabItem>
 
-   </Tabs>
+</Tabs>
 
    Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
@@ -79,7 +79,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    An Expectation with conditions is created like a regular Expectation, with the addition of the `row_condition` and `condition_parser` parameters alongside the Expectation's other arguments.
    
-   <Tabs  className="hidden" queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
+<Tabs className="hidden" queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
    <TabItem value="pandas" label="pandas">
    
@@ -144,9 +144,9 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    </TabItem>
 
-   </Tabs>
+</Tabs>
 
-   <Tabs className="hidden" queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
+<Tabs className="hidden" queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
    
    <TabItem value="pandas" label="pandas">
 
@@ -206,7 +206,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    </TabItem>
 
-   </Tabs>
+</Tabs>
 
 4. Optional. Create additional Expectation conditions
 
@@ -219,7 +219,7 @@ Great Expectations allows you to specify conditions for validating rows using th
    
    And this code adds a condition to the Expectation that specifies the value of the `"Survived"` column is `1` if the individual was a first class passenger:
    
-   <Tabs className="hidden" queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
+<Tabs className="hidden" queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 
    <TabItem value="pandas" label="pandas">
 
@@ -239,7 +239,7 @@ Great Expectations allows you to specify conditions for validating rows using th
    ```
    </TabItem>
 
-   </Tabs>
+</Tabs>
 
 ## Data Docs and Expectation conditions
 
