@@ -155,4 +155,7 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/expectations/core/expect_column_median_to_be_between.py Name: ExpectColumnMedianToBeBetween",
     "File: great_expectations/expectations/core/expect_column_quantile_values_to_be_between.py Name: ExpectColumnQuantileValuesToBeBetween",
     "File: great_expectations/expectations/core/expect_column_value_z_scores_to_be_less_than.py Name: ExpectColumnValueZScoresToBeLessThan",
+    "File: great_expectations/expectations/core/expect_column_pair_values_a_to_be_greater_than_b.py Name: ExpectColumnPairValuesAToBeGreaterThanB",
+    "File: great_expectations/expectations/core/expect_column_pair_values_to_be_equal.py Name: ExpectColumnPairValuesToBeEqual",
+    "File: great_expectations/expectations/core/expect_multicolumn_sum_to_equal.py Name: ExpectMulticolumnSumToEqual",
 ]
