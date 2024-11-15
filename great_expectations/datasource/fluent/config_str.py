@@ -71,7 +71,7 @@ class ConfigStr(SecretStr):
         return TEMPLATE_STR_REGEX.search(v) is not None
 
     @classmethod
-    def _validate_template_str_format(cls, v: str) -> str | None:
+    def validate_template_str_format(cls, v: str) -> str | None:
         if cls.str_contains_config_template(v):
             return v
         raise ValueError(
@@ -85,7 +85,7 @@ class ConfigStr(SecretStr):
         # one or more validators may be yielded which will be called in the
         # order to validate the input, each validator will receive as an input
         # the value returned from the previous validator
-        yield cls._validate_template_str_format
+        yield cls.validate_template_str_format
         yield cls.validate
 
     @classmethod
@@ -228,7 +228,7 @@ class ConfigUri(AnyUrl, ConfigStr):  # type: ignore[misc] # Mixin "validate" sig
         # one or more validators may be yielded which will be called in the
         # order to validate the input, each validator will receive as an input
         # the value returned from the previous validator
-        yield ConfigStr._validate_template_str_format
+        yield ConfigStr.validate_template_str_format
         yield cls.validate  # equivalent to AnyUrl.validate
 
     @classmethod

@@ -110,7 +110,7 @@ def test_successful_renderer_configuration_instantiation(
                 "condition_parser": "great_expectations",
                 "row_condition": 'PClass=="1st"',
             },
-            ['PClass is "1st"'],
+            ['PClass=="1st"'],
         ),
         (
             "expect_column_values_to_be_in_set",
@@ -120,7 +120,7 @@ def test_successful_renderer_configuration_instantiation(
                 "condition_parser": "great_expectations",
                 "row_condition": 'col("foo") > 5',
             },
-            ["col", '"foo"', "> 5"],
+            ["foo", "> 5"],
         ),
         (
             "expect_column_values_to_be_in_set",
@@ -130,7 +130,7 @@ def test_successful_renderer_configuration_instantiation(
                 "condition_parser": "great_expectations",
                 "row_condition": "foo == 1 | foo == 2",
             },
-            ["foo is 1", "foo is 2"],
+            ["foo == 1", "foo == 2"],
         ),
         (
             "expect_column_values_to_be_in_set",
@@ -216,7 +216,9 @@ def test_renderer_configuration_add_param_validation(
         renderer_configuration.add_param(name="value", param_type=param_type)
 
     if param_type is RendererValueType.STRING:
-        exception_message = "Value was unable to be represented as a string: I'm not a string"
+        exception_message = (
+            f"Value was unable to be represented as a {RendererValueType.STRING}: I'm not a string"
+        )
     else:
         exception_message = f"Param type: <{param_type}> does not match value: <{value}>."
     assert any(

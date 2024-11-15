@@ -3,9 +3,12 @@ import os
 import boto3
 import pytest
 from moto import mock_sns
+from pytest_mock import MockerFixture
 
 from great_expectations.core import ExpectationSuiteValidationResult, RunIdentifier
+from great_expectations.data_context import set_context
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
+from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.data_context.types.resource_identifiers import (
     BatchIdentifier,
     ExpectationSuiteIdentifier,
@@ -101,3 +104,10 @@ def sns(aws_credentials):
     with mock_sns():
         conn = boto3.client("sns")
         yield conn
+
+
+@pytest.fixture
+def mock_context(mocker: MockerFixture):
+    context = mocker.MagicMock(spec=AbstractDataContext)
+    set_context(context)
+    return context

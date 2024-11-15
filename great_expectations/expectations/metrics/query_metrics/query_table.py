@@ -34,9 +34,15 @@ class QueryTable(QueryMetricProvider):
             metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
         )
         query = cls._get_query_from_metric_value_kwargs(metric_value_kwargs)
-        return cls._get_sqlalchemy_records_from_query_and_batch_selectable(
-            query=query,
-            batch_selectable=batch_selectable,
+        substituted_batch_subquery = (
+            cls._get_substituted_batch_subquery_from_query_and_batch_selectable(
+                query=query,
+                batch_selectable=batch_selectable,
+                execution_engine=execution_engine,
+            )
+        )
+        return cls._get_sqlalchemy_records_from_substituted_batch_subquery(
+            substituted_batch_subquery=substituted_batch_subquery,
             execution_engine=execution_engine,
         )
 

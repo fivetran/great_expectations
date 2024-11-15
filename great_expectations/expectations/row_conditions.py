@@ -11,11 +11,11 @@ from pyparsing import (
     Combine,
     Literal,
     ParseException,
+    QuotedString,
     Regex,
     Suppress,
     Word,
     alphanums,
-    alphas,
 )
 
 import great_expectations.exceptions as gx_exceptions
@@ -34,11 +34,7 @@ def _set_notnull(s, l, t) -> None:  # noqa: E741 # ambiguous name `l`
 
 
 WHITESPACE_CHARS = " \t"
-column_name = Combine(
-    Suppress(Literal('col("'))
-    + Word(alphas, f"{alphanums}_-.").setResultsName("column")
-    + Suppress(Literal('")'))
-)
+column_name = Combine(Literal("col(") + QuotedString('"').setResultsName("column") + Literal(")"))
 gt = Literal(">")
 lt = Literal("<")
 ge = Literal(">=")

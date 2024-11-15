@@ -1310,7 +1310,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
     @new_method_or_class(version="0.16.14")
     def execute_query(
-        self, query: sqlalchemy.Selectable
+        self, query: sqlalchemy.Selectable | sqlalchemy.TextClause
     ) -> sqlalchemy.CursorResult | sqlalchemy.LegacyCursorResult:
         """Execute a query using the underlying database engine.
 
@@ -1321,7 +1321,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
         """
         with self.get_connection() as connection:
-            result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
+            result = connection.execute(query)  # type: ignore[arg-type] # FIXME:Selectable overly broad
 
         return result
 

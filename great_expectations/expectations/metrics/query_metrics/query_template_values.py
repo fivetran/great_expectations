@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Sequence, Union
 
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -18,7 +18,7 @@ from great_expectations.expectations.metrics.query_metric_provider import (
 from great_expectations.util import get_sqlalchemy_subquery_type
 
 if TYPE_CHECKING:
-    from great_expectations.compatibility import pyspark, sqlalchemy
+    from great_expectations.compatibility import pyspark
 
 
 class QueryTemplateValues(QueryMetricProvider):
@@ -55,9 +55,6 @@ class QueryTemplateValues(QueryMetricProvider):
             metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
         )
 
-        if not isinstance(query, str):
-            raise TypeError("Query must be supplied as a string")  # noqa: TRY003
-
         template_dict = metric_value_kwargs.get("template_dict")
 
         if not isinstance(template_dict, dict):
@@ -86,14 +83,19 @@ class QueryTemplateValues(QueryMetricProvider):
             query = cls.get_query(query, template_dict, f"({selectable})")
 
         try:
-            result: List[sqlalchemy.Row] = execution_engine.execute_query(sa.text(query)).fetchall()  # type: ignore[assignment,arg-type]
+            result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
+                sa.text(query)
+            ).fetchall()
         except Exception as e:
             if hasattr(e, "_query_id"):
                 # query_id removed because it duplicates the validation_results
                 e._query_id = None
             raise e  # noqa: TRY201
 
-        return [element._asdict() for element in result]
+        if isinstance(result, Sequence):
+            return [element._asdict() for element in result]
+        else:
+            return [result]
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(

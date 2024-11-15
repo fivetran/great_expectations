@@ -65,10 +65,7 @@ class MicrosoftTeamsRenderer(Renderer):
             )
             blocks.extend(validation_blocks)
 
-        if data_docs_pages:
-            blocks.extend(self._build_data_docs_page_blocks(data_docs_pages=data_docs_pages))
-
-        return self._build_payload(blocks)
+        return self._build_payload(blocks=blocks, data_docs_pages=data_docs_pages)
 
     def _build_header_block(
         self, checkpoint_name: str, success: bool, run_time: dt.datetime
@@ -146,7 +143,16 @@ class MicrosoftTeamsRenderer(Renderer):
 
         if validation_result.result_url:
             blocks.append(
-                self._build_url_block(title="View Result", url=validation_result.result_url)
+                {
+                    "type": "ActionSet",
+                    "actions": [
+                        {
+                            "type": "Action.OpenUrl",
+                            "title": "View Result",
+                            "url": validation_result.result_url,
+                        }
+                    ],
+                }
             )
 
         return blocks
@@ -170,29 +176,51 @@ class MicrosoftTeamsRenderer(Renderer):
             {"title": "Summary:", "value": check_details_text},
         ]
 
-    def _build_data_docs_page_blocks(
-        self, data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]]
-    ) -> list[dict[str, str]]:
-        blocks: list[dict[str, str]] = []
+    def _get_data_docs_page_links(
+        self, data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]] | None
+    ) -> list[str]:
+        links: list[str] = []
+
+        if not data_docs_pages:
+            return links
+
         for data_docs_page in data_docs_pages.values():
             for docs_link_key, docs_link in data_docs_page.items():
                 if docs_link_key == "class":
                     continue
 
-                blocks.append(self._build_url_block(title="Open Data Docs", url=docs_link))
+                links.append(docs_link)
 
-        return blocks
-
-    def _build_url_block(self, title: str, url: str) -> dict:
-        return {
-            "type": "ActionSet",
-            "actions": [{"type": "Action.OpenUrl", "title": title, "url": url}],
-        }
+        return links
 
     def _build_payload(
         self,
         blocks: list[dict],
+        data_docs_pages: dict[ValidationResultIdentifier, dict[str, str]] | None,
     ) -> dict:
+        data_docs_page_links = self._get_data_docs_page_links(data_docs_pages)
+        actions = [
+            # We would normally use Action.OpenUrl here, but Teams does not support
+            # non HTTP/HTTPS URI schemes. As Data Docs utilze file:///, we use Action.ShowCard
+            # to display the link in a card.
+            {
+                "type": "Action.ShowCard",
+                "title": "View Data Docs URL",
+                "card": {
+                    "type": "AdaptiveCard",
+                    "body": [
+                        {
+                            "type": "TextBlock",
+                            "text": link,
+                            "wrap": True,
+                        },
+                    ],
+                    "$schema": self._MICROSOFT_TEAMS_SCHEMA_URL,
+                },
+            }
+            for link in data_docs_page_links
+        ]
+
         return {
             "type": "message",
             "attachments": [
@@ -203,6 +231,7 @@ class MicrosoftTeamsRenderer(Renderer):
                         "$schema": self._MICROSOFT_TEAMS_SCHEMA_URL,
                         "version": self._MICROSOFT_TEAMS_SCHEMA_VERSION,
                         "body": blocks,
+                        "actions": actions,
                     },
                 }
             ],

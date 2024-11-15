@@ -8,6 +8,10 @@ from __future__ import annotations
 
 import json
 import logging
+import smtplib
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -22,13 +26,11 @@ import requests
 from typing_extensions import Annotated
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.checkpoint.util import (
-    send_email,
-    send_microsoft_teams_notifications,
-    send_opsgenie_alert,
-    send_slack_notification,
-    send_sns_notification,
+from great_expectations.analytics.client import submit as submit_event
+from great_expectations.analytics.events import (
+    NotificationActionRanEvent,
 )
+from great_expectations.compatibility import aws
 from great_expectations.compatibility.pydantic import (
     BaseModel,
     Extra,
@@ -59,7 +61,6 @@ from great_expectations.util import convert_to_json_serializable  # noqa: TID251
 
 if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import CheckpointResult
-    from great_expectations.core.config_provider import _ConfigurationProvider
     from great_expectations.core.expectation_validation_result import (
         ExpectationSuiteValidationResult,
     )
@@ -140,6 +141,16 @@ class ValidationAction(BaseModel):
             return data_docs_pages
 
         return None
+
+    @staticmethod
+    def _substitute_config_str_if_needed(value: Union[str, ConfigStr, None]) -> Optional[str]:
+        from great_expectations.data_context.data_context.context_factory import project_manager
+
+        config_provider = project_manager.get_config_provider()
+        if isinstance(value, ConfigStr):
+            return value.get_config_value(config_provider=config_provider)
+        else:
+            return value
 
 
 def _should_notify(success: bool, notify_on: Literal["all", "failure", "success"]) -> bool:
@@ -280,7 +291,16 @@ class SlackNotificationAction(DataDocsAction):
             run_id=checkpoint_result.run_id,
         )
 
-        return self._send_slack_notification(payload=payload)
+        result = self._send_slack_notification(payload=payload)
+
+        checkpoint = checkpoint_result.checkpoint_config
+        submit_event(
+            event=NotificationActionRanEvent(
+                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
+            )
+        )
+
+        return result
 
     def _render_validation_result(
         self,
@@ -316,38 +336,43 @@ class SlackNotificationAction(DataDocsAction):
         )
 
     def _send_slack_notification(self, payload: dict) -> dict:
-        from great_expectations.data_context.data_context.context_factory import project_manager
+        slack_webhook = self._substitute_config_str_if_needed(self.slack_webhook)
+        slack_token = self._substitute_config_str_if_needed(self.slack_token)
+        slack_channel = self._substitute_config_str_if_needed(self.slack_channel)
 
-        config_provider = project_manager.get_config_provider()
-        substituted_slack_webhook = self._substitute_slack_credential(
-            slack_credential=self.slack_webhook, config_provider=config_provider
-        )
-        substituted_slack_token = self._substitute_slack_credential(
-            slack_credential=self.slack_token, config_provider=config_provider
-        )
-        substituted_slack_channel = self._substitute_slack_credential(
-            slack_credential=self.slack_channel, config_provider=config_provider
-        )
+        session = requests.Session()
+        url = slack_webhook
+        headers = None
 
-        # this will actually send the POST request to the Slack webapp server
-        slack_notif_result = send_slack_notification(
-            payload=payload,
-            slack_webhook=substituted_slack_webhook,
-            slack_token=substituted_slack_token,
-            slack_channel=substituted_slack_channel,
-        )
-        return {"slack_notification_result": slack_notif_result}
+        # Slack doc about overwritting the channel when using the legacy Incoming Webhooks
+        # https://api.slack.com/legacy/custom-integrations/messaging/webhooks
+        # ** Since it is legacy, it could be deprecated or removed in the future **
+        if slack_channel:
+            payload["channel"] = slack_channel
 
-    @staticmethod
-    def _substitute_slack_credential(
-        slack_credential: ConfigStr | str | None, config_provider: _ConfigurationProvider
-    ) -> str | None:
-        if not isinstance(slack_credential, ConfigStr):
-            return slack_credential
-        return slack_credential.get_config_value(config_provider=config_provider)
+        if not slack_webhook:
+            url = "https://slack.com/api/chat.postMessage"
+            headers = {"Authorization": f"Bearer {slack_token}"}
+
+        if not url:
+            raise ValueError("No Slack webhook URL provided.")  # noqa: TRY003
+
+        try:
+            response = session.post(url=url, headers=headers, json=payload)
+            response.raise_for_status()
+        except requests.ConnectionError:
+            logger.warning(f"Failed to connect to Slack webhook after {10} retries.")
+            return {"slack_notification_result": None}
+        except requests.HTTPError:
+            logger.warning(
+                "Request to Slack webhook "
+                f"returned error {response.status_code}: {response.text}"  # type: ignore[possibly-undefined] # ok for httperror
+            )
+            return {"slack_notification_result": None}
+
+        return {"slack_notification_result": "Slack notification succeeded."}
 
 
-@public_api
 class PagerdutyAlertAction(ValidationAction):
     """Sends a PagerDuty event.
 
@@ -414,37 +439,14 @@ class PagerdutyAlertAction(ValidationAction):
 class MicrosoftTeamsNotificationAction(ValidationAction):
     """Sends a Microsoft Teams notification to a given webhook.
 
-    ```yaml
-    - name: send_microsoft_teams_notification_on_validation_result
-    action:
-      class_name: MicrosoftTeamsNotificationAction
-      # put the actual webhook URL in the uncommitted/config_variables.yml file
-      # or pass in as environment variable
-      microsoft_teams_webhook: ${validation_notification_microsoft_teams_webhook}
-      notify_on: all
-      renderer:
-        # the class that implements the message to be sent
-        # this is the default implementation, but you can
-        # implement a custom one
-        module_name: great_expectations.render.renderer.microsoft_teams_renderer
-        class_name: MicrosoftTeamsRenderer
-    ```
-
     Args:
-        renderer: Specifies the renderer used to generate a query consumable by teams API, e.g.:
-            ```python
-            {
-               "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",
-               "class_name": "MicrosoftTeamsRenderer",
-            }
-            ```
-        microsoft_teams_webhook: Incoming Microsoft Teams webhook to which to send notifications.
+        teams_webhook: Incoming Microsoft Teams webhook to which to send notifications.
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
     """  # noqa: E501
 
     type: Literal["microsoft"] = "microsoft"
 
-    teams_webhook: str
+    teams_webhook: Union[ConfigStr, str]
     notify_on: Literal["all", "failure", "success"] = "all"
     renderer: MicrosoftTeamsRenderer = Field(default_factory=MicrosoftTeamsRenderer)
 
@@ -471,14 +473,40 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
             checkpoint_result=checkpoint_result,
             data_docs_pages=data_docs_pages,
         )
+
         # this will actually sent the POST request to the Microsoft Teams webapp server
-        teams_notif_result = send_microsoft_teams_notifications(
-            payload=payload, microsoft_teams_webhook=self.teams_webhook
+        teams_notif_result = self._send_microsoft_teams_notifications(payload=payload)
+
+        checkpoint = checkpoint_result.checkpoint_config
+        submit_event(
+            event=NotificationActionRanEvent(
+                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
+            )
         )
+
         return {"microsoft_teams_notification_result": teams_notif_result}
 
+    def _send_microsoft_teams_notifications(self, payload: dict) -> str | None:
+        webhook = self._substitute_config_str_if_needed(self.teams_webhook)
+        if not webhook:  # Necessary to appease mypy; this is guaranteed.
+            raise ValueError("No Microsoft Teams webhook URL provided.")  # noqa: TRY003
 
-@public_api
+        session = requests.Session()
+        try:
+            response = session.post(url=webhook, json=payload)
+            response.raise_for_status()
+        except requests.ConnectionError:
+            logger.warning("Failed to connect to Microsoft Teams webhook after 10 retries.")
+            return None
+        except requests.HTTPError as e:
+            logger.warning(
+                f"Request to Microsoft Teams API returned error {response.status_code}: {e}"  # type: ignore[possibly-undefined] # ok for httperror
+            )
+            return None
+
+        return "Microsoft Teams notification succeeded."
+
+
 class OpsgenieAlertAction(ValidationAction):
     """Sends an Opsgenie alert.
 
@@ -545,13 +573,42 @@ class OpsgenieAlertAction(ValidationAction):
             else:
                 message += "failed!"
 
-            alert_result = send_opsgenie_alert(
+            alert_result = self._send_opsgenie_alert(
                 query=description, message=message, settings=settings
             )
 
             return {"opsgenie_alert_result": alert_result}
         else:
             return {"opsgenie_alert_result": "No alert sent"}
+
+    def _send_opsgenie_alert(self, query: str, message: str, settings: dict) -> bool:
+        """Creates an alert in Opsgenie."""
+        if settings["region"] is not None:
+            # accommodate for Europeans
+            url = f"https://api.{settings['region']}.opsgenie.com/v2/alerts"
+        else:
+            url = "https://api.opsgenie.com/v2/alerts"
+
+        headers = {"Authorization": f"GenieKey {settings['api_key']}"}
+        payload = {
+            "message": message,
+            "description": query,
+            "priority": settings["priority"],  # allow this to be modified in settings
+            "tags": settings["tags"],
+        }
+
+        session = requests.Session()
+
+        try:
+            response = session.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+        except requests.ConnectionError as e:
+            logger.warning(f"Failed to connect to Opsgenie: {e}")
+            return False
+        except requests.HTTPError as e:
+            logger.warning(f"Request to Opsgenie API returned error {response.status_code}: {e}")  # type: ignore[possibly-undefined] # ok for httperror
+            return False
+        return True
 
 
 @public_api
@@ -604,12 +661,12 @@ class EmailAction(ValidationAction):
 
     type: Literal["email"] = "email"
 
-    smtp_address: str
-    smtp_port: str
-    receiver_emails: str
-    sender_login: Optional[str] = None
-    sender_password: Optional[str] = None
-    sender_alias: Optional[str] = None
+    smtp_address: Union[ConfigStr, str]
+    smtp_port: Union[ConfigStr, str]
+    receiver_emails: Union[ConfigStr, str]
+    sender_login: Optional[Union[ConfigStr, str]] = None
+    sender_password: Optional[Union[ConfigStr, str]] = None
+    sender_alias: Optional[Union[ConfigStr, str]] = None
     use_tls: Optional[bool] = None
     use_ssl: Optional[bool] = None
     notify_on: Literal["all", "failure", "success"] = "all"
@@ -656,24 +713,77 @@ class EmailAction(ValidationAction):
             return {"email_result": ""}
 
         title, html = self.renderer.render(checkpoint_result=checkpoint_result)
-        receiver_emails_list = list(map(lambda x: x.strip(), self.receiver_emails.split(",")))
+        substituted_receiver_emails = (
+            self._substitute_config_str_if_needed(self.receiver_emails) or ""
+        )
+
+        receiver_emails_list = list(
+            map(lambda x: x.strip(), substituted_receiver_emails.split(","))
+        )
 
         # this will actually send the email
-        email_result = send_email(
+        email_result = self._send_email(
             title=title,
             html=html,
-            smtp_address=self.smtp_address,
-            smtp_port=self.smtp_port,
-            sender_login=self.sender_login,
-            sender_password=self.sender_password,
-            sender_alias=self.sender_alias,
             receiver_emails_list=receiver_emails_list,
-            use_tls=self.use_tls,
-            use_ssl=self.use_ssl,
+        )
+
+        checkpoint = checkpoint_result.checkpoint_config
+        submit_event(
+            event=NotificationActionRanEvent(
+                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
+            )
         )
 
         # sending payload back as dictionary
         return {"email_result": email_result}
+
+    def _send_email(  # noqa: C901
+        self,
+        title,
+        html,
+        receiver_emails_list,
+    ):
+        smtp_address = self._substitute_config_str_if_needed(self.smtp_address)
+        smtp_port = self._substitute_config_str_if_needed(self.smtp_port)
+        sender_login = self._substitute_config_str_if_needed(self.sender_login)
+        sender_password = self._substitute_config_str_if_needed(self.sender_password)
+        sender_alias = self._substitute_config_str_if_needed(self.sender_alias)
+
+        msg = MIMEMultipart()
+        msg["From"] = sender_alias
+        msg["To"] = ", ".join(receiver_emails_list)
+        msg["Subject"] = title
+        msg.attach(MIMEText(html, "html"))
+        try:
+            if self.use_ssl:
+                if self.use_tls:
+                    logger.warning("Please choose between SSL or TLS, will default to SSL")
+                context = ssl.create_default_context()
+                mailserver = smtplib.SMTP_SSL(smtp_address, smtp_port, context=context)
+            elif self.use_tls:
+                mailserver = smtplib.SMTP(smtp_address, smtp_port)
+                context = ssl.create_default_context()
+                mailserver.starttls(context=context)
+            else:
+                logger.warning("Not using TLS or SSL to send an email is not secure")
+                mailserver = smtplib.SMTP(smtp_address, smtp_port)
+            if sender_login is not None and sender_password is not None:
+                mailserver.login(sender_login, sender_password)
+            elif not (sender_login is None and sender_password is None):
+                logger.error(
+                    "Please specify both sender_login and sender_password or specify both as None"
+                )
+            mailserver.sendmail(sender_alias, receiver_emails_list, msg.as_string())
+            mailserver.quit()
+        except smtplib.SMTPConnectError:
+            logger.error(f"Failed to connect to the SMTP server at address: {smtp_address}")  # noqa: TRY400
+        except smtplib.SMTPAuthenticationError:
+            logger.error(f"Failed to authenticate to the SMTP server at address: {smtp_address}")  # noqa: TRY400
+        except Exception as e:
+            logger.error(str(e))  # noqa: TRY400
+        else:
+            return "success"
 
 
 @public_api
@@ -782,7 +892,6 @@ class UpdateDataDocsAction(DataDocsAction):
         return data_docs_validation_results
 
 
-@public_api
 class SNSNotificationAction(ValidationAction):
     """Action that pushes validations results to an SNS topic with a subject of passed or failed.
 
@@ -812,8 +921,7 @@ class SNSNotificationAction(ValidationAction):
     def run(
         self, checkpoint_result: CheckpointResult, action_context: ActionContext | None = None
     ) -> dict:
-        msg = send_sns_notification(
-            sns_topic_arn=self.sns_topic_arn,
+        msg = self._send_sns_notification(
             sns_subject=self.sns_message_subject or checkpoint_result.name,
             validation_results=json.dumps(
                 [result.to_json_dict() for result in checkpoint_result.run_results.values()],
@@ -821,6 +929,42 @@ class SNSNotificationAction(ValidationAction):
             ),
         )
         return {"result": msg}
+
+    def _send_sns_notification(self, sns_subject: str, validation_results: str, **kwargs) -> str:
+        """
+        Send JSON results to an SNS topic with a schema of:
+
+        :param sns_subject: : The SNS Message Subject - defaults to suite_identifier.name
+        :param validation_results:  The results of the validation ran
+        :param kwargs:  Keyword arguments to pass to the boto3 Session
+        :return:  Message ID that was published or error message
+
+        """
+        if not aws.boto3:
+            logger.warning("boto3 is not installed")
+            return "boto3 is not installed"
+
+        message_dict = {
+            "TopicArn": self.sns_topic_arn,
+            "Subject": sns_subject,
+            "Message": json.dumps(validation_results),
+            "MessageAttributes": {
+                "String": {"DataType": "String.Array", "StringValue": "ValidationResults"},
+            },
+            "MessageStructure": "json",
+        }
+        session = aws.boto3.Session(**kwargs)
+        sns = session.client("sns")
+        try:
+            response = sns.publish(**message_dict)
+        except sns.exceptions.InvalidParameterException:
+            error_msg = f"Received invalid for message: {validation_results}"
+            logger.error(error_msg)  # noqa: TRY400
+            return error_msg
+        else:
+            return (
+                f"Successfully posted results to {response['MessageId']} with Subject {sns_subject}"
+            )
 
 
 class APINotificationAction(ValidationAction):
@@ -869,10 +1013,7 @@ CheckpointAction = Annotated[
     Union[
         EmailAction,
         MicrosoftTeamsNotificationAction,
-        OpsgenieAlertAction,
-        PagerdutyAlertAction,
         SlackNotificationAction,
-        SNSNotificationAction,
         UpdateDataDocsAction,
     ],
     Field(discriminator="type"),

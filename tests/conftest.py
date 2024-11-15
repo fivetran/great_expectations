@@ -120,6 +120,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "cloud",
     "databricks",
     "docs",
+    "integration",
     "filesystem",
     "mssql",
     "mysql",
