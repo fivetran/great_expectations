@@ -523,6 +523,10 @@ jobs:
             reqs/requirements-dev-test.txt
             setup.py
 
+      - name: Copy GCP credentials to file
+        run: |
+          echo "$GE_TEST_GCP_CREDENTIALS" > gcp-credentials.json
+
       - name: Install dependencies
         run: |
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
