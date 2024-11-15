@@ -22,7 +22,7 @@ This article demonstrates how to use GX to define and enforce data integrity rul
 
 ## Prerequisite knowledge
 
-This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](/docs/cloud/overview/gx_cloud_overview) and [GX Core](/docs/core/introduction) overviews to familiarize yourself with key concepts and setup procedures.
+This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](/cloud/overview/gx_cloud_overview.md) and [GX Core](/core/introduction/introduction.mdx) overviews to familiarize yourself with key concepts and setup procedures.
 
 ## Data preview
 
@@ -66,7 +66,7 @@ Validating the integrity of this financial data involves checking the consistenc
 Great Expectations provides a collection of Expectations that validate relationships between data elements within a single table. If you want to use these same Expectations to validate data relationships across multiple tables, you have two options:
 
 1. Create a database view that joins the tables you want to validate, and then use the built-in Expectations to validate columns within the view.
-2. Create custom SQL Expectations in [GX Cloud](/docs/cloud/expectations/manage_expectations#custom-sql-expectations) or [GX Core](/docs/core/customize_expectations/use_sql_to_define_a_custom_expectation) to validate relationships directly using a SQL query that references multiple tables.
+2. Create custom SQL Expectations in [GX Cloud](/cloud/expectations/manage_expectations.md#custom-sql-expectations) or [GX Core](/core/customize_expectations/use_sql_to_define_a_custom_expectation.md) to validate relationships directly using a SQL query that references multiple tables.
 
 This section covers the first option and presents built-in Expectations that can be applied to single tables, or SQL views that query multiple tables. The second option is explored in the [Example: Validate data integrity with custom SQL Expectations](#example-validate-data-integrity-with-custom-sql-expectations) section that showcases how to create and use custom SQL Expectations for validating relationships across separate tables.
 
