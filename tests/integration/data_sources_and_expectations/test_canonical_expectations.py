@@ -7,6 +7,7 @@ import great_expectations.expectations as gxe
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
+    DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
     MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
@@ -19,6 +20,7 @@ from tests.integration.test_utils.data_source_config import (
 )
 
 ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    DatabricksDatasourceTestConfig(),
     MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PandasDataFrameDatasourceTestConfig(),
@@ -126,6 +128,7 @@ def test_expect_column_mean_to_be_between(batch_for_datasource):
 
 class TestExpectTableRowCountToEqualOtherTable:
     MULTI_ASSET_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+        DatabricksDatasourceTestConfig(),
         MSSQLDatasourceTestConfig(),
         MySQLDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
