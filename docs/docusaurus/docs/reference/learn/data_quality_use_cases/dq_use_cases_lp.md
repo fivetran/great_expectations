@@ -26,6 +26,8 @@ A comprehensive data quality strategy relies on a multi-dimensional approach to 
 
   <LinkCard topIcon label="Schema" description="Verify that data structure conforms to established rules." to="/reference/learn/data_quality_use_cases/schema" icon="/img/actions_icon.svg"/>
 
+  <LinkCard topIcon label="Uniqueness" description="Validate that distinct values are present only once." to="/reference/learn/data_quality_use_cases/uniqueness" icon="/img/actions_icon.svg"/>
+
   <LinkCard topIcon label="Volume" description="Validate that record quantity falls within expected bounds." to="/reference/learn/data_quality_use_cases/volume" icon="/img/actions_icon.svg"/>
 
 </LinkCardGrid>

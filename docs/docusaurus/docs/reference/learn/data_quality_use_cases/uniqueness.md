@@ -145,7 +145,7 @@ Use the GX Cloud UI to walk through the following steps.
 <TabItem value="gx_core" label="GX Core">
 Run the following GX Core workflow.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py full example code"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py full workflow"
 ```
 </TabItem>
 
