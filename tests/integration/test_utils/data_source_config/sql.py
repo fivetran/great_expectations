@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import date, datetime
 from functools import cached_property
 from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Sequence, Type, Union
 
@@ -56,6 +57,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             int: sqltypes.INTEGER,  # type: ignore[dict-item]
             float: sqltypes.DECIMAL,  # type: ignore[dict-item]
             bool: sqltypes.BOOLEAN,  # type: ignore[dict-item]
+            date: sqltypes.DATE,  # type: ignore[dict-item]
+            datetime: sqltypes.DATETIME,  # type: ignore[dict-item]
         }
 
     def __init__(
