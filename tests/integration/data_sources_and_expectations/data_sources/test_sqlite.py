@@ -47,7 +47,7 @@ class TestPartitioning:
         data=pd.DataFrame(DATA),
     )
     def test_yearly_partitioning(self, asset_for_datasource: TableAsset) -> None:
-        batch_def = asset_for_datasource.add_batch_definition_yearly("yearly", column="date")
+        batch_def = asset_for_datasource.add_batch_definition_yearly("yearly", column=VALUE_COL)
         batch = batch_def.get_batch()
 
         result = batch.validate(
@@ -68,7 +68,7 @@ class TestPartitioning:
         data=pd.DataFrame(DATA),
     )
     def test_monthly_partitioning(self, asset_for_datasource: TableAsset) -> None:
-        batch_def = asset_for_datasource.add_batch_definition_monthly("monthly", column="date")
+        batch_def = asset_for_datasource.add_batch_definition_monthly("monthly", column=VALUE_COL)
         batch = batch_def.get_batch()
 
         result = batch.validate(
@@ -89,7 +89,7 @@ class TestPartitioning:
         data=pd.DataFrame(DATA),
     )
     def test_daily_partitioning(self, asset_for_datasource: TableAsset) -> None:
-        batch_def = asset_for_datasource.add_batch_definition_daily("daily", column="date")
+        batch_def = asset_for_datasource.add_batch_definition_daily("daily", column=VALUE_COL)
         batch = batch_def.get_batch()
 
         result = batch.validate(
