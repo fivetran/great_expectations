@@ -1,4 +1,5 @@
 from .base import DataSourceTestConfig
+from .big_query import BigQueryDatasourceTestConfig
 from .databricks import DatabricksDatasourceTestConfig
 from .mssql import MSSQLDatasourceTestConfig
 from .mysql import MySQLDatasourceTestConfig
