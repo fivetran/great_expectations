@@ -189,6 +189,7 @@ def test_table_quoted_name_type_does_not_exist(
             connection_string="snowflake://<user_login_name>:<password>@<account_identifier>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>",
         ),
     ):
+        # arbitrary change
         table_asset = TableAsset(
             name="my_table_asset",
             table_name="nonexistent_table_name",
