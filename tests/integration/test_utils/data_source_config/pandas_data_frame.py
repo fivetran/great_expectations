@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Mapping
 
 import pandas as pd
@@ -5,6 +6,7 @@ import pytest
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.datasource.fluent.pandas_datasource import DataFrameAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
@@ -33,16 +35,21 @@ class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
         return PandasDataFrameBatchTestSetup(data=data, config=self)
 
 
-class PandasDataFrameBatchTestSetup(BatchTestSetup[PandasDataFrameDatasourceTestConfig]):
+class PandasDataFrameBatchTestSetup(
+    BatchTestSetup[PandasDataFrameDatasourceTestConfig, DataFrameAsset]
+):
+    @cached_property
+    @override
+    def asset(self) -> DataFrameAsset:
+        return self.context.data_sources.add_pandas(
+            self._random_resource_name()
+        ).add_dataframe_asset(self._random_resource_name())
+
     @override
     def make_batch(self) -> Batch:
-        name = self._random_resource_name()
-        return (
-            self.context.data_sources.add_pandas(name)
-            .add_dataframe_asset(name)
-            .add_batch_definition_whole_dataframe(name)
-            .get_batch(batch_parameters={"dataframe": self.data})
-        )
+        return self.asset.add_batch_definition_whole_dataframe(
+            self._random_resource_name()
+        ).get_batch(batch_parameters={"dataframe": self.data})
 
     @override
     def setup(self) -> None: ...
