@@ -47,7 +47,7 @@ class TestPartitioning:
         data=pd.DataFrame(DATA),
     )
     def test_yearly_partitioning(self, asset_for_datasource: TableAsset) -> None:
-        batch_def = asset_for_datasource.add_batch_definition_yearly("yearly", column=VALUE_COL)
+        batch_def = asset_for_datasource.add_batch_definition_yearly("yearly", column=DATE_COL)
         batch = batch_def.get_batch()
 
         result = batch.validate(
@@ -68,7 +68,7 @@ class TestPartitioning:
         data=pd.DataFrame(DATA),
     )
     def test_monthly_partitioning(self, asset_for_datasource: TableAsset) -> None:
-        batch_def = asset_for_datasource.add_batch_definition_monthly("monthly", column=VALUE_COL)
+        batch_def = asset_for_datasource.add_batch_definition_monthly("monthly", column=DATE_COL)
         batch = batch_def.get_batch()
 
         result = batch.validate(
@@ -89,7 +89,7 @@ class TestPartitioning:
         data=pd.DataFrame(DATA),
     )
     def test_daily_partitioning(self, asset_for_datasource: TableAsset) -> None:
-        batch_def = asset_for_datasource.add_batch_definition_daily("daily", column=VALUE_COL)
+        batch_def = asset_for_datasource.add_batch_definition_daily("daily", column=DATE_COL)
         batch = batch_def.get_batch()
 
         result = batch.validate(
@@ -111,9 +111,7 @@ class TestPartitioning:
     )
     def test_order_ascending__true(self, asset_for_datasource: TableAsset) -> None:
         batch_def = asset_for_datasource.add_batch_definition_daily(
-            "daily_ascending",
-            column="date",
-            sort_ascending=True,
+            "daily_ascending", column=DATE_COL, sort_ascending=True
         )
         batch = batch_def.get_batch()
 
@@ -132,11 +130,8 @@ class TestPartitioning:
         data=pd.DataFrame(DATA),
     )
     def test_order_ascending__false(self, asset_for_datasource: TableAsset) -> None:
-        breakpoint()
         batch_def = asset_for_datasource.add_batch_definition_daily(
-            "daily_descending",
-            column="date",
-            sort_ascending=False,
+            "daily_descending", column=DATE_COL, sort_ascending=False
         )
         batch = batch_def.get_batch()
 
