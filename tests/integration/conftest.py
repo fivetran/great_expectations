@@ -6,7 +6,7 @@ import pytest
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.context_factory import set_context
-from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -162,6 +162,17 @@ def batch_for_datasource(
     """
     set_context(_batch_setup_for_datasource.context)
     yield _batch_setup_for_datasource.make_batch()
+
+
+@pytest.fixture
+def asset_for_datasource(
+    _batch_setup_for_datasource: BatchTestSetup,
+) -> Generator[DataAsset, None, None]:
+    """Fixture that yields an asset for a specific data source type.
+    This must be used in conjunction with `indirect=True` to defer execution
+    """
+    set_context(_batch_setup_for_datasource.context)
+    yield _batch_setup_for_datasource.asset
 
 
 @pytest.fixture

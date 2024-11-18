@@ -9,12 +9,12 @@ import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installatio
 import PrereqPreconfiguredDataContext from '../_core_components/prerequisites/_preconfigured_data_context.md';
 import PrereqPreconfiguredDataSourceAndAsset from '../_core_components/prerequisites/_data_source_and_asset_connected_to_data.md';
 
-Existing Expectation Classes can be customized to include additional information such as buisness logic, more descriptive naming conventions, and specialized rendering for Data Docs.  This is done by subclassing an existing Expectation class and populating the subclass with default values and customized attributes.
+Existing Expectation Classes can be customized to include additional information such as business logic, more descriptive naming conventions, and specialized rendering for Data Docs.  This is done by subclassing an existing Expectation class and populating the subclass with default values and customized attributes.
 
 Advantages of subclassing an Expectation and providing customized attributes rather than creating an instance of the parent Expectation and passing in parameters include:
 
    - All instances of the Expectation that use the default values will be updated if changes are made to the class definition.
-   - More descriptive Expectation names can be provided that indicate the buisness logic behind the Expectation.
+   - More descriptive Expectation names can be provided that indicate the business logic behind the Expectation.
    - Customized text can be provided to describe the Expectation when Data Docs are generated from Validation Results.
 
 <h2>Prerequisites</h2>
