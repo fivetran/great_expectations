@@ -76,6 +76,10 @@ class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
 
 
 class BigQueryConnectionConfig(BaseSettings):
+    """Environment variables for BigQuery connection.
+    These are injected in via CI, but when running locally, you may use your own credentials.
+    """
+
     GE_TEST_GCP_PROJECT: str
     GE_TEST_BIGQUERY_DATASET: str
     GOOGLE_APPLICATION_CREDENTIALS: str
