@@ -2307,3 +2307,40 @@ def test_atomic_diagnostic_observed_param_type_inference(
         },
         "value_type": "StringValueType",
     }
+
+
+@pytest.mark.unit
+def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_value(
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_table_columns_to_match_ordered_list",
+            kwargs={"column_list": ["a", "b", "c"]},
+        ),
+        "result": {"observed_value": ["x", "y", "z"]},
+    }
+
+    # act
+    rendered_content = get_diagnostic_rendered_content(x)
+
+    # assert
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": {
+                "column_list": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
+                "observed_value": {"schema": {"type": "array"}, "value": ["x", "y", "z"]},
+                "observed_value_label": {"schema": {"type": "string"}, "value": "Table columns"},
+                "ov__0": {"schema": {"type": "string"}, "value": "x"},
+                "ov__1": {"schema": {"type": "string"}, "value": "y"},
+                "ov__2": {"schema": {"type": "string"}, "value": "z"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$observed_value_label: $ov__0 $ov__1 $ov__2",
+        },
+        "value_type": "StringValueType",
+    }
