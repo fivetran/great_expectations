@@ -459,18 +459,6 @@ class TestCRUDMethods:
         assert suite.expectations == []
 
     @pytest.mark.unit
-    def test_delete_success_removes_duplicates(self, expectation):
-        context = Mock(spec=AbstractDataContext)
-        set_context(project=context)
-        suite = ExpectationSuite(
-            name="test-suite",
-            expectations=[expectation, expectation],  # Accidentaly added the same expectation twice
-        )
-
-        suite.delete_expectation(expectation=expectation)
-        assert suite.expectations == []
-
-    @pytest.mark.unit
     def test_delete_fails_when_expectation_is_not_found(self, expectation):
         context = Mock(spec=AbstractDataContext)
         set_context(project=context)

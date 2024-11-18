@@ -158,7 +158,7 @@ class ExpectationSuite(SerializableDictDot):
 
         return expectation
 
-    def _contains_equalish_expectation(self, expectation: Expectation) -> tuple[bool, list[int]]:
+    def _contains_equalish_expectation(self, expectation: Expectation) -> tuple[bool, int]:
         """
         Helper method to determine if an expectation is already in the suite.
 
@@ -170,15 +170,17 @@ class ExpectationSuite(SerializableDictDot):
 
         Returns:
             A tuple of a boolean indicating whether the expectation is already in the suite
-            and a list of indices of the expectation in the suite if it is.
+            and the index of the expectation in the suite if it is (-1 if not).
         """
         exclude_params = {"id", "rendered_content", "notes", "meta"}
 
         input_expectation = expectation.dict(exclude=exclude_params)
         suite_expectations = [e.dict(exclude=exclude_params) for e in self.expectations]
 
-        indices = [i for i, exp in enumerate(suite_expectations) if exp == input_expectation]
-        return bool(indices), indices
+        for i, exp in enumerate(suite_expectations):
+            if exp == input_expectation:
+                return True, i
+        return False, -1
 
     def _submit_expectation_created_event(self, expectation: Expectation) -> None:
         if expectation.__module__.startswith("great_expectations."):
@@ -240,11 +242,11 @@ class ExpectationSuite(SerializableDictDot):
         Raises:
             KeyError: Expectation not found in suite.
         """
-        contains, indices = self._contains_equalish_expectation(expectation)
+        contains, idx = self._contains_equalish_expectation(expectation)
         if not contains:
             raise KeyError("No matching expectation was found.")  # noqa: TRY003
 
-        self.expectations = [exp for i, exp in enumerate(self.expectations) if i not in indices]
+        self.expectations.pop(idx)
 
         if self._has_been_saved():
             # only persist on delete if the suite has already been saved
