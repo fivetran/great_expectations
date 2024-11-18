@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Mapping
 
 import pytest
 
-from great_expectations.compatibility.pydantic import BaseSettings, SecretStr
+from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -83,7 +83,7 @@ class BigQueryConnectionConfig(BaseSettings):
 
     GE_TEST_GCP_PROJECT: str
     GE_TEST_BIGQUERY_DATASET: str
-    GOOGLE_APPLICATION_CREDENTIALS: SecretStr
+    GOOGLE_APPLICATION_CREDENTIALS: str
 
     @property
     def connection_string(self) -> str:
