@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import pathlib
 import re
 from typing import TYPE_CHECKING, cast
@@ -38,11 +37,6 @@ def test__get_full_file_path_pandas(fs: FakeFilesystem):
     for module in [boto3, botocore]:
         module_dir = pathlib.Path(module.__file__).parent
         fs.add_real_directory(module_dir, lazy_read=False)
-
-    # Copy google credentials into fake filesystem if they exist on your filesystem
-    google_cred_file = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    if google_cred_file:
-        fs.add_real_file(google_cred_file)
 
     base_directory: str = "/dbfs/great_expectations"
     fs.create_dir(base_directory)
