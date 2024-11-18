@@ -40,7 +40,7 @@ services:
       db:
         condition: service_healthy
   mercury-service-api:
-    image: 258143015559.dkr.ecr.us-east-1.amazonaws.com/mercury/api:2499f631969d53af3d1b345bcd2af6aabc05c0c1
+    image: 258143015559.dkr.ecr.us-east-1.amazonaws.com/mercury/api:a16e20afafe3b5f6a3d0edf809d90031d1319d1c
     platform: linux/amd64
     restart: always
     ports:
