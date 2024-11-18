@@ -238,7 +238,7 @@ class ExpectationSuite(SerializableDictDot):
             for exp in self.expectations
             if not self._expectations_are_equalish(exp, expectation)
         ]
-        if len(remaining_expectations) == len(self.expectations):
+        if len(remaining_expectations) != len(self.expectations) - 1:
             raise KeyError("No matching expectation was found.")  # noqa: TRY003
 
         self.expectations = remaining_expectations
