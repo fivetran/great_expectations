@@ -6,7 +6,7 @@ cd assets/docker/postgresql
 docker compose up
 
 2. Run the following command from the repo root dir in a second terminal:
-pytest --postgresql --docs-tests -k "data_quality_use_case_integration_workflow" tests/integration/test_script_runner.py
+pytest --postgresql --docs-tests -k "data_quality_use_case_uniqueness_workflow" tests/integration/test_script_runner.py
 """
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py full workflow">
@@ -31,7 +31,7 @@ batch = batch_definition.get_batch()
 
 # Create an Expectation Suite containing distribution Expectations.
 expectation_suite = context.suites.add(
-    gx.core.expectation_suite.ExpectationSuite(name="expectation suite")
+    gx.ExpectationSuite(name="expectation suite")
 )
 
 # Validate Batch using Expectation.

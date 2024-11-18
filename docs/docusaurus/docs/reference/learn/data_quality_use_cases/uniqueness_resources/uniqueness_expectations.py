@@ -46,6 +46,20 @@ suite = context.suites.add(gx.ExpectationSuite(name="example uniqueness expectat
 # Start Expectation snippets.
 
 suite.add_expectation(
+    # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnValuesToBeUnique">
+    gxe.ExpectColumnValuesToBeUnique(column="customer_id")
+    # </snippet>
+)
+
+suite.add_expectation(
+    # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectCompoundColumnsToBeUnique">
+    gxe.ExpectCompoundColumnsToBeUnique(
+        column_list=["first_name", "last_name", "government_id"],
+    )
+    # </snippet>
+)
+
+suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnProportionOfUniqueValuesToBeBetween">
     gxe.ExpectColumnProportionOfUniqueValuesToBeBetween(
         column="email_address", min_value=0.9, max_value=1.0
@@ -61,19 +75,8 @@ suite.add_expectation(
     # </snippet>
 )
 
-suite.add_expectation(
-    # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnValuesToBeUnique">
-    gxe.ExpectColumnValuesToBeUnique(column="customer_id")
-    # </snippet>
-)
 
-suite.add_expectation(
-    # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectCompoundColumnsToBeUnique">
-    gxe.ExpectCompoundColumnsToBeUnique(
-        column_list=["first_name", "last_name", "government_id"],
-    )
-    # </snippet>
-)
+
 
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectSelectColumnValuesToBeUniqueWithinRecord">
