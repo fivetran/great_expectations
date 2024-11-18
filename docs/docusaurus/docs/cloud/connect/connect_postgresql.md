@@ -13,9 +13,9 @@ import Tabs from '@theme/Tabs';
 
 - You have a PostgreSQL database, schema, and table.
 
-- To improve data security, GX recommends creating a separate PostgreSQL user for your GX Cloud connection (optional).
+- Optional. To improve data security, GX recommends creating a separate PostgreSQL user for your GX Cloud connection.
 
-- [pgAdmin (optional)](https://www.pgadmin.org/download/).
+- Optional. [pgAdmin](https://www.pgadmin.org/download/).
 
 ## Optional. Create a separate PostgreSQL user
 
@@ -54,5 +54,5 @@ import Tabs from '@theme/Tabs';
 
 6. Click **Add <x> Asset(s)**. 
 
-7. Create an Expectation. See [Create an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation).
+7. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
 

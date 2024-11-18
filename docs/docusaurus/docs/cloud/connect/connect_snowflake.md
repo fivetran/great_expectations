@@ -94,5 +94,5 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
 
 7. Click **Add <x> Asset(s)**. 
 
-8. Create an Expectation. See [Create an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation).
+8. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
 
