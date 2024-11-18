@@ -40,11 +40,13 @@ batch_transfer_txn = batch_def_transfer_txn.get_batch()
 
 # Create an integrity check using a built-in Expectation.
 built_in_expectation = gxe.ExpectColumnPairValuesAToBeGreaterThanB(
-    column_A="received_ts",
-    column_B="sent_ts"
+    column_A="received_ts", column_B="sent_ts"
 )
 
-validation_result_built_in_expectation = batch_transfer_txn.validate(built_in_expectation)
+validation_result_built_in_expectation = batch_transfer_txn.validate(
+    built_in_expectation
+)
+
 
 # Create an integrity check with custom business logic using a custom SQL Expectation.
 # (Create custom SQL Expectation by subclassing gxe.UnexpectedRowsExpectation).
@@ -58,6 +60,7 @@ class ExpectTransfersToArriveWithin45Seconds(gxe.UnexpectedRowsExpectation):
         from {batch}
         where extract(epoch from (age(received_ts, sent_ts))) > 45
     """
+
 
 validation_result_custom_sql_expectation = batch_transfer_txn.validate(
     ExpectTransfersToArriveWithin45Seconds()
@@ -93,11 +96,14 @@ batch_def_transfers = data_asset_transfers.add_batch_definition_whole_table(
 )
 batch_transfers = batch_def_transfers.get_batch()
 
+
 # Create custom SQL Expectation by subclassing gxe.UnexpectedRowsExpectation.
 class ExpectTransferAmountsToMatch(gxe.UnexpectedRowsExpectation):
     """Expectation to validate that transfer amounts in `integrity_transfers` and `integrity_transfer_balance` tables match."""
 
-    description = "Transfer amounts in integrity_transfers and integrity_transfer_balance match."
+    description = (
+        "Transfer amounts in integrity_transfers and integrity_transfer_balance match."
+    )
 
     unexpected_rows_query = """
         select *
@@ -105,6 +111,7 @@ class ExpectTransferAmountsToMatch(gxe.UnexpectedRowsExpectation):
         join integrity_transfer_balance b using (transfer_balance_id)
         where t.amount <> b.total_amount
     """
+
 
 # Validate Batch using custom SQL Expectations.
 validation_result = batch_transfers.validate(ExpectTransferAmountsToMatch())
