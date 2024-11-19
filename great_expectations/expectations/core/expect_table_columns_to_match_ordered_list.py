@@ -353,7 +353,6 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
         ov_param_prefix = "ov__"
         ov_param_name = "observed_value"
 
-        renderer_configuration.add_param(name="column_list", param_type=RendererValueType.ARRAY)
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,

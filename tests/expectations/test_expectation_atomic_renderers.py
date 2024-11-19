@@ -2332,7 +2332,6 @@ def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_v
         "name": "atomic.diagnostic.observed_value",
         "value": {
             "params": {
-                "column_list": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
                 "observed_value": {"schema": {"type": "array"}, "value": ["x", "y", "z"]},
                 "ov__0": {"schema": {"type": "string"}, "value": "x"},
                 "ov__1": {"schema": {"type": "string"}, "value": "y"},
