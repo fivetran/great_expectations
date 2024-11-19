@@ -19,7 +19,9 @@ batch = context.data_sources.pandas_default.read_csv(
 
 # Create Expectations
 # <snippet name="tutorials/quickstart/quickstart.py create_expectation">
-suite = context.suites.add(ExpectationSuite(name="my_suite"))
+suite_name = "my_suite"
+suite = gx.ExpectationSuite(name=suite_name)
+
 
 # TODO: update where these expectations are imported
 suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="pickup_datetime"))
