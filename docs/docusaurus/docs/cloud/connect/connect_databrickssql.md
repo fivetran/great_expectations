@@ -15,8 +15,7 @@ import Tabs from '@theme/Tabs';
 
 - Optional. To improve data security, GX recommends creating a separate Databricks SQL [service principal](https://docs.databricks.com/en/admin/users-groups/service-principals.html#manage-service-principals-in-your-account) for your GX Cloud connection.
 
-
-## Connect to a Databricks SQL Data Asset
+## Connect to a Databricks SQL Data Source and add a Data Asset
 
 1. In GX Cloud, click **Data Assets** > **New Data Asset** > **New Data Source** > **Databricks SQL**.
 
