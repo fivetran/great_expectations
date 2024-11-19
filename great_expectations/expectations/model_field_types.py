@@ -1,5 +1,4 @@
-from enum import Enum
-from typing import Sequence, Union
+from typing import Literal, Sequence, Union, get_args
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import Annotated
@@ -69,10 +68,15 @@ ValueSetField = Annotated[
 ]
 
 
-class ConditionParser(str, Enum):
-    """Type of parser to be used to interpret a Row Condition."""
+# If you re-order these strings you must reorder the variable names from the `get_args`
+# call below as well or the variables will reference the wrong string
+ConditionParser = Literal[
+    "great_expectations", "great_expectations__experimental__", "pandas", "spark"
+]
 
-    GX = "great_expectations"
-    GX_DEPRECATED = "great_expectations__experimental__"
-    PANDAS = "pandas"
-    SPARK = "spark"
+(
+    CONDITION_PARSER_GREAT_EXPECTATIONS,
+    CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+    CONDITION_PARSER_PANDAS,
+    CONDITION_PARSER_SPARK,
+) = get_args(ConditionParser)
