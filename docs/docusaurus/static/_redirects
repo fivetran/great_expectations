@@ -490,3 +490,7 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/reference/learn/expectations/* /docs/0.18/reference/learn/expectations/:splat
 /docs/reference/learn/conceptual_guides/* /docs/0.18/reference/learn/conceptual_guides/:splat
 /docs/reference/api/* /docs/0.18/reference/api/:splat
+
+
+## Redirects for renamed core docs
+/docs/core/customize_expectations/expectation_row_conditions /docs/core/customize_expectations/expectation_conditions

@@ -308,7 +308,7 @@ jobs:
           # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
           # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
           # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
-          args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' 'docs/docusaurus/build/**/*.html'"
+          args: "--exclude='http.*' 'docs/docusaurus/build/**/*.html'"
 
   docs-tests:
     runs-on: ubuntu-latest
@@ -454,6 +454,11 @@ jobs:
     if: github.event.pull_request.draft == false
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      # google
+      GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
+      GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
+      GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
+      GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
       # aws
       AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
       AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION}}
@@ -481,6 +486,7 @@ jobs:
           - athena or openpyxl or pyarrow or project or sqlite or aws_creds
           - aws_deps
           - big
+          - bigquery
           - databricks
           - filesystem
           - mssql
@@ -516,6 +522,10 @@ jobs:
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
             setup.py
+
+      - name: Copy GCP credentials to file
+        run: |
+          echo "$GE_TEST_GCP_CREDENTIALS" > gcp-credentials.json
 
       - name: Install dependencies
         run: |
