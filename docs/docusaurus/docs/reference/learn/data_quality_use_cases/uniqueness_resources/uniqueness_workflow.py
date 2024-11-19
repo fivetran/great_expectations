@@ -30,9 +30,7 @@ batch_definition = data_asset.add_batch_definition_whole_table("batch definition
 batch = batch_definition.get_batch()
 
 # Create an Expectation Suite containing distribution Expectations.
-expectation_suite = context.suites.add(
-    gx.ExpectationSuite(name="expectation suite")
-)
+expectation_suite = context.suites.add(gx.ExpectationSuite(name="expectation suite"))
 
 # Validate Batch using Expectation.
 validation_result = batch.validate(expectation_suite)
