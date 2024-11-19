@@ -100,6 +100,18 @@ When you select your `n` run count, and:
 
 ![GX Cloud dynamic parameters](./expectation_images/dynamic_parameters.png)
 
+## Expectation condition
+
+The Expectation condition allows you to filter your data, so that only a subset of your Batch is validated. Rows will be validated when the condition is true. Conversely, if the condition is false, the corresponding row will not be validated by the Expectation.
+
+You will be able to input:
+
+1. A column for which you would like to check the condition.
+2. An operator that is applicable to the data type of column you have selected.
+3. A parameter that is compared against each row in the selected column.
+
+![GX Cloud Expectation condition field](./expectation_images/expectation_condition_field.png)
+![GX Cloud Expectation with condition](./expectation_images/expectation_with_condition.png)
 
 ## Add an Expectation
 
