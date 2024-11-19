@@ -54,7 +54,7 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
    - `grant select on future tables in schema "your_database.your_schema" to role gx_role;` is optional and gives the user with the `gx_role` role access to all future tables in the defined schema.
    - The settings in the code example optimize cost and performance. Adjust them to suit your business requirements.
 
-3. Select **Run All** to define your user password, create a new GX role (`gx_role`), assign the password and role to a new user (`gx_user`), create a new warehouse (`gx_wh`) for the GX Agent, and allow the user with the `gx_role` role to access data on the Snowflake database and schema.
+3. Select **Run All** to define your user password, create a new GX role (`gx_role`), assign the password and role to a new user (`gx_user`), create a new warehouse (`gx_wh`), and allow the user with the `gx_role` role to access data on the Snowflake database and schema.
 
    ![Snowflake Run All](/img/run_all.png)
 
