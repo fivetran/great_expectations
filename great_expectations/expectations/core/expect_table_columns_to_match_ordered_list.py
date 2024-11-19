@@ -359,20 +359,17 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
             param_type=RendererValueType.ARRAY,
             value=result.result.get("observed_value"),
         )
-        renderer_configuration.add_param(
-            name="observed_value_label", param_type=RendererValueType.STRING, value="Table columns"
-        )
         renderer_configuration = cls._add_array_params(
             array_param_name=ov_param_name,
             param_prefix=ov_param_prefix,
             renderer_configuration=renderer_configuration,
         )
-        observed_value_str: str = cls._get_array_string(
+
+        renderer_configuration.template_str = cls._get_array_string(
             array_param_name=ov_param_name,
             param_prefix=ov_param_prefix,
             renderer_configuration=renderer_configuration,
         )
-        renderer_configuration.template_str = f"$observed_value_label: {observed_value_str}"
 
         value_obj = renderedAtomicValueSchema.load(
             {

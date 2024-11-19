@@ -2334,13 +2334,12 @@ def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_v
             "params": {
                 "column_list": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
                 "observed_value": {"schema": {"type": "array"}, "value": ["x", "y", "z"]},
-                "observed_value_label": {"schema": {"type": "string"}, "value": "Table columns"},
                 "ov__0": {"schema": {"type": "string"}, "value": "x"},
                 "ov__1": {"schema": {"type": "string"}, "value": "y"},
                 "ov__2": {"schema": {"type": "string"}, "value": "z"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$observed_value_label: $ov__0 $ov__1 $ov__2",
+            "template": "$ov__0 $ov__1 $ov__2",
         },
         "value_type": "StringValueType",
     }
