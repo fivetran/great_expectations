@@ -117,7 +117,7 @@ module.exports = {
       label: 'Customize Expectations',
       link: { type: 'doc', id: 'core/customize_expectations/customize_expectations' },
       items: [
-        { type: 'doc', id: 'core/customize_expectations/expectation_row_conditions' },
+        { type: 'doc', id: 'core/customize_expectations/expectation_conditions' },
         { type: 'doc', id: 'core/customize_expectations/define_a_custom_expectation_class' },
         { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' },
       ]
@@ -434,6 +434,7 @@ module.exports = {
       link: { type: 'doc', id: 'reference/learn/data_quality_use_cases/dq_use_cases_lp' },
       items: [
         'reference/learn/data_quality_use_cases/distribution',
+        'reference/learn/data_quality_use_cases/integrity',
         'reference/learn/data_quality_use_cases/missingness',
         'reference/learn/data_quality_use_cases/schema',
         'reference/learn/data_quality_use_cases/uniqueness',

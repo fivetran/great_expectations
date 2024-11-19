@@ -288,10 +288,91 @@ class TestCRUDMethods:
         set_context(project=context)
         suite = ExpectationSuite(
             name=self.expectation_suite_name,
-            expectations=[expectation.configuration],
+            expectations=[expectation],
         )
 
         suite.add_expectation(expectation=expectation)
+
+        assert len(suite.expectations) == 1
+        context.expectations_store.update.assert_not_called()
+
+    @pytest.mark.unit
+    def test_add_doesnt_duplicate_when_expectation_differs_rendered_content(self, expectation):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        set_context(project=context)
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation],
+        )
+
+        dup_expectation = deepcopy(expectation)
+        dup_expectation.render()
+
+        assert expectation.rendered_content != dup_expectation.rendered_content
+
+        suite.add_expectation(expectation=dup_expectation)
+
+        assert len(suite.expectations) == 1
+        context.expectations_store.update.assert_not_called()
+
+    @pytest.mark.unit
+    def test_add_doesnt_duplicate_when_expectation_differs_meta(self, expectation):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        set_context(project=context)
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation],
+        )
+
+        dup_expectation = deepcopy(expectation)
+        dup_expectation.meta = {"author": "Guido van Rossum"}
+
+        assert expectation.meta != dup_expectation.meta
+
+        suite.add_expectation(expectation=dup_expectation)
+
+        assert len(suite.expectations) == 1
+        context.expectations_store.update.assert_not_called()
+
+    @pytest.mark.unit
+    def test_add_doesnt_duplicate_when_expectation_differs_notes(self, expectation):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        set_context(project=context)
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation],
+        )
+
+        dup_expectation = deepcopy(expectation)
+        dup_expectation.notes = "These are my notes!"
+
+        assert expectation.notes != dup_expectation.notes
+
+        suite.add_expectation(expectation=dup_expectation)
+
+        assert len(suite.expectations) == 1
+        context.expectations_store.update.assert_not_called()
+
+    @pytest.mark.unit
+    def test_add_doesnt_duplicate_when_expectation_differs_id(self, expectation):
+        context = Mock(spec=AbstractDataContext)
+        context.expectations_store.has_key.return_value = True
+        set_context(project=context)
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation],
+        )
+        suite.expectations[0].id = str(uuid.uuid4())
+
+        dup_expectation = deepcopy(expectation)
+        dup_expectation.id = None
+
+        assert expectation.id != dup_expectation.id
+
+        suite.add_expectation(expectation=dup_expectation)
 
         assert len(suite.expectations) == 1
         context.expectations_store.update.assert_not_called()
@@ -320,7 +401,7 @@ class TestCRUDMethods:
         context.expectations_store.has_key.return_value = True
         suite = ExpectationSuite(
             name=self.expectation_suite_name,
-            expectations=[expectation.configuration],
+            expectations=[expectation],
         )
 
         deleted_expectation = suite.delete_expectation(expectation=expectation)
@@ -340,7 +421,7 @@ class TestCRUDMethods:
         context.expectations_store.has_key.return_value = False
         suite = ExpectationSuite(
             name=self.expectation_suite_name,
-            expectations=[expectation.configuration],
+            expectations=[expectation],
         )
 
         deleted_expectation = suite.delete_expectation(expectation=expectation)
@@ -350,6 +431,32 @@ class TestCRUDMethods:
         # expect that deleting an expectation from this suite doesnt have the side effect of
         # persisting the suite to the data context
         context.expectations_store.delete_expectation.assert_not_called()
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "input_kwargs",
+        [
+            pytest.param({"id": str(uuid.uuid4())}, id="id"),
+            pytest.param({"meta": {"author": "Alexandre Dumas"}}, id="meta"),
+            pytest.param({"notes": "Just some thoughts!"}, id="notes"),
+        ],
+    )
+    def test_delete_success_with_equalish_expectation(self, input_kwargs: dict):
+        context = Mock(spec=AbstractDataContext)
+        set_context(project=context)
+
+        expectation = gxe.ExpectColumnValuesToBeInSet(column="a", value_set=[1, 2, 3])
+        suite = ExpectationSuite(
+            name="test-suite",
+            expectations=[expectation],
+        )
+
+        suite.delete_expectation(
+            expectation=gxe.ExpectColumnValuesToBeInSet(
+                column="a", value_set=[1, 2, 3], **input_kwargs
+            )
+        )
+        assert suite.expectations == []
 
     @pytest.mark.unit
     def test_delete_fails_when_expectation_is_not_found(self, expectation):
@@ -374,9 +481,7 @@ class TestCRUDMethods:
         set_context(project=context)
         suite = ExpectationSuite(
             name="test-suite",
-            expectations=[
-                expectation.configuration,
-            ],
+            expectations=[expectation],
         )
 
         with pytest.raises(ConnectionError):  # exception type isn't important
@@ -495,7 +600,7 @@ class TestCRUDMethods:
 
     def _test_expectation_can_be_saved_after_update(self, context, expectation):
         suite_name = "test-suite"
-        suite = ExpectationSuite(suite_name, expectations=[expectation.configuration])
+        suite = ExpectationSuite(suite_name, expectations=[expectation])
         suite = context.suites.add(suite)
         expectation = suite.expectations[0]
         updated_column_name = "foo"
@@ -523,7 +628,7 @@ class TestCRUDMethods:
 
         suite = ExpectationSuite(
             name=suite_name,
-            expectations=[e.configuration for e in expectations],
+            expectations=expectations,
         )
         context.suites.add(suite)
 

@@ -22,6 +22,8 @@ A comprehensive data quality strategy relies on a multi-dimensional approach to 
 
   <LinkCard topIcon label="Distribution" description="Validate that data values adhere to expected ranges." to="/reference/learn/data_quality_use_cases/distribution" icon="/img/actions_icon.svg"/>
 
+  <LinkCard topIcon label="Integrity" description="Validate relationships and dependencies between data." to="/reference/learn/data_quality_use_cases/integrity" icon="/img/actions_icon.svg"/>
+
   <LinkCard topIcon label="Missingness" description="Identify gaps in data to maintain data completeness." to="/reference/learn/data_quality_use_cases/missingness" icon="/img/actions_icon.svg"/>
 
   <LinkCard topIcon label="Schema" description="Verify that data structure conforms to established rules." to="/reference/learn/data_quality_use_cases/schema" icon="/img/actions_icon.svg"/>

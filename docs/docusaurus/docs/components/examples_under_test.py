@@ -473,9 +473,9 @@ docs_examples_customize_expectations = [
     ),
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests -k "docs_example_expectation_row_conditions" tests/integration/test_script_runner.py
-        name="docs_example_expectation_row_conditions",
-        user_flow_script="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_row_conditions.py",
+        # pytest --docs-tests -k "docs_example_expectation_conditions" tests/integration/test_script_runner.py
+        name="docs_example_expectation_conditions",
+        user_flow_script="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py",
         data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/titantic_test_file",
         # data_context_dir="",
         backend_dependencies=[],
@@ -583,6 +583,21 @@ learn_data_quality_use_cases = [
     IntegrationTestFixture(
         name="data_quality_use_case_distribution_workflow",
         user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/distribution_resources/distribution_workflow.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    # Integrity.
+    IntegrationTestFixture(
+        name="data_quality_use_case_integrity_expectations",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    IntegrationTestFixture(
+        name="data_quality_use_case_integrity_workflow",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_workflow.py",
         data_dir="tests/test_sets/learn_data_quality_use_cases/",
         util_script="tests/test_utils.py",
         backend_dependencies=[BackendDependencies.POSTGRESQL],
