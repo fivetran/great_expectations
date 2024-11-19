@@ -50,7 +50,7 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
    -- Gives the user with the gx_role role access to all future tables in the defined schema.
    ```
 
-   - Replace `YOUR_PASSWORD` with your value and `YOUR_DATABASE` and `YOUR_SCHEMA with the names of the database and schema you want to access in GX Cloud.
+   - Replace `YOUR_PASSWORD` with your value and `YOUR_DATABASE` and `YOUR_SCHEMA` with the names of the database and schema you want to access in GX Cloud.
    - `grant select on future tables in schema "your_database.your_schema" to role gx_role;` is optional and gives the user with the `gx_role` role access to all future tables in the defined schema.
    - The settings in the code example optimize cost and performance. Adjust them to suit your business requirements.
 
