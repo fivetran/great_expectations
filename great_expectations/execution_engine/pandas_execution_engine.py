@@ -54,7 +54,7 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_partit
 from great_expectations.execution_engine.partition_and_sample.pandas_data_sampler import (
     PandasDataSampler,
 )
-from great_expectations.expectations.model_field_types import ConditionParser
+from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -526,7 +526,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
         if row_condition:
             condition_parser = domain_kwargs.get("condition_parser", None)
 
-            if condition_parser == ConditionParser.PANDAS:
+            if condition_parser == CONDITION_PARSER_PANDAS:
                 data = data.query(row_condition, parser=condition_parser)
             else:
                 raise ValueError(  # noqa: TRY003

@@ -86,7 +86,14 @@
             "type": "string"
         },
         "condition_parser": {
-            "$ref": "#/definitions/ConditionParser"
+            "title": "Condition Parser",
+            "enum": [
+                "great_expectations",
+                "great_expectations__experimental__",
+                "pandas",
+                "spark"
+            ],
+            "type": "string"
         },
         "value_set": {
             "title": "Value Set",
@@ -289,17 +296,6 @@
                 "offset"
             ],
             "additionalProperties": false
-        },
-        "ConditionParser": {
-            "title": "ConditionParser",
-            "description": "Type of parser to be used to interpret a Row Condition.",
-            "enum": [
-                "great_expectations",
-                "great_expectations__experimental__",
-                "pandas",
-                "spark"
-            ],
-            "type": "string"
         }
     }
 }

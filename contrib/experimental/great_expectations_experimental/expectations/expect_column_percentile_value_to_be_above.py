@@ -24,7 +24,6 @@ class ColumnPercentile(ColumnAggregateMetricProvider):
     # This method implements the core logic for the PandasExecutionEngine
     @column_aggregate_value(engine=PandasExecutionEngine)
     def _pandas(cls, column, percentile, **kwargs):
-        # breakpoint()
         return column.quantile(q=percentile / 100)  # numpy method quantile
 
     # This method defines the business logic for evaluating your Metric when using a SqlAlchemyExecutionEngine

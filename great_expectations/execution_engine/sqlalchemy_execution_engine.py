@@ -54,7 +54,10 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_sampler import (
     SqlAlchemyDataSampler,
 )
-from great_expectations.expectations.model_field_types import ConditionParser
+from great_expectations.expectations.model_field_types import (
+    CONDITION_PARSER_GREAT_EXPECTATIONS,
+    CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+)
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251
 from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
 
@@ -654,7 +657,10 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         # Filtering by row condition.
         if "row_condition" in domain_kwargs and domain_kwargs["row_condition"] is not None:
             condition_parser = domain_kwargs["condition_parser"]
-            if condition_parser in [ConditionParser.GX, ConditionParser.GX_DEPRECATED]:
+            if condition_parser in [
+                CONDITION_PARSER_GREAT_EXPECTATIONS,
+                CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+            ]:
                 parsed_condition = parse_condition_to_sqlalchemy(domain_kwargs["row_condition"])
                 selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type]
             else:
