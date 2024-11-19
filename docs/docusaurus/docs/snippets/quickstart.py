@@ -1,7 +1,6 @@
 # <snippet name="tutorials/quickstart/quickstart.py import_gx">
 import great_expectations as gx
 import great_expectations.expectations as gxe
-from great_expectations.core.expectation_suite import ExpectationSuite
 
 # </snippet>
 
