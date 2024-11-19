@@ -5,11 +5,12 @@ import pytest
 
 from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
+from tests.integration.test_utils.data_source_config.databricks import cached_property
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 
@@ -57,16 +58,13 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
         }
         return super().inferrable_types_lookup | overrides
 
+    @cached_property
     @override
-    def make_batch(self) -> Batch:
-        name = self._random_resource_name()
-        return (
-            self.context.data_sources.add_sql(name=name, connection_string=self.connection_string)
-            .add_table_asset(
-                name=name,
-                table_name=self.table_name,
-                schema_name=self.schema,
-            )
-            .add_batch_definition_whole_table(name=name)
-            .get_batch()
+    def asset(self) -> TableAsset:
+        return self.context.data_sources.add_sql(
+            name=self._random_resource_name(), connection_string=self.connection_string
+        ).add_table_asset(
+            name=self._random_resource_name(),
+            table_name=self.table_name,
+            schema_name=self.schema,
         )
