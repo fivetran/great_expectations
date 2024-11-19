@@ -115,6 +115,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "aws_creds",
     "aws_deps",
     "big",
+    "bigquery",
     "cli",
     "clickhouse",
     "cloud",

@@ -17,6 +17,8 @@ from great_expectations.compatibility.sqlalchemy import (
     insert,
     sqltypes,
 )
+from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
 
 if TYPE_CHECKING:
@@ -32,7 +34,7 @@ class _TableData:
     table: Table
 
 
-class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
+class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
     @property
     @abstractmethod
     def connection_string(self) -> str:
@@ -69,6 +71,12 @@ class SQLBatchTestSetup(BatchTestSetup, ABC, Generic[_ConfigT]):
         self.extra_data = extra_data
         self.metadata = MetaData()
         super().__init__(config, data)
+
+    @override
+    def make_batch(self) -> Batch:
+        return self.asset.add_batch_definition_whole_table(
+            name=self._random_resource_name()
+        ).get_batch()
 
     @cached_property
     def table_name(self) -> str:
