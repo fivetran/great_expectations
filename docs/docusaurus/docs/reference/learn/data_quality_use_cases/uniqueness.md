@@ -25,24 +25,22 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 The examples in this article use a sample customer dataset. The data is available from a public Postgres database, as shown in the examples, or can also be accessed in [CSV format](https://raw.githubusercontent.com/great-expectations/great_expectations/develop/tests/test_sets/learn_data_quality_use_cases/uniqueness_customers.csv).
 
-| customer_id | first_name | last_name | email_address         | phone_number | country | government_id |
-|-------------|------------|-----------|------------------------|--------------|---------|---------------|
-| 1           | John       | Doe       | johndoe@email.com      | 1234567890   | USA     | 123-45-6789   |
-| 2           | Jane       | Smith     | jsmith@email.com       | 9876543210   | Canada  | 987-65-4321   |
-| 3           | Jon        | Doe       | jon.doe@email.com      | 1234567890   | USA     | 123-45-6789   |
-| 4           | J.         | Doe       | johndoe@email.com      | 1234567891   | USA     | 123-45-6789   |
+| customer_id | first_name | last_name | email_address      | secondary_email     | phone_number | country | government_id |
+|-------------|------------|-----------|--------------------|---------------------|--------------|---------|---------------|
+| 1           | John       | Doe       | johndoe@email.com  |                     | 1234567890   | USA     | 123-45-6789   |
+| 2           | Jane       | Smith     | jsmith@email.com   | jsmith@email.com    | 9876543210   | Canada  | 987-65-4321   |
+| 3           | Jon        | Doe       | jon.doe@email.com  | jon.doe2@email.com  | 1234567890   | USA     | 123-45-6789   |
+| 4           | J.         | Doe       | johndoe@email.com  |                     | 1234567891   | USA     | 123-45-6789   |
 
-In this dataset, rows 1, 3, and 4 likely represent the same person with slight variations in their registered information. This scenario is common in real-world customer databases and presents a challenge for maintaining data uniqueness and integrity.
+Primary key fields such as `customer_id` can uniquely identify a row of data, but cannot always uniquely identify the corresponding real-world entity, such as a person. In this dataset, individual customers are represented by multiple rows, each with slight variations in their registered information. This scenario is common in real-world customer databases and presents a challenge for validating and maintaining data uniqueness.
 
-Uniqueness is particularly crucial for fields like `customer_id`, `email_address`, and `government_id`. However, due to data entry errors, multiple registrations, or system migrations, duplicates can still occur. When combined, fields such as `first_name`, `last_name`, `phone_number`, and `government_id` should ideally form a unique identifier for each customer. This ensures that each customer is distinctly recorded and prevents issues like fragmented customer profiles or incorrect communications.
+Uniqueness is particularly crucial for fields like `customer_id`, `email_address`, and `government_id`. However, due to data entry errors, multiple registrations, or system migrations, duplicates can still occur. When combined, fields such as `first_name`, `last_name`, `country`, and `government_id` might ideally form a unique identifier for each customer. This ensures that each customer is distinctly recorded and prevents issues like fragmented customer profiles or incorrect communications.
 
 ## Key uniqueness Expectations
 
-Duplicate data can manifest as duplicate rows within a dataset, or as duplicate fields within a single row. GX provides Expectations that validate for uniqueness across rows as well as within rows.
+Duplicate data can manifest as duplicate rows within a dataset, or as duplicate fields within a single row. GX provides Expectations, available in both GX Cloud and GX Core, that validate for uniqueness across rows as well as within rows.
 
-### Validate uniqueness across rows
-
-#### Expect column values to be unique
+### Expect column values to be unique
 
 This Expectation checks that each value in a column is unique. It is useful to validate that there are no duplicates in a column that should contain only unique values, such as a primary key column.
 
@@ -54,7 +52,7 @@ This Expectation checks that each value in a column is unique. It is useful to v
 <small>View `ExpectColumnValuesToBeUnique` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_values_to_be_unique).</small>
 
 
-#### Expect compound columns to be unique
+### Expect compound columns to be unique
 
 This Expectation validates that the combination of values across multiple columns is unique for each row. It can be used to check uniqueness across a set of columns that together form a unique identifier, such as a composite key.
 
@@ -66,7 +64,7 @@ This Expectation validates that the combination of values across multiple column
 <small>View `ExpectCompoundColumnsToBeUnique` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_compound_columns_to_be_unique).</small>
 
 
-#### Expect column proportion of unique values to be between
+### Expect column proportion of unique values to be between
 
 This Expectation validates that the proportion of unique values in a column is between a specified minimum and maximum value. It is useful for ensuring a certain level of uniqueness in a column without requiring full uniqueness.
 
@@ -78,9 +76,9 @@ This Expectation validates that the proportion of unique values in a column is b
 <small>View `ExpectColumnProportionOfUniqueValuesToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_proportion_of_unique_values_to_be_between).</small>
 
 
-#### Expect column unique value count to be between
+### Expect column unique value count to be between
 
-This Expectation validates that the number of unique values in a column is between a specified minimum and maximum value. It's useful when you have a specific range in mind for the number of unique values that should be present.
+This Expectation validates that the number of unique values in a column is between a specified minimum and maximum value. It is useful for validating that the quantity of unique values falls within an expected range, for example, checking for a known range of distinct category values in a categorical column.
 
 **Example**: Ensure that the `country` column contains between 1 and 5 unique values.
 
@@ -90,30 +88,24 @@ This Expectation validates that the number of unique values in a column is betwe
 <small>View `ExpectColumnUniqueValueCountToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_unique_value_count_to_be_between).</small>
 
 
-If there are any duplicate values, they will be listed in `result.exceptions_list`, and the `unexpected_percent` will show the percentage of rows with duplicates.
+### Expect select column values to be unique within record
 
-:::tip[GX tip for uniqueness Expectations]
-If your data allows for a small number of duplicates, consider using `ExpectColumnProportionOfUniqueValuesToBeBetween` or `ExpectColumnUniqueValueCountToBeBetween` instead of strict uniqueness Expectations. These Expectations allow you to set a threshold for the proportion or count of unique values, providing more flexibility in cases where perfect uniqueness is not required or where a small number of duplicates are acceptable.
-:::
+This Expectation validates that, for each row, the values across a specified set of columns are unique. It is useful to check for the presence of duplicate column values within a single row. Note that this Expectation allows for duplicate rows within the dataset, as long as the specified columns have unique values within each individual row.
 
-
-### Validate uniqueness within a row
-
-#### Expect select column values to be unique within record
-
-This Expectation validates that, for each row, the values across a specified set of columns are unique. It's useful for ensuring there are no duplicate values within a single row across multiple fields.
-
-For example, you might expect each customer record to have a unique `email_address` and `phone_number` combination:
+**Example**: Expect each customer record to have a unique `email_address` and `secondary_email`.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectSelectColumnValuesToBeUniqueWithinRecord"
 ```
 
 <small>View `ExpectSelectColumnValuesToBeUniqueWithinRecord` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_select_column_values_to_be_unique_within_record).</small>
 
-Note that this Expectation allows for duplicate rows as long as the specified columns have unique values within each row.
+<br/>
+<br/>
 
 :::tip[GX tip for uniqueness Expectations]
-When validating uniqueness, consider the level of granularity required for your use case. Column-level Expectations like `ExpectColumnValuesToBeUnique` ensure uniqueness within a single column, while row-level Expectations like `ExpectCompoundColumnsToBeUnique` validate uniqueness across multiple columns. Choose the appropriate Expectation based on whether you need to validate a unique identifier, a composite key, or a combination of fields that should be unique within each row.
+* If your data allows for a small number of duplicates, consider using `ExpectColumnProportionOfUniqueValuesToBeBetween` or `ExpectColumnUniqueValueCountToBeBetween` instead of strict uniqueness Expectations. These Expectations allow you to set a threshold for the proportion or count of unique values, providing more flexibility in cases where perfect uniqueness is not required or where a small number of duplicates are acceptable.
+
+* When validating uniqueness, consider the level of granularity required for your use case. Column-level Expectations like `ExpectColumnValuesToBeUnique` ensure uniqueness within a single column, while row-level Expectations like `ExpectCompoundColumnsToBeUnique` validate uniqueness across multiple columns. Choose the appropriate Expectation based on whether you need to validate a unique identifier, a composite key, or a combination of fields that should be unique within each row.
 :::
 
 ## Example: Validate uniqueness of a column
@@ -125,8 +117,8 @@ When validating uniqueness, consider the level of granularity required for your 
 <Tabs
    defaultValue="gx_cloud"
    values={[
-      {value: 'gx_core', label: 'GX Core'},
-      {value: 'gx_cloud', label: 'GX Cloud'}
+      {value: 'gx_cloud', label: 'GX Cloud'},
+      {value: 'gx_core', label: 'GX Core'}
    ]}
 >
 
@@ -176,9 +168,9 @@ In this example, we expect the `government_id` column to contain only unique val
 
 ### Detecting anomalies in user agent strings
 
-**Context**: In web analytics, user agent strings provide information about visitors' browsers and devices. Anomalies in user agent strings, such as a high proportion of unexpected or unique values, could indicate bot traffic or potential security issues.
+**Context**: In web analytics, user agent strings provide information about visitors' browsers and devices. Anomalies in user agent strings, such as a low proportion of unexpected or unique values, could indicate bot traffic coming from a single source or other potential security issues.
 
-**GX solution**: Use `ExpectColumnProportionOfUniqueValuesToBeBetween` to check that the proportion of unique user agent strings falls within an expected range. If the proportion is unusually high, investigate the traffic sources and patterns.
+**GX solution**: Use `ExpectColumnProportionOfUniqueValuesToBeBetween` to check that the proportion of unique user agent strings falls within an expected range. If the proportion is unusually low, investigate the traffic sources and patterns.
 
 ## Avoid common uniqueness analysis pitfalls
 
@@ -191,6 +183,6 @@ In this example, we expect the `government_id` column to contain only unique val
 
 ## The path forward
 
-Uniqueness validation is a collaborative effort that involves multiple stakeholders, including data producers, consumers, and stewards. To ensure the success of your data quality initiatives, it's crucial to establish clear ownership and accountability. Assign roles and responsibilities for defining uniqueness requirements, implementing validation checks, and handling data quality issues. Foster a culture of open communication and shared responsibility, where everyone understands the importance of maintaining data uniqueness and feels empowered to contribute to the process.
+Validating and maintaining uniqueness in your data is a collaborative effort that involves multiple stakeholders, including data producers, consumers, and stewards. Clear ownership and accountability is required to ensure the success of data quality initiatives. Assign roles and responsibilities for defining uniqueness requirements, implementing validation checks, and handling data quality issues. Foster a culture of open communication and shared responsibility, where teams understand the importance of maintaining data uniqueness and feel empowered to contribute to the process.
 
-As you continue your data quality journey, be sure to explore our [data quality series](/reference/learn/data_quality_use_cases/dq_use_cases_lp.md) for more insights and best practices. You'll find valuable information on integrating various aspects of data quality, such as schema, volume, and integrity, into your workflows. By taking a comprehensive approach to data quality, you can unlock the full potential of your data assets and drive meaningful business outcomes.
+Uniqueness is an important measure of data quality, however, a comprehensive approach to data quality requires validation of data across other quality dimensions. Explore our [data quality use cases](/reference/learn/data_quality_use_cases/dq_use_cases_lp.md) for more insights and best practices to expand your data validation to encompass key quality dimensions.

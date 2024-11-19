@@ -75,13 +75,10 @@ suite.add_expectation(
     # </snippet>
 )
 
-
-
-
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectSelectColumnValuesToBeUniqueWithinRecord">
     gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
-        column_list=["email_address", "phone_number"],
+        column_list=["email_address", "secondary_email"],
     )
     # </snippet>
 )
