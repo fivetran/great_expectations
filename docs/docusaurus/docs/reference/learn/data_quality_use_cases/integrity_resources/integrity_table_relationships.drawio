@@ -1,0 +1,70 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" version="24.8.6">
+  <diagram name="Page-1" id="Cs9JbAiQpfQdgXCvOWkU">
+    <mxGraphModel dx="1162" dy="1107" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-30" value="" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;opacity=50;" vertex="1" parent="1">
+          <mxGeometry x="100" y="90" width="900" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-9" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffd4be;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="140" y="240" width="220" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-8" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FF6310;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="140" y="190" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-6" value="&lt;p style=&quot;line-height: 280%;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Roboto+Mono&quot; face=&quot;Roboto Mono&quot;&gt;transfer_id&lt;br&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;amount&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;transaction_date&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;transfer_balance_id&lt;br&gt;&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;transfer_txn_id&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=16;spacing=12;spacingTop=-28;" vertex="1" parent="1">
+          <mxGeometry x="140" y="240" width="200" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-7" value="&lt;font color=&quot;#ffffff&quot; face=&quot;Roboto Mono&quot; size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 16px;&quot;&gt;transfers&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;spacing=0;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="140" y="195" width="170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-11" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffd4be;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="440" y="150" width="220" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-12" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FF6310;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="440" y="100" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-13" value="&lt;p style=&quot;line-height: 280%;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Roboto+Mono&quot; face=&quot;Roboto Mono&quot;&gt;transfer_balance_id&lt;br&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;total_amount&lt;br&gt;&lt;/span&gt;&lt;/font&gt;&lt;span style=&quot;background-color: initial; font-family: &amp;quot;Roboto Mono&amp;quot;;&quot;&gt;adjustment&lt;br&gt;sender_debit&lt;br&gt;recipient_credit&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=16;spacing=12;spacingTop=-28;" vertex="1" parent="1">
+          <mxGeometry x="440" y="150" width="200" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-14" value="&lt;font color=&quot;#ffffff&quot; face=&quot;Roboto Mono&quot; size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 16px;&quot;&gt;transfer_balance&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;spacing=0;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="440" y="105" width="170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-15" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffd4be;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="740" y="150" width="220" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-16" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FF6310;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="740" y="100" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-17" value="&lt;p style=&quot;line-height: 280%;&quot;&gt;&lt;font data-font-src=&quot;https://fonts.googleapis.com/css?family=Roboto+Mono&quot; face=&quot;Roboto Mono&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;transfer_txn_id&lt;br&gt;sender_id&lt;br&gt;sent_ts&lt;br&gt;sender_ref_no&lt;br&gt;recipient_id&lt;br&gt;received_ts&lt;br&gt;recipient_conf_code&lt;/span&gt;&lt;/font&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=16;spacing=12;spacingTop=-28;" vertex="1" parent="1">
+          <mxGeometry x="740" y="150" width="200" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-18" value="&lt;font color=&quot;#ffffff&quot; face=&quot;Roboto Mono&quot; size=&quot;1&quot;&gt;&lt;b style=&quot;font-size: 16px;&quot;&gt;transfer_transaction&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;spacing=0;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="740" y="105" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-19" value="" style="endArrow=oval;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;endFill=1;startArrow=oval;startFill=1;strokeWidth=3;strokeColor=#404041;exitX=0.998;exitY=0.688;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitPerimeter=0;" edge="1" parent="1" source="p5J7a0tyxrDt_Sioa4_Q-9">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="350" y="405" as="sourcePoint" />
+            <mxPoint x="440" y="179" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="400" y="405" />
+              <mxPoint x="400" y="180" />
+              <mxPoint x="440" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p5J7a0tyxrDt_Sioa4_Q-22" value="" style="endArrow=oval;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;endFill=1;startArrow=oval;startFill=1;strokeWidth=3;strokeColor=#404041;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="450" as="sourcePoint" />
+            <mxPoint x="740" y="179" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="690" y="450" />
+              <mxPoint x="690" y="179" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
