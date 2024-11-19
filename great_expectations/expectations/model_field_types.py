@@ -1,4 +1,4 @@
-from typing import Literal, Sequence, Union
+from typing import Literal, Sequence, Union, get_args
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import Annotated
@@ -68,6 +68,15 @@ ValueSetField = Annotated[
 ]
 
 
+# If you re-order these strings you must reorder the variable names from the `get_args`
+# call below as well or the variables will reference the wrong string
 ConditionParser = Literal[
     "great_expectations", "great_expectations__experimental__", "pandas", "spark"
 ]
+
+(
+    CONDITION_PARSER_GREAT_EXPECTATIONS,
+    CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+    CONDITION_PARSER_PANDAS,
+    CONDITION_PARSER_SPARK,
+) = get_args(ConditionParser)
