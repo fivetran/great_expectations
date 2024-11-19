@@ -107,7 +107,7 @@ The Expectation condition is an optional field that applies to any Expectation v
 You will need to select:
 
 1. A column to check the condition against.
-2. An operator that is used to compare the column against the parameter.
+2. An operator that is used to compare the column against a parameter value.
 3. A parameter that will be compared against each row in the chosen column.
 
 To clear the Expectation condition, click the clear button located on the right-hand side of the condition field.
