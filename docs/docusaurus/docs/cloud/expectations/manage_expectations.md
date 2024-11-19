@@ -112,7 +112,10 @@ You will need to select:
 
 To clear the Expectation condition, click the clear button located on the right-hand side of the condition field.
 
+
 ![GX Cloud Expectation condition field](./expectation_images/expectation_condition_field.png)
+
+
 ![GX Cloud Expectation with condition](./expectation_images/expectation_with_condition.png)
 
 ## Add an Expectation
