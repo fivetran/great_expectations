@@ -206,8 +206,13 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Add an Expectation to a Data Asset column',
-          href: '/docs/cloud/data_assets/manage_data_assets#add-an-expectation-to-a-data-asset-column',
+          label: 'Edit a Data Asset',
+          href: '/docs/cloud/data_assets/manage_data_assets#edit-a-data-asset',
+        },
+        {
+          type: 'link',
+          label: 'Delete a Data Asset',
+          href: '/docs/cloud/data_assets/manage_data_assets#delete-a-data-asset',
         },
         {
           type: 'link',
@@ -216,18 +221,8 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Edit a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#edit-a-data-asset',
-        },
-        {
-          type: 'link',
           label: 'Data Source credential management',
           href: '/docs/cloud/data_assets/manage_data_assets#data-source-credential-management',
-        },
-        {
-          type: 'link',
-          label: 'Delete a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#delete-a-data-asset',
         },
       ]
     },
