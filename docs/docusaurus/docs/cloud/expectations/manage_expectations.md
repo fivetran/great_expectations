@@ -102,13 +102,13 @@ When you select your `n` run count, and:
 
 ## Expectation condition
 
-The Expectation condition is an optional field that applies to any Expectation validating row-level data. This condition allows you to filter your data so that only a specific subset of your Batch is validated. Rows will be validated when the condition is true. Conversely, if the condition is false, the corresponding row will not be validated by the Expectation.
+The Expectation condition is an optional field that applies to any Expectation validating row-level data. This condition allows you to filter your data so that only a specific subset of your Batch is validated. Rows will be validated only when the condition is true.
 
 You will need to select:
 
 1. A column to check the condition against.
 2. An operator that is used to compare the column against a parameter value.
-3. A parameter that will be compared against each row in the chosen column.
+3. A parameter that will be compared against each row in the selected column.
 
 To clear the Expectation condition, click the clear button located on the right-hand side of the condition field.
 
