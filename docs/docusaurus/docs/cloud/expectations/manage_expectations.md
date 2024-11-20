@@ -10,7 +10,7 @@ An Expectation is a verifiable assertion about your data. They make implicit ass
 
 ## Prerequisites
 
-- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md#create-a-data-asset).
+- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
 
 ## Available Expectations
 
