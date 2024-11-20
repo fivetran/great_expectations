@@ -150,7 +150,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/validator/validator.py Name: remove_expectation",
     "File: great_expectations/validator/validator.py Name: save_expectation_suite",
     "File: great_expectations/validator/validator.py Name: validate",
-
     # Expectations referenced in the Learn data quality use cases:
     "File: great_expectations/expectations/core/expect_column_kl_divergence_to_be_less_than.py Name: ExpectColumnKLDivergenceToBeLessThan",
     "File: great_expectations/expectations/core/expect_column_mean_to_be_between.py Name: ExpectColumnMeanToBeBetween",
