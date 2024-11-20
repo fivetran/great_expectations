@@ -14,6 +14,25 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.2.4
+* [DOCS] ADR around not using meta fields ([#10672](https://github.com/great-expectations/great_expectations/pull/10672))
+* [DOCS] Update Expectation conditions docs ([#10661](https://github.com/great-expectations/great_expectations/pull/10661))
+* [DOCS] community contributions - November 2024 ([#10681](https://github.com/great-expectations/great_expectations/pull/10681))
+* [DOCS] Data quality on integrity ([#10583](https://github.com/great-expectations/great_expectations/pull/10583))
+* [MAINTENANCE] : standardize _atomic_diagnostic_observed_value ([#10643](https://github.com/great-expectations/great_expectations/pull/10643))
+* [MAINTENANCE] Add support to framework for spark integration testing ([#10670](https://github.com/great-expectations/great_expectations/pull/10670))
+* [MAINTENANCE] Reduce test duration of flakey test ([#10663](https://github.com/great-expectations/great_expectations/pull/10663))
+* [MAINTENANCE] DatabricksSQL expectation testing ([#10653](https://github.com/great-expectations/great_expectations/pull/10653))
+* [MAINTENANCE] Add datetime inference to test framework ([#10666](https://github.com/great-expectations/great_expectations/pull/10666))
+* [MAINTENANCE] Add bigquery to marker tests ([#10674](https://github.com/great-expectations/great_expectations/pull/10674))
+* [MAINTENANCE] Update testing framework to work with bigquery ([#10675](https://github.com/great-expectations/great_expectations/pull/10675))
+* [MAINTENANCE] Fixture to get assets for test framework ([#10673](https://github.com/great-expectations/great_expectations/pull/10673))
+* [MAINTENANCE] Update CODEOWNERS with reqs owner. ([#10684](https://github.com/great-expectations/great_expectations/pull/10684))
+* [MAINTENANCE] Remove commented out code ([#10686](https://github.com/great-expectations/great_expectations/pull/10686))
+* [MAINTENANCE] Tests to prove sqlite partitioners work ([#10676](https://github.com/great-expectations/great_expectations/pull/10676))
+* [MAINTENANCE] Condition parser typing and row conditions testing ([#10667](https://github.com/great-expectations/great_expectations/pull/10667))
+* [MAINTENANCE] Improve experience around expectation deletion with Cloud-backed suites ([#10662](https://github.com/great-expectations/great_expectations/pull/10662))
+
 ### 1.2.3
 * [BUGFIX] double-sided z score renderer ([#10648](https://github.com/great-expectations/great_expectations/pull/10648))
 * [BUGFIX] Stop masking config strings ([#10625](https://github.com/great-expectations/great_expectations/pull/10625))
