@@ -170,7 +170,8 @@
                         "Trino",
                         "Redshift",
                         "BigQuery",
-                        "Snowflake"
+                        "Snowflake",
+                        "Databricks (SQL)"
                     ]
                 }
             }

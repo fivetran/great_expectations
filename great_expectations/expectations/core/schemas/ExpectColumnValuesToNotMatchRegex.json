@@ -163,7 +163,8 @@
                         "Spark",
                         "PostgreSQL",
                         "MySQL",
-                        "Redshift"
+                        "Redshift",
+                        "Databricks (SQL)"
                     ]
                 }
             }
