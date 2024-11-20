@@ -25,12 +25,18 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 The examples in this article use a sample customer dataset. The data is available from a public Postgres database, as shown in the examples, or can also be accessed in [CSV format](https://raw.githubusercontent.com/great-expectations/great_expectations/develop/tests/test_sets/learn_data_quality_use_cases/uniqueness_customers.csv).
 
-| customer_id | first_name | last_name | email_address      | secondary_email     | phone_number | country_code | government_id |
-|-------------|------------|-----------|--------------------|---------------------|--------------|---------|---------------|
-| 1           | John       | Doe       | johndoe@email.com  |                     | 1234567890   | USA     | 123-45-6789   |
-| 2           | Jane       | Smith     | jsmith@email.com   | jsmith@email.com    | 9876543210   | Canada  | 987-65-4321   |
-| 3           | Jon        | Doe       | jon.doe@email.com  | jon.doe2@email.com  | 1234567890   | USA     | 123-45-6789   |
-| 4           | J.         | Doe       | johndoe@email.com  |                     | 1234567891   | USA     | 123-45-6789   |
+| customer_id | first_name | last_name | email_address | secondary_email | phone_number | country_code | government_id |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| 1 | John | Doe | johndoe@email.com |   | +1 123 456-7890 | US | 123-45-6789 |
+| 2 | Jane | Smith | jsmith@email.com | jsmith@email.com | +1 409 437-3210 | CA | 987 654 321 |
+| 3 | Bob | Thatcher | bobthatcher@email.com |   |   | US | 235-98-4389 |
+| 4 | Jon | Doe | jon.doe@email.com | jon.doe2@email.com | +1 888 999-9999 | US |   |
+| 5 | J | Doe | jd@email.com |   |   | US | 123-45-6789 |
+| 6 | Jenny | Williams |   |   |   | CA | 298 367 456 |
+| 7 | Johnathan | Doe | johndoe@email.co.uk |   | +44 333 981537 | UK | RC 23 94 27 B |
+| 8 | Liz | Brown | l2@email.com | lizzeb@email.com | +44 1224 587623 | UK |   |
+| 9 | Jonathan | Doe |   | jdoe@email.co.uk | +44 333 991537 | UK | RC 23 94 27 C |
+| 10 | Elizabeth | Brown | lizzeb@email.com | l2@email.com | +44 1224 587623 | UK |   |
 
 Primary key fields, such as `customer_id`, can uniquely identify a row of data but cannot always uniquely identify the corresponding real-world entity, such as a person. In this dataset, some individual customers are represented by multiple rows, each with slight variations in their registered information. This scenario is common in real-world customer databases and presents a challenge for validating and maintaining data uniqueness.
 
@@ -108,11 +114,13 @@ This Expectation validates that, for each row, the values across a specified set
 * When validating uniqueness, consider the level of granularity required for your use case. Column-level Expectations like `ExpectColumnValuesToBeUnique` ensure uniqueness within a single column, while row-level Expectations like `ExpectCompoundColumnsToBeUnique` validate uniqueness across multiple columns. Choose the appropriate Expectation based on whether you need to validate a unique identifier, a composite key, or a combination of fields that should be unique within each row.
 :::
 
-## Example: Validate uniqueness of a column
+## Example: Identify potential duplicate entities
 
-**Context**: In customer databases, certain columns are expected to contain unique values to ensure data integrity and prevent duplicate records. For example, the `government_id` column should contain unique values as it represents a unique identifier for each customer. Monitoring the uniqueness of such columns can help detect data quality issues, such as duplicate customer entries or data input errors.
+**Context**: Primary key fields can be used uniquely identify rows of data, but cannot always uniquely identify the corresponding real-world entity represented by the data. Preventing duplicate records and maintaining unique data often cannot be accomplished by primary key constraints alone, additional uniqueness checks must be used to validate groups of attributes that can be used to uniquely identify entities.
 
-**Goal**: Using the `ExpectColumnValuesToBeUnique` Expectation and either GX Core or GX Cloud, validate that the `government_id` column contains only unique values.
+For instance, in customer datasets, a `customer_id` can be created for all customer records, but duplicate customers (real world individuals represented by multiple rows of data) can still enter the dataset for a variety of reasons: inconsistent contact information provided by the customer themselves, errors in data entry, or bad data migrations.
+
+**Goal**: Using uniqueness Expectations in GX Cloud or GX Core, identify potential duplicate entities in the sample customer dataset.
 
 <Tabs
    defaultValue="gx_cloud"
@@ -123,33 +131,68 @@ This Expectation validates that, for each row, the values across a specified set
 >
 
 <TabItem value="gx_cloud" label="GX Cloud">
-Use the GX Cloud UI to walk through the following steps.
+Use the GX Cloud UI to walk through the following steps:
 
 1. Create a Postgres Data Asset for the `uniqueness_customers` table using the following connection string:
   ```
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
   ```
 
-3. Add an **Expect column values to be unique** Expectation to the newly created Data Asset.
-4. Populate the Expectation:
-   * Select `government_id` as the **Column**.
-5. Save the Expectation.
-6. Click the **Validate** button.
-7. Review Validation Results.
+2. Add an Expectation to validate the uniqueness of the `customer_id` column, which serves as a primary key for the dataset.
+   * Expectation: Expect column values to be unique
+   * Column: `customer_id`
+
+3. Add two Expectations that validate the uniqueness of composite keys that should represent a single real-world entity (the customer).
+
+   * Expect that individual customers have a unique government id, relative to their country.
+      * Expectation: Expect compound columns to be unique
+      * Column List: `country_code`, `government_id`
+      * Ignore Row If: Any value is missing
+
+   * Expect that individual customers have unique last name and phone number.
+      * Expectation: Expect compound columns to be unique
+      * Column List: `last_name`, `phone_number`
+      * Ignore Row If: Any value is missing
+
+4. Validate the `uniqueness_customers` Data Asset with the newly create Expectations.
+
+5. Review the Validation Results. Under **Batches & run history**, select the individual Validation run (not **All Runs**) to view the sample unexpected values that were identified for failing Expectations.
+
+**Result**:
+Based on the sample unexpected values shown for each failing Expectation, you can see that two potential groups of duplicate customer records are identified.
 </TabItem>
 
 <TabItem value="gx_core" label="GX Core">
-Run the following GX Core workflow.
+Run the following GX Core workflow:
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py full workflow"
 ```
+
+**Result**:
+```python title="Python output"
+Expectation: expect_compound_columns_to_be_unique, Potential duplicates found:
+[{'country_code': 'US', 'government_id': '123-45-6789'}, {'country_code': 'US', 'government_id': '123-45-6789'}]
+
+Expectation: expect_compound_columns_to_be_unique, Potential duplicates found:
+[{'last_name': 'Brown', 'phone_number': '+44 1224 587623'}, {'last_name': 'Brown', 'phone_number': '+44 1224 587623'}]
+  ```
+
+Parsing the Validation Result object for failing Expectations enables you to access a sample of the unexpected values that caused the validation to fail. These values can be used to identify duplicate rows, based on the definition of uniqueness for an individual customer.
+
 </TabItem>
 
 </Tabs>
 
-**GX solution**: GX enables validating the uniqueness of values in a column. By using the `ExpectColumnValuesToBeUnique` Expectation, you can ensure that each value in the specified column appears only once. This can be done using either GX Core or GX Cloud.
+* `country_code`: `US`, `government_id` : `123-45-6789`
 
-In this example, we expect the `government_id` column to contain only unique values. The `ExpectColumnValuesToBeUnique` Expectation allows us to codify this requirement and validate it against our data. If duplicate government IDs are found, the validation will fail, alerting us to potential data quality issues such as duplicate customer records or data entry errors.
+   This result suggests that `customer_id` `1` and `5` represent the same customer, John Doe, identified by duplicate rows containing his unique US government id.
+
+* `last_name`: `Brown`, `government_id` : `+44 1224 587623`
+
+   This result suggests that `customer_id` `8` and `10` represent the same customer, Elizabeth (Liz) Brown, identified by duplicate rows containing her last name and phone number.
+
+
+**GX solution**: GX Cloud and GX Core both enable validating data uniqueness in flexible ways: within single columns or across compound columns, across records in a dataset or fields within a record. The Validation Results returned by GX can be used to identify duplicate data in addition to monitoring uniqueness.
 
 ## Scenarios
 
@@ -182,6 +225,6 @@ In this example, we expect the `government_id` column to contain only unique val
 
 ## The path forward
 
-Validating and maintaining uniqueness in your data is a collaborative effort that involves multiple stakeholders, including data producers, consumers, and stewards. Clear ownership and accountability is required to ensure the success of data quality initiatives. Assign roles and responsibilities for defining uniqueness requirements, implementing validation checks, and handling data quality issues. Foster a culture of open communication and shared responsibility, where teams understand the importance of maintaining data uniqueness and feel empowered to contribute to the process.
+Monitoring data for uniqueness is an essential technique in the effort to maintain high-quality data. However, when duplicate data is inadvertently introduced into your organization's data, uniqueness checks must be paired with effective data deduplication and entity resolution to fix the issue.
 
-Uniqueness is an important measure of data quality, however, a comprehensive approach to data quality requires validation of data across other quality dimensions. Explore our [data quality use cases](/reference/learn/data_quality_use_cases/dq_use_cases_lp.md) for more insights and best practices to expand your data validation to encompass key quality dimensions.
+Uniqueness is an important measure of data quality, but is only one facet of a comprehensive approach to data quality. Effective data quality monitoring and management requires validation of data across other quality dimensions, such as completeness, schema, integrity, volume, and distribution. Explore our [data quality use cases](/reference/learn/data_quality_use_cases/dq_use_cases_lp.md) for more insights and best practices to expand your data validation to encompass key quality dimensions.
