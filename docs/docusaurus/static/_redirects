@@ -41,6 +41,7 @@
 /en/latest/guides/tutorials/how_to_create_expectations.html https://docs.greatexpectations.io/docs/core/define_expectations/create_an_expectation/
 /en/latest/guides/workflows_patterns/* https://docs.greatexpectations.io/docs/cloud/deploy/deployment_patterns/#read-only-deployment
 /en/latest/changelog.html https://docs.greatexpectations.io/docs/core/changelog/
+/docs/changelog/ https://docs.greatexpectations.io/docs/core/changelog
 /en/latest/releasing.html https://docs.greatexpectations.io/docs/core/changelog/
 /en/latest/releasing/docker_release_process.html https://docs.greatexpectations.io/docs/reference/learn/integrations/dbt_tutorial/#3-start-the-docker-services
 /en/latest/reference/spare_parts.html https://docs.greatexpectations.io/docs/core/introduction/
@@ -48,8 +49,17 @@
 /en/latest/reference/core_concepts.html https://docs.greatexpectations.io/docs/core/introduction/
 /en/latest/reference/core_concepts/* https://docs.greatexpectations.io/docs/reference/learn/glossary
 /en/latest/reference/glossary_of_expectations.html* https://greatexpectations.io/expectations
+/docs/reference/glossary_of_expectations* https://greatexpectations.io/expectations
+/en/latest/reference/glossary https://docs.greatexpectations.io/docs/reference/learn/glossary
+/en/latest/expectation_glossary.html https://docs.greatexpectations.io/docs/reference/learn/glossary
 /en/latest/reference/supporting_resources.html https://docs.greatexpectations.io/docs/core/introduction/community_resources/
 /en/latest/reference/spare_parts/* https://docs.greatexpectations.io/docs/core/introduction/
+/docs/reference/usage_statistics https://docs.greatexpectations.io/docs/reference/learn/usage_statistics
+/en/latest/autoapi/great_expectations/render/renderer/page_renderer/index.html https://docs.greatexpectations.io/docs/reference/api/render/renderer/renderer/Renderer_class
+/en/latest/autoapi/great_expectations/expectations/* https://greatexpectations.io/expectations
+/en/latest/getting_started* https://docs.greatexpectations.io/docs/core/introduction/
+/en/latest/reference/core_concepts/profiling* https://docs.greatexpectations.io/docs/core/introduction/
+
 
 # Redirects for old style guides
 
@@ -60,6 +70,10 @@
 /docs/why_use_ge https://docs.greatexpectations.io/docs/core/introduction/
 /docs/community https://docs.greatexpectations.io/docs/core/introduction/community_resources
 /docs/guides/setup/installation/spark_emr https://docs.greatexpectations.io/docs/guides/setup/installation/install_gx
+/docs/oss/guides/setup/get_started_lp https://docs.greatexpectations.io/docs/core/introduction/
+/en/latest/guides/how_to_guides/configuring_data_docs* https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_data_docs/
+/en/latest/guides/tutorials/getting_started/set_up_data_docs* https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_data_docs/
+/en/latest/how_to_guides/configuring_datasources/how_to_configure_a_spark_filesystem_datasource* https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_data_docs/
 
 # Redirects for integrations And How-Tos
 
@@ -99,12 +113,13 @@
 /docs/reference/data_context https://docs.greatexpectations.io/docs/terms/data_context/
 /docs/reference/data_docs https://docs.greatexpectations.io/docs/terms/data_docs/
 /docs/reference/datasources https://docs.greatexpectations.io/docs/terms/datasource
-/docs/reference/dividing_data_assets_into_batches /docs/0.15.50/guides/connecting_to_your_data/advanced/how_to_configure_a_dataconnector_for_splitting_and_sampling_a_file_system_or_blob_store
+/docs/reference/dividing_data_assets_into_batches https://docs.greatexpectations.io/docs/core/define_expectations/organize_expectation_suites/#procedure
 /docs/reference/execution_engine https://docs.greatexpectations.io/docs/terms/execution_engine/
 /docs/reference/metrics https://docs.greatexpectations.io/docs/terms/metric
 /docs/reference/profilers https://docs.greatexpectations.io/docs/terms/profiler
 /docs/reference/supporting_resources https://docs.greatexpectations.io/docs/tutorials/getting_started/tutorial_overview
 /docs/reference/validation https://docs.greatexpectations.io/docs/guides/validation/validate_data_overview
+/docs/reference/expectation_suite_operations https://docs.greatexpectations.io/docs/core/define_expectations/
 /docs/guides/miscellaneous/how_to_quickly_explore_expectations_in_a_notebook https://greatexpectations.io/expectations/
 
 # Redirects for deprecated API docs
@@ -139,6 +154,9 @@
 /docs/tutorials/getting_started/tutorial_review /docs/tutorials/quickstart
 /docs/tutorials/getting_started/tutorial_setup /docs/tutorials/quickstart
 /docs/tutorials/getting_started/tutorial_validate_data /docs/tutorials/quickstart
+/en/latest/tutorials/create_expectations* /docs/core/define_expectations/create_an_expectation
+/en/latest/tutorials/getting_started* /docs/core/introduction/try_gx
+/en/latest/tutorials/publishing_data_docs_to_s3* /docs/core/configure_project_settings/configure_data_docs
 
 # Removing CLI-based guide
 
@@ -190,7 +208,7 @@ docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_
 
 /docs/guides/connecting_to_your_data/datasource_configuration/how_to_configure_a_sql_datasource /docs/0.15.50/guides/connecting_to_your_data/datasource_configuration/how_to_configure_a_sql_datasource
 /docs/guides/connecting_to_your_data/database/athena /docs/0.15.50/guides/connecting_to_your_data/database/athena
-/docs/guides/connecting_to_your_data/database/bigquery /docs/0.15.50/guides/connecting_to_your_data/database/bigquery
+/docs/guides/connecting_to_your_data/database/bigquery https://docs.greatexpectations.io/docs/core/connect_to_data/
 /docs/guides/connecting_to_your_data/database/mssql /docs/0.15.50/guides/connecting_to_your_data/database/mssql
 /docs/guides/connecting_to_your_data/database/mysql /docs/0.15.50/guides/connecting_to_your_data/database/mysql
 /docs/guides/connecting_to_your_data/database/postgres /docs/0.15.50/guides/connecting_to_your_data/database/postgres
@@ -202,7 +220,7 @@ docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_
 /docs/guides/connecting_to_your_data/filesystem/pandas /docs/0.15.50/guides/connecting_to_your_data/filesystem/pandas
 /docs/guides/connecting_to_your_data/filesystem/spark /docs/0.15.50/guides/connecting_to_your_data/filesystem/spark
 
-/docs/guides/connecting_to_your_data/how_to_choose_which_dataconnector_to_use /docs/0.15.50/guides/connecting_to_your_data/how_to_choose_which_dataconnector_to_use
+/docs/guides/connecting_to_your_data/how_to_choose_which_dataconnector_to_use https://docs.greatexpectations.io/docs/core/connect_to_data/
 /docs/guides/connecting_to_your_data/how_to_configure_a_configuredassetdataconnector /docs/0.15.50/guides/connecting_to_your_data/how_to_configure_a_configuredassetdataconnector
 /docs/guides/connecting_to_your_data/how_to_configure_an_inferredassetdataconnector /docs/0.15.50/guides/connecting_to_your_data/how_to_configure_an_inferredassetdataconnector
 /docs/guides/connecting_to_your_data/how_to_configure_a_runtimedataconnector /docs/0.15.50/guides/connecting_to_your_data/how_to_configure_a_runtimedataconnector
@@ -212,6 +230,8 @@ docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_
 /docs/guides/connecting_to_your_data/how_to_create_a_batch_of_data_from_an_in_memory_spark_or_pandas_dataframe /docs/0.15.50/guides/connecting_to_your_data/how_to_create_a_batch_of_data_from_an_in_memory_spark_or_pandas_dataframe
 /docs/guides/connecting_to_your_data/advanced/how_to_configure_a_dataconnector_for_splitting_and_sampling_a_file_system_or_blob_store /docs/0.15.50/guides/connecting_to_your_data/advanced/how_to_configure_a_dataconnector_for_splitting_and_sampling_a_file_system_or_blob_store
 /docs/guides/connecting_to_your_data/advanced/how_to_configure_a_dataconnector_for_splitting_and_sampling_tables_in_sql /docs/0.15.50/guides/connecting_to_your_data/advanced/how_to_configure_a_dataconnector_for_splitting_and_sampling_tables_in_sql
+
+
 
 ## Redirects for deleted CLI guides back to the last version of the docs to include them
 
@@ -271,12 +291,14 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/guides/connecting_to_your_data/fluent/in_memory/how_to_connect_to_in_memory_data_using_pandas /docs/guides/connecting_to_your_data/fluent/in_memory/connect_in_memory_data
 /docs/guides/validation/how_to_validate_data_by_running_a_checkpoint /docs/guides/validation/checkpoints/how_to_create_a_new_checkpoint
 /docs/deployment_patterns/how_to_use_great_expectations_with_google_cloud_platform_and_bigquery /docs/guides/connecting_to_your_data/fluent/database/connect_sql_source_data
+/docs/oss/guides/setup/configuring_data_docs/host_and_share_data_docs
 
 # Redirects for pages removed as no longer applicable
 
 /docs/guides/validation/advanced/how_to_validate_data_without_a_checkpoint /docs/guides/validation/checkpoints/how_to_pass_an_in_memory_dataframe_to_a_checkpoint
 /docs/reference/expectations/implemented_expectations/ https://greatexpectations.io/expectations.html
 /docs/reference/expectations/implemented_expectations/ https://greatexpectations.io/expectations.html
+/docs/reference/customize_your_deployment /docs/core/configure_project_settings/
 /docs/guides/expectations/advanced/how_to_create_a_new_expectation_suite_using_rule_based_profilers /docs/guides/expectations/expectations_lp
 
 # Redirects for removed index pages and new landing pages
@@ -288,7 +310,7 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/deployment_patterns/index /docs/reference/learn/integrations/integrations_lp
 /docs/guides/validation/validate_data_overview /docs/guides/validation/validate_data_lp
 /docs/guides/connecting_to_your_data/connect_to_data_overview /docs/guides/connecting_to_your_data/connect_to_data_lp
-
+/en/stable/guides/workflows_patterns/deployment_airflow* /docs/reference/learn/integrations/airflow_pipeline_tutorial/
 
 # Redirects for OSS folder reorg
 /docs/glossary /docs/reference/learn/glossary
@@ -331,6 +353,16 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/oss/guides/expectations/advanced/how_to_create_expectations_that_span_multiple_batches_using_suite_parameters https://docs.greatexpectations.io/docs/core/connect_to_data/filesystem_data/#create-a-batch-definition
 /docs/oss/guides/expectations/advanced/identify_failed_rows_expectations https://docs.greatexpectations.io/docs/core/trigger_actions_based_on_results/choose_a_result_format/#define-a-result-format-configuration
 /docs/oss/guides/expectations/advanced/how_to_dynamically_load_suite_parameters_from_a_database https://greatexpectations.io/expectations/
+https://docs.greatexpectations.io/docs/1.0-prerelease/core/configure_project_settings/configure_credentials
+https://docs.greatexpectations.io/docs/oss
+https://docs.greatexpectations.io/docs/oss/deployment_patterns/how_to_use_gx_with_aws/how_to_use_gx_with_aws_using_redshift
+https://docs.greatexpectations.io/docs/oss/get_started/get_started_with_gx_and_sql		404	1	1	0	0	2024-09-26	already redirecting?
+https://docs.greatexpectations.io/docs/oss/guides/expectations/creating_custom_expectations/how_to_use_custom_expectations		404	1	1	0	0	2024-09-20	already redirecting?
+https://docs.greatexpectations.io/docs/reference/api/core/batch/runtimebatchrequest_class/		404	1	1	0	0	2024-08-26	already redirecting?
+https://docs.greatexpectations.io/docs/reference/api/core/expectationconfiguration_class/ 		404	1	1	0	0	2024-08-27	already redirecting?
+https://docs.greatexpectations.io/docs/reference/api/datasource/data_connector/inferredassets3dataconnector_class/		404	1	1	0	0	2024-08-26	already redirecting?
+https://docs.greatexpectations.io/docs/reference/api/execution_engine/sparkdfexecutionengine_class/		404	1	1	0	0	2024-08-26	already redirecting?
+https://docs.greatexpectations.io/docs/reference/api/profile/user_configurable_profiler/userconfigurableprofiler_class/		404	1	1	0	0	2024-08-26	already redirecting?
 
 
 ## Redirects for GX Core version 1.0 prerelease
@@ -354,10 +386,14 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 
 ## Redirects for broken version 0.18 URLs
 
+/docs/oss/tutorials/quickstart/ /docs/core/introduction
 /docs/oss/guides/validation/checkpoints/aG93X3RvX2 /docs/0.18/oss/guides/validation/checkpoints/checkpoint_lp
 /docs/oss/guides/setup/configuring_data_docs/aG93X3RvX2 /docs/0.18/oss/guides/setup/configuring_data_docs/host_and_share_data_docs
 /docs/oss/guides/expectations/aG93X3RvX2 /docs/0.18/oss/guides/expectations/expectations_lp
-/docs/oss/contributing/contributing_maturity
+/docs/oss/guides/setup/configuring_data_docs/host_and_share_data_docs /docs/core/configure_project_settings/configure_data_docs/
+/docs/oss/contributing/contributing_maturity /docs/core/introduction/community_resources/#contribute-code-or-documentation
+/docs/oss/deployment_patterns/* /docs/reference/learn/integrations/integrations_lp
+/docs/oss/integrations/* /docs/reference/learn/integrations/integrations_lp
 
 /docs/oss/* /docs/0.18/oss/:splat
 /docs/reference/learn/terms/data_docs /docs/0.18/reference/learn/terms/data_docs
@@ -365,6 +401,20 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/reference/learn/expectations/* /docs/0.18/reference/learn/expectations/:splat
 /docs/reference/learn/conceptual_guides/* /docs/0.18/reference/learn/conceptual_guides/:splat
 /docs/reference/api/* /docs/0.18/reference/api/:splat
+
+## Redirects for old versioned docs
+
+/docs/0.15.50/guides/connecting_to_your_data/database/bigquery https://docs.greatexpectations.io/docs/core/connect_to_data/
+/docs/0.15.50/guides/connecting_to_your_data/how_to_choose_which_dataconnector_to_use https://docs.greatexpectations.io/docs/core/connect_to_data/
+/docs/0.15* https://docs.greatexpectations.io/docs/core/introduction/
+/docs/0.16* https://docs.greatexpectations.io/docs/core/introduction/
+/docs/0.10* https://docs.greatexpectations.io/docs/core/introduction/
+/en/v0.* https://docs.greatexpectations.io/docs/core/introduction/
+/en/0.* https://docs.greatexpectations.io/docs/core/introduction/
+
+## Broader redirects
+
+/docs/reference/* /docs/core/introduction/
 
 ## Redirects for old legacy version
 https://legacy.docs.greatexpectations.io/en/latest/reference/glossary_of_expectations.html* https://greatexpectations.io/expectations 301!
