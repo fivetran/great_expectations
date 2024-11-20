@@ -196,8 +196,8 @@ module.exports = {
       items: [
         {
           type: 'link',
-          label: 'Create a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#create-a-data-asset',
+          label: 'Add a Data Asset from an existing Data Source',
+          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-an-existing-data-source',
         },
         {
           type: 'link',
@@ -208,11 +208,6 @@ module.exports = {
           type: 'link',
           label: 'Add an Expectation to a Data Asset column',
           href: '/docs/cloud/data_assets/manage_data_assets#add-an-expectation-to-a-data-asset-column',
-        },
-        {
-          type: 'link',
-          label: 'Add a Data Asset to an Existing Data Source',
-          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-to-an-existing-data-source',
         },
         {
           type: 'link',
