@@ -40,7 +40,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 LIKE_PATTERN_DESCRIPTION = "The SQL like pattern expression the column entries should match."
 DATA_QUALITY_ISSUES = ["Pattern matching"]
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift"]
+SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
 
 
 class ExpectColumnValuesToMatchLikePattern(ColumnMapExpectation):

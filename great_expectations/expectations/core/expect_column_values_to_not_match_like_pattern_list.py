@@ -41,7 +41,7 @@ LIKE_PATTERN_LIST_DESCRIPTION = (
     "The list of SQL like pattern expressions the column entries should NOT match."
 )
 DATA_QUALITY_ISSUES = ["Pattern matching"]
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift"]
+SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
 
 
 class ExpectColumnValuesToNotMatchLikePatternList(ColumnMapExpectation):

@@ -47,7 +47,7 @@ MATCH_ON_DESCRIPTION = (
     "Use 'all' if it should match each regular expression in the list."
 )
 DATA_QUALITY_ISSUES = ["Pattern matching"]
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift"]
+SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
 
 
 class ExpectColumnValuesToMatchRegexList(ColumnMapExpectation):

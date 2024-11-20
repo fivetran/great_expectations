@@ -40,7 +40,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 REGEX_DESCRIPTION = "The regular expression the column entries should match."
 DATA_QUALITY_ISSUES = ["Pattern matching"]
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift"]
+SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
 
 
 class ExpectColumnValuesToMatchRegex(ColumnMapExpectation):

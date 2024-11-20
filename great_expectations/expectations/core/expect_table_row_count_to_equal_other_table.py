@@ -41,7 +41,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
 OTHER_TABLE_NAME_DESCRIPTION = (
     "The name of the other table. Other table must be located within the same database."
 )
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift"]
+SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
 DATA_QUALITY_ISSUES = ["Volume"]
 
 
