@@ -23,11 +23,11 @@ import Tabs from '@theme/Tabs';
 
 2. Click **Tools** > **Query Tool**.
 
-3. Paste the following code into the **Query** pane to create and assign the `gx_role` role and allow GX Cloud to access to all `public` schemas and tables on a specific database.
+3. Paste the following code into the **Query** pane to create and assign the `gx_role` role and allow GX Cloud to access all `public` schemas and tables on a specific database.
 
    ```sql title="pgAdmin"
     -- Create and assign the gx_role role and allow GX Cloud 
-    -- to access to all public schemas and tables on a specific database
+    -- to access all public schemas and tables on a specific database
     CREATE ROLE gx_role WITH LOGIN PASSWORD '<your_password>';
     GRANT CONNECT ON DATABASE <your_database> TO gx_role;
     GRANT USAGE ON SCHEMA public TO gx_role;

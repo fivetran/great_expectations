@@ -51,7 +51,7 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
    ```
 
    - Replace `YOUR_PASSWORD` with your value and `YOUR_DATABASE` and `YOUR_SCHEMA` with the names of the database and schema you want to access in GX Cloud.
-   - `grant select on future tables in schema "your_database.your_schema" to role gx_role;` is optional and gives the user with the `gx_role` role access to all future tables in the defined schema.
+   - `grant select on future tables in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;` is optional and gives the user with the `gx_role` role access to all future tables in the defined schema.
    - The settings in the code example optimize cost and performance. Adjust them to suit your business requirements.
 
 3. Select **Run All** to define your user password, create a new GX role (`gx_role`), assign the password and role to a new user (`gx_user`), create a new warehouse (`gx_wh`), and allow the user with the `gx_role` role to access data on the Snowflake database and schema.
@@ -72,7 +72,7 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
 
       - **Account identifier**: Enter your Snowflake organization and account name separated by a hyphen (`oraganizationname-accountname`) or your account name and a legacy account locator separated by a period (`accountname.region`). The legacy account locator value must include the geographical region. For example, `us-east-1`. 
     
-      To locate your Snowflake organization name, account name, or legacy account locator values see [Finding the Organization and Account Name for an Account](https://docs.snowflake.com/en/user-guide/admin-account-identifier#finding-the-organization-and-account-name-for-an-account) or [Using an Account Locator as an Identifier](https://docs.snowflake.com/en/user-guide/admin-account-identifier#using-an-account-locator-as-an-identifier).
+         To locate your Snowflake organization name, account name, or legacy account locator values see [Finding the Organization and Account Name for an Account](https://docs.snowflake.com/en/user-guide/admin-account-identifier#finding-the-organization-and-account-name-for-an-account) or [Using an Account Locator as an Identifier](https://docs.snowflake.com/en/user-guide/admin-account-identifier#using-an-account-locator-as-an-identifier).
     
       - **Username**: Enter the username you use to access Snowflake.
 
@@ -86,7 +86,7 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
 
       - **Role**: Enter your Snowflake role.
 
-   - If you chose **Connection string** enter it with a format of: `snowflake://<user_login_name>:<password>@<accountname>`.
+   - If you chose **Connection string** enter it with a format of: `snowflake://<USER>:<PASSWORD>@<ACCOUNT_IDENTIFIER>/<DATABASE>/<SCHEMA>?warehouse=<WAREHOUSE>&role=<ROLE>`.
    
 5. Click **Connect**.
 
