@@ -45,7 +45,7 @@ SUPPORTED_DATA_SOURCES = [
     "Redshift",
     "BigQuery",
     "Snowflake",
-    "Databricks (SQL)"
+    "Databricks (SQL)",
 ]
 DATA_QUALITY_ISSUES = ["Schema"]
 
