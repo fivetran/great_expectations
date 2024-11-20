@@ -6,9 +6,6 @@ toc_min_heading_level: 2
 toc_max_heading_level: 2
 ---
 
-import TabItem from '@theme/TabItem';
-import Tabs from '@theme/Tabs';
-
 A Data Asset is a collection of records from a Data Source. You can validate the whole Data Asset or a time-based subset of it. When you first connect to a Data Source, you define a minimum of one Data Asset. You can add more Data Assets from that same Data Source later. 
 
 ## Add a Data Asset from an existing Data Source
@@ -90,61 +87,17 @@ You can only edit the settings of Data Assets created in GX Cloud.
 
 Edit Data Source settings to update Data Source connection information or access credentials. You can only edit the settings of Data Sources created in GX Cloud.
 
-<Tabs
-  groupId="manage-data-assets"
-  defaultValue='Snowflake'
-  values={[
-  {label: 'Snowflake', value:'Snowflake'},
-  {label: 'PostgreSQL', value:'PostgreSQL'},
-  ]}>
-<TabItem value="Snowflake">
 
 1. In GX Cloud, click **Data Assets**.
 
 2. Click **Manage Data Sources**.
 
-3. Click **Edit Data Source** for the Snowflake Data Source you want to edit.
+3. Click **Edit Data Source** for the Data Source you want to edit.
 
-4. Optional. Edit the Data Source name.
-
-5. Optional. If you used a connection string to connect to the Data Source, click the **Connection string** tab and edit the Data Source connection string.
-
-6. Optional. If you're not using a connection string, edit the following fields:
-    
-     - **Account identifier**: Enter new Snowflake account or locator information. The locator value must include the geographical region. For example, `us-east-1`. To locate these values see [Account Identifiers](https://docs.snowflake.com/en/user-guide/admin-account-identifier).
-     
-     - **Username**: Enter a new Snowflake username.
-
-    - **Password**: Enter the password for the Snowflake user you're connecting to GX Cloud. To improve data security, GX recommends using a Snowflake service account to connect to GX Cloud.
-
-    - **Database**: Enter a new Snowflake database name.
- 
-    - **Schema**: Enter a new schema name.
-
-    - **Warehouse**: Enter a new Snowflake database warehouse name.
-
-    - **Role**: Enter a new Snowflake role.
-
-7. Click **Save**.
-
-</TabItem>
-<TabItem value="PostgreSQL">
-
-1. In GX Cloud, click **Data Assets**.
-
-2. Click **Manage Data Sources**.
-
-3. Click **Edit Data Source** for the PostgreSQL Data Source you want to edit.
-
-4. Optional. Edit the Data Source name.
-
-5. Optional. Click **Show** in the **Connection string** field and then edit the Data Source connection string.
+4. Edit the configuration as needed. Available fields vary by source type. Refer to the instructions for [connecting GX Cloud](/cloud/connect/connect_lp.md) to your source type for details.
 
 6. Click **Save**.
 
-
-</TabItem>
-</Tabs>
 
 ## Data Source credential management
 
