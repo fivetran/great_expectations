@@ -36,7 +36,9 @@ datasource = context.data_sources.add_postgres(
     "postgres database", connection_string=CONNECTION_STRING
 )
 
-data_asset = datasource.add_table_asset(name="data asset", table_name="uniqueness_customers")
+data_asset = datasource.add_table_asset(
+    name="data asset", table_name="uniqueness_customers"
+)
 batch_definition = data_asset.add_batch_definition_whole_table("batch definition")
 batch = batch_definition.get_batch()
 
