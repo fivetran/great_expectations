@@ -6,7 +6,7 @@ title: 'Validate data uniqueness with GX'
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Data uniqueness is a fundamental aspect of data quality that ensures distinct values are present only once where expected in a dataset. Uniqueness constraints are often applied to columns that serve as primary keys, unique identifiers, or timestamps. Validating uniqueness is critical for maintaining data integrity, preventing duplication, and enabling accurate analysis.
+Data uniqueness is a fundamental aspect of data quality that ensures distinct values are present only once where expected in a dataset. Uniqueness constraints are often applied to columns that serve as primary keys, composite keys, or other unique identifiers. Validating uniqueness is critical for maintaining data integrity, preventing duplication, and enabling accurate analysis.
 
 Failing to validate uniqueness can lead to various data quality issues:
 
@@ -25,20 +25,20 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 The examples in this article use a sample customer dataset. The data is available from a public Postgres database, as shown in the examples, or can also be accessed in [CSV format](https://raw.githubusercontent.com/great-expectations/great_expectations/develop/tests/test_sets/learn_data_quality_use_cases/uniqueness_customers.csv).
 
-| customer_id | first_name | last_name | email_address      | secondary_email     | phone_number | country | government_id |
+| customer_id | first_name | last_name | email_address      | secondary_email     | phone_number | country_code | government_id |
 |-------------|------------|-----------|--------------------|---------------------|--------------|---------|---------------|
 | 1           | John       | Doe       | johndoe@email.com  |                     | 1234567890   | USA     | 123-45-6789   |
 | 2           | Jane       | Smith     | jsmith@email.com   | jsmith@email.com    | 9876543210   | Canada  | 987-65-4321   |
 | 3           | Jon        | Doe       | jon.doe@email.com  | jon.doe2@email.com  | 1234567890   | USA     | 123-45-6789   |
 | 4           | J.         | Doe       | johndoe@email.com  |                     | 1234567891   | USA     | 123-45-6789   |
 
-Primary key fields such as `customer_id` can uniquely identify a row of data, but cannot always uniquely identify the corresponding real-world entity, such as a person. In this dataset, individual customers are represented by multiple rows, each with slight variations in their registered information. This scenario is common in real-world customer databases and presents a challenge for validating and maintaining data uniqueness.
+Primary key fields, such as `customer_id`, can uniquely identify a row of data but cannot always uniquely identify the corresponding real-world entity, such as a person. In this dataset, some individual customers are represented by multiple rows, each with slight variations in their registered information. This scenario is common in real-world customer databases and presents a challenge for validating and maintaining data uniqueness.
 
-Uniqueness is particularly crucial for fields like `customer_id`, `email_address`, and `government_id`. However, due to data entry errors, multiple registrations, or system migrations, duplicates can still occur. When combined, fields such as `first_name`, `last_name`, `country`, and `government_id` might ideally form a unique identifier for each customer. This ensures that each customer is distinctly recorded and prevents issues like fragmented customer profiles or incorrect communications.
+Uniqueness is particularly crucial for fields like `customer_id`, `email_address`, `government_id`. However, due to data entry errors, multiple registrations, or system migrations, duplicates can still occur. When combined, fields such as `country_code` and `government_id` might ideally form a unique identifier for each customer. This ensures that each customer is distinctly recorded and prevents issues like fragmented customer profiles or incorrect communications.
 
 ## Key uniqueness Expectations
 
-Duplicate data can manifest as duplicate rows within a dataset, or as duplicate fields within a single row. GX provides Expectations, available in both GX Cloud and GX Core, that validate for uniqueness across rows as well as within rows.
+Duplicate data can manifest as duplicate rows within a dataset, or as duplicate values within a single row. GX provides Expectations, available in both GX Cloud and GX Core, that validate for uniqueness across rows and within rows.
 
 ### Expect column values to be unique
 
@@ -56,7 +56,7 @@ This Expectation checks that each value in a column is unique. It is useful to v
 
 This Expectation validates that the combination of values across multiple columns is unique for each row. It can be used to check uniqueness across a set of columns that together form a unique identifier, such as a composite key.
 
-**Example**: Expect that the combination of `first_name`, `last_name`, and `government_id` to uniquely identify a customer record.
+**Example**: Expect that the combination of `country_code` and `government_id` to uniquely identify a customer record.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectCompoundColumnsToBeUnique"
 ```
@@ -68,7 +68,7 @@ This Expectation validates that the combination of values across multiple column
 
 This Expectation validates that the proportion of unique values in a column is between a specified minimum and maximum value. It is useful for ensuring a certain level of uniqueness in a column without requiring full uniqueness.
 
-**Example**: Validate that least 90% of customer `email_address` values are unique.
+**Example**: Validate that least 90% of all customer `email_address` values are unique.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnProportionOfUniqueValuesToBeBetween"
 ```
@@ -80,7 +80,7 @@ This Expectation validates that the proportion of unique values in a column is b
 
 This Expectation validates that the number of unique values in a column is between a specified minimum and maximum value. It is useful for validating that the quantity of unique values falls within an expected range, for example, checking for a known range of distinct category values in a categorical column.
 
-**Example**: Ensure that the `country` column contains between 1 and 5 unique values.
+**Example**: Ensure that the `country_code` column contains between 1 and 5 unique values.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnUniqueValueCountToBeBetween"
 ```
@@ -125,13 +125,12 @@ This Expectation validates that, for each row, the values across a specified set
 <TabItem value="gx_cloud" label="GX Cloud">
 Use the GX Cloud UI to walk through the following steps.
 
-1. Create a Postgres Data Asset for the `uniqueness_customers` table, using the connection string:
-
+1. Create a Postgres Data Asset for the `uniqueness_customers` table using the following connection string:
   ```
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
   ```
 
-3. Add an **Expect column values to be unique** Expectation to the freshly created Data Asset.
+3. Add an **Expect column values to be unique** Expectation to the newly created Data Asset.
 4. Populate the Expectation:
    * Select `government_id` as the **Column**.
 5. Save the Expectation.

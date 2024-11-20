@@ -54,7 +54,7 @@ suite.add_expectation(
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectCompoundColumnsToBeUnique">
     gxe.ExpectCompoundColumnsToBeUnique(
-        column_list=["first_name", "last_name", "government_id"],
+        column_list=["country_code", "government_id"],
     )
     # </snippet>
 )
@@ -70,7 +70,7 @@ suite.add_expectation(
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnUniqueValueCountToBeBetween">
     gxe.ExpectColumnUniqueValueCountToBeBetween(
-        column="country", min_value=1, max_value=5
+        column="country_code", min_value=1, max_value=5
     )
     # </snippet>
 )
