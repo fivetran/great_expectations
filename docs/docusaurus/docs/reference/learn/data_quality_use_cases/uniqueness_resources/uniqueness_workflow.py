@@ -43,15 +43,11 @@ expectation_suite.add_expectation(
 # Validate composite keys that potentially represent a single entity
 # (the individual customer) for uniqueness.
 expectation_suite.add_expectation(
-    gxe.ExpectCompoundColumnsToBeUnique(
-        column_list=["country_code", "government_id"]
-    )
+    gxe.ExpectCompoundColumnsToBeUnique(column_list=["country_code", "government_id"])
 )
 
 expectation_suite.add_expectation(
-    gxe.ExpectCompoundColumnsToBeUnique(
-        column_list=["last_name", "phone_number"]
-    )
+    gxe.ExpectCompoundColumnsToBeUnique(column_list=["last_name", "phone_number"])
 )
 
 # Validate the Batch using the uniqueness Expectation Suite.
@@ -64,7 +60,9 @@ for expectation_result in validation_result["results"]:
 
     if result is False:
         unexpected_sample = expectation_result["result"]["partial_unexpected_list"]
-        print(f"Expectation: {expectation}, Potential duplicates found:\n{unexpected_sample}\n")
+        print(
+            f"Expectation: {expectation}, Potential duplicates found:\n{unexpected_sample}\n"
+        )
 # </snippet>
 
 
@@ -78,10 +76,7 @@ for expectation_result in validation_result["results"]:
     if result is False:
         unexpected_sample = expectation_result["result"]["partial_unexpected_list"]
         result_summary.append(
-            {
-                "expectation": expectation,
-                "potential duplicate" : unexpected_sample
-            }
+            {"expectation": expectation, "potential duplicate": unexpected_sample}
         )
 
 first_result = result_summary[0]
