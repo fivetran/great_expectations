@@ -82,6 +82,7 @@ You can only edit the settings of Data Assets created in GX Cloud.
 
 1. In GX Cloud, click **Data Assets**.
 2. In the Data Assets list, click **Delete Data Asset** for the Data Asset you want to remove.
+3. Review the warning and click **Delete** to confirm.
 
 ## Edit Data Source settings
 
@@ -94,7 +95,7 @@ Edit Data Source settings to update Data Source connection information or access
 
 3. Click **Edit Data Source** for the Data Source you want to edit.
 
-4. Edit the configuration as needed. Available fields vary by source type. Refer to the instructions for [connecting GX Cloud](/cloud/connect/connect_lp.md) to your source type for details.
+4. Edit the configuration as needed. Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/cloud/connect/connect_lp.md) to your source type.
 
 6. Click **Save**.
 
