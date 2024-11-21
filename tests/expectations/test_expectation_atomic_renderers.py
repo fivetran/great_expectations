@@ -2337,7 +2337,7 @@ def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed
         "value": {
             "params": {
                 "column": {"schema": {"type": "string"}, "value": "character"},
-                "observed_value": {"schema": {"type": "string"}, "value": ["a", "d", "e"]},
+                "observed_value": {"schema": {"type": "array"}, "value": ["a", "d", "e"]},
                 "ov__0": {"schema": {"type": "string"}, "value": "a"},
                 "ov__1": {"schema": {"type": "string"}, "value": "d"},
                 "ov__2": {"schema": {"type": "string"}, "value": "e"},
