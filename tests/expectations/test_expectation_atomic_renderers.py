@@ -2307,3 +2307,45 @@ def test_atomic_diagnostic_observed_param_type_inference(
         },
         "value_type": "StringValueType",
     }
+
+
+@pytest.mark.unit
+def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed_value(
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_most_common_value_to_be_in_set",
+            kwargs={
+                "column": "character",
+                "value_set": ["a", "b", "c"],
+                "ties_okay": True,
+            },
+        ),
+        "result": {"observed_value": ["a", "d", "e"]},
+    }
+
+    # act
+    rendered_content = get_diagnostic_rendered_content(x)
+
+    # assert
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "character"},
+                "observed_value": {"schema": {"type": "string"}, "value": ["a", "d", "e"]},
+                "ov__0": {"schema": {"type": "string"}, "value": "a"},
+                "ov__1": {"schema": {"type": "string"}, "value": "d"},
+                "ov__2": {"schema": {"type": "string"}, "value": "e"},
+                "ties_okay": {"schema": {"type": "boolean"}, "value": True},
+                "value_set": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$ov__0 $ov__1 $ov__2",
+        },
+        "value_type": "StringValueType",
+    }
