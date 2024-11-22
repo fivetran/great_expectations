@@ -155,6 +155,7 @@ module.exports = {
           to: 'docs/cloud/overview/gx_cloud_overview',
           position: 'right',
           className: 'non-versioned-section',
+          activeBaseRegex: `/cloud/`
         },
         {
           type: 'doc',
@@ -298,7 +299,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.2.3',
+              label: '1.2.4',
             },
             ['0.18']: {
               label: '0.18.21',

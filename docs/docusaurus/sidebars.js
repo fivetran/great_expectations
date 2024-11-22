@@ -258,6 +258,11 @@ module.exports = {
         },
         {
           type: 'link',
+          label: 'Expectation condition',
+          href: '/docs/cloud/expectations/manage_expectations#expectation-condition',
+        },
+        {
+          type: 'link',
           label: 'Add an Expectation',
           href: '/docs/cloud/expectations/manage_expectations#add-an-expectation',
         },
@@ -434,6 +439,7 @@ module.exports = {
       link: { type: 'doc', id: 'reference/learn/data_quality_use_cases/dq_use_cases_lp' },
       items: [
         'reference/learn/data_quality_use_cases/distribution',
+        'reference/learn/data_quality_use_cases/integrity',
         'reference/learn/data_quality_use_cases/missingness',
         'reference/learn/data_quality_use_cases/schema',
         'reference/learn/data_quality_use_cases/volume'
