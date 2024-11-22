@@ -8,6 +8,10 @@ toc_max_heading_level: 2
 
 A Data Asset is a collection of records from a Data Source. You can validate the whole Data Asset or a time-based subset of it. When you first connect to a Data Source, you define a minimum of one Data Asset. You can add more Data Assets from that same Data Source later. 
 
+## Add a Data Asset from a new Data Source
+
+To add a Data Asset from a new Data Source, refer to [Connect GX Cloud](/cloud/connect/connect_lp.md).
+
 ## Add a Data Asset from an existing Data Source
 
 Define the data you want GX Cloud to access. 
@@ -15,10 +19,6 @@ Define the data you want GX Cloud to access.
 ### Prerequisites
 
 - You have connected GX Cloud to the relevant Data Source.
-
-:::tip New Data Source?
-To add a Data Asset from a new Data Source, refer to [Connect GX Cloud](/cloud/connect/connect_lp.md).
-:::
 
 ### Procedure
 
@@ -67,15 +67,15 @@ The following table lists the available Data Asset metrics.
 
 You can only edit the settings of Data Assets created in GX Cloud.
 
-1. In GX Cloud, click **Data Assets** and in the Data Assets list click **Edit Data Asset** for the Data Asset you want to edit.
-
-2. Edit the following fields:
+1. In GX Cloud, click **Data Assets**.
+2. In the Data Assets list, click **Edit Data Asset** for the Data Asset you want to edit.
+3. Edit the following fields:
 
     - **Table name**: Enter the name of a new table from the Data Source to import as a Data Asset.
 
     - **Data Asset name**: Enter a new name for the Data Asset. If you use the same name for multiple Data Assets, each Data Asset must be associated with a unique Data Source.
 
-3. Click **Save**.
+4. Click **Save**.
 
 ## Delete a Data Asset
 
@@ -120,7 +120,7 @@ To connect to your Data Source in GX Cloud, there are two methods for managing c
       docker run -it -e MY_DATABASE_PASSWORD=<YOUR_DATABASE_PASSWORD> -e GX_CLOUD_ACCESS_TOKEN=<YOUR_ACCESS_TOKEN> -e GX_CLOUD_ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> greatexpectations/agent:stable
       ```
 
-   When running the GX Agent in another Docker-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
+   When running the GX Agent in another container-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
 
    When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Core Python client is running.
 

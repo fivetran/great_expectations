@@ -196,6 +196,11 @@ module.exports = {
       items: [
         {
           type: 'link',
+          label: 'Add a Data Asset from a new Data Source',
+          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-a-new-data-source',
+        },
+        {
+          type: 'link',
           label: 'Add a Data Asset from an existing Data Source',
           href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-an-existing-data-source',
         },
