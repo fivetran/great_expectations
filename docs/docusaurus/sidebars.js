@@ -248,6 +248,11 @@ module.exports = {
         },
         {
           type: 'link',
+          label: 'Expectation condition',
+          href: '/docs/cloud/expectations/manage_expectations#expectation-condition',
+        },
+        {
+          type: 'link',
           label: 'Add an Expectation',
           href: '/docs/cloud/expectations/manage_expectations#add-an-expectation',
         },
