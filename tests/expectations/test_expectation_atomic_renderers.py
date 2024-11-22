@@ -2325,6 +2325,19 @@ def test_atomic_diagnostic_observed_param_type_inference(
             ],
         ),
         (
+            "disjoint",
+            ["a", "b", "c"],
+            ["x", "y", "z"],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+                ("ov__0", "x", "unexpected"),
+                ("ov__1", "y", "unexpected"),
+                ("ov__2", "z", "unexpected"),
+            ],
+        ),
+        (
             "transposed chars",
             ["a", "b", "c", "d"],
             ["a", "c", "b", "d"],
@@ -2467,13 +2480,13 @@ def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_v
         "result": {"observed_value": observed_value},
     }
 
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
     # act
-    rendered_content = get_diagnostic_rendered_content(x)
+    res = get_diagnostic_rendered_content(x).to_json_dict()
 
     # assert
-    res = rendered_content.to_json_dict()
-
-    assert res["value"]["template"] == " ".join([f"${name}" for name, _, _ in expected_result])
+    assert res["value"]["template"] == expected_template_string
 
     for name, val, status in expected_result:
         assert name in res["value"]["params"]
