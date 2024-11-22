@@ -155,6 +155,7 @@ module.exports = {
           to: 'docs/cloud/overview/gx_cloud_overview',
           position: 'right',
           className: 'non-versioned-section',
+          activeBaseRegex: `/cloud/`
         },
         {
           type: 'doc',
