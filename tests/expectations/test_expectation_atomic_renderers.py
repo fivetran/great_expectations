@@ -2332,13 +2332,17 @@ def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_v
         "name": "atomic.diagnostic.observed_value",
         "value": {
             "params": {
+                "expected_value": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
                 "observed_value": {"schema": {"type": "array"}, "value": ["x", "y", "z"]},
-                "ov__0": {"schema": {"type": "string"}, "value": "x"},
-                "ov__1": {"schema": {"type": "string"}, "value": "y"},
-                "ov__2": {"schema": {"type": "string"}, "value": "z"},
+                "exp__0": {"schema": {"type": "string"}, "value": "a", "render_state": "missing"},
+                "exp__1": {"schema": {"type": "string"}, "value": "b", "render_state": "missing"},
+                "exp__2": {"schema": {"type": "string"}, "value": "c", "render_state": "missing"},
+                "ov__0": {"schema": {"type": "string"}, "value": "x", "render_state": "unexpected"},
+                "ov__1": {"schema": {"type": "string"}, "value": "y", "render_state": "unexpected"},
+                "ov__2": {"schema": {"type": "string"}, "value": "z", "render_state": "unexpected"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$ov__0 $ov__1 $ov__2",
+            "template": "$exp__0 $exp__1 $exp__2 $ov__0 $ov__1 $ov__2",
         },
         "value_type": "StringValueType",
     }

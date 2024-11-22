@@ -18,6 +18,9 @@ from great_expectations.render import (
     RenderedStringTemplateContent,
     renderedAtomicValueSchema,
 )
+from great_expectations.render.renderer.observed_value_renderer import (
+    prepare_params_for_list_comparison,
+)
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
@@ -350,8 +353,21 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
             result=result,
             runtime_configuration=runtime_configuration,
         )
+        expected_param_prefix = "exp__"
+        expected_param_name = "expected_value"
         ov_param_prefix = "ov__"
         ov_param_name = "observed_value"
+
+        renderer_configuration.add_param(
+            name=expected_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=renderer_configuration.result.expectation_config.kwargs.get("column_list", []),
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=expected_param_name,
+            param_prefix=expected_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
 
         renderer_configuration.add_param(
             name=ov_param_name,
@@ -364,10 +380,10 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
             renderer_configuration=renderer_configuration,
         )
 
-        renderer_configuration.template_str = cls._get_array_string(
-            array_param_name=ov_param_name,
-            param_prefix=ov_param_prefix,
-            renderer_configuration=renderer_configuration,
+        renderer_configuration.template_str = prepare_params_for_list_comparison(
+            params=renderer_configuration.params,
+            expected_prefix=expected_param_prefix,
+            observed_prefix=ov_param_prefix,
         )
 
         value_obj = renderedAtomicValueSchema.load(

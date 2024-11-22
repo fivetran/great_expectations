@@ -2,7 +2,7 @@ import pytest
 
 from great_expectations.render.renderer.observed_value_renderer import (
     ObservedValueRenderState,
-    get_list_comparison_obs_val,
+    prepare_params_for_list_comparison,
 )
 
 
@@ -143,12 +143,12 @@ from great_expectations.render.renderer.observed_value_renderer import (
         ),
     ],
 )
-def test_get_list_comparison_obs_val(description, expected, actual, expected_result):
+def test_prepare_params_for_list_comparison(description, expected, actual, expected_result):
     # arrange
     ...
 
     # act
-    res = get_list_comparison_obs_val(expected, actual)
+    res = prepare_params_for_list_comparison(expected, actual)
 
     # assert
     assert res == expected_result

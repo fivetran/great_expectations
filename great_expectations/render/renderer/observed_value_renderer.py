@@ -1,42 +1,70 @@
+from dataclasses import dataclass
 from enum import Enum
-from typing import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from great_expectations.render.renderer_configuration import _RendererValueBase
 
 
 class ObservedValueRenderState(str, Enum):
     expected = "expected"
-    unexpected = "expected"
+    unexpected = "unexpected"
     missing = "missing"
 
 
-def get_list_comparison_obs_val(
-    expected: list[str], actual: list[str]
-) -> Sequence[tuple[str, ObservedValueRenderState]]:
-    """ """
-    result: list[tuple[str, ObservedValueRenderState]] = []
-    actual_set = set(actual)
+@dataclass(frozen=True)
+class TemplateStrVariable:
+    name: str
+    value: str
+
+
+def prepare_params_for_list_comparison(
+    params: "_RendererValueBase",
+    expected_prefix: str,
+    observed_prefix: str,
+) -> str:
+    """
+    This function mutates the params
+    """
+    expected: list[TemplateStrVariable] = [
+        TemplateStrVariable(name=name, value=value.value)
+        for name, value in params
+        if name.startswith(expected_prefix)
+    ]
+    actual: list[TemplateStrVariable] = [
+        TemplateStrVariable(name=name, value=value.value)
+        for name, value in params
+        if name.startswith(observed_prefix)
+    ]
+    result: list[str] = []
+    actual_set = set(x.value for x in actual)
+
+    def submit(item: TemplateStrVariable, state: ObservedValueRenderState) -> None:
+        params.__dict__[item.name].render_state = state.value
+        result.append("$" + item.name)
 
     i = 0  # iterator for expected
     j = 0  # iterator for actual
     while i < len(expected) and j < len(actual):
-        if expected[i] != actual[j] and expected[i] not in actual_set:
-            result.append((expected[i], ObservedValueRenderState.missing))
+        if expected[i].value != actual[j].value and expected[i].value not in actual_set:
+            submit(expected[i], ObservedValueRenderState.missing)
             i += 1
             continue
 
-        if expected[i] == actual[j]:
-            result.append((actual[j], ObservedValueRenderState.expected))
+        if expected[i].value == actual[j].value:
+            submit(actual[j], ObservedValueRenderState.expected)
         else:
-            result.append((actual[j], ObservedValueRenderState.unexpected))
+            submit(actual[j], ObservedValueRenderState.unexpected)
         i += 1
         j += 1
 
     while i < len(expected):
-        if expected[i] not in actual_set:
-            result.append((expected[i], ObservedValueRenderState.missing))
+        if expected[i].value not in actual_set:
+            submit(expected[i], ObservedValueRenderState.missing)
         i += 1
 
     while j < len(actual):
-        result.append((actual[j], ObservedValueRenderState.unexpected))
+        submit(actual[j], ObservedValueRenderState.unexpected)
         j += 1
 
-    return result
+    return " ".join(result)
