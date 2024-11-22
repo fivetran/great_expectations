@@ -7,9 +7,9 @@ if TYPE_CHECKING:
 
 
 class ObservedValueRenderState(str, Enum):
-    expected = "expected"
-    unexpected = "unexpected"
-    missing = "missing"
+    EXPECTED = "expected"
+    UNEXPECTED = "unexpected"
+    MISSING = "missing"
 
 
 @dataclass(frozen=True)
@@ -49,24 +49,24 @@ def _prepare_params_for_list_comparison(
     j = 0  # iterator for actual
     while i < len(expected) and j < len(actual):
         if expected[i].value != actual[j].value and expected[i].value not in actual_set:
-            submit(expected[i], ObservedValueRenderState.missing)
+            submit(expected[i], ObservedValueRenderState.MISSING)
             i += 1
             continue
 
         if expected[i].value == actual[j].value:
-            submit(actual[j], ObservedValueRenderState.expected)
+            submit(actual[j], ObservedValueRenderState.EXPECTED)
         else:
-            submit(actual[j], ObservedValueRenderState.unexpected)
+            submit(actual[j], ObservedValueRenderState.UNEXPECTED)
         i += 1
         j += 1
 
     while i < len(expected):
         if expected[i].value not in actual_set:
-            submit(expected[i], ObservedValueRenderState.missing)
+            submit(expected[i], ObservedValueRenderState.MISSING)
         i += 1
 
     while j < len(actual):
-        submit(actual[j], ObservedValueRenderState.unexpected)
+        submit(actual[j], ObservedValueRenderState.UNEXPECTED)
         j += 1
 
     return " ".join(result)
