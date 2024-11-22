@@ -27,7 +27,7 @@ import Tabs from '@theme/Tabs';
    databricks://token:{token}@{host}:{port}?http_path={http_path}&catalog={catalog}&schema={schema}
    ```
 
-   If you created a separate Databricks SQL service principal for your GX Cloud connection as recommended above, use those credentials in the connection string.
+   If you created a separate Databricks SQL service principal for your GX Cloud connection as recommended above, use those credentials in the connection string. 
 
 4. Click **Connect**.
 

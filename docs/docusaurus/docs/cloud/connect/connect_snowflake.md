@@ -92,7 +92,7 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
       snowflake://<USER>:<PASSWORD>@<ACCOUNT_IDENTIFIER>/<DATABASE>/<SCHEMA>?warehouse=<WAREHOUSE>&role=<ROLE>
       ```
    
-5. Click **Connect**.
+5. Click **Connect**. 
 
 6. Select one or more tables to import as Data Assets.
 
