@@ -366,11 +366,8 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
         )
 
         params = renderer_configuration.params
-        for _, param in params:
-            if param not in (
-                params.value_set,
-                params.observed_value,
-            ):
+        for param_name, param in params:
+            if param_name.startswith(ov_param_prefix):
                 if param.value not in params.value_set.value:
                     param.render_state = ObservedValueRenderState.UNEXPECTED
                 else:
