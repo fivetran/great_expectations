@@ -2318,12 +2318,12 @@ def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed
         "expectation_config": ExpectationConfiguration(
             type="expect_column_most_common_value_to_be_in_set",
             kwargs={
-                "column": "character",
-                "value_set": ["a", "b", "c"],
+                "column": "color",
+                "value_set": ["blue", "green"],
                 "ties_okay": True,
             },
         ),
-        "result": {"observed_value": ["a", "d", "e"]},
+        "result": {"observed_value": ["blue", "red"]},
     }
 
     # act
@@ -2336,16 +2336,23 @@ def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed
         "name": "atomic.diagnostic.observed_value",
         "value": {
             "params": {
-                "column": {"schema": {"type": "string"}, "value": "character"},
-                "observed_value": {"schema": {"type": "array"}, "value": ["a", "d", "e"]},
-                "ov__0": {"schema": {"type": "string"}, "value": "a"},
-                "ov__1": {"schema": {"type": "string"}, "value": "d"},
-                "ov__2": {"schema": {"type": "string"}, "value": "e"},
+                "column": {"schema": {"type": "string"}, "value": "color"},
+                "observed_value": {"schema": {"type": "array"}, "value": ["blue", "red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "blue",
+                    "render_state": "expected",
+                },
+                "ov__1": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
                 "ties_okay": {"schema": {"type": "boolean"}, "value": True},
-                "value_set": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$ov__0 $ov__1 $ov__2",
+            "template": "$ov__0 $ov__1",
         },
         "value_type": "StringValueType",
     }

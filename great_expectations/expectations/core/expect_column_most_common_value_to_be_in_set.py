@@ -18,6 +18,7 @@ from great_expectations.render import (
     RenderedStringTemplateContent,
     renderedAtomicValueSchema,
 )
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
@@ -370,6 +371,19 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
             param_prefix=ov_param_prefix,
             renderer_configuration=renderer_configuration,
         )
+
+        params = renderer_configuration.params
+        for _, param in params:
+            if param not in (
+                params.column,
+                params.value_set,
+                params.ties_okay,
+                params.observed_value,
+            ):
+                if param.value not in params.value_set.value:
+                    param.render_state = ObservedValueRenderState.UNEXPECTED
+                else:
+                    param.render_state = ObservedValueRenderState.EXPECTED
 
         renderer_configuration.template_str = cls._get_array_string(
             array_param_name=ov_param_name,
