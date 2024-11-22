@@ -18,7 +18,7 @@ class TemplateStrVariable:
     value: str
 
 
-def prepare_params_for_list_comparison(
+def _prepare_params_for_list_comparison(
     params: "_RendererValueBase",
     expected_prefix: str,
     observed_prefix: str,

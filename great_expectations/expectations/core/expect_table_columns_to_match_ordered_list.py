@@ -19,7 +19,7 @@ from great_expectations.render import (
     renderedAtomicValueSchema,
 )
 from great_expectations.render.renderer.observed_value_renderer import (
-    prepare_params_for_list_comparison,
+    _prepare_params_for_list_comparison,
 )
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -380,7 +380,7 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
             renderer_configuration=renderer_configuration,
         )
 
-        renderer_configuration.template_str = prepare_params_for_list_comparison(
+        renderer_configuration.template_str = _prepare_params_for_list_comparison(
             params=renderer_configuration.params,
             expected_prefix=expected_param_prefix,
             observed_prefix=ov_param_prefix,
