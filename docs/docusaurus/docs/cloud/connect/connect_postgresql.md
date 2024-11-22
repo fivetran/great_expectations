@@ -46,7 +46,13 @@ import Tabs from '@theme/Tabs';
 
 2. Enter a meaningful name for the Data Source in the **Data Source name** field.
 
-3. Enter a connection string in the **Connection string** field. The connection string format is `postgresql+psycopg2://YourUserName:YourPassword@YourHostName:5432/YourDatabaseName`. If you created a separate PostgreSQL user for your GX Cloud connection as recommended above, use those credentials in the connection string.
+3. Enter a connection string in the **Connection string** field. The connection string format is:
+   
+   ```python title="PostgreSQL connection string"
+   postgresql+psycopg2://YourUserName:YourPassword@YourHostName:5432/YourDatabaseName
+   ```
+   
+   If you created a separate PostgreSQL user for your GX Cloud connection as recommended above, use those credentials in the connection string.
 
 4. Click **Connect**.
 

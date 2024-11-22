@@ -21,7 +21,13 @@ import Tabs from '@theme/Tabs';
 
 2. Enter a meaningful name for the Data Source in the **Data Source name** field.
 
-3. Enter a connection string in the **Connection string** field. The connection string format is `databricks://token:{token}@{host}:{port}?http_path={http_path}&catalog={catalog}&schema={schema}`. If you created a separate Databricks SQL service principal for your GX Cloud connection as recommended above, use those credentials in the connection string.
+3. Enter a connection string in the **Connection string** field. The connection string format is:
+
+   ```python title="Databricks SQL connection string"
+   databricks://token:{token}@{host}:{port}?http_path={http_path}&catalog={catalog}&schema={schema}
+   ```
+
+   If you created a separate Databricks SQL service principal for your GX Cloud connection as recommended above, use those credentials in the connection string.
 
 4. Click **Connect**.
 

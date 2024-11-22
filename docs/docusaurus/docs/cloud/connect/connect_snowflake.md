@@ -86,7 +86,11 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
 
       - **Role**: Enter your Snowflake role.
 
-   - If you chose **Connection string** enter it with a format of: `snowflake://<USER>:<PASSWORD>@<ACCOUNT_IDENTIFIER>/<DATABASE>/<SCHEMA>?warehouse=<WAREHOUSE>&role=<ROLE>`.
+   - If you chose **Connection string** enter it with a format of:
+
+      ```python title="Snowflake connection string"
+      snowflake://<USER>:<PASSWORD>@<ACCOUNT_IDENTIFIER>/<DATABASE>/<SCHEMA>?warehouse=<WAREHOUSE>&role=<ROLE>
+      ```
    
 5. Click **Connect**.
 
