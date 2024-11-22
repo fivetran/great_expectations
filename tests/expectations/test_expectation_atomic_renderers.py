@@ -2307,3 +2307,78 @@ def test_atomic_diagnostic_observed_param_type_inference(
         },
         "value_type": "StringValueType",
     }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "value_set, result, expected_template, expected_params",
+    [
+        (
+            ["blue", "green"],
+            {"observed_value": ["blue", "red"]},
+            "$ov__0 $ov__1",
+            {
+                "observed_value": {"schema": {"type": "array"}, "value": ["blue", "red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "blue",
+                    "render_state": "expected",
+                },
+                "ov__1": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
+            },
+        ),
+        (
+            ["blue", "green"],
+            {"observed_value": ["red"]},
+            "$ov__0",
+            {
+                "observed_value": {"schema": {"type": "array"}, "value": ["red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
+            },
+        ),
+    ],
+)
+def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed_value(
+    get_diagnostic_rendered_content, value_set, result, expected_template, expected_params
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_most_common_value_to_be_in_set",
+            kwargs={
+                "column": "color",
+                "value_set": value_set,
+                # ties_okay parameter does not affect observed value rendering
+                # the Expectation can pass and still have values with
+                # render_state "unexpected" in the observed value set
+                # if ties_okay is set to True
+            },
+        ),
+        "result": result,
+    }
+
+    # act
+    rendered_content = get_diagnostic_rendered_content(x)
+
+    # assert
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": expected_params,
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": expected_template,
+        },
+        "value_type": "StringValueType",
+    }

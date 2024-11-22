@@ -14,7 +14,7 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 
 ## Prepare your environment
 
-1. Download and install Python. See [Active Python Releases](https://www.python.org/downloads/).
+1. Download and install [Python](https://www.python.org/downloads/). GX supports Python versions 3.9 to 3.12.
 
 2. Download and install pip. See the [pip documentation](https://pip.pypa.io/en/stable/cli/pip/).
 
@@ -92,7 +92,7 @@ Environment variables securely store your GX Cloud access credentials.
     ```title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - list data sources"
     ```
   
-    Using the printed information you can get the name of one of your existing Data Sources, one of its Data Assets, and the name of a Batch Definition on the Data Asset.  Then, you can retrieve a Batch of data by updating the values for `data_source_name`, `data_asset_name`, and `batch_definition_name` in the following code and executing it:
+    Using the printed information, you can get the name of one of your existing Data Sources, one of its Data Assets, and the name of a Batch Definition on the Data Asset.  Then, you can retrieve a Batch of data by updating the values for `data_source_name`, `asset_name`, and `batch_definition_name` in the following code and executing it:
 
     ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - retrieve a data asset"
     ```
