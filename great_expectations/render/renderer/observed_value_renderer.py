@@ -24,7 +24,9 @@ def prepare_params_for_list_comparison(
     observed_prefix: str,
 ) -> str:
     """
-    This function mutates the params
+    This function mutates the `params` argument to set the render_state of each variable entry.
+    Return:
+        A template string that satisfies the `com.superconductive.rendered.string` schema.
     """
     expected: list[TemplateStrVariable] = [
         TemplateStrVariable(name=name, value=value.value)
@@ -37,7 +39,7 @@ def prepare_params_for_list_comparison(
         if name.startswith(observed_prefix)
     ]
     result: list[str] = []
-    actual_set = set(x.value for x in actual)
+    actual_set = {x.value for x in actual}
 
     def submit(item: TemplateStrVariable, state: ObservedValueRenderState) -> None:
         params.__dict__[item.name].render_state = state.value
