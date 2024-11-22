@@ -350,17 +350,10 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
             runtime_configuration=runtime_configuration,
         )
 
-        add_param_args: AddParamArgs = (
-            ("column", RendererValueType.STRING),
-            ("value_set", RendererValueType.ARRAY),
-            ("ties_okay", RendererValueType.BOOLEAN),
-        )
-        for name, param_type in add_param_args:
-            renderer_configuration.add_param(name=name, param_type=param_type)
+        renderer_configuration.add_param(name="value_set", param_type=RendererValueType.ARRAY)
 
         ov_param_prefix = "ov__"
         ov_param_name = "observed_value"
-
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,
@@ -375,9 +368,7 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
         params = renderer_configuration.params
         for _, param in params:
             if param not in (
-                params.column,
                 params.value_set,
-                params.ties_okay,
                 params.observed_value,
             ):
                 if param.value not in params.value_set.value:

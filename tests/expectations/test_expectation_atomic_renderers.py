@@ -2336,7 +2336,6 @@ def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed
         "name": "atomic.diagnostic.observed_value",
         "value": {
             "params": {
-                "column": {"schema": {"type": "string"}, "value": "color"},
                 "observed_value": {"schema": {"type": "array"}, "value": ["blue", "red"]},
                 "ov__0": {
                     "schema": {"type": "string"},
@@ -2348,7 +2347,6 @@ def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed
                     "value": "red",
                     "render_state": "unexpected",
                 },
-                "ties_okay": {"schema": {"type": "boolean"}, "value": True},
                 "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
