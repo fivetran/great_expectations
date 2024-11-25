@@ -13,30 +13,26 @@ import Tabs from '@theme/Tabs';
 
 - You have a Databricks SQL catalog, schema, and table.
 
-- To improve data security, GX recommends creating a separate Databricks SQL [service principal](https://docs.databricks.com/en/admin/users-groups/service-principals.html#manage-service-principals-in-your-account) for your GX Cloud connection.
+- Optional. To improve data security, GX recommends creating a separate Databricks SQL [service principal](https://docs.databricks.com/en/admin/users-groups/service-principals.html#manage-service-principals-in-your-account) for your GX Cloud connection.
 
+## Connect to a Databricks SQL Data Source and add a Data Asset
 
-## Connect to a Databricks SQL Data Asset
-
-1. In GX Cloud, click **Data Assets** > **New Data Asset** > **Databricks SQL**.
+1. In GX Cloud, click **Data Assets** > **New Data Asset** > **New Data Source** > **Databricks SQL**.
 
 2. Enter a meaningful name for the Data Source in the **Data Source name** field.
 
-3. Enter a connection string in the **Connection string** field. The connection string format is `databricks://token:{token}@{host}?http_path={http_path}&catalog={catalog}&schema={schema}`.
-    - Check the instructions to create a GX-specific user in your Databricks SQL catalog by clicking "See instructions"
+3. Enter a connection string in the **Connection string** field. The connection string format is:
+
+   ```python title="Databricks SQL connection string"
+   databricks://token:{token}@{host}:{port}?http_path={http_path}&catalog={catalog}&schema={schema}
+   ```
+
+   If you created a separate Databricks SQL service principal for your GX Cloud connection as recommended above, use those credentials in the connection string. 
 
 4. Click **Connect**.
 
-5. Select tables to import as Data Assets:
+5. Select one or more tables to import as Data Assets.
 
-    - Check the box next to a table name to add that table as an asset.
+6. Click **Add x Asset(s)**. 
 
-    - At least one table must be added.
-
-    - To search for a specific table type the table's name in the Search box above the list of tables.
-
-    - To add all of the available tables check the box for All Tables.
-
-6. Click **Add Asset**.
-
-7. Create an Expectation. See [Create an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation).
+7. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
