@@ -11,7 +11,16 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
+from great_expectations.render import (
+    AtomicDiagnosticRendererType,
+    LegacyRendererType,
+    RenderedAtomicContent,
+    RenderedStringTemplateContent,
+    renderedAtomicValueSchema,
+)
+from great_expectations.render.renderer.observed_value_renderer import (
+    _prepare_params_for_list_comparison,
+)
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
@@ -331,3 +340,63 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
                     "details": {"mismatched": mismatched},
                 },
             }
+
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        renderer_configuration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        expected_param_prefix = "exp__"
+        expected_param_name = "expected_value"
+        ov_param_prefix = "ov__"
+        ov_param_name = "observed_value"
+
+        renderer_configuration.add_param(
+            name=expected_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=renderer_configuration.result.expectation_config.kwargs.get("column_list", []),
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=expected_param_name,
+            param_prefix=expected_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        renderer_configuration.add_param(
+            name=ov_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=result.result.get("observed_value"),
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=ov_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        renderer_configuration.template_str = _prepare_params_for_list_comparison(
+            params=renderer_configuration.params,
+            expected_prefix=expected_param_prefix,
+            observed_prefix=ov_param_prefix,
+        )
+
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )
