@@ -443,4 +443,4 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 
 # abandoned pages
 /docs/0.18/oss/* /docs/0.18/core/introduction/introduction
-/docs/0.18/reference/learn/terms/ /docs/0.18/reference/learn/glossary
+/docs/0.18/reference/learn/terms/* /docs/0.18/reference/learn/glossary
