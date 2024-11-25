@@ -440,3 +440,7 @@ https://legacy.016.docs.greatexpectations.io/* https://docs.greatexpectations.io
 http://legacy.016.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 https://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
+
+# abandoned pages
+/docs/0.18/oss/* /docs/0.18/core/introduction/introduction
+/docs/0.18/reference/learn/terms/ /docs/0.18/reference/learn/glossary
