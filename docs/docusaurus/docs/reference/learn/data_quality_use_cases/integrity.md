@@ -138,7 +138,7 @@ Custom SQL Expectations fail when the provided SQL query returns one or more row
 Use the GX Cloud UI to implement the following steps:
 
 1. Using the following connection string to create a Postgres Data Source, create a Data Asset for the `integrity_transfer_transaction` table:
-   ```python title="connection string"
+   ```python title="Connection string"
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
    ```
 
@@ -197,7 +197,7 @@ Run the following GX Core workflow.
 Use the GX Cloud UI to implement the following steps:
 
 1. Using the following connection string to create a Postgres Data Source, create Data Assets for the `integrity_transfers` and `integrity_transfer_balance` tables:
-   ```python title="connection string"
+   ```python title="Connection string"
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
    ```
 

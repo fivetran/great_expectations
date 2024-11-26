@@ -131,7 +131,7 @@ Use `ExpectColumnMinToBeBetween` and `ExpectColumnMaxToBeBetween` to define a ra
 Use the GX Cloud UI to walk through the following steps.
 
 1. Create a Postgres Data Asset for the `distribution_purchases` table, using the connection string:
-   ```python title="connection string"
+   ```python title="Connection string"
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
    ```
 
