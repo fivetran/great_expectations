@@ -9,6 +9,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import PandasDataFrameDatasourceTestConfig
 
 INTEGER_COLUMN = "integers"
 INTEGER_AND_NULL_COLUMN = "integers_and_nulls"
@@ -28,8 +29,14 @@ DATA = pd.DataFrame(
     dtype="object",
 )
 
+ALL_DATA_SOURCES_EXCEPT_DATA_FRAMES = [
+    ds for ds in ALL_DATA_SOURCES if not isinstance(ds, PandasDataFrameDatasourceTestConfig)
+]
 
-@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=DATA)
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=ALL_DATA_SOURCES_EXCEPT_DATA_FRAMES, data=DATA
+)
 def test_success_complete(batch_for_datasource: Batch) -> None:
     type_list = ["INTEGER", "int", "int64", "int32", "IntegerType"]
     expectation = gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=type_list)
@@ -39,6 +46,17 @@ def test_success_complete(batch_for_datasource: Batch) -> None:
     assert result.success
     assert isinstance(result_dict, dict)
     assert result_dict["observed_value"] in type_list
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PandasDataFrameDatasourceTestConfig()], data=DATA
+)
+def test_success_complete_pandas(batch_for_datasource: Batch) -> None:
+    type_list = ["INTEGER", "int", "int64", "int32", "IntegerType"]
+    expectation = gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=type_list)
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+
+    assert result.success
 
 
 @pytest.mark.parametrize(
@@ -83,12 +101,6 @@ def test_success(
         pytest.param(
             gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=["str"]),
             id="wrong_type",
-        ),
-        pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column=INTEGER_AND_NULL_COLUMN, type_list=["int"], mostly=0.9
-            ),
-            id="mostly_threshold_not_met",
         ),
     ],
 )

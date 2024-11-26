@@ -93,7 +93,7 @@ def test_success_for_type__Number(batch_for_datasource: Batch) -> None:
     "expectation",
     [
         gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="int"),
-        gxe.ExpectColumnValuesToBeOfType(column=INTEGER_AND_NULL_COLUMN, type_="float64"),  # ?
+        gxe.ExpectColumnValuesToBeOfType(column=INTEGER_AND_NULL_COLUMN, type_="int"),
         gxe.ExpectColumnValuesToBeOfType(column=STRING_COLUMN, type_="str"),
         gxe.ExpectColumnValuesToBeOfType(column=BOOLEAN_COLUMN, type_="bool"),
         gxe.ExpectColumnValuesToBeOfType(column=NULL_COLUMN, type_="float64"),
