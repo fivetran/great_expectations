@@ -38,8 +38,8 @@ class ExpectSensorDataToBeFresh(gxe.ExpectColumnMaxToBeBetween):
     """Custom Expectation class to validate the freshness of sensor readings in the database."""
 
     column: str = "created_at"
-    min_value = datetime.datetime.now() - datetime.timedelta(minutes=5)
-    description = "New sensor readings should have arrived in the database within the last 5 minutes."
+    min_value: datetime.datetime = datetime.datetime.now() - datetime.timedelta(minutes=5)
+    description: str = "New sensor readings should have arrived in the database within the last 5 minutes."
 
 
 # Validate the sample data with the custom freshness Expectation.
