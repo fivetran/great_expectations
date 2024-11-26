@@ -18,7 +18,7 @@ import great_expectations as gx
 import great_expectations.expectations as gxe
 
 # Create Data Context.
-context = gx.get_context(mode="ephemeral")
+context = gx.get_context()
 
 # Connect to sample data and create Data Source, Data Asset, Batch Definition, and Batch.
 CONNECTION_STRING = "postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality"
