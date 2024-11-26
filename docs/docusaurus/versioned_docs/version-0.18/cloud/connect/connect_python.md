@@ -6,7 +6,6 @@ description: Connect to a GX Cloud account and validate data from a Python scrip
 ---
 import Prerequisites from '../../components/_prerequisites.jsx'
 import PrereqPython from '../../components/prerequisites/_python_version.md'
-import SetupAndInstallGx from '../../components/setup/link_lists/_setup_and_install_gx.md'
 import DataContextInitializeInstantiateSave from '../../components/setup/link_lists/_data_context_initialize_instatiate_save.md'
 
 Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter Notebook. You'll install Great Expectations, configure your GX Cloud environment variables, connect to sample data, build your first Expectation, validate data, and review the validation results through Python code.

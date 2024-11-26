@@ -150,6 +150,7 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/validator/validator.py Name: remove_expectation",
     "File: great_expectations/validator/validator.py Name: save_expectation_suite",
     "File: great_expectations/validator/validator.py Name: validate",
+    # Expectations referenced in the Learn data quality use cases:
     "File: great_expectations/expectations/core/expect_column_kl_divergence_to_be_less_than.py Name: ExpectColumnKLDivergenceToBeLessThan",
     "File: great_expectations/expectations/core/expect_column_mean_to_be_between.py Name: ExpectColumnMeanToBeBetween",
     "File: great_expectations/expectations/core/expect_column_median_to_be_between.py Name: ExpectColumnMedianToBeBetween",
@@ -158,4 +159,9 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/expectations/core/expect_column_pair_values_a_to_be_greater_than_b.py Name: ExpectColumnPairValuesAToBeGreaterThanB",
     "File: great_expectations/expectations/core/expect_column_pair_values_to_be_equal.py Name: ExpectColumnPairValuesToBeEqual",
     "File: great_expectations/expectations/core/expect_multicolumn_sum_to_equal.py Name: ExpectMulticolumnSumToEqual",
+    "File: great_expectations/expectations/core/expect_column_proportion_of_unique_values_to_be_between.py Name: ExpectColumnProportionOfUniqueValuesToBeBetween",
+    "File: great_expectations/expectations/core/expect_column_unique_value_count_to_be_between.py Name: ExpectColumnUniqueValueCountToBeBetween",
+    "File: great_expectations/expectations/core/expect_column_values_to_be_unique.py Name: ExpectColumnValuesToBeUnique",
+    "File: great_expectations/expectations/core/expect_compound_columns_to_be_unique.py Name: ExpectCompoundColumnsToBeUnique",
+    "File: great_expectations/expectations/core/expect_select_column_values_to_be_unique_within_record.py Name: ExpectSelectColumnValuesToBeUniqueWithinRecord",
 ]

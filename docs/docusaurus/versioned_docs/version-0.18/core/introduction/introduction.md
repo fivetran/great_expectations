@@ -3,7 +3,7 @@ title: About Great Expectations OSS
 slug: introduction
 ---
 
-Great Expectations is the leading tool for [validating](/reference/learn/terms/validation.md) and [documenting](/reference/learn/terms/data_docs.md) your data. If you're ready to get started, see the [Quickstart](/oss/tutorials/quickstart.md).
+Great Expectations is the leading tool for validating and [documenting](/reference/learn/terms/data_docs.md) your data. If you're ready to get started, see the [Quickstart](/oss/tutorials/quickstart.md).
 
 Software developers have long known that automated testing is essential for managing complex codebases. Great Expectations brings the same discipline, confidence, and acceleration to data science and data engineering teams.
 

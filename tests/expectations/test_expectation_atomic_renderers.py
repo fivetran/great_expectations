@@ -11,6 +11,7 @@ from great_expectations.expectations.expectation_configuration import (
 )
 from great_expectations.expectations.registry import get_renderer_impl
 from great_expectations.render import RenderedAtomicContent
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 
 
 @pytest.fixture
@@ -2307,6 +2308,190 @@ def test_atomic_diagnostic_observed_param_type_inference(
         },
         "value_type": "StringValueType",
     }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, expected_value, observed_value, expected_result",
+    [
+        (
+            "happy",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "disjoint",
+            ["a", "b", "c"],
+            ["x", "y", "z"],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+                ("ov__0", "x", "unexpected"),
+                ("ov__1", "y", "unexpected"),
+                ("ov__2", "z", "unexpected"),
+            ],
+        ),
+        (
+            "transposed chars",
+            ["a", "b", "c", "d"],
+            ["a", "c", "b", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "c", "unexpected"),
+                ("ov__2", "b", "unexpected"),
+                ("ov__3", "d", "expected"),
+            ],
+        ),
+        (
+            "renamed",
+            ["a", "b", "c"],
+            ["a", "c", "b2"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "c", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "b2", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "pair transposed",
+            ["a", "b"],
+            ["b", "a"],
+            [
+                ("ov__0", "b", ObservedValueRenderState.UNEXPECTED),
+                ("ov__1", "a", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            # NOTE: this is a confusing one, but it is hard to generalize
+            "first unexpected and last missing",
+            ["a", "b"],
+            ["x", "a"],
+            [
+                ("ov__0", "x", ObservedValueRenderState.UNEXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "a", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "pair second index missing",
+            ["a", "b"],
+            ["a", "x"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "x", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "empty actual",
+            ["a", "b"],
+            [],
+            [
+                ("exp__0", "a", ObservedValueRenderState.MISSING),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "one column deleted",
+            ["a", "b", "c"],
+            ["a", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "c", ObservedValueRenderState.EXPECTED),
+            ],
+        ),
+        (
+            "last column deleted",
+            ["a", "b", "c", "d"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.EXPECTED),
+                ("exp__3", "d", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "empty expected",
+            [],
+            ["a", "b"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.UNEXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "one column added",
+            ["a", "b"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "missing bookends",
+            ["f", "a", "b", "c", "d"],
+            ["a", "b", "c"],
+            [
+                ("exp__0", "f", ObservedValueRenderState.MISSING),
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.EXPECTED),
+                ("exp__4", "d", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "mix 2",
+            ["a", "b", "c", "d"],
+            ["a", "c", "d", "b", "e"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "c", ObservedValueRenderState.UNEXPECTED),
+                ("ov__2", "d", ObservedValueRenderState.UNEXPECTED),
+                ("ov__3", "b", ObservedValueRenderState.UNEXPECTED),
+                ("ov__4", "e", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+    ],
+)
+def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_value(
+    description,
+    expected_value,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_table_columns_to_match_ordered_list",
+            kwargs={"column_list": expected_value},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
 
 
 @pytest.mark.unit
