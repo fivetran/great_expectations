@@ -150,7 +150,7 @@ A dataframe Data Asset is used to group your Validation Results.  For instance, 
 
    Execute the following code to add a Data Asset to your Data Source:
 
-   ```title="Python" name="docs/docusaurus/docs/core/connect_to_data/dataframes/_examples/_pandas_df_data_asset.py - add Data Asset"
+   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/dataframes/_examples/_pandas_df_data_asset.py - add Data Asset"
    ```
 
 </TabItem>
