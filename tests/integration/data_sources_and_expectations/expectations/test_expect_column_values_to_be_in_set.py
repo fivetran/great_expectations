@@ -29,7 +29,8 @@ DATA = pd.DataFrame(
             datetime(2024, 3, 1).date(),  # noqa: DTZ001
         ],
         NULLS_COLUMN: [1, None, 3],
-    }
+    },
+    dtype="object",
 )
 
 

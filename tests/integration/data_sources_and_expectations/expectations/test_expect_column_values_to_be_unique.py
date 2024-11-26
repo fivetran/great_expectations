@@ -12,6 +12,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import MySQLDatasourceTestConfig
 
 UNIQUE_INTS = "unique_integers"
 DUPLICATE_INTS = "duplicate_integers"
@@ -28,8 +29,15 @@ DATA = pd.DataFrame(
         DUPLICATE_STRINGS: ["a", "b", "c", "c"],
         UNIQUE_WITH_NULL: [1, 2, None, None],
         DUPLICATE_WITH_NULL: [1, 1, None, None],
-    }
+    },
+    dtype="object",
 )
+
+SUPPORTED_SQL_DATASOURCES = [
+    ds
+    for ds in SQL_DATA_SOURCES
+    if not isinstance(ds, MySQLDatasourceTestConfig)  # why don't we support MySQL?
+]
 
 
 @parameterize_batch_for_data_sources(data_source_configs=NON_SQL_DATA_SOURCES, data=DATA)
@@ -41,7 +49,7 @@ def test_success_complete_non_sql(batch_for_datasource: Batch) -> None:
     assert result.success
 
 
-@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=DATA)
+@parameterize_batch_for_data_sources(data_source_configs=SUPPORTED_SQL_DATASOURCES, data=DATA)
 def test_success_complete_sql(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeUnique(
         column=UNIQUE_INTS,

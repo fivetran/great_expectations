@@ -52,7 +52,8 @@ DATA = pd.DataFrame(
         SOME_EQUAL_NUMS: [1, 2, 4],
         NULLS_A: [1, None, 3],
         NULLS_B: [None, 2, 3],
-    }
+    },
+    dtype="object",
 )
 
 

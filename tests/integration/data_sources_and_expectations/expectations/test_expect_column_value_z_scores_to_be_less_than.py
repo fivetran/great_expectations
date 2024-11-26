@@ -24,7 +24,8 @@ DATA = pd.DataFrame(
         DISTRIBUTION_WITH_OUTLIER: [-1000000, -1, 0, 1, 1],
         MOSTLY_ZERO_DISTRIBUTION: [1, 0, 0, 0, 0],
         DISTRIBUTION_WITH_NULLS: [-1, 0, 1, None, None],
-    }
+    },
+    dtype="object",
 )
 
 

@@ -19,7 +19,8 @@ DATA = pd.DataFrame(
         NUM_COL: [1, 1, 3],
         ALL_THE_SAME: [1, 1, 1],
         MISSING_COL: [None, -1, 1],
-    }
+    },
+    dtype="object",
 )
 
 

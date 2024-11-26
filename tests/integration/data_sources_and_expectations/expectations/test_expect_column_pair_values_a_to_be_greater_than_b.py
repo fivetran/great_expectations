@@ -49,7 +49,8 @@ DATA = pd.DataFrame(
         NULLS_A: [None, None, None, None, None],
         NULLS_B: [1, 2, None, 4, 5],
         NULLS_C: [2, 3, None, 5, 6],
-    }
+    },
+    dtype="object",
 )
 
 

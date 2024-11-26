@@ -33,8 +33,9 @@ DATA = pd.DataFrame(
         INTEGER_AND_NULL_COLUMN: [1, 2, 3, 4, None],
         STRING_COLUMN: ["a", "b", "c", "d", "e"],
         BOOLEAN_COLUMN: [True, False, True, False, True],
-        NULL_COLUMN: pd.Series([None, None, None, None, None], dtype="float64"),
-    }
+        NULL_COLUMN: pd.Series([None, None, None, None, None]),
+    },
+    dtype="object",
 )
 
 

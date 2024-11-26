@@ -67,7 +67,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
-        self.engine = create_engine(url=self.connection_string)
+        # self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
         super().__init__(config, data)
@@ -115,7 +115,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def setup(self) -> None:
-        with self.engine.connect() as conn, conn.begin():
+        engine = create_engine(url=self.connection_string)
+        with engine.connect() as conn, conn.begin():
             # create schema if needed
 
             if self.schema:
@@ -123,7 +124,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
             # create tables
             all_table_data = self._ensure_all_table_data_created()
-            self.metadata.create_all(self.engine)
+            self.metadata.create_all(engine)
 
             # insert data
             for table_data in all_table_data:
@@ -135,14 +136,17 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 conn.execute(
                     insert(table_data.table), list(table_data.df.to_dict("index").values())
                 )
+        engine.dispose()
 
     @override
     def teardown(self) -> None:
+        engine = create_engine(url=self.connection_string)
         for table in self.tables:
-            table.drop(self.engine)
+            table.drop(engine)
         if self.schema:
-            with self.engine.connect() as conn, conn.begin():
+            with engine.connect() as conn, conn.begin():
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
+        engine.dispose()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = ["expectation_test_table", label, self._random_resource_name()]
