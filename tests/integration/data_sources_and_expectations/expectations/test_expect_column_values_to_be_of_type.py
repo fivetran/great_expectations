@@ -93,7 +93,7 @@ def test_success_for_type__IntegerType(batch_for_datasource: Batch) -> None:
     data=DATA,
 )
 def test_success_for_type__Number(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="NUMBER")
+    expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="_CUSTOM_DECIMAL")
     result = batch_for_datasource.validate(expectation)
     assert result.success
 
