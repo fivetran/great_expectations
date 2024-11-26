@@ -9,6 +9,8 @@ docker compose up
 pytest --postgresql --docs-tests -k "data_quality_use_case_freshness_workflow" tests/integration/test_script_runner.py
 """
 
+# ruff: noqa: DTZ005, DTZ001
+
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/freshness_resources/freshness_workflow.py full workflow">
 import datetime
 
