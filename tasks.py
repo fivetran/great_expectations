@@ -845,6 +845,7 @@ class TestDependencies(NamedTuple):
 MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
     "athena": TestDependencies(("reqs/requirements-dev-athena.txt",)),
     "aws_deps": TestDependencies(("reqs/requirements-dev-lite.txt",)),
+    "bigquery": TestDependencies(("reqs/requirements-dev-bigquery.txt",)),
     "clickhouse": TestDependencies(("reqs/requirements-dev-clickhouse.txt",)),
     "cloud": TestDependencies(
         (

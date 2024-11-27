@@ -12,7 +12,7 @@ import pandas as pd
 import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
-from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 
 if TYPE_CHECKING:
     import pytest
@@ -84,14 +84,19 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
 
 
 _ConfigT = TypeVar("_ConfigT", bound=DataSourceTestConfig)
+_AssetT = TypeVar("_AssetT", bound=DataAsset)
 
 
-class BatchTestSetup(ABC, Generic[_ConfigT]):
+class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
     """ABC for classes that set up and tear down batches."""
 
     def __init__(self, config: _ConfigT, data: pd.DataFrame) -> None:
         self.config = config
         self.data = data
+
+    @property
+    @abstractmethod
+    def asset(self) -> _AssetT: ...
 
     @abstractmethod
     def make_batch(self) -> Batch: ...

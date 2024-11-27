@@ -96,6 +96,9 @@ class KWargDetailsDict(TypedDict):
     default_kwarg_values: dict[str, str | bool | float | None]
 
 
+# NOTE: This class is a legacy class that is being replaced by the new class-first expectations.
+#       While it is still used in some places (namely around serialization), it is being phased out.
+#       Please utilize Expectation objects directly when possible.
 class ExpectationConfiguration(SerializableDictDot):
     """Defines the parameters and name of a specific Expectation.
 

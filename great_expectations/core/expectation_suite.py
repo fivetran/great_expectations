@@ -144,26 +144,34 @@ class ExpectationSuite(SerializableDictDot):
                 "and set `Expectation.id = None`."
             )
         should_save_expectation = self._has_been_saved()
-        expectation_is_unique = all(
-            expectation.configuration != existing_expectation.configuration
-            for existing_expectation in self.expectations
+
+        already_added = any(
+            self._expectations_are_equalish(expectation, exp) for exp in self.expectations
         )
-        if expectation_is_unique:
+        if not already_added:
             # suite is a set-like collection, so don't add if it not unique
-            self.expectations.append(expectation)
             if should_save_expectation:
-                try:
-                    expectation = self._store.add_expectation(suite=self, expectation=expectation)
-                    self.expectations[-1].id = expectation.id
-                except Exception as exc:
-                    self.expectations.pop()
-                    raise exc  # noqa: TRY201
+                expectation = self._store.add_expectation(suite=self, expectation=expectation)
+            self.expectations.append(expectation)
 
         expectation.register_save_callback(save_callback=self._save_expectation)
 
         self._submit_expectation_created_event(expectation=expectation)
 
         return expectation
+
+    @staticmethod
+    def _expectations_are_equalish(expectation_a: Expectation, expectation_b: Expectation) -> bool:
+        """
+        Helper method to determine if two expectations are equal enough to be considered the same.
+
+        Note that this check is less stringent than Expectation.__eq__ and excludes a few fields
+        that are not relevant for uniqueness in the suite.
+        """
+        exclude_params = {"id", "rendered_content", "notes", "meta"}
+        return expectation_a.dict(exclude=exclude_params) == expectation_b.dict(
+            exclude=exclude_params
+        )
 
     def _submit_expectation_created_event(self, expectation: Expectation) -> None:
         if expectation.__module__.startswith("great_expectations."):
@@ -219,14 +227,20 @@ class ExpectationSuite(SerializableDictDot):
     def delete_expectation(self, expectation: Expectation) -> Expectation:
         """Delete an Expectation from the collection.
 
+        Example:
+            >>> suite.delete_expectation(suite.expectations[0])
+
         Raises:
             KeyError: Expectation not found in suite.
         """
         remaining_expectations = [
-            exp for exp in self.expectations if exp.configuration != expectation.configuration
+            exp
+            for exp in self.expectations
+            if not self._expectations_are_equalish(exp, expectation)
         ]
         if len(remaining_expectations) != len(self.expectations) - 1:
             raise KeyError("No matching expectation was found.")  # noqa: TRY003
+
         self.expectations = remaining_expectations
 
         if self._has_been_saved():

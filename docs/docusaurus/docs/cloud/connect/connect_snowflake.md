@@ -13,74 +13,90 @@ import Tabs from '@theme/Tabs';
 
 - You have a Snowflake database, schema, and table.
 
-- You have a [Snowflake account](https://docs.snowflake.com/en/user-guide-admin) with USAGE privileges on the table, database, and schema you are validating, and you have SELECT privileges on the table you are validating. To improve data security, GX recommends using a separate Snowflake user service account to connect to GX Cloud.
+- You have a [Snowflake account](https://docs.snowflake.com/en/user-guide-admin) with USAGE privileges on the table, database, and schema you are validating, and you have SELECT privileges on the table you are validating.
+   - Optional. To improve data security, GX recommends using a separate Snowflake user service account to connect to GX Cloud.
 
-- You know your Snowflake password.
+- Optional. You can use an existing Snowflake warehouse, but GX recommends creating a separate warehouse for GX Cloud to simplify cost management and optimize performance.
 
-## Connect to a Snowflake Data Asset
+## Optional. Create a separate Snowflake user and warehouse
 
-You can use an existing Snowflake warehouse, but GX recommends creating a separate warehouse for GX Cloud to simplify cost management and optimize performance.
+Depending on your Snowflake permissions, you may need to ask an admin on your team to create a separate Snowflake user for your GX Cloud connection.
 
-1. In GX Cloud, click **Data Assets** > **New Data Asset** > **Snowflake**.
+1. In Snowflake Snowsight, click **Projects** > **Worksheets** > **Add** > **SQL Worksheet**.
 
-2. Copy the code in the code pane.
+2. Paste the following code into the SQL worksheet.
 
-3. Prepare your Snowflake environment:
+   ```sql title="Snowflake Snowsight"
+   use role accountadmin;
+   create user if not exists gx_user password='<YOUR_PASSWORD>';
+   create role if not exists gx_role;
+   grant role gx_role to user gx_user;
 
-   - In Snowflake Snowsight, click **Worksheets** > **Add** > **SQL Worksheet**.
+   -- GX recommends creating a separate warehouse for GX Cloud to simplify cost 
+   -- management and optimize resource consumption. 
+   create warehouse if not exists gx_wh
+   warehouse_size=xsmall
+   auto_suspend=10
+   auto_resume=true
+   initially_suspended=true;
+   grant usage, operate on warehouse gx_wh to role gx_role; 
 
-   - Paste the code you copied in step 2 into the SQL worksheet.
+   -- Replace <YOUR_DATABASE> and <YOUR_SCHEMA> with the names of the databases
+   -- and schemas you want to test in GX Cloud.
+   grant usage on database <YOUR_DATABASE> to role gx_role;
+   grant usage on schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;
+   grant select on all tables in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;
+   grant select on future tables in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role; 
+   -- Gives the user with the gx_role role access to all future tables in the defined schema.
+   ```
 
-      Replace `your_password` with your value and `your_database_name` and `your_schema` with the names of the database and schema you want to access in GX Cloud.
+   - Replace `YOUR_PASSWORD` with your value and `YOUR_DATABASE` and `YOUR_SCHEMA` with the names of the database and schema you want to access in GX Cloud.
+   - `grant select on future tables in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;` is optional and gives the user with the `gx_role` role access to all future tables in the defined schema.
+   - The settings in the code example optimize cost and performance. Adjust them to suit your business requirements.
 
-      `grant select on future tables in schema "your_database.your_schema" to role gx_role;` is optional and gives the user with the `gx_role` role access to all future tables in the defined schema.
+3. Select **Run All** to define your user password, create a new GX role (`gx_role`), assign the password and role to a new user (`gx_user`), create a new warehouse (`gx_wh`), and allow the user with the `gx_role` role to access data on the Snowflake database and schema.
 
-      The settings in the code example optimize cost and performance. Adjust them to suit your business requirements.
+   ![Snowflake Run All](/img/run_all.png)
 
-   - Select **Run All** to define your user password, create a new GX role (`gx_role`), assign the password and role to a new user (`gx_user`), create a new warehouse (`gx_wh`) for the GX Agent, and allow the user with the `gx_role` role to access data on the Snowflake database and schema.
+## Connect to a Snowflake Data Source and add a Data Asset
 
-       ![Snowflake Run All](/img/run_all.png)
+1. In GX Cloud, click **Data Assets** > **New Data Asset** > **New Data Source** > **Snowflake**.
 
-4. In GX Cloud, click **I have created a GX Cloud user with valid permissions** and then click **Continue**.
+2. Enter a meaningful name for the Data Source in the **Data Source name** field.
 
-5. Enter a meaningful name for the Data Source in the **Data Source name** field.
+3. Select whether you will enter your connection details as either separate **Input parameters** or a consolidated **Connection string**.
 
-6. Optional. To use a connection string to connect to a Data Source, click the **Use connection string** selector, enter a connection string, and then move to step 6. The connection string format is: `snowflake://<user_login_name>:<password>@<accountname>`.
+4. Supply your connection details depending on the method you chose in the previous step.  If you created a separate Snowflake user for your GX Cloud connection as recommended above, use those credentials in your connection details.
 
-7. Complete the following fields:
+   - If you chose **Input parameters**, complete the following fields:
 
-     - **Account identifier**: Enter your Snowflake organization and account name separated by a hyphen (`oraganizationname-accountname`) or your account name and a legacy account locator separated by a period (`accountname.region`). The legacy account locator value must include the geographical region. For example, `us-east-1`. 
+      - **Account identifier**: Enter your Snowflake organization and account name separated by a hyphen (`oraganizationname-accountname`) or your account name and a legacy account locator separated by a period (`accountname.region`). The legacy account locator value must include the geographical region. For example, `us-east-1`. 
     
-        To locate your Snowflake organization name, account name, or legacy account locator values see [Finding the Organization and Account Name for an Account](https://docs.snowflake.com/en/user-guide/admin-account-identifier#finding-the-organization-and-account-name-for-an-account) or [Using an Account Locator as an Identifier](https://docs.snowflake.com/en/user-guide/admin-account-identifier#using-an-account-locator-as-an-identifier).
+         To locate your Snowflake organization name, account name, or legacy account locator values see [Finding the Organization and Account Name for an Account](https://docs.snowflake.com/en/user-guide/admin-account-identifier#finding-the-organization-and-account-name-for-an-account) or [Using an Account Locator as an Identifier](https://docs.snowflake.com/en/user-guide/admin-account-identifier#using-an-account-locator-as-an-identifier).
     
-    - **Username**: Enter the username you use to access Snowflake.
+      - **Username**: Enter the username you use to access Snowflake.
 
-    - **Password**: Enter a Snowflake password. To improve data security, GX recommends using a Snowflake service account to connect to GX Cloud.
+      - **Password**: Enter a Snowflake password. To improve data security, GX recommends using a Snowflake service account to connect to GX Cloud.
 
-    - **Database**: Enter the name of the Snowflake database where the data you want to validate is stored. In Snowsight, click **Data** > **Databases**. In the Snowflake Classic Console, click **Databases**.
+      - **Database**: Enter the name of the Snowflake database where the data you want to validate is stored. In Snowsight, click **Data** > **Databases**. In the Snowflake Classic Console, click **Databases**.
  
-    - **Schema**: Enter the name of the Snowflake schema (table) where the data you want to validate is stored.
+      - **Schema**: Enter the name of the Snowflake schema (table) where the data you want to validate is stored.
 
-    - **Warehouse**: Enter the name of your Snowflake database warehouse. In Snowsight, click **Admin** > **Warehouses**. In the Snowflake Classic Console, click **Warehouses**.
+      - **Warehouse**: Enter the name of your Snowflake database warehouse. In Snowsight, click **Admin** > **Warehouses**. In the Snowflake Classic Console, click **Warehouses**.
 
-    - **Role**: Enter your Snowflake role.
+      - **Role**: Enter your Snowflake role.
 
-8. Click **Connect**.
+   - If you chose **Connection string** enter it with a format of:
 
-9. Complete the following fields:
+      ```python title="Snowflake connection string"
+      snowflake://<USER>:<PASSWORD>@<ACCOUNT_IDENTIFIER>/<DATABASE>/<SCHEMA>?warehouse=<WAREHOUSE>&role=<ROLE>
+      ```
+   
+5. Click **Connect**. 
 
-    - **Table name**: Enter the name of the Data Source table you're connecting to.
-    
-    - **Data Asset name**: Enter a name for the Data Asset. Data Asset names must be unique. If you use the same name for multiple Data Assets, each Data Asset must be associated with a unique Data Source.
+6. Select one or more tables to import as Data Assets.
 
-10. Select the **Complete Asset** tab to provide all Data Asset records to your Expectations and validations, or select the **Batches** tab to use subsets of Data Asset records for your Expectations and validations. If you selected the **Batches** tab, complete the following fields:
+7. Click **Add x Asset(s)**. 
 
-    - **Split Data Asset by** - Select **Year** to partition Data Asset records by year, select **Year - Month** to partition Data Asset records by year and month, or select **Year - Month - Day** to partition Data Asset records by year, month, and day.
+8. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
 
-    - **Column of datetime type** - Enter the name of the column containing the date and time data.
-
-11. Optional. Select **Add Data Asset** to add additional tables or queries and repeat steps 8 and 9.
-
-12. Click **Finish**.
-
-13. Create an Expectation. See [Create an Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation).

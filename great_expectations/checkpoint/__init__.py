@@ -14,7 +14,6 @@ from .checkpoint import Checkpoint
 for _module_name, _package_name in [
     (".actions", "great_expectations.checkpoint"),
     (".checkpoint", "great_expectations.checkpoint"),
-    (".util", "great_expectations.checkpoint"),
 ]:
     _verify_dynamic_loading_support(module_name=_module_name, package_name=_package_name)
 

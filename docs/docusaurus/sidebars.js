@@ -117,7 +117,7 @@ module.exports = {
       label: 'Customize Expectations',
       link: { type: 'doc', id: 'core/customize_expectations/customize_expectations' },
       items: [
-        { type: 'doc', id: 'core/customize_expectations/expectation_row_conditions' },
+        { type: 'doc', id: 'core/customize_expectations/expectation_conditions' },
         { type: 'doc', id: 'core/customize_expectations/define_a_custom_expectation_class' },
         { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' },
       ]
@@ -196,8 +196,13 @@ module.exports = {
       items: [
         {
           type: 'link',
-          label: 'Create a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#create-a-data-asset',
+          label: 'Add a Data Asset from a new Data Source',
+          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-a-new-data-source',
+        },
+        {
+          type: 'link',
+          label: 'Add a Data Asset from an existing Data Source',
+          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-an-existing-data-source',
         },
         {
           type: 'link',
@@ -206,13 +211,13 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Add an Expectation to a Data Asset column',
-          href: '/docs/cloud/data_assets/manage_data_assets#add-an-expectation-to-a-data-asset-column',
+          label: 'Edit a Data Asset',
+          href: '/docs/cloud/data_assets/manage_data_assets#edit-a-data-asset',
         },
         {
           type: 'link',
-          label: 'Add a Data Asset to an Existing Data Source',
-          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-to-an-existing-data-source',
+          label: 'Delete a Data Asset',
+          href: '/docs/cloud/data_assets/manage_data_assets#delete-a-data-asset',
         },
         {
           type: 'link',
@@ -221,18 +226,8 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Edit a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#edit-a-data-asset',
-        },
-        {
-          type: 'link',
           label: 'Data Source credential management',
           href: '/docs/cloud/data_assets/manage_data_assets#data-source-credential-management',
-        },
-        {
-          type: 'link',
-          label: 'Delete a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#delete-a-data-asset',
         },
       ]
     },
@@ -255,6 +250,11 @@ module.exports = {
           type: 'link',
           label: 'Dynamic Parameters',
           href: '/docs/cloud/expectations/manage_expectations#dynamic-parameters',
+        },
+        {
+          type: 'link',
+          label: 'Expectation condition',
+          href: '/docs/cloud/expectations/manage_expectations#expectation-condition',
         },
         {
           type: 'link',
@@ -434,8 +434,10 @@ module.exports = {
       link: { type: 'doc', id: 'reference/learn/data_quality_use_cases/dq_use_cases_lp' },
       items: [
         'reference/learn/data_quality_use_cases/distribution',
+        'reference/learn/data_quality_use_cases/integrity',
         'reference/learn/data_quality_use_cases/missingness',
         'reference/learn/data_quality_use_cases/schema',
+        'reference/learn/data_quality_use_cases/uniqueness',
         'reference/learn/data_quality_use_cases/volume'
       ]
     },

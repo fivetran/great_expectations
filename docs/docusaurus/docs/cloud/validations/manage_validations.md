@@ -10,7 +10,7 @@ When you run a validation on an Expectation, a Checkpoint is added. The Checkpoi
 
 ## Prerequisites
 
-- You have created an [Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation).
+- You have created an [Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
 
 ## Run a Validation
 

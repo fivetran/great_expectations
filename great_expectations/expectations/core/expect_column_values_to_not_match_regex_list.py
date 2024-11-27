@@ -43,7 +43,7 @@ REGEX_LIST_DESCRIPTION = (
     "The list of regular expressions which the column entries should not match."
 )
 DATA_QUALITY_ISSUES = ["Pattern matching"]
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift"]
+SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
 
 
 class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):

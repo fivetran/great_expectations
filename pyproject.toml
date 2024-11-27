@@ -654,6 +654,7 @@ markers = [
     "aws_creds: mark all tests that require aws credentials",
     "aws_deps: mark tests that need aws dependencies like boto",
     "big: mark tests that don't have external dependencies but aren't unit tests",
+    "bigquery: mark test as bigquery-dependent.",
     "clickhouse: mark a test as Clickhouse-dependent.",
     "cloud: mark test as being relevant to Great Expectations Cloud.",
     "docs-basic: mark a test as a docs test, that does not require additional credentials.",

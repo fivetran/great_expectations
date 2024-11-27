@@ -15,9 +15,9 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
 
 - You have installed Apache Airflow and initialized the database (__airflow db init__).
 
-- You have [connected GX Cloud to a Data Asset on a Data Source](/cloud/data_assets/manage_data_assets.md#create-a-data-asset).
+- You have [connected GX Cloud to a Data Asset on a Data Source](/cloud/data_assets/manage_data_assets.md).
 
-- You have [created an Expectation Suite](/cloud/expectation_suites/manage_expectation_suites.md) and [added Expectations](/cloud/expectations/manage_expectations.md#create-an-expectation).
+- You have [created an Expectation Suite](/cloud/expectation_suites/manage_expectation_suites.md) and [added Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation).
 
 
 ## Run Airflow Standalone to create a fresh local Airflow environment
@@ -28,7 +28,7 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
     airflow standalone
     ```
 
-    This command will eventually output a username a password for the Airflow UI like this:
+    This command will eventually output a username and password for the Airflow UI like this:
 
     ``` title="Terminal input"
     standalone | Airflow is ready

@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from pprint import pprint
 from typing import Callable, Dict, Union
 
@@ -10,6 +11,7 @@ from great_expectations.expectations.expectation_configuration import (
 )
 from great_expectations.expectations.registry import get_renderer_impl
 from great_expectations.render import RenderedAtomicContent
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 
 
 @pytest.fixture
@@ -2092,9 +2094,9 @@ def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "--",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2121,9 +2123,9 @@ def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "number"}, "value": 1776}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "1,776",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2148,9 +2150,9 @@ def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "foo",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2175,9 +2177,9 @@ def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "10% unexpected",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2202,9 +2204,366 @@ def test_atomic_diagnostic_observed_value_with_empty_result(get_diagnostic_rende
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "--",
+            "template": "$observed_value",
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "result, expected_template, expected_params",
+    [
+        (
+            {"observed_value": "foo"},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
+        ),
+        (
+            {"observed_value": False},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "boolean"}, "value": False}},
+        ),
+        (
+            {
+                "observed_value": datetime.strptime(
+                    "1999-12-31T23:59:59-00:00", "%Y-%m-%dT%H:%M:%S%z"
+                )
+            },
+            "$observed_value",
+            {
+                "observed_value": {
+                    "schema": {"type": "datetime"},
+                    "value": datetime.strptime("1999-12-31T23:59:59-00:00", "%Y-%m-%dT%H:%M:%S%z"),
+                }
+            },
+        ),
+        (
+            {"observed_value": "1999-12-31 23:59:59"},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "datetime"}, "value": "1999-12-31 23:59:59"}},
+        ),
+        (
+            {"observed_value": 1776},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "number"}, "value": 1776}},
+        ),
+        (
+            {"unexpected_percent": 10},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
+        ),
+        (
+            {"observed_value": ["%", "_"]},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "array"}, "value": ["%", "_"]}},
+        ),
+        (
+            {"observed_value": [1, 2, 3]},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "array"}, "value": [1, 2, 3]}},
+        ),
+        # when all value types are inferrable string will end up taking precendence over
+        # object otherwise object would overrride most other inference types as it
+        # is permissible to any value type
+        (
+            {"observed_value": {"foo": "bar"}},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": {"foo": "bar"}}},
+        ),
+        (
+            {"observed_value": None},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+        ),
+        (
+            {},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+        ),
+    ],
+)
+def test_atomic_diagnostic_observed_param_type_inference(
+    get_diagnostic_rendered_content, result, expected_template, expected_params
+):
+    expectation_config = {
+        "type": "expect_table_row_count_to_equal",
+        "kwargs": {},
+    }
+    update_dict = {
+        "expectation_config": ExpectationConfiguration(**expectation_config),
+        "result": result,
+    }
+    rendered_content = get_diagnostic_rendered_content(update_dict)
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": expected_params,
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": expected_template,
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, expected_value, observed_value, expected_result",
+    [
+        (
+            "happy",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "disjoint",
+            ["a", "b", "c"],
+            ["x", "y", "z"],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+                ("ov__0", "x", "unexpected"),
+                ("ov__1", "y", "unexpected"),
+                ("ov__2", "z", "unexpected"),
+            ],
+        ),
+        (
+            "transposed chars",
+            ["a", "b", "c", "d"],
+            ["a", "c", "b", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "c", "unexpected"),
+                ("ov__2", "b", "unexpected"),
+                ("ov__3", "d", "expected"),
+            ],
+        ),
+        (
+            "renamed",
+            ["a", "b", "c"],
+            ["a", "c", "b2"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "c", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "b2", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "pair transposed",
+            ["a", "b"],
+            ["b", "a"],
+            [
+                ("ov__0", "b", ObservedValueRenderState.UNEXPECTED),
+                ("ov__1", "a", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            # NOTE: this is a confusing one, but it is hard to generalize
+            "first unexpected and last missing",
+            ["a", "b"],
+            ["x", "a"],
+            [
+                ("ov__0", "x", ObservedValueRenderState.UNEXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "a", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "pair second index missing",
+            ["a", "b"],
+            ["a", "x"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "x", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "empty actual",
+            ["a", "b"],
+            [],
+            [
+                ("exp__0", "a", ObservedValueRenderState.MISSING),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "one column deleted",
+            ["a", "b", "c"],
+            ["a", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "c", ObservedValueRenderState.EXPECTED),
+            ],
+        ),
+        (
+            "last column deleted",
+            ["a", "b", "c", "d"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.EXPECTED),
+                ("exp__3", "d", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "empty expected",
+            [],
+            ["a", "b"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.UNEXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "one column added",
+            ["a", "b"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "missing bookends",
+            ["f", "a", "b", "c", "d"],
+            ["a", "b", "c"],
+            [
+                ("exp__0", "f", ObservedValueRenderState.MISSING),
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.EXPECTED),
+                ("exp__4", "d", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "mix 2",
+            ["a", "b", "c", "d"],
+            ["a", "c", "d", "b", "e"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "c", ObservedValueRenderState.UNEXPECTED),
+                ("ov__2", "d", ObservedValueRenderState.UNEXPECTED),
+                ("ov__3", "b", ObservedValueRenderState.UNEXPECTED),
+                ("ov__4", "e", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+    ],
+)
+def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_value(
+    description,
+    expected_value,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_table_columns_to_match_ordered_list",
+            kwargs={"column_list": expected_value},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "value_set, result, expected_template, expected_params",
+    [
+        (
+            ["blue", "green"],
+            {"observed_value": ["blue", "red"]},
+            "$ov__0 $ov__1",
+            {
+                "observed_value": {"schema": {"type": "array"}, "value": ["blue", "red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "blue",
+                    "render_state": "expected",
+                },
+                "ov__1": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
+            },
+        ),
+        (
+            ["blue", "green"],
+            {"observed_value": ["red"]},
+            "$ov__0",
+            {
+                "observed_value": {"schema": {"type": "array"}, "value": ["red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
+            },
+        ),
+    ],
+)
+def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed_value(
+    get_diagnostic_rendered_content, value_set, result, expected_template, expected_params
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_most_common_value_to_be_in_set",
+            kwargs={
+                "column": "color",
+                "value_set": value_set,
+                # ties_okay parameter does not affect observed value rendering
+                # the Expectation can pass and still have values with
+                # render_state "unexpected" in the observed value set
+                # if ties_okay is set to True
+            },
+        ),
+        "result": result,
+    }
+
+    # act
+    rendered_content = get_diagnostic_rendered_content(x)
+
+    # assert
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": expected_params,
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": expected_template,
         },
         "value_type": "StringValueType",
     }

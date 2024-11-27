@@ -35,7 +35,7 @@ data_source_name = "my_data_source"
 asset_name = "my_data_asset"
 batch_definition_name = "my_batch_definition"
 batch = (
-    gx.context.data_sources.get(data_source_name)
+    context.data_sources.get(data_source_name)
     .get_asset(asset_name)
     .get_batch_definition(batch_definition_name)
     .get_batch()

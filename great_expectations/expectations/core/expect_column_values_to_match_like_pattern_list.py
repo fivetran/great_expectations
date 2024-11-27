@@ -46,7 +46,7 @@ MATCH_ON_DESCRIPTION = (
     "Use 'all' if it should match each like pattern in the list."
 )
 DATA_QUALITY_ISSUES = ["Pattern matching"]
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift"]
+SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
 
 
 class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):

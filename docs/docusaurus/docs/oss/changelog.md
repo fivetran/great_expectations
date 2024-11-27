@@ -14,6 +14,42 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.2.4
+* [DOCS] ADR around not using meta fields ([#10672](https://github.com/great-expectations/great_expectations/pull/10672))
+* [DOCS] Update Expectation conditions docs ([#10661](https://github.com/great-expectations/great_expectations/pull/10661))
+* [DOCS] community contributions - November 2024 ([#10681](https://github.com/great-expectations/great_expectations/pull/10681))
+* [DOCS] Data quality on integrity ([#10583](https://github.com/great-expectations/great_expectations/pull/10583))
+* [MAINTENANCE] : standardize _atomic_diagnostic_observed_value ([#10643](https://github.com/great-expectations/great_expectations/pull/10643))
+* [MAINTENANCE] Add support to framework for spark integration testing ([#10670](https://github.com/great-expectations/great_expectations/pull/10670))
+* [MAINTENANCE] Reduce test duration of flakey test ([#10663](https://github.com/great-expectations/great_expectations/pull/10663))
+* [MAINTENANCE] DatabricksSQL expectation testing ([#10653](https://github.com/great-expectations/great_expectations/pull/10653))
+* [MAINTENANCE] Add datetime inference to test framework ([#10666](https://github.com/great-expectations/great_expectations/pull/10666))
+* [MAINTENANCE] Add bigquery to marker tests ([#10674](https://github.com/great-expectations/great_expectations/pull/10674))
+* [MAINTENANCE] Update testing framework to work with bigquery ([#10675](https://github.com/great-expectations/great_expectations/pull/10675))
+* [MAINTENANCE] Fixture to get assets for test framework ([#10673](https://github.com/great-expectations/great_expectations/pull/10673))
+* [MAINTENANCE] Update CODEOWNERS with reqs owner. ([#10684](https://github.com/great-expectations/great_expectations/pull/10684))
+* [MAINTENANCE] Remove commented out code ([#10686](https://github.com/great-expectations/great_expectations/pull/10686))
+* [MAINTENANCE] Tests to prove sqlite partitioners work ([#10676](https://github.com/great-expectations/great_expectations/pull/10676))
+* [MAINTENANCE] Condition parser typing and row conditions testing ([#10667](https://github.com/great-expectations/great_expectations/pull/10667))
+* [MAINTENANCE] Improve experience around expectation deletion with Cloud-backed suites ([#10662](https://github.com/great-expectations/great_expectations/pull/10662))
+
+### 1.2.3
+* [BUGFIX] double-sided z score renderer ([#10648](https://github.com/great-expectations/great_expectations/pull/10648))
+* [BUGFIX] Stop masking config strings ([#10625](https://github.com/great-expectations/great_expectations/pull/10625))
+* [DOCS] Mark actions as not ready for contributions ([#10646](https://github.com/great-expectations/great_expectations/pull/10646))
+* [DOCS] MS Teams Action ([#10655](https://github.com/great-expectations/great_expectations/pull/10655))
+* [DOCS] Remove install instructions for redshift and trino ([#10660](https://github.com/great-expectations/great_expectations/pull/10660))
+* [MAINTENANCE] Clean up Azure CI configuration ([#10638](https://github.com/great-expectations/great_expectations/pull/10638))
+* [MAINTENANCE] add Aaron to teams file ([#10641](https://github.com/great-expectations/great_expectations/pull/10641))
+* [MAINTENANCE] Bump ruff to `0.7.2` ([#10629](https://github.com/great-expectations/great_expectations/pull/10629))
+* [MAINTENANCE] Bump `docstring-parser` to `0.16` ([#10608](https://github.com/great-expectations/great_expectations/pull/10608))
+* [MAINTENANCE] Add integration test for `MicrosoftTeamsNotificationAction` ([#10628](https://github.com/great-expectations/great_expectations/pull/10628))
+* [MAINTENANCE] Clean up `MicrosoftTeamsNotificationAction` docstring and import patterns ([#10642](https://github.com/great-expectations/great_expectations/pull/10642))
+* [MAINTENANCE] Add constant for all unparameterized data sources to test ([#10654](https://github.com/great-expectations/great_expectations/pull/10654))
+* [MAINTENANCE] Refactor Checkpoint utils ([#10649](https://github.com/great-expectations/great_expectations/pull/10649))
+* [MAINTENANCE] Sqlite integration testing ([#10657](https://github.com/great-expectations/great_expectations/pull/10657))
+* [MAINTENANCE] Use random schema in integration tests ([#10658](https://github.com/great-expectations/great_expectations/pull/10658))
+
 ### 1.2.2
 * [FEATURE] Add check for valid column type when calling add_batch_def in a sql asset ([#10590](https://github.com/great-expectations/great_expectations/pull/10590))
 * [FEATURE] Expectations tests against SQL backends infer column types ([#10622](https://github.com/great-expectations/great_expectations/pull/10622))
