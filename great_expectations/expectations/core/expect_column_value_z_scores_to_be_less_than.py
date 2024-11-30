@@ -45,6 +45,7 @@ SUPPORTED_DATA_SOURCES = [
     "Redshift",
     "BigQuery",
     "Snowflake",
+    "Databricks (SQL)",
 ]
 
 

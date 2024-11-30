@@ -5,7 +5,6 @@ tag: [tutorial, getting started]
 ---
 import Prerequisites from '../../components/_prerequisites.jsx'
 import PrereqPython from '../../components/prerequisites/_python_version.md'
-import SetupAndInstallGx from '../../components/setup/link_lists/_setup_and_install_gx.md'
 import DataContextInitializeInstantiateSave from '../../components/setup/link_lists/_data_context_initialize_instatiate_save.md'
 import TechnicalTag from '../../reference/learn/term_tags/_tag.mdx';
 

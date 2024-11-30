@@ -166,7 +166,8 @@
                         "PostgreSQL",
                         "MySQL",
                         "MSSQL",
-                        "Redshift"
+                        "Redshift",
+                        "Databricks (SQL)"
                     ]
                 }
             }

@@ -97,8 +97,6 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
 - Replace any :ref: tags (in old docstrings) with markdown links to current docs
 
     ```
-    see [partition_object](https://docs.greatexpectations.io/docs/reference/expectations/distributional_expectations/#partition-objects)
-
     For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly).
     ```
 - The Other Parameters and Returns sections should ALWAYS just be the following

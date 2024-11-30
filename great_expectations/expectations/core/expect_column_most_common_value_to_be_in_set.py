@@ -11,7 +11,14 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.model_field_types import (
     ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
 )
-from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
+from great_expectations.render import (
+    AtomicDiagnosticRendererType,
+    LegacyRendererType,
+    RenderedAtomicContent,
+    RenderedStringTemplateContent,
+    renderedAtomicValueSchema,
+)
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
@@ -52,6 +59,7 @@ SUPPORTED_DATA_SOURCES = [
     "Redshift",
     "BigQuery",
     "Snowflake",
+    "Databricks (SQL)",
 ]
 DATA_QUALITY_ISSUES = ["Sets"]
 
@@ -328,6 +336,63 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
                 }
             )
         ]
+
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        renderer_configuration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+
+        renderer_configuration.add_param(name="value_set", param_type=RendererValueType.ARRAY)
+
+        ov_param_prefix = "ov__"
+        ov_param_name = "observed_value"
+        renderer_configuration.add_param(
+            name=ov_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=result.result.get("observed_value"),
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=ov_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        params = renderer_configuration.params
+        for param_name, param in params:
+            if param_name.startswith(ov_param_prefix):
+                if param.value not in params.value_set.value:
+                    param.render_state = ObservedValueRenderState.UNEXPECTED
+                else:
+                    param.render_state = ObservedValueRenderState.EXPECTED
+
+        renderer_configuration.template_str = cls._get_array_string(
+            array_param_name=ov_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )
 
     def _validate(
         self,

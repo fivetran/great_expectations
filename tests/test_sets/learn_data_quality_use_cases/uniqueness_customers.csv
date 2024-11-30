@@ -1,0 +1,11 @@
+customer_id,first_name,last_name,email_address,secondary_email,phone_number,country_code,government_id
+1,John,Doe,johndoe@email.com,,+1 123 456-7890,US,123-45-6789
+2,Jane,Smith,jsmith@email.com,jsmith@email.com,+1 409 437-3210,CA,987 654 321
+3,Bob,Thatcher,bobthatcher@email.com,,,US,235-98-4389
+4,Jon,Doe,jon.doe@email.com,jon.doe2@email.com,+1 888 999-9999,US,
+5,J,Doe,jd@email.com,,,US,123-45-6789
+6,Jenny,Williams,,,,CA,298 367 456
+7,Johnathan,Doe,johndoe@email.co.uk,,+44 333 981537,UK,RC 23 94 27 B
+8,Liz,Brown,l2@email.com,lizzeb@email.com,+44 1224 587623,UK,
+9,Jonathan,Doe,,jdoe@email.co.uk,+44 333 991537,UK,RC 23 94 27 C
+10,Elizabeth,Brown,lizzeb@email.com,l2@email.com,+44 1224 587623,UK,

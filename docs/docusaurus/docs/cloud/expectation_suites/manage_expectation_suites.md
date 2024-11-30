@@ -10,7 +10,7 @@ Expectation Suites contain multiple Expectations for a single Data Asset. Like E
 
 ## Prerequisites
 
-- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md#create-a-data-asset).
+- You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
 
 ## Create an Expectation Suite
 
