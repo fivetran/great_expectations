@@ -178,7 +178,7 @@ def test_failure(
         pytest.param(
             gxe.ExpectColumnValuesToMatchLikePattern(
                 column=BASIC_PATTERNS,
-                like_pattern="[adg]*",
+                like_pattern="[adg]%",
             ),
         ),
     ],
