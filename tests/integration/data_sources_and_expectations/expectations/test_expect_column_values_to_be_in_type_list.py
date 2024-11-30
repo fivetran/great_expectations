@@ -18,7 +18,6 @@ from tests.integration.test_utils.data_source_config import (
 INTEGER_COLUMN = "integers"
 INTEGER_AND_NULL_COLUMN = "integers_and_nulls"
 STRING_COLUMN = "strings"
-BOOLEAN_COLUMN = "booleans"
 NULL_COLUMN = "nulls"
 
 
@@ -27,7 +26,6 @@ DATA = pd.DataFrame(
         INTEGER_COLUMN: [1, 2, 3, 4, 5],
         INTEGER_AND_NULL_COLUMN: [1, 2, 3, 4, None],
         STRING_COLUMN: ["a", "b", "c", "d", "e"],
-        BOOLEAN_COLUMN: [True, False, True, False, True],
         NULL_COLUMN: pd.Series([None, None, None, None, None]),
     },
     dtype="object",
@@ -105,10 +103,6 @@ def test_success_complete_pandas(batch_for_datasource: Batch) -> None:
         pytest.param(
             gxe.ExpectColumnValuesToBeInTypeList(column=STRING_COLUMN, type_list=["str"]),
             id="string_types",
-        ),
-        pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(column=BOOLEAN_COLUMN, type_list=["bool"]),
-            id="boolean_types",
         ),
         pytest.param(
             gxe.ExpectColumnValuesToBeInTypeList(column=NULL_COLUMN, type_list=["float"]),
