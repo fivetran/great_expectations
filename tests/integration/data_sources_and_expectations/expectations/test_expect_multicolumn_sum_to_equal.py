@@ -70,17 +70,3 @@ def test_success(batch_for_datasource: Batch, expectation: gxe.ExpectMulticolumn
 def test_failure(batch_for_datasource: Batch, expectation: gxe.ExpectMulticolumnSumToEqual) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
-
-
-# @pytest.mark.xfail(strict=True, reason="We should fail at intantiation; not when validating")
-# @pytest.mark.parametrize(
-#     "column_list",
-#     [
-#         pytest.param([], id="no_cols"),
-#         pytest.param([INT_COL_2], id="one_col"),
-#     ],
-# )
-# @parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
-# def test_invalid_config(column_list: list[str], batch_for_datasource: Batch) -> None:
-#     with pytest.raises(ValueError):
-#         gxe.ExpectMulticolumnSumToEqual(column_list=column_list)
