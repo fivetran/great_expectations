@@ -24,13 +24,13 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
 
 1. The `airflow standalone` command initializes the database, creates a user, and starts all components.
 
-    ``` title="Terminal input"
+    ```bash title="Terminal input"
     airflow standalone
     ```
 
     This command will eventually output a username and password for the Airflow UI like this:
 
-    ``` title="Terminal input"
+    ```bash title="Terminal input"
     standalone | Airflow is ready
     standalone | Login with username: admin  password: Bpu6RgmPMMaDeeq5
     standalone | Airflow Standalone is for development purposes only. Do not use this in production!
@@ -54,7 +54,7 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
 
 2. Open the `gx_dag.py` DAG file and add the following code:
 
-    ```python
+    ```python title="gx_dag.py"
     import os
     import pendulum
     import great_expectations as gx

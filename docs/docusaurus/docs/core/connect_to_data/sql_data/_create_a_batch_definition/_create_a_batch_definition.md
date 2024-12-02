@@ -47,7 +47,7 @@ import PreReqDataContext from '../../../_core_components/prerequisites/_preconfi
 
    Update the `date_column` variable and `name` parameters in the following snippet, then execute it to create partitioned Batch Definitions:
 
-   ```python name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_batch_definition/_create_a_batch_definition.md daily batch definition"
+   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_batch_definition/_create_a_batch_definition.md daily batch definition"
    ```
    </TabItem>
 
@@ -65,7 +65,7 @@ import PreReqDataContext from '../../../_core_components/prerequisites/_preconfi
    </TabItem>
 
    <TabItem value="partitioned" label="Partitioned">
-   ```python name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_batch_definition/_create_a_batch_definition.md verify daily"
+   ```python  title="Python" name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_batch_definition/_create_a_batch_definition.md verify daily"
    ```
    </TabItem>
 

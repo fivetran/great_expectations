@@ -49,7 +49,7 @@ Data Assets are collections of records within a Data Source.  With SQL Data Sour
 
 4. Optional. Verify that your Data Asset was added to your Data Source:
 
-   ```python
+   ```python title="Python"
    print(data_source.assets)
    ```
    
