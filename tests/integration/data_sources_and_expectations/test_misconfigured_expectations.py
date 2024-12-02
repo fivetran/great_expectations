@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
@@ -32,6 +33,14 @@ def test_parameterization():
     )
 
 
+def assert_misconfiguration(
+    batch_for_datasource: Batch, expectation: gxe.Expectation, exception_message: str
+) -> None:
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
+    assert exception_message in str(result.exception_info)
+
+
 class TestNumericExpectationAgainstStrDataMisconfiguration:
     # Currently bugs with the following (not raising misconfiguration errors at all):
     #  - sqlite
@@ -53,8 +62,9 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         data=_DATA,
     )
     def test_pandas(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
+        assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
+            expectation=self._EXPECTATION,
             exception_message="could not convert string to float",
         )
 
@@ -63,8 +73,9 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         data=_DATA,
     )
     def test_bigquery(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
+        assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
+            expectation=self._EXPECTATION,
             exception_message="No matching signature for operator * for argument types: FLOAT64, STRING",  # noqa: E501
         )
 
@@ -73,8 +84,9 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         data=_DATA,
     )
     def test_mssql(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
+        assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
+            expectation=self._EXPECTATION,
             exception_message="Error converting data type varchar to float",
         )
 
@@ -83,9 +95,10 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         data=_DATA,
     )
     def test_postgresql(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
+        assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
-            exception_message="operator does not exist: numeric * character varying",
+            expectation=self._EXPECTATION,
+            exception_message='invalid input syntax for type double precision: "b"',
         )
 
     @parameterize_batch_for_data_sources(
@@ -93,15 +106,11 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         data=_DATA,
     )
     def test_snowflake(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
+        assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
-            exception_message="numeric value 'b' is not recognized",
+            expectation=self._EXPECTATION,
+            exception_message="Numeric value 'b' is not recognized",
         )
-
-    def _test_misconfiguration(self, batch_for_datasource, exception_message: str) -> None:
-        result = batch_for_datasource.validate(self._EXPECTATION)
-        assert not result.success
-        assert exception_message in str(result.exception_info)
 
 
 class TestNonExistentColumnMisconfiguration:
@@ -113,9 +122,10 @@ class TestNonExistentColumnMisconfiguration:
         data=_DATA,
     )
     def test_pandas(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
+        assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
-            exception_message='The column "b" in BatchData does not exist',
+            expectation=self._EXPECTATION,
+            exception_message="The column 'b' in BatchData does not exist",
         )
 
     @parameterize_batch_for_data_sources(
@@ -123,8 +133,9 @@ class TestNonExistentColumnMisconfiguration:
         data=_DATA,
     )
     def test_sql(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
+        assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
+            expectation=self._EXPECTATION,
             exception_message='The column "b" in BatchData does not exist',
         )
 
@@ -133,15 +144,11 @@ class TestNonExistentColumnMisconfiguration:
         data=_DATA,
     )
     def test_spark(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
+        assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
+            expectation=self._EXPECTATION,
             exception_message="A column or function parameter with name `b` cannot be resolved",
         )
-
-    def _test_misconfiguration(self, batch_for_datasource, exception_message: str) -> None:
-        result = batch_for_datasource.validate(self._EXPECTATION)
-        assert not result.success
-        assert exception_message in str(result.exception_info)
 
 
 @parameterize_batch_for_data_sources(
@@ -155,11 +162,11 @@ def test_datetime_expectation_against_numeric_data_misconfiguration(batch_for_da
         max_value=dt.datetime(2024, 1, 2, tzinfo=dt.timezone.utc),
         strict_max=True,
     )
-    result = batch_for_datasource.validate(expectation)
-    assert not result.success
-    assert "Could not parse" in str(
-        result.exception_info
-    ) and "into datetime representation" in str(result.exception_info)
+    assert_misconfiguration(
+        batch_for_datasource=batch_for_datasource,
+        expectation=expectation,
+        exception_message="into datetime representation",
+    )
 
 
 @parameterize_batch_for_data_sources(
@@ -168,9 +175,11 @@ def test_datetime_expectation_against_numeric_data_misconfiguration(batch_for_da
 )
 def test_column_min_max_mismatch_misconfiguration(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnValuesToBeBetween(column="a", min_value=2, max_value=1)
-    result = batch_for_datasource.validate(expectation)
-    assert not result.success
-    assert "min_value cannot be greater than max_value" in str(result.exception_info)
+    assert_misconfiguration(
+        batch_for_datasource=batch_for_datasource,
+        expectation=expectation,
+        exception_message="min_value cannot be greater than max_value",
+    )
 
 
 @parameterize_batch_for_data_sources(
@@ -179,6 +188,8 @@ def test_column_min_max_mismatch_misconfiguration(batch_for_datasource) -> None:
 )
 def test_column_min_max_missing_misconfiguration(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnValuesToBeBetween(column="a")
-    result = batch_for_datasource.validate(expectation)
-    assert not result.success
-    assert "min_value and max_value cannot both be None" in str(result.exception_info)
+    assert_misconfiguration(
+        batch_for_datasource=batch_for_datasource,
+        expectation=expectation,
+        exception_message="min_value and max_value cannot both be None",
+    )
