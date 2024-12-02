@@ -2951,3 +2951,102 @@ def test_expect_column_values_to_be_in_set_atomic_diagnostic_observed_value(
         assert name in res["value"]["params"]
         assert res["value"]["params"][name]["value"] == val
         assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, value_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+                ("ov__3", "d", "expected"),
+            ],
+        ),
+        (
+            "dupes observed",
+            ["a", "b", "c"],
+            ["a", "a", "c", "d"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "a", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+                ("ov__3", "d", "expected"),
+            ],
+        ),
+    ],
+)
+def test_expect_column_values_to_not_be_in_set_atomic_diagnostic_observed_value(
+    description,
+    value_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_values_to_not_be_in_set",
+            kwargs={"value_set": value_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
