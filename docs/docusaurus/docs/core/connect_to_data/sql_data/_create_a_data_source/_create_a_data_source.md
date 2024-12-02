@@ -37,7 +37,7 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
 
    You can assign any name to a Data Source as long as it is unique within your Data Context.
 
-   Your connection string or credentials should not be saved in plain text in your code.  Instead, you should reference a securely stored connection string or credentials through string substitution.  The guidance on how to [Configure your credentials](#configure-your-credentials) covers how to determine the format of your connection string, securely store your connection string or credentials, and how to reference your connection string or credentials in Python.
+   Your connection string or credentials should not be saved in plain text in your code.  Instead, you should reference a securely stored connection string or credentials through string substitution.  The guidance on how to [Configure your credentials](#configure-credentials) covers how to determine the format of your connection string, securely store your connection string or credentials, and how to reference your connection string or credentials in Python.
 
    The following code defines a Data Source name and references a PostgreSQL connection string that has been securely stored in its entirety:
 
