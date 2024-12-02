@@ -370,13 +370,14 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
 
     @classmethod
     @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @override
     def _atomic_diagnostic_observed_value(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
-        renderer_configuration = RendererConfiguration(
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
             runtime_configuration=runtime_configuration,
@@ -400,7 +401,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,
-            value=result.get("result", {}).get("observed_value", []),
+            value=result.get("result", {}).get("observed_value", []) if result else [],
         )
         renderer_configuration = cls._add_array_params(
             array_param_name=ov_param_name,
@@ -408,7 +409,9 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
             renderer_configuration=renderer_configuration,
         )
 
-        observed_value_set = set(result.get("result", {}).get("observed_value", []))
+        observed_value_set = set(
+            result.get("result", {}).get("observed_value", []) if result else []
+        )
 
         observed_values = (
             (name, sch)
