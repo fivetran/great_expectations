@@ -30,12 +30,12 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 
 @parameterize_batch_for_data_sources(
     data_source_configs=ALL_DATA_SOURCES,
-    data=pd.DataFrame({"a": [1, 2], "b": ["red", "green"]}),
+    data=pd.DataFrame({"a": [1, 2]}),
 )
 def test_unexpected_rows_expectation_batch_keyword(batch_for_datasource) -> None:
     unexpected_rows_query = "SELECT * FROM {batch}"
     expectation = gxe.UnexpectedRowsExpectation(
-        description="Expect b to not be blue", unexpected_rows_query=unexpected_rows_query
+        description="Expect table to be empty", unexpected_rows_query=unexpected_rows_query
     )
     result = batch_for_datasource.validate(expectation)
     assert not result.success
