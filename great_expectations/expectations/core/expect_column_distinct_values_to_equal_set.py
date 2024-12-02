@@ -416,7 +416,7 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,
-            value=result.result.get("observed_value"),
+            value=result.get("result", {}).get("observed_value", []),
         )
         renderer_configuration = cls._add_array_params(
             array_param_name=ov_param_name,
@@ -424,8 +424,8 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
             renderer_configuration=renderer_configuration,
         )
 
-        expected_value_set = set(renderer_configuration.kwargs.get("value_set", {}))
-        observed_value_set = set(result.result.get("observed_value", {}))
+        expected_value_set = set(renderer_configuration.kwargs.get("value_set", []))
+        observed_value_set = set(result.get("result", {}).get("observed_value", []))
 
         observed_values = (
             (name, sch)

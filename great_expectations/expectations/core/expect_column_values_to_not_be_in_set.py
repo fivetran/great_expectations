@@ -391,12 +391,12 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
         ov_param_prefix = "ov__"
         ov_param_name = "observed_value"
 
-        value_set = set(renderer_configuration.kwargs.get("value_set", {}))
+        value_set = set(renderer_configuration.kwargs.get("value_set", []))
 
         renderer_configuration.add_param(
             name=ov_param_name,
             param_type=RendererValueType.ARRAY,
-            value=result.result.get("observed_value"),
+            value=result.get("result", {}).get("observed_value"),
         )
         renderer_configuration = cls._add_array_params(
             array_param_name=ov_param_name,
