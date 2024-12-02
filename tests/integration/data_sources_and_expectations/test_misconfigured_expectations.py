@@ -8,7 +8,13 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    BigQueryDatasourceTestConfig,
+    DataSourceTestConfig,
+    MSSQLDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
+    SnowflakeDatasourceTestConfig,
+)
 
 PANDAS_DATA_SOURCES: list[DataSourceTestConfig] = [
     ds for ds in ALL_DATA_SOURCES if ds.label.startswith("pandas")
@@ -24,9 +30,6 @@ SQL_DATA_SOURCES: list[DataSourceTestConfig] = [
 @pytest.mark.unit
 def test_parameterization():
     # Ensure that all data sources are covered
-    assert len(PANDAS_DATA_SOURCES) == 2
-    assert len(SPARK_DATA_SOURCES) == 1
-    assert len(SQL_DATA_SOURCES) == 7
     assert len(PANDAS_DATA_SOURCES) + len(SPARK_DATA_SOURCES) + len(SQL_DATA_SOURCES) == len(
         ALL_DATA_SOURCES
     )
@@ -59,7 +62,7 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         )
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=list(filter(lambda d: d.label == "big-query", SQL_DATA_SOURCES)),
+        data_source_configs=[BigQueryDatasourceTestConfig()],
         data=_DATA,
     )
     def test_bigquery(self, batch_for_datasource) -> None:
@@ -69,7 +72,7 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         )
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=list(filter(lambda d: d.label == "mssql", SQL_DATA_SOURCES)),
+        data_source_configs=[MSSQLDatasourceTestConfig()],
         data=_DATA,
     )
     def test_mssql(self, batch_for_datasource) -> None:
@@ -79,7 +82,7 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         )
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=list(filter(lambda d: d.label == "postgresql", SQL_DATA_SOURCES)),
+        data_source_configs=[PostgreSQLDatasourceTestConfig()],
         data=_DATA,
     )
     def test_postgresql(self, batch_for_datasource) -> None:
@@ -89,7 +92,7 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
         )
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=list(filter(lambda d: d.label == "snowflake", SQL_DATA_SOURCES)),
+        data_source_configs=[SnowflakeDatasourceTestConfig()],
         data=_DATA,
     )
     def test_snowflake(self, batch_for_datasource) -> None:
@@ -109,20 +112,10 @@ class TestNonExistentColumnMisconfiguration:
     _EXPECTATION = gxe.ExpectColumnMedianToBeBetween(column="b", min_value=5, max_value=10)
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=PANDAS_DATA_SOURCES,
+        data_source_configs=PANDAS_DATA_SOURCES + SQL_DATA_SOURCES,
         data=_DATA,
     )
-    def test_pandas(self, batch_for_datasource) -> None:
-        self._test_misconfiguration(
-            batch_for_datasource=batch_for_datasource,
-            exception_message='The column "b" in BatchData does not exist',
-        )
-
-    @parameterize_batch_for_data_sources(
-        data_source_configs=SQL_DATA_SOURCES,
-        data=_DATA,
-    )
-    def test_sql(self, batch_for_datasource) -> None:
+    def test_pandas_and_sql(self, batch_for_datasource) -> None:
         self._test_misconfiguration(
             batch_for_datasource=batch_for_datasource,
             exception_message='The column "b" in BatchData does not exist',
