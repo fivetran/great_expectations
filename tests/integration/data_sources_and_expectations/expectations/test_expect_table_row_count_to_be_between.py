@@ -85,7 +85,7 @@ def test_failure(
     assert not result.success
 
 
-@pytest.mark.xfail("Fails at validation, but should fail when instantiating")
+@pytest.mark.xfail(reason="Fails at validation, but should fail when instantiating")
 @pytest.mark.unit
 def test_valid_range() -> None:
     with pytest.raises(ValueError):
