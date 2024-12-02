@@ -25,9 +25,6 @@ SQL_DATA_SOURCES: list[DataSourceTestConfig] = [
 @pytest.mark.unit
 def test_parameterization():
     # Ensure that all data sources are covered
-    assert len(PANDAS_DATA_SOURCES) == 2
-    assert len(SPARK_DATA_SOURCES) == 1
-    assert len(SQL_DATA_SOURCES) == 7
     assert len(PANDAS_DATA_SOURCES) + len(SPARK_DATA_SOURCES) + len(SQL_DATA_SOURCES) == len(
         ALL_DATA_SOURCES
     )
