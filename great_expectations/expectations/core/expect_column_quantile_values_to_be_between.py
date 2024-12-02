@@ -236,7 +236,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
 
     quantile_ranges: QuantileRange = pydantic.Field(description=QUANTILE_RANGES_DESCRIPTION)
     allow_relative_error: Union[bool, str] = pydantic.Field(
-        False,
+        default=False,
         description=ALLOW_RELATIVE_ERROR_DESCRIPTION,
     )
 

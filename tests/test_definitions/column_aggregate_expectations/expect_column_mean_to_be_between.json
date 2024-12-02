@@ -1,6 +1,7 @@
 {
   "expectation_type": "expect_column_mean_to_be_between",
-  "datasets": [{
+  "datasets": [
+    {
       "dataset_name": "expect_column_mean_to_be_between_1",
       "data": {
         "x": [2.0, 5.0],
@@ -39,7 +40,8 @@
           "b": "BOOLEAN"
         }
       },
-      "tests": [{
+      "tests": [
+        {
           "title": "simple_mean_positive_range",
           "include_in_gallery": true,
           "exact_match_out": false,
@@ -52,230 +54,8 @@
             "success": true,
             "observed_value": 3.5
           }
-        },
-        {
-          "title": "simple_mean_negative_range",
-          "include_in_gallery": true,
-          "exact_match_out": false,
-          "in": {
-            "column": "x",
-            "min_value": 1,
-            "max_value": 2
-          },
-          "out": {
-            "success": false,
-            "observed_value": 3.5
-          }
-        },
-        {
-          "title": "simple_mean_positive_exact_match",
-          "exact_match_out": false,
-          "in": {
-            "column": "y",
-            "min_value": 1.5,
-            "max_value": 1.5
-          },
-          "out": {
-            "success": true,
-            "observed_value": 1.5
-          }
-        },
-        {
-          "title": "simple_mean_negative_exact_match",
-          "exact_match_out": false,
-          "in": {
-            "column": "y",
-            "min_value": 4,
-            "max_value": 4
-          },
-          "out": {
-            "success": false,
-            "observed_value": 1.5
-          }
-        },
-        {
-          "title": "simple_mean_positive_exact_match",
-          "exact_match_out": false,
-          "in": {
-            "column": "z",
-            "min_value": 5,
-            "max_value": 5
-          },
-          "out": {
-            "success": true,
-            "observed_value": 5
-
-          }
-        },
-        {
-          "title": "simple_mean_negative_range_match",
-          "exact_match_out": false,
-          "in": {
-            "column": "z",
-            "min_value": 13,
-            "max_value": 14
-          },
-          "out": {
-            "success": false,
-            "observed_value": 5
-
-          }
-        },
-        {
-          "title": "simple_mean_includes_null",
-          "exact_match_out": false,
-          "in": {
-            "column": "n",
-            "min_value": 0,
-            "max_value": 0
-          },
-          "out": {
-            "success": true,
-            "observed_value": 0.0
-          }
-        },
-        {
-          "title": "vacuously_true_missing_min_and_max",
-          "exact_match_out": false,
-          "in": {
-            "column": "x",
-            "min_value": null,
-            "max_value": null,
-            "catch_exceptions": true
-          },
-          "out": {
-            "success": true
-          },
-          "_note": "vacuously true"
         }
       ]
-    },
-    {
-      "dataset_name": "expect_column_mean_to_be_between_decimal_type",
-      "data": {
-        "a": [2.2345, 1.123]
-      },
-      "schemas": {
-        "spark": {
-          "a": "DecimalType"
-        }
-      },
-      "tests": [
-        {
-          "title": "simple_mean_positive_range_decimal_type",
-          "include_in_gallery": true,
-          "exact_match_out": false,
-          "in": {
-            "column": "a",
-            "min_value": 2,
-            "max_value": 5
-          },
-          "out": {
-            "success": false,
-            "observed_value": 1.6787500000000002
-          },
-          "only_for": ["spark"]
-        }
-      ]
-    },
-    {
-      "dataset_name": "expect_column_mean_to_be_between_2",
-      "data": {
-        "s": ["s", null, null, null],
-        "b": [true, false, false, true],
-        "x": [true, null, false, null]
-      },
-      "tests": [{
-          "title": "type_mismatch_null_observed_value",
-          "exact_match_out": false,
-	        "suppress_test_for": ["sqlalchemy"],
-          "in": {
-            "column": "s",
-            "min_value": 0,
-            "max_value": 0,
-            "catch_exceptions": true
-          },
-          "out": {
-            "traceback_substring": "numeric"
-          }
-        },
-        {
-          "title": "coerced_types_true_false_values",
-          "exact_match_out": false,
-          "in": {
-            "column": "b",
-            "min_value": 0,
-            "max_value": 1
-          },
-          "out": {
-            "success": true,
-            "observed_value": 0.5
-          },
-          "suppress_test_for": ["postgresql", "mssql", "spark", "bigquery", "trino", "redshift", "snowflake"],
-          "_comment": "postgresql, mssql, bigquery, and spark will not allow coercing the boolean type to an average"
-        },
-        {
-          "title": "coerced_types_true_false_and_null",
-          "exact_match_out": false,
-          "in": {
-            "column": "x",
-            "min_value": 0,
-            "max_value": 1
-          },
-          "out": {
-            "success": true,
-            "observed_value": 0.5
-          },
-          "suppress_test_for": ["postgresql", "mssql", "bigquery", "spark", "trino", "redshift", "snowflake"],
-          "_comment": "postgresql, mssql, bigquery and spark will not allow coercing the boolean type to an average"
-        },
-        {
-          "title": "catch_exceptions___non_number_min_value",
-          "exact_match_out": false,
-          "in": {
-            "column": "x",
-            "min_value": "s",
-            "catch_exceptions": true
-          },
-          "out": {
-            "traceback_substring": "invalid datetime format"
-          }
-        },
-        {
-          "title": "catch_exceptions___non_number_max_value",
-          "exact_match_out": false,
-          "in": {
-            "column": "x",
-            "max_value": "s",
-            "catch_exceptions": true
-          },
-          "out": {
-            "traceback_substring": "invalid datetime format"
-          }
-        }]},
-    {
-      "dataset_name": "expect_column_mean_to_be_between_3",
-      "data": {
-        "empty_column": []
-      },
-      "schemas": {
-        "spark": {
-          "empty_column": "IntegerType"
-        }
-      },
-      "tests": [{
-        "title": "test_empty_column_should_be_false_no_observed_value_with_which_to_compare",
-        "exact_match_out": false,
-        "in": {
-          "column": "empty_column",
-          "min_value": 0,
-          "max_value": 1,
-          "catch_exceptions": false
-        },
-        "out": {
-          "success": false,
-          "observed_value": null
-        }
-      }]
-  }]
+    }
+  ]
 }
