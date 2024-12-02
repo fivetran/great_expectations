@@ -176,14 +176,18 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
                 }}
     """  # noqa: E501
 
-    min_value: Optional[Comparable] = pydantic.Field(None, description=MIN_VALUE_DESCRIPTION)
-    max_value: Optional[Comparable] = pydantic.Field(None, description=MAX_VALUE_DESCRIPTION)
+    min_value: Optional[Comparable] = pydantic.Field(
+        default=None, description=MIN_VALUE_DESCRIPTION
+    )
+    max_value: Optional[Comparable] = pydantic.Field(
+        default=None, description=MAX_VALUE_DESCRIPTION
+    )
     strict_min: bool = pydantic.Field(
-        False,
+        default=False,
         description=STRICT_MIN_DESCRIPTION,
     )
     strict_max: bool = pydantic.Field(
-        False,
+        default=False,
         description=STRICT_MAX_DESCRIPTION,
     )
 

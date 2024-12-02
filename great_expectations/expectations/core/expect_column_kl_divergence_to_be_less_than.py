@@ -327,9 +327,13 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
     tail_weight_holdout: Union[float, None] = pydantic.Field(
         default=0, ge=0, le=1, description=TAIL_WEIGHT_HOLDOUT_DESCRIPTION
     )
-    bucketize_data: bool = pydantic.Field(True, description=BUCKETIZE_DATA_DESCRIPTION)
-    min_value: Optional[Comparable] = pydantic.Field(None, description=MIN_VALUE_DESCRIPTION)
-    max_value: Optional[Comparable] = pydantic.Field(None, description=MAX_VALUE_DESCRIPTION)
+    bucketize_data: bool = pydantic.Field(default=True, description=BUCKETIZE_DATA_DESCRIPTION)
+    min_value: Optional[Comparable] = pydantic.Field(
+        default=None, description=MIN_VALUE_DESCRIPTION
+    )
+    max_value: Optional[Comparable] = pydantic.Field(
+        default=None, description=MAX_VALUE_DESCRIPTION
+    )
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
