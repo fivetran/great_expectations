@@ -177,7 +177,7 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
 
     value_set: ValueSetField
     ties_okay: Union[bool, None] = pydantic.Field(
-        None,
+        default=None,
         description=TIES_OKAY_DESCRIPTION,
     )
 
