@@ -79,6 +79,8 @@ def parameterize_batch_for_data_sources(
         def test_stuff(batch_for_datasource) -> None:
             ...
     """
+    if len(data_source_configs) == 0:
+        raise ValueError("At least one data source configuration must be provided.")
 
     def decorator(func: _F) -> _F:
         pytest_params = [
