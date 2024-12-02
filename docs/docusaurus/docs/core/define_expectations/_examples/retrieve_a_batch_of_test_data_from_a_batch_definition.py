@@ -59,15 +59,15 @@ batch = batch_definition.get_batch()
 # Or use a Batch Parameter dictionary to specify a Batch to retrieve
 # These are sample Batch Parameter dictionaries:
 # <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/retrieve_a_batch_of_test_data_from_a_batch_definition.py - sample Batch Parameter dictionaries">
-yearly_batch_parameters = {"year": "2019"}
-monthly_batch_parameters = {"year": "2019", "month": "01"}
-daily_batch_parameters = {"year": "2019", "month": "01", "day": "01"}
+yearly_batch_parameters = {"year": 2019}
+monthly_batch_parameters = {"year": 2019, "month": 01}
+daily_batch_parameters = {"year": 2019, "month": 01, "day": 01}
 # </snippet>
 
 # This code retrieves the Batch from a monthly Batch Definition:
 # <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/retrieve_a_batch_of_test_data_from_a_batch_definition.py - retrieve specific Batch">
 
-batch = batch_definition.get_batch(batch_parameters={"year": "2019", "month": "01"})
+batch = batch_definition.get_batch(batch_parameters={"year": 2019, "month": 01})
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/retrieve_a_batch_of_test_data_from_a_batch_definition.py - verify populated Batch">
