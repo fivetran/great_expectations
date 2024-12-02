@@ -13,6 +13,6 @@ However, geospatial data is highly prone to error, as it usually involves robust
 
 This package contains a number of Expectations to support validation of Geospatial Data.
 
-Author: [Great Expectations](https://github.com/great_expectations/great_expectations)
+Author: [Great Expectations](https://github.com/great-expectations/great_expectations)
 
 [PyPi Link](https://python.org/pypi/great_expectations_geospatial_expectations)
