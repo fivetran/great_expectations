@@ -13,7 +13,6 @@ from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
-    SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
@@ -35,7 +34,6 @@ SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     DatabricksDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
-    SnowflakeDatasourceTestConfig(),
     SparkFilesystemCsvDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
