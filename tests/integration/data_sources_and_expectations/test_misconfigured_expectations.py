@@ -111,7 +111,7 @@ class TestNonExistentColumnMisconfiguration:
     _EXPECTATION = gxe.ExpectColumnMedianToBeBetween(column="b", min_value=5, max_value=10)
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=PANDAS_DATA_SOURCES + SQL_DATA_SOURCES,
+        data_source_configs=[*PANDAS_DATA_SOURCES, *SQL_DATA_SOURCES],
         data=_DATA,
     )
     def test_pandas_and_sql(self, batch_for_datasource) -> None:
