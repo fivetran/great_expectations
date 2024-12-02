@@ -54,7 +54,9 @@ class _VersionChecker:
         except requests.HTTPError as http_err:
             logger.debug(f"An HTTP error occurred when trying to hit PyPI API: {http_err}")
         except requests.Timeout as timeout_exc:
-            logger.debug(f"Failed to hit the PyPI API due a timeout error: {timeout_exc}")
+            logger.debug(f"Failed to hit the PyPI API due to a timeout error: {timeout_exc}")
+        except requests.ConnectionError as connection_err:
+            logger.debug(f"Failed to hit the PyPI API due to a connection error: {connection_err}")
 
         if not response_json:
             return None
