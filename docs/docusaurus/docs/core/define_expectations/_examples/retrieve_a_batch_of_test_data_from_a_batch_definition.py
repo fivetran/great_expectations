@@ -60,14 +60,14 @@ batch = batch_definition.get_batch()
 # These are sample Batch Parameter dictionaries:
 # <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/retrieve_a_batch_of_test_data_from_a_batch_definition.py - sample Batch Parameter dictionaries">
 yearly_batch_parameters = {"year": 2019}
-monthly_batch_parameters = {"year": 2019, "month": 01}
-daily_batch_parameters = {"year": 2019, "month": 01, "day": 01}
+monthly_batch_parameters = {"year": 2019, "month": 1}
+daily_batch_parameters = {"year": 2019, "month": 1, "day": 1}
 # </snippet>
 
 # This code retrieves the Batch from a monthly Batch Definition:
 # <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/retrieve_a_batch_of_test_data_from_a_batch_definition.py - retrieve specific Batch">
 
-batch = batch_definition.get_batch(batch_parameters={"year": 2019, "month": 01})
+batch = batch_definition.get_batch(batch_parameters={"year": 2019, "month": 1})
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/retrieve_a_batch_of_test_data_from_a_batch_definition.py - verify populated Batch">
