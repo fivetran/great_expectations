@@ -8,6 +8,7 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
+    SQL_DATA_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
@@ -22,9 +23,6 @@ PANDAS_DATA_SOURCES: list[DataSourceTestConfig] = [
 ]
 SPARK_DATA_SOURCES: list[DataSourceTestConfig] = [
     ds for ds in ALL_DATA_SOURCES if ds.label.startswith("spark")
-]
-SQL_DATA_SOURCES: list[DataSourceTestConfig] = [
-    ds for ds in ALL_DATA_SOURCES if ds not in PANDAS_DATA_SOURCES and ds not in SPARK_DATA_SOURCES
 ]
 
 
