@@ -87,7 +87,7 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
     def test_postgresql(self, batch_for_datasource) -> None:
         self._assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
-            exception_message='invalid input syntax for type double precision: "b"',
+            exception_message="operator does not exist: numeric * character varying",
         )
 
     @parameterize_batch_for_data_sources(
