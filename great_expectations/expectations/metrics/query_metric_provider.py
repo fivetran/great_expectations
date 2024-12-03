@@ -137,26 +137,26 @@ class QueryMetricProvider(MetricProvider):
 
         if isinstance(batch_selectable, sa.Table):
             query = query.format(batch=batch_selectable, **parameters)
-        elif isinstance(batch_selectable, get_sqlalchemy_subquery_type()):
-            if (
-                not parameters
-                and execution_engine.dialect_name in cls.dialect_columns_require_subquery_aliases
-            ):
-                try:
-                    query = cls._get_query_string_with_substituted_batch_parameters(
-                        query=query,
-                        batch_subquery=batch_selectable,
-                    )
-                except MissingElementError:
-                    # if we are unable to extract the subquery parameters,
-                    # we fall back to the default behavior for all dialects
-                    batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
-                    query = query.format(batch=f"({batch})", **parameters)
-            else:
-                batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
-                query = query.format(batch=f"({batch})", **parameters)
+        # elif isinstance(batch_selectable, get_sqlalchemy_subquery_type()):
+        #     if (
+        #         not parameters
+        #         and execution_engine.dialect_name in cls.dialect_columns_require_subquery_aliases
+        #     ):
+        #         try:
+        #             query = cls._get_query_string_with_substituted_batch_parameters(
+        #                 query=query,
+        #                 batch_subquery=batch_selectable,
+        #             )
+        #         except MissingElementError:
+        #             # if we are unable to extract the subquery parameters,
+        #             # we fall back to the default behavior for all dialects
+        #             batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
+        #             query = query.format(batch=f"({batch})", **parameters)
+        #     else:
+        #         batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
+        #         query = query.format(batch=f"({batch})", **parameters)
         elif isinstance(
-            batch_selectable, sa.sql.Select
+            batch_selectable, (sa.sql.Select, get_sqlalchemy_subquery_type())
         ):  # Specifying a row_condition returns the active batch as a Select object
             # requiring compilation & aliasing when formatting the parameterized query
             batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
