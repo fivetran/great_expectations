@@ -7,6 +7,7 @@ import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -34,11 +35,13 @@ class BigQueryDatasourceTestConfig(DataSourceTestConfig):
         self,
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
+        batch_definition: BatchDefinition,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
         return BigQueryBatchTestSetup(
-            data=data,
             config=self,
+            data=data,
+            batch_definition=batch_definition,
             extra_data=extra_data,
         )
 
