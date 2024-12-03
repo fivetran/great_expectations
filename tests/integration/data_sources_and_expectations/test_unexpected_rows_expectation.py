@@ -17,7 +17,8 @@ from tests.integration.test_utils.data_source_config import (
     SqliteDatasourceTestConfig,
 )
 
-ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+# currently excludes pandas
+ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
     MSSQLDatasourceTestConfig(),
@@ -28,9 +29,20 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     SqliteDatasourceTestConfig(),
 ]
 
+# currently excludes pandas and spark
+PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    BigQueryDatasourceTestConfig(),
+    DatabricksDatasourceTestConfig(),
+    MSSQLDatasourceTestConfig(),
+    MySQLDatasourceTestConfig(),
+    PostgreSQLDatasourceTestConfig(),
+    SnowflakeDatasourceTestConfig(),
+    SqliteDatasourceTestConfig(),
+]
+
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_DATA_SOURCES,
+    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
     data=pd.DataFrame({"a": [1, 2]}),
 )
 def test_unexpected_rows_expectation_batch_keyword_success(
@@ -46,7 +58,7 @@ def test_unexpected_rows_expectation_batch_keyword_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_DATA_SOURCES,
+    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
     data=pd.DataFrame({"a": [1, 2]}),
 )
 def test_unexpected_rows_expectation_batch_keyword_failure(
@@ -62,7 +74,7 @@ def test_unexpected_rows_expectation_batch_keyword_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_DATA_SOURCES,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES,
     data=pd.DataFrame(
         {
             "created_at": [
@@ -89,7 +101,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_DATA_SOURCES,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES,
     data=pd.DataFrame(
         {
             "created_at": [
