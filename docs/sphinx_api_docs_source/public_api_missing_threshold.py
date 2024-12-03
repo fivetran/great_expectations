@@ -164,4 +164,5 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/expectations/core/expect_column_values_to_be_unique.py Name: ExpectColumnValuesToBeUnique",
     "File: great_expectations/expectations/core/expect_compound_columns_to_be_unique.py Name: ExpectCompoundColumnsToBeUnique",
     "File: great_expectations/expectations/core/expect_select_column_values_to_be_unique_within_record.py Name: ExpectSelectColumnValuesToBeUniqueWithinRecord",
+    "File: great_expectations/expectations/core/expect_column_min_to_be_between.py Name: ExpectColumnMinToBeBetween",
 ]
