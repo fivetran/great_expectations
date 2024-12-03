@@ -1,7 +1,7 @@
 # TODO: Write tests
 
 
-from typing import Final, Literal, Mapping, Sequence, Type, TypeAlias
+from typing import TYPE_CHECKING, Final, Literal, Mapping, Sequence, Type
 
 import pandas as pd
 
@@ -14,6 +14,9 @@ from tests.integration.test_utils.data_source_config import (
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 SUPPORTED_DATA_SOURCE_TYPES: Sequence[Type[DataSourceTestConfig]] = [
     DatabricksDatasourceTestConfig,
