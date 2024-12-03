@@ -66,7 +66,7 @@ monthly_batch_parameters = {"year": "2019", "month": "01"}
 daily_batch_parameters = {"year": "2019", "month": "01", "day": "01"}
 
 # Otherwise, pass values as integers
-sql_daily_batch_parameters = {"year": 2019, "month": 1, "day": 1}
+integer_daily_batch_parameters = {"year": 2019, "month": 1, "day": 1}
 
 # </snippet>
 
