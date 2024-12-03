@@ -78,7 +78,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
         name="monthly success", column="created_at"
-    )
+    ).get_batch()
     unexpected_rows_query = "SELECT * FROM {batch} WHERE a > 2"
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect a to be less than 3", unexpected_rows_query=unexpected_rows_query
@@ -105,7 +105,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_failure(
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
         name="monthly failure", column="created_at"
-    )
+    ).get_batch()
     unexpected_rows_query = "SELECT * FROM {batch}"
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect table to be empty", unexpected_rows_query=unexpected_rows_query
