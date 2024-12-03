@@ -6,6 +6,7 @@ The following table lists the installation commands used to install GX Core depe
 | :-- | :-- | 
 | AWS Athena | `pip install 'great_expectations[athena]'` |
 | BigQuery | `pip install 'great_expectations[bigquery]'` |
+| Databricks | `pip install 'great_expectations[databricks]'` |
 | MSSQL | `pip install 'great_expectations[mssql]'` |
 | PostgreSQL | `pip install 'great_expectations[postgresql]'` |
 | Snowflake | `pip install 'great_expectations[snowflake]'` |
