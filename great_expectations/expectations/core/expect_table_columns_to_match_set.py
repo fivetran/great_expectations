@@ -171,7 +171,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
         description=COLUMN_SET_DESCRIPTION
     )
     exact_match: Union[bool, None] = pydantic.Field(
-        default=True, description=EXACT_MATCH_DESCRIPTION
+        default=None, description=EXACT_MATCH_DESCRIPTION
     )
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

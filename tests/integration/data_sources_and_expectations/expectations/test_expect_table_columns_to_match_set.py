@@ -63,6 +63,11 @@ def test_success(
             id="requires_all_columns_for_exact_match",
         ),
         pytest.param(
+            gxe.ExpectTableColumnsToMatchSet(column_set=[COL_A]),
+            marks=pytest.mark.xfail,
+            id="defaults_to_exact_match",
+        ),
+        pytest.param(
             gxe.ExpectTableColumnsToMatchSet(
                 column_set=[COL_A, COL_B, COL_C, "col_d"], exact_match=True
             ),
