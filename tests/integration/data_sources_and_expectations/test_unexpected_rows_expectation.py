@@ -47,15 +47,30 @@ DATA = pd.DataFrame(
             datetime(year=2024, month=12, day=1, tzinfo=timezone.utc).date(),
             datetime(year=2024, month=11, day=30, tzinfo=timezone.utc).date(),
         ],
-        "a": [1, 2],
+        "quantity": [1, 2],
+        "temperature": [75, 92],
+        "color": ["red", "red"],
     }
 )
 
 DATE_COLUMN = "created_at"
 
-SUCCESS_QUERIES = ["SELECT * FROM {batch} WHERE a > 2"]
+SUCCESS_QUERIES = [
+    "SELECT * FROM {batch} WHERE quantity > 2",
+    "SELECT * FROM {batch} WHERE quantity > 2 AND temperature > 92",
+    "SELECT * FROM {batch} WHERE quantity > 2 OR temperature > 91",
+    "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
+    "SELECT * FROM {batch} WHERE SUM(quantity) > 3 GROUP BY color",
+]
 
-FAILURE_QUERIES = ["SELECT * FROM {batch}"]
+FAILURE_QUERIES = [
+    "SELECT * FROM {batch}",
+    "SELECT * FROM {batch} WHERE quantity > 1",
+    "SELECT * FROM {batch} WHERE quantity > 1 AND temperature > 91",
+    "SELECT * FROM {batch} WHERE quantity > 1 OR temperature > 92",
+    "SELECT * FROM {batch} WHERE quantity > 1 ORDER BY quantity DESC",
+    "SELECT * FROM {batch} WHERE SUM(quantity) > 2 GROUP BY color",
+]
 
 
 @parameterize_batch_for_data_sources(
