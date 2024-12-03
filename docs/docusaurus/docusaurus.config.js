@@ -47,7 +47,7 @@ module.exports = {
           `<a style="font-weight:600" href="https://hubs.li/Q02Zfg_h0">[New webinar] Top data quality tactics to boost trust and improve collaboration. Register today!</a>`,
       backgroundColor: '#141432',
       textColor: '#fff',
-      isCloseable: true,
+      isCloseable: false,
     },
     gxCard: {
       title: 'What is GX Cloud?',
