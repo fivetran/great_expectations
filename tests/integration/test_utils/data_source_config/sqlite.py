@@ -6,7 +6,6 @@ import pandas as pd
 import pytest
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -31,18 +30,16 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
         self,
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
-        batch_definition: BatchDefinition,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
         tmp_path = request.getfixturevalue("tmp_path")
         assert isinstance(tmp_path, pathlib.Path)
 
         return SqliteBatchTestSetup(
-            config=self,
             data=data,
-            batch_definition=batch_definition,
-            extra_data=extra_data,
+            config=self,
             base_dir=tmp_path,
+            extra_data=extra_data,
         )
 
 
@@ -51,14 +48,11 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
         self,
         config: SqliteDatasourceTestConfig,
         data: pd.DataFrame,
-        batch_definition: BatchDefinition,
-        extra_data: Mapping[str, pd.DataFrame],
         base_dir: pathlib.Path,
+        extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         self._base_dir = base_dir
-        super().__init__(
-            config=config, data=data, batch_definition=batch_definition, extra_data=extra_data
-        )
+        super().__init__(config=config, data=data, extra_data=extra_data)
 
     @property
     @override

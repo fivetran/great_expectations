@@ -5,7 +5,6 @@ import pandas as pd
 import pytest
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 from tests.integration.test_utils.data_source_config import DataSourceTestConfig
@@ -23,7 +22,6 @@ _F = TypeVar("_F", bound=Callable)
 class TestConfig:
     data_source_config: DataSourceTestConfig
     data: pd.DataFrame
-    batch_definition: BatchDefinition
     extra_data: Mapping[str, pd.DataFrame]
 
     @override
@@ -57,7 +55,6 @@ class TestConfig:
 def parameterize_batch_for_data_sources(
     data_source_configs: Sequence[DataSourceTestConfig],
     data: pd.DataFrame,
-    batch_definition: Optional[BatchDefinition] = None,
     extra_data: Optional[Mapping[str, pd.DataFrame]] = None,
 ) -> Callable[[_F], _F]:
     """Test decorator that parametrizes a test function with batches for various data sources.
@@ -67,8 +64,6 @@ def parameterize_batch_for_data_sources(
     Args:
         data_source_configs: The data source configurations to test.
         data: Data to load into the asset
-        batch_definition: The batch definition to use when partitioning the data.
-                          By default, a `whole table` definition will be used.
         extra_data: Mapping of {asset_label: data} to load into other assets. Only relevant for SQL
                     mutli-table expectations. NOTE: This is NOT the table name. The label is used to
                     correlate the data with the types passed to
@@ -93,10 +88,6 @@ def parameterize_batch_for_data_sources(
                 TestConfig(
                     data_source_config=config,
                     data=data,
-                    batch_definition=batch_definition
-                    or BatchDefinition(
-                        name=BatchTestSetup._random_resource_name(), partitioner=None
-                    ),
                     extra_data=extra_data or {},
                 ),
                 id=config.test_id,
@@ -156,7 +147,6 @@ def _batch_setup_for_datasource(
         batch_setup = config.data_source_config.create_batch_setup(
             request=request,
             data=config.data,
-            batch_definition=config.batch_definition,
             extra_data=config.extra_data,
         )
         _cached_test_configs[config] = batch_setup

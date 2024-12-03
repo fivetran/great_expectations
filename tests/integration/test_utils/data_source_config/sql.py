@@ -17,7 +17,6 @@ from great_expectations.compatibility.sqlalchemy import (
     insert,
     sqltypes,
 )
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
@@ -66,13 +65,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         self,
         config: _ConfigT,
         data: pd.DataFrame,
-        batch_definition: BatchDefinition,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         # self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
-        super().__init__(config=config, data=data, batch_definition=batch_definition)
+        super().__init__(config=config, data=data)
 
     @override
     def make_batch(self) -> Batch:

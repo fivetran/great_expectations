@@ -4,8 +4,6 @@ from typing import Sequence
 import pandas as pd
 
 import great_expectations.expectations as gxe
-from great_expectations.core.batch_definition import BatchDefinition
-from great_expectations.core.partitioners import ColumnPartitionerMonthly
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
@@ -74,13 +72,6 @@ def test_unexpected_rows_expectation_batch_keyword_whole_table_failure(
             "a": [1, 2],
         }
     ),
-    batch_definition=BatchDefinition(
-        name="MONTHLY",
-        partitioner=ColumnPartitionerMonthly(
-            method_name="partition_on_year_and_month",
-            column_name="created_at",
-        ),
-    ),
 )
 def test_unexpected_rows_expectation_batch_keyword_monthly_success(batch_for_datasource) -> None:
     unexpected_rows_query = "SELECT * FROM {batch} WHERE a > 2"
@@ -102,13 +93,6 @@ def test_unexpected_rows_expectation_batch_keyword_monthly_success(batch_for_dat
             ],
             "a": [1, 2],
         }
-    ),
-    batch_definition=BatchDefinition(
-        name="MONTHLY",
-        partitioner=ColumnPartitionerMonthly(
-            method_name="partition_on_year_and_month",
-            column_name="created_at",
-        ),
     ),
 )
 def test_unexpected_rows_expectation_batch_keyword_monthly_failure(batch_for_datasource) -> None:

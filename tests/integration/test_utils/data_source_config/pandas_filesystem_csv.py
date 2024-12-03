@@ -6,7 +6,6 @@ import pandas as pd
 import pytest
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.datasource.fluent.data_asset.path.pandas.generated_assets import CSVAsset
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -31,7 +30,6 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         self,
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
-        batch_definition: BatchDefinition,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
         assert not extra_data, "extra_data is not supported for this data source."
@@ -40,9 +38,8 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         assert isinstance(tmp_path, pathlib.Path)
 
         return PandasFilesystemCsvBatchTestSetup(
-            config=self,
             data=data,
-            batch_definition=batch_definition,
+            config=self,
             base_dir=tmp_path,
         )
 
@@ -54,10 +51,9 @@ class PandasFilesystemCsvBatchTestSetup(
         self,
         config: PandasFilesystemCsvDatasourceTestConfig,
         data: pd.DataFrame,
-        batch_definition: BatchDefinition,
         base_dir: pathlib.Path,
     ) -> None:
-        super().__init__(config=config, data=data, batch_definition=batch_definition)
+        super().__init__(config=config, data=data)
         self._base_dir = base_dir
 
     @cached_property

@@ -11,7 +11,6 @@ import pandas as pd
 
 import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 
@@ -45,7 +44,6 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
         self,
         request: FixtureRequest,
         data: pd.DataFrame,
-        batch_definition: BatchDefinition,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
         """Create a batch setup object for this data source."""
@@ -92,12 +90,9 @@ _AssetT = TypeVar("_AssetT", bound=DataAsset)
 class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
     """ABC for classes that set up and tear down batches."""
 
-    def __init__(
-        self, config: _ConfigT, data: pd.DataFrame, batch_definition: BatchDefinition
-    ) -> None:
+    def __init__(self, config: _ConfigT, data: pd.DataFrame) -> None:
         self.config = config
         self.data = data
-        self.batch_definition = batch_definition
 
     @property
     @abstractmethod
