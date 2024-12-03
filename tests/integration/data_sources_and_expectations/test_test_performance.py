@@ -16,7 +16,6 @@ import pytest
 import sqlalchemy.dialects.postgresql as POSTGRESQL_TYPES
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.pandas_datasource import DataFrameAsset
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -48,10 +47,9 @@ class DummyTestConfig(DataSourceTestConfig):
         self,
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
-        batch_definition: BatchDefinition,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
-        return DummyBatchTestSetup(config=self, data=data, batch_definition=batch_definition)
+        return DummyBatchTestSetup(config=self, data=data)
 
 
 class DummyBatchTestSetup(BatchTestSetup[DummyTestConfig, DataFrameAsset]):
