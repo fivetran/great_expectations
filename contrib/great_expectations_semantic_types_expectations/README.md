@@ -15,6 +15,6 @@ Any data that you can tie to a real-world category or reference is ideal for thi
 
 This package contains a number of Expectations to support validation of Semantically Typed Data.
 
-Author: [Great Expectations](https://github.com/great_expectations/great_expectations)
+Author: [Great Expectations](https://github.com/great-expectations/great_expectations)
 
 [PyPi Link](https://python.org/pypi/great_expectations_semantic_types_expectations)

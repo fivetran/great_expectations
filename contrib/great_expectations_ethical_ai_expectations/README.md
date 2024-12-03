@@ -12,6 +12,6 @@ It's critical that the algorithms fueling these decisions and actions are ethica
 
 Great Expectations facilitates ethical AI by making it faster and easier to turn codes of conduct into actual code that can be quickly applied to data. For example, one common source of bad model performance is degradation in accuracy over time. For example, an Expectation like `expect_column_label_and_predicted_pair_accuracy_to_be_between` could be used to guard against model degradation.
 
-Author: [Great Expectations](https://github.com/great_expectations/great_expectations)
+Author: [Great Expectations](https://github.com/great-expectations/great_expectations)
 
 [PyPi Link](https://python.org/pypi/great_expectations_ethical_ai_expectations)
