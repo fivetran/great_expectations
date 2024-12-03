@@ -73,12 +73,13 @@ def test_unexpected_rows_expectation_batch_keyword_whole_table_failure(
         }
     ),
 )
-def test_unexpected_rows_expectation_batch_keyword_monthly_success(batch_for_datasource) -> None:
+def test_unexpected_rows_expectation_batch_keyword_monthly_success(asset_for_datasource) -> None:
+    batch = asset_for_datasource.add_batch_definition_monthly(name="MONTHLY", column="created_at")
     unexpected_rows_query = "SELECT * FROM {batch} WHERE a > 2"
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect a to be less than 3", unexpected_rows_query=unexpected_rows_query
     )
-    result = batch_for_datasource.validate(expectation)
+    result = batch.validate(expectation)
     assert result.success
     assert result.exception_info.get("raised_exception") is False
 
@@ -95,11 +96,12 @@ def test_unexpected_rows_expectation_batch_keyword_monthly_success(batch_for_dat
         }
     ),
 )
-def test_unexpected_rows_expectation_batch_keyword_monthly_failure(batch_for_datasource) -> None:
+def test_unexpected_rows_expectation_batch_keyword_monthly_failure(asset_for_datasource) -> None:
+    batch = asset_for_datasource.add_batch_definition_monthly(name="MONTHLY", column="created_at")
     unexpected_rows_query = "SELECT * FROM {batch}"
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect table to be empty", unexpected_rows_query=unexpected_rows_query
     )
-    result = batch_for_datasource.validate(expectation)
+    result = batch.validate(expectation)
     assert result.success is False
     assert result.exception_info.get("raised_exception") is False
