@@ -70,7 +70,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         # self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
-        super().__init__(config=config, data=data)
+        super().__init__(config, data)
 
     @override
     def make_batch(self) -> Batch:

@@ -49,7 +49,7 @@ class DummyTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
-        return DummyBatchTestSetup(config=self, data=data)
+        return DummyBatchTestSetup(data=data, config=self)
 
 
 class DummyBatchTestSetup(BatchTestSetup[DummyTestConfig, DataFrameAsset]):
