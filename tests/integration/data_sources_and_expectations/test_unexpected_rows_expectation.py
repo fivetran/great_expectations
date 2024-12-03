@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Sequence
+from uuid import uuid4
 
 import pandas as pd
 import pytest
@@ -117,7 +118,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
     unexpected_rows_query,
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
-        name="monthly success", column=DATE_COLUMN
+        name=uuid4(), column=DATE_COLUMN
     ).get_batch()
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect a to be less than 3", unexpected_rows_query=unexpected_rows_query
@@ -137,7 +138,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_failure(
     unexpected_rows_query,
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
-        name="monthly failure", column=DATE_COLUMN
+        name=uuid4(), column=DATE_COLUMN
     ).get_batch()
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect table to be empty", unexpected_rows_query=unexpected_rows_query
