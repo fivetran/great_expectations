@@ -67,7 +67,7 @@ def parameterize_batch_for_data_sources(
     Args:
         data_source_configs: The data source configurations to test.
         data: Data to load into the asset
-        batch_definition: The batch definition to use when splitting the data.
+        batch_definition: The batch definition to use when partitioning the data.
                           By default, a `whole table` definition will be used.
         extra_data: Mapping of {asset_label: data} to load into other assets. Only relevant for SQL
                     mutli-table expectations. NOTE: This is NOT the table name. The label is used to
