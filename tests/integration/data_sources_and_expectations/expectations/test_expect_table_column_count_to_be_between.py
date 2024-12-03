@@ -91,5 +91,5 @@ def test_failure(
 @pytest.mark.xfail(reason="Fails at validation, but should fail when instantiating")
 @pytest.mark.unit
 def test_valid_range() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="min_value must be less than or equal to max_value"):
         gxe.ExpectTableColumnCountToBeBetween(min_value=5, max_value=4)
