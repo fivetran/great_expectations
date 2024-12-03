@@ -41,6 +41,7 @@ class DatabricksDatasourceTestConfig(DataSourceTestConfig):
             data=data,
             config=self,
             extra_data=extra_data,
+            table_name=self.table_name,
         )
 
 

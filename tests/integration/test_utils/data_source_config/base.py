@@ -24,6 +24,7 @@ _ColumnTypes = TypeVar("_ColumnTypes")
 @dataclass(frozen=True)
 class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     name: Optional[str] = None
+    table_name: Optional[str] = None
     column_types: Optional[Mapping[str, _ColumnTypes]] = None
     extra_column_types: Mapping[str, Mapping[str, _ColumnTypes]] = field(default_factory=dict)
 
