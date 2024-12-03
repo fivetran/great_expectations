@@ -421,7 +421,8 @@ def test__get_parameters_dict_from_query_parameters(
         ),
         (
             sa.select("*").select_from(sa.text("my_table")).subquery(),
-            "SELECT my_column FROM (SELECT * \nFROM my_table) WHERE passenger_count > 7",
+            "SELECT my_column FROM (SELECT * \nFROM my_table) AS subselect "
+            "WHERE passenger_count > 7",
         ),
         (
             sa.select("*").select_from(sa.text("my_table")),
