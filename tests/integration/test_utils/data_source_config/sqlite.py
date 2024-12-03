@@ -40,6 +40,7 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
             config=self,
             base_dir=tmp_path,
             extra_data=extra_data,
+            table_name=self.table_name,
         )
 
 
