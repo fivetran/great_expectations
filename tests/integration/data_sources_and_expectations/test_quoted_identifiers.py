@@ -97,7 +97,7 @@ class TestColumnQuotedIdentifiers:
 
 
 class TestTableQuotedIdentifiers:
-    _TEST__TABLE_NAME: Final[Literal["test_table"]] = "test_table"
+    _TEST_TABLE_NAME: Final[Literal["test_table"]] = "test_table"
     _DATA: Final[pd.DataFrame] = pd.DataFrame({"a": [1, 2, 3]})
 
     _DatabaseType: TypeAlias = Literal["databricks", "postgres", "snowflake", "sqlite"]
@@ -111,36 +111,36 @@ class TestTableQuotedIdentifiers:
     ]
     _TABLE_NAME_MAPPING: Final[Mapping[_DatabaseType, Mapping[_TableNameCase, str]]] = {
         "postgres": {
-            "unquoted_lower": _TEST__TABLE_NAME.lower(),
-            "quoted_lower": f'"{_TEST__TABLE_NAME.lower()}"',
-            "unquoted_upper": _TEST__TABLE_NAME.upper(),
-            "quoted_upper": f'"{_TEST__TABLE_NAME.upper()}"',
-            "quoted_mixed": f'"{_TEST__TABLE_NAME.title()}"',
-            "unquoted_mixed": _TEST__TABLE_NAME.title(),
+            "unquoted_lower": _TEST_TABLE_NAME.lower(),
+            "quoted_lower": f'"{_TEST_TABLE_NAME.lower()}"',
+            "unquoted_upper": _TEST_TABLE_NAME.upper(),
+            "quoted_upper": f'"{_TEST_TABLE_NAME.upper()}"',
+            "quoted_mixed": f'"{_TEST_TABLE_NAME.title()}"',
+            "unquoted_mixed": _TEST_TABLE_NAME.title(),
         },
         "databricks": {
-            "unquoted_lower": _TEST__TABLE_NAME.lower(),
-            "quoted_lower": f"`{_TEST__TABLE_NAME.lower()}`",
-            "unquoted_upper": _TEST__TABLE_NAME.upper(),
-            "quoted_upper": f"`{_TEST__TABLE_NAME.upper()}`",
-            "quoted_mixed": f"`{_TEST__TABLE_NAME.title()}`",
-            "unquoted_mixed": _TEST__TABLE_NAME.title(),
+            "unquoted_lower": _TEST_TABLE_NAME.lower(),
+            "quoted_lower": f"`{_TEST_TABLE_NAME.lower()}`",
+            "unquoted_upper": _TEST_TABLE_NAME.upper(),
+            "quoted_upper": f"`{_TEST_TABLE_NAME.upper()}`",
+            "quoted_mixed": f"`{_TEST_TABLE_NAME.title()}`",
+            "unquoted_mixed": _TEST_TABLE_NAME.title(),
         },
         "snowflake": {
-            "unquoted_lower": _TEST__TABLE_NAME.lower(),
-            "quoted_lower": f'"{_TEST__TABLE_NAME.lower()}"',
-            "unquoted_upper": _TEST__TABLE_NAME.upper(),
-            "quoted_upper": f'"{_TEST__TABLE_NAME.upper()}"',
-            "quoted_mixed": f'"{_TEST__TABLE_NAME.title()}"',
-            "unquoted_mixed": _TEST__TABLE_NAME.title(),
+            "unquoted_lower": _TEST_TABLE_NAME.lower(),
+            "quoted_lower": f'"{_TEST_TABLE_NAME.lower()}"',
+            "unquoted_upper": _TEST_TABLE_NAME.upper(),
+            "quoted_upper": f'"{_TEST_TABLE_NAME.upper()}"',
+            "quoted_mixed": f'"{_TEST_TABLE_NAME.title()}"',
+            "unquoted_mixed": _TEST_TABLE_NAME.title(),
         },
         "sqlite": {
-            "unquoted_lower": _TEST__TABLE_NAME.lower(),
-            "quoted_lower": f'"{_TEST__TABLE_NAME.lower()}"',
-            "unquoted_upper": _TEST__TABLE_NAME.upper(),
-            "quoted_upper": f'"{_TEST__TABLE_NAME.upper()}"',
-            "quoted_mixed": f'"{_TEST__TABLE_NAME.title()}"',
-            "unquoted_mixed": _TEST__TABLE_NAME.title(),
+            "unquoted_lower": _TEST_TABLE_NAME.lower(),
+            "quoted_lower": f'"{_TEST_TABLE_NAME.lower()}"',
+            "unquoted_upper": _TEST_TABLE_NAME.upper(),
+            "quoted_upper": f'"{_TEST_TABLE_NAME.upper()}"',
+            "quoted_mixed": f'"{_TEST_TABLE_NAME.title()}"',
+            "unquoted_mixed": _TEST_TABLE_NAME.title(),
         },
     }
 
