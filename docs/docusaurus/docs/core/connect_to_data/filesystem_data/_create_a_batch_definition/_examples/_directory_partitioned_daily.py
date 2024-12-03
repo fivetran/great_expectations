@@ -18,7 +18,7 @@ batch_definition = file_data_asset.add_batch_definition_daily(
 
 # <snippet name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_directory_partitioned_daily.py - retrieve and verify Batch">
 batch = batch_definition.get_batch(
-    batch_parameters={"year": "2019", "month": "01", "day": "01"}
+    batch_parameters={"year": 2019, "month": 1, "day": 1}
 )
 print(batch.head())
 # </snippet>
