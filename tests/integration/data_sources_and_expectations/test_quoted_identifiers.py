@@ -97,9 +97,10 @@ class TestColumnQuotedIdentifiers:
 
 
 class TestTableQuotedIdentifiers:
-    TEST_TABLE_NAME: Final[Literal["test_table"]] = "test_table"
+    _TEST_TABLE_NAME: Final[Literal["test_table"]] = "test_table"
+    _DATA: Final[pd.DataFrame] = pd.DataFrame({"a": [1, 2, 3]})
 
-    DatabaseType: TypeAlias = Literal["databricks", "postgresql", "snowflake", "sqlite"]
+    DatabaseType: TypeAlias = Literal["databricks", "postgres", "snowflake", "sqlite"]
     TableNameCase: TypeAlias = Literal[
         "quoted_lower",
         "quoted_mixed",
@@ -108,39 +109,38 @@ class TestTableQuotedIdentifiers:
         "unquoted_mixed",
         "unquoted_upper",
     ]
-
     TABLE_NAME_MAPPING: Final[Mapping[DatabaseType, Mapping[TableNameCase, str]]] = {
         "postgres": {
-            "unquoted_lower": TEST_TABLE_NAME.lower(),
-            "quoted_lower": f'"{TEST_TABLE_NAME.lower()}"',
-            "unquoted_upper": TEST_TABLE_NAME.upper(),
-            "quoted_upper": f'"{TEST_TABLE_NAME.upper()}"',
-            "quoted_mixed": f'"{TEST_TABLE_NAME.title()}"',
-            "unquoted_mixed": TEST_TABLE_NAME.title(),
+            "unquoted_lower": _TEST_TABLE_NAME.lower(),
+            "quoted_lower": f'"{_TEST_TABLE_NAME.lower()}"',
+            "unquoted_upper": _TEST_TABLE_NAME.upper(),
+            "quoted_upper": f'"{_TEST_TABLE_NAME.upper()}"',
+            "quoted_mixed": f'"{_TEST_TABLE_NAME.title()}"',
+            "unquoted_mixed": _TEST_TABLE_NAME.title(),
         },
         "databricks": {
-            "unquoted_lower": TEST_TABLE_NAME.lower(),
-            "quoted_lower": f"`{TEST_TABLE_NAME.lower()}`",
-            "unquoted_upper": TEST_TABLE_NAME.upper(),
-            "quoted_upper": f"`{TEST_TABLE_NAME.upper()}`",
-            "quoted_mixed": f"`{TEST_TABLE_NAME.title()}`",
-            "unquoted_mixed": TEST_TABLE_NAME.title(),
+            "unquoted_lower": _TEST_TABLE_NAME.lower(),
+            "quoted_lower": f"`{_TEST_TABLE_NAME.lower()}`",
+            "unquoted_upper": _TEST_TABLE_NAME.upper(),
+            "quoted_upper": f"`{_TEST_TABLE_NAME.upper()}`",
+            "quoted_mixed": f"`{_TEST_TABLE_NAME.title()}`",
+            "unquoted_mixed": _TEST_TABLE_NAME.title(),
         },
         "snowflake": {
-            "unquoted_lower": TEST_TABLE_NAME.lower(),
-            "quoted_lower": f'"{TEST_TABLE_NAME.lower()}"',
-            "unquoted_upper": TEST_TABLE_NAME.upper(),
-            "quoted_upper": f'"{TEST_TABLE_NAME.upper()}"',
-            "quoted_mixed": f'"{TEST_TABLE_NAME.title()}"',
-            "unquoted_mixed": TEST_TABLE_NAME.title(),
+            "unquoted_lower": _TEST_TABLE_NAME.lower(),
+            "quoted_lower": f'"{_TEST_TABLE_NAME.lower()}"',
+            "unquoted_upper": _TEST_TABLE_NAME.upper(),
+            "quoted_upper": f'"{_TEST_TABLE_NAME.upper()}"',
+            "quoted_mixed": f'"{_TEST_TABLE_NAME.title()}"',
+            "unquoted_mixed": _TEST_TABLE_NAME.title(),
         },
         "sqlite": {
-            "unquoted_lower": TEST_TABLE_NAME.lower(),
-            "quoted_lower": f'"{TEST_TABLE_NAME.lower()}"',
-            "unquoted_upper": TEST_TABLE_NAME.upper(),
-            "quoted_upper": f'"{TEST_TABLE_NAME.upper()}"',
-            "quoted_mixed": f'"{TEST_TABLE_NAME.title()}"',
-            "unquoted_mixed": TEST_TABLE_NAME.title(),
+            "unquoted_lower": _TEST_TABLE_NAME.lower(),
+            "quoted_lower": f'"{_TEST_TABLE_NAME.lower()}"',
+            "unquoted_upper": _TEST_TABLE_NAME.upper(),
+            "quoted_upper": f'"{_TEST_TABLE_NAME.upper()}"',
+            "quoted_mixed": f'"{_TEST_TABLE_NAME.title()}"',
+            "unquoted_mixed": _TEST_TABLE_NAME.title(),
         },
     }
 
@@ -157,7 +157,7 @@ class TestTableQuotedIdentifiers:
             ),
             SqliteDatasourceTestConfig(table_name=TABLE_NAME_MAPPING["sqlite"]["unquoted_lower"]),
         ],
-        data=pd.DataFrame({"a": [1, 2, 3]}),
+        data=_DATA,
     )
     def test_unquoted_lower(self, batch_for_datasource: Batch):
         result = batch_for_datasource.validate(gxe.ExpectTableRowCountToEqual(value=3))
@@ -176,7 +176,7 @@ class TestTableQuotedIdentifiers:
             ),
             SqliteDatasourceTestConfig(table_name=TABLE_NAME_MAPPING["sqlite"]["quoted_lower"]),
         ],
-        data=pd.DataFrame({"a": [1, 2, 3]}),
+        data=_DATA,
     )
     def test_quoted_lower(self, batch_for_datasource: Batch):
         result = batch_for_datasource.validate(gxe.ExpectTableRowCountToEqual(value=3))
@@ -195,7 +195,7 @@ class TestTableQuotedIdentifiers:
             ),
             SqliteDatasourceTestConfig(table_name=TABLE_NAME_MAPPING["sqlite"]["unquoted_upper"]),
         ],
-        data=pd.DataFrame({"a": [1, 2, 3]}),
+        data=_DATA,
     )
     def test_unquoted_upper(self, batch_for_datasource: Batch):
         result = batch_for_datasource.validate(gxe.ExpectTableRowCountToEqual(value=3))
@@ -214,7 +214,7 @@ class TestTableQuotedIdentifiers:
             ),
             SqliteDatasourceTestConfig(table_name=TABLE_NAME_MAPPING["sqlite"]["quoted_upper"]),
         ],
-        data=pd.DataFrame({"a": [1, 2, 3]}),
+        data=_DATA,
     )
     def test_quoted_upper(self, batch_for_datasource: Batch):
         result = batch_for_datasource.validate(gxe.ExpectTableRowCountToEqual(value=3))
@@ -233,7 +233,7 @@ class TestTableQuotedIdentifiers:
             ),
             SqliteDatasourceTestConfig(table_name=TABLE_NAME_MAPPING["sqlite"]["unquoted_mixed"]),
         ],
-        data=pd.DataFrame({"a": [1, 2, 3]}),
+        data=_DATA,
     )
     def test_unquoted_mixed(self, batch_for_datasource: Batch):
         result = batch_for_datasource.validate(gxe.ExpectTableRowCountToEqual(value=3))
@@ -252,7 +252,7 @@ class TestTableQuotedIdentifiers:
             ),
             SqliteDatasourceTestConfig(table_name=TABLE_NAME_MAPPING["sqlite"]["quoted_mixed"]),
         ],
-        data=pd.DataFrame({"a": [1, 2, 3]}),
+        data=_DATA,
     )
     def test_quoted_mixed(self, batch_for_datasource: Batch):
         result = batch_for_datasource.validate(gxe.ExpectTableRowCountToEqual(value=3))
