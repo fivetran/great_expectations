@@ -34,7 +34,7 @@ Here is a side-by-side comparison of a suite called `suite_for_yellow_tripdata`:
    ]}
 >
     <TabItem value="v0_expectation_suite_config" label="V0 Expectation Suite Configuration">
-    ```json
+    ```json title="JSON"
     {
         "expectation_suite_name": "suite_for_yellow_tripdata",
         "data_asset_type": "CSVAsset",
@@ -74,7 +74,7 @@ Here is a side-by-side comparison of a suite called `suite_for_yellow_tripdata`:
     ```
     </TabItem>
     <TabItem value="v1_expectation_suite_config" label="V1 Expectation Suite Configuration">
-    ```json
+    ```json title="JSON"
     {
         "name": "suite_for_yellow_tripdata",
         "suite_parameters": {
@@ -154,7 +154,7 @@ The suites above were created with the following API calls. This example demonst
    ]}
 >
     <TabItem value="v0_expectation_suite_api" label="V0 Expectation Suite API">
-    ```python
+    ```python title="Python"
     suite = context.add_expectation_suite(
         expectation_suite_name="suite_for_yellow_tripdata",
         meta={"foo": "bar", "notes": "Here are some suite notes."},
@@ -168,7 +168,7 @@ The suites above were created with the following API calls. This example demonst
     ```
     </TabItem>
     <TabItem value="v1_expectation_suite_api" label="V1 Expectation Suite API">
-    ```python
+    ```python title="Python"
     suite = context.suites.add(
         gx.ExpectationSuite(
             name="suite_for_yellow_tripdata",
@@ -203,7 +203,7 @@ Here is a side-by-side comparison of a Data Source called `pandas_fs_ds` with 4 
    ]}
 >
     <TabItem value="v0_pandas_filesystem_config" label="V0 Pandas Filesystem Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         pandas_fs_ds:
             type: pandas_filesystem
@@ -224,7 +224,7 @@ Here is a side-by-side comparison of a Data Source called `pandas_fs_ds` with 4 
     ```
     </TabItem>
     <TabItem value="v1_pandas_filesystem_config" label="V1 Pandas Filesystem Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         pandas_fs_ds:
             type: pandas_filesystem
@@ -306,7 +306,7 @@ We no longer support arbitrary batching regexes. Batches must be defined by one 
    ]}
 >
     <TabItem value="v0_pandas_filesystem_creation" label="V0 Pandas Filesystem Creation via API">
-    ```python
+    ```python title="Python"
     # Pandas Filesystem Data Source
     datasource = context.sources.add_pandas_filesystem(name="pd_fs_ds", base_directory="data")
 
@@ -318,7 +318,7 @@ We no longer support arbitrary batching regexes. Batches must be defined by one 
     ```
     </TabItem>
     <TabItem value="v1_pandas_filesystem_creation" label="V1 Pandas Filesystem Creation via API">
-    ```python
+    ```python title="Python"
     # Pandas Filesystem Data Source
     data_source = context.data_sources.add_pandas_filesystem(name="pd_fs_ds", base_directory="data")
 
@@ -343,7 +343,7 @@ We no longer support arbitrary batching regexes. Batches must be defined by one 
    ]}
 >
     <TabItem value="v0_pandas_dataframe_config" label="V0 Pandas Dataframe Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
     pd_df_ds:
         type: pandas
@@ -354,7 +354,7 @@ We no longer support arbitrary batching regexes. Batches must be defined by one 
     ```
     </TabItem>
     <TabItem value="v1_pandas_dataframe_config" label="V1 Pandas Dataframe Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         pd_df_ds:
             type: pandas
@@ -402,13 +402,13 @@ In both `V0` and `V1` a pandas Data Source reads in data from a pandas dataframe
    ]}
 >
     <TabItem value="v0_pandas_dataframe_creation" label="V0 Pandas Dataframe Creation via API">
-    ```python
+    ```python title="Python"
     dataframe_ds = context.sources.add_pandas(name="pd_df_ds")
     dataframe_asset = dataframe_ds.add_dataframe_asset(name="taxi_dataframe_asset")
     ```
     </TabItem>
     <TabItem value="v1_pandas_dataframe_creation" label="V1 Pandas Dataframe Creation via API">
-    ```python
+    ```python title="Python"
     dataframe_ds = context.data_sources.add_pandas(name="pd_df_ds")
     dataframe_asset = dataframe_ds.add_dataframe_asset(name="taxi_dataframe_asset")
     dataframe_bd = dataframe_asset.add_batch_definition_whole_dataframe(name="taxi_dataframe_batch_def")
@@ -428,7 +428,7 @@ Here is a side-by-side comparision of a both a `V0` Snowflake table and query Da
    ]}
 >
     <TabItem value="v0_snowflake_config" label="V0 Snowflake Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         snowflake_ds:
             type: snowflake
@@ -524,7 +524,7 @@ Here is a side-by-side comparision of a both a `V0` Snowflake table and query Da
     ```
     </TabItem>
     <TabItem value="v1_snowflake_config" label="V1 Snowflake Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         snowflake_ds:
             type: snowflake
@@ -645,7 +645,7 @@ A few configurations are **NO LONGER SUPPORTED**:
    ]}
 >
     <TabItem value="v0_snowflake_creation" label="V0 Snowflake Creation via API">
-    ```python
+    ```python title="Python"
     # Create datasource
     connection_string = "snowflake://<user_login_name>:<password>@<account_identifier>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>"
     snowflake_ds = context.sources.add_snowflake(name="snowflake_ds", connection_string=connection_string)
@@ -670,7 +670,7 @@ A few configurations are **NO LONGER SUPPORTED**:
     ```
     </TabItem>
     <TabItem value="v1_snowflake_creation" label="V1 Snowflake Creation via API">
-    ```python
+    ```python title="Python"
     # Create datasource
     connection_string = "snowflake://<user_login_name>:<password>@<account_identifier>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>"
     snowflake_ds = context.sources.add_snowflake(name="snowflake_ds", connection_string=connection_string)
@@ -714,7 +714,7 @@ The provided connection string is a sample dataset GX maintains.
    ]}
 >
     <TabItem value="v0_postgres_config" label="V0 Postgres Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         postgres_ds:
             type: postgres
@@ -809,7 +809,7 @@ The provided connection string is a sample dataset GX maintains.
     ```
     </TabItem>
     <TabItem value="v1_postgres_config" label="V1 Postgres Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         postgres_ds:
             type: postgres
@@ -885,7 +885,7 @@ The provided connection string is a sample dataset GX maintains.
    ]}
 >
     <TabItem value="v0_postgres_creation" label="V0 Postgres Creation via API">
-    ```python
+    ```python title="Python"
     # Creating a datasource
     connection_string = "postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_example_db"
     ds = context.sources.add_postgres(name="postgres_ds", connection_string=connection_string)
@@ -910,7 +910,7 @@ The provided connection string is a sample dataset GX maintains.
     ```
     </TabItem>
     <TabItem value="v1_postgres_creation" label="V1 Postgres Creation via API">
-    ```python 
+    ```python title="Python" 
     # Creating a datasource
     connection_string = "postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_example_db"
     ds = context.data_sources.add_postgres(name="postgres_ds", connection_string=connection_string)
@@ -945,7 +945,7 @@ This is almost identical to the pandas filesystem and we only present a daily an
    ]}
 >
     <TabItem value="v0_spark_filesystem_config" label="V0 Spark Filesystem Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         spark_fs:
             type: spark_filesystem
@@ -963,7 +963,7 @@ This is almost identical to the pandas filesystem and we only present a daily an
     ```
     </TabItem>
     <TabItem value="v1_spark_filesystem_config" label="V1 Spark Filesystem Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         spark_fs:
             type: spark_filesystem
@@ -1005,7 +1005,7 @@ This is almost identical to the pandas filesystem and we only present a daily an
    ]}
 >
     <TabItem value="v0_spark_filesystem_api" label="V0 Spark Filesystem API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
     context = gx.get_context(mode="file")
 
@@ -1015,7 +1015,7 @@ This is almost identical to the pandas filesystem and we only present a daily an
     ```
     </TabItem>
     <TabItem value="v1_spark_filesystem_api" label="V1 Spark Filesystem API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
     context = gx.get_context(mode="file")
 
@@ -1039,7 +1039,7 @@ Here is a side-by-side comparison of the Spark dataframe data source configurati
    ]}
 >
     <TabItem value="v0_spark_dataframe_config" label="V0 Spark Dataframe Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         spark_ds:
             type: spark
@@ -1054,7 +1054,7 @@ Here is a side-by-side comparison of the Spark dataframe data source configurati
     ```
     </TabItem>
     <TabItem value="v1_spark_dataframe_config" label="V1 Spark Dataframe Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         spark_ds:
             type: spark
@@ -1086,7 +1086,7 @@ Here is a side-by-side comparison of the Spark dataframe data source configurati
    ]}
 >
     <TabItem value="v0_spark_dataframe_api" label="V0 Spark Dataframe API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
     context = gx.get_context(mode="file")
 
@@ -1095,7 +1095,7 @@ Here is a side-by-side comparison of the Spark dataframe data source configurati
     ```
     </TabItem>
     <TabItem value="v1_spark_dataframe_api" label="V1 Spark Dataframe API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
     context = gx.get_context(mode="file")
 
@@ -1122,7 +1122,7 @@ In V0, we split the data based on an exact string. In V1, our batch definitions 
    ]}
 >
     <TabItem value="v0_spark_directory_asset_config" label="V0 Spark Directory Asset Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         spark:
             type: spark_filesystem
@@ -1138,7 +1138,7 @@ In V0, we split the data based on an exact string. In V1, our batch definitions 
     ```
     </TabItem>
     <TabItem value="v1_spark_directory_asset_config" label="V1 Spark Directory Asset Config">
-    ```yaml
+    ```yaml title="YAML"
     fluent_datasources:
         spark:
             type: spark_filesystem
@@ -1175,7 +1175,7 @@ The configuration for `0.X` because we only allow splitting the data into batche
    ]}
 >
     <TabItem value="v0_spark_directory_asset_api" label="V0 Spark Directory Asset API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
 
     context = gx.get_context(mode="file")
@@ -1190,7 +1190,7 @@ The configuration for `0.X` because we only allow splitting the data into batche
     ```
     </TabItem>
     <TabItem value="v1_spark_directory_asset_api" label="V1 Spark Directory Asset API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
 
     context = gx.get_context(mode="file")
@@ -1234,7 +1234,7 @@ The V0 configuration lives in `gx/checkpoints/<CHECKPOINT_NAME>.yml`. In V1, the
    ]}
 >
     <TabItem value="v0_checkpoints_yaml" label="V0: gx/checkpoints/my_checkpoint.yml">
-    ```yaml
+    ```yaml title="YAML"
     name: my_checkpoint
     config_version: 1.0
     template_name:
@@ -1280,7 +1280,7 @@ The V0 configuration lives in `gx/checkpoints/<CHECKPOINT_NAME>.yml`. In V1, the
     </TabItem>
     <TabItem value="v1_checkpoints_yaml" label="V1: gx/checkpoints/my_checkpoint and gx/validation_definitions/my_validation_definition">
     **gx/validation_definitions/my_validation_definition**
-    ```json
+    ```json title="JSON"
     {
         "data": {
             "asset": {
@@ -1306,7 +1306,7 @@ The V0 configuration lives in `gx/checkpoints/<CHECKPOINT_NAME>.yml`. In V1, the
     ```
 
     **gx/checkpoints/my_checkpoint**
-    ```json
+    ```json title="JSON"
     {
         "actions": [
             {
@@ -1403,7 +1403,7 @@ We provide a mapping from the V0 fields to the V1 fields along with any new V1 f
    ]}
 >
     <TabItem value="v0_checkpoint_api" label="V0 Checkpoint API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
     from great_expectations.checkpoint import EmailAction
 
@@ -1470,7 +1470,7 @@ We provide a mapping from the V0 fields to the V1 fields along with any new V1 f
     ```
     </TabItem>
     <TabItem value="v1_checkpoint_api" label="V1 Checkpoint API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
     import great_expectations.expectations as gxe
 
@@ -1525,7 +1525,7 @@ One unique thing to notice is that while in the API code snippet below all actio
    ]}
 >
     <TabItem value="v0_checkpoint_case_2" label="V0 Checkpoint Configuration">
-    ```yaml
+    ```yaml title="YAML"
     name: my_checkpoint
     config_version: 1.0
     template_name:
@@ -1595,7 +1595,7 @@ One unique thing to notice is that while in the API code snippet below all actio
    ]}
 >
     <TabItem value="v0_checkpoint_case_2_api" label="V0 Checkpoint API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
 
     context = gx.get_context(mode="file")
@@ -1674,7 +1674,7 @@ We only show the V0 configuration and code samples here because the V1 configura
    ]}
 >
     <TabItem value="v0_checkpoint_case_3" label="V0 Checkpoint Configuration">
-    ```yaml
+    ```yaml title="YAML"
     name: top_level_and_validation_checkpoint
     config_version: 1.0
     template_name:
@@ -1733,7 +1733,7 @@ We only show the V0 configuration and code samples here because the V1 configura
    ]}
 >
     <TabItem value="v0_checkpoint_case_3_api" label="V0 Checkpoint API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
 
     context = gx.get_context(mode="file")
@@ -1812,7 +1812,7 @@ We only show the V0 configuration and code samples here because the V1 configura
    ]}
 >
     <TabItem value="v0_checkpoint_case_4" label="V0 Checkpoint Configuration">
-    ```yaml
+    ```yaml title="YAML"
     name: top_level_and_validation_override_checkpoint
     config_version: 1.0
     template_name:
@@ -1871,7 +1871,7 @@ We only show the V0 configuration and code samples here because the V1 configura
    ]}
 >
     <TabItem value="v0_checkpoint_case_4_api" label="V0 Checkpoint API">
-    ```python
+    ```python title="Python"
     import great_expectations as gx
 
     context = gx.get_context(mode="file")
@@ -1960,7 +1960,7 @@ The Data Context variables will be automatically converted for GX Cloud users wh
    ]}
 >
     <TabItem value="v0_data_context_config" label="V0 Data Context Configuration">
-    ```yaml
+    ```yaml title="YAML"
     config_version: 3.0
     config_variables_file_path: uncommitted/config_variables.yml
     plugins_directory: plugins/
@@ -2025,7 +2025,7 @@ The Data Context variables will be automatically converted for GX Cloud users wh
     ```
     </TabItem>
     <TabItem value="v1_data_context_config" label="V0 Data Context Configuration">
-    ```yaml
+    ```yaml title="YAML"
     config_version: 4.0
     config_variables_file_path: uncommitted/config_variables.yml
     plugins_directory: plugins/
@@ -2136,7 +2136,7 @@ In previous versions of GX, we supported a number of configurable backend stores
 #### V1 API
 In V1, the configuration for all data context variables can be changed via the Python API. For a data context named context one can view via `context.variables.<variable_name>` and update via:
 
-```python
+```python title="Python"
 context.variables.<variable_name> = new_value
 context.variables.save()
 

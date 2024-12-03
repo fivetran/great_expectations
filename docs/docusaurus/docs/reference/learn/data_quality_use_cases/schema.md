@@ -210,7 +210,7 @@ Gallery](https://greatexpectations.io/expectations/expect_table_column_count_to_
 ```
 
 **Result**:
-```
+```python title="Python output"
 Strict validation passes: True
 Relaxed validation passes: True
 ```

@@ -152,7 +152,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
 
 2. Run the following command to provide the access credentials to the Kubernetes container:
     
-   ```sh
+   ```bash title="Terminal input"
    kubectl create secret generic gx-agent-secret \
    --from-literal=GX_CLOUD_ORGANIZATION_ID=YOUR_ORGANIZATION_ID \
    --from-literal=GX_CLOUD_ACCESS_TOKEN=YOUR_ACCESS_TOKEN \
@@ -163,7 +163,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
 
 4. Create and save a file named `deployment.yaml`, with the following configuration:
 
-   ```yaml
+   ```yaml title="deployment.yaml"
    apiVersion: apps/v1
    kind: Deployment
    metadata:
@@ -190,17 +190,17 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
    ```
 5. Run the following command to use the `deployment.yaml`configuration file to deploy the GX Agent:
 
-   ```sh
+   ```bash title="Terminal input"
    kubectl apply -f deployment.yaml
    ```
 6. Optional. Run the following command to confirm the agent is running:
 
-   ```sh
+   ```bash title="Terminal input"
    kubectl logs -l app=gx-agent
    ```
 7. Optional. Run the following command to terminate running resources gracefully:
 
-   ```sh
+   ```bash title="Terminal input"
    kubectl delete -f deployment.yaml
    kubectl delete secret gx-agent-secret
    ```

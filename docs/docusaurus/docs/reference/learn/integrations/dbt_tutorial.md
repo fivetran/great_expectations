@@ -33,7 +33,7 @@ In addition to the prerequisites below, you are recommneded to use an IDE like V
 
 Open a terminal window and navigate to the folder you want to use for this tutorial. Next, clone the example [GitHub repo](https://github.com/greatexpectationslabs/dbt-tutorial) for this project by running the code below in your terminal.
 
-```bash
+```bash title="Terminal input"
 git clone https://github.com/greatexpectationslabs/dbt-tutorial.git
 cd dbt-tutorial/tutorial-dbt-gx-airflow
 mkdir data
@@ -43,7 +43,7 @@ mkdir ssh-keys
 
 After completing the steps above, your folder structure should look like this:
 
-```
+```bash title="Folder structure"
 dbt-tutorial
 └── tutorial-dbt-gx-airflow/
     ├── airflow/
@@ -90,12 +90,12 @@ This tutorial does not include a full explanation of the Docker Compose file. Ho
 You will need to generate a key pair that you will use in our Docker services to securely authenticate with each other. You can read more about how SSH keys work [here](https://www.foxpass.com/blog/learn-ssh-keys-in-minutes/).
 
 Run the following command in a terminal window inside of the `tutorial-dbt-gx-airflow` directory:
-```bash
+```bash title="Terminal input"
 ssh-keygen -t rsa -b 4096 -f ./ssh-keys/id_rsa -N ""
 ```
 Double check that at this point, your project structure looks like this:
 
-```
+```bash title="Folder structure"
 dbt-tutorial/
 └── tutorial-dbt-gx-airflow/
     ├── airflow/
@@ -118,7 +118,7 @@ Ensure Docker desktop is open and running. Next, you will initialize and connect
 
 Using a command prompt in your `tutorial-dbt-gx-airflow` directory, run the following to start all of the services:
 
-```bash
+```bash title="Terminal input"
 docker compose up -d --build
 ```
 
@@ -163,7 +163,7 @@ You will now be able to see your empty database when you look under the public s
 The dbt project that is included from GitHub has some initial datasets in the form of [seed files](https://docs.getdbt.com/docs/build/seeds). You will import these seed files into the database as tables and then use these tables as the data source for the rest of our dbt models.
 
 Open the dbt Docker container’s terminal via running the following command in your project’s terminal:
-```bash
+```bash title="Terminal input"
 docker exec -it dbt bash -l
 ```
 
@@ -173,7 +173,7 @@ Here you are using the `docker exec` command to open an interactive terminal ins
 
 Next, run the `dbt deps` command to install dependencies. Then, copy the seed data into the seeds folder by running `cp jaffle-data/*.csv` and run the `dbt seed` command to import the data into the PostgreSQL database. By default, it will import the data into a new schema called `jaffle_shop_raw`. This step might take a few minutes to complete.
 
-```bash
+```bash title="Terminal input"
 dbt deps
 cp jaffle-data/*.csv seeds
 dbt seed
@@ -186,7 +186,7 @@ In pgAdmin you can now see the newly created tables in the new schema.
 ![Raw tables created](./dbt_tutorial/raw_tables.png)
 
 Run the rest of the dbt models by running the command below in the dbt service command line:
-```bash
+```bash title="Terminal input"
 dbt run
 ```
 
@@ -195,7 +195,7 @@ You will see the models have been created successfully as tables and views withi
 ![Seeded tables](./dbt_tutorial/seeded_tables.png)
 
 To exit the dbt Docker container's terminal, run the following command:
-```bash
+```bash title="Terminal input"
 exit
 ```
 
@@ -204,7 +204,7 @@ In the next section of this tutorial, you will follow the [Getting Started](http
 
 ### Initialize the Jupyter Notebook Server
 Run the following command within the project directory to start the Jupyter Notebook server:
-```bash
+```bash title="Terminal input"
 docker exec great-expectations jupyter notebook --allow-root --no-browser --ip=0.0.0.0
 ```
 
@@ -221,7 +221,7 @@ This section of the tutorial will demonstrate how to configure GX and create an 
 
 Start by naming the Notebook `customer_expectations.ipynb`, or a name of your choosing. The following lines of code import the modules you will need to use GX and create a Data Context. This example stores the GX configuration to the file system.
 
-```python
+```python title="Python"
 import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations.checkpoint import UpdateDataDocsAction
@@ -235,7 +235,7 @@ You can either press the b button on your keyboard or press the “Insert a cell
 
 
 A Data Source is the GX representation of a data store. In this tutorial, you are using a PostgreSQL data source, but you can also connect to others, including Pandas, Snowflake and Databricks. A Data Asset is the GX representation of a collection of records within a Data Source which are usually grouped based on the underlying data system. In this tutorial, you create a Batch Definition for the whole `customers` table, but you can also create batches based on a date column within the table.
-```python
+```python title="Python"
 ## Connect to your data
 
 PG_CONNECTION_STRING = "postgresql+psycopg2://postgres:postgres@database/postgres"
@@ -245,7 +245,7 @@ bd = asset.add_batch_definition_whole_table("BD")
 ```
 An Expectation Suite is a group of Expectations that describe how data should be tested. A Validation Definition links an Expectation Suite to the data it describes via the Batch Definition you created in the previous step. You can then add Expectations to the Expectation Suite. In this example, you create an Expectation to check that the `customer_id` column values are never null. Separately, you create another Expectation to check that the values of the `lifetime_spend` column are between 0 and 100000. Browse the [Expectations Gallery](https://greatexpectations.io/expectations/) to explore all available Expectations you can use to gain insight into your data.
 
-```python
+```python title="Python"
 ## Create Expectations
 suite = context.suites.add(gx.ExpectationSuite("Suite"))
 vd = gx.ValidationDefinition(
@@ -261,7 +261,7 @@ suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="lifetime_spend",
 
 A Checkpoint is an object that groups Validation Definitions and runs them with shared parameters and automated Actions. Checkpoints are the primary means for validating data in a production deployment of Great Expectations. In this tutorial, you update the Data Docs, which is a static website generated from Great Expectations metadata detailing Expectations, Validation Results, etc.
 
-```python
+```python title="Python"
 ## Validate your data
 checkpoint = context.checkpoints.add(gx.Checkpoint(
     name="Checkpoint",
@@ -298,13 +298,13 @@ And you will see an empty DAGs dashboard:
 ### Create a DAG and add a connection
 Create a new Airflow DAG using the command in the root of your project directory:
 
-```bash
+```bash title="Terminal input"
 touch airflow/dags/customers_dag.py
 ```
 
 Copy the contents below into your new DAG file:
 
-```python
+```python title="Python"
 from datetime import datetime
 from airflow import DAG
 from airflow.providers.ssh.operators.ssh import SSHOperator
@@ -347,7 +347,7 @@ This DAG file contains the process above, however executing the GX Checkpoint is
 
 After a few minutes, the new pipleline will appear in Airflow. Next, you will receive the following error:
 
-```
+```python title="Error"
 Broken DAG: [/opt/airflow/dags/customers_dag.py] Traceback (most recent call last):
   File "home/airflow/.local/lib/python3.11/site-packages/airflow/hooks/base.py", line 67, in get_connection
     conn = Connection.get_connection_from_secrets(conn_id)
