@@ -68,8 +68,8 @@ def test_unexpected_rows_expectation_batch_keyword_whole_table_failure(
     data=pd.DataFrame(
         {
             "created_at": [
-                datetime(year=2024, month=12, day=1, tzinfo=timezone.utc),
-                datetime(year=2024, month=11, day=31, tzinfo=timezone.utc),
+                datetime(year=2024, month=12, day=1, tzinfo=timezone.utc).date(),
+                datetime(year=2024, month=11, day=30, tzinfo=timezone.utc).date(),
             ],
             "a": [1, 2],
         }
@@ -97,8 +97,8 @@ def test_unexpected_rows_expectation_batch_keyword_monthly_success(batch_for_dat
     data=pd.DataFrame(
         {
             "created_at": [
-                datetime(year=2024, month=12, day=1, tzinfo=timezone.utc),
-                datetime(year=2024, month=11, day=31, tzinfo=timezone.utc),
+                datetime(year=2024, month=12, day=1, tzinfo=timezone.utc).date(),
+                datetime(year=2024, month=11, day=30, tzinfo=timezone.utc).date(),
             ],
             "a": [1, 2],
         }

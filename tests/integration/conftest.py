@@ -94,7 +94,9 @@ def parameterize_batch_for_data_sources(
                     data_source_config=config,
                     data=data,
                     batch_definition=batch_definition
-                    or BatchDefinition(name="WHOLE_TABLE", partitioner=None),
+                    or BatchDefinition(
+                        name=BatchTestSetup._random_resource_name(), partitioner=None
+                    ),
                     extra_data=extra_data or {},
                 ),
                 id=config.test_id,
