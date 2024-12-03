@@ -56,7 +56,9 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
         base_dir: pathlib.Path,
     ) -> None:
         self._base_dir = base_dir
-        super().__init__(config=config, data=data, extra_data=extra_data)
+        super().__init__(
+            config=config, data=data, batch_definition=batch_definition, extra_data=extra_data
+        )
 
     @property
     @override

@@ -70,10 +70,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         extra_data: Mapping[str, pd.DataFrame],
     ) -> None:
         # self.engine = create_engine(url=self.connection_string)
-        self.batch_definition = batch_definition
         self.extra_data = extra_data
         self.metadata = MetaData()
-        super().__init__(config, data)
+        super().__init__(config=config, data=data, batch_definition=batch_definition)
 
     @override
     def make_batch(self) -> Batch:
