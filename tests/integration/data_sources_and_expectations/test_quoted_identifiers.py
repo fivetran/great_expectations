@@ -38,10 +38,10 @@ TABLE_NAME_MAPPING: Final[Mapping[DatabaseType, Mapping[TableNameCase, str]]] = 
     "postgres": {
         "unquoted_lower": TEST_TABLE_NAME.lower(),
         "quoted_lower": f'"{TEST_TABLE_NAME.lower()}"',
-        # "unquoted_upper": TEST_TABLE_NAME.upper(),
+        "unquoted_upper": TEST_TABLE_NAME.upper(),
         "quoted_upper": f'"{TEST_TABLE_NAME.upper()}"',
         "quoted_mixed": f'"{TEST_TABLE_NAME.title()}"',
-        # "unquoted_mixed": TEST_TABLE_NAME.title(),
+        "unquoted_mixed": TEST_TABLE_NAME.title(),
     },
     "databricks": {
         "unquoted_lower": TEST_TABLE_NAME.lower(),
