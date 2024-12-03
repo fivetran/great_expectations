@@ -19,11 +19,6 @@ To validate data stored on SQL databases with GX Core, you create your GX Python
    
    To install dependencies for a specific SQL dialect, use the corresponding command from the table above.
 
-   If you are not using one of the listed dialects, you can install the dependencies for SQLAlchemy with the command:
-
-   ```bash title="Terminal input"
-   python -m pip install 'great_expectations[sqlalchemy]'
-   ```
 
 2. Configure your SQL database credentials.
 
