@@ -134,8 +134,8 @@ For instance, in customer datasets, a `customer_id` can be created for all custo
 Use the GX Cloud UI to walk through the following steps:
 
 1. Create a Postgres Data Asset for the `uniqueness_customers` table using the following connection string:
-  ```
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
+  ```python title="Connection string"
+  postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
   ```
 
 2. Add an Expectation to validate the uniqueness of the `customer_id` column, which serves as a primary key for the dataset.

@@ -89,7 +89,7 @@ Environment variables securely store your GX Cloud access credentials.
 
     Alternatively, if you have already configured your data in GX Cloud you can use it instead.  To see your available Data Sources, run:
 
-    ```title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - list data sources"
+    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - list data sources"
     ```
   
     Using the printed information, you can get the name of one of your existing Data Sources, one of its Data Assets, and the name of a Batch Definition on the Data Asset.  Then, you can retrieve a Batch of data by updating the values for `data_source_name`, `asset_name`, and `batch_definition_name` in the following code and executing it:
