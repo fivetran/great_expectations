@@ -74,9 +74,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def make_batch(self) -> Batch:
-        return self.asset.add_batch_definition(
-            name=self.batch_definition.name,
-            partitioner=self.batch_definition.partitioner,
+        return self.asset.add_batch_definition_whole_table(
+            name=self._random_resource_name()
         ).get_batch()
 
     @cached_property
