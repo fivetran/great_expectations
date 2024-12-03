@@ -21,7 +21,7 @@ batch_definition = file_data_asset.add_batch_definition_monthly(
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_monthly.py - retrieve Batch and verify">
-batch = batch_definition.get_batch(batch_parameters={"year": 2019, "month": 1})
+batch = batch_definition.get_batch(batch_parameters={"year": "2019", "month": "01"})
 print(batch.head())
 # </snippet>
 # </snippet>
