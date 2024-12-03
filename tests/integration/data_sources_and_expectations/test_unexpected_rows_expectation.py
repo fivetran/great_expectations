@@ -33,7 +33,7 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     data_source_configs=ALL_DATA_SOURCES,
     data=pd.DataFrame({"a": [1, 2]}),
 )
-def test_unexpected_rows_expectation_batch_keyword_whole_table_success(
+def test_unexpected_rows_expectation_batch_keyword_success(
     batch_for_datasource,
 ) -> None:
     unexpected_rows_query = "SELECT * FROM {batch} WHERE a > 2"
@@ -49,7 +49,7 @@ def test_unexpected_rows_expectation_batch_keyword_whole_table_success(
     data_source_configs=ALL_DATA_SOURCES,
     data=pd.DataFrame({"a": [1, 2]}),
 )
-def test_unexpected_rows_expectation_batch_keyword_whole_table_failure(
+def test_unexpected_rows_expectation_batch_keyword_failure(
     batch_for_datasource,
 ) -> None:
     unexpected_rows_query = "SELECT * FROM {batch}"
@@ -73,8 +73,12 @@ def test_unexpected_rows_expectation_batch_keyword_whole_table_failure(
         }
     ),
 )
-def test_unexpected_rows_expectation_batch_keyword_monthly_success(asset_for_datasource) -> None:
-    batch = asset_for_datasource.add_batch_definition_monthly(name="MONTHLY", column="created_at")
+def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
+    asset_for_datasource,
+) -> None:
+    batch = asset_for_datasource.add_batch_definition_monthly(
+        name="monthly success", column="created_at"
+    )
     unexpected_rows_query = "SELECT * FROM {batch} WHERE a > 2"
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect a to be less than 3", unexpected_rows_query=unexpected_rows_query
@@ -96,8 +100,12 @@ def test_unexpected_rows_expectation_batch_keyword_monthly_success(asset_for_dat
         }
     ),
 )
-def test_unexpected_rows_expectation_batch_keyword_monthly_failure(asset_for_datasource) -> None:
-    batch = asset_for_datasource.add_batch_definition_monthly(name="MONTHLY", column="created_at")
+def test_unexpected_rows_expectation_batch_keyword_partitioner_failure(
+    asset_for_datasource,
+) -> None:
+    batch = asset_for_datasource.add_batch_definition_monthly(
+        name="monthly failure", column="created_at"
+    )
     unexpected_rows_query = "SELECT * FROM {batch}"
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect table to be empty", unexpected_rows_query=unexpected_rows_query
