@@ -43,7 +43,7 @@ Before we completely remove the functionality in a new major release, there will
 * [MAINTENANCE] Test remaining expectations ([#10715](https://github.com/great-expectations/great_expectations/pull/10715))
 * [MAINTENANCE] Logging message in Datasource store ([#10729](https://github.com/great-expectations/great_expectations/pull/10729))
 * [MAINTENANCE] Test postgres type support ([#10727](https://github.com/great-expectations/great_expectations/pull/10727))
-* [CONTRIB] Handle connection error during version check ([#10720](https://github.com/great-expectations/great_expectations/pull/10720))
+* [CONTRIB] Handle connection error during version check ([#10720](https://github.com/great-expectations/great_expectations/pull/10720)) (thanks @stejin)
 
 ### 1.2.4
 * [DOCS] ADR around not using meta fields ([#10672](https://github.com/great-expectations/great_expectations/pull/10672))
