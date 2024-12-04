@@ -31,10 +31,31 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # SqliteDatasourceTestConfig(),  # fix me
 ]
 
+# spark and big query not currently supported with extra_data, so we can't test JOIN
+# pandas not currently supported by this Expecatation
+EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    DatabricksDatasourceTestConfig(),
+    # MSSQLDatasourceTestConfig(),  # fix me
+    MySQLDatasourceTestConfig(),
+    PostgreSQLDatasourceTestConfig(),
+    SnowflakeDatasourceTestConfig(),
+    # SqliteDatasourceTestConfig(),  # fix me
+]
+
 # pandas and spark not currently supporting partitioners
-# spark not currently supported with extra_data, so we can't test JOIN
+PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    BigQueryDatasourceTestConfig(),
+    DatabricksDatasourceTestConfig(),
+    # MSSQLDatasourceTestConfig(),  # fix me
+    MySQLDatasourceTestConfig(),
+    PostgreSQLDatasourceTestConfig(),
+    SnowflakeDatasourceTestConfig(),
+    # SqliteDatasourceTestConfig(),  # fix me
+]
+
+# spark and big query not currently supported with extra_data, so we can't test JOIN
+# pandas and spark not currently supporting partitioners
 PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
-    # BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
@@ -142,7 +163,7 @@ def test_unexpected_rows_expectation_batch_keyword_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
+    data_source_configs=EXTRA_DATA_SUPPORTED_DATA_SOURCES,
     data=TABLE_1,
     extra_data={"table_2": TABLE_2},
 )
@@ -182,7 +203,7 @@ def test_unexpected_rows_expectation_batch_keyword_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
+    data_source_configs=EXTRA_DATA_SUPPORTED_DATA_SOURCES,
     data=TABLE_1,
     extra_data={"table_2": TABLE_2},
 )
@@ -204,7 +225,7 @@ def test_unexpected_rows_expectation_join_keyword_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES,
     data=TABLE_1,
 )
 @pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES)
@@ -250,7 +271,7 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
+    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES,
     data=TABLE_1,
 )
 @pytest.mark.parametrize("unexpected_rows_query", FAILURE_QUERIES)
