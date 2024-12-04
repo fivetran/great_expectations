@@ -32,7 +32,8 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 ]
 
 # pandas and spark not currently supporting partitioners
-PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+# spark not currently supported with extra_data, so we can't test JOIN
+PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
     # MSSQLDatasourceTestConfig(),  # fix me
@@ -78,7 +79,7 @@ SUCCESS_QUERIES = [
 
 JOIN_SUCCESS_QUERIES = [
     """
-     SELECT *
+     SELECT t1.entity_id, t1.quantity, t2.total_quantity
      FROM {batch} t1
      JOIN table_2 t2 USING (entity_id)
      WHERE t1.quantity <> t2.total_quantity
@@ -105,7 +106,7 @@ FAILURE_QUERIES = [
 
 JOIN_FAILURE_QUERIES = [
     """
-     SELECT *
+     SELECT t1.entity_id, t1.quantity, t2.total_quantity
      FROM {batch} t1
      JOIN table_2 t2 USING (entity_id)
      WHERE t1.quantity = t2.total_quantity
@@ -141,11 +142,11 @@ def test_unexpected_rows_expectation_batch_keyword_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
     data=TABLE_1,
     extra_data={"table_2": TABLE_2},
 )
-def test_unexpected_rows_expectation_join_success(
+def test_unexpected_rows_expectation_join_keyword_success(
     batch_for_datasource,
     extra_table_names_for_datasource,
 ) -> None:
@@ -181,7 +182,29 @@ def test_unexpected_rows_expectation_batch_keyword_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES,
+    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
+    data=TABLE_1,
+    extra_data={"table_2": TABLE_2},
+)
+def test_unexpected_rows_expectation_join_keyword_failure(
+    batch_for_datasource,
+    extra_table_names_for_datasource,
+) -> None:
+    for join_success_query in JOIN_FAILURE_QUERIES:
+        unexpected_rows_query = join_success_query.replace(
+            "table_2", extra_table_names_for_datasource["table_2"]
+        )
+        expectation = gxe.UnexpectedRowsExpectation(
+            description="Expect query with JOIN keyword to fail",
+            unexpected_rows_query=unexpected_rows_query,
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success is False
+        assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
     data=TABLE_1,
 )
 @pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES)
@@ -202,7 +225,32 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=PARTITIONER_SUPPORTED_DATA_SOURCES,
+    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
+    data=TABLE_1,
+    extra_data={"table_2": TABLE_2},
+)
+def test_unexpected_rows_expectation_join_keyword_partitioner_success(
+    asset_for_datasource,
+    extra_table_names_for_datasource,
+) -> None:
+    batch = asset_for_datasource.add_batch_definition_monthly(
+        name=str(uuid4()), column=DATE_COLUMN
+    ).get_batch()
+    for join_success_query in JOIN_SUCCESS_QUERIES:
+        unexpected_rows_query = join_success_query.replace(
+            "table_2", extra_table_names_for_datasource["table_2"]
+        )
+        expectation = gxe.UnexpectedRowsExpectation(
+            description="Expect query with JOIN keyword and paritioner defined to succeed",
+            unexpected_rows_query=unexpected_rows_query,
+        )
+        result = batch.validate(expectation)
+        assert result.success
+        assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
     data=TABLE_1,
 )
 @pytest.mark.parametrize("unexpected_rows_query", FAILURE_QUERIES)
@@ -223,22 +271,25 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data_source_configs=PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES,
     data=TABLE_1,
     extra_data={"table_2": TABLE_2},
 )
-def test_unexpected_rows_expectation_join_failure(
-    batch_for_datasource,
+def test_unexpected_rows_expectation_join_keyword_partitioner_failure(
+    asset_for_datasource,
     extra_table_names_for_datasource,
 ) -> None:
-    for join_success_query in JOIN_FAILURE_QUERIES:
+    batch = asset_for_datasource.add_batch_definition_monthly(
+        name=str(uuid4()), column=DATE_COLUMN
+    ).get_batch()
+    for join_success_query in JOIN_SUCCESS_QUERIES:
         unexpected_rows_query = join_success_query.replace(
             "table_2", extra_table_names_for_datasource["table_2"]
         )
         expectation = gxe.UnexpectedRowsExpectation(
-            description="Expect query with JOIN keyword to fail",
+            description="Expect query with JOIN keyword and paritioner defined to fail",
             unexpected_rows_query=unexpected_rows_query,
         )
-        result = batch_for_datasource.validate(expectation)
+        result = batch.validate(expectation)
         assert result.success is False
         assert result.exception_info.get("raised_exception") is False
