@@ -1,5 +1,3 @@
-from typing import Final, Literal
-
 import pandas as pd
 import pytest
 
@@ -9,8 +7,6 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     SQL_DATA_SOURCES,
 )
-
-NAME: Final[Literal["test_table"]] = "quoted_id_test"
 
 
 def single_quote(name: str) -> str:
