@@ -67,7 +67,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    </Tabs>
 
-      Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
+         Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
 2. Determine the `row_condition` expression.
 
