@@ -103,6 +103,24 @@ FAILURE_QUERIES = [
     "SELECT color FROM {batch} GROUP BY color HAVING SUM(quantity) > 0",
 ]
 
+JOIN_FAILURE_QUERIES = [
+    """
+     SELECT *
+     FROM {batch} t1
+     JOIN table_2 t2 USING (entity_id)
+     WHERE t1.quantity = t2.total_quantity
+    """,
+    """
+     SELECT t1.*, t2.record_count FROM
+     (SELECT * FROM {batch} AS batch) AS t1
+     JOIN
+     (SELECT entity_id, SUM(total_quantity) as total_quantity, COUNT(*) as record_count
+      FROM table_2 GROUP BY entity_id) AS t2
+     ON t1.entity_id = t2.entity_id
+     WHERE t1.quantity = t2.total_quantity
+    """,
+]
+
 
 @parameterize_batch_for_data_sources(
     data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
@@ -136,7 +154,7 @@ def test_unexpected_rows_expectation_join_success(
             "table_2", extra_table_names_for_datasource["table_2"]
         )
         expectation = gxe.UnexpectedRowsExpectation(
-            description="Expect query with {batch} keyword to succeed",
+            description="Expect query with JOIN keyword to succeed",
             unexpected_rows_query=unexpected_rows_query,
         )
         result = batch_for_datasource.validate(expectation)
@@ -202,3 +220,25 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_failure(
     result = batch.validate(expectation)
     assert result.success is False
     assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data=TABLE_1,
+    extra_data={"table_2": TABLE_2},
+)
+def test_unexpected_rows_expectation_join_failure(
+    batch_for_datasource,
+    extra_table_names_for_datasource,
+) -> None:
+    for join_success_query in JOIN_FAILURE_QUERIES:
+        unexpected_rows_query = join_success_query.replace(
+            "table_2", extra_table_names_for_datasource["table_2"]
+        )
+        expectation = gxe.UnexpectedRowsExpectation(
+            description="Expect query with JOIN keyword to fail",
+            unexpected_rows_query=unexpected_rows_query,
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success is False
+        assert result.exception_info.get("raised_exception") is False
