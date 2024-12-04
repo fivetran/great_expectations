@@ -19,7 +19,7 @@ from tests.integration.test_utils.data_source_config import (
     # SqliteDatasourceTestConfig,
 )
 
-# currently excludes pandas
+# pandas not currently supported by this Expecatation
 ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
@@ -31,7 +31,7 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # SqliteDatasourceTestConfig(),  # fix me
 ]
 
-# currently excludes pandas and spark
+# pandas and spark not currently supporting partitioners
 PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
