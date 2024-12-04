@@ -168,7 +168,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
       For Spark, you should specify your columns using the `col()` function.
 
-      Some examples of valid `row_condition` values for Spark include: 
+      Here are examples of the valid `row_condition` patterns for Spark: 
     
       ```python title="Python"
       row_condition='col("foo") == "Two  Two"'  # foo is 'Two Two'
@@ -189,7 +189,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
       For SQL, you should specify your columns using the `col()` function.
 
-      Some examples of valid `row_condition` values for SQL include: 
+      Here are examples of the valid `row_condition` patterns for SQL: 
     
       ```python title="Python"
       row_condition='col("foo") == "Two  Two"'  # foo is 'Two Two'
