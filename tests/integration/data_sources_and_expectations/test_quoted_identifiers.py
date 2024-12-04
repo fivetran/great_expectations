@@ -25,10 +25,13 @@ def back_tick(name: str) -> str:
     return f"`{name}`"
 
 
-UNQUOTED_UPPER = "UNQUOTED_UPPPER"
+UNQUOTED_UPPER = "UNQUOTED_UPPER"
 UNQUOTED_LOWER = "unquoted_lower"
 UNQUOTED_MIXED = "UnquotedMixed"
 UNQUOTED_DOTS = "unquoted.with.dots"
+
+
+UNQUOTED_SPACES = "unquoted with dots"
 DOUBLE_QUOTED_UPPER = '"DOUBLE_QUOTED_UPPER"'
 DOUBLE_QUOTED_LOWER = '"double_quoted_lower"'
 DOUBLE_QUOTED_MIXED = '"DoubleQuotedMixed"'
@@ -49,18 +52,19 @@ DATA = pd.DataFrame(
         UNQUOTED_UPPER: [1, 2, 3],
         UNQUOTED_MIXED: [1, 2, 3],
         UNQUOTED_DOTS: [1, 2, 3],
-        SINGLE_QUOTED_LOWER: [1, 2, 3],
-        SINGLE_QUOTED_UPPER: [1, 2, 3],
-        SINGLE_QUOTED_MIXED: [1, 2, 3],
-        SINGLE_QUOTED_DOTS: [1, 2, 3],
-        DOUBLE_QUOTED_LOWER: [1, 2, 3],
-        DOUBLE_QUOTED_UPPER: [1, 2, 3],
-        DOUBLE_QUOTED_MIXED: [1, 2, 3],
-        DOUBLE_QUOTED_DOTS: [1, 2, 3],
-        TICK_QUOTED_LOWER: [1, 2, 3],
-        TICK_QUOTED_UPPER: [1, 2, 3],
-        TICK_QUOTED_MIXED: [1, 2, 3],
-        TICK_QUOTED_DOTS: [1, 2, 3],
+        # UNQUOTED_SPACES: [1, 2, 3],
+        # SINGLE_QUOTED_LOWER: [1, 2, 3],
+        # SINGLE_QUOTED_UPPER: [1, 2, 3],
+        # SINGLE_QUOTED_MIXED: [1, 2, 3],
+        # SINGLE_QUOTED_DOTS: [1, 2, 3],
+        # DOUBLE_QUOTED_LOWER: [1, 2, 3],
+        # DOUBLE_QUOTED_UPPER: [1, 2, 3],
+        # DOUBLE_QUOTED_MIXED: [1, 2, 3],
+        # DOUBLE_QUOTED_DOTS: [1, 2, 3],
+        # TICK_QUOTED_LOWER: [1, 2, 3],
+        # TICK_QUOTED_UPPER: [1, 2, 3],
+        # TICK_QUOTED_MIXED: [1, 2, 3],
+        # TICK_QUOTED_DOTS: [1, 2, 3],
     }
 )
 
@@ -72,6 +76,7 @@ DATA = pd.DataFrame(
         UNQUOTED_LOWER,
         UNQUOTED_MIXED,
         UNQUOTED_DOTS,
+        # UNQUOTED_SPACES,
         # DOUBLE_QUOTED_UPPER,
         # DOUBLE_QUOTED_LOWER,
         # DOUBLE_QUOTED_MIXED,
