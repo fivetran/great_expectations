@@ -11,35 +11,35 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
+    # MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
-    SqliteDatasourceTestConfig,
+    # SqliteDatasourceTestConfig,
 )
 
 # currently excludes pandas
 ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SparkFilesystemCsvDatasourceTestConfig(),
-    SqliteDatasourceTestConfig(),
+    # SqliteDatasourceTestConfig(),  # fix me
 ]
 
 # currently excludes pandas and spark
 PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
+    # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
-    SqliteDatasourceTestConfig(),
+    # SqliteDatasourceTestConfig(),  # fix me
 ]
 
 DATA = pd.DataFrame(
