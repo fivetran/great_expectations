@@ -58,19 +58,19 @@ DATE_COLUMN = "created_at"
 
 SUCCESS_QUERIES = [
     "SELECT * FROM {batch} WHERE quantity > 2",
-    "SELECT * FROM {batch} WHERE quantity > 2 AND temperature > 92",
-    "SELECT * FROM {batch} WHERE quantity > 2 OR temperature > 91",
+    "SELECT * FROM {batch} WHERE quantity > 2 AND temperature > 91",
+    "SELECT * FROM {batch} WHERE quantity > 2 OR temperature > 92",
     "SELECT * FROM {batch} WHERE quantity > 2 ORDER BY quantity DESC",
-    "SELECT * FROM {batch} WHERE SUM(quantity) > 3 GROUP BY color",
+    "SELECT color FROM {batch} GROUP BY color HAVING SUM(quantity) > 3",
 ]
 
 FAILURE_QUERIES = [
     "SELECT * FROM {batch}",
-    "SELECT * FROM {batch} WHERE quantity > 1",
-    "SELECT * FROM {batch} WHERE quantity > 1 AND temperature > 91",
-    "SELECT * FROM {batch} WHERE quantity > 1 OR temperature > 92",
-    "SELECT * FROM {batch} WHERE quantity > 1 ORDER BY quantity DESC",
-    "SELECT * FROM {batch} WHERE SUM(quantity) > 2 GROUP BY color",
+    "SELECT * FROM {batch} WHERE quantity > 0",
+    "SELECT * FROM {batch} WHERE quantity > 0 AND temperature > 74",
+    "SELECT * FROM {batch} WHERE quantity > 0 OR temperature > 92",
+    "SELECT * FROM {batch} WHERE quantity > 0 ORDER BY quantity DESC",
+    "SELECT color FROM {batch} GROUP BY color  HAVING SUM(quantity) > 0",
 ]
 
 
@@ -84,7 +84,8 @@ def test_unexpected_rows_expectation_batch_keyword_success(
     unexpected_rows_query,
 ) -> None:
     expectation = gxe.UnexpectedRowsExpectation(
-        description="Expect a to be less than 3", unexpected_rows_query=unexpected_rows_query
+        description="Expect query with {batch} keyword to succeed",
+        unexpected_rows_query=unexpected_rows_query,
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success
@@ -101,7 +102,8 @@ def test_unexpected_rows_expectation_batch_keyword_failure(
     unexpected_rows_query,
 ) -> None:
     expectation = gxe.UnexpectedRowsExpectation(
-        description="Expect table to be empty", unexpected_rows_query=unexpected_rows_query
+        description="Expect query with {batch} keyword to fail",
+        unexpected_rows_query=unexpected_rows_query,
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success is False
@@ -121,7 +123,8 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
         name=str(uuid4()), column=DATE_COLUMN
     ).get_batch()
     expectation = gxe.UnexpectedRowsExpectation(
-        description="Expect a to be less than 3", unexpected_rows_query=unexpected_rows_query
+        description="Expect query with {batch} keyword and paritioner defined to succeed",
+        unexpected_rows_query=unexpected_rows_query,
     )
     result = batch.validate(expectation)
     assert result.success
@@ -141,7 +144,8 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_failure(
         name=str(uuid4()), column=DATE_COLUMN
     ).get_batch()
     expectation = gxe.UnexpectedRowsExpectation(
-        description="Expect table to be empty", unexpected_rows_query=unexpected_rows_query
+        description="Expect query with {batch} keyword and partitioner defined to fail",
+        unexpected_rows_query=unexpected_rows_query,
     )
     result = batch.validate(expectation)
     assert result.success is False
