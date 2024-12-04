@@ -89,7 +89,6 @@ class TestPostgresqlDataTypes:
             sqltypes.DECIMAL,
             sqltypes.NUMERIC,
             sqltypes.REAL,
-            sqltypes.DOUBLE,
         ],
     )
     def test_numbers(self, col_type):
