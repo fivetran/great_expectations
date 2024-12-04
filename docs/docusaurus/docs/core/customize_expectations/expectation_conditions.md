@@ -39,6 +39,8 @@ Great Expectations allows you to specify conditions for validating rows using th
 
          The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`.
 
+         Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
+
    </TabItem>
 
    <TabItem value="spark" label="Spark">
@@ -50,6 +52,8 @@ Great Expectations allows you to specify conditions for validating rows using th
       1. Determine the `condition_parser` for your `row_condition`.
 
          The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with Spark, set this argument to `"great_expectations"`.
+
+         Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
    </TabItem>
 
@@ -63,11 +67,11 @@ Great Expectations allows you to specify conditions for validating rows using th
 
          The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with SQL, set this argument to `"great_expectations"`.
 
+         Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
+
    </TabItem>
 
    </Tabs>
-
-         Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
 2. Determine the `row_condition` expression.
 
