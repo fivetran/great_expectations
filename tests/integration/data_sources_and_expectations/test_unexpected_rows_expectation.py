@@ -190,8 +190,8 @@ def test_unexpected_rows_expectation_join_keyword_failure(
     batch_for_datasource,
     extra_table_names_for_datasource,
 ) -> None:
-    for join_success_query in JOIN_FAILURE_QUERIES:
-        unexpected_rows_query = join_success_query.replace(
+    for join_failure_query in JOIN_FAILURE_QUERIES:
+        unexpected_rows_query = join_failure_query.replace(
             "table_2", extra_table_names_for_datasource["table_2"]
         )
         expectation = gxe.UnexpectedRowsExpectation(
@@ -282,8 +282,8 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_failure(
     batch = asset_for_datasource.add_batch_definition_monthly(
         name=str(uuid4()), column=DATE_COLUMN
     ).get_batch()
-    for join_success_query in JOIN_SUCCESS_QUERIES:
-        unexpected_rows_query = join_success_query.replace(
+    for join_failure_query in JOIN_FAILURE_QUERIES:
+        unexpected_rows_query = join_failure_query.replace(
             "table_2", extra_table_names_for_datasource["table_2"]
         )
         expectation = gxe.UnexpectedRowsExpectation(
