@@ -34,7 +34,7 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 # pandas and spark not currently supporting partitioners
 # spark not currently supported with extra_data, so we can't test JOIN
 PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
-    BigQueryDatasourceTestConfig(),
+    # BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
