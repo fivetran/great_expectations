@@ -147,7 +147,7 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
         Failing Case:
             Input:
                 ExpectSelectColumnValuesToBeUniqueWithinRecord(
-                    column_list=["test", "test2, "test3"],
+                    column_list=["test", "test2", "test3"],
             )
 
             Output:
