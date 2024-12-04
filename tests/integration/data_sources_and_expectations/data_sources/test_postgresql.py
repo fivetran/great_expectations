@@ -87,6 +87,7 @@ class TestPostgresqlDataTypes:
             sqltypes.INT,
             sqltypes.BIGINT,
             sqltypes.DECIMAL,
+            sqltypes.FLOAT,
             sqltypes.NUMERIC,
             sqltypes.REAL,
         ],
