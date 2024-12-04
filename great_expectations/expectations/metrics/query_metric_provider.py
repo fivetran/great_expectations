@@ -106,7 +106,11 @@ class QueryMetricProvider(MetricProvider):
             # specifying an unexpected_rows_query returns the active batch as a Subquery or Alias
             # this requires compilation & aliasing when formatting the parameterized query
             batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
-            query = query.format(batch=f"({batch}) AS subselect", **parameters)
+            # all join queries require the user to have taken care of aliasing themselves
+            if "JOIN" in query.upper():
+                query = query.format(batch=f"({batch})", **parameters)
+            else:
+                query = query.format(batch=f"({batch}) AS subselect", **parameters)
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
 
