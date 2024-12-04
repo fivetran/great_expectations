@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 import logging
 import warnings
-from pprint import pformat as pf
 from typing import TYPE_CHECKING, Optional, Union
 
 from great_expectations.compatibility.pydantic import (
@@ -135,7 +134,6 @@ class DatasourceStore(Store):
         This method takes full json response from GX cloud and outputs a dict appropriate for
         deserialization into a GX object
         """
-        logger.debug(f"GE Cloud Response JSON ->\n{pf(response_json, depth=3)}")
         data = response_json["data"]
         if isinstance(data, list):
             if len(data) > 1:

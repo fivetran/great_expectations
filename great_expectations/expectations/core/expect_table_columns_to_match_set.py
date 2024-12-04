@@ -170,7 +170,9 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
     column_set: Union[list, set, SuiteParameterDict, None] = pydantic.Field(
         description=COLUMN_SET_DESCRIPTION
     )
-    exact_match: Union[bool, None] = pydantic.Field(description=EXACT_MATCH_DESCRIPTION)
+    exact_match: Union[bool, None] = pydantic.Field(
+        default=None, description=EXACT_MATCH_DESCRIPTION
+    )
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",

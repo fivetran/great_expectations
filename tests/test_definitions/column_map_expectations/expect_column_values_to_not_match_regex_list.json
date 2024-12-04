@@ -15,37 +15,11 @@
           "654",
           "555",
           null
-        ],
-        "x": [
-          "man",
-          "plan",
-          "canal",
-          "panama",
-          "hat",
-          "bat",
-          "bit",
-          "bot",
-          "but",
-          "bet"
-        ],
-        "column_name with space": [
-          "man",
-          "plan",
-          "canal",
-          "panama",
-          "hat",
-          "bat",
-          "bit",
-          "bot",
-          "but",
-          "bet"
         ]
       },
       "schemas": {
         "spark": {
-          "w": "StringType",
-          "x": "StringType",
-          "column_name with space": "StringType"
+          "w": "StringType"
         }
       },
       "suppress_test_for": ["sqlite", "mssql"],
