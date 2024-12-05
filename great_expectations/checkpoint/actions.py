@@ -54,6 +54,7 @@ from great_expectations.exceptions import ClassInstantiationError
 from great_expectations.exceptions.exceptions import (
     ValidationActionAlreadyRegisteredError,
     ValidationActionRegistryRetrievalError,
+    ValidationActionRegistryTypeError,
 )
 from great_expectations.render.renderer import (
     EmailRenderer,
@@ -143,7 +144,7 @@ class ValidationActionRegistry:
             The ValidationAction class corresponding to the configuration.
         """
         action_type = action_config.get("type")
-        if not action_type or action_type not in self._registered_actions:
+        if action_type not in self._registered_actions:
             raise ValidationActionRegistryRetrievalError(action_type)
 
         return self._registered_actions[action_type]
@@ -163,9 +164,11 @@ class MetaValidationAction(ModelMetaclass):
 
     def __new__(cls, clsname, bases, attrs):
         newclass = super().__new__(cls, clsname, bases, attrs)
+        if not isinstance(newclass, BaseModel):
+            raise ValidationActionRegistryTypeError(newclass)
 
         action_type = newclass.__fields__.get("type")
-        if action_type and action_type.default:
+        if action_type and action_type.default:  # Excludes base classes
             _VALIDATION_ACTION_REGISTRY.register(
                 action_type=action_type.default, action_class=newclass
             )
