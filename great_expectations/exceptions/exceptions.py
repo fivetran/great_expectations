@@ -485,8 +485,3 @@ class ValidationActionRegistryRetrievalError(ValidationActionRegistryError):
             message = "Invalid action configuration; no 'type' key found."
 
         super().__init__(message)
-
-
-class ValidationActionRegistryTypeError(ValidationActionRegistryError):
-    def __init__(self, type_: type) -> None:
-        super().__init__(f"Cannot register {type_} as a ValidationAction.")

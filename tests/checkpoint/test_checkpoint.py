@@ -59,6 +59,7 @@ from great_expectations.exceptions import (
 )
 from great_expectations.exceptions.exceptions import (
     CheckpointNotFoundError,
+    ValidationActionRegistryRetrievalError,
     ValidationDefinitionNotFoundError,
 )
 from great_expectations.exceptions.resource_freshness import ResourceFreshnessAggregateError
@@ -465,7 +466,7 @@ class TestCheckpointSerialization:
         assert expected_error in str(e.value)
 
     @pytest.mark.unit
-    def test_checkpoint_deserialization_with_actions(self, mocker: MockerFixture):
+    def test_checkpoint_deserialization_with_actions_success(self, mocker: MockerFixture):
         # Arrange
         context = mocker.Mock(spec=AbstractDataContext)
         context.validation_definition_store.get.return_value = mocker.Mock(
@@ -494,6 +495,49 @@ class TestCheckpointSerialization:
         assert isinstance(checkpoint.actions[0], UpdateDataDocsAction)
         assert isinstance(checkpoint.actions[1], SlackNotificationAction)
         assert isinstance(checkpoint.actions[2], MicrosoftTeamsNotificationAction)
+
+    @pytest.mark.parametrize(
+        "action_config, expected_error",
+        [
+            pytest.param(
+                {"name": "my_docs_action", "site_names": []},
+                ValidationActionRegistryRetrievalError,
+                id="no_type",
+            ),
+            pytest.param(
+                {"name": "my_custom_action", "type": "not_registered"},
+                ValidationActionRegistryRetrievalError,
+                id="not_registered",
+            ),
+        ],
+    )
+    @pytest.mark.unit
+    def test_checkpoint_deserialization_with_actions_failure(
+        self, mocker: MockerFixture, action_config: dict, expected_error: Type[Exception]
+    ):
+        # Arrange
+        context = mocker.Mock(spec=AbstractDataContext)
+        context.validation_definition_store.get.return_value = mocker.Mock(
+            spec=ValidationDefinition
+        )
+        set_context(context)
+
+        # Act
+        serialized_checkpoint = {
+            "actions": [
+                action_config,
+            ],
+            "id": "e7d1f462-821b-429c-8086-cca80eeea5e9",
+            "name": "my_checkpoint",
+            "result_format": "SUMMARY",
+            "validation_definitions": [
+                {"id": "3fb9ce09-a8fb-44d6-8abd-7d699443f6a1", "name": "my_validation_def"}
+            ],
+        }
+
+        # Assert
+        with pytest.raises(expected_error):
+            Checkpoint.parse_obj(serialized_checkpoint)
 
 
 class TestCheckpointResult:
