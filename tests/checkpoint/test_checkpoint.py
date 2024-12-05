@@ -17,11 +17,10 @@ from great_expectations.checkpoint import (
     MicrosoftTeamsNotificationAction,
     SlackNotificationAction,
     UpdateDataDocsAction,
-    ValidationAction,
 )
+from great_expectations.checkpoint.actions import ValidationAction
 from great_expectations.checkpoint.checkpoint import (
     Checkpoint,
-    CheckpointAction,
     CheckpointResult,
 )
 from great_expectations.compatibility.pydantic import ValidationError
@@ -311,7 +310,7 @@ class TestCheckpointSerialization:
     def test_checkpoint_filesystem_round_trip_adds_ids(
         self,
         tmp_path: pathlib.Path,
-        actions: list[CheckpointAction],
+        actions: list[ValidationAction],
     ):
         with working_directory(tmp_path):
             context = gx.get_context(mode="file")
@@ -657,7 +656,7 @@ class TestCheckpointResult:
         )
         data_docs_action = UpdateDataDocsAction(name="my_docs_action")
 
-        actions: List[CheckpointAction] = [slack_action, teams_action, data_docs_action]
+        actions: List[ValidationAction] = [slack_action, teams_action, data_docs_action]
 
         validation_definitions = [validation_definition]
         checkpoint = Checkpoint(
@@ -804,7 +803,7 @@ class TestCheckpointResult:
         assert actual == expected
 
     def _build_file_backed_checkpoint(
-        self, tmp_path: pathlib.Path, actions: list[CheckpointAction] | None = None
+        self, tmp_path: pathlib.Path, actions: list[ValidationAction] | None = None
     ) -> Checkpoint:
         actions = actions or []
         with working_directory(tmp_path):
