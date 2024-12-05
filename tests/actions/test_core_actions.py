@@ -888,6 +888,7 @@ class TestUpdateDataDocsAction:
 
 
 class TestCustomActions:
+    @pytest.mark.unit
     def test_custom_action_shadows_existing_type(self):
         with pytest.raises(ValidationActionAlreadyRegisteredError):
 
