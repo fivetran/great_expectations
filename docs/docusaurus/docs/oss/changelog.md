@@ -14,6 +14,37 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.2.5
+* [FEATURE] `expect_table_columns_to_match_ordered_list` observed value renderer ([#10683](https://github.com/great-expectations/great_expectations/pull/10683))
+* [FEATURE] Value-set Expectation observed value renderers ([#10718](https://github.com/great-expectations/great_expectations/pull/10718))
+* [BUGFIX] `UnexpectedRowsExpectation` - Unable to use `{batch}` keyword with partitioner for some backends ([#10721](https://github.com/great-expectations/great_expectations/pull/10721))
+* [DOCS] Cloud Expectation condition docs ([#10690](https://github.com/great-expectations/great_expectations/pull/10690))
+* [DOCS] DSB-1233: addyng non-versioned-section styling to all the cloud section ([#10694](https://github.com/great-expectations/great_expectations/pull/10694))
+* [DOCS] Ensure "Connect GX Cloud to ..." pages accurately reflect the current workflow ([#10689](https://github.com/great-expectations/great_expectations/pull/10689))
+* [DOCS] DSB-1219: Adding redirects ([#10692](https://github.com/great-expectations/great_expectations/pull/10692))
+* [DOCS] Add databricks to supported datasources in corresponding expectations ([#10691](https://github.com/great-expectations/great_expectations/pull/10691))
+* [DOCS] Update Manage Data Assets page to reflect the current UI and remove duplicate content ([#10695](https://github.com/great-expectations/great_expectations/pull/10695))
+* [DOCS] Changing announcement banner ([#10703](https://github.com/great-expectations/great_expectations/pull/10703))
+* [DOCS] data quality uniqueness article ([#10584](https://github.com/great-expectations/great_expectations/pull/10584))
+* [DOCS] remove abandoned pages ([#10704](https://github.com/great-expectations/great_expectations/pull/10704))
+* [DOCS] add code block titles to avoid overlaps in display ([#10708](https://github.com/great-expectations/great_expectations/pull/10708))
+* [DOCS] Fixing close button on Announcement bar ([#10717](https://github.com/great-expectations/great_expectations/pull/10717))
+* [DOCS] link fixes - December 2024 ([#10716](https://github.com/great-expectations/great_expectations/pull/10716))
+* [DOCS] Make announcement bar not closable ([#10719](https://github.com/great-expectations/great_expectations/pull/10719))
+* [DOCS] - Wrong dependency included in Set Up a GX Environment ([#10722](https://github.com/great-expectations/great_expectations/pull/10722))
+* [DOCS] data quality -- freshness ([#10612](https://github.com/great-expectations/great_expectations/pull/10612))
+* [DOCS]  fix batch definition data types ([#10723](https://github.com/great-expectations/great_expectations/pull/10723))
+* [DOCS] fix docs typo ([#10725](https://github.com/great-expectations/great_expectations/pull/10725))
+* [MAINTENANCE] Pin `snowflake-sqlalchemy` due to breaking change ([#10698](https://github.com/great-expectations/great_expectations/pull/10698))
+* [MAINTENANCE] Add atomic diagnostic renderer to `ExpectColumnMostCommonValueToBeInSet` ([#10697](https://github.com/great-expectations/great_expectations/pull/10697))
+* [MAINTENANCE] Add tests around expectations ([#10688](https://github.com/great-expectations/great_expectations/pull/10688))
+* [MAINTENANCE] Write tests for misconfigured expectations error reporting ([#10696](https://github.com/great-expectations/great_expectations/pull/10696))
+* [MAINTENANCE] Test expectations against Snowflake column types ([#10706](https://github.com/great-expectations/great_expectations/pull/10706))
+* [MAINTENANCE] Test remaining expectations ([#10715](https://github.com/great-expectations/great_expectations/pull/10715))
+* [MAINTENANCE] Logging message in Datasource store ([#10729](https://github.com/great-expectations/great_expectations/pull/10729))
+* [MAINTENANCE] Test postgres type support ([#10727](https://github.com/great-expectations/great_expectations/pull/10727))
+* [CONTRIB] Handle connection error during version check ([#10720](https://github.com/great-expectations/great_expectations/pull/10720)) (thanks @stejin)
+
 ### 1.2.4
 * [DOCS] ADR around not using meta fields ([#10672](https://github.com/great-expectations/great_expectations/pull/10672))
 * [DOCS] Update Expectation conditions docs ([#10661](https://github.com/great-expectations/great_expectations/pull/10661))
