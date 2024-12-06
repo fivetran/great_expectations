@@ -110,9 +110,10 @@ class ActionContext:
 
 class ValidationActionRegistry:
     """
-    Registers both GX-defined and user-defined ValidationActions.
+    Registers ValidationActions to enable deserialization based on their configuration.
 
-    Enables the instantiation of ValidationActions based on their configuration.
+    Uses the `type` key from the action configuration to determine which registered class
+    to instantiate.
     """
 
     def __init__(self):
