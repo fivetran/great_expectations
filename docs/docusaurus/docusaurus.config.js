@@ -42,9 +42,9 @@ module.exports = {
 
   themeConfig: {
     announcementBar: {
-      id: 'cta_bar',
+      id: 'cta_bar-Q02nK_ZH0',
       content:
-          `<a style="font-weight:600" href="https://hubs.li/Q02Zfg_h0">[New webinar] Top data quality tactics to boost trust and improve collaboration. Register today!</a>`,
+          '<a style="font-weight:600" href="https://hubs.li/Q02nK_ZH0">Get started with GX Cloud by joining our bi-weekly hands on workshop.</a>',
       backgroundColor: '#141432',
       textColor: '#fff',
       isCloseable: false,
