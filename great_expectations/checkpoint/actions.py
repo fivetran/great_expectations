@@ -135,7 +135,7 @@ class ValidationActionRegistry:
 
         self._registered_actions[action_type] = action_class
 
-    def get(self, action_type: str) -> Type[ValidationAction]:
+    def get(self, action_type: str | None) -> Type[ValidationAction]:
         """
         Return a ValidationAction class based on its type.
         Used when instantiating actions from a checkpoint configuration.

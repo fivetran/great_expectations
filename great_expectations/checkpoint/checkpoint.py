@@ -143,7 +143,7 @@ class Checkpoint(BaseModel):
             if isinstance(action, ValidationAction):
                 validated_actions.append(action)
             else:
-                action_type = action.get("type")
+                action_type: str | None = action.get("type")
                 action_cls = _VALIDATION_ACTION_REGISTRY.get(action_type)
                 validated_action = action_cls(**action)
                 validated_actions.append(validated_action)
