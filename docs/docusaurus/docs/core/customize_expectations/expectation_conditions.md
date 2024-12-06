@@ -37,7 +37,9 @@ Great Expectations allows you to specify conditions for validating rows using th
       
       1. Determine the `condition_parser` for your `row_condition`.
 
-      The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`.
+         The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with pandas, set this argument to `"pandas"`.
+
+         Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
    </TabItem>
 
@@ -49,7 +51,9 @@ Great Expectations allows you to specify conditions for validating rows using th
       
       1. Determine the `condition_parser` for your `row_condition`.
 
-      The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with Spark, set this argument to `"great_expectations"`.
+         The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with Spark, set this argument to `"great_expectations"`.
+
+         Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
    </TabItem>
 
@@ -61,13 +65,13 @@ Great Expectations allows you to specify conditions for validating rows using th
       
       1. Determine the `condition_parser` for your `row_condition`.
 
-      The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with SQL, set this argument to `"great_expectations"`.
+         The `condition_parser` defines the syntax of `row_condition` strings. When implementing Expectation conditions with SQL, set this argument to `"great_expectations"`.
+
+         Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
    </TabItem>
 
    </Tabs>
-
-   Note that the Expectation with conditions will fail if the Batch being validated is from a different type of Data Source than indicated by the `condition_parser`.
 
 2. Determine the `row_condition` expression.
 
@@ -168,7 +172,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
       For Spark, you should specify your columns using the `col()` function.
 
-      Some examples of valid `row_condition` values for Spark include: 
+      Here are examples of the valid `row_condition` patterns for Spark: 
     
       ```python title="Python"
       row_condition='col("foo") == "Two  Two"'  # foo is 'Two Two'
@@ -189,7 +193,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
       For SQL, you should specify your columns using the `col()` function.
 
-      Some examples of valid `row_condition` values for SQL include: 
+      Here are examples of the valid `row_condition` patterns for SQL: 
     
       ```python title="Python"
       row_condition='col("foo") == "Two  Two"'  # foo is 'Two Two'
@@ -208,7 +212,7 @@ Great Expectations allows you to specify conditions for validating rows using th
 
    </Tabs>
 
-4. Optional. Create additional Expectation conditions
+4. Optional. Create additional Expectation conditions.
 
    Expectations that have different conditions are treated as unique, even if they belong to the same type and apply to the same column within an Expectation Suite. This approach allows you to create one unconditional Expectation and an unlimited number of Conditional Expectations, each with a distinct condition.
 
@@ -217,7 +221,7 @@ Great Expectations allows you to specify conditions for validating rows using th
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - example Expectation without conditions"
    ```
    
-   And this code adds a condition to the Expectation that specifies the value of the `"Survived"` column is `1` if the individual was a first class passenger:
+   And this code adds a condition to the Expectation that specifies the value of the `"Survived"` column is `1` if the individual was a first-class passenger:
    
    <Tabs className="hidden" queryString="condition_parser" groupId="condition_parser" defaultValue='pandas' values={[{label: 'pandas', value:'pandas'}, {label: 'Spark', value:'spark'}, {label: 'SQL', value:'sql'}]}>
 

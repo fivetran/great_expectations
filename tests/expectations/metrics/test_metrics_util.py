@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import random
+from types import ModuleType
 from typing import TYPE_CHECKING, Final, List, Union
+from unittest.mock import create_autospec, patch
 
 import pytest
 from _pytest import monkeypatch
@@ -17,6 +19,7 @@ from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.expectations.metrics.util import (
     CaseInsensitiveString,
     get_dbms_compatible_metric_domain_kwargs,
+    get_dialect_like_pattern_expression,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
     sql_statement_with_post_compile_to_string,
@@ -621,5 +624,26 @@ class TestCaseInsensitiveString:
             assert input_case_insensitive != other
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-vv"])
+@pytest.mark.unit
+@patch("great_expectations.expectations.metrics.util.sa")
+def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mock_sqlalchemy):
+    # arrange
+    # force the test to not depend on _anything_ in sqlalchemy.dialects
+    mock_sqlalchemy.dialects = None
+    column = create_autospec(sa.Column)
+
+    class SomeSpecificDialect: ...
+
+    class MockDialect(ModuleType):
+        dialect = SomeSpecificDialect
+
+    like_pattern = "foo"
+
+    # act
+    # expect this test to not raise an AttributeError
+    expression = get_dialect_like_pattern_expression(
+        column=column, dialect=MockDialect(name="mock dialect"), like_pattern=like_pattern
+    )
+
+    # assert
+    assert expression is None

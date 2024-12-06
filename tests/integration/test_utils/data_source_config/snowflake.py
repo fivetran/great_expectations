@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Mapping
+from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -36,6 +36,7 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
             data=data,
             config=self,
             extra_data=extra_data,
+            table_name=self.table_name,
         )
 
 
@@ -79,9 +80,10 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         config: SnowflakeDatasourceTestConfig,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        table_name: Optional[str] = None,
     ) -> None:
         self.snowflake_connection_config = SnowflakeConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
-        super().__init__(config=config, data=data, extra_data=extra_data)
+        super().__init__(config=config, data=data, extra_data=extra_data, table_name=table_name)
 
     @cached_property
     @override

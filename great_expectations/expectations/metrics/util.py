@@ -902,16 +902,26 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915
         pass
 
     if hasattr(dialect, "dialect"):
-        if issubclass(
-            dialect.dialect,
-            (
-                sa.dialects.sqlite.dialect,
-                sa.dialects.postgresql.dialect,
-                sa.dialects.mysql.dialect,
-                sa.dialects.mssql.dialect,
-            ),
-        ):
-            dialect_supported = True
+        try:
+            if issubclass(dialect.dialect, sa.dialects.sqlite.dialect):
+                dialect_supported = True
+        except AttributeError:
+            pass
+        try:
+            if issubclass(dialect.dialect, sa.dialects.postgresql.dialect):
+                dialect_supported = True
+        except AttributeError:
+            pass
+        try:
+            if issubclass(dialect.dialect, sa.dialects.mysql.dialect):
+                dialect_supported = True
+        except AttributeError:
+            pass
+        try:
+            if issubclass(dialect.dialect, sa.dialects.mssql.dialect):
+                dialect_supported = True
+        except AttributeError:
+            pass
 
     if _is_databricks_dialect(dialect):
         dialect_supported = True
