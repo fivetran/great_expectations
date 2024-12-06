@@ -36,6 +36,8 @@ class _TableData:
 
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
+    SCHEMA_PREFIX = "test_"
+
     @property
     @abstractmethod
     def connection_string(self) -> str:
@@ -113,7 +115,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @cached_property
     def schema(self) -> Union[str, None]:
         if self.use_schema:
-            return self._random_resource_name()
+            return f"{self.SCHEMA_PREFIX}{self._random_resource_name()}"
         else:
             return None
 
