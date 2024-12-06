@@ -154,3 +154,14 @@ def test_expect_column_mean_to_be_between(batch_for_datasource):
     expectation = gxe.ExpectColumnMeanToBeBetween(column="a", min_value=2, max_value=3)
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES,
+    data=pd.DataFrame({"a": ["Chicago", "chicago", "CHICAGO"]}),
+)
+def test_expect_column_value_to_match_like_pattern(batch_for_datasource):
+    pattern = "%CHICAGO%"
+    expectation = gxe.ExpectColumnValuesToMatchLikePattern(column="a", like_pattern=pattern)
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
