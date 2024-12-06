@@ -134,13 +134,13 @@ class ValidationActionRegistry:
 
         self._registered_actions[action_type] = action_class
 
-    def get_from_config(self, action_config: dict) -> Type[ValidationAction]:
+    def get(self, action_type: str) -> Type[ValidationAction]:
         """
-        Return a ValidationAction class based on its configuration.
+        Return a ValidationAction class based on its type.
         Used when instantiating actions from a checkpoint configuration.
 
         Args:
-            action_config: The configuration of the action to instantiate.
+            action_type: The 'type' key from the action configuration.
 
         Returns:
             The ValidationAction class corresponding to the configuration.
@@ -148,7 +148,6 @@ class ValidationActionRegistry:
         Raises:
             ValidationActionRegistryRetrievalError: If the action type is not registered.
         """
-        action_type = action_config.get("type")
         if action_type not in self._registered_actions:
             raise ValidationActionRegistryRetrievalError(action_type)
 
@@ -158,7 +157,7 @@ class ValidationActionRegistry:
 _VALIDATION_ACTION_REGISTRY = ValidationActionRegistry()
 
 
-@dataclass_transform(kw_only_default=True, field_specifiers=(Field,))
+@dataclass_transform(kw_only_default=True, field_specifiers=(Field,))  # Enables type hinting
 class MetaValidationAction(ModelMetaclass):
     """MetaValidationAction registers ValidationAction as they are defined, adding them to
     the registry.

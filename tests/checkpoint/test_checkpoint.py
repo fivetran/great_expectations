@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import pathlib
 import uuid
-from typing import TYPE_CHECKING, List, Literal, Type
+from typing import TYPE_CHECKING, Generator, List, Literal, Type
 from unittest import mock
 
 import pandas as pd
@@ -467,19 +467,22 @@ class TestCheckpointDeserialization:
 
         assert expected_error in str(e.value)
 
-    def _set_context(self, mocker: MockerFixture):
+    @pytest.fixture
+    def _set_context(self, mocker: MockerFixture) -> Generator[None, None, None]:
         context = mocker.Mock(spec=AbstractDataContext)
         context.validation_definition_store.get.return_value = mocker.Mock(
             spec=ValidationDefinition
         )
+
         set_context(context)
+        yield
+        set_context(None)
 
     @pytest.mark.unit
-    def test_checkpoint_deserialization_with_actions_success(self, mocker: MockerFixture):
+    def test_checkpoint_deserialization_with_actions_success(
+        self, _set_context: Generator[None, None, None]
+    ):
         # Arrange
-        self._set_context(mocker)
-
-        # Act
         serialized_checkpoint = {
             "actions": [
                 {"name": "my_docs_action", "site_names": [], "type": "update_data_docs"},
@@ -493,6 +496,8 @@ class TestCheckpointDeserialization:
                 {"id": "3fb9ce09-a8fb-44d6-8abd-7d699443f6a1", "name": "my_validation_def"}
             ],
         }
+
+        # Act
         checkpoint = Checkpoint.parse_obj(serialized_checkpoint)
 
         # Assert
@@ -518,12 +523,12 @@ class TestCheckpointDeserialization:
     )
     @pytest.mark.unit
     def test_checkpoint_deserialization_with_actions_failure(
-        self, mocker: MockerFixture, action_config: dict, expected_error: Type[Exception]
+        self,
+        _set_context: Generator[None, None, None],
+        action_config: dict,
+        expected_error: Type[Exception],
     ):
         # Arrange
-        self._set_context(mocker)
-
-        # Act
         serialized_checkpoint = {
             "actions": [
                 action_config,
@@ -535,19 +540,18 @@ class TestCheckpointDeserialization:
             ],
         }
 
-        # Assert
+        # Act & Assert
         with pytest.raises(expected_error):
             Checkpoint.parse_obj(serialized_checkpoint)
 
     @pytest.mark.unit
-    def test_checkpoint_deserialization_with_custom_validation_action(self, mocker: MockerFixture):
+    def test_checkpoint_deserialization_with_custom_validation_action(
+        self, _set_context: Generator[None, None, None]
+    ):
         # Arrange
-        self._set_context(mocker)
-
         class CustomAction(ValidationAction):
             type: Literal["custom"] = "custom"
 
-        # Act
         serialized_checkpoint = {
             "actions": [
                 {"name": "my_custom_action", "type": "custom"},
@@ -559,10 +563,11 @@ class TestCheckpointDeserialization:
             ],
         }
 
+        # Act
         checkpoint = Checkpoint.parse_obj(serialized_checkpoint)
 
         # Assert
-        assert checkpoint.actions[0].type == "custom"
+        assert isinstance(checkpoint.actions[0], CustomAction)
 
 
 class TestCheckpointResult:
