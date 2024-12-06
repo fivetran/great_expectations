@@ -364,34 +364,34 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             renderer_configuration=renderer_configuration,
         )
 
-        expected_value_set = set(renderer_configuration.kwargs.get("column_set", []))
-        observed_value_set = set(
+        expected_column_set = set(renderer_configuration.kwargs.get("column_set", []))
+        observed_column_set = set(
             result.get("result", {}).get("observed_value", []) if result else []
         )
 
-        observed_values = (
+        observed_columns = (
             (name, sch)
             for name, sch in renderer_configuration.params
             if name.startswith(ov_param_prefix)
         )
-        expected_values = (
+        expected_columns = (
             (name, sch)
             for name, sch in renderer_configuration.params
             if name.startswith(expected_param_prefix)
         )
 
         template_str_list = []
-        for name, schema in observed_values:
+        for name, schema in observed_columns:
             render_state = (
                 ObservedValueRenderState.EXPECTED.value
-                if schema.value in expected_value_set
+                if schema.value in expected_column_set
                 else ObservedValueRenderState.UNEXPECTED.value
             )
             renderer_configuration.params.__dict__[name].render_state = render_state
             template_str_list.append(f"${name}")
 
-        for name, schema in expected_values:
-            if schema.value not in observed_value_set:
+        for name, schema in expected_columns:
+            if schema.value not in observed_column_set:
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value
