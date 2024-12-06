@@ -42,7 +42,7 @@ module.exports = {
 
   themeConfig: {
     announcementBar: {
-      id: 'cta_bar-Q02nK_ZH0',
+      id: 'cta_bar',
       content:
           '<a style="font-weight:600" href="https://hubs.li/Q02nK_ZH0">Get started with GX Cloud by joining our bi-weekly hands on workshop.</a>',
       backgroundColor: '#141432',
