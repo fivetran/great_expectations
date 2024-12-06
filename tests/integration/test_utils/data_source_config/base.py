@@ -3,9 +3,10 @@ from __future__ import annotations
 import random
 import string
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import TYPE_CHECKING, Generic, Hashable, Mapping, Optional, TypeVar
+from typing import TYPE_CHECKING, Generator, Generic, Hashable, Mapping, Optional, TypeVar
 
 import pandas as pd
 
@@ -18,12 +19,14 @@ if TYPE_CHECKING:
     import pytest
     from pytest import FixtureRequest
 
+
 _ColumnTypes = TypeVar("_ColumnTypes")
 
 
 @dataclass(frozen=True)
 class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
     name: Optional[str] = None
+    table_name: Optional[str] = None  # Overrides random table name generation
     column_types: Optional[Mapping[str, _ColumnTypes]] = None
     extra_column_types: Mapping[str, Mapping[str, _ColumnTypes]] = field(default_factory=dict)
 
@@ -106,6 +109,33 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
 
     @abstractmethod
     def teardown(self) -> None: ...
+
+    @contextmanager
+    def data_context_test_context(self) -> Generator[AbstractDataContext, None, None]:
+        """Receive a DataContext and ensure proper setup and teardown regardless of errors."""
+        try:
+            self.setup()
+            yield self.context
+        finally:
+            self.teardown()
+
+    @contextmanager
+    def asset_test_context(self) -> Generator[_AssetT, None, None]:
+        """Receive an Asset and ensure proper setup and teardown regardless of errors."""
+        try:
+            self.setup()
+            yield self.asset
+        finally:
+            self.teardown()
+
+    @contextmanager
+    def batch_test_context(self) -> Generator[Batch, None, None]:
+        """Receive a Batch and ensure proper setup and teardown regardless of errors."""
+        try:
+            self.setup()
+            yield self.make_batch()
+        finally:
+            self.teardown()
 
     @staticmethod
     def _random_resource_name() -> str:

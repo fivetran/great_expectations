@@ -47,6 +47,7 @@ SUPPORTED_DATA_SOURCES = [
     "Redshift",
     "BigQuery",
     "Snowflake",
+    "Databricks (SQL)",
 ]
 DATA_QUALITY_ISSUES = ["Cardinality"]
 
@@ -146,7 +147,7 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
         Failing Case:
             Input:
                 ExpectSelectColumnValuesToBeUniqueWithinRecord(
-                    column_list=["test", "test2, "test3"],
+                    column_list=["test", "test2", "test3"],
             )
 
             Output:

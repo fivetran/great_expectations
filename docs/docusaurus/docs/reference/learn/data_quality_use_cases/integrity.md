@@ -138,7 +138,7 @@ Custom SQL Expectations fail when the provided SQL query returns one or more row
 Use the GX Cloud UI to implement the following steps:
 
 1. Using the following connection string to create a Postgres Data Source, create a Data Asset for the `integrity_transfer_transaction` table:
-   ```
+   ```python title="Connection string"
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
    ```
 
@@ -149,7 +149,7 @@ Use the GX Cloud UI to implement the following steps:
 3. Validate the  `integrity_transfers` Data Asset with the Expectation and inspect the result. The Expectation passes, all transfers are received after they are sent.
 
 4. Using the query below, create a custom SQL Expectation to further refine the business logic that defines this integrity check. The business logic constraint dictates that all transactions should be sent and received within 45 seconds.
-   ```sql
+   ```sql title="SQL query"
    select *
    from {batch}
    where extract(epoch from (age(received_ts, sent_ts))) > 45
@@ -197,12 +197,12 @@ Run the following GX Core workflow.
 Use the GX Cloud UI to implement the following steps:
 
 1. Using the following connection string to create a Postgres Data Source, create Data Assets for the `integrity_transfers` and `integrity_transfer_balance` tables:
-   ```
+   ```python title="Connection string"
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
    ```
 
 2. Add a custom SQL Expectation on the `integrity_transfers` Data Asset to validate that the `amount` column in `integrity_transfers` matches the `total_amount` column in the `integrity_transfer_balance` table. The `join` in the SQL query enables GX Cloud to validate integrity for for data that spans multiple tables.
-   ```sql
+   ```sql title="SQL query"
    select *
    from {batch} t
    join integrity_transfer_balance b using (transfer_balance_id)
@@ -265,4 +265,4 @@ The following scenarios provide insight into how Great Expectations can help enf
 
 Data integrity is a critical component of a comprehensive data quality strategy. By leveraging Great Expectations' built-in and custom validation capabilities, you can enforce integrity rules across your data landscape, ensuring consistency, accuracy, and compliance. Maintaining data integrity is an ongoing process. Regular validation, monitoring, and issue resolution are crucial for sustaining data trust and driving better outcomes.
 
-However, data integrity is not the only aspect of data quality. To maintain  trustworthy datasets, you must also address [other data quality dimensions](/reference/learn/data_quality_use_cases/dq_use_cases_lp.md) such as schema, completeness, distribution, and volume. Start by prioritizing critical data assets and incrementally expand your validation coverage to encompass these dimensions.
+However, data integrity is not the only aspect of data quality. To maintain trustworthy datasets, you must also address [other data quality dimensions](/reference/learn/data_quality_use_cases/dq_use_cases_lp.md) such as schema, completeness, distribution, and volume. Start by prioritizing critical data assets and incrementally expand your validation coverage to encompass these dimensions.

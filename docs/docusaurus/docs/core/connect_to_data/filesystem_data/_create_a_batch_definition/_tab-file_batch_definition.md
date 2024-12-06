@@ -64,7 +64,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
    Update the `batch_definition_name` and `batch_definition_regex` variables in the following code, then execute it to create a yearly Batch Definition:
 
-   ```python name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_yearly.py - add Batch Definition"
+   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_yearly.py - add Batch Definition"
    ```
 
    </TabItem>
@@ -87,7 +87,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
    Update the `batch_definition_name` and `batch_definition_regex` variables in the following code, then execute it to create a monthly Batch Definition:
 
-   ```python name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_monthly.py - add Batch Definition"
+   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_monthly.py - add Batch Definition"
    ```
 
    </TabItem>
@@ -110,7 +110,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
    Update the `batch_definition_name` and `batch_definition_regex` variables in the following code, then execute it to create a daily Batch Definition:
 
-   ```python name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_daily.py - add Batch Definition"
+   ```python  title="Python" name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_daily.py - add Batch Definition"
    ```
 
    </TabItem>

@@ -29,5 +29,7 @@
 [mysql]
 
 [mysqld]
+# looks like mysql is slow to release connections. tests should clean up connections, but adding some buffer
+max_connections = 300
 # https://stackoverflow.com/questions/36829911/how-to-resolve-order-by-clause-is-not-in-select-list-caused-mysql-5-7-with-sel
 sql_mode		=	''

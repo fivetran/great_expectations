@@ -1,6 +1,6 @@
 import pathlib
 from functools import cached_property
-from typing import Mapping
+from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -40,6 +40,7 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
             config=self,
             base_dir=tmp_path,
             extra_data=extra_data,
+            table_name=self.table_name,
         )
 
 
@@ -50,9 +51,10 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
         data: pd.DataFrame,
         base_dir: pathlib.Path,
         extra_data: Mapping[str, pd.DataFrame],
+        table_name: Optional[str] = None,
     ) -> None:
         self._base_dir = base_dir
-        super().__init__(config=config, data=data, extra_data=extra_data)
+        super().__init__(config=config, data=data, extra_data=extra_data, table_name=table_name)
 
     @property
     @override

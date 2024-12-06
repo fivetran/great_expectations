@@ -6,6 +6,7 @@ from datetime import date, datetime
 from functools import cached_property
 from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Sequence, Type, Union
 
+import numpy as np
 from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
@@ -35,6 +36,8 @@ class _TableData:
 
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
+    SCHEMA_PREFIX = "test_"
+
     @property
     @abstractmethod
     def connection_string(self) -> str:
@@ -66,10 +69,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         config: _ConfigT,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        table_name: Optional[str] = None,  # Overrides random table name generation
     ) -> None:
-        self.engine = create_engine(url=self.connection_string)
+        # self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
+        self._user_specified_table_name = table_name
         super().__init__(config, data)
 
     @override
@@ -84,8 +89,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @cached_property
     def main_table_data(self) -> _TableData:
+        name = self._user_specified_table_name or self._create_table_name()
         return self._create_table_data(
-            name=self._create_table_name(),
+            name=name,
             df=self.data,
             column_types=self.config.column_types or {},
         )
@@ -109,13 +115,14 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @cached_property
     def schema(self) -> Union[str, None]:
         if self.use_schema:
-            return self._random_resource_name()
+            return f"{self.SCHEMA_PREFIX}{self._random_resource_name()}"
         else:
             return None
 
     @override
     def setup(self) -> None:
-        with self.engine.connect() as conn, conn.begin():
+        engine = create_engine(url=self.connection_string)
+        with engine.connect() as conn, conn.begin():
             # create schema if needed
 
             if self.schema:
@@ -123,7 +130,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
             # create tables
             all_table_data = self._ensure_all_table_data_created()
-            self.metadata.create_all(self.engine)
+            self.metadata.create_all(engine)
 
             # insert data
             for table_data in all_table_data:
@@ -132,17 +139,20 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 # Then we pass that list of dicts in as parameters to our insert statement.
                 #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
                 #   [...] [('1', 'foo'), ('2', 'bar')]
-                conn.execute(
-                    insert(table_data.table), list(table_data.df.to_dict("index").values())
-                )
+                df = table_data.df.replace(np.nan, None)
+                values = list(df.to_dict("index").values())
+                conn.execute(insert(table_data.table), values)
+        engine.dispose()
 
     @override
     def teardown(self) -> None:
+        engine = create_engine(url=self.connection_string)
         for table in self.tables:
-            table.drop(self.engine)
+            table.drop(engine)
         if self.schema:
-            with self.engine.connect() as conn, conn.begin():
+            with engine.connect() as conn, conn.begin():
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
+        engine.dispose()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = ["expectation_test_table", label, self._random_resource_name()]
@@ -189,13 +199,18 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     def _infer_column_types(self, data: pd.DataFrame) -> Dict[str, TypeEngine]:
         inferred_column_types: Dict[str, TypeEngine] = {}
         for column, value_list in data.to_dict("list").items():
-            python_type = type(value_list[0])
-            if not all(isinstance(val, python_type) for val in value_list):
-                raise RuntimeError(
-                    f"Cannot infer type of column {column}. "
-                    "Please provide an explicit column type in the test config."
-                )
-            inferred_type = self.inferrable_types_lookup.get(python_type)
-            if inferred_type:
-                inferred_column_types[str(column)] = inferred_type
+            non_null_value_list = [val for val in value_list if val is not None]
+            if not non_null_value_list:
+                # if we have an all null column, just arbitrarily use INTEGER
+                inferred_column_types[str(column)] = sqltypes.INTEGER  # type: ignore[assignment]
+            else:
+                python_type = type(non_null_value_list[0])
+                if not all(isinstance(val, python_type) for val in non_null_value_list):
+                    raise RuntimeError(
+                        f"Cannot infer type of column {column}. "
+                        "Please provide an explicit column type in the test config."
+                    )
+                inferred_type = self.inferrable_types_lookup.get(python_type)
+                if inferred_type:
+                    inferred_column_types[str(column)] = inferred_type
         return inferred_column_types

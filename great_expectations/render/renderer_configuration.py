@@ -38,6 +38,7 @@ from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,  # noqa: TCH001
 )
 from great_expectations.render.exceptions import RendererConfigurationError
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 
 if TYPE_CHECKING:
     from great_expectations.compatibility.pydantic.typing import (
@@ -274,14 +275,14 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             but it is dynamically renamed in order for the RendererParams attribute to have the same name as the param.
         """  # noqa: E501
 
-        renderer_schema: RendererSchema = Field(alias="schema")
-        value: Any
-        suite_parameter: Optional[Dict[str, Any]]
+        renderer_schema: RendererSchema = Field(alias="schema", allow_mutation=False)
+        value: Any = Field(allow_mutation=False)
+        suite_parameter: Optional[Dict[str, Any]] = Field(allow_mutation=False)
+        render_state: Optional[ObservedValueRenderState] = Field(allow_mutation=True)
 
         class Config:
             validate_assignment = True
             arbitrary_types_allowed = True
-            allow_mutation = False
 
         @root_validator(pre=True)
         def _validate_param_type_matches_value(cls, values: dict) -> dict:
@@ -289,12 +290,15 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             This root_validator ensures that a value can be parsed by its RendererValueType.
             If RendererValueType.OBJECT is passed, it is treated as valid for any value.
             """
-            param_type: RendererValueType = values["schema"]["type"]
-            value: Any = values["value"]
+            # if render_state is in values, this root_validator is being called
+            # on assignment rather than during instantiation
+            if not values.get("render_state"):
+                param_type: RendererValueType = values["schema"]["type"]
+                value: Any = values["value"]
 
-            (tester, error) = PARAM_TYPE_TESTERS[param_type]
-            if not tester(value):
-                raise RendererConfigurationError(error(param_type, value))
+                (tester, error) = PARAM_TYPE_TESTERS[param_type]
+                if not tester(value):
+                    raise RendererConfigurationError(error(param_type, value))
             return values
 
         @override

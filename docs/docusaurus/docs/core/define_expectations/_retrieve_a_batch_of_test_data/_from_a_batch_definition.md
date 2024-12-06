@@ -64,6 +64,8 @@ Batch Definitions both organize a Data Asset's records into Batches and provide 
    ```python title="Python" name="docs/docusaurus/docs/core/define_expectations/_examples/retrieve_a_batch_of_test_data_from_a_batch_definition.py - sample Batch Parameter dictionaries"
    ```
 
+   Note that the format depends on whether or not you are using a [File Data Asset](/core/connect_to_data/filesystem_data/filesystem_data.md?data_asset=file#create-a-data-asset). 
+
 3. Retrieve a Batch of data.
 
    The Batch Definition's `.get_batch(...)` method is used to retrieve a Batch of Data.  The Batch Parameters provided to this method will determine if the first valid Batch is returned, or a Batch for a specific date is returned.

@@ -14,7 +14,7 @@ To run a validation for an [API-managed Expectation](/cloud/expectations/manage_
 
 ## Prerequisites
 
-- You have created an [Expectation](/cloud/expectations/manage_expectations.md#create-an-expectation).
+- You have created an [Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
 
 ## Run a Validation
 

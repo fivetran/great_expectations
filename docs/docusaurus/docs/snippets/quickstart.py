@@ -1,6 +1,5 @@
 # <snippet name="tutorials/quickstart/quickstart.py import_gx">
 import great_expectations as gx
-from great_expectations.core.expectation_suite import ExpectationSuite
 
 # </snippet>
 
@@ -20,7 +19,8 @@ batch = context.data_sources.pandas_default.read_csv(
 # <snippet name="tutorials/quickstart/quickstart.py create_expectation">
 import great_expectations.expectations as gxe
 
-suite = context.suites.add(ExpectationSuite(name="my_suite"))
+suite_name = "my_suite"
+suite = gx.ExpectationSuite(name=suite_name)
 
 suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="pickup_datetime"))
 suite.add_expectation(
