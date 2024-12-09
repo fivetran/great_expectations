@@ -54,7 +54,7 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
 
    ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_data_source/postgres.py create data source"
    ```
-4. Optional. If you're connecting to Snowflow, and want to use key-pair authentication instead of a password, pass the private key with `kwargs`. Note that a placeholder password is still required in order to pass the configuration validation, but the password will not be used if a `private_key` is provided.
+4. Optional. If you're connecting to Snowflake and want to use key-pair authentication instead of a password, pass the private key with `kwargs`. Note that a placeholder password is still required to pass the configuration validation, but the password will not be used if a `private_key` is provided.
 
    ```python title="Python"
    # For details on how to access your private key, refer to "Configure credentials" above 
@@ -77,8 +77,8 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
    )
    ```
    
-   :::warning Private key serialized in file data context
-   If you're using a [File Data Context](/core/set_up_a_gx_environment/create_a_data_context.md), `kwargs` will be serialized to `great_expectations.yml`, which will include the private key.
+   :::warning Private key serialized in File Data Context
+   If you're using a [File Data Context](/core/set_up_a_gx_environment/create_a_data_context.md), `kwargs` will be serialized to `great_expectations.yml`, including the private key.
    :::
 
 
