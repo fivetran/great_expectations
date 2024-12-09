@@ -66,7 +66,7 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
 To connect to a Snowflake Data Source using key-pair authentication instead of a password, do the following using GX Core: 
 
 1. [Create a Cloud Data Context](/core/set_up_a_gx_environment/create_a_data_context.md?context_type=gx_cloud).
-2. [Pass your private key when you create a Data Source](/core/connect_to_data/sql_data/sql_data.md) in the Cloud Data Context.
+2. Pass your private key when you [create a Data Source](/core/connect_to_data/sql_data/sql_data.md) in the Cloud Data Context.
 
 Then, you can use GX Cloud to [add a Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) from that Data Source.
 :::
