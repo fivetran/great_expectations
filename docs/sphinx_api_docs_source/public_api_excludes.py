@@ -107,11 +107,6 @@ DEFAULT_EXCLUDES: list[IncludeExcludeDefinition] = [
         ),
     ),
     IncludeExcludeDefinition(
-        reason="ValidationActions are now run from Checkpoints: https://docs.greatexpectations.io/docs/guides/miscellaneous/migration_guide#manually-migrate-v2-checkpoints-to-v3-checkpoints",
-        name="run",
-        filepath=pathlib.Path("great_expectations/checkpoint/actions.py"),
-    ),
-    IncludeExcludeDefinition(
         reason="CLI internal methods should not be part of the public API",
         filepath=pathlib.Path("great_expectations/cli/datasource.py"),
     ),
