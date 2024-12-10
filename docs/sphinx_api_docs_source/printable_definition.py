@@ -19,6 +19,5 @@ class PrintableDefinition:
     def __str__(self) -> str:
         return f"File: {self.file} Name: {self.name}"
 
-    @override
     def __lt__(self, other) -> bool:
         return str(self) < str(other)
