@@ -54,7 +54,6 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 
 
-
 ## GX Cloud architecture
 
 GX Cloud architecture comprises a frontend web UI, storage for entity configuration and metadata, a backend application, and a Python client.
