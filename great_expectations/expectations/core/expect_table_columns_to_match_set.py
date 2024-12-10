@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TCH001
 )
@@ -10,7 +11,14 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
+from great_expectations.render import (
+    AtomicDiagnosticRendererType,
+    LegacyRendererType,
+    RenderedAtomicContent,
+    RenderedStringTemplateContent,
+    renderedAtomicValueSchema,
+)
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
@@ -314,6 +322,96 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
                 }
             )
         ]
+
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @override
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        expected_param_prefix = "exp__"
+        expected_param_name = "expected_value"
+        ov_param_prefix = "ov__"
+        ov_param_name = "observed_value"
+
+        renderer_configuration.add_param(
+            name=expected_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=renderer_configuration.kwargs.get("column_set", []),
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=expected_param_name,
+            param_prefix=expected_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        renderer_configuration.add_param(
+            name=ov_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=result.get("result", {}).get("observed_value", []) if result else [],
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=ov_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        expected_column_set = set(renderer_configuration.kwargs.get("column_set", []))
+        observed_column_set = set(
+            result.get("result", {}).get("observed_value", []) if result else []
+        )
+
+        observed_columns = (
+            (name, sch)
+            for name, sch in renderer_configuration.params
+            if name.startswith(ov_param_prefix)
+        )
+        expected_columns = (
+            (name, sch)
+            for name, sch in renderer_configuration.params
+            if name.startswith(expected_param_prefix)
+        )
+
+        template_str_list = []
+        for name, schema in observed_columns:
+            render_state = (
+                ObservedValueRenderState.EXPECTED.value
+                if schema.value in expected_column_set
+                else ObservedValueRenderState.UNEXPECTED.value
+            )
+            renderer_configuration.params.__dict__[name].render_state = render_state
+            template_str_list.append(f"${name}")
+
+        for name, schema in expected_columns:
+            if schema.value not in observed_column_set:
+                renderer_configuration.params.__dict__[
+                    name
+                ].render_state = ObservedValueRenderState.MISSING.value
+                template_str_list.append(f"${name}")
+
+        renderer_configuration.template_str = " ".join(template_str_list)
+
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )
 
     def _validate(
         self,
