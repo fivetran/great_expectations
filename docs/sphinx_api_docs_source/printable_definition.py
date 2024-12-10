@@ -3,6 +3,8 @@ from __future__ import annotations
 import pathlib
 from dataclasses import dataclass
 
+from great_expectations.compatibility.typing_extensions import override
+
 
 @dataclass(frozen=True)
 class PrintableDefinition:
@@ -13,8 +15,10 @@ class PrintableDefinition:
         if not self.file.exists():
             raise FileNotFoundError(f"File {self.file} does not exist.")  # noqa: TRY003
 
+    @override
     def __str__(self) -> str:
         return f"File: {self.file} Name: {self.name}"
 
+    @override
     def __lt__(self, other) -> bool:
         return str(self) < str(other)

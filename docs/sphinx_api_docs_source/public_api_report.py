@@ -791,7 +791,7 @@ class PublicAPIReport:
         """
         printable_definitions = self.generate_printable_definitions()
         with open(filepath, "w") as f:
-            f.write("\n".join(printable_definitions))
+            f.write("\n".join([str(d) for d in printable_definitions]))
 
     def generate_printable_definitions(
         self,
