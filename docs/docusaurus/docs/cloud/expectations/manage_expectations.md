@@ -134,6 +134,10 @@ To clear the Expectation condition, click the clear button located on the right-
 
 7. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 
+:::tip Automate rules for schema change detection
+When you [create a new Data Asset](/cloud/data_assets/manage_data_asset.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes in that Data Asset.
+:::
+
 
 ## Optional. Define a Batch
 
@@ -143,13 +147,11 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Click the **Expectations** tab.
+3. Click **Define batch**.
 
-4. Click **Define batch**.
+4. Choose how to **Validate by**. Select the **Entire Asset** tab to provide all Data Asset records to your Expectations and validations, or select one of the **Year**/**Month**/**Day** tabs to use subsets of Data Asset records for your Expectations and validations. **Year** partitions Data Asset records by year, **Month** partitions Data Asset records by year and month, **Day** partitions Data Asset records by year, month, and day.
 
-5. Choose how to **Validate by**. Select the **Entire Asset** tab to provide all Data Asset records to your Expectations and validations, or select one of the **Year**/**Month**/**Day** tabs to use subsets of Data Asset records for your Expectations and validations. **Year** partitions Data Asset records by year, **Month** partitions Data Asset records by year and month, **Day** partitions Data Asset records by year, month, and day.
-
-6. Select the **Batch column** that contains the DATE or DATETIME data to partition on.
+5. Select the **Batch column** that contains the DATE or DATETIME data to partition on.
 
 ## Edit an Expectation
 
@@ -157,13 +159,11 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Click the **Expectations** tab.
+3. Click **Edit Expectation** for the Expectation that you want to edit.
 
-4. Click **Edit Expectation** for the Expectation that you want to edit.
+4. Edit the Expectation configuration.
 
-5. Edit the Expectation configuration.
-
-6. Click **Save**.
+5. Click **Save**.
 
 ## Delete an Expectation
 
@@ -171,11 +171,9 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Click the **Expectations** tab.
+3. Click **Delete Expectation** for the Expectation you want to delete.
 
-4. Click **Delete Expectation** for the Expectation you want to delete.
-
-5. Click **Yes, delete Expectation**.
+4. Click **Yes, delete Expectation**.
 
 ## GX-managed vs. API-managed Expectations
 

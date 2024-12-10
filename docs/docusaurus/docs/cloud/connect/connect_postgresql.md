@@ -58,7 +58,9 @@ import Tabs from '@theme/Tabs';
 
 5. Select one or more tables to import as Data Assets.
 
-6. Click **Add x Asset(s)**. 
+6. Decide if you want to **Generate Expectations that detect column changes in selected Data Assets**.
 
-7. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+7. Click **Add x Asset(s)**. 
+
+8. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
 
