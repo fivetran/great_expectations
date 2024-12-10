@@ -7,7 +7,7 @@ import pathlib
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
-PRIVATE_KEY_FILE = pathlib.Path("rsa_key.p8").resolve(strict=True)
+PRIVATE_KEY_FILE = pathlib.Path("path/to/my/rsa_key.p8").resolve(strict=True)
 
 p_key = serialization.load_pem_private_key(
         PRIVATE_KEY_FILE.read_bytes(),
