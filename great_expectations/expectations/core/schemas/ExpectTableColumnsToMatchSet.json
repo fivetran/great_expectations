@@ -87,6 +87,7 @@
         "exact_match": {
             "title": "Exact Match",
             "description": "If True, the list of columns must exactly match the observed columns. If False, observed columns must include column_set but additional columns will pass.",
+            "default": true,
             "type": "boolean"
         },
         "metadata": {
