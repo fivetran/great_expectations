@@ -174,7 +174,7 @@ Gallery](https://greatexpectations.io/expectations/expect_table_column_count_to_
 
 ## Examples
 
-**GX Cloud** provides a visual interface to create and run schema validation workflows. The GX Cloud workflow for validating data schema is to create Data Assets with automatically generated Expectations, manually define additional Expectations, run Validations, and review Validation Results.
+**GX Cloud** provides a visual interface to create and run schema validation workflows. The GX Cloud workflow for validating data schemas is to create Data Assets with automatically generated Expectations, manually define additional Expectations, run Validations, and review Validation Results.
 
 **GX Core** can be used to complement and extend the capabilities of GX Cloud to programmatically implement custom validation workflows. The examples provided in this section feature use cases that leverage GX Core to achieve schema validation.
 
