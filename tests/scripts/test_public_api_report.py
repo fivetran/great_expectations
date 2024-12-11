@@ -150,8 +150,8 @@ End of content.
 
 
 @pytest.fixture
-def repo_root() -> pathlib.Path:
-    return pathlib.Path("/some/absolute/path/repo_root/")
+def repo_root(tmp_path) -> pathlib.Path:
+    return pathlib.Path(tmp_path)
 
 
 @pytest.fixture
@@ -408,7 +408,9 @@ class TestPublicAPIChecker:
 
         return definitions
 
-    def test_is_definition_marked_public_api_yes(self, public_api_checker: PublicAPIChecker):
+    def test_is_definition_marked_public_api_yes(
+        self, public_api_checker: PublicAPIChecker, tmp_path: pathlib.Path
+    ):
         file_string = """
 @public_api
 def example_public_api_module_level_function():
@@ -437,11 +439,12 @@ class ExamplePublicAPIClass:
         pass
 
 """
+        test_path = tmp_path / "test_path.py"
         ast_definitions = self._class_and_function_definitions(tree=ast.parse(file_string))
         definitions = [
             Definition(
                 name="test_name",
-                filepath=pathlib.Path("test_path"),
+                filepath=pathlib.Path(test_path),
                 ast_definition=ast_definition,
             )
             for ast_definition in ast_definitions
@@ -451,7 +454,9 @@ class ExamplePublicAPIClass:
             for definition in definitions
         )
 
-    def test_is_definition_marked_public_api_no(self, public_api_checker: PublicAPIChecker):
+    def test_is_definition_marked_public_api_no(
+        self, public_api_checker: PublicAPIChecker, tmp_path: pathlib.Path
+    ):
         file_string = """
 def example_module_level_function():
     pass
@@ -474,11 +479,12 @@ class ExampleClass:
         pass
 
 """
+        test_path = tmp_path / "test_path.py"
         ast_definitions = self._class_and_function_definitions(tree=ast.parse(file_string))
         definitions = [
             Definition(
                 name="test_name",
-                filepath=pathlib.Path("test_path"),
+                filepath=pathlib.Path(test_path),
                 ast_definition=ast_definition,
             )
             for ast_definition in ast_definitions
@@ -510,22 +516,17 @@ def code_reference_filter_with_non_default_include_exclude(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
+    tmp_path: pathlib.Path,
 ) -> CodeReferenceFilter:
+    test_path = tmp_path / "test_path.py"
+    test_path.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
         code_parser=code_parser,
         public_api_checker=public_api_checker,
-        includes=[
-            IncludeExcludeDefinition(
-                reason="test", name="test_name", filepath=pathlib.Path("test_path")
-            )
-        ],
-        excludes=[
-            IncludeExcludeDefinition(
-                reason="test", name="test_name", filepath=pathlib.Path("test_path")
-            )
-        ],
+        includes=[IncludeExcludeDefinition(reason="test", name="test_name", filepath=test_path)],
+        excludes=[IncludeExcludeDefinition(reason="test", name="test_name", filepath=test_path)],
     )
 
 
@@ -552,7 +553,10 @@ def code_reference_filter_with_exclude_by_file(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
+    tmp_path: pathlib.Path,
 ) -> CodeReferenceFilter:
+    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
+    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -562,9 +566,7 @@ def code_reference_filter_with_exclude_by_file(
         excludes=[
             IncludeExcludeDefinition(
                 reason="test",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             )
         ],
     )
@@ -592,7 +594,10 @@ def code_reference_filter_with_exclude_by_file_and_name(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
+    tmp_path: pathlib.Path,
 ) -> CodeReferenceFilter:
+    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
+    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -603,16 +608,12 @@ def code_reference_filter_with_exclude_by_file_and_name(
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_method",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             ),
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_module_level_function",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             ),
         ],
     )
@@ -624,7 +625,10 @@ def code_reference_filter_with_include_by_file_and_name_already_included(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
+    tmp_path: pathlib.Path,
 ) -> CodeReferenceFilter:
+    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
+    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -634,16 +638,12 @@ def code_reference_filter_with_include_by_file_and_name_already_included(
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_method",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             ),
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_module_level_function",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             ),
         ],
         excludes=[],
@@ -656,7 +656,10 @@ def code_reference_filter_with_include_by_file_and_name_already_excluded(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
+    tmp_path: pathlib.Path,
 ) -> CodeReferenceFilter:
+    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
+    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -666,24 +669,18 @@ def code_reference_filter_with_include_by_file_and_name_already_excluded(
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_method",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             ),
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_module_level_function",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             ),
         ],
         excludes=[
             IncludeExcludeDefinition(
                 reason="test",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             )
         ],
     )
@@ -695,7 +692,10 @@ def code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
+    tmp_path: pathlib.Path,
 ) -> CodeReferenceFilter:
+    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
+    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -705,17 +705,13 @@ def code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_no_usages_in_sample_docs_example_python_file_string",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             ),
         ],
         excludes=[
             IncludeExcludeDefinition(
                 reason="test",
-                filepath=pathlib.Path(
-                    "great_expectations/sample_with_definitions_python_file_string.py"
-                ),
+                filepath=sample_file,
             )
         ],
     )
