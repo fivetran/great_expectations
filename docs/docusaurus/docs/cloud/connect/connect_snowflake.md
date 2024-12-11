@@ -15,6 +15,7 @@ import Tabs from '@theme/Tabs';
 
 - You have a [Snowflake account](https://docs.snowflake.com/en/user-guide-admin) with USAGE privileges on the table, database, and schema you are validating, and you have SELECT privileges on the table you are validating.
    - Optional. To improve data security, GX recommends using a separate Snowflake user service account to connect to GX Cloud.
+   - Optional. To streamline automations and improve security, you can connect to Snowflake with key-pair authentication instead of a password. Note that this requires using GX Core in combination with GX Cloud.
 
 - Optional. You can use an existing Snowflake warehouse, but GX recommends creating a separate warehouse for GX Cloud to simplify cost management and optimize performance.
 
@@ -58,7 +59,17 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
 
    ![Snowflake Run All](/img/run_all.png)
 
+
 ## Connect to a Snowflake Data Source and add a Data Asset
+
+:::tip To connect with key-pair authentication, use GX Core
+To connect to a Snowflake Data Source using key-pair authentication instead of a password, do the following using GX Core: 
+
+1. [Create a Cloud Data Context](/core/set_up_a_gx_environment/create_a_data_context.md?context_type=gx_cloud).
+2. Pass your private key when you [create a Data Source](/core/connect_to_data/sql_data/sql_data.md) in the Cloud Data Context.
+
+Then, you can use GX Cloud to [add a Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) from that Data Source.
+:::
 
 1. In GX Cloud, click **Data Assets** > **New Data Asset** > **New Data Source** > **Snowflake**.
 
@@ -99,4 +110,5 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
 7. Click **Add x Asset(s)**. 
 
 8. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+
 

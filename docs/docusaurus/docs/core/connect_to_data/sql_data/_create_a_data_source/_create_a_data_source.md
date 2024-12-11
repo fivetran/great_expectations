@@ -54,8 +54,35 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
 
    ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_data_source/postgres.py create data source"
    ```
+4. Optional. If you're connecting to Snowflake and want to use key-pair authentication instead of a password, pass the private key with `kwargs`. Note that a placeholder password is still required to pass the configuration validation, but the password will not be used if a `private_key` is provided.
 
-4. Optional. Verify the Data Source is connected:
+   ```python title="Python"
+   # For details on how to access your private key, refer to "Configure credentials" above 
+   connect_args = {"private_key": pkb} 
+
+   connection_details={
+      "account": "accountname.region",
+      "user": "my_user",
+      "role": "my_role",
+      "password": "placeholder_value", # must be provided to pass validation but will be ignored
+      "warehouse": "my_wh",
+      "database": "my_db",
+      "schema": "my_schema"
+   }
+
+   data_source = context.sources.add_snowflake(
+      name=datasource_name,
+      connection_string=connection_details,
+      kwargs={"connect_args": connect_args}
+   )
+   ```
+   
+   :::warning Private key serialized in File Data Context
+   If you're using a [File Data Context](/core/set_up_a_gx_environment/create_a_data_context.md), `kwargs` will be serialized to `great_expectations.yml`, including the private key.
+   :::
+
+
+5. Optional. Verify the Data Source is connected:
 
    ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_data_source/postgres.py verify data source"
    ```
