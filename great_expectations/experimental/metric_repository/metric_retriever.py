@@ -48,6 +48,11 @@ class MetricRetriever(abc.ABC):
     def get_validator(self, batch_request: BatchRequest) -> Validator:
         if self._validator is None:
             self._validator = self._context.get_validator(batch_request=batch_request)
+
+        if isinstance(self._validator.active_batch, Batch):
+            if self._validator.active_batch.data_asset.name != batch_request.data_asset_name:
+                self._validator = self._context.get_validator(batch_request=batch_request)
+
         return self._validator
 
     @abc.abstractmethod
