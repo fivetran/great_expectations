@@ -18,7 +18,7 @@ Before we completely remove the functionality in a new major release, there will
 * [BUGFIX] Enable custom actions in V1 ([#10743](https://github.com/great-expectations/great_expectations/pull/10743))
 * [BUGFIX] Fix like pattern expectations to work without optional SQL deps ([#10745](https://github.com/great-expectations/great_expectations/pull/10745))
 * [BUGFIX] Default `exact_match` to `True` for `ExpectTableColumnsToMatchSet` ([#10746](https://github.com/great-expectations/great_expectations/pull/10746))
-* [BUGFIX] check for variance in validator and batch asset ([#10744](https://github.com/great-expectations/great_expectations/pull/10744)) (thanks @shiplet)
+* [BUGFIX] check for variance in validator and batch asset ([#10744](https://github.com/great-expectations/great_expectations/pull/10744))
 * [DOCS] Update Row Condition guidance ([#10736](https://github.com/great-expectations/great_expectations/pull/10736))
 * [DOCS] Update banner content ([#10747](https://github.com/great-expectations/great_expectations/pull/10747))
 * [DOCS] key-pair auth for Snowflake ([#10751](https://github.com/great-expectations/great_expectations/pull/10751))
