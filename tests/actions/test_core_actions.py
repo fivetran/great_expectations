@@ -5,7 +5,7 @@ import smtplib
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from types import ModuleType
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterator, Literal
 from unittest import mock
 
 import pytest
@@ -23,6 +23,7 @@ from great_expectations.checkpoint.actions import (
     SlackNotificationAction,
     SNSNotificationAction,
     UpdateDataDocsAction,
+    ValidationAction,
 )
 from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
 from great_expectations.core.batch import IDDict, LegacyBatchDefinition
@@ -45,6 +46,7 @@ from great_expectations.data_context.types.resource_identifiers import (
     GXCloudIdentifier,
     ValidationResultIdentifier,
 )
+from great_expectations.exceptions.exceptions import ValidationActionAlreadyRegisteredError
 from great_expectations.util import is_library_loadable
 
 if TYPE_CHECKING:
@@ -883,3 +885,12 @@ class TestUpdateDataDocsAction:
             validation_identifier_a: {},
             validation_identifier_b: {},
         }
+
+
+class TestCustomActions:
+    @pytest.mark.unit
+    def test_custom_action_shadows_existing_type(self):
+        with pytest.raises(ValidationActionAlreadyRegisteredError):
+
+            class CustomSlackAction(ValidationAction):
+                type: Literal["slack"] = "slack"  # Shadows existing value
