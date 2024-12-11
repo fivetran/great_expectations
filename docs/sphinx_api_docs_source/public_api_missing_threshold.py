@@ -13,6 +13,9 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         file=pathlib.Path("great_expectations/_docs_decorators.py"), name="add"
     ),
     PrintableDefinition(
+        file=pathlib.Path("great_expectations/checkpoint/actions.py"), name="get"
+    ),
+    PrintableDefinition(
         file=pathlib.Path("great_expectations/checkpoint/actions.py"), name="_run"
     ),
     PrintableDefinition(
@@ -246,10 +249,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
             "great_expectations/data_context/types/resource_identifiers.py"
         ),
         name="GXCloudIdentifier",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path("great_expectations/datasource/datasource_dict.py"),
-        name="add_dataframe_asset",
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/datasource/fluent/config.py"), name="yaml"
