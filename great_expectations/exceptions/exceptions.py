@@ -466,3 +466,22 @@ class DatabaseConnectionError(GreatExpectationsError):
 class SqlAddBatchDefinitionError(Exception):
     def __init__(self, msg: str):
         super().__init__(f"Failed adding batch definition: {msg}")
+
+
+class ValidationActionRegistryError(GreatExpectationsError):
+    pass
+
+
+class ValidationActionAlreadyRegisteredError(ValidationActionRegistryError):
+    def __init__(self, action_type: str) -> None:
+        super().__init__(message=f"Action of type {action_type} is already registered.")
+
+
+class ValidationActionRegistryRetrievalError(ValidationActionRegistryError):
+    def __init__(self, action_type: str | None) -> None:
+        if action_type:
+            message = f"Invalid action configuration; no action of type {action_type} found."
+        else:
+            message = "Invalid action configuration; no 'type' key found."
+
+        super().__init__(message)
