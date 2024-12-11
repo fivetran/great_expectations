@@ -598,10 +598,8 @@ def code_reference_filter_with_exclude_by_file_and_name(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
-    tmp_path: pathlib.Path,
+    sample_docs_example_python_file_string_filepath: pathlib.Path,
 ) -> CodeReferenceFilter:
-    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
-    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -612,12 +610,12 @@ def code_reference_filter_with_exclude_by_file_and_name(
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_method",
-                filepath=sample_file,
+                filepath=sample_docs_example_python_file_string_filepath,
             ),
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_module_level_function",
-                filepath=sample_file,
+                filepath=sample_docs_example_python_file_string_filepath,
             ),
         ],
     )
