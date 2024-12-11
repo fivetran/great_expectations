@@ -1,6 +1,6 @@
 import ast
 import pathlib
-from typing import Generator, List, Union
+from typing import List, Union
 
 import pytest
 
@@ -151,32 +151,30 @@ End of content.
 
 @pytest.fixture
 def repo_root(tmp_path) -> pathlib.Path:
-    return pathlib.Path(tmp_path)
+    return tmp_path
 
 
 @pytest.fixture
 def sample_docs_example_python_file_string_filepath(
     repo_root: pathlib.Path,
-) -> Generator[pathlib.Path, None, None]:
+) -> pathlib.Path:
     path = (
         repo_root
         / pathlib.Path("tests/integration/docusaurus/sample_docs_example_python_file_string.py")
     ).relative_to(repo_root)
     path.touch()
-    yield path
-    path.unlink()
+    return path
 
 
 @pytest.fixture
 def sample_with_definitions_python_file_string_filepath(
     repo_root: pathlib.Path,
-) -> Generator[pathlib.Path, None, None]:
+) -> pathlib.Path:
     path = (repo_root / pathlib.Path("sample_with_definitions_python_file_string.py")).relative_to(
         repo_root
     )
     path.touch()
-    yield path
-    path.unlink()
+    return path
 
 
 @pytest.fixture
