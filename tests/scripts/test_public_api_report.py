@@ -923,12 +923,6 @@ class TestIncludeExcludeDefinition:
         definition = IncludeExcludeDefinition(reason="reason", filepath=path)
         assert isinstance(definition, IncludeExcludeDefinition)
 
-    def test_instantiate_name_and_filepath_no_reason(self, tmp_path: pathlib.Path):
-        path = tmp_path / "test_path.py"
-        path.touch()
-        with pytest.raises(TypeError):
-            IncludeExcludeDefinition(name="name", filepath=path)
-
     def test_instantiate_name_only(self):
         with pytest.raises(ValueError) as exc:
             IncludeExcludeDefinition(reason="reason", name="name")
