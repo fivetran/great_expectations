@@ -15,7 +15,7 @@ When we deprecate our public APIs, we will
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
 ### 1.2.6
-* [FEATURE] Enable custom actions in V1 ([#10743](https://github.com/great-expectations/great_expectations/pull/10743))
+* [BUGFIX] Enable custom actions in V1 ([#10743](https://github.com/great-expectations/great_expectations/pull/10743))
 * [BUGFIX] Fix like pattern expectations to work without optional SQL deps ([#10745](https://github.com/great-expectations/great_expectations/pull/10745))
 * [BUGFIX] Default `exact_match` to `True` for `ExpectTableColumnsToMatchSet` ([#10746](https://github.com/great-expectations/great_expectations/pull/10746))
 * [BUGFIX] check for variance in validator and batch asset ([#10744](https://github.com/great-expectations/great_expectations/pull/10744)) (thanks @shiplet)
