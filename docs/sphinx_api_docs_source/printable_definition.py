@@ -3,8 +3,6 @@ from __future__ import annotations
 import pathlib
 from dataclasses import dataclass
 
-from typing_extensions import override
-
 
 @dataclass(frozen=True)
 class PrintableDefinition:
@@ -15,8 +13,7 @@ class PrintableDefinition:
         if not self.file.exists():
             raise FileNotFoundError(f"File {self.file} does not exist.")  # noqa: TRY003
 
-    @override
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # type: ignore[explicit-override]
         return f"File: {self.file} Name: {self.name}"
 
     def __lt__(self, other) -> bool:
