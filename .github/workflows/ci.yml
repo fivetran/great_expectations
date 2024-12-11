@@ -478,6 +478,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -885,7 +887,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CI_WEBHOOK_URL }}
 
   notify_on_release:
-    needs: [build-n-publish]
+    needs: [build-n-publish, check-actor-permissions]
     runs-on: ubuntu-latest
     steps:
       - name: Announce Release
