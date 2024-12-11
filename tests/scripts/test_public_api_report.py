@@ -522,17 +522,27 @@ def code_reference_filter_with_non_default_include_exclude(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
-    tmp_path: pathlib.Path,
+    sample_docs_example_python_file_string_filepath: pathlib.Path,
 ) -> CodeReferenceFilter:
-    test_path = tmp_path / "test_path.py"
-    test_path.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
         code_parser=code_parser,
         public_api_checker=public_api_checker,
-        includes=[IncludeExcludeDefinition(reason="test", name="test_name", filepath=test_path)],
-        excludes=[IncludeExcludeDefinition(reason="test", name="test_name", filepath=test_path)],
+        includes=[
+            IncludeExcludeDefinition(
+                reason="test",
+                name="test_name",
+                filepath=sample_docs_example_python_file_string_filepath,
+            )
+        ],
+        excludes=[
+            IncludeExcludeDefinition(
+                reason="test",
+                name="test_name",
+                filepath=sample_docs_example_python_file_string_filepath,
+            )
+        ],
     )
 
 
@@ -598,7 +608,7 @@ def code_reference_filter_with_exclude_by_file_and_name(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
-    sample_docs_example_python_file_string_filepath: pathlib.Path,
+    sample_with_definitions_python_file_string_filepath: pathlib.Path,
 ) -> CodeReferenceFilter:
     return CodeReferenceFilter(
         repo_root=repo_root,
@@ -610,12 +620,12 @@ def code_reference_filter_with_exclude_by_file_and_name(
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_method",
-                filepath=sample_docs_example_python_file_string_filepath,
+                filepath=sample_with_definitions_python_file_string_filepath,
             ),
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_module_level_function",
-                filepath=sample_docs_example_python_file_string_filepath,
+                filepath=sample_with_definitions_python_file_string_filepath,
             ),
         ],
     )
@@ -690,7 +700,7 @@ def code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
-    sample_docs_example_python_file_string_filepath: pathlib.Path,
+    sample_with_definitions_python_file_string_filepath: pathlib.Path,
 ) -> CodeReferenceFilter:
     return CodeReferenceFilter(
         repo_root=repo_root,
@@ -701,13 +711,13 @@ def code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_no_usages_in_sample_docs_example_python_file_string",
-                filepath=sample_docs_example_python_file_string_filepath,
+                filepath=sample_with_definitions_python_file_string_filepath,
             ),
         ],
         excludes=[
             IncludeExcludeDefinition(
                 reason="test",
-                filepath=sample_docs_example_python_file_string_filepath,
+                filepath=sample_with_definitions_python_file_string_filepath,
             )
         ],
     )
