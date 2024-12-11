@@ -228,9 +228,6 @@ def empty_docs_example_parser(
 
 
 class TestDocExampleParser:
-    def test_instantiate(self, docs_example_parser: DocsExampleParser):
-        assert isinstance(docs_example_parser, DocsExampleParser)
-
     def test_retrieve_all_usages_in_files(self, docs_example_parser: DocsExampleParser):
         usages = docs_example_parser.get_names_from_usage_in_docs_examples()
         assert usages == {
@@ -257,9 +254,6 @@ def code_parser(sample_with_definitions_file_contents: FileContents) -> CodePars
 
 
 class TestCodeParser:
-    def test_instantiate(self, code_parser: CodeParser):
-        assert isinstance(code_parser, CodeParser)
-
     def test_get_all_class_method_and_function_names(self, code_parser: CodeParser):
         names = code_parser.get_all_class_method_and_function_names()
         assert names == {
@@ -378,16 +372,11 @@ def test__get_import_names(various_imports: str):
 
 
 @pytest.fixture
-def public_api_checker(
-    docs_example_parser: DocsExampleParser, code_parser: CodeParser
-) -> PublicAPIChecker:
+def public_api_checker(code_parser: CodeParser) -> PublicAPIChecker:
     return PublicAPIChecker(code_parser=code_parser)
 
 
 class TestPublicAPIChecker:
-    def test_instantiate(self, public_api_checker: PublicAPIChecker):
-        assert isinstance(public_api_checker, PublicAPIChecker)
-
     def test_get_all_public_api_definitions(self, public_api_checker: PublicAPIChecker):
         observed = public_api_checker.get_all_public_api_definitions()
         assert len(observed) == 6
@@ -725,7 +714,6 @@ def code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example
 
 class TestCodeReferenceFilter:
     def test_instantiate(self, code_reference_filter: CodeReferenceFilter):
-        assert isinstance(code_reference_filter, CodeReferenceFilter)
         assert code_reference_filter.excludes
         assert code_reference_filter.includes
 
@@ -734,7 +722,6 @@ class TestCodeReferenceFilter:
         code_reference_filter_with_non_default_include_exclude: CodeReferenceFilter,
     ):
         code_reference_filter = code_reference_filter_with_non_default_include_exclude
-        assert isinstance(code_reference_filter, CodeReferenceFilter)
         assert code_reference_filter.excludes
         assert code_reference_filter.includes
         assert len(code_reference_filter.excludes) == 1
@@ -882,9 +869,6 @@ def public_api_report_filter_out_file(
 
 
 class TestPublicAPIReport:
-    def test_instantiate(self, public_api_report: PublicAPIReport):
-        assert isinstance(public_api_report, PublicAPIReport)
-
     def test_generate_printable_definitions(self, public_api_report: PublicAPIReport):
         expected: List[str] = [
             "File: sample_with_definitions_python_file_string.py Name: " "ExampleClass",
@@ -910,18 +894,16 @@ class TestIncludeExcludeDefinition:
     def test_instantiate_name_and_filepath(self, tmp_path: pathlib.Path):
         path = tmp_path / "test_path.py"
         path.touch()
-        definition = IncludeExcludeDefinition(
+        IncludeExcludeDefinition(
             reason="reason",
             name="name",
             filepath=path,
         )
-        assert isinstance(definition, IncludeExcludeDefinition)
 
     def test_instantiate_filepath_only(self, tmp_path: pathlib.Path):
         path = tmp_path / "test_path.py"
         path.touch()
-        definition = IncludeExcludeDefinition(reason="reason", filepath=path)
-        assert isinstance(definition, IncludeExcludeDefinition)
+        IncludeExcludeDefinition(reason="reason", filepath=path)
 
     def test_instantiate_name_only(self):
         with pytest.raises(ValueError) as exc:
