@@ -98,7 +98,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Issue:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
         {DATA_QUALITY_ISSUES[1]}
 
