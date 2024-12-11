@@ -1,6 +1,6 @@
 import ast
 import pathlib
-from typing import List, Union
+from typing import Generator, List, Union
 
 import pytest
 
@@ -157,20 +157,26 @@ def repo_root(tmp_path) -> pathlib.Path:
 @pytest.fixture
 def sample_docs_example_python_file_string_filepath(
     repo_root: pathlib.Path,
-) -> pathlib.Path:
-    return (
+) -> Generator[pathlib.Path, None, None]:
+    path = (
         repo_root
         / pathlib.Path("tests/integration/docusaurus/sample_docs_example_python_file_string.py")
     ).relative_to(repo_root)
+    path.touch()
+    yield path
+    path.unlink()
 
 
 @pytest.fixture
 def sample_with_definitions_python_file_string_filepath(
     repo_root: pathlib.Path,
-) -> pathlib.Path:
-    return (
-        repo_root / pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
-    ).relative_to(repo_root)
+) -> Generator[pathlib.Path, None, None]:
+    path = (repo_root / pathlib.Path("sample_with_definitions_python_file_string.py")).relative_to(
+        repo_root
+    )
+    path.touch()
+    yield path
+    path.unlink()
 
 
 @pytest.fixture
@@ -298,7 +304,7 @@ class TestCodeParser:
             "example_staticmethod",
         }
         assert {d.filepath for d in definitions} == {
-            pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
+            pathlib.Path("sample_with_definitions_python_file_string.py")
         }
 
 
@@ -394,7 +400,7 @@ class TestPublicAPIChecker:
             "example_public_staticmethod",
         }
         assert {d.filepath for d in observed} == {
-            pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
+            pathlib.Path("sample_with_definitions_python_file_string.py")
         }
 
     def _class_and_function_definitions(
@@ -553,10 +559,8 @@ def code_reference_filter_with_exclude_by_file(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
-    tmp_path: pathlib.Path,
+    sample_with_definitions_python_file_string_filepath: pathlib.Path,
 ) -> CodeReferenceFilter:
-    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
-    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -566,7 +570,7 @@ def code_reference_filter_with_exclude_by_file(
         excludes=[
             IncludeExcludeDefinition(
                 reason="test",
-                filepath=sample_file,
+                filepath=sample_with_definitions_python_file_string_filepath,
             )
         ],
     )
@@ -625,10 +629,8 @@ def code_reference_filter_with_include_by_file_and_name_already_included(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
-    tmp_path: pathlib.Path,
+    sample_with_definitions_python_file_string_filepath: pathlib.Path,
 ) -> CodeReferenceFilter:
-    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
-    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -638,12 +640,12 @@ def code_reference_filter_with_include_by_file_and_name_already_included(
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_method",
-                filepath=sample_file,
+                filepath=sample_with_definitions_python_file_string_filepath,
             ),
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_module_level_function",
-                filepath=sample_file,
+                filepath=sample_with_definitions_python_file_string_filepath,
             ),
         ],
         excludes=[],
@@ -656,10 +658,8 @@ def code_reference_filter_with_include_by_file_and_name_already_excluded(
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
-    tmp_path: pathlib.Path,
+    sample_with_definitions_python_file_string_filepath: pathlib.Path,
 ) -> CodeReferenceFilter:
-    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
-    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -669,18 +669,18 @@ def code_reference_filter_with_include_by_file_and_name_already_excluded(
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_method",
-                filepath=sample_file,
+                filepath=sample_with_definitions_python_file_string_filepath,
             ),
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_module_level_function",
-                filepath=sample_file,
+                filepath=sample_with_definitions_python_file_string_filepath,
             ),
         ],
         excludes=[
             IncludeExcludeDefinition(
                 reason="test",
-                filepath=sample_file,
+                filepath=sample_with_definitions_python_file_string_filepath,
             )
         ],
     )
@@ -692,10 +692,8 @@ def code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example
     docs_example_parser: DocsExampleParser,
     code_parser: CodeParser,
     public_api_checker: PublicAPIChecker,
-    tmp_path: pathlib.Path,
+    sample_docs_example_python_file_string_filepath: pathlib.Path,
 ) -> CodeReferenceFilter:
-    sample_file = tmp_path / "sample_with_definitions_python_file_string.py"
-    sample_file.touch()
     return CodeReferenceFilter(
         repo_root=repo_root,
         docs_example_parser=docs_example_parser,
@@ -705,13 +703,13 @@ def code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example
             IncludeExcludeDefinition(
                 reason="test",
                 name="example_no_usages_in_sample_docs_example_python_file_string",
-                filepath=sample_file,
+                filepath=sample_docs_example_python_file_string_filepath,
             ),
         ],
         excludes=[
             IncludeExcludeDefinition(
                 reason="test",
-                filepath=sample_file,
+                filepath=sample_docs_example_python_file_string_filepath,
             )
         ],
     )
@@ -751,7 +749,7 @@ class TestCodeReferenceFilter:
             "example_staticmethod",
         }
         assert {d.filepath for d in observed} == {
-            pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
+            pathlib.Path("sample_with_definitions_python_file_string.py")
         }
 
     def test_filter_definitions_with_references_from_docs_content(
@@ -762,7 +760,7 @@ class TestCodeReferenceFilter:
         assert len(observed) == 1
         assert {d.name for d in observed} == {"ExampleClass"}
         assert {d.filepath for d in observed} == {
-            pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
+            pathlib.Path("sample_with_definitions_python_file_string.py")
         }
 
     def test_filter_definitions_exclude_by_file(
@@ -785,7 +783,7 @@ class TestCodeReferenceFilter:
             "example_staticmethod",
         }
         assert {d.filepath for d in observed} == {
-            pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
+            pathlib.Path("sample_with_definitions_python_file_string.py")
         }
 
     def test_filter_definitions_include_by_file_and_name_already_included(
@@ -811,7 +809,7 @@ class TestCodeReferenceFilter:
             "example_staticmethod",
         }
         assert {d.filepath for d in observed} == {
-            pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
+            pathlib.Path("sample_with_definitions_python_file_string.py")
         }
 
     def test_filter_definitions_include_by_file_and_name_already_excluded(
@@ -831,7 +829,7 @@ class TestCodeReferenceFilter:
             "example_module_level_function",
         }
         assert {d.filepath for d in observed} == {
-            pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
+            pathlib.Path("sample_with_definitions_python_file_string.py")
         }
 
     def test_filter_definitions_include_by_file_and_name_already_excluded_not_used_in_docs_example(
@@ -849,7 +847,7 @@ class TestCodeReferenceFilter:
             "example_no_usages_in_sample_docs_example_python_file_string",
         }
         assert {d.filepath for d in observed} == {
-            pathlib.Path("great_expectations/sample_with_definitions_python_file_string.py")
+            pathlib.Path("sample_with_definitions_python_file_string.py")
         }
 
 
@@ -881,20 +879,15 @@ class TestPublicAPIReport:
 
     def test_generate_printable_definitions(self, public_api_report: PublicAPIReport):
         expected: List[str] = [
-            "File: great_expectations/sample_with_definitions_python_file_string.py Name: "
-            "ExampleClass",
-            "File: great_expectations/sample_with_definitions_python_file_string.py Name: "
-            "example_classmethod",
-            "File: great_expectations/sample_with_definitions_python_file_string.py Name: "
-            "example_method",
-            "File: great_expectations/sample_with_definitions_python_file_string.py Name: "
-            "example_method_with_args",
-            "File: great_expectations/sample_with_definitions_python_file_string.py Name: "
+            "File: sample_with_definitions_python_file_string.py Name: " "ExampleClass",
+            "File: sample_with_definitions_python_file_string.py Name: " "example_classmethod",
+            "File: sample_with_definitions_python_file_string.py Name: " "example_method",
+            "File: sample_with_definitions_python_file_string.py Name: " "example_method_with_args",
+            "File: sample_with_definitions_python_file_string.py Name: "
             "example_module_level_function",
-            "File: great_expectations/sample_with_definitions_python_file_string.py Name: "
-            "example_staticmethod",
+            "File: sample_with_definitions_python_file_string.py Name: " "example_staticmethod",
         ]
-        observed = public_api_report.generate_printable_definitions()
+        observed = [str(p) for p in public_api_report.generate_printable_definitions()]
         assert observed == expected
 
     def test_generate_printable_definitions_exclude_by_file(
@@ -906,19 +899,27 @@ class TestPublicAPIReport:
 
 
 class TestIncludeExcludeDefinition:
-    def test_instantiate_name_and_filepath(self):
+    def test_instantiate_name_and_filepath(self, tmp_path: pathlib.Path):
+        path = tmp_path / "test_path.py"
+        path.touch()
         definition = IncludeExcludeDefinition(
-            reason="reason", name="name", filepath=pathlib.Path("filepath")
+            reason="reason",
+            name="name",
+            filepath=path,
         )
         assert isinstance(definition, IncludeExcludeDefinition)
 
-    def test_instantiate_filepath_only(self):
-        definition = IncludeExcludeDefinition(reason="reason", filepath=pathlib.Path("filepath"))
+    def test_instantiate_filepath_only(self, tmp_path: pathlib.Path):
+        path = tmp_path / "test_path.py"
+        path.touch()
+        definition = IncludeExcludeDefinition(reason="reason", filepath=path)
         assert isinstance(definition, IncludeExcludeDefinition)
 
-    def test_instantiate_name_and_filepath_no_reason(self):
+    def test_instantiate_name_and_filepath_no_reason(self, tmp_path: pathlib.Path):
+        path = tmp_path / "test_path.py"
+        path.touch()
         with pytest.raises(TypeError):
-            IncludeExcludeDefinition(name="name", filepath=pathlib.Path("filepath"))
+            IncludeExcludeDefinition(name="name", filepath=path)
 
     def test_instantiate_name_only(self):
         with pytest.raises(ValueError) as exc:
