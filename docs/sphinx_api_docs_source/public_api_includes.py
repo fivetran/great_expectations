@@ -26,6 +26,11 @@ DEFAULT_INCLUDES: list[IncludeExcludeDefinition] = [
     ),
     IncludeExcludeDefinition(
         reason="Validation Actions are used within Checkpoints but are part of our Public API and can be overridden via plugins.",
+        name="_run",
+        filepath=pathlib.Path("great_expectations/checkpoint/actions.py"),
+    ),
+    IncludeExcludeDefinition(
+        reason="Validation Actions are used within Checkpoints but are part of our Public API and can be overridden via plugins.",
         name="SlackNotificationAction",
         filepath=pathlib.Path("great_expectations/checkpoint/actions.py"),
     ),
