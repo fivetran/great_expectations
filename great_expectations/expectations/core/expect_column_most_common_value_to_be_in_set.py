@@ -62,7 +62,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC, DataQualityIssues.VALIDITY]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
 
 
 class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):

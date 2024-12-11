@@ -40,7 +40,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the column entries to be strings that match a given like pattern expression."
 )
 LIKE_PATTERN_DESCRIPTION = "The SQL like pattern expression the column entries should match."
-DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
 
 

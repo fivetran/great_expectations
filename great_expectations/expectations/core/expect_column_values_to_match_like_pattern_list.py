@@ -46,7 +46,7 @@ MATCH_ON_DESCRIPTION = (
     "Use 'any' if the value should match at least one like pattern in the list. "
     "Use 'all' if it should match each like pattern in the list."
 )
-DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
 
 

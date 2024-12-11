@@ -44,7 +44,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.VOLUME]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VOLUME.value]
 
 
 class ExpectTableRowCountToEqual(BatchExpectation):

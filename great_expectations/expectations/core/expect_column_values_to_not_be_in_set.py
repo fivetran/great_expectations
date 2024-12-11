@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect column entries to not be in the set."
-DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC, DataQualityIssues.VALIDITY]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",

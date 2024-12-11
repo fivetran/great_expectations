@@ -47,7 +47,7 @@ MATCH_ON_DESCRIPTION = (
     "Use 'any' if the value should match at least one regular expression in the list. "
     "Use 'all' if it should match each regular expression in the list."
 )
-DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
 
 

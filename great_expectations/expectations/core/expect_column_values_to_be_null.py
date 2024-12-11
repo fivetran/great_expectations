@@ -60,7 +60,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.COMPLETENESS]
+DATA_QUALITY_ISSUES = [DataQualityIssues.COMPLETENESS.value]
 
 
 class ExpectColumnValuesToBeNull(ColumnMapExpectation):

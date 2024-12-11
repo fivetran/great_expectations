@@ -46,7 +46,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA]
+DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 
 
 class ExpectTableColumnCountToBeBetween(BatchExpectation):

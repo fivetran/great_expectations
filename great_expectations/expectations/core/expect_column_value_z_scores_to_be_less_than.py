@@ -35,7 +35,7 @@ DOUBLE_SIDED_DESCRIPTION = (
     "(double_sided = True, threshold = 2) -> Z scores in non-inclusive interval(-2,2) | "
     "(double_sided = False, threshold = 2) -> Z scores in non-inclusive interval (-infinity,2)"
 )
-DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",

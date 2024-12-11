@@ -45,7 +45,7 @@ MIN_VALUE_DESCRIPTION = "The minimum value for a column entry."
 MAX_VALUE_DESCRIPTION = "The maximum value for a column entry."
 STRICT_MIN_DESCRIPTION = "If True, values must be strictly larger than min_value."
 STRICT_MAX_DESCRIPTION = "If True, values must be strictly smaller than max_value."
-DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class DataQualityIssues(Enum):
+class DataQualityIssues(str, Enum):
     """Data quality issues addressed by Core Expectations."""
 
     VOLUME = "Volume"

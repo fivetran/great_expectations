@@ -40,7 +40,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the column entries to be strings with length equal to the provided value."
 )
 VALUE_DESCRIPTION = "The expected value for a column entry length."
-DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",

@@ -40,7 +40,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the column entries to be strings that match a given regular expression."
 )
 REGEX_DESCRIPTION = "The regular expression the column entries should match."
-DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
 
 

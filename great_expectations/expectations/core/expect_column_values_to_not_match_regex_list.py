@@ -43,7 +43,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
 REGEX_LIST_DESCRIPTION = (
     "The list of regular expressions which the column entries should not match."
 )
-DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
 
 
