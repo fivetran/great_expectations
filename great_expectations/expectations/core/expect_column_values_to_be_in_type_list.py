@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import inspect
 import logging
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
@@ -33,11 +32,6 @@ from great_expectations.render.util import (
     num_to_str,
     parse_row_condition_string_pandas_engine,
     substitute_none_for_missing,
-)
-from great_expectations.util import (
-    get_clickhouse_sqlalchemy_potential_type,
-    get_pyathena_potential_type,
-    get_trino_potential_type,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
@@ -457,9 +451,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             "result": {"observed_value": actual_column_type.type.__name__},
         }
 
-    def _validate_sqlalchemy(
-        self, actual_column_type, expected_types_list, execution_engine
-    ):
+    def _validate_sqlalchemy(self, actual_column_type, expected_types_list, execution_engine):
         if expected_types_list is None:
             success = True
         else:

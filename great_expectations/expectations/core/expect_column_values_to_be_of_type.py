@@ -11,6 +11,8 @@ from great_expectations.compatibility import aws, pydantic, pyspark, trino
 from great_expectations.compatibility.bigquery import (
     BIGQUERY_GEO_SUPPORT,
     bigquery_types_tuple,
+)
+from great_expectations.compatibility.bigquery import (
     sqlalchemy_bigquery as BigQueryDialect,
 )
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -409,8 +411,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             success = True
         else:
             types = _get_potential_sqlalchemy_types(
-                execution_engine=execution_engine,
-                expected_type=expected_type
+                execution_engine=execution_engine, expected_type=expected_type
             )
             success = isinstance(actual_column_type, tuple(types))
 
@@ -577,6 +578,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
 
+
 def _get_potential_sqlalchemy_types(execution_engine, expected_type):
     types = []
     type_module = _get_dialect_type_module(execution_engine=execution_engine)
@@ -602,9 +604,7 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
                 real_type = potential_type
             types.append(real_type)
         elif type_module.__name__ == "clickhouse_sqlalchemy.drivers.base":
-            potential_type = get_clickhouse_sqlalchemy_potential_type(
-                type_module, expected_type
-            )
+            potential_type = get_clickhouse_sqlalchemy_potential_type(type_module, expected_type)
             types.append(potential_type)
         else:
             potential_type = getattr(type_module, expected_type)
@@ -615,6 +615,7 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
         logger.warning("No recognized sqlalchemy types in type_list for current dialect.")
 
     return types
+
 
 def _get_dialect_type_module(  # noqa: C901, PLR0911
     execution_engine,
