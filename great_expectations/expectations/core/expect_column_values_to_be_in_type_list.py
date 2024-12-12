@@ -5,9 +5,11 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Ty
 
 import numpy as np
 import pandas as pd
+from packaging import version
+
 from great_expectations.compatibility import pydantic, pyspark
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.suite_parameters import (  # noqa: TC001
+from great_expectations.core.suite_parameters import (
     SuiteParameterDict,
 )
 from great_expectations.expectations.core.expect_column_values_to_be_of_type import (
@@ -32,7 +34,6 @@ from great_expectations.render.util import (
     substitute_none_for_missing,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
-from packaging import version
 
 if TYPE_CHECKING:
     from great_expectations.core import (
