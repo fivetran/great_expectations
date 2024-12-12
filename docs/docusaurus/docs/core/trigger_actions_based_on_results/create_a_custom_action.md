@@ -26,6 +26,8 @@ TODO - intro
    ]}
 >
 
+<TabItem value="instructions" label="Instructions">
+
 1. Create a new custom Action class that inherits the ValidationAction class.
 
    ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - extend class" 
@@ -40,11 +42,6 @@ TODO - intro
 
    ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - override run" 
    ```
-
-
-<TabItem value="instructions" label="Instructions">
-
-TODO instructions
 
 </TabItem>
 
