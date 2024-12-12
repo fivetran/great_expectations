@@ -37,7 +37,7 @@ from great_expectations._version import get_versions  # isort:skip
 __version__ = get_versions()["version"]  # isort:skip
 
 from great_expectations._docs_decorators import new_method_or_class
-from great_expectations.compatibility import aws, snowflake, sqlalchemy, trino
+from great_expectations.compatibility import snowflake, sqlalchemy
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy import Subquery
 from great_expectations.compatibility.sqlalchemy import (
