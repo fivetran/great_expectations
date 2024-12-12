@@ -457,10 +457,11 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         else:
             types = []
             for type_ in expected_types_list:
-                types.append(_get_potential_sqlalchemy_types(
-                    execution_engine=execution_engine,
-                    expected_type=type_
-                ))
+                types.append(
+                    _get_potential_sqlalchemy_types(
+                        execution_engine=execution_engine, expected_type=type_
+                    )
+                )
             success = isinstance(actual_column_type, tuple(types))
 
         return {
