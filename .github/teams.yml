@@ -2,14 +2,14 @@
 # NOTE - this should be kept in sync with the GX org's teams
 
 devrel:
-  - "@kyleaton" # Kyle Eaton
-  - "@rachhouse" # Rachel House
-  - "@r34ctor" # Nevin Tan
-  - "@molliemarie" # Mollie Marie Pettit
-  - "@klavavej" # Kristen Lavavej
   - "@JessSaavedra" # Jessica Saavedra
-  - "@deborahniesz" # Deborah Niesz
   - "@Quantisan" # Paul Lam
+  - "@deborahniesz" # Deborah Niesz
+  - "@klavavej" # Kristen Lavavej
+  - "@kyleaton" # Kyle Eaton
+  - "@molliemarie" # Mollie Marie Pettit
+  - "@r34ctor" # Nevin Tan
+  - "@rachhouse" # Rachel House
 
 core:
   - "@DrewHoo" # Drew Hoover
@@ -19,8 +19,11 @@ core:
   - "@Super-Tanner" # Tanner Beam
   - "@TrangPham" # Thu Pham
   - "@abegong" # Abe Gong
+  - "@alena-hutchinson" # Alena Hutchinson
   - "@allensallinger" # Allen Sallinger
+  - "@annabarr" # Anna Barr
   - "@anthonyburdi" # Anthony Burdi
+  - "@ashmortar" # Aaron Ross
   - "@billdirks" # Bill Dirks
   - "@cdkini" # Chetan Kini
   - "@dctalbot" # David Talbot
@@ -33,12 +36,10 @@ core:
   - "@lockettks" # Kim Mathieu
   - "@nicgrayson" # Nic Grayson
   - "@roblim" # Rob Lim
+  - "@shiplet" # Michael Shiplet
   - "@sujensen" # Susan Jensen
   - "@tyler-hoffman" # Tyler Hoffman
   - "@wookasz" # Łukasz Lempart
-  - "@annabarr" # Anna Barr
-  - "@alena-hutchinson" # Alena Hutchinson
-  - "@ashmortar" # Aaron Ross
 
 bot:
   - "@dependabot"

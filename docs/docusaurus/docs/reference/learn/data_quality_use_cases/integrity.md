@@ -155,7 +155,7 @@ Use the GX Cloud UI to implement the following steps:
    where extract(epoch from (age(received_ts, sent_ts))) > 45
    ```
 
-5. Validate the `integrity_transfers` Data Asset once again, now with two Expectations in the Expectation Suite.
+5. Validate the `integrity_transfers` Data Asset once again, now with two Expectations.
 
 6. Review the Validation Results. The increased specificity of the custom SQL Expectation enables you to see that one of the transfer transaction records has failed to meet the business logic-informed definition of integrity.
 
