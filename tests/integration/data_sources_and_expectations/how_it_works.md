@@ -49,7 +49,7 @@ An overview of the main pieces:
 * test: this is the test you are writing
 * parameterize_batch: `parameterize_batch_for_data_sources`
 * `batch_for_datasource`: fixture that pulls in the batch for you
-* _batch_setup: `_batch_setup_for_datasource`. Handles caching test configs and calling setup
+* _batch_setup: `_batch_setup_for_datasource`. fixture that handles caching test configs and calling setup
 * cached_setups: ensures that identical TestSetups are only setup / torn down once to improve performance
 
 ```mermaid
