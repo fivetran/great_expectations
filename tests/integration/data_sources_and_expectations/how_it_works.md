@@ -53,9 +53,9 @@ sequenceDiagram
             _batch_setup->>_batch_setup: TestConfig.create_batch_setup
             _batch_setup->>cached_setups: cache PostgresBatchTestSetup
         end
-        _batch_setup->>cached_setups: get PostgresBatchTestSetup
-        cached_setups->>_batch_setup:
-        _batch_setup-->>batch_for_datasource:
+        _batch_setup->>cached_setups: get TestSetup
+        cached_setups->>_batch_setup: TestSetup
+        _batch_setup-->>batch_for_datasource: TestSetup
         batch_for_datasource-->>batch_for_datasource: TestSetup.make_batch()
         batch_for_datasource-->>test: batch
         test->>test: Do test
