@@ -1,6 +1,15 @@
 
 ## Overview of the primary classes
 
+The following is a rough class diagram of the main classes involved in test testing utilities.
+* DataSourceTestConfig is the public interface; instance are passed to `parameterize_batch_for_data_sources`
+    * Holds optional schema information
+    * Knows about pymarks
+* BatchTestSetup these are instantiated behind the scenes
+    * Holds data
+    * Knows about the actual data source
+    * Sets up / tears down data
+
 ```mermaid
 classDiagram
     class DataSourceTestConfig
@@ -14,15 +23,15 @@ classDiagram
     <<Abstract>> DataSourceTestConfig
     <<Abstract>> BatchTestSetup
 
-    note for DataSourceTestConfig "Public interface"
-    note for BatchTestSetup "Instantiated for you"
-
     DataSourceTestConfig : +str label
     DataSourceTestConfig : +str pytest_marks
     DataSourceTestConfig : +str pytest_marks
     DataSourceTestConfig : +dict column_types
     DataSourceTestConfig : +create_batch_setup(data) BatchTestSetup
 
+    BatchTestSetup  : +DataSourceTestConfig config
+    BatchTestSetup  : +dict data
+    BatchTestSetup  : +setup()
     BatchTestSetup  : +setup()
     BatchTestSetup  : +teardown()
     BatchTestSetup  : +make_batch() Batch
@@ -31,6 +40,18 @@ classDiagram
 ```
 
 ## Overview of the main flow
+The following shows the rough flow when running tests with `parameterize_batch_for_data_sources` and the `batch_for_datasource` fixture.
+
+Some names have been truncated in the the diagram
+
+An overview of the main pieces:
+
+* test: this is the test you are writing
+* parameterize_batch: `parameterize_batch_for_data_sources`
+* `batch_for_datasource`: fixture that pulls in the batch for you
+* _batch_setup: `_batch_setup_for_datasource`. Handles caching test configs and calling setup
+* cached_setups: ensures that identical TestSetups are only setup / torn down once to improve performance
+
 ```mermaid
 sequenceDiagram
     participant test
