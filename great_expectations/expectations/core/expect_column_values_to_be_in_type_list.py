@@ -5,11 +5,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Ty
 
 import numpy as np
 import pandas as pd
-from packaging import version
-
 from great_expectations.compatibility import pydantic, pyspark
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.suite_parameters import (  # noqa: TCH001
+from great_expectations.core.suite_parameters import (  # noqa: TC001
     SuiteParameterDict,
 )
 from great_expectations.expectations.core.expect_column_values_to_be_of_type import (
@@ -34,6 +32,7 @@ from great_expectations.render.util import (
     substitute_none_for_missing,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
+from packaging import version
 
 if TYPE_CHECKING:
     from great_expectations.core import (
@@ -457,7 +456,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         else:
             types = []
             for type_ in expected_types_list:
-                types.append(
+                types.extend(
                     _get_potential_sqlalchemy_types(
                         execution_engine=execution_engine, expected_type=type_
                     )
