@@ -18,7 +18,7 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
 - <PrereqPreconfiguredDataContext/>. In this guide the variable `context` is assumed to contain your Data Context.
 - <PrereqValidationDefinition/>.
 
-### Procedure
+## Procedure
 
 <Tabs 
    queryString="procedure"
