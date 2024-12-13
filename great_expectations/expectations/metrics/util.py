@@ -74,8 +74,6 @@ except (ImportError, AttributeError):
 
 _BIGQUERY_MODULE_NAME = "sqlalchemy_bigquery"
 
-from great_expectations.compatibility import bigquery as sqla_bigquery
-from great_expectations.compatibility.bigquery import bigquery_types_tuple
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -297,50 +295,6 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
         pass
 
     return None
-
-
-def _get_dialect_type_module(
-    dialect: ModuleType | Type[sa.Dialect] | sa.Dialect | None = None,
-) -> ModuleType | Type[sa.Dialect] | sa.Dialect:
-    if dialect is None:
-        logger.warning("No sqlalchemy dialect found; relying in top-level sqlalchemy types.")
-        return sa
-
-    # Redshift does not (yet) export types to top level; only recognize base SA types
-    # noinspection PyUnresolvedReferences
-    if aws.redshiftdialect and isinstance(
-        dialect,
-        aws.redshiftdialect.RedshiftDialect,
-    ):
-        return dialect.sa
-
-    # Bigquery works with newer versions, but use a patch if we had to define bigquery_types_tuple
-    try:
-        if (
-            isinstance(
-                dialect,
-                sqla_bigquery.BigQueryDialect,  # type: ignore[attr-defined]
-            )
-            and bigquery_types_tuple is not None
-        ):
-            return bigquery_types_tuple
-    except (TypeError, AttributeError):
-        pass
-
-    # Teradata types module
-    try:
-        if (
-            issubclass(
-                dialect,  # type: ignore[arg-type]
-                teradatasqlalchemy.dialect.TeradataDialect,
-            )
-            and teradatatypes is not None
-        ):
-            return teradatatypes
-    except (TypeError, AttributeError):
-        pass
-
-    return dialect
 
 
 def attempt_allowing_relative_error(dialect):
@@ -582,7 +536,6 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 )
             )
             col_info_tuples_list: List[tuple] = connection.execute(col_info_query).fetchall()  # type: ignore[assignment]
-            # type_module = _get_dialect_type_module(dialect=dialect)
             col_info_dict_list = [
                 {
                     "name": column_name,
@@ -670,7 +623,6 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 col_info_query = sa.select(col_info_query)  # type: ignore[call-overload]
 
             col_info_tuples_list = connection.execute(col_info_query).fetchall()  # type: ignore[assignment]
-            # type_module = _get_dialect_type_module(dialect=dialect)
             col_info_dict_list = [
                 {
                     "name": column_name,
