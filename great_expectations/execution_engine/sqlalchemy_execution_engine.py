@@ -37,7 +37,7 @@ from great_expectations._version import get_versions  # isort:skip
 __version__ = get_versions()["version"]  # isort:skip
 
 from great_expectations._docs_decorators import new_method_or_class
-from great_expectations.compatibility import aws, snowflake, sqlalchemy, trino
+from great_expectations.compatibility import snowflake, sqlalchemy
 from great_expectations.compatibility.not_imported import is_version_greater_or_equal
 from great_expectations.compatibility.sqlalchemy import Subquery
 from great_expectations.compatibility.sqlalchemy import (
@@ -128,7 +128,6 @@ if snowflake.snowflakedialect:
 
 from great_expectations.compatibility.bigquery import (
     _BIGQUERY_MODULE_NAME,
-    bigquery_types_tuple,
 )
 from great_expectations.compatibility.bigquery import (
     sqlalchemy_bigquery as sqla_bigquery,
@@ -146,63 +145,6 @@ except ImportError:
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251
-
-
-def _get_dialect_type_module(dialect):  # noqa: C901
-    """Given a dialect, returns the dialect type, which is defines the engine/system that is used to communicates
-    with the database/database implementation. Currently checks for RedShift/BigQuery dialects
-    """  # noqa: E501
-    if dialect is None:
-        logger.warning("No sqlalchemy dialect found; relying in top-level sqlalchemy types.")
-        return sa
-
-    # Redshift does not (yet) export types to top level; only recognize base SA types
-    if aws.redshiftdialect and isinstance(dialect, aws.redshiftdialect.RedshiftDialect):
-        # noinspection PyUnresolvedReferences
-        return dialect.sa
-    else:
-        pass
-
-    # Bigquery works with newer versions, but use a patch if we had to define bigquery_types_tuple
-    try:
-        if (
-            isinstance(
-                dialect,
-                sqla_bigquery,
-            )
-            and bigquery_types_tuple is not None
-        ):
-            return bigquery_types_tuple
-    except (TypeError, AttributeError):
-        pass
-
-    # Teradata types module
-    try:
-        if (
-            issubclass(
-                dialect,
-                teradatasqlalchemy.dialect.TeradataDialect,
-            )
-            and teradatatypes is not None
-        ):
-            return teradatatypes
-    except (TypeError, AttributeError):
-        pass
-
-    # Trino types module
-    try:
-        if (
-            isinstance(
-                dialect,
-                trino.trinodialect.TrinoDialect,
-            )
-            and trino.trinotypes is not None
-        ):
-            return trino.trinotypes
-    except (TypeError, AttributeError):
-        pass
-
-    return dialect
 
 
 _PERSISTED_CONNECTION_DIALECTS = (
