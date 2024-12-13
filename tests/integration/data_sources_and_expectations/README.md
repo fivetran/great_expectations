@@ -1,3 +1,6 @@
+# DataSource and Expectation Integration Tests
+Most of the tests in this directory make use of a few utilities that help load data into various data sources.
+The following sections provide an overview of how it works.
 
 ## Overview of the primary classes
 
@@ -25,13 +28,11 @@ classDiagram
 
     DataSourceTestConfig : +str label
     DataSourceTestConfig : +str pytest_marks
-    DataSourceTestConfig : +str pytest_marks
     DataSourceTestConfig : +dict column_types
     DataSourceTestConfig : +create_batch_setup(data) BatchTestSetup
 
     BatchTestSetup  : +DataSourceTestConfig config
     BatchTestSetup  : +dict data
-    BatchTestSetup  : +setup()
     BatchTestSetup  : +setup()
     BatchTestSetup  : +teardown()
     BatchTestSetup  : +make_batch() Batch
