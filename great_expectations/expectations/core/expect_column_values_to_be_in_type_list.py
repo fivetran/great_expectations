@@ -475,9 +475,9 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         if expected_types_list is None:
             success = True
         elif execution_engine.dialect_name == GXSqlDialect.SNOWFLAKE:
-            success = (
-                isinstance(actual_column_type, str)
-                and actual_column_type in expected_types_list
+            success = isinstance(actual_column_type, str) and any(
+                actual_column_type.lower() == expected_type.lower()
+                for expected_type in expected_types_list
             )
             return {
                 "success": success,
