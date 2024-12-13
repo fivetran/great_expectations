@@ -14,7 +14,7 @@ from great_expectations.expectations.model_field_descriptions import (
     VALUE_SET_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
-    ValueSetField,  # type needed in pydantic validation
+    ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
 )
 from great_expectations.render import (
     AtomicDiagnosticRendererType,

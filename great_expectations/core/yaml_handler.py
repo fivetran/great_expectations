@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
-from great_expectations.alias_types import JSONValues
+from great_expectations.alias_types import JSONValues  # noqa: TCH001
 
 
 class YAMLHandler:

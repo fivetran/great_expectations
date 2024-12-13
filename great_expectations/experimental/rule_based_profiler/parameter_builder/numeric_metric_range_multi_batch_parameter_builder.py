@@ -19,9 +19,9 @@ from typing import (
 
 import numpy as np
 
-from great_expectations.core.domain import Domain
+from great_expectations.core.domain import Domain  # noqa: TCH001
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,
+    ParameterBuilderConfig,  # noqa: TCH001
 )
 from great_expectations.experimental.rule_based_profiler.estimators.bootstrap_numeric_range_estimator import (  # noqa: E501
     BootstrapNumericRangeEstimator,
@@ -37,7 +37,7 @@ from great_expectations.experimental.rule_based_profiler.estimators.numeric_rang
     NumericRangeEstimationResult,
 )
 from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimator import (
-    NumericRangeEstimator,
+    NumericRangeEstimator,  # noqa: TCH001
 )
 from great_expectations.experimental.rule_based_profiler.estimators.quantiles_numeric_range_estimator import (  # noqa: E501
     QuantilesNumericRangeEstimator,
@@ -51,7 +51,7 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     integer_semantic_domain_type,
 )
 from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-    MetricValues,
+    MetricValues,  # noqa: TCH001
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import (
     MetricMultiBatchParameterBuilder,

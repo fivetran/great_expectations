@@ -41,7 +41,7 @@ from great_expectations.core.domain import (
     SemanticDomainTypes,
 )
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,
+    MetricDomainTypes,  # noqa: TCH001
 )
 from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501
     NUM_HISTOGRAM_BINS,
@@ -62,9 +62,9 @@ from great_expectations.util import (
     convert_ndarray_float_to_datetime_dtype,
     convert_ndarray_to_datetime_dtype_best_effort,
 )
-from great_expectations.validator.computed_metric import MetricValue
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
 from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,
+    MetricConfiguration,  # noqa: TCH001
 )
 
 if TYPE_CHECKING:

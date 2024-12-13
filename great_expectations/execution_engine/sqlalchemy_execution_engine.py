@@ -59,7 +59,7 @@ from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
 )
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251
-from great_expectations.validator.computed_metric import MetricValue
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
 
 del get_versions  # isort:skip
 
@@ -96,7 +96,7 @@ from great_expectations.util import (
     import_make_url,
 )
 from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,
+    MetricConfiguration,  # noqa: TCH001
 )
 
 logger = logging.getLogger(__name__)

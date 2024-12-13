@@ -9,7 +9,7 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.model_field_types import ConditionParser
+from great_expectations.expectations.model_field_types import ConditionParser  # noqa: TCH001
 from great_expectations.render import (
     LegacyDiagnosticRendererType,
     LegacyRendererType,
@@ -21,7 +21,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import num_to_str, substitute_none_for_missing
-from great_expectations.validator.metric_configuration import (
+from great_expectations.validator.metric_configuration import (  # noqa: TCH001
     MetricConfiguration,
 )
 

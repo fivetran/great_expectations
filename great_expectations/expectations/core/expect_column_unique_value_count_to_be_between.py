@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable
+from great_expectations.core.types import Comparable  # noqa: TCH001
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
