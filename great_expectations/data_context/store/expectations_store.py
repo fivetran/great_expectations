@@ -41,6 +41,7 @@ class ExpectationConfigurationDTO(pydantic.BaseModel):
     rendered_content: List[dict] = pydantic.Field(default_factory=list)
     kwargs: dict
     meta: Union[dict, None]
+    description: Union[str, None]
     expectation_context: Union[dict, None]
 
 

@@ -34,12 +34,10 @@ In this dataset, `purchase_amount` represents the amount spent by customers in v
 
 ## Key distribution Expectations
 
-GX offers a collection of Expectations used to validate data distribution. These Expectations be added to an Expectation Suite via the GX Cloud UI or using the GX Core Python library.
-
-![Add a distribution Expectation in GX Cloud](./distribution_resources/distribution_add_expectation.gif)
+GX offers a collection of Expectations used to validate data distribution. These Expectations can be added via the GX Cloud UI or using the GX Core Python library.
 
 :::note[Distribution Expectation availability]
-`ExpectColumnKLDivergenceToBeLessThan` and `ExpectColumnQuantileValuesToBeBetween` can be added to a GX Cloud Expectation Suite, but currently must be added using GX Core instead of the GX Cloud UI.
+`ExpectColumnKLDivergenceToBeLessThan` and `ExpectColumnQuantileValuesToBeBetween` can be added to a GX Cloud deployment, but currently must be added using the GX API instead of the GX Cloud UI.
 :::
 
 
@@ -105,7 +103,6 @@ To use the `ExpectColumnQuantileValuesToBeBetween` Expectation, specify the `qua
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/distribution_resources/distribution_expectations.py ExpectColumnQuantileValuesToBeBetween"
 ```
 
-
 :::tip[GX tips for distribution Expectations]
 - Use the `mostly` parameter to allow for acceptable deviations in your data, providing flexibility in your validations.
 - `ExpectColumnValuesToBeBetween` can often be confused with `ExpectColumnMinToBeBetween` and `ExpectColumnMaxToBeBetween`. Use `ExpectColumnValuesToBeBetween` to define a single minimum or maxiumum value that is used to validate each value in the column.
@@ -135,17 +132,17 @@ Use the GX Cloud UI to walk through the following steps.
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
    ```
 
-2. Add an **Expect column mean to be between** Expectation to the freshly created Data Asset's default Expectation Suite.
+2. Add an **Expect column mean to be between** Expectation to the freshly created Data Asset.
     * Column: `purchase_amount`
     * Min Value: 1250
     * Max Value: 1500
 
-3. Add an **Expect column median to be between** Expectation to the Expectation Suite.
+3. Add an **Expect column median to be between** Expectation.
     * Column: `purchase_amount`
     * Min Value: 1000
     * Max Value: 1250
 
-4. Add an **Expect column value z-scores to be less than** Expectation to the Expectation Suite.
+4. Add an **Expect column value z-scores to be less than** Expectation.
     * Column: `purchase_amount`
     * Threshold: 2
     * Mostly: 90%

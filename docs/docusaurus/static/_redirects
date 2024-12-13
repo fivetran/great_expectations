@@ -402,6 +402,8 @@ https://docs.greatexpectations.io/docs/reference/api/profile/user_configurable_p
 /docs/reference/learn/conceptual_guides/* /docs/0.18/reference/learn/conceptual_guides/:splat
 /docs/reference/api/* /docs/0.18/reference/api/:splat
 
+/docs/cloud/expectation_suites/manage_expectation_suites /docs/cloud/expectations/manage_expectations
+
 ## Redirects for old versioned docs
 
 /docs/0.15.50/guides/connecting_to_your_data/database/bigquery https://docs.greatexpectations.io/docs/core/connect_to_data/
