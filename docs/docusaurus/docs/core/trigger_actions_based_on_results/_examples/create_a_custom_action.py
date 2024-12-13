@@ -10,6 +10,7 @@ pytest --docs-tests -k "docs_example_create_a_custom_action" tests/integration/t
 # <snippet name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - full code example">
 
 from typing import Literal
+
 from typing_extensions import override
 
 from great_expectations.checkpoint.actions import ActionContext, ValidationAction
