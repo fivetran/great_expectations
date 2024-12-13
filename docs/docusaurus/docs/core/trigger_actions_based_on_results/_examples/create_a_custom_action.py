@@ -27,7 +27,7 @@ class MyCustomAction(ValidationAction):
     type: Literal["my_custom_action"] = "my_custom_action"
     # </snippet>
 
-    # 3. Override the `run` method to perform the desired task.
+    # 3. Override the `run()` method to perform the desired task.
     # <snippet name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - override run">
     @override
     def run(
