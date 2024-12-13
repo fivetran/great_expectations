@@ -12,6 +12,10 @@ import PrereqPreconfiguredDataSourceAndAsset from '../_core_components/prerequis
 
 An Expectation Suite contains a group of Expectations that describe the same set of data.  Combining all the Expectations that you apply to a given set of data into an Expectation Suite allows you to evaluate them as a group, rather than individually.  All of the Expectations that you use to validate your data in production workflows should be grouped into Expectation Suites.
 
+:::note For API-managed Expectations only
+If you use GX Cloud and GX Core together, note that only [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations) can be grouped into custom Expectation Suites.
+:::
+
 <h2>Prerequisites</h2>
 
 - <PrereqPythonInstalled/>.
