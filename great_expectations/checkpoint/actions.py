@@ -87,7 +87,7 @@ def _build_renderer(config: dict) -> Renderer:
         )
     return renderer
 
-
+@public_api
 class ActionContext:
     """
     Shared context for all actions in a checkpoint run.
