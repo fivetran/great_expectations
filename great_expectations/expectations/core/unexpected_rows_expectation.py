@@ -6,15 +6,14 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Un
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.expectations.expectation import BatchExpectation
+from great_expectations.expectations.expectation import (
+    BatchExpectation,
+    render_suite_parameter_string,
+)
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     RenderedAtomicContent,
     renderedAtomicValueSchema,
-)
-from great_expectations.expectations.expectation import (
-    BatchExpectation,
-    render_suite_parameter_string,
 )
 from great_expectations.render.components import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -24,8 +23,7 @@ from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
     RendererValueType,
 )
-from great_expectations.render.util import num_to_str
-from great_expectations.render.util import substitute_none_for_missing
+from great_expectations.render.util import num_to_str, substitute_none_for_missing
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
@@ -156,7 +154,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
-         **kwargs,
+        **kwargs,
     ) -> list[RenderedStringTemplateContent]:
         runtime_configuration = runtime_configuration or {}
         styling = runtime_configuration.get("styling")
@@ -177,10 +175,15 @@ class UnexpectedRowsExpectation(BatchExpectation):
                 },
             )
         ]
-      
+
+    @classmethod
     @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
     @override
     def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
