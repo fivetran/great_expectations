@@ -411,6 +411,15 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
 
         if expected_type is None:
             success = True
+        elif execution_engine.dialect_name == GXSqlDialect.SNOWFLAKE:
+            success = (
+                isinstance(actual_column_type, str)
+                and actual_column_type.lower() == expected_type.lower()
+            )
+            return {
+                "success": success,
+                "result": {"observed_value": actual_column_type},
+            }
         else:
             types = _get_potential_sqlalchemy_types(
                 execution_engine=execution_engine, expected_type=expected_type
