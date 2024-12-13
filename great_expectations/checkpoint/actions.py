@@ -182,7 +182,7 @@ class MetaValidationAction(ModelMetaclass):
 @public_api
 class ValidationAction(BaseModel, metaclass=MetaValidationAction):
     """
-    Actions define a set of steps to run after a Validation Result is produced. Subclass `ValidationAction` to create a `custom Action </core/trigger_actions_based_on_results/create_a_custom_action>`_.
+    Actions define a set of steps to run after a Validation Result is produced. Subclass `ValidationAction` to create a `custom Action </docs/core/trigger_actions_based_on_results/create_a_custom_action>`_.
 
     Through a Checkpoint, one can orchestrate the validation of data and configure notifications, data documentation updates,
     and other actions to take place after the Validation Result is produced.
