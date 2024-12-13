@@ -91,8 +91,8 @@ def _build_renderer(config: dict) -> Renderer:
 @public_api
 class ActionContext:
     """
-    Shared context for all actions in a checkpoint run.
-    Note that order matters in the action list, as the context is updated with each action's result.
+    Shared context for all Actions in a Checkpoint run.
+    Note that order matters in the Action list, as the context is updated with each Action's result.
     """
 
     def __init__(self) -> None:
