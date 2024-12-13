@@ -1,6 +1,6 @@
 ---
 title: Create a custom Action
-description: Run custom logic based on validation results to integrate with 3rd-party tools and business workflows.
+description: Run custom logic based on Validation Results to integrate with 3rd-party tools and business workflows.
 ---
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
@@ -8,7 +8,15 @@ import Tabs from '@theme/Tabs';
 import PrereqPythonInstalled from '../_core_components/prerequisites/_python_installation.md';
 import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installation.md';
 
-TODO - intro
+Great Expectations provides [Actions for common workflows](/application_integration_support.md#integrations) such as sending emails and updating Data Docs. If these don't meet your needs, you can create a custom Action to integrate with different tools or apply custom business logic based on Validation Results. Example use cases for custom Actions include:
+- Opening tickets in an issue tracker when Validation runs fail.
+- Sending emails to different teams depending on which Expectations failed.
+- Running follow-up ETL jobs to fill in missing values.  
+
+A custom Action can do anything that can be done with Python code.
+
+To create a custom Action, you extend the `ValidationAction` class overriding the `type` attribute with a unique name and the `run()` method with custom logic.
+
 
 <h2>Prerequisites</h2>
 
