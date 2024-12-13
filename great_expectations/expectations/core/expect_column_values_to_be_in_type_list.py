@@ -9,8 +9,11 @@ from packaging import version
 
 from great_expectations.compatibility import pydantic, pyspark
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.suite_parameters import (  # noqa: TCH001
-    SuiteParameterDict,
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TCH001, RUF100
+)
+from great_expectations.execution_engine.sqlalchemy_dialect import (
+    GXSqlDialect,
 )
 from great_expectations.expectations.core.expect_column_values_to_be_of_type import (
     _get_potential_sqlalchemy_types,
@@ -454,6 +457,15 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
     def _validate_sqlalchemy(self, actual_column_type, expected_types_list, execution_engine):
         if expected_types_list is None:
             success = True
+        elif execution_engine.dialect_name == GXSqlDialect.SNOWFLAKE:
+            success = isinstance(actual_column_type, str) and any(
+                actual_column_type.lower() == expected_type.lower()
+                for expected_type in expected_types_list
+            )
+            return {
+                "success": success,
+                "result": {"observed_value": actual_column_type},
+            }
         else:
             types = []
             for type_ in expected_types_list:
