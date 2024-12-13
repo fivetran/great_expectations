@@ -107,7 +107,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
     Args:
         column (str): \
             {COLUMN_DESCRIPTION}
-        type\\_ (str): \
+        type_ (str): \
             {TYPE__DESCRIPTION}
             For example, valid types for Pandas Datasources include any numpy dtype values \
             (such as 'int64') or native python types (such as 'int'), whereas valid types \
