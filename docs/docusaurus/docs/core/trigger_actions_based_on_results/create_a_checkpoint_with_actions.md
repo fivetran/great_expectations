@@ -11,7 +11,7 @@ import PrereqValidationDefinition from '../_core_components/prerequisites/_valid
 
 A Checkpoint executes one or more Validation Definitions and then performs a set of Actions based on the Validation Results each Validation Definition returns.
 
-<h2>Prerequisites</h2>
+## Prerequisites
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
