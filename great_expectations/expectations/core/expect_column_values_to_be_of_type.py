@@ -8,9 +8,18 @@ import numpy as np
 import pandas as pd
 
 from great_expectations.compatibility import aws, pydantic, pyspark, trino
+from great_expectations.compatibility.bigquery import (
+    BIGQUERY_GEO_SUPPORT,
+    bigquery_types_tuple,
+)
+from great_expectations.compatibility.bigquery import (
+    sqlalchemy_bigquery as BigQueryDialect,
+)
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
+from great_expectations.execution_engine.sqlalchemy_dialect import (
+    GXSqlDialect,  # noqa: TC001, RUF100
+)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
@@ -35,12 +44,8 @@ from great_expectations.util import (
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:
-    from great_expectations.core import (
-        ExpectationValidationResult,
-    )
-    from great_expectations.execution_engine import (
-        ExecutionEngine,
-    )
+    from great_expectations.core import ExpectationValidationResult
+    from great_expectations.execution_engine import ExecutionEngine
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
@@ -48,19 +53,6 @@ if TYPE_CHECKING:
     from great_expectations.validator.validator import ValidationDependencies
 
 logger = logging.getLogger(__name__)
-
-
-_BIGQUERY_MODULE_NAME = "sqlalchemy_bigquery"
-BIGQUERY_GEO_SUPPORT = False
-from great_expectations.compatibility.bigquery import GEOGRAPHY, bigquery_types_tuple
-from great_expectations.compatibility.bigquery import (
-    sqlalchemy_bigquery as BigQueryDialect,
-)
-
-if GEOGRAPHY:
-    BIGQUERY_GEO_SUPPORT = True
-else:
-    BIGQUERY_GEO_SUPPORT = False
 
 try:
     import teradatasqlalchemy.dialect
@@ -420,46 +412,10 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
         if expected_type is None:
             success = True
         else:
-            types = []
-            type_module = _get_dialect_type_module(execution_engine=execution_engine)
-            try:
-                # bigquery geography requires installing an extra package
-                if (
-                    expected_type.lower() == "geography"
-                    and execution_engine.engine.dialect.name.lower() == GXSqlDialect.BIGQUERY
-                    and not BIGQUERY_GEO_SUPPORT
-                ):
-                    logger.warning(
-                        "BigQuery GEOGRAPHY type is not supported by default. "
-                        + "To install support, please run:"
-                        + "  $ pip install 'sqlalchemy-bigquery[geography]'"
-                    )
-                elif type_module.__name__ == "pyathena.sqlalchemy_athena":
-                    potential_type = get_pyathena_potential_type(type_module, expected_type)
-                    # In the case of the PyAthena dialect we need to verify that
-                    # the type returned is indeed a type and not an instance.
-                    if not inspect.isclass(potential_type):
-                        real_type = type(potential_type)
-                    else:
-                        real_type = potential_type
-                    types.append(real_type)
-                elif type_module.__name__ == "clickhouse_sqlalchemy.drivers.base":
-                    actual_column_type = get_clickhouse_sqlalchemy_potential_type(
-                        type_module, actual_column_type
-                    )()
-                    potential_type = get_clickhouse_sqlalchemy_potential_type(
-                        type_module, expected_type
-                    )
-                    types.append(potential_type)
-                else:
-                    potential_type = getattr(type_module, expected_type)
-                    types.append(potential_type)
-            except AttributeError:
-                logger.debug(f"Unrecognized type: {expected_type}")
-            if len(types) == 0:
-                logger.warning("No recognized sqlalchemy types in type_list for current dialect.")
-            types = tuple(types)
-            success = isinstance(actual_column_type, types)
+            types = _get_potential_sqlalchemy_types(
+                execution_engine=execution_engine, expected_type=expected_type
+            )
+            success = isinstance(actual_column_type, tuple(types))
 
         return {
             "success": success,
@@ -623,6 +579,44 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             return self._validate_spark(
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
+
+
+def _get_potential_sqlalchemy_types(execution_engine, expected_type):
+    types = []
+    type_module = _get_dialect_type_module(execution_engine=execution_engine)
+    try:
+        # bigquery geography requires installing an extra package
+        if (
+            expected_type.lower() == "geography"
+            and execution_engine.engine.dialect.name.lower() == GXSqlDialect.BIGQUERY
+            and not BIGQUERY_GEO_SUPPORT
+        ):
+            logger.warning(
+                "BigQuery GEOGRAPHY type is not supported by default. "
+                + "To install support, please run:"
+                + "  $ pip install 'sqlalchemy-bigquery[geography]'"
+            )
+        elif type_module.__name__ == "pyathena.sqlalchemy_athena":
+            potential_type = get_pyathena_potential_type(type_module, expected_type)
+            # In the case of the PyAthena dialect we need to verify that
+            # the type returned is indeed a type and not an instance.
+            if not inspect.isclass(potential_type):
+                real_type = type(potential_type)
+            else:
+                real_type = potential_type
+            types.append(real_type)
+        elif type_module.__name__ == "clickhouse_sqlalchemy.drivers.base":
+            potential_type = get_clickhouse_sqlalchemy_potential_type(type_module, expected_type)
+            types.append(potential_type)
+        else:
+            potential_type = getattr(type_module, expected_type)
+            types.append(potential_type)
+    except AttributeError:
+        logger.debug(f"Unrecognized type: {expected_type}")
+    if len(types) == 0:
+        logger.warning("No recognized sqlalchemy types in type_list for current dialect.")
+
+    return types
 
 
 def _get_dialect_type_module(  # noqa: C901, PLR0911
