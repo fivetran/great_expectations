@@ -9,7 +9,7 @@ from packaging import version
 
 from great_expectations.compatibility import pydantic, pyspark
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.suite_parameters import (  # noqa: TCH001
+from great_expectations.core.suite_parameters import (
     SuiteParameterDict,
 )
 from great_expectations.expectations.core.expect_column_values_to_be_of_type import (

@@ -38,7 +38,7 @@ from great_expectations.core.batch_spec import (
 )
 from great_expectations.core.id_dict import IDDict
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,  # noqa: TCH001
+    MetricDomainTypes,
 )
 from great_expectations.core.util import AzureUrl
 from great_expectations.exceptions import (
@@ -50,8 +50,8 @@ from great_expectations.exceptions import (
 from great_expectations.exceptions import exceptions as gx_exceptions
 from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.execution_engine.execution_engine import (
-    MetricComputationConfiguration,  # noqa: TCH001
-    PartitionDomainKwargs,  # noqa: TCH001
+    MetricComputationConfiguration,
+    PartitionDomainKwargs,
 )
 from great_expectations.execution_engine.partition_and_sample.sparkdf_data_partitioner import (
     SparkDataPartitioner,
@@ -71,9 +71,9 @@ from great_expectations.expectations.row_conditions import (
     parse_condition_to_spark,
 )
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
+from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001
+    MetricConfiguration,
 )
 
 if TYPE_CHECKING:

@@ -100,7 +100,7 @@ from great_expectations.render.util import (
     num_to_str,
 )
 from great_expectations.util import camel_to_snake
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
+from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:

@@ -9,7 +9,7 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.model_field_types import (
-    ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
+    ValueSetField,  # type needed in pydantic validation
 )
 from great_expectations.render import (
     AtomicDiagnosticRendererType,

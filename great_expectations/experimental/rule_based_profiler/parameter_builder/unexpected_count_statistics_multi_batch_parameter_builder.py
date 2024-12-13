@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 import numpy as np
 import scipy
 
-from great_expectations.core.domain import Domain  # noqa: TCH001
+from great_expectations.core.domain import Domain
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001
+    ParameterBuilderConfig,
 )
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
@@ -16,7 +16,7 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-    MetricValues,  # noqa: TCH001
+    MetricValues,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import (
     ParameterBuilder,
