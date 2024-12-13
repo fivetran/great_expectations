@@ -36,17 +36,17 @@ To create a custom Action, you subclass the `ValidationAction` class overriding 
 
 <TabItem value="instructions" label="Instructions">
 
-1. Create a new custom Action class that inherits the ValidationAction class.
+1. Create a new custom Action class that inherits the `ValidationAction` class.
 
    ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - extend class" 
    ```
 
-2. Choose a unique name for `type`
+2. Set a unique name for `type`.
 
    ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - set type" 
    ```
 
-3. Override the run method with the logic for the Action
+3. Override the `run` method with the logic for the Action.
 
    ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - override run" 
    ```
@@ -61,3 +61,5 @@ To create a custom Action, you subclass the `ValidationAction` class overriding 
 </TabItem>
 
 </Tabs>
+
+Now you can use your custom Action like you would any built-in Action. [Create a Checkpoint with Actions](/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions.md) to start automating responses to Validation Results.

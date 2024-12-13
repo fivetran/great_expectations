@@ -182,10 +182,10 @@ class MetaValidationAction(ModelMetaclass):
 @public_api
 class ValidationAction(BaseModel, metaclass=MetaValidationAction):
     """
-    ValidationActions define a set of steps to be run after a validation result is produced.
+    Actions define a set of steps to run after a Validation Result is produced. Subclass `ValidationAction` to create a `custom Action <https://docs.greatexpectations.io/docs/terms/data_context>`_.
 
     Through a Checkpoint, one can orchestrate the validation of data and configure notifications, data documentation updates,
-    and other actions to take place after the validation result is produced.
+    and other actions to take place after the Validation Result is produced.
     """  # noqa: E501
 
     class Config:
