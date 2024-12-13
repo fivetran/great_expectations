@@ -58,16 +58,6 @@ import PrereqValidationDefinition from '../_core_components/prerequisites/_valid
    
    When you print the returned Validation Result object you will recieve a json representation of the results.  By default this will include a `"results"` list that includes each Expectation in your Validation Definition's Expectation Suite, whether the Expectation was successfully met or failed to pass, and some sumarized information explaining the why the Expectation succeeded or failed.
 
-   :::tip Result presentation
-
-   When using a [GX Cloud Data Context](/core/set_up_a_gx_environment/create_a_data_context.md?context_type=gx_cloud), you can view the Validation Results in the GX Cloud UI by following the url provided with:
-
-   ```python title="Python"
-   print(validation_results.result_url)
-   ```
-
-   :::
-
 </TabItem>
 
 <TabItem value="sample_code" label="Sample code">
