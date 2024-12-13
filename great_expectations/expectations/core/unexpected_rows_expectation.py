@@ -2,11 +2,17 @@ from __future__ import annotations
 
 import logging
 from string import Formatter
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import BatchExpectation
+from great_expectations.render import (
+    AtomicDiagnosticRendererType,
+    RenderedAtomicContent,
+    renderedAtomicValueSchema,
+)
+from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     CodeBlock,
     CodeBlockLanguage,
@@ -17,6 +23,7 @@ from great_expectations.render.renderer_configuration import (
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
     from great_expectations.execution_engine import ExecutionEngine
+    from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 
 
 logger = logging.getLogger(__name__)
@@ -132,6 +139,53 @@ class UnexpectedRowsExpectation(BatchExpectation):
             language=CodeBlockLanguage.SQL,
         )
         return renderer_configuration
+
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @override
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+
+        unexpected_row_count = result.get("result").get("observed_value") or None
+
+        template_str = ""
+        if unexpected_row_count:
+            renderer_configuration.add_param(
+                name="observed_value",
+                param_type=RendererValueType.NUMBER,
+                value=unexpected_row_count,
+            )
+
+            template_str = f"{unexpected_row_count} unexpected "
+            if unexpected_row_count == 1:
+                template_str += "row"
+            else:
+                template_str += "rows"
+
+        renderer_configuration.template_str = template_str
+
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )
 
     @override
     def _validate(
