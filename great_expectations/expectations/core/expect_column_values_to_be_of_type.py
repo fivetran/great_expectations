@@ -18,7 +18,7 @@ from great_expectations.compatibility.bigquery import (
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine.sqlalchemy_dialect import (
-    GXSqlDialect,
+    GXSqlDialect,  # noqa: TC001, RUF100
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
