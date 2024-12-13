@@ -15,7 +15,7 @@ Great Expectations provides [Actions for common workflows](/application_integrat
 
 A custom Action can do anything that can be done with Python code.
 
-To create a custom Action, you subclass the `ValidationAction` class overriding the `type` attribute with a unique name and the `run()` method with custom logic.
+To create a custom Action, you subclass the `ValidationAction` class, overriding the `type` attribute with a unique name and the `run()` method with custom logic.
 
 
 ## Prerequisites
@@ -62,4 +62,4 @@ To create a custom Action, you subclass the `ValidationAction` class overriding 
 
 </Tabs>
 
-Now you can use your custom Action like you would any built-in Action. [Create a Checkpoint with Actions](/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions.md) to start automating responses to Validation Results.
+Now, you can use your custom Action like you would any built-in Action. [Create a Checkpoint with Actions](/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions.md) to start automating responses to Validation Results.
