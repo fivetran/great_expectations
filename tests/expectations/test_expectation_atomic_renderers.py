@@ -2964,15 +2964,15 @@ def test_expect_table_columns_to_match_set_atomic_diagnostic_observed_value(
     [
         (
             0,
-            "0 unexpected rows",
+            "$observed_value unexpected rows",
         ),
         (
             1,
-            "1 unexpected row",
+            "$observed_value unexpected row",
         ),
         (
             100000,
-            "100,000 unexpected rows",
+            "$observed_value unexpected rows",
         ),
     ],
 )

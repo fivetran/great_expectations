@@ -23,7 +23,7 @@ from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
     RendererValueType,
 )
-from great_expectations.render.util import num_to_str, substitute_none_for_missing
+from great_expectations.render.util import substitute_none_for_missing
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
@@ -201,9 +201,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
                 value=unexpected_row_count,
             )
 
-            template_str = (
-                f"{num_to_str(unexpected_row_count, precision=10, use_locale=True)} unexpected "
-            )
+            template_str = "$observed_value unexpected "
             if unexpected_row_count == 1:
                 template_str += "row"
             else:
