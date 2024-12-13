@@ -191,7 +191,9 @@ class UnexpectedRowsExpectation(BatchExpectation):
             runtime_configuration=runtime_configuration,
         )
 
-        unexpected_row_count = result.get("result").get("observed_value")
+        unexpected_row_count = (
+            result.get("result").get("observed_value") if result is not None else None
+        )
 
         template_str = ""
         if isinstance(unexpected_row_count, (int, float)):
