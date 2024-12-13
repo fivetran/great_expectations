@@ -59,12 +59,8 @@ def test_success_complete(batch_for_datasource: Batch) -> None:
         "IntegerType",
         "_CUSTOM_DECIMAL",
     ]
-    expectation = gxe.ExpectColumnValuesToBeInTypeList(
-        column=INTEGER_COLUMN, type_list=type_list
-    )
-    result = batch_for_datasource.validate(
-        expectation, result_format=ResultFormat.COMPLETE
-    )
+    expectation = gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=type_list)
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     result_dict = result.to_json_dict()["result"]
 
     assert result.success
@@ -88,12 +84,8 @@ def test_success_complete_errors(batch_for_datasource: Batch) -> None:
         "IntegerType",
         "_CUSTOM_DECIMAL",
     ]
-    expectation = gxe.ExpectColumnValuesToBeInTypeList(
-        column=INTEGER_COLUMN, type_list=type_list
-    )
-    result = batch_for_datasource.validate(
-        expectation, result_format=ResultFormat.COMPLETE
-    )
+    expectation = gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=type_list)
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     result_dict = result.to_json_dict()["result"]
 
     assert result.success
@@ -106,12 +98,8 @@ def test_success_complete_errors(batch_for_datasource: Batch) -> None:
 )
 def test_success_complete_pandas(batch_for_datasource: Batch) -> None:
     type_list = ["INTEGER", "int", "int64", "int32", "IntegerType"]
-    expectation = gxe.ExpectColumnValuesToBeInTypeList(
-        column=INTEGER_COLUMN, type_list=type_list
-    )
-    result = batch_for_datasource.validate(
-        expectation, result_format=ResultFormat.COMPLETE
-    )
+    expectation = gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=type_list)
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
 
     assert result.success
 
@@ -120,9 +108,7 @@ def test_success_complete_pandas(batch_for_datasource: Batch) -> None:
     "expectation",
     [
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column=INTEGER_COLUMN, type_list=["int"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=["int"]),
             id="integer_types",
         ),
         pytest.param(
@@ -132,22 +118,16 @@ def test_success_complete_pandas(batch_for_datasource: Batch) -> None:
             id="mostly",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column=STRING_COLUMN, type_list=["str"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column=STRING_COLUMN, type_list=["str"]),
             id="string_types",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column=NULL_COLUMN, type_list=["float"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column=NULL_COLUMN, type_list=["float"]),
             id="null_float_types",
         ),
     ],
 )
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA
-)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
 def test_success(
     batch_for_datasource: Batch,
     expectation: gxe.ExpectColumnValuesToBeInTypeList,
@@ -160,16 +140,12 @@ def test_success(
     "expectation",
     [
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column=INTEGER_COLUMN, type_list=["str"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=["str"]),
             id="wrong_type",
         ),
     ],
 )
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA
-)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
 def test_failure(
     batch_for_datasource: Batch,
     expectation: gxe.ExpectColumnValuesToBeInTypeList,
@@ -200,15 +176,11 @@ def test_failure(
             id="FIXED",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column="GEOGRAPHY", type_list=["GEOGRAPHY"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column="GEOGRAPHY", type_list=["GEOGRAPHY"]),
             id="GEOGRAPHY",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column="GEOMETRY", type_list=["GEOMETRY"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column="GEOMETRY", type_list=["GEOMETRY"]),
             id="GEOMETRY",
         ),
         pytest.param(
@@ -248,9 +220,7 @@ def test_failure(
             id="TIMESTAMP_NTZ",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column="TIMESTAMP_TZ", type_list=["TIMESTAMP_TZ"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column="TIMESTAMP_TZ", type_list=["TIMESTAMP_TZ"]),
             id="TIMESTAMP_TZ",
         ),
         pytest.param(
@@ -262,15 +232,11 @@ def test_failure(
         # INT , INTEGER , BIGINT , SMALLINT , TINYINT , BYTEINT are Synonymous with NUMBER,
         # except that precision and scale cannot be specified (i.e. always defaults to NUMBER(38, 0)
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column="BYTEINT", type_list=["DECIMAL(38, 0)"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column="BYTEINT", type_list=["DECIMAL(38, 0)"]),
             id="BYTEINT",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column="TINYINT", type_list=["DECIMAL(38, 0)"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column="TINYINT", type_list=["DECIMAL(38, 0)"]),
             id="TINYINT",
         ),
         # Complex data types which are not hashable by testing framework currently
@@ -353,9 +319,7 @@ def test_failure(
 def test_success_complete_snowflake(
     batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
 ) -> None:
-    result = batch_for_datasource.validate(
-        expectation, result_format=ResultFormat.COMPLETE
-    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     result_dict = result.to_json_dict()["result"]
 
     assert result.success
