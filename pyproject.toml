@@ -305,8 +305,6 @@ lint.ignore = [
     "UP006", # use-pep585-annotation
     "UP007", # use-pep604-annotation
     # https://beta.ruff.rs/docs/rules/#flake8-type-checking-tch
-    # Incorrectly removes some imports required for pydantic to function
-    "TCH001", # type-imports
     # minimal cost for standard lib imports; keep this disabled
     "TCH003", # typing-only-standard-library-import
     # gives false positives if we use try imports and type-checking import
