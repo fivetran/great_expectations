@@ -12,6 +12,11 @@ from great_expectations.render import (
     RenderedAtomicContent,
     renderedAtomicValueSchema,
 )
+from great_expectations.expectations.expectation import (
+    BatchExpectation,
+    render_suite_parameter_string,
+)
+from great_expectations.render.components import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     CodeBlock,
@@ -20,6 +25,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import num_to_str
+from great_expectations.render.util import substitute_none_for_missing
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
@@ -142,13 +148,39 @@ class UnexpectedRowsExpectation(BatchExpectation):
         return renderer_configuration
 
     @classmethod
-    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
+    @render_suite_parameter_string
     @override
-    def _atomic_diagnostic_observed_value(
+    def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
+         **kwargs,
+    ) -> list[RenderedStringTemplateContent]:
+        runtime_configuration = runtime_configuration or {}
+        styling = runtime_configuration.get("styling")
+        params = substitute_none_for_missing(
+            configuration.kwargs,  # type: ignore[union-attr]
+            ["unexpected_rows_query"],
+        )
+
+        template_str = "Unexpected rows query: $unexpected_rows_query"
+
+        return [
+            RenderedStringTemplateContent(
+                content_block_type="string_template",
+                string_template={
+                    "template": template_str,
+                    "params": params,
+                    "styling": styling,
+                },
+            )
+        ]
+      
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @override
+    def _atomic_diagnostic_observed_value(
     ) -> RenderedAtomicContent:
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
