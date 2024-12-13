@@ -19,6 +19,7 @@ from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
     RendererValueType,
 )
+from great_expectations.render.util import num_to_str
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
@@ -155,17 +156,19 @@ class UnexpectedRowsExpectation(BatchExpectation):
             runtime_configuration=runtime_configuration,
         )
 
-        unexpected_row_count = result.get("result").get("observed_value") or None
+        unexpected_row_count = result.get("result").get("observed_value")
 
         template_str = ""
-        if unexpected_row_count:
+        if isinstance(unexpected_row_count, (int, float)):
             renderer_configuration.add_param(
                 name="observed_value",
                 param_type=RendererValueType.NUMBER,
                 value=unexpected_row_count,
             )
 
-            template_str = f"{unexpected_row_count} unexpected "
+            template_str = (
+                f"{num_to_str(unexpected_row_count, precision=10, use_locale=True)} unexpected "
+            )
             if unexpected_row_count == 1:
                 template_str += "row"
             else:
