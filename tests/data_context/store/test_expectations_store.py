@@ -196,6 +196,24 @@ _SUITE_CONFIG_WITH_EXPECTATIONS = _create_suite_config(
     [
         {
             "type": "expect_column_to_exist",
+            "description": None,
+            "id": "c8a239a6-fb80-4f51-a90e-40c38dffdf91",
+            "kwargs": {"column": "infinities"},
+            "meta": {},
+            "expectation_context": None,
+            "rendered_content": [],
+        }
+    ],
+)
+
+# this should have non-null values
+_SUITE_CONFIG_WITH_FULLY_POPULATED_EXPECTATIONS = _create_suite_config(
+    "my_suite_with_expectations",
+    "03d61d4e-003f-48e7-a3b2-f9f842384da3",
+    [
+        {
+            "type": "expect_column_to_exist",
+            "description": "some description",
             "id": "c8a239a6-fb80-4f51-a90e-40c38dffdf91",
             "kwargs": {"column": "infinities"},
             "meta": {},
@@ -226,6 +244,12 @@ _SUITE_CONFIG_WITH_EXPECTATIONS = _create_suite_config(
         pytest.param(
             {"data": _SUITE_CONFIG_WITH_EXPECTATIONS},
             _SUITE_CONFIG_WITH_EXPECTATIONS,
+            None,
+            id="null_result_format",
+        ),
+        pytest.param(
+            {"data": _SUITE_CONFIG_WITH_FULLY_POPULATED_EXPECTATIONS},
+            _SUITE_CONFIG_WITH_FULLY_POPULATED_EXPECTATIONS,
             None,
             id="null_result_format",
         ),
