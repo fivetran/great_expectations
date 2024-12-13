@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import pathlib
 import uuid
-from typing import TYPE_CHECKING, List, Type
+from typing import TYPE_CHECKING, Generator, List, Literal, Type
 from unittest import mock
 
 import pandas as pd
@@ -17,11 +17,10 @@ from great_expectations.checkpoint import (
     MicrosoftTeamsNotificationAction,
     SlackNotificationAction,
     UpdateDataDocsAction,
-    ValidationAction,
 )
+from great_expectations.checkpoint.actions import ValidationAction
 from great_expectations.checkpoint.checkpoint import (
     Checkpoint,
-    CheckpointAction,
     CheckpointResult,
 )
 from great_expectations.compatibility.pydantic import ValidationError
@@ -60,6 +59,7 @@ from great_expectations.exceptions import (
 )
 from great_expectations.exceptions.exceptions import (
     CheckpointNotFoundError,
+    ValidationActionRegistryRetrievalError,
     ValidationDefinitionNotFoundError,
 )
 from great_expectations.exceptions.resource_freshness import ResourceFreshnessAggregateError
@@ -311,7 +311,7 @@ class TestCheckpointSerialization:
     def test_checkpoint_filesystem_round_trip_adds_ids(
         self,
         tmp_path: pathlib.Path,
-        actions: list[CheckpointAction],
+        actions: list[ValidationAction],
     ):
         with working_directory(tmp_path):
             context = gx.get_context(mode="file")
@@ -421,6 +421,8 @@ class TestCheckpointSerialization:
         except ValueError:
             pytest.fail(f"{id} is not a valid UUID.")
 
+
+class TestCheckpointDeserialization:
     @pytest.mark.parametrize(
         "serialized_checkpoint, expected_error",
         [
@@ -465,16 +467,22 @@ class TestCheckpointSerialization:
 
         assert expected_error in str(e.value)
 
-    @pytest.mark.unit
-    def test_checkpoint_deserialization_with_actions(self, mocker: MockerFixture):
-        # Arrange
+    @pytest.fixture
+    def _set_context(self, mocker: MockerFixture) -> Generator[None, None, None]:
         context = mocker.Mock(spec=AbstractDataContext)
         context.validation_definition_store.get.return_value = mocker.Mock(
             spec=ValidationDefinition
         )
-        set_context(context)
 
-        # Act
+        set_context(context)
+        yield
+        set_context(None)
+
+    @pytest.mark.unit
+    def test_checkpoint_deserialization_with_actions_success(
+        self, _set_context: Generator[None, None, None]
+    ):
+        # Arrange
         serialized_checkpoint = {
             "actions": [
                 {"name": "my_docs_action", "site_names": [], "type": "update_data_docs"},
@@ -488,6 +496,8 @@ class TestCheckpointSerialization:
                 {"id": "3fb9ce09-a8fb-44d6-8abd-7d699443f6a1", "name": "my_validation_def"}
             ],
         }
+
+        # Act
         checkpoint = Checkpoint.parse_obj(serialized_checkpoint)
 
         # Assert
@@ -495,6 +505,69 @@ class TestCheckpointSerialization:
         assert isinstance(checkpoint.actions[0], UpdateDataDocsAction)
         assert isinstance(checkpoint.actions[1], SlackNotificationAction)
         assert isinstance(checkpoint.actions[2], MicrosoftTeamsNotificationAction)
+
+    @pytest.mark.parametrize(
+        "action_config, expected_error",
+        [
+            pytest.param(
+                {"name": "my_docs_action", "site_names": []},
+                ValidationActionRegistryRetrievalError,
+                id="no_type",
+            ),
+            pytest.param(
+                {"name": "my_custom_action", "type": "not_registered"},
+                ValidationActionRegistryRetrievalError,
+                id="not_registered",
+            ),
+        ],
+    )
+    @pytest.mark.unit
+    def test_checkpoint_deserialization_with_actions_failure(
+        self,
+        _set_context: Generator[None, None, None],
+        action_config: dict,
+        expected_error: Type[Exception],
+    ):
+        # Arrange
+        serialized_checkpoint = {
+            "actions": [
+                action_config,
+            ],
+            "id": "e7d1f462-821b-429c-8086-cca80eeea5e9",
+            "name": "my_checkpoint",
+            "validation_definitions": [
+                {"id": "3fb9ce09-a8fb-44d6-8abd-7d699443f6a1", "name": "my_validation_def"}
+            ],
+        }
+
+        # Act & Assert
+        with pytest.raises(expected_error):
+            Checkpoint.parse_obj(serialized_checkpoint)
+
+    @pytest.mark.unit
+    def test_checkpoint_deserialization_with_custom_validation_action(
+        self, _set_context: Generator[None, None, None]
+    ):
+        # Arrange
+        class CustomAction(ValidationAction):
+            type: Literal["custom"] = "custom"
+
+        serialized_checkpoint = {
+            "actions": [
+                {"name": "my_custom_action", "type": "custom"},
+            ],
+            "id": "e7d1f462-821b-429c-8086-cca80eeea5e9",
+            "name": "my_checkpoint",
+            "validation_definitions": [
+                {"id": "3fb9ce09-a8fb-44d6-8abd-7d699443f6a1", "name": "my_validation_def"}
+            ],
+        }
+
+        # Act
+        checkpoint = Checkpoint.parse_obj(serialized_checkpoint)
+
+        # Assert
+        assert isinstance(checkpoint.actions[0], CustomAction)
 
 
 class TestCheckpointResult:
@@ -657,7 +730,7 @@ class TestCheckpointResult:
         )
         data_docs_action = UpdateDataDocsAction(name="my_docs_action")
 
-        actions: List[CheckpointAction] = [slack_action, teams_action, data_docs_action]
+        actions: List[ValidationAction] = [slack_action, teams_action, data_docs_action]
 
         validation_definitions = [validation_definition]
         checkpoint = Checkpoint(
@@ -804,7 +877,7 @@ class TestCheckpointResult:
         assert actual == expected
 
     def _build_file_backed_checkpoint(
-        self, tmp_path: pathlib.Path, actions: list[CheckpointAction] | None = None
+        self, tmp_path: pathlib.Path, actions: list[ValidationAction] | None = None
     ) -> Checkpoint:
         actions = actions or []
         with working_directory(tmp_path):

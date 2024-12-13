@@ -64,7 +64,6 @@ def test_success(
         ),
         pytest.param(
             gxe.ExpectTableColumnsToMatchSet(column_set=[COL_A]),
-            marks=pytest.mark.xfail,
             id="defaults_to_exact_match",
         ),
         pytest.param(

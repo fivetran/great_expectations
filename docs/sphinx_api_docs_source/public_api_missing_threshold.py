@@ -7,6 +7,7 @@ adding an exclude directive to docs/sphinx_api_docs_source/public_api_excludes.p
 ITEMS_IGNORED_FROM_PUBLIC_API = [
     "File: great_expectations/_docs_decorators.py Name: add",
     "File: great_expectations/checkpoint/actions.py Name: _run",
+    "File: great_expectations/checkpoint/actions.py Name: get",
     "File: great_expectations/checkpoint/actions.py Name: run",
     "File: great_expectations/checkpoint/actions.py Name: update",
     "File: great_expectations/checkpoint/checkpoint.py Name: describe_dict",

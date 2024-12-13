@@ -8,6 +8,7 @@ import pytest
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.expectations import UnexpectedRowsExpectation
 from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
+from great_expectations.render.renderer.content_block.content_block import ContentBlockRenderer
 
 if TYPE_CHECKING:
     from great_expectations.data_context import AbstractDataContext
@@ -144,3 +145,17 @@ def test_unexpected_rows_expectation_render(
         == "$unexpected_rows_query"
     )
     assert expectation.rendered_content[0].value.code_block.get("language") == "sql"
+
+
+@pytest.mark.unit
+def test_data_docs_rendering():
+    query = "SELECT * FROM {batch} WHERE passenger_count > 7"
+    expectation = UnexpectedRowsExpectation(unexpected_rows_query=query)
+    results = ContentBlockRenderer.render(expectation.configuration)
+    assert isinstance(results, list) and len(results) == 1
+    result = results[0]
+    assert result.string_template == {
+        "template": "Unexpected rows query: $unexpected_rows_query",
+        "params": {"unexpected_rows_query": query},
+        "styling": {},
+    }
