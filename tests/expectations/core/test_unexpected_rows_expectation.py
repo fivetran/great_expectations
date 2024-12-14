@@ -67,7 +67,7 @@ def test_unexpected_rows_expectation_invalid_query_info_message(query: str, capl
         pytest.param(
             "SELECT * FROM {batch} WHERE passenger_count > 7",
             True,
-            "0 unexpected rows",
+            0,
             0,
             id="success",
         ),
@@ -75,14 +75,14 @@ def test_unexpected_rows_expectation_invalid_query_info_message(query: str, capl
             # There is a single instance where passenger_count == 7
             "SELECT * FROM {batch} WHERE passenger_count > 6",
             False,
-            "1 unexpected row",
+            1,
             1,
             id="failure",
         ),
         pytest.param(
             "SELECT * FROM {batch} WHERE passenger_count > 0",
             False,
-            "97853 unexpected rows",
+            97853,
             MAX_RESULT_RECORDS,
             id="greater than MAX_RESULT_RECORDS unexpected rows",
         ),
