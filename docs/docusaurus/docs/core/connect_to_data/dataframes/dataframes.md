@@ -170,7 +170,9 @@ Typically, a Batch Definition is used to describe how the data within a Data Ass
 
 This means that Batch Definitions for dataframe Data Assets don't work to subdivide the data returned for validation.  Instead, they serve as an additional layer of organization and allow you to further group your Validation Results.  For example, if you have already used your dataframe Data Assets to group your Validation Results by pipeline stage, you could use two Batch Definitions to further group those results by having all automated validations use one Batch Definition and all manually executed validations use the other.
 
-
+:::note For API-managed Expectations only
+If you use GX Cloud and GX Core together, note that Batch Definitions you create with the API apply to [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations) only.
+:::
 ### Prerequisites
 
 - <PrereqPythonInstalled/>

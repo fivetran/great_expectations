@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
@@ -314,3 +315,51 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_failure(
         result = batch.validate(expectation)
         assert result.success is False
         assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()],
+    data=TABLE_1,
+)
+def test_success_result_format(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE entity_id = 123"
+        )
+    )
+
+    assert result.success
+    assert result.result == {
+        "observed_value": 0,
+        "details": {
+            "unexpected_rows": [],
+        },
+    }
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()],
+    data=TABLE_1,
+)
+def test_fail_result_format(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE entity_id = 2"
+        )
+    )
+
+    assert not result.success
+    assert result.result == {
+        "observed_value": 1,
+        "details": {
+            "unexpected_rows": [
+                {
+                    "entity_id": 2,
+                    "created_at": datetime(year=2024, month=11, day=30, tzinfo=timezone.utc).date(),
+                    "quantity": 2,
+                    "temperature": 92,
+                    "color": "red",
+                }
+            ],
+        },
+    }

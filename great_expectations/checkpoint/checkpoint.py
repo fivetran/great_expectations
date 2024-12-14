@@ -21,9 +21,10 @@ from great_expectations._docs_decorators import public_api
 from great_expectations.analytics import submit as submit_analytics_event
 from great_expectations.analytics.events import CheckpointRanEvent
 from great_expectations.checkpoint.actions import (
+    _VALIDATION_ACTION_REGISTRY,
     ActionContext,
-    CheckpointAction,
     UpdateDataDocsAction,
+    ValidationAction,
 )
 from great_expectations.compatibility.pydantic import (
     BaseModel,
@@ -85,7 +86,7 @@ class Checkpoint(BaseModel):
 
     name: str
     validation_definitions: List[ValidationDefinition]
-    actions: List[CheckpointAction] = Field(default_factory=list)
+    actions: List[ValidationAction] = Field(default_factory=list)
     result_format: ResultFormatUnion = DEFAULT_RESULT_FORMAT
     id: Union[str, None] = None
 
@@ -131,6 +132,23 @@ class Checkpoint(BaseModel):
             ValidationDefinition: lambda v: v.identifier_bundle(),
             Renderer: lambda r: r.serialize(),
         }
+
+    @validator("actions", pre=True)
+    @classmethod
+    def validate_actions(
+        cls, action_list: list[ValidationAction] | list[dict]
+    ) -> list[ValidationAction]:
+        validated_actions: list[ValidationAction] = []
+        for action in action_list:
+            if isinstance(action, ValidationAction):
+                validated_actions.append(action)
+            else:
+                action_type: str | None = action.get("type")
+                action_cls = _VALIDATION_ACTION_REGISTRY.get(action_type)
+                validated_action = action_cls(**action)
+                validated_actions.append(validated_action)
+
+        return validated_actions
 
     @override
     def json(  # noqa: PLR0913
@@ -376,15 +394,15 @@ class Checkpoint(BaseModel):
             )
             action_context.update(action=action, action_result=action_result)
 
-    def _sort_actions(self) -> List[CheckpointAction]:
+    def _sort_actions(self) -> List[ValidationAction]:
         """
         UpdateDataDocsActions are prioritized to run first, followed by all other actions.
 
         This is due to the fact that certain actions reference data docs sites,
         which must be updated first.
         """
-        priority_actions: List[CheckpointAction] = []
-        secondary_actions: List[CheckpointAction] = []
+        priority_actions: List[ValidationAction] = []
+        secondary_actions: List[ValidationAction] = []
         for action in self.actions:
             if isinstance(action, UpdateDataDocsAction):
                 priority_actions.append(action)

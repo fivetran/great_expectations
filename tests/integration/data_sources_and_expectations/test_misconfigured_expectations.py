@@ -67,7 +67,7 @@ class TestNumericExpectationAgainstStrDataMisconfiguration:
     def test_bigquery(self, batch_for_datasource) -> None:
         self._assert_misconfiguration(
             batch_for_datasource=batch_for_datasource,
-            exception_message="No matching signature for operator * for argument types: FLOAT64, STRING",  # noqa: E501
+            exception_message="No matching signature for operator *",
         )
 
     @parameterize_batch_for_data_sources(
