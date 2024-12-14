@@ -72,8 +72,6 @@ services:
       - /bin/bash
       - -c
       - |
-        cd /app/services/ge_cloud
-        ./scripts/localstack_init.sh
         sed -i 's/localhost/db/g' /app/services/ge_cloud/mercury/alembic.ini
         cd /app/services/ge_cloud/mercury
         alembic upgrade head
