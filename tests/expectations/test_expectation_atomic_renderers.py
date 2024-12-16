@@ -2956,3 +2956,42 @@ def test_expect_table_columns_to_match_set_atomic_diagnostic_observed_value(
         assert name in res["value"]["params"]
         assert res["value"]["params"][name]["value"] == val
         assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "observed_value, expected_template_string",
+    [
+        (
+            0,
+            "$observed_value unexpected rows",
+        ),
+        (
+            1,
+            "$observed_value unexpected row",
+        ),
+        (
+            100000,
+            "$observed_value unexpected rows",
+        ),
+    ],
+)
+def test_unexpected_rows_expectation_atomic_diagnostic_observed_value(
+    observed_value,
+    expected_template_string,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"description": "my description", "unexpected_rows_query": "valid query"},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string

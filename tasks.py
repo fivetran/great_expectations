@@ -776,31 +776,6 @@ def _exit_with_error_if_not_run_from_correct_dir(
 
 
 @invoke.task(
-    aliases=("links",),
-    help={"skip_external": "Skip external link checks (is slow), default is True"},
-)
-def link_checker(ctx: Context, skip_external: bool = True):
-    """Checks the Docusaurus docs for broken links"""
-    import docs.checks.docs_link_checker as checker
-
-    path = pathlib.Path("docs/docusaurus/docs")
-    docs_root = pathlib.Path("docs/docusaurus/docs")
-    static_root = pathlib.Path("docs/docusaurus/static")
-    site_prefix: str = "docs"
-    static_prefix: str = "static"
-
-    code, message = checker.scan_docs(
-        path=path,
-        docs_root=docs_root,
-        static_root=static_root,
-        site_prefix=site_prefix,
-        static_prefix=static_prefix,
-        skip_external=skip_external,
-    )
-    raise invoke.Exit(message, code)
-
-
-@invoke.task(
     aliases=("automerge",),
 )
 def show_automerges(ctx: Context):
