@@ -31,3 +31,5 @@ class IncludeExcludeDefinition:
             raise ValueError(  # noqa: TRY003
                 "You must provide at least a filepath or filepath and name."
             )
+        if self.filepath and not self.filepath.exists():
+            raise FileNotFoundError(f"File {self.filepath} does not exist.")  # noqa: TRY003
