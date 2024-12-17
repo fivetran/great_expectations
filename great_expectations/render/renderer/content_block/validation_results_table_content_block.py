@@ -80,7 +80,7 @@ class ValidationResultsTableContentBlockRenderer(ExpectationStringRenderer):
 
     @override
     @classmethod
-    def _get_content_block_fn(  # noqa: C901, PLR0915
+    def _get_content_block_fn(  # noqa: C901
         cls,
         expectation_type: str,
         expectation_config: ExpectationConfiguration | None = None,
@@ -88,8 +88,6 @@ class ValidationResultsTableContentBlockRenderer(ExpectationStringRenderer):
         content_block_fn = super()._get_content_block_fn(
             expectation_type=expectation_type, expectation_config=expectation_config
         )
-        if content_block_fn == cls._render_expectation_description:
-            return content_block_fn
 
         expectation_string_fn = content_block_fn
         if expectation_string_fn is None:
