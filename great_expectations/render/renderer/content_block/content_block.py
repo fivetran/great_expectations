@@ -297,7 +297,6 @@ diagnose and repair the underlying issue.  Detailed information follows:
         description = expectation.description
         if not description:
             raise ValueError("Cannot render an expectation with no description.")  # noqa: TRY003
-        # If we wish to support $VAR substitution, we should use RenderedStringTemplateContent with params  # noqa: E501
         return [
             RenderedStringTemplateContent(
                 string_template={"template": description},
