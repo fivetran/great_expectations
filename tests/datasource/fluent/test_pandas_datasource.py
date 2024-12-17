@@ -470,6 +470,7 @@ def test_read_dataframe(empty_data_context: AbstractDataContext, test_df_pandas:
         b.data.dataframe.equals(test_df_pandas)
 
 
+@pytest.mark.filesystem
 def test_get_csv_asset_not_in_memory(
     empty_data_context: AbstractDataContext, valid_file_path: pathlib.Path
 ):
