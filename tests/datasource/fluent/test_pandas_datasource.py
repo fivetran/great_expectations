@@ -483,8 +483,8 @@ def test_cloud_get_csv_asset_not_in_memory(valid_file_path: pathlib.Path):
     )
     datasource_name = f"DS_{uuid.uuid4().hex}"
     csv_asset_name = f"DA_{uuid.uuid4().hex}"
+    datasource = context.data_sources.add_pandas(name=datasource_name)
     try:
-        datasource = context.data_sources.add_pandas(name=datasource_name)
         _ = datasource.add_csv_asset(
             name=csv_asset_name,
             filepath_or_buffer=valid_file_path,
