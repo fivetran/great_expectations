@@ -1130,9 +1130,9 @@ def test_ExpectationSuiteColumnSectionRenderer_render_expectation_with_descripti
 
     content_block = result.content_blocks[1]
     content = content_block.bullet_list[0]
-    markdown = content.markdown
-
-    assert markdown == expectation.description
+    assert content.string_template == {
+        "template": "column values must be a legal adult age (**18** or older)"
+    }
 
 
 @pytest.mark.unit
@@ -1588,10 +1588,10 @@ def test_ValidationResultsTableContentBlockRenderer_render_evr_with_description(
     result = ValidationResultsColumnSectionRenderer().render([evr])
 
     content_block = result.content_blocks[1]
-    content = content_block.table[0]
-    markdown = content.markdown
-
-    assert markdown == expectation.description
+    _, description_cell, _ = content_block.table[0]
+    assert description_cell.string_template == {
+        "template": "column values must be a legal adult age (**18** or older)"
+    }
 
 
 # noinspection PyPep8Naming
