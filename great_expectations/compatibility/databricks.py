@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from great_expectations.compatibility.not_imported import NotImported
 
 DATABRICKS_CONNECT_NOT_IMPORTED = NotImported(
@@ -12,7 +14,6 @@ except ImportError:
 # of the databricks package.
 # tldr: SQLAlchemy application should (mostly) "just work" with Databricks.
 # https://github.com/databricks/databricks-sql-python/blob/main/src/databricks/sqlalchemy/README.sqlalchemy.md
-
 try:
     # Importing ENUM of every Databricks SQL Type that is shown here
     # https://docs.databricks.com/en/sql/language-manual/sql-ref-datatypes.html
