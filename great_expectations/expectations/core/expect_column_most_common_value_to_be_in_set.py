@@ -8,6 +8,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_types import (
     ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
 )
@@ -61,7 +62,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Sets"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
 
 
 class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
@@ -104,7 +105,7 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
           is a tie for most common among multiple values, observed_value will contain a single copy of each \
           most common value
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -115,8 +116,9 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
+        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2
