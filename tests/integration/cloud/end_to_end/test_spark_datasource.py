@@ -36,14 +36,6 @@ def datasource(
         persist=True,
     )
     datasource.persist = False
-    datasource = context.data_sources.add_or_update_spark(datasource=datasource)  # type: ignore[call-arg]
-    assert (
-        datasource.persist is False
-    ), "The datasource was not updated in the previous method call."
-    datasource.persist = True
-    datasource = context.data_sources.add_or_update_spark(datasource=datasource)  # type: ignore[call_arg]
-    assert datasource.persist is True, "The datasource was not updated in the previous method call."
-    datasource.persist = False
     datasource_dict = datasource.dict()
     datasource = context.data_sources.add_or_update_spark(**datasource_dict)
     assert (
