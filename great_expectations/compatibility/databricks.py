@@ -24,77 +24,77 @@ except ImportError:
 try:
     BIGINT = DatabricksSupportedType.BIGINT
 except (ImportError, AttributeError):
-    BIGINT = DATABRICKS_CONNECT_NOT_IMPORTED
+    BIGINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     BOOLEAN = DatabricksSupportedType.BOOLEAN
 except (ImportError, AttributeError):
-    BOOLEAN = DATABRICKS_CONNECT_NOT_IMPORTED
+    BOOLEAN = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     DATE = DatabricksSupportedType.DATE
 except (ImportError, AttributeError):
-    DATE = DATABRICKS_CONNECT_NOT_IMPORTED
+    DATE = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     from databricks.sqlalchemy._types import TIMESTAMP_NTZ as TIMESTAMP_NTZ  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    TIMESTAMP_NTZ = DATABRICKS_CONNECT_NOT_IMPORTED
+    TIMESTAMP_NTZ = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     DOUBLE = DatabricksSupportedType.DOUBLE
 except (ImportError, AttributeError):
-    DOUBLE = DATABRICKS_CONNECT_NOT_IMPORTED
+    DOUBLE = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     FLOAT = DatabricksSupportedType.FLOAT
 except (ImportError, AttributeError):
-    FLOAT = DATABRICKS_CONNECT_NOT_IMPORTED
+    FLOAT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     INT = DatabricksSupportedType.INT
 except (ImportError, AttributeError):
-    INT = DATABRICKS_CONNECT_NOT_IMPORTED
+    INT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     DECIMAL = DatabricksSupportedType.DECIMAL
 except (ImportError, AttributeError):
-    DECIMAL = DATABRICKS_CONNECT_NOT_IMPORTED
+    DECIMAL = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     SMALLINT = DatabricksSupportedType.SMALLINT
 except (ImportError, AttributeError):
-    SMALLINT = DATABRICKS_CONNECT_NOT_IMPORTED
+    SMALLINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     INTERVAL = DatabricksSupportedType.INTERVAL
 except (ImportError, AttributeError):
-    INTERVAL = DATABRICKS_CONNECT_NOT_IMPORTED
+    INTERVAL = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     VOID = DatabricksSupportedType.VOID
 except (ImportError, AttributeError):
-    VOID = DATABRICKS_CONNECT_NOT_IMPORTED
+    VOID = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     SMALLINT = DatabricksSupportedType.SMALLINT
 except (ImportError, AttributeError):
-    SMALLINT = DATABRICKS_CONNECT_NOT_IMPORTED
+    SMALLINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     from databricks.sqlalchemy._types import DatabricksStringType as STRING  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    STRING = DATABRICKS_CONNECT_NOT_IMPORTED
+    STRING = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     from databricks.sqlalchemy._types import TIMESTAMP as TIMESTAMP  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    TIMESTAMP = DATABRICKS_CONNECT_NOT_IMPORTED
+    TIMESTAMP = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     from databricks.sqlalchemy._types import TINYINT as TINYINT  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED
+    TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 
 class DATABRICKS_TYPES:
