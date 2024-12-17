@@ -35,12 +35,10 @@ class MyCustomAction(ValidationAction):
         checkpoint_result: CheckpointResult,
         action_context: ActionContext,  # Contains results from prior Actions in the same Checkpoint run.
     ) -> dict:
-        success_percentage = self._do_my_custom_action(
-            checkpoint_result
-        )  # Domain-specific logic
-        return {
-            "success_percentage": success_percentage
-        }  # Return information about the Action
+        # Domain-specific logic
+        success_percentage = self._do_my_custom_action(checkpoint_result)
+        # Return information about the Action
+        return {"success_percentage": success_percentage}
 
     def _do_my_custom_action(self, checkpoint_result: CheckpointResult) -> float:
         # Perform custom logic based on the validation results.
