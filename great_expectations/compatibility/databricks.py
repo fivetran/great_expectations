@@ -6,10 +6,7 @@ DATABRICKS_CONNECT_NOT_IMPORTED = NotImported(
     "databricks-connect is not installed, please 'pip install databricks-connect'"
 )
 
-try:
-    from databricks import connect
-except ImportError:
-    connect = DATABRICKS_CONNECT_NOT_IMPORTED
+
 # The following types are modeled after the following documentation that is part
 # of the databricks package.
 # tldr: SQLAlchemy application should (mostly) "just work" with Databricks.
@@ -19,7 +16,7 @@ try:
     # https://docs.databricks.com/en/sql/language-manual/sql-ref-datatypes.html
     from databricks.sql.parameters.native import DatabricksSupportedType
 except ImportError:
-    DatabricksSupportedType = DATABRICKS_CONNECT_NOT_IMPORTED
+    DatabricksSupportedType = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     BIGINT = DatabricksSupportedType.BIGINT
@@ -44,7 +41,7 @@ except (ImportError, AttributeError):
 try:
     DOUBLE = DatabricksSupportedType.DOUBLE
 except (ImportError, AttributeError):
-    DOUBLE = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
+    DOUBLE = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment, misc]
 
 try:
     FLOAT = DatabricksSupportedType.FLOAT
@@ -84,17 +81,17 @@ except (ImportError, AttributeError):
 try:
     from databricks.sqlalchemy._types import DatabricksStringType as STRING  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    STRING = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
+    STRING = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment, string]
 
 try:
     from databricks.sqlalchemy._types import TIMESTAMP as TIMESTAMP  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    TIMESTAMP = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
+    TIMESTAMP = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment, misc]
 
 try:
     from databricks.sqlalchemy._types import TINYINT as TINYINT  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
+    TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment, misc]
 
 
 class DATABRICKS_TYPES:
