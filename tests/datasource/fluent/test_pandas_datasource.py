@@ -483,17 +483,18 @@ def test_cloud_get_csv_asset_not_in_memory(valid_file_path: pathlib.Path):
     )
     datasource_name = f"DS_{uuid.uuid4().hex}"
     csv_asset_name = f"DA_{uuid.uuid4().hex}"
-    datasource = context.data_sources.add_pandas(name=datasource_name)
-    _ = datasource.add_csv_asset(
-        name=csv_asset_name,
-        filepath_or_buffer=valid_file_path,
-    )
-    csv_asset = datasource.get_asset(name=csv_asset_name)
-    csv_asset.build_batch_request()
+    try:
+        datasource = context.data_sources.add_pandas(name=datasource_name)
+        _ = datasource.add_csv_asset(
+            name=csv_asset_name,
+            filepath_or_buffer=valid_file_path,
+        )
+        csv_asset = datasource.get_asset(name=csv_asset_name)
+        csv_asset.build_batch_request()
 
-    assert csv_asset_name not in context.data_sources.all()._in_memory_data_assets
-
-    context.data_sources.delete(name=datasource_name)
+        assert csv_asset_name not in context.data_sources.all()._in_memory_data_assets
+    finally:
+        context.data_sources.delete(name=datasource_name)
 
 
 @pytest.mark.filesystem
