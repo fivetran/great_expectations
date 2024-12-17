@@ -15,7 +15,7 @@ from great_expectations.datasource.fluent.data_connector.filesystem_data_connect
 if TYPE_CHECKING:
     import pandas as pd
 
-    from great_expectations.checkpoint.checkpoint import Checkpoint
+    from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
     from great_expectations.core import ExpectationSuite
     from great_expectations.data_context import CloudDataContext
     from great_expectations.datasource.fluent import (
@@ -123,8 +123,8 @@ def checkpoint(
     return checkpoint
 
 
-# @pytest.mark.cloud
-# def test_checkpoint_run(checkpoint: Checkpoint):
-#     """Test running a Checkpoint that was created using the entities defined in this module."""
-#     checkpoint_result: CheckpointResult = checkpoint.run()
-#     assert checkpoint_result.success
+@pytest.mark.cloud
+def test_checkpoint_run(checkpoint: Checkpoint):
+    """Test running a Checkpoint that was created using the entities defined in this module."""
+    checkpoint_result: CheckpointResult = checkpoint.run()
+    assert checkpoint_result.success

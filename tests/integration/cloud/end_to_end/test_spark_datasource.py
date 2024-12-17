@@ -13,7 +13,7 @@ from tests.integration.cloud.end_to_end.conftest import construct_spark_df_from_
 if TYPE_CHECKING:
     import pandas as pd
 
-    from great_expectations.checkpoint.checkpoint import Checkpoint
+    from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
     from great_expectations.compatibility import pyspark
     from great_expectations.core import ExpectationSuite
     from great_expectations.data_context import CloudDataContext
@@ -115,12 +115,12 @@ def checkpoint(
     return checkpoint
 
 
-# @pytest.mark.cloud
-# def test_checkpoint_run(checkpoint: Checkpoint, spark_dataframe: pyspark.DataFrame):
-#     """Test running a Checkpoint that was created using the entities defined in this module."""
-#     checkpoint_result: CheckpointResult = checkpoint.run(
-#         batch_parameters={
-#             "dataframe": spark_dataframe,
-#         }
-#     )
-#     assert checkpoint_result.success
+@pytest.mark.cloud
+def test_checkpoint_run(checkpoint: Checkpoint, spark_dataframe: pyspark.DataFrame):
+    """Test running a Checkpoint that was created using the entities defined in this module."""
+    checkpoint_result: CheckpointResult = checkpoint.run(
+        batch_parameters={
+            "dataframe": spark_dataframe,
+        }
+    )
+    assert checkpoint_result.success

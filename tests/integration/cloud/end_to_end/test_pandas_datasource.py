@@ -100,8 +100,8 @@ def checkpoint(
     return checkpoint
 
 
-# @pytest.mark.cloud
-# def test_checkpoint_run(checkpoint: Checkpoint, test_data):
-#     """Test running a Checkpoint that was created using the entities defined in this module."""
-#     checkpoint_result = checkpoint.run(batch_parameters={"dataframe": test_data})
-#     assert checkpoint_result.success
+@pytest.mark.cloud
+def test_checkpoint_run(checkpoint: Checkpoint, test_data):
+    """Test running a Checkpoint that was created using the entities defined in this module."""
+    checkpoint_result = checkpoint.run(batch_parameters={"dataframe": test_data})
+    assert checkpoint_result.success
