@@ -4,166 +4,780 @@ Over time this list should be driven to 0 by either adding the @public_api decor
 adding an exclude directive to docs/sphinx_api_docs_source/public_api_excludes.py
 """
 
+import pathlib
+
+from docs.sphinx_api_docs_source.printable_definition import PrintableDefinition
+
 ITEMS_IGNORED_FROM_PUBLIC_API = [
-    "File: great_expectations/_docs_decorators.py Name: add",
-    "File: great_expectations/checkpoint/actions.py Name: _run",
-    "File: great_expectations/checkpoint/actions.py Name: get",
-    "File: great_expectations/checkpoint/actions.py Name: run",
-    "File: great_expectations/checkpoint/actions.py Name: update",
-    "File: great_expectations/checkpoint/checkpoint.py Name: describe_dict",
-    "File: great_expectations/compatibility/not_imported.py Name: is_version_greater_or_equal",
-    "File: great_expectations/compatibility/typing_extensions.py Name: override",
-    "File: great_expectations/core/batch.py Name: head",
-    "File: great_expectations/core/batch_definition.py Name: build_batch_request",
-    "File: great_expectations/core/expectation_diagnostics/expectation_doctor.py Name: print_diagnostic_checklist",
-    "File: great_expectations/core/expectation_diagnostics/expectation_doctor.py Name: run_diagnostics",
-    "File: great_expectations/core/expectation_suite.py Name: add_expectation_configuration",
-    "File: great_expectations/core/expectation_suite.py Name: remove_expectation",
-    "File: great_expectations/core/expectation_validation_result.py Name: describe_dict",
-    "File: great_expectations/core/factory/factory.py Name: add",
-    "File: great_expectations/core/factory/factory.py Name: all",
-    "File: great_expectations/core/factory/factory.py Name: get",
-    "File: great_expectations/core/metric_domain_types.py Name: MetricDomainTypes",
-    "File: great_expectations/core/metric_function_types.py Name: MetricPartialFunctionTypes",
-    "File: great_expectations/core/partitioners.py Name: ColumnPartitionerMonthly",
-    "File: great_expectations/core/partitioners.py Name: PartitionerColumnValue",
-    "File: great_expectations/core/yaml_handler.py Name: YAMLHandler",
-    "File: great_expectations/core/yaml_handler.py Name: dump",
-    "File: great_expectations/core/yaml_handler.py Name: load",
-    "File: great_expectations/data_context/data_context/abstract_data_context.py Name: add_store",
-    "File: great_expectations/data_context/data_context/abstract_data_context.py Name: delete_datasource",
-    "File: great_expectations/data_context/data_context/abstract_data_context.py Name: get_docs_sites_urls",
-    "File: great_expectations/data_context/data_context/abstract_data_context.py Name: get_validator",
-    "File: great_expectations/data_context/data_context/abstract_data_context.py Name: list_datasources",
-    "File: great_expectations/data_context/data_context/abstract_data_context.py Name: open_data_docs",
-    "File: great_expectations/data_context/data_context/context_factory.py Name: build_data_docs",
-    "File: great_expectations/data_context/data_context/context_factory.py Name: get_context",
-    "File: great_expectations/data_context/data_context/context_factory.py Name: get_docs_sites_urls",
-    "File: great_expectations/data_context/data_context/context_factory.py Name: get_validator",
-    "File: great_expectations/data_context/data_context_variables.py Name: save",
-    "File: great_expectations/data_context/store/_store_backend.py Name: add",
-    "File: great_expectations/data_context/store/_store_backend.py Name: update",
-    "File: great_expectations/data_context/store/checkpoint_store.py Name: CheckpointStore",
-    "File: great_expectations/data_context/store/database_store_backend.py Name: DatabaseStoreBackend",
-    "File: great_expectations/data_context/store/expectations_store.py Name: ExpectationsStore",
-    "File: great_expectations/data_context/store/metric_store.py Name: MetricStore",
-    "File: great_expectations/data_context/store/query_store.py Name: SqlAlchemyQueryStore",
-    "File: great_expectations/data_context/store/store.py Name: add",
-    "File: great_expectations/data_context/store/store.py Name: update",
-    "File: great_expectations/data_context/store/tuple_store_backend.py Name: TupleAzureBlobStoreBackend",
-    "File: great_expectations/data_context/store/tuple_store_backend.py Name: TupleFilesystemStoreBackend",
-    "File: great_expectations/data_context/store/tuple_store_backend.py Name: TupleGCSStoreBackend",
-    "File: great_expectations/data_context/store/tuple_store_backend.py Name: TupleS3StoreBackend",
-    "File: great_expectations/data_context/store/validation_definition_store.py Name: ValidationDefinitionStore",
-    "File: great_expectations/data_context/store/validation_results_store.py Name: ValidationResultsStore",
-    "File: great_expectations/data_context/types/base.py Name: update",
-    "File: great_expectations/data_context/types/resource_identifiers.py Name: GXCloudIdentifier",
-    "File: great_expectations/datasource/datasource_dict.py Name: add_dataframe_asset",
-    "File: great_expectations/datasource/fluent/config.py Name: yaml",
-    "File: great_expectations/datasource/fluent/config_str.py Name: ConfigStr",
-    "File: great_expectations/datasource/fluent/data_asset/path/dataframe_partitioners.py Name: columns",
-    "File: great_expectations/datasource/fluent/data_asset/path/directory_asset.py Name: build_batch_request",
-    "File: great_expectations/datasource/fluent/data_asset/path/directory_asset.py Name: get_batch_parameters_keys",
-    "File: great_expectations/datasource/fluent/data_asset/path/file_asset.py Name: build_batch_request",
-    "File: great_expectations/datasource/fluent/data_asset/path/file_asset.py Name: get_batch_parameters_keys",
-    "File: great_expectations/datasource/fluent/data_asset/path/path_data_asset.py Name: get_batch",
-    "File: great_expectations/datasource/fluent/data_asset/path/path_data_asset.py Name: get_batch_parameters_keys",
-    "File: great_expectations/datasource/fluent/data_connector/batch_filter.py Name: validate",
-    "File: great_expectations/datasource/fluent/fabric.py Name: build_batch_request",
-    "File: great_expectations/datasource/fluent/fabric.py Name: get_batch",
-    "File: great_expectations/datasource/fluent/fluent_base_model.py Name: yaml",
-    "File: great_expectations/datasource/fluent/invalid_datasource.py Name: build_batch_request",
-    "File: great_expectations/datasource/fluent/invalid_datasource.py Name: get_asset",
-    "File: great_expectations/datasource/fluent/invalid_datasource.py Name: get_batch",
-    "File: great_expectations/datasource/fluent/invalid_datasource.py Name: get_batch_parameters_keys",
-    "File: great_expectations/datasource/fluent/pandas_datasource.py Name: build_batch_request",
-    "File: great_expectations/datasource/fluent/pandas_datasource.py Name: get_batch",
-    "File: great_expectations/datasource/fluent/sources.py Name: delete_datasource",
-    "File: great_expectations/datasource/fluent/spark_datasource.py Name: build_batch_request",
-    "File: great_expectations/datasource/fluent/spark_datasource.py Name: get_batch",
-    "File: great_expectations/datasource/fluent/sql_datasource.py Name: build_batch_request",
-    "File: great_expectations/datasource/fluent/sql_datasource.py Name: get_batch",
-    "File: great_expectations/exceptions/exceptions.py Name: DataContextError",
-    "File: great_expectations/exceptions/exceptions.py Name: InvalidExpectationConfigurationError",
-    "File: great_expectations/execution_engine/execution_engine.py Name: ExecutionEngine",
-    "File: great_expectations/execution_engine/execution_engine.py Name: get_compute_domain",
-    "File: great_expectations/execution_engine/pandas_execution_engine.py Name: PandasExecutionEngine",
-    "File: great_expectations/execution_engine/pandas_execution_engine.py Name: get_compute_domain",
-    "File: great_expectations/execution_engine/sparkdf_execution_engine.py Name: SparkDFExecutionEngine",
-    "File: great_expectations/execution_engine/sparkdf_execution_engine.py Name: get_compute_domain",
-    "File: great_expectations/execution_engine/sqlalchemy_execution_engine.py Name: SqlAlchemyExecutionEngine",
-    "File: great_expectations/execution_engine/sqlalchemy_execution_engine.py Name: execute_query",
-    "File: great_expectations/execution_engine/sqlalchemy_execution_engine.py Name: get_compute_domain",
-    "File: great_expectations/expectations/core/expect_column_max_to_be_between.py Name: ExpectColumnMaxToBeBetween",
-    "File: great_expectations/expectations/core/expect_column_to_exist.py Name: ExpectColumnToExist",
-    "File: great_expectations/expectations/core/expect_column_values_to_be_in_type_list.py Name: ExpectColumnValuesToBeInTypeList",
-    "File: great_expectations/expectations/core/expect_column_values_to_be_null.py Name: ExpectColumnValuesToBeNull",
-    "File: great_expectations/expectations/core/expect_column_values_to_be_of_type.py Name: ExpectColumnValuesToBeOfType",
-    "File: great_expectations/expectations/core/expect_table_column_count_to_be_between.py Name: ExpectTableColumnCountToBeBetween",
-    "File: great_expectations/expectations/core/expect_table_column_count_to_equal.py Name: ExpectTableColumnCountToEqual",
-    "File: great_expectations/expectations/core/expect_table_columns_to_match_ordered_list.py Name: ExpectTableColumnsToMatchOrderedList",
-    "File: great_expectations/expectations/core/expect_table_columns_to_match_set.py Name: ExpectTableColumnsToMatchSet",
-    "File: great_expectations/expectations/core/expect_table_row_count_to_be_between.py Name: ExpectTableRowCountToBeBetween",
-    "File: great_expectations/expectations/core/expect_table_row_count_to_equal.py Name: ExpectTableRowCountToEqual",
-    "File: great_expectations/expectations/core/expect_table_row_count_to_equal_other_table.py Name: ExpectTableRowCountToEqualOtherTable",
-    "File: great_expectations/expectations/core/unexpected_rows_expectation.py Name: UnexpectedRowsExpectation",
-    "File: great_expectations/expectations/expectation.py Name: ColumnAggregateExpectation",
-    "File: great_expectations/expectations/expectation.py Name: ColumnMapExpectation",
-    "File: great_expectations/expectations/expectation.py Name: UnexpectedRowsExpectation",
-    "File: great_expectations/expectations/expectation.py Name: render_suite_parameter_string",
-    "File: great_expectations/expectations/expectation.py Name: validate_configuration",
-    "File: great_expectations/expectations/expectation_configuration.py Name: ExpectationConfiguration",
-    "File: great_expectations/expectations/expectation_configuration.py Name: to_domain_obj",
-    "File: great_expectations/expectations/expectation_configuration.py Name: type",
-    "File: great_expectations/expectations/metrics/column_aggregate_metric_provider.py Name: ColumnAggregateMetricProvider",
-    "File: great_expectations/expectations/metrics/column_aggregate_metric_provider.py Name: column_aggregate_partial",
-    "File: great_expectations/expectations/metrics/column_aggregate_metric_provider.py Name: column_aggregate_value",
-    "File: great_expectations/expectations/metrics/map_metric_provider/column_condition_partial.py Name: column_condition_partial",
-    "File: great_expectations/expectations/metrics/map_metric_provider/column_map_metric_provider.py Name: ColumnMapMetricProvider",
-    "File: great_expectations/expectations/metrics/metric_provider.py Name: MetricProvider",
-    "File: great_expectations/expectations/metrics/metric_provider.py Name: metric_partial",
-    "File: great_expectations/expectations/metrics/metric_provider.py Name: metric_value",
-    "File: great_expectations/expectations/regex_based_column_map_expectation.py Name: validate_configuration",
-    "File: great_expectations/expectations/set_based_column_map_expectation.py Name: validate_configuration",
-    "File: great_expectations/experimental/metric_repository/metric_retriever.py Name: get_validator",
-    "File: great_expectations/experimental/rule_based_profiler/helpers/util.py Name: build_batch_request",
-    "File: great_expectations/experimental/rule_based_profiler/rule_based_profiler.py Name: run",
-    "File: great_expectations/render/components.py Name: CollapseContent",
-    "File: great_expectations/render/components.py Name: RenderedStringTemplateContent",
-    "File: great_expectations/render/components.py Name: RenderedTableContent",
-    "File: great_expectations/render/components.py Name: validate",
-    "File: great_expectations/render/renderer/email_renderer.py Name: EmailRenderer",
-    "File: great_expectations/render/renderer/microsoft_teams_renderer.py Name: MicrosoftTeamsRenderer",
-    "File: great_expectations/render/renderer/opsgenie_renderer.py Name: OpsgenieRenderer",
-    "File: great_expectations/render/renderer/renderer.py Name: renderer",
-    "File: great_expectations/render/renderer/site_builder.py Name: DefaultSiteIndexBuilder",
-    "File: great_expectations/render/renderer/site_builder.py Name: SiteBuilder",
-    "File: great_expectations/render/renderer/slack_renderer.py Name: SlackRenderer",
-    "File: great_expectations/render/util.py Name: handle_strict_min_max",
-    "File: great_expectations/render/util.py Name: num_to_str",
-    "File: great_expectations/render/util.py Name: parse_row_condition_string_pandas_engine",
-    "File: great_expectations/render/util.py Name: substitute_none_for_missing",
-    "File: great_expectations/validator/metric_configuration.py Name: MetricConfiguration",
-    "File: great_expectations/validator/metrics_calculator.py Name: columns",
-    "File: great_expectations/validator/validation_graph.py Name: resolve",
-    "File: great_expectations/validator/validator.py Name: columns",
-    "File: great_expectations/validator/validator.py Name: head",
-    "File: great_expectations/validator/validator.py Name: remove_expectation",
-    "File: great_expectations/validator/validator.py Name: save_expectation_suite",
-    "File: great_expectations/validator/validator.py Name: validate",
-    # Expectations referenced in the Learn data quality use cases:
-    "File: great_expectations/expectations/core/expect_column_kl_divergence_to_be_less_than.py Name: ExpectColumnKLDivergenceToBeLessThan",
-    "File: great_expectations/expectations/core/expect_column_mean_to_be_between.py Name: ExpectColumnMeanToBeBetween",
-    "File: great_expectations/expectations/core/expect_column_median_to_be_between.py Name: ExpectColumnMedianToBeBetween",
-    "File: great_expectations/expectations/core/expect_column_quantile_values_to_be_between.py Name: ExpectColumnQuantileValuesToBeBetween",
-    "File: great_expectations/expectations/core/expect_column_value_z_scores_to_be_less_than.py Name: ExpectColumnValueZScoresToBeLessThan",
-    "File: great_expectations/expectations/core/expect_column_pair_values_a_to_be_greater_than_b.py Name: ExpectColumnPairValuesAToBeGreaterThanB",
-    "File: great_expectations/expectations/core/expect_column_pair_values_to_be_equal.py Name: ExpectColumnPairValuesToBeEqual",
-    "File: great_expectations/expectations/core/expect_multicolumn_sum_to_equal.py Name: ExpectMulticolumnSumToEqual",
-    "File: great_expectations/expectations/core/expect_column_proportion_of_unique_values_to_be_between.py Name: ExpectColumnProportionOfUniqueValuesToBeBetween",
-    "File: great_expectations/expectations/core/expect_column_unique_value_count_to_be_between.py Name: ExpectColumnUniqueValueCountToBeBetween",
-    "File: great_expectations/expectations/core/expect_column_values_to_be_unique.py Name: ExpectColumnValuesToBeUnique",
-    "File: great_expectations/expectations/core/expect_compound_columns_to_be_unique.py Name: ExpectCompoundColumnsToBeUnique",
-    "File: great_expectations/expectations/core/expect_select_column_values_to_be_unique_within_record.py Name: ExpectSelectColumnValuesToBeUniqueWithinRecord",
-    "File: great_expectations/expectations/core/expect_column_min_to_be_between.py Name: ExpectColumnMinToBeBetween",
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/_docs_decorators.py"), name="add"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/checkpoint/actions.py"), name="get"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/checkpoint/actions.py"), name="_run"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/checkpoint/actions.py"), name="run"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/checkpoint/actions.py"), name="update"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/checkpoint/checkpoint.py"),
+        name="describe_dict",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/compatibility/not_imported.py"),
+        name="is_version_greater_or_equal",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/compatibility/typing_extensions.py"),
+        name="override",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/batch.py"), name="head"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/batch_definition.py"),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/core/expectation_diagnostics/expectation_doctor.py"
+        ),
+        name="print_diagnostic_checklist",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/core/expectation_diagnostics/expectation_doctor.py"
+        ),
+        name="run_diagnostics",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/expectation_suite.py"),
+        name="add_expectation_configuration",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/expectation_suite.py"),
+        name="remove_expectation",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/expectation_validation_result.py"),
+        name="describe_dict",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/factory/factory.py"), name="add"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/factory/factory.py"), name="all"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/factory/factory.py"), name="get"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/metric_domain_types.py"),
+        name="MetricDomainTypes",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/metric_function_types.py"),
+        name="MetricPartialFunctionTypes",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/partitioners.py"),
+        name="ColumnPartitionerMonthly",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/partitioners.py"),
+        name="PartitionerColumnValue",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/yaml_handler.py"), name="YAMLHandler"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/yaml_handler.py"), name="dump"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/core/yaml_handler.py"), name="load"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/abstract_data_context.py"
+        ),
+        name="add_store",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/abstract_data_context.py"
+        ),
+        name="delete_datasource",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/abstract_data_context.py"
+        ),
+        name="get_docs_sites_urls",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/abstract_data_context.py"
+        ),
+        name="get_validator",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/abstract_data_context.py"
+        ),
+        name="list_datasources",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/abstract_data_context.py"
+        ),
+        name="open_data_docs",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/context_factory.py"
+        ),
+        name="build_data_docs",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/context_factory.py"
+        ),
+        name="get_context",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/context_factory.py"
+        ),
+        name="get_docs_sites_urls",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/data_context/context_factory.py"
+        ),
+        name="get_validator",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/data_context_variables.py"),
+        name="save",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/_store_backend.py"),
+        name="add",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/_store_backend.py"),
+        name="update",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/checkpoint_store.py"),
+        name="CheckpointStore",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/store/database_store_backend.py"
+        ),
+        name="DatabaseStoreBackend",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/store/expectations_store.py"
+        ),
+        name="ExpectationsStore",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/metric_store.py"),
+        name="MetricStore",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/query_store.py"),
+        name="SqlAlchemyQueryStore",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/store.py"), name="add"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/store/store.py"),
+        name="update",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/store/tuple_store_backend.py"
+        ),
+        name="TupleAzureBlobStoreBackend",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/store/tuple_store_backend.py"
+        ),
+        name="TupleFilesystemStoreBackend",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/store/tuple_store_backend.py"
+        ),
+        name="TupleGCSStoreBackend",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/store/tuple_store_backend.py"
+        ),
+        name="TupleS3StoreBackend",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/store/validation_definition_store.py"
+        ),
+        name="ValidationDefinitionStore",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/store/validation_results_store.py"
+        ),
+        name="ValidationResultsStore",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/data_context/types/base.py"),
+        name="update",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/data_context/types/resource_identifiers.py"
+        ),
+        name="GXCloudIdentifier",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/config.py"), name="yaml"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/config_str.py"),
+        name="ConfigStr",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/datasource/fluent/data_asset/path/dataframe_partitioners.py"
+        ),
+        name="columns",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/datasource/fluent/data_asset/path/directory_asset.py"
+        ),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/datasource/fluent/data_asset/path/directory_asset.py"
+        ),
+        name="get_batch_parameters_keys",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/datasource/fluent/data_asset/path/file_asset.py"
+        ),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/datasource/fluent/data_asset/path/file_asset.py"
+        ),
+        name="get_batch_parameters_keys",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/datasource/fluent/data_asset/path/path_data_asset.py"
+        ),
+        name="get_batch",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/datasource/fluent/data_asset/path/path_data_asset.py"
+        ),
+        name="get_batch_parameters_keys",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/datasource/fluent/data_connector/batch_filter.py"
+        ),
+        name="validate",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/fabric.py"),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/fabric.py"),
+        name="get_batch",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/fluent_base_model.py"),
+        name="yaml",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/invalid_datasource.py"),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/invalid_datasource.py"),
+        name="get_asset",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/invalid_datasource.py"),
+        name="get_batch",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/invalid_datasource.py"),
+        name="get_batch_parameters_keys",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/pandas_datasource.py"),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/pandas_datasource.py"),
+        name="get_batch",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/sources.py"),
+        name="delete_datasource",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/spark_datasource.py"),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/spark_datasource.py"),
+        name="get_batch",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/sql_datasource.py"),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/datasource/fluent/sql_datasource.py"),
+        name="get_batch",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/exceptions/exceptions.py"),
+        name="DataContextError",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/exceptions/exceptions.py"),
+        name="InvalidExpectationConfigurationError",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/execution_engine/execution_engine.py"),
+        name="ExecutionEngine",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/execution_engine/execution_engine.py"),
+        name="get_compute_domain",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/pandas_execution_engine.py"
+        ),
+        name="PandasExecutionEngine",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/pandas_execution_engine.py"
+        ),
+        name="get_compute_domain",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/sparkdf_execution_engine.py"
+        ),
+        name="SparkDFExecutionEngine",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/sparkdf_execution_engine.py"
+        ),
+        name="get_compute_domain",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/sqlalchemy_execution_engine.py"
+        ),
+        name="SqlAlchemyExecutionEngine",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/sqlalchemy_execution_engine.py"
+        ),
+        name="execute_query",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/execution_engine/sqlalchemy_execution_engine.py"
+        ),
+        name="get_compute_domain",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_kl_divergence_to_be_less_than.py"
+        ),
+        name="ExpectColumnKLDivergenceToBeLessThan",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_max_to_be_between.py"
+        ),
+        name="ExpectColumnMaxToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_mean_to_be_between.py"
+        ),
+        name="ExpectColumnMeanToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_median_to_be_between.py"
+        ),
+        name="ExpectColumnMedianToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_min_to_be_between.py"
+        ),
+        name="ExpectColumnMinToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_pair_values_a_to_be_greater_than_b.py"
+        ),
+        name="ExpectColumnPairValuesAToBeGreaterThanB",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_pair_values_to_be_equal.py"
+        ),
+        name="ExpectColumnPairValuesToBeEqual",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_proportion_of_unique_values_to_be_between.py"
+        ),
+        name="ExpectColumnProportionOfUniqueValuesToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_quantile_values_to_be_between.py"
+        ),
+        name="ExpectColumnQuantileValuesToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_to_exist.py"
+        ),
+        name="ExpectColumnToExist",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_unique_value_count_to_be_between.py"
+        ),
+        name="ExpectColumnUniqueValueCountToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_value_z_scores_to_be_less_than.py"
+        ),
+        name="ExpectColumnValueZScoresToBeLessThan",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_values_to_be_in_type_list.py"
+        ),
+        name="ExpectColumnValuesToBeInTypeList",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_values_to_be_null.py"
+        ),
+        name="ExpectColumnValuesToBeNull",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_values_to_be_of_type.py"
+        ),
+        name="ExpectColumnValuesToBeOfType",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_values_to_be_unique.py"
+        ),
+        name="ExpectColumnValuesToBeUnique",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_compound_columns_to_be_unique.py"
+        ),
+        name="ExpectCompoundColumnsToBeUnique",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_multicolumn_sum_to_equal.py"
+        ),
+        name="ExpectMulticolumnSumToEqual",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_select_column_values_to_be_unique_within_record.py"
+        ),
+        name="ExpectSelectColumnValuesToBeUniqueWithinRecord",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_table_column_count_to_be_between.py"
+        ),
+        name="ExpectTableColumnCountToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_table_column_count_to_equal.py"
+        ),
+        name="ExpectTableColumnCountToEqual",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_table_columns_to_match_ordered_list.py"
+        ),
+        name="ExpectTableColumnsToMatchOrderedList",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_table_columns_to_match_set.py"
+        ),
+        name="ExpectTableColumnsToMatchSet",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_table_row_count_to_be_between.py"
+        ),
+        name="ExpectTableRowCountToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_table_row_count_to_equal.py"
+        ),
+        name="ExpectTableRowCountToEqual",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_table_row_count_to_equal_other_table.py"
+        ),
+        name="ExpectTableRowCountToEqualOtherTable",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/unexpected_rows_expectation.py"
+        ),
+        name="UnexpectedRowsExpectation",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/expectations/expectation.py"),
+        name="ColumnAggregateExpectation",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/expectations/expectation.py"),
+        name="ColumnMapExpectation",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/expectations/expectation.py"),
+        name="UnexpectedRowsExpectation",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/expectations/expectation.py"),
+        name="render_suite_parameter_string",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/expectations/expectation.py"),
+        name="validate_configuration",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/expectation_configuration.py"
+        ),
+        name="ExpectationConfiguration",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/expectation_configuration.py"
+        ),
+        name="to_domain_obj",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/expectation_configuration.py"
+        ),
+        name="type",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/metrics/column_aggregate_metric_provider.py"
+        ),
+        name="ColumnAggregateMetricProvider",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/metrics/column_aggregate_metric_provider.py"
+        ),
+        name="column_aggregate_partial",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/metrics/column_aggregate_metric_provider.py"
+        ),
+        name="column_aggregate_value",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/metrics/map_metric_provider/column_condition_partial.py"
+        ),
+        name="column_condition_partial",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/metrics/map_metric_provider/column_map_metric_provider.py"
+        ),
+        name="ColumnMapMetricProvider",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/expectations/metrics/metric_provider.py"),
+        name="MetricProvider",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/expectations/metrics/metric_provider.py"),
+        name="metric_partial",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/expectations/metrics/metric_provider.py"),
+        name="metric_value",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/regex_based_column_map_expectation.py"
+        ),
+        name="validate_configuration",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/set_based_column_map_expectation.py"
+        ),
+        name="validate_configuration",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/experimental/metric_repository/metric_retriever.py"
+        ),
+        name="get_validator",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/experimental/rule_based_profiler/helpers/util.py"
+        ),
+        name="build_batch_request",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/experimental/rule_based_profiler/rule_based_profiler.py"
+        ),
+        name="run",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/components.py"),
+        name="CollapseContent",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/components.py"),
+        name="RenderedStringTemplateContent",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/components.py"),
+        name="RenderedTableContent",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/components.py"), name="validate"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/renderer/email_renderer.py"),
+        name="EmailRenderer",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/render/renderer/microsoft_teams_renderer.py"
+        ),
+        name="MicrosoftTeamsRenderer",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/renderer/opsgenie_renderer.py"),
+        name="OpsgenieRenderer",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/renderer/renderer.py"),
+        name="renderer",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/renderer/site_builder.py"),
+        name="DefaultSiteIndexBuilder",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/renderer/site_builder.py"),
+        name="SiteBuilder",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/renderer/slack_renderer.py"),
+        name="SlackRenderer",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/util.py"),
+        name="handle_strict_min_max",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/util.py"), name="num_to_str"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/util.py"),
+        name="parse_row_condition_string_pandas_engine",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/render/util.py"),
+        name="substitute_none_for_missing",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/validator/metric_configuration.py"),
+        name="MetricConfiguration",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/validator/metrics_calculator.py"),
+        name="columns",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/validator/validation_graph.py"),
+        name="resolve",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/validator/validator.py"), name="columns"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/validator/validator.py"), name="head"
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/validator/validator.py"),
+        name="remove_expectation",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/validator/validator.py"),
+        name="save_expectation_suite",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path("great_expectations/validator/validator.py"), name="validate"
+    ),
 ]
