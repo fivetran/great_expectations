@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import inspect
 import logging
+import os
 import pathlib
 import uuid
 from pprint import pformat as pf
@@ -474,7 +475,12 @@ def test_read_dataframe(empty_data_context: AbstractDataContext, test_df_pandas:
 @pytest.mark.cloud
 def test_cloud_get_csv_asset_not_in_memory(valid_file_path: pathlib.Path):
     # this test runs end-to-end in a real Cloud Data Context
-    context = gx.get_context(mode="cloud")
+    context = gx.get_context(
+        mode="cloud",
+        cloud_base_url=os.environ.get("GX_CLOUD_BASE_URL"),
+        cloud_organization_id=os.environ.get("GX_CLOUD_ORGANIZATION_ID"),
+        cloud_access_token=os.environ.get("GX_CLOUD_ACCESS_TOKEN"),
+    )
     datasource_name = f"DS_{uuid.uuid4().hex}"
     csv_asset_name = f"DA_{uuid.uuid4().hex}"
     datasource = context.data_sources.add_pandas(name=datasource_name)
