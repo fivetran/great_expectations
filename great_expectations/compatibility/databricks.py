@@ -36,7 +36,7 @@ except (ImportError, AttributeError):
 try:
     from databricks.sqlalchemy._types import TIMESTAMP_NTZ as TIMESTAMP_NTZ  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    TIMESTAMP_NTZ = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc]
+    TIMESTAMP_NTZ = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
 
 try:
     DOUBLE = DatabricksSupportedType.DOUBLE
@@ -81,17 +81,17 @@ except (ImportError, AttributeError):
 try:
     from databricks.sqlalchemy._types import DatabricksStringType as STRING  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    STRING = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc]
+    STRING = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
 
 try:
     from databricks.sqlalchemy._types import TIMESTAMP as TIMESTAMP  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    TIMESTAMP = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc]
+    TIMESTAMP = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
 
 try:
     from databricks.sqlalchemy._types import TINYINT as TINYINT  # noqa: PLC0414, RUF100
 except (ImportError, AttributeError):
-    TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc]
+    TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
 
 
 class DATABRICKS_TYPES:
