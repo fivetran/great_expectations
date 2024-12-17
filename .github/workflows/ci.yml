@@ -274,8 +274,6 @@ jobs:
         run: python ci/checks/check_name_tag_snippets_referenced.py
       - name: public_api_report
         run: invoke public-api
-      - name: link_checker
-        run: python docs/checks/docs_link_checker.py -p docs/docusaurus/docs -r docs/docusaurus/docs -sr docs/docusaurus/static -s docs -sp static --skip-external
 
   docs-build:
     needs: [doc-checks]

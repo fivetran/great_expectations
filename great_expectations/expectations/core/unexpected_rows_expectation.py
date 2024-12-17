@@ -10,6 +10,11 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.render import (
+    AtomicDiagnosticRendererType,
+    RenderedAtomicContent,
+    renderedAtomicValueSchema,
+)
 from great_expectations.render.components import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -170,6 +175,55 @@ class UnexpectedRowsExpectation(BatchExpectation):
                 },
             )
         ]
+
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @override
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+
+        unexpected_row_count = (
+            result.get("result").get("observed_value") if result is not None else None
+        )
+
+        template_str = ""
+        if isinstance(unexpected_row_count, (int, float)):
+            renderer_configuration.add_param(
+                name="observed_value",
+                param_type=RendererValueType.NUMBER,
+                value=unexpected_row_count,
+            )
+
+            template_str = "$observed_value unexpected "
+            if unexpected_row_count == 1:
+                template_str += "row"
+            else:
+                template_str += "rows"
+
+        renderer_configuration.template_str = template_str
+
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )
 
     @override
     def _validate(
