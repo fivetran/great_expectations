@@ -14,6 +14,7 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.expectation_configuration import (
     parse_result_format,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -58,7 +59,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Missingness"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.COMPLETENESS.value]
 
 
 class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
@@ -100,7 +101,7 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
     See Also:
         [ExpectColumnValuesToBeNull](https://greatexpectations.io/expectations/expect_column_values_to_be_null)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -111,7 +112,7 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
