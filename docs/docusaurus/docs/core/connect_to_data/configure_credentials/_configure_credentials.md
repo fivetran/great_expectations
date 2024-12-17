@@ -5,7 +5,9 @@ import TabItem from '@theme/TabItem';
 import ConnectionString from './_connection_string.md';
 import EnvironmentVariables from './_environment_variables.md';
 import ConfigYml from './_config_yml.md';
+import KeyPair from './_key_pair.md';
 import AccessCredentials from './_access_credentials.md'
+import AccessKeyPair from './_access_key_pair.md'
 
 
 
@@ -25,11 +27,11 @@ GX Core also supports referencing credentials that have been stored in the AWS S
 
    <ConnectionString/>
 
-2. Store the credentials required for your connection string.
+2. Store the credentials required for your connection.
 
-   GX supports the following methods of securely storing credentials.  Chose one to implement for your connection string:
+   GX supports the following methods of securely storing credentials.  Chose one to implement for your connection:
 
-   <Tabs queryString="storage_type" groupId="storage_type" defaultValue='environment_variables' values={[{label: 'Environment Variables', value:'environment_variables'}, {label: 'config.yml', value:'config_yml'}]}>
+   <Tabs queryString="storage_type" groupId="storage_type" defaultValue='environment_variables' values={[{label: 'Environment Variables', value:'environment_variables'}, {label: 'config.yml', value:'config_yml'}, {label: 'Key pair (Snowflake only)', value:'key_pair'}]}>
 
    <TabItem value="environment_variables">
       <EnvironmentVariables/>
@@ -39,11 +41,29 @@ GX Core also supports referencing credentials that have been stored in the AWS S
       <ConfigYml/>
    </TabItem>
 
+   <TabItem value="key_pair">
+      <KeyPair/>
+   </TabItem>
+
    </Tabs>
 
 3. Access your credentials in Python strings.
 
-   <AccessCredentials/>
+   <Tabs className="hidden" queryString="storage_typet" groupId="storage_type" defaultValue='environment_variables'>
+
+      <TabItem value="environment_variables">
+         <AccessCredentials/>
+      </TabItem>
+
+      <TabItem value="config_yml">
+         <AccessCredentials/>
+      </TabItem>
+
+      <TabItem value="key_pair">
+         <AccessKeyPair/>
+      </TabItem>
+
+   </Tabs>
 
 4. Optional. Access credentials stored in a secret manager.
 

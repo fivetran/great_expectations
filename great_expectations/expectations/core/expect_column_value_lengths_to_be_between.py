@@ -14,6 +14,7 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -60,7 +61,7 @@ MIN_VALUE_DESCRIPTION = "The minimum value for a column entry length."
 MAX_VALUE_DESCRIPTION = "The maximum value for a column entry length."
 STRICT_MIN_DESCRIPTION = "If True, values must be strictly larger than min_value."
 STRICT_MAX_DESCRIPTION = "If True, values must be strictly smaller than max_value."
-DATA_QUALITY_ISSUES = ["Pattern matching"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",
@@ -128,7 +129,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
     See Also:
         [ExpectColumnValueLengthsToEqual](https://greatexpectations.io/expectations/expect_column_value_lengths_to_equal)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -139,7 +140,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:

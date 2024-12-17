@@ -46,7 +46,7 @@ To run a Validation for a specific Batch, do the following:
 
     - **Custom** - Select the **year**, **month**, or **day** to run the Validation on a Batch of data for a specific period.
 
-5. Click **Validate**.
+5. Click **Run**.
 
 6. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 

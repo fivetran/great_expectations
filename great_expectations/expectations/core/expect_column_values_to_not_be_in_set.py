@@ -9,6 +9,7 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -40,7 +41,7 @@ if TYPE_CHECKING:
 
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect column entries to not be in the set."
-DATA_QUALITY_ISSUES = ["Sets"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",
@@ -93,7 +94,7 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
     See Also:
         [ExpectColumnValuesToBeInSet](https://greatexpectations.io/expectations/expect_column_values_to_be_in_set)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -104,8 +105,9 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
+        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2

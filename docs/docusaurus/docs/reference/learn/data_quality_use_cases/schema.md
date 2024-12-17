@@ -17,8 +17,7 @@ established rules, such as verifying column names, data types, and the presence 
 Schema changes, whether planned or unexpected, can significantly impact data integrity and the
 performance of data-dependent systems.
 
-Great Expectations (GX) provides schema-focused Expectations that allow you
-to define and enforce the structural integrity of your datasets. You can automatically generate some of these Expectations when you add a new Data Asset in GX Cloud. These tools enable you to establish robust schema validation within your data pipelines, helping to catch and address schema-related issues before they propagate through your data ecosystem. This guide will walk you through leveraging these Expectations to implement effective schema validation in your data workflows.
+Great Expectations (GX) provides schema-focused Expectations that allow you to define and enforce the structural integrity of your datasets. You can automatically generate some of these Expectations when you add a new Data Asset in GX Cloud. These tools enable you to establish robust schema validation within your data pipelines, helping to catch and address schema-related issues before they propagate through your data ecosystem. This guide will walk you through leveraging these Expectations to implement effective schema validation in your data workflows.
 
 ## Prerequisite knowledge
 This article assumes basic familiarity with GX components and workflows. See the [GX Overview](/core/introduction/gx_overview.md) for additional content on GX fundamentals.
