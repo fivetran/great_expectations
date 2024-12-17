@@ -10,6 +10,7 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -46,7 +47,7 @@ MATCH_ON_DESCRIPTION = (
     "Use 'any' if the value should match at least one regular expression in the list. "
     "Use 'all' if it should match each regular expression in the list."
 )
-DATA_QUALITY_ISSUES = ["Pattern matching"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
 
 
@@ -99,7 +100,7 @@ class ExpectColumnValuesToMatchRegexList(ColumnMapExpectation):
         [ExpectColumnValuesToNotMatchLikePattern](https://greatexpectations.io/expectations/expect_column_values_to_not_match_like_pattern)
         [ExpectColumnValuesToNotMatchLikePatternList](https://greatexpectations.io/expectations/expect_column_values_to_not_match_like_pattern_list)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
