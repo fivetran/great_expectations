@@ -40,7 +40,7 @@ except (ImportError, AttributeError):
 try:
     DOUBLE = DatabricksSupportedType.DOUBLE
 except (ImportError, AttributeError):
-    DOUBLE = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
+    DOUBLE = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     FLOAT = DatabricksSupportedType.FLOAT
