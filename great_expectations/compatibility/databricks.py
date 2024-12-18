@@ -8,7 +8,7 @@ DATABRICKS_CONNECT_NOT_IMPORTED = NotImported(
 
 try:
     from databricks import connect
-except ImportError:
+except (ImportError, AttributeError):
     connect = DATABRICKS_CONNECT_NOT_IMPORTED
 
 # The following types are modeled after the following documentation that is part
