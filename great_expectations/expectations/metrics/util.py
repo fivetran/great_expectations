@@ -414,7 +414,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901
             )
 
         dialect_name = execution_engine.dialect.name
-        if dialect_name in [GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS]:
+        if dialect_name in [GXSqlDialect.DATABRICKS, GXSqlDialect.POSTGRESQL, GXSqlDialect.SNOWFLAKE]:
             # WARNING: Do not alter columns in place, as they are cached on the inspector
             columns_copy = [column.copy() for column in columns]
             for column in columns_copy:
@@ -426,8 +426,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901
                     for column in columns_copy
                 ]
             else:
-                return columns_copy
-
+                return columns_copyg
         return columns
     except AttributeError as e:
         logger.debug(f"Error while introspecting columns: {e!r}", exc_info=e)
