@@ -9,7 +9,7 @@ from .actions import (
     UpdateDataDocsAction,
     ValidationAction,
 )
-from .checkpoint import Checkpoint
+from .checkpoint import ActionContext, Checkpoint, CheckpointResult
 
 for _module_name, _package_name in [
     (".actions", "great_expectations.checkpoint"),
