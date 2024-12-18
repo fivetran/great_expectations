@@ -10,7 +10,7 @@ import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installatio
 
 Great Expectations provides [Actions for common workflows](/application_integration_support.md#integrations) such as sending emails and updating Data Docs. If these don't meet your needs, you can create a custom Action to integrate with different tools or apply custom business logic based on Validation Results. Example use cases for custom Actions include:
 - Opening tickets in an issue tracker when Validation runs fail.
-- Sending emails to different teams depending on which Expectations fail.
+- Triggering different webhooks depending on which Expectations fail.
 - Running follow-up ETL jobs to fill in missing values.  
 
 A custom Action can do anything that can be done with Python code.
