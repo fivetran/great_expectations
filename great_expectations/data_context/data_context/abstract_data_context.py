@@ -29,6 +29,7 @@ from typing import (
 import great_expectations as gx
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import (
+    deprecated_method_or_class,
     new_argument,
     new_method_or_class,
     public_api,
@@ -761,6 +762,7 @@ class AbstractDataContext(ConfigPeer, ABC):
         ...
 
     @new_method_or_class(version="0.15.48")
+    @deprecated_method_or_class(version="1.3.0")
     def add_or_update_datasource(
         self,
         name: str | None = None,
@@ -778,6 +780,12 @@ class AbstractDataContext(ConfigPeer, ABC):
         Returns:
             The Datasource added or updated by the input `kwargs`.
         """  # noqa: E501
+        # deprecated-v1.3.0
+        warnings.warn(
+            "add_or_update_datasource() from the DataContext is deprecated and will be removed "
+            "in a future version of GX. Please use `context.data_sources.add_or_update` instead.",
+            category=DeprecationWarning,
+        )
         self._validate_add_datasource_args(name=name, datasource=datasource)
         return_datasource: FluentDatasource
 
