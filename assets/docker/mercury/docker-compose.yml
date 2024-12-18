@@ -66,6 +66,7 @@ services:
       GX_SCHEDULER_EVENTBRIDGE_REGION: ${LOCALSTACK_AWS_DEFAULT_REGION}
       AWS_ENDPOINT_URL: ${LOCALSTACK_AWS_ENDPOINT_URL}
       AWS_SECRET_ACCESS_KEY: ${LOCALSTACK_AWS_SECRET_ACCESS_KEY}
+      AWS_ACCESS_KEY_ID: ${LOCALSTACK_AWS_ACCESS_KEY_ID}
     # TODO replace migtrations with ./scripts/automated_migrations.sh
     entrypoint:
       - /bin/bash
@@ -114,6 +115,7 @@ services:
       GX_SCHEDULER_EVENTBRIDGE_REGION: ${LOCALSTACK_AWS_DEFAULT_REGION}
       AWS_ENDPOINT_URL: ${LOCALSTACK_AWS_ENDPOINT_URL}
       AWS_SECRET_ACCESS_KEY: ${LOCALSTACK_AWS_SECRET_ACCESS_KEY}
+      AWS_ACCESS_KEY_ID: ${LOCALSTACK_AWS_ACCESS_KEY_ID}
     depends_on:
       mercury-service-api:
         condition: service_started
