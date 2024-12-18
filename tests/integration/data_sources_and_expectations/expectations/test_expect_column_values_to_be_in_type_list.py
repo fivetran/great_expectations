@@ -388,7 +388,78 @@ def test_success_complete_snowflake(
         pytest.param(
             gxe.ExpectColumnValuesToBeInTypeList(column="STRING", type_list=["STRING"]),
             id="STRING",
-        )
+        ),
+        # SqlA Text gets converted to Databricks STRING
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="TEXT", type_list=["STRING"]),
+            id="TEXT",
+        ),
+        # SqlA Time gets converted to Databricks STRING
+        # pytest.param(
+        #     gxe.ExpectColumnValuesToBeInTypeList(column="TIME", type_list=["STRING"]),
+        #     id="TIME",
+        # ),
+        # SqlA UNICODE gets converted to Databricks STRING
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="UNICODE", type_list=["STRING"]),
+            id="UNICODE",
+        ),
+        # SqlA UNICODE_TEXT gets converted to Databricks STRING
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="UNICODE_TEXT", type_list=["STRING"]),
+            id="UNICODE_TEXT",
+        ),
+        # SqlA UUID gets converted to Databricks STRING
+        # pytest.param(
+        #     gxe.ExpectColumnValuesToBeInTypeList(column="UUID", type_list=["STRING"]),
+        #     id="UUID",
+        # )
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="BOOLEAN", type_list=["BOOLEAN"]),
+            id="BOOLEAN",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="DECIMAL", type_list=["DECIMAL", "DECIMAL(10, 0)"]
+            ),
+            id="DECIMAL",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="DATE", type_list=["DATE"]),
+            id="DATE",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="TIMESTAMP", type_list=["TIMESTAMP"]),
+            id="TIMESTAMP",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="TIMESTAMP_NTZ", type_list=["TIMESTAMP_NTZ"]
+            ),
+            id="TIMESTAMP_NTZ",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="DOUBLE", type_list=["DOUBLE", "FLOAT"]),
+            id="DOUBLE",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="FLOAT", type_list=["FLOAT"]),
+            id="FLOAT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="INT", type_list=["INT"]),
+            id="INT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="TINYINT", type_list=["TINYINT"]),
+            id="TINYINT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="DECIMAL", type_list=["DECIMAL", "DECIMAL(10, 0)"]
+            ),
+            id="DECIMAL",
+        ),
     ],
 )
 @parameterize_batch_for_data_sources(
@@ -396,13 +467,63 @@ def test_success_complete_snowflake(
         DatabricksDatasourceTestConfig(
             column_types={
                 "STRING": DATABRICKS_TYPES.STRING,
-                "": DATABRICKS_TYPES.STRING,
+                "TEXT": sqltypes.Text,
+                "UNICODE": sqltypes.Unicode,
+                "UNICODE_TEXT": sqltypes.UnicodeText,
+                "BIGINT": sqltypes.BigInteger,
+                "BOOLEAN": sqltypes.BOOLEAN,
+                "DATE": sqltypes.DATE,
+                "TIMESTAMP_NTZ": DATABRICKS_TYPES.TIMESTAMP_NTZ,
+                "TIMESTAMP": DATABRICKS_TYPES.TIMESTAMP,
+                "DOUBLE": sqltypes.DOUBLE,
+                "FLOAT": sqltypes.FLOAT,
+                "INT": sqltypes.Integer,
+                "DECIMAL": sqltypes.Numeric,
+                "SMALLINT": sqltypes.SmallInteger,
+                "TINYINT": DATABRICKS_TYPES.TINYINT,
+                # "TIME": sqltypes.Time,
+                # "UUID": sqltypes.UUID,
             }
         )
     ],
     data=pd.DataFrame(
         {
             "STRING": ["a", "b", "c"],
+            "TEXT": ["a", "b", "c"],
+            "UNICODE": ["\u00e9", "\u00e9", "\u00e9"],
+            "UNICODE_TEXT": ["a", "b", "c"],
+            "BIGINT": [1111, 2222, 3333],
+            "BOOLEAN": [True, True, False],
+            "DATE": [
+                "2021-01-01",
+                "2021-01-02",
+                "2021-01-03",
+            ],
+            "TIMESTAMP_NTZ": [
+                "2021-01-01 00:00:00",
+                "2021-01-02 00:00:00",
+                "2021-01-03 00:00:00",
+            ],
+            "TIMESTAMP": [
+                "2021-01-01 00:00:00",
+                "2021-01-02 00:00:00",
+                "2021-01-03 00:00:00",
+            ],
+            "DOUBLE": [1.0, 2.0, 3.0],
+            "FLOAT": [1.0, 2.0, 3.0],
+            "INT": [1, 2, 3],
+            "DECIMAL": [1.1, 2.2, 3.3],
+            "SMALLINT": [1, 2, 3],
+            # "TIME": [
+            #     "00:00:00",
+            #     "01:00:00",
+            #     "00:10:43",
+            # ],
+            # "UUID": [
+            #      "905993ea-f50e-4284-bea0-5be3f0ed7031",
+            #      "9406b631-fa2f-41cf-b666-f9a2ac3118c1",
+            #      "47538f05-32e3-4594-80e2-0b3b33257ae7"
+            #  ],
         },
         dtype="object",
     ),
@@ -416,6 +537,5 @@ def test_success_complete_databricks(
     assert result.success
     assert isinstance(result_dict, dict)
     assert isinstance(result_dict["observed_value"], str)
-    print(f"result: {result_dict['observed_value']}")
     assert isinstance(expectation.type_list, list)
     assert result_dict["observed_value"] in expectation.type_list
