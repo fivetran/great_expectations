@@ -477,7 +477,7 @@ def test_success_complete_snowflake(
                 "DATE": sqltypes.DATE,
                 "TIMESTAMP_NTZ": DATABRICKS_TYPES.TIMESTAMP_NTZ,
                 "TIMESTAMP": DATABRICKS_TYPES.TIMESTAMP,
-                "DOUBLE": sqltypes.Double,
+                "DOUBLE": DATABRICKS_TYPES.DOUBLE,
                 "FLOAT": sqltypes.Float,
                 "INT": sqltypes.Integer,
                 "DECIMAL": sqltypes.Numeric,
