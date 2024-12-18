@@ -25,16 +25,17 @@ The following table defines the GX Cloud, GX Core, and Community Supported integ
 | Data Sources<sup>1</sup>         | Snowflake<br/>Databricks (SQL)<br/> PostgreSQL<sup>2</sup> | Snowflake<br/>Databricks (SQL)<br/>PostgreSQL<br/>SQLite<br/>BigQuery<br/>Spark<br/>Pandas | MSSQL<br/>MySQL<br/> |
 | Configuration Stores<sup>3</sup> | In-app                                                     | File system                                                                                | None                 |
 | Data Doc Stores                  | In-app                                                     | File system                                                                                | None                 |
-| Actions                          | Email                                                      | Slack <br/>Email <br/>Microsoft Teams                                                      | None                 |
-| Credential Stores                | Environment variables                                      | Environment variables <br/> YAML<sup>4</sup>                                               | None                 |
-| Orchestrator                     | Airflow <sup>5</sup> <sup>6</sup>                          | Airflow <sup>5</sup> <sup>6</sup>                                                          | None                 |
+| Actions                          | Email                                                      | Slack <br/>Email <br/>Microsoft Teams <br/>Custom<sup>4</sup>                              | None                 |
+| Credential Stores                | Environment variables                                      | Environment variables <br/> YAML<sup>5</sup>                                               | None                 |
+| Orchestrator                     | Airflow <sup>6</sup> <sup>7</sup>                          | Airflow <sup>6</sup> <sup>7</sup>                                                          | None                 |
 
 <sup>1</sup> We've also seen GX work with the following data sources in the past but we can't guarantee ongoing compatibility. These data sources include Clickhouse, Vertica, Dremio, Teradata, Athena, EMR Spark, AWS Glue, Microsoft Fabric, Trino, Pandas on (S3, GCS, Azure), Databricks (Spark), and Spark on (S3, GCS, Azure).<br/>
 <sup>2</sup> Support for BigQuery in GX Cloud will be available in a future release.<br/>
-<sup>3</sup> This includes configuration storage for Expectations, Checkpoints, Validation Definitions, and Validation Result<br/>
-<sup>4</sup> config_variables.yml<br/>
-<sup>5</sup> Although only Airflow is supported, GX Cloud and GX Core should work with any orchestrator that executes Python code.<br/>
-<sup>6</sup> Airflow version 2.9.0+ required<br/>
+<sup>3</sup> This includes configuration storage for Expectations, Checkpoints, Validation Definitions, and Validation Results.<br/>
+<sup>4</sup> We support the general workflow for creating custom Actions but cannot help troubleshoot the domain-specific logic within a custom Action.<br/>
+<sup>5</sup> Use `config_variables.yml`.<br/>
+<sup>6</sup> Although only Airflow is supported, GX Cloud and GX Core should work with any orchestrator that executes Python code.<br/>
+<sup>7</sup> Airflow version 2.9.0+ required.<br/>
 
 ### GX components
 

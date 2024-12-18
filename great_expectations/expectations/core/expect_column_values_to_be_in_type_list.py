@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import inspect
 import logging
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
@@ -10,17 +9,21 @@ from packaging import version
 
 from great_expectations.compatibility import pydantic, pyspark
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.suite_parameters import (  # noqa: TCH001
-    SuiteParameterDict,
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TCH001, RUF100
+)
+from great_expectations.execution_engine.sqlalchemy_dialect import (
+    GXSqlDialect,
 )
 from great_expectations.expectations.core.expect_column_values_to_be_of_type import (
-    _get_dialect_type_module,
+    _get_potential_sqlalchemy_types,
     _native_type_type_map,
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.expectations.registry import get_metric_kwargs
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
@@ -33,11 +36,6 @@ from great_expectations.render.util import (
     num_to_str,
     parse_row_condition_string_pandas_engine,
     substitute_none_for_missing,
-)
-from great_expectations.util import (
-    get_clickhouse_sqlalchemy_potential_type,
-    get_pyathena_potential_type,
-    get_trino_potential_type,
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
@@ -73,7 +71,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Schema"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 
 
 class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
@@ -124,7 +122,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
     See also:
         [ExpectColumnValuesToBeOfType](https://greatexpectations.io/expectations/expect_column_values_to_be_of_type)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -135,7 +133,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -457,55 +455,27 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             "result": {"observed_value": actual_column_type.type.__name__},
         }
 
-    def _validate_sqlalchemy(  # noqa: C901 - too complex
-        self, actual_column_type, expected_types_list, execution_engine
-    ):
-        # Our goal is to be as explicit as possible. We will match the dialect
-        # if that is possible. If there is no dialect available, we *will*
-        # match against a top-level SqlAlchemy type.
-        #
-        # This is intended to be a conservative approach.
-        #
-        # In particular, we *exclude* types that would be valid under an ORM
-        # such as "float" for postgresql with this approach
-
+    def _validate_sqlalchemy(self, actual_column_type, expected_types_list, execution_engine):
         if expected_types_list is None:
             success = True
+        elif execution_engine.dialect_name == GXSqlDialect.SNOWFLAKE:
+            success = isinstance(actual_column_type, str) and any(
+                actual_column_type.lower() == expected_type.lower()
+                for expected_type in expected_types_list
+            )
+            return {
+                "success": success,
+                "result": {"observed_value": actual_column_type},
+            }
         else:
             types = []
-            type_module = _get_dialect_type_module(execution_engine=execution_engine)
             for type_ in expected_types_list:
-                try:
-                    if type_module.__name__ == "pyathena.sqlalchemy_athena":
-                        potential_type = get_pyathena_potential_type(type_module, type_)
-                        # In the case of the PyAthena dialect we need to verify that
-                        # the type returned is indeed a type and not an instance.
-                        if not inspect.isclass(potential_type):
-                            real_type = type(potential_type)
-                        else:
-                            real_type = potential_type
-                        types.append(real_type)
-                    elif type_module.__name__ == "trino.sqlalchemy.datatype":
-                        potential_type = get_trino_potential_type(type_module, type_)
-                        types.append(type(potential_type))
-                    elif type_module.__name__ == "clickhouse_sqlalchemy.drivers.base":
-                        actual_column_type = get_clickhouse_sqlalchemy_potential_type(
-                            type_module, actual_column_type
-                        )()
-                        potential_type = get_clickhouse_sqlalchemy_potential_type(
-                            type_module, type_
-                        )
-                        types.append(potential_type)
-                    else:
-                        potential_type = getattr(type_module, type_)
-                        types.append(potential_type)
-                except AttributeError:
-                    logger.debug(f"Unrecognized type: {type_}")
-
-            if len(types) == 0:
-                logger.warning("No recognized sqlalchemy types in type_list for current dialect.")
-            types = tuple(types)
-            success = isinstance(actual_column_type, types)
+                types.extend(
+                    _get_potential_sqlalchemy_types(
+                        execution_engine=execution_engine, expected_type=type_
+                    )
+                )
+            success = isinstance(actual_column_type, tuple(types))
 
         return {
             "success": success,

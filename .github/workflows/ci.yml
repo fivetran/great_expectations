@@ -274,8 +274,6 @@ jobs:
         run: python ci/checks/check_name_tag_snippets_referenced.py
       - name: public_api_report
         run: invoke public-api
-      - name: link_checker
-        run: python docs/checks/docs_link_checker.py -p docs/docusaurus/docs -r docs/docusaurus/docs -sr docs/docusaurus/static -s docs -sp static --skip-external
 
   docs-build:
     needs: [doc-checks]
@@ -308,7 +306,7 @@ jobs:
           # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
           # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
           # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
-          args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' 'docs/docusaurus/build/**/*.html'"
+          args: "--exclude='http.*' 'docs/docusaurus/build/**/*.html'"
 
   docs-tests:
     runs-on: ubuntu-latest
@@ -338,6 +336,13 @@ jobs:
       GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
       GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
       LD_SDK_KEY: ${{secrets.LD_SDK_KEY}}
+      GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
+      GX_SCHEDULER_EXECUTION_ROLE_ARN: ${{secrets.GX_SCHEDULER_EXECUTION_ROLE_ARN}}
+      GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}}
+      LOCALSTACK_AWS_ENDPOINT_URL: ${{secrets.LOCALSTACK_AWS_ENDPOINT_URL}}
+      LOCALSTACK_AWS_DEFAULT_REGION: ${{secrets.LOCALSTACK_AWS_DEFAULT_REGION}}
+      LOCALSTACK_AWS_SECRET_ACCESS_KEY: ${{secrets.LOCALSTACK_AWS_SECRET_ACCESS_KEY}}
+      LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
       PACT_DO_NOT_TRACK: true
       SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
       SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}

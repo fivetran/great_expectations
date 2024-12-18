@@ -52,11 +52,6 @@ _PTY_HELP_DESC = "Whether or not to use a pseudo terminal"
         "check": _CHECK_HELP_DESC,
         "exclude": _EXCLUDE_HELP_DESC,
         "path": _PATH_HELP_DESC,
-        "isort": "Use `isort` to sort packages. Default behavior.",
-        "ruff": (
-            "Use `ruff` instead of `isort` to sort imports."
-            " This will eventually become the default."
-        ),
         "pty": _PTY_HELP_DESC,
     }
 )
@@ -65,29 +60,18 @@ def sort(
     path: str = ".",
     check: bool = False,
     exclude: str | None = None,
-    ruff: bool = False,  # isort is the current default
-    isort: bool = False,
     pty: bool = True,
 ):
     """Sort module imports."""
-    if ruff and isort:
-        raise invoke.Exit("cannot use both `--ruff` and `--isort`", code=1)  # noqa: TRY003
-    if not isort:
-        cmds = [
-            "ruff",
-            "check",
-            path,
-            "--select I",
-            "--diff" if check else "--fix",
-        ]
-        if exclude:
-            cmds.extend(["--extend-exclude", exclude])
-    else:
-        cmds = ["isort", path]
-        if check:
-            cmds.append("--check-only")
-        if exclude:
-            cmds.extend(["--skip", exclude])
+    cmds = [
+        "ruff",
+        "check",
+        path,
+        "--select I",
+        "--diff" if check else "--fix",
+    ]
+    if exclude:
+        cmds.extend(["--extend-exclude", exclude])
     ctx.run(" ".join(cmds), echo=True, pty=pty)
 
 
@@ -773,31 +757,6 @@ def _exit_with_error_if_not_run_from_correct_dir(
             exit_message,
             code=1,
         )
-
-
-@invoke.task(
-    aliases=("links",),
-    help={"skip_external": "Skip external link checks (is slow), default is True"},
-)
-def link_checker(ctx: Context, skip_external: bool = True):
-    """Checks the Docusaurus docs for broken links"""
-    import docs.checks.docs_link_checker as checker
-
-    path = pathlib.Path("docs/docusaurus/docs")
-    docs_root = pathlib.Path("docs/docusaurus/docs")
-    static_root = pathlib.Path("docs/docusaurus/static")
-    site_prefix: str = "docs"
-    static_prefix: str = "static"
-
-    code, message = checker.scan_docs(
-        path=path,
-        docs_root=docs_root,
-        static_root=static_root,
-        site_prefix=site_prefix,
-        static_prefix=static_prefix,
-        skip_external=skip_external,
-    )
-    raise invoke.Exit(message, code)
 
 
 @invoke.task(
