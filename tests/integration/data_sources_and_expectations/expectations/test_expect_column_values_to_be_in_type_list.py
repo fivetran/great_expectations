@@ -429,7 +429,9 @@ def test_success_complete_snowflake(
             id="TIMESTAMP_NTZ",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(column="DOUBLE", type_list=["DOUBLE", "FLOAT"]),
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="DOUBLE", type_list=["DOUBLE", "FLOAT", "DECIMAL"]
+            ),
             id="DOUBLE",
         ),
         pytest.param(

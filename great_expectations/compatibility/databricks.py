@@ -36,10 +36,10 @@ except (ImportError, AttributeError):
 
 try:
     # sqlalchemy >= 2.0
-    DOUBLE = sqltypes.DOUBLE
+    DOUBLE = sqltypes.DOUBLE  # type: ignore[misc, assignment]
 except (ImportError, AttributeError):
     # sqlalchemy <= 2.0
-    DOUBLE = sqltypes.DECIMAL
+    DOUBLE = sqltypes.DECIMAL  # type: ignore[misc, assignment]
 
 
 class DATABRICKS_TYPES:
