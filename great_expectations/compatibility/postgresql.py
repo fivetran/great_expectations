@@ -7,7 +7,7 @@ POSTGRESQL_NOT_IMPORTED = NotImported(
 )
 
 try:
-    import psycopg2
+    import psycopg2  # noqa: F401
     import sqlalchemy.dialects.postgresql as postgresqltypes  # noqa: TID251
 except ImportError:
     postgresqltypes = POSTGRESQL_NOT_IMPORTED
