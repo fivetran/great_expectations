@@ -386,18 +386,17 @@ def test_success_complete_snowflake(
     "expectation",
     [
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column="STRING", type_list=["STRING", "VARCHAR(16777216)"]
-            ),
+            gxe.ExpectColumnValuesToBeInTypeList(column="STRING", type_list=["STRING"]),
             id="STRING",
         )
     ],
 )
 @parameterize_batch_for_data_sources(
     data_source_configs=[
-        SnowflakeDatasourceTestConfig(
+        DatabricksDatasourceTestConfig(
             column_types={
                 "STRING": DATABRICKS_TYPES.STRING,
+                "": DATABRICKS_TYPES.STRING,
             }
         )
     ],
@@ -417,5 +416,6 @@ def test_success_complete_databricks(
     assert result.success
     assert isinstance(result_dict, dict)
     assert isinstance(result_dict["observed_value"], str)
+    print(f"result: {result_dict['observed_value']}")
     assert isinstance(expectation.type_list, list)
     assert result_dict["observed_value"] in expectation.type_list
