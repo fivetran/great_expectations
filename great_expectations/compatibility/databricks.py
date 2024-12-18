@@ -6,6 +6,10 @@ DATABRICKS_CONNECT_NOT_IMPORTED = NotImported(
     "databricks-connect is not installed, please 'pip install databricks-connect'"
 )
 
+try:
+    from databricks import connect
+except ImportError:
+    connect = DATABRICKS_CONNECT_NOT_IMPORTED
 
 # The following types are modeled after the following documentation that is part
 # of the databricks package.
