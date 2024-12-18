@@ -22,17 +22,15 @@ To run a validation for an [API-managed Expectation](/cloud/expectations/manage_
 
 2. Click a Data Asset in the **Data Assets** list.
 
-3. Click the **Expectations** tab.
+3. Click **Validate**.
 
-4. Click **Validate**.
+4. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
-5. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
-
-6. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your organization.
+5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your organization.
 
 ## Run a Validation on a subset of a Data Asset
 
-If you've [defined a Batch](/cloud/expectations/manage_expectations.md#optional-define-a-batch), you can run a Validation on the latest Batch of data, or you can select a specific year, year and month, or year, month, and day period for the Validation. If a Batch is defined, Batch information appears on the Data Asset **Overview** page and on the **Validations** page in the **Batches & run history** pane.
+If you've [defined a Batch](/cloud/expectations/manage_expectations.md#optional-define-a-batch), you can run a Validation on the latest Batch of data, or you can select a specific year, year and month, or year, month, and day period for the Validation. If a Batch is defined, Batch information appears on the Data Asset **Metrics** page and on the **Validations** page in the **Batches & run history** pane.
 
 To run a Validation for a specific Batch, do the following:
 
@@ -40,21 +38,19 @@ To run a Validation for a specific Batch, do the following:
 
 2. Click a Data Asset in the **Data Assets** list.
 
-3. Click the **Expectations** tab.
+3. Click **Validate**.
 
-4. Click **Validate**.
-
-5. Select one of the following options:
+4. Select one of the following options:
 
     - **Latest** - Run the Validation on the latest Batch of data.
 
     - **Custom** - Select the **year**, **month**, or **day** to run the Validation on a Batch of data for a specific period.
 
-6. Click **Validate**.
+5. Click **Run**.
 
-7. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
+6. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
-8. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your organization.
+7. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your organization.
 
 ## View Validation run history
 

@@ -20,7 +20,7 @@ Every time a Data Asset fails a validation run, GX Cloud sends an email to all u
 
 1. In GX Cloud, click **Data Assets**.
 2. Click a Data Asset in the **Data Assets** list.
-3. Click the **Expectations** tab and then **Alerts**.
+3. Click **Alerts**.
 4. Click the **toggle switch** to enable or disable email alerts for the Data Asset.
 
 If you disabled an alert, you will stop receiving emails for the Data Asset immediately. If you enabled an alert, you will begin receiving the emails as soon as the Data Asset’s next full validation run is complete.

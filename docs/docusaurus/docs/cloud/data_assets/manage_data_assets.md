@@ -28,19 +28,19 @@ Define the data you want GX Cloud to access.
 
 3. Select one or more tables to import as Data Assets.
 
-4. Click **Add x Asset(s)**.
+4. Decide if you want to **Generate Expectations that detect column changes in selected Data Assets**. 
+
+5. Click **Add x Asset(s)**.
 
 Then you can [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) for your new Data Asset.
 
 ## View Data Asset metrics
 
-Data Asset metrics provide you with insight into the data you can use for your data validations. 
+Data Asset metrics provide you with insight into the data you can use for your data validations. When you create a new Data Asset, schema data is automatically fetched.
 
 1. In GX Cloud, click **Data Assets** and then select a Data Asset in the **Data Assets** list.
 
-2. Click the **Overview** tab.
-
-    When you select a new Data Asset, schema data is automatically fetched.
+2. Click the **Metrics** tab.
 
 3. Optional. Select one of the following options:
 
