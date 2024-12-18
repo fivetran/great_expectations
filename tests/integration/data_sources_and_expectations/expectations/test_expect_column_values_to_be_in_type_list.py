@@ -542,7 +542,7 @@ def test_success_complete_databricks(
     assert result_dict["observed_value"] in expectation.type_list
 
 
-if version.parse(sa.__version__) < version.parse("2.0.0"):
+if version.parse(sa.__version__) >= version.parse("2.0.0"):
     # Note: why not use pytest.skip?
     # the import of `sqltypes.Double` is only possible in sqlalchemy >= 2.0.0
     # the import is done as part of the instantiation of the test, which includes
