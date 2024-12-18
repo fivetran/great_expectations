@@ -414,19 +414,16 @@ def get_sqlalchemy_column_metadata(  # noqa: C901
             )
 
         dialect_name = execution_engine.dialect.name
-        if dialect_name in [GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS]:
+        if dialect_name == GXSqlDialect.SNOWFLAKE:
             # WARNING: Do not alter columns in place, as they are cached on the inspector
             columns_copy = [column.copy() for column in columns]
             for column in columns_copy:
                 column["type"] = column["type"].compile(dialect=execution_engine.dialect)
-            if dialect_name == GXSqlDialect.SNOWFLAKE:
-                return [
-                    # TODO: SmartColumn should know the dialect and do lookups based on that
-                    CaseInsensitiveNameDict(column)
-                    for column in columns_copy
-                ]
-            else:
-                return columns_copy
+            return [
+                # TODO: SmartColumn should know the dialect and do lookups based on that
+                CaseInsensitiveNameDict(column)
+                for column in columns_copy
+            ]
 
         return columns
     except AttributeError as e:
