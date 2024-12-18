@@ -16,8 +16,7 @@ try:
     # https://docs.databricks.com/en/sql/language-manual/sql-ref-datatypes.html
     from databricks.sql.parameters.native import DatabricksSupportedType
 except ImportError:
-    DatabricksSupportedType = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[assignment]
-
+    DatabricksSupportedType = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
 try:
     BIGINT = DatabricksSupportedType.BIGINT
 except (ImportError, AttributeError):
@@ -41,7 +40,7 @@ except (ImportError, AttributeError):
 try:
     DOUBLE = DatabricksSupportedType.DOUBLE
 except (ImportError, AttributeError):
-    DOUBLE = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc]
+    DOUBLE = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
 
 try:
     FLOAT = DatabricksSupportedType.FLOAT
