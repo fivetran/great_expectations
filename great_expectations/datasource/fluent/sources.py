@@ -112,7 +112,7 @@ class DataSourceManager:
         Example
         -------
 
-        An `.add_pandas_filesystem()` pandas_filesystem factory method will be added to `context.sources`.
+        An `.add_pandas_filesystem()` pandas_filesystem factory method will be added to `context.data_sources`.
 
         >>> class PandasFilesystemDatasource(_PandasFilePathDatasource):
         >>>     type: str = 'pandas_filesystem'
