@@ -36,7 +36,7 @@ except (ImportError, AttributeError):
 
 try:
     # sqlalchemy >= 2.0
-    DOUBLE = sqltypes.DOUBLE  # type: ignore[misc, assignment]
+    DOUBLE = sqltypes.DOUBLE
 except (ImportError, AttributeError):
     # sqlalchemy <= 2.0
     DOUBLE = sqltypes.DECIMAL  # type: ignore[misc, assignment]
