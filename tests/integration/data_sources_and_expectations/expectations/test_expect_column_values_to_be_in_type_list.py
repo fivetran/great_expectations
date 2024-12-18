@@ -3,6 +3,7 @@ import pytest
 import sqlalchemy.types as sqltypes
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility.databricks import DATABRICKS_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
@@ -369,6 +370,45 @@ def test_failure(
     ),
 )
 def test_success_complete_snowflake(
+    batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
+) -> None:
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    result_dict = result.to_json_dict()["result"]
+
+    assert result.success
+    assert isinstance(result_dict, dict)
+    assert isinstance(result_dict["observed_value"], str)
+    assert isinstance(expectation.type_list, list)
+    assert result_dict["observed_value"] in expectation.type_list
+
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="STRING", type_list=["STRING", "VARCHAR(16777216)"]
+            ),
+            id="STRING",
+        )
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SnowflakeDatasourceTestConfig(
+            column_types={
+                "STRING": DATABRICKS_TYPES.STRING,
+            }
+        )
+    ],
+    data=pd.DataFrame(
+        {
+            "STRING": ["a", "b", "c"],
+        },
+        dtype="object",
+    ),
+)
+def test_success_complete_databricks(
     batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
 ) -> None:
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
