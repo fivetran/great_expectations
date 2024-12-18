@@ -394,11 +394,6 @@ def test_success_complete_snowflake(
             gxe.ExpectColumnValuesToBeInTypeList(column="TEXT", type_list=["STRING"]),
             id="TEXT",
         ),
-        # SqlA Time gets converted to Databricks STRING
-        # pytest.param(
-        #     gxe.ExpectColumnValuesToBeInTypeList(column="TIME", type_list=["STRING"]),
-        #     id="TIME",
-        # ),
         # SqlA UNICODE gets converted to Databricks STRING
         pytest.param(
             gxe.ExpectColumnValuesToBeInTypeList(column="UNICODE", type_list=["STRING"]),
@@ -409,11 +404,6 @@ def test_success_complete_snowflake(
             gxe.ExpectColumnValuesToBeInTypeList(column="UNICODE_TEXT", type_list=["STRING"]),
             id="UNICODE_TEXT",
         ),
-        # SqlA UUID gets converted to Databricks STRING
-        # pytest.param(
-        #     gxe.ExpectColumnValuesToBeInTypeList(column="UUID", type_list=["STRING"]),
-        #     id="UUID",
-        # )
         pytest.param(
             gxe.ExpectColumnValuesToBeInTypeList(column="BOOLEAN", type_list=["BOOLEAN"]),
             id="BOOLEAN",
@@ -460,6 +450,18 @@ def test_success_complete_snowflake(
             ),
             id="DECIMAL",
         ),
+        # SqlA Time gets converted to Databricks STRING,
+        # but is not supported by our testing framework
+        # pytest.param(
+        #     gxe.ExpectColumnValuesToBeInTypeList(column="TIME", type_list=["STRING"]),
+        #     id="TIME",
+        # ),
+        # SqlA UUID gets converted to Databricks STRING,
+        # but is not supported by our testing framework.
+        # pytest.param(
+        #     gxe.ExpectColumnValuesToBeInTypeList(column="UUID", type_list=["STRING"]),
+        #     id="UUID",
+        # )
     ],
 )
 @parameterize_batch_for_data_sources(
@@ -515,14 +517,14 @@ def test_success_complete_snowflake(
             "DECIMAL": [1.1, 2.2, 3.3],
             "SMALLINT": [1, 2, 3],
             # "TIME": [
-            #     "00:00:00",
-            #     "01:00:00",
-            #     "00:10:43",
+            #     sa.Time("22:17:33.123456"),
+            #     sa.Time("22:17:33.123456"),
+            #     sa.Time("22:17:33.123456"),
             # ],
             # "UUID": [
-            #      "905993ea-f50e-4284-bea0-5be3f0ed7031",
-            #      "9406b631-fa2f-41cf-b666-f9a2ac3118c1",
-            #      "47538f05-32e3-4594-80e2-0b3b33257ae7"
+            #      uuid.UUID("905993ea-f50e-4284-bea0-5be3f0ed7031"),
+            #      uuid.UUID("9406b631-fa2f-41cf-b666-f9a2ac3118c1"),
+            #      uuid.UUID("47538f05-32e3-4594-80e2-0b3b33257ae7")
             #  ],
         },
         dtype="object",
