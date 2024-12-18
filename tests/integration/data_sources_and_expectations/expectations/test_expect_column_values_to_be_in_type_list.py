@@ -542,48 +542,52 @@ def test_success_complete_databricks(
     assert result_dict["observed_value"] in expectation.type_list
 
 
-@pytest.mark.skipif(
-    version.parse(sa.__version__) < version.parse("2.0.0"),
-    reason="DOUBLE type is not available in SA until 2.0.0",
-)
-@pytest.mark.parametrize(
-    "expectation",
-    [
-        pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(column="DOUBLE", type_list=["DOUBLE", "FLOAT"]),
-            id="DOUBLE",
-        )
-    ],
-)
-@parameterize_batch_for_data_sources(
-    data_source_configs=[
-        DatabricksDatasourceTestConfig(
-            column_types={
-                "DOUBLE": sqltypes.Double,
-            }
-        )
-    ],
-    data=pd.DataFrame(
-        {
-            "DOUBLE": [1.0, 2.0, 3.0],
-        },
-        dtype="object",
-    ),
-)
-def test_success_complete_databricks_double_type_only(
-    batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
-) -> None:
-    """What does this test and why?
+if version.parse(sa.__version__) < version.parse("2.0.0"):
+    # Note: why not use pytest.skip?
+    # the import of `sqltypes.Double` is only possible in sqlalchemy >= 2.0.0
+    # the import is done as part of the instantiation of the test, which includes
+    # processing the pytest.skip() statement. This way, we skip the instantiation
+    # of the test entirely.
+    @pytest.mark.parametrize(
+        "expectation",
+        [
+            pytest.param(
+                gxe.ExpectColumnValuesToBeInTypeList(
+                    column="DOUBLE", type_list=["DOUBLE", "FLOAT"]
+                ),
+                id="DOUBLE",
+            )
+        ],
+    )
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            DatabricksDatasourceTestConfig(
+                column_types={
+                    "DOUBLE": sqltypes.Double,
+                }
+            )
+        ],
+        data=pd.DataFrame(
+            {
+                "DOUBLE": [1.0, 2.0, 3.0],
+            },
+            dtype="object",
+        ),
+    )
+    def test_success_complete_databricks_double_type_only(
+        batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
+    ) -> None:
+        """What does this test and why?
 
-    Databricks mostly uses SqlA types directly, but the double type is
-    only available after sqlalchemy 2.0. We therefore split up the test
-    into 2 parts, with this test being skipped if the SA version is too low.
-    """
-    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
-    result_dict = result.to_json_dict()["result"]
+        Databricks mostly uses SqlA types directly, but the double type is
+        only available after sqlalchemy 2.0. We therefore split up the test
+        into 2 parts, with this test being skipped if the SA version is too low.
+        """
+        result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+        result_dict = result.to_json_dict()["result"]
 
-    assert result.success
-    assert isinstance(result_dict, dict)
-    assert isinstance(result_dict["observed_value"], str)
-    assert isinstance(expectation.type_list, list)
-    assert result_dict["observed_value"] in expectation.type_list
+        assert result.success
+        assert isinstance(result_dict, dict)
+        assert isinstance(result_dict["observed_value"], str)
+        assert isinstance(expectation.type_list, list)
+        assert result_dict["observed_value"] in expectation.type_list
