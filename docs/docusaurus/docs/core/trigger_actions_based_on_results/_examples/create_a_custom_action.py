@@ -13,8 +13,11 @@ from typing import Literal
 
 from typing_extensions import override
 
-from great_expectations.checkpoint.actions import ActionContext, ValidationAction
-from great_expectations.checkpoint.checkpoint import CheckpointResult
+from great_expectations.checkpoint import (
+    ActionContext,
+    CheckpointResult,
+    ValidationAction,
+)
 
 
 # 1. Extend the `ValidationAction` class.
