@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+import sqlalchemy.types as sqltypes
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
@@ -254,6 +255,31 @@ def test_failure(
         #     gxe.ExpectColumnValuesToBeInTypeList(column="ARRAY", type_list=["ARRAY"]),
         #     id="ARRAY",
         # ),
+        # These sqlachemy types map to _CUSTOM_* types in snowflake-sqlalchemy
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="_CUSTOM_Date", type_list=["DATE"]),
+            id="_CUSTOM_Date",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="_CUSTOM_DateTime", type_list=["TIMESTAMP_NTZ"]
+            ),
+            id="_CUSTOM_DateTime",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="_CUSTOM_Time", type_list=["TIME"]),
+            id="_CUSTOM_Time",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="_CUSTOM_Float", type_list=["FLOAT"]),
+            id="_CUSTOM_Float",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="_CUSTOM_DECIMAL", type_list=["INTEGER", "DECIMAL(38, 0)"]
+            ),
+            id="_CUSTOM_DECIMAL",
+        ),
     ],
 )
 @parameterize_batch_for_data_sources(
@@ -277,6 +303,12 @@ def test_failure(
                 "TINYINT": SNOWFLAKE_TYPES.TINYINT,
                 "VARBINARY": SNOWFLAKE_TYPES.VARBINARY,
                 "VARIANT": SNOWFLAKE_TYPES.VARIANT,
+                # These sqlachemy types map to _CUSTOM_* types in snowflake-sqlalchemy
+                "_CUSTOM_Date": sqltypes.Date,
+                "_CUSTOM_DateTime": sqltypes.DateTime,
+                "_CUSTOM_Time": sqltypes.Time,
+                "_CUSTOM_Float": sqltypes.Float,
+                "_CUSTOM_DECIMAL": sqltypes.INTEGER,
             }
         )
     ],
@@ -312,6 +344,26 @@ def test_failure(
             # "ARRAY": pd.Series([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype="object"),
             # "OBJECT": [{"a": 1}, {"b": 2}, {"c": 3}],
             # "VARIANT": [{"a": 1}, {"b": 2}, {"c": 3}],
+            # These sqlachemy types map to _CUSTOM_* types in snowflake-sqlalchemy
+            "_CUSTOM_Date": [
+                # Date in isoformat
+                "2021-01-01",
+                "2021-01-02",
+                "2021-01-03",
+            ],
+            "_CUSTOM_DateTime": [
+                # isoformat with microseconds
+                "2021-01-01 00:00:00.000000",
+                "2021-01-02 00:00:00.000000",
+                "2021-01-03 00:00:00.000000",
+            ],
+            "_CUSTOM_Time": [
+                "00:00:00.878281",
+                "01:00:00.000000",
+                "00:10:43.000000",
+            ],
+            "_CUSTOM_Float": [1.0, 2.0, 3.0],
+            "_CUSTOM_DECIMAL": [1, 2, 3],
         },
         dtype="object",
     ),

@@ -10,6 +10,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -50,7 +51,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Distribution"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
@@ -98,7 +99,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
         * observed_value field in the result object is customized for this expectation to be a list \
           representing the actual column sum
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -108,7 +109,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:

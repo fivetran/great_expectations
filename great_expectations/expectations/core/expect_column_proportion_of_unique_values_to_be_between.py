@@ -9,6 +9,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import (
     LegacyDescriptiveRendererType,
     LegacyRendererType,
@@ -62,7 +63,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Cardinality"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
 
 class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation):
@@ -116,7 +117,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
     See Also:
         [ExpectColumnUniqueValueCountToBeBetween](https://greatexpectations.io/expectations/expect_column_unique_value_count_to_be_between)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -127,7 +128,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
