@@ -10,57 +10,57 @@ try:
     import psycopg2  # noqa: F401
     import sqlalchemy.dialects.postgresql as postgresqltypes  # noqa: TID251
 except ImportError:
-    postgresqltypes = POSTGRESQL_NOT_IMPORTED
+    postgresqltypes = POSTGRESQL_NOT_IMPORTED # type: ignore[assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import TEXT
 except (ImportError, AttributeError):
-    TEXT = POSTGRESQL_NOT_IMPORTED
+    TEXT = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import CHAR
 except (ImportError, AttributeError):
-    CHAR = POSTGRESQL_NOT_IMPORTED
+    CHAR = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import INTEGER
 except (ImportError, AttributeError):
-    INTEGER = POSTGRESQL_NOT_IMPORTED
+    INTEGER = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import SMALLINT
 except (ImportError, AttributeError):
-    SMALLINT = POSTGRESQL_NOT_IMPORTED
+    SMALLINT = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import BIGINT
 except (ImportError, AttributeError):
-    BIGINT = POSTGRESQL_NOT_IMPORTED
+    BIGINT = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import TIMESTAMP
 except (ImportError, AttributeError):
-    TIMESTAMP = POSTGRESQL_NOT_IMPORTED
+    TIMESTAMP = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import DATE
 except (ImportError, AttributeError):
-    DATE = POSTGRESQL_NOT_IMPORTED
+    DATE = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
 except (ImportError, AttributeError):
-    DOUBLE_PRECISION = POSTGRESQL_NOT_IMPORTED
+    DOUBLE_PRECISION = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import BOOLEAN
 except (ImportError, AttributeError):
-    BOOLEAN = POSTGRESQL_NOT_IMPORTED
+    BOOLEAN = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 try:
     from sqlalchemy.dialects.postgresql import NUMERIC
 except (ImportError, AttributeError):
-    NUMERIC = POSTGRESQL_NOT_IMPORTED
+    NUMERIC = POSTGRESQL_NOT_IMPORTED # type: ignore[misc, assignment]
 
 
 class POSTGRESQL_TYPES:
