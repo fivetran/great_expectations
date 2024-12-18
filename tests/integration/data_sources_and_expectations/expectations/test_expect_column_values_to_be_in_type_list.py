@@ -5,6 +5,9 @@ import sqlalchemy.types as sqltypes
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.databricks import DATABRICKS_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
+from great_expectations.compatibility.sqlalchemy import (
+    sqlalchemy as sa,
+)
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -429,12 +432,6 @@ def test_success_complete_snowflake(
             id="TIMESTAMP_NTZ",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeInTypeList(
-                column="DOUBLE", type_list=["DOUBLE", "FLOAT", "DECIMAL"]
-            ),
-            id="DOUBLE",
-        ),
-        pytest.param(
             gxe.ExpectColumnValuesToBeInTypeList(column="FLOAT", type_list=["FLOAT"]),
             id="FLOAT",
         ),
@@ -479,7 +476,6 @@ def test_success_complete_snowflake(
                 "DATE": sqltypes.DATE,
                 "TIMESTAMP_NTZ": DATABRICKS_TYPES.TIMESTAMP_NTZ,
                 "TIMESTAMP": DATABRICKS_TYPES.TIMESTAMP,
-                "DOUBLE": DATABRICKS_TYPES.DOUBLE,
                 "FLOAT": sqltypes.Float,
                 "INT": sqltypes.Integer,
                 "DECIMAL": sqltypes.Numeric,
@@ -535,6 +531,52 @@ def test_success_complete_snowflake(
 def test_success_complete_databricks(
     batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
 ) -> None:
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    result_dict = result.to_json_dict()["result"]
+
+    assert result.success
+    assert isinstance(result_dict, dict)
+    assert isinstance(result_dict["observed_value"], str)
+    assert isinstance(expectation.type_list, list)
+    assert result_dict["observed_value"] in expectation.type_list
+
+
+@pytest.mark.skipif(
+    sa.__version__ < "2.0.0", reason="DOUBLE type is not available in SA until 2.0.0"
+)
+@pytest.mark.parametrize(
+    "expectation",
+    [
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="DOUBLE", type_list=["DOUBLE", "FLOAT"]),
+            id="DOUBLE",
+        )
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        DatabricksDatasourceTestConfig(
+            column_types={
+                "DOUBLE": sqltypes.Double,
+            }
+        )
+    ],
+    data=pd.DataFrame(
+        {
+            "DOUBLE": [1.0, 2.0, 3.0],
+        },
+        dtype="object",
+    ),
+)
+def test_success_complete_databricks_double_type_only(
+    batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
+) -> None:
+    """What does this test and why?
+
+    Databricks mostly uses SqlA types directly, but the double type is
+    only available after sqlalchemy 2.0. We therefore split up the test
+    into 2 parts, with this test being skipped if the SA version is too low.
+    """
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     result_dict = result.to_json_dict()["result"]
 

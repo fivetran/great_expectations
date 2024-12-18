@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sqlalchemy.types as sqltypes
-
 from great_expectations.compatibility.not_imported import NotImported
 
 DATABRICKS_CONNECT_NOT_IMPORTED = NotImported(
@@ -34,13 +32,6 @@ try:
 except (ImportError, AttributeError):
     TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
 
-try:
-    # sqlalchemy >= 2.0
-    DOUBLE = sqltypes.DOUBLE
-except (ImportError, AttributeError):
-    # sqlalchemy <= 2.0
-    DOUBLE = sqltypes.DECIMAL  # type: ignore[misc, assignment]
-
 
 class DATABRICKS_TYPES:
     """Namespace for Databricks dialect types"""
@@ -49,4 +40,3 @@ class DATABRICKS_TYPES:
     STRING = STRING
     TINYINT = TINYINT
     TIMESTAMP = TIMESTAMP
-    DOUBLE = DOUBLE
