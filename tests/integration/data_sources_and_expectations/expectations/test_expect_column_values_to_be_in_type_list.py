@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 import sqlalchemy.types as sqltypes
+from packaging import version
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.databricks import DATABRICKS_TYPES
@@ -542,7 +543,8 @@ def test_success_complete_databricks(
 
 
 @pytest.mark.skipif(
-    sa.__version__ < "2.0.0", reason="DOUBLE type is not available in SA until 2.0.0"
+    version.parse(sa.__version__) < version.parse("2.0.0"),
+    reason="DOUBLE type is not available in SA until 2.0.0",
 )
 @pytest.mark.parametrize(
     "expectation",
