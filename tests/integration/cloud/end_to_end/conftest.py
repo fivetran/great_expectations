@@ -60,7 +60,7 @@ def datasource_name(
     # in that case, we create one simply to test get and delete
     try:
         _ = context.data_sources.get(name=datasource_name)
-    except ValueError:
+    except KeyError:
         _ = context.data_sources.add_pandas(name=datasource_name)
         context.data_sources.get(name=datasource_name)
     context.delete_datasource(name=datasource_name)
