@@ -88,10 +88,11 @@ def _build_renderer(config: dict) -> Renderer:
     return renderer
 
 
+@public_api
 class ActionContext:
     """
-    Shared context for all actions in a checkpoint run.
-    Note that order matters in the action list, as the context is updated with each action's result.
+    Shared context for all Actions in a Checkpoint run.
+    Note that order matters in the Action list, as the context is updated with each Action's result.
     """
 
     def __init__(self) -> None:
@@ -182,10 +183,10 @@ class MetaValidationAction(ModelMetaclass):
 @public_api
 class ValidationAction(BaseModel, metaclass=MetaValidationAction):
     """
-    ValidationActions define a set of steps to be run after a validation result is produced.
+    Actions define a set of steps to run after a Validation Result is produced. Subclass `ValidationAction` to create a [custom Action](/docs/core/trigger_actions_based_on_results/create_a_custom_action).
 
     Through a Checkpoint, one can orchestrate the validation of data and configure notifications, data documentation updates,
-    and other actions to take place after the validation result is produced.
+    and other actions to take place after the Validation Result is produced.
     """  # noqa: E501
 
     class Config:
