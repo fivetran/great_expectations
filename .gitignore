@@ -157,3 +157,6 @@ tests/integration/cloud/rest_contracts/pacts
 
 # Local Netlify folder
 .netlify
+
+# mercury container volume
+assets/docker/mercury/volume/

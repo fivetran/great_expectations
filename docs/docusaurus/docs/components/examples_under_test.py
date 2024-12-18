@@ -439,6 +439,16 @@ docs_examples_trigger_actions_based_on_validation_results = [
         # data_context_dir="",
         backend_dependencies=[],
     ),
+    # Create a custom Action
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "docs_example_create_a_custom_action" tests/integration/test_script_runner.py
+        name="docs_example_create_a_custom_action",
+        user_flow_script="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
+        # data_context_dir="",
+        backend_dependencies=[],
+    ),
     # Run a Checkpoint
     IntegrationTestFixture(
         # To test, run:
