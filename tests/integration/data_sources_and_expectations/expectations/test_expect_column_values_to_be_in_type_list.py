@@ -5,6 +5,7 @@ from packaging import version
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.databricks import DATABRICKS_TYPES
+from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -19,6 +20,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
 )
 
@@ -374,6 +376,110 @@ def test_failure(
     ),
 )
 def test_success_complete_snowflake(
+    batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
+) -> None:
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    result_dict = result.to_json_dict()["result"]
+
+    assert result.success
+    assert isinstance(result_dict, dict)
+    assert isinstance(result_dict["observed_value"], str)
+    assert isinstance(expectation.type_list, list)
+    assert result_dict["observed_value"] in expectation.type_list
+
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="CHAR", type_list=["CHAR", "CHAR(1)"]),
+            id="CHAR",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="TEXT", type_list=["TEXT"]),
+            id="TEXT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="INTEGER", type_list=["INTEGER"]),
+            id="INTEGER",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="SMALLINT", type_list=["SMALLINT"]),
+            id="SMALLINT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="BIGINT", type_list=["BIGINT"]),
+            id="BIGINT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="TIMESTAMP", type_list=["TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE"]
+            ),
+            id="TIMESTAMP",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="DATE", type_list=["DATE"]),
+            id="DATE",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="DOUBLE_PRECISION", type_list=["DOUBLE PRECISION"]
+            ),
+            id="DOUBLE_PRECISION",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="BOOLEAN", type_list=["BOOLEAN"]),
+            id="BOOLEAN",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="NUMERIC", type_list=["NUMERIC"]),
+            id="NUMERIC",
+        ),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        PostgreSQLDatasourceTestConfig(
+            column_types={
+                "CHAR": POSTGRESQL_TYPES.CHAR,
+                "TEXT": POSTGRESQL_TYPES.TEXT,
+                "INTEGER": POSTGRESQL_TYPES.INTEGER,
+                "SMALLINT": POSTGRESQL_TYPES.SMALLINT,
+                "BIGINT": POSTGRESQL_TYPES.BIGINT,
+                "TIMESTAMP": POSTGRESQL_TYPES.TIMESTAMP,
+                "DATE": POSTGRESQL_TYPES.DATE,
+                "DOUBLE_PRECISION": POSTGRESQL_TYPES.DOUBLE_PRECISION,
+                "BOOLEAN": POSTGRESQL_TYPES.BOOLEAN,
+                "NUMERIC": POSTGRESQL_TYPES.NUMERIC,
+            }
+        ),
+    ],
+    data=pd.DataFrame(
+        {
+            "CHAR": ["a", "b", "c"],
+            "TEXT": ["a", "b", "c"],
+            "INTEGER": [1, 2, 3],
+            "SMALLINT": [1, 2, 3],
+            "BIGINT": [1, 2, 3],
+            "TIMESTAMP": [
+                "2021-01-01 00:00:00",
+                "2021-01-02 00:00:00",
+                "2021-01-03 00:00:00",
+            ],
+            "DATE": [
+                # Date in isoformat
+                "2021-01-01",
+                "2021-01-02",
+                "2021-01-03",
+            ],
+            "DOUBLE_PRECISION": [1.0, 2.0, 3.0],
+            "BOOLEAN": [False, False, True],
+            "NUMERIC": [1, 2, 3],
+        },
+        dtype="object",
+    ),
+)
+def test_success_complete_postgres(
     batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
 ) -> None:
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)

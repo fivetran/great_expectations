@@ -412,7 +412,11 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
 
         if expected_type is None:
             success = True
-        elif execution_engine.dialect_name in [GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS]:
+        elif execution_engine.dialect_name in [
+            GXSqlDialect.DATABRICKS,
+            GXSqlDialect.POSTGRESQL,
+            GXSqlDialect.SNOWFLAKE,
+        ]:
             success = (
                 isinstance(actual_column_type, str)
                 and actual_column_type.lower() == expected_type.lower()
