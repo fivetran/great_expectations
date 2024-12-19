@@ -429,7 +429,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901
                     for column in columns_copy
                 ]
             else:
-                return columns_copyg
+                return columns_copy
         return columns
     except AttributeError as e:
         logger.debug(f"Error while introspecting columns: {e!r}", exc_info=e)
