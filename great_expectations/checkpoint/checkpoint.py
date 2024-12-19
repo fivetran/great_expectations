@@ -77,6 +77,7 @@ class Checkpoint(BaseModel):
 
     Args:
         name: The name of the checkpoint.
+        lala: jiji.
         validation_definitions: List of validation definitions to be run.
         actions: List of actions to be taken after the validation definitions are run.
         result_format: The format in which to return the results of the validation definitions. Default is ResultFormat.SUMMARY.

@@ -517,7 +517,7 @@ class SphinxInvokeDocsBuilder:
 .. autoclass:: {dotted_import}
    :members:
    :inherited-members:
-
+   :member-order: groupwise
 ```
 """
 
