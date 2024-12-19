@@ -85,6 +85,10 @@ class PandasDatasourceError(Exception):
 
 @public_api
 class _PandasDataAsset(DataAsset):
+    """
+    A Pandas DataAsset is a DataAsset that is backed by a Pandas DataFrame.
+    """
+
     _EXCLUDE_FROM_READER_OPTIONS: ClassVar[Set[str]] = {
         "batch_definitions",
         "batch_metadata",

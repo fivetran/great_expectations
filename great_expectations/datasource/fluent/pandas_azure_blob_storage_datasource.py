@@ -35,6 +35,11 @@ class PandasAzureBlobStorageDatasourceError(PandasDatasourceError):
 
 @public_api
 class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
+    """
+    PandasAzureBlobStorageDatasource is a PandasDatasource that uses Azure Blob Storage as a
+    data store.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[AzureBlobStorageDataConnector]] = (
         AzureBlobStorageDataConnector
