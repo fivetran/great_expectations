@@ -5,6 +5,7 @@ from packaging import version
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.databricks import DATABRICKS_TYPES
+from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -19,6 +20,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
 )
 
