@@ -134,6 +134,9 @@ class SuiteFactory(Factory[ExpectationSuite]):
         create a new ExpectationSuite. On update, Expectations in the Suite which
         match a previously existing Expectation maintain a stable ID, and
         Expectations which have changed receive a new ID.
+
+        Parameters:
+            suite: ExpectationSuite to add or update
         """
         try:
             existing_suite = self.get(name=suite.name)
