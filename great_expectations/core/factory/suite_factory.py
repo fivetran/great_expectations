@@ -33,7 +33,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def add(self, suite: ExpectationSuite) -> ExpectationSuite:
         """Add an ExpectationSuite to the collection.
 
-        Parameters:
+        Args:
             suite: ExpectationSuite to add
 
         Raises:
@@ -62,7 +62,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def delete(self, name: str) -> None:
         """Delete an ExpectationSuite from the collection.
 
-        Parameters:
+        Args:
             name: The name of the ExpectationSuite to delete
 
         Raises:
@@ -89,7 +89,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def get(self, name: str) -> ExpectationSuite:
         """Get an ExpectationSuite from the collection by name.
 
-        Parameters:
+        Args:
             name: Name of ExpectationSuite to get
 
         Raises:
@@ -135,7 +135,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
         match a previously existing Expectation maintain a stable ID, and
         Expectations which have changed receive a new ID.
 
-        Parameters:
+        Args:
             suite: ExpectationSuite to add or update
         """
         try:
