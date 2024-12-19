@@ -1,6 +1,6 @@
 {
     "title": "DataFrameAsset",
-    "description": "--Public API--",
+    "description": "--Public API--\nA DataAsset that represents a Spark DataFrame.",
     "type": "object",
     "properties": {
         "name": {
