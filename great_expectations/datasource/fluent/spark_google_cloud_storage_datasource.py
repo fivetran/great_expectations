@@ -33,6 +33,11 @@ class SparkGoogleCloudStorageDatasourceError(SparkDatasourceError):
 
 @public_api
 class SparkGoogleCloudStorageDatasource(_SparkFilePathDatasource):
+    """
+    SparkGoogleCloudStorageDatasource is a subclass of SparkDatasource which connects to
+    Google Cloud Storage.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[GoogleCloudStorageDataConnector]] = (
         GoogleCloudStorageDataConnector

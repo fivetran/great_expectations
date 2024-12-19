@@ -313,6 +313,9 @@ class DataSourceManager:
             _add_asset_factory.__name__ = add_asset_factory_method_name
             setattr(ds_type, add_asset_factory_method_name, _add_asset_factory)
 
+            # NOTE: Please review what this looks like in our Public API docs preview before merging
+            _add_asset_factory.__doc__ = f"""Add a {asset_type_name} asset to the datasource."""
+
             # add the public api decorator
             public_api(getattr(ds_type, add_asset_factory_method_name))
 

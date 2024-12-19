@@ -22,6 +22,11 @@ logger = logging.getLogger(__name__)
 
 @public_api
 class SparkFilesystemDatasource(_SparkFilePathDatasource):
+    """
+    SparkFilesystemDatasource is a subclass of SparkDatasource which connects to
+    the filesystem.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[FilesystemDataConnector]] = FilesystemDataConnector
     # these fields should not be passed to the execution engine
