@@ -36,53 +36,34 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
             item.insert(0, "\r\n")
             item.append("\r\n")
 
-    properties = soup.select(".py.property")
-    if properties:
-        wrapper_div = soup.new_tag("div")
-        title_h2 = soup.new_tag("h2")
-        title_h2.string = "Properties"
-        parent = properties[0].parent
-        table = soup.new_tag("table")
-        body = soup.new_tag("tbody")
-        # head = soup.new_tag("thead")
-        # head_row = soup.new_tag("tr")
-        # head_column = soup.new_tag("th")
-        # head_column.append("Description")
-        # head_row.append(head_column)
-        # head.apend(head_row)
-        # table.append(head)
+    # Add h2 title to Methods section
+    methods = soup.select(".py.method")
+    if methods:
+        wrapper_div = soup.new_tag('div')
+        title_h2 = soup.new_tag('h2')
+        title_h2.string = "Methods"
+        parent = methods[0].parent
 
-        for prop in properties:
-            new_row = soup.new_tag("tr")
-            new_column = soup.new_tag("td")
-            new_column.append(prop.get_text())
-            new_row.append(new_column)
-            body.append(new_row)
+        for method in methods:
+            wrapper_div.append(method.extract())
 
         wrapper_div.insert(0, "\r\n")
         wrapper_div.insert(1, title_h2)
         wrapper_div.insert(2, "\r\n")
-        table.append(body)
-        wrapper_div.append(table)
         parent.insert_after(wrapper_div)
 
-    methods = soup.select(".py.method")
-    if methods:
-        wrapper_div_m = soup.new_tag("div")
-        title_h2_m = soup.new_tag("h2")
-        title_h2_m.string = "Methods"
-        parent_m = methods[0].parent
+    # Add h2 title to Properties section
+    properties = soup.select(".py.property")
+    if properties:
+        wrapper_div = soup.new_tag('div')
+        title_h2 = soup.new_tag('h2')
+        title_h2.string = "Properties"
+        parent = properties[0].parent
 
-        for method in methods:
-            wrapper_div_m.append(method.extract())
-        wrapper_div_m.insert(0, "\r\n")
-        wrapper_div_m.insert(1, title_h2_m)
-        wrapper_div_m.insert(2, "\r\n")
-        parent_m.insert_after(wrapper_div_m)
+        for property in properties:
+            wrapper_div.append(property.extract())
 
-    # Display signatures as code blocks
-    items = soup.select(".sig-object")
-    for item in items:
-        code_block = soup.new_tag("CodeBlock", language="python", title="Signature")
-        code_block.append("{`" + item.get_text() + "`}")
-        item.replace_with(code_block)
+        wrapper_div.insert(0, "\r\n")
+        wrapper_div.insert(1, title_h2)
+        wrapper_div.insert(2, "\r\n")
+        parent.insert_after(wrapper_div)
