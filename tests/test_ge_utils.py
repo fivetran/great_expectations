@@ -11,9 +11,7 @@ from great_expectations.util import (
     convert_ndarray_datetime_to_float_dtype_utc_timezone,
     convert_ndarray_float_to_datetime_tuple,
     convert_ndarray_to_datetime_dtype_best_effort,
-    convert_to_json_serializable,
     deep_filter_properties_iterable,
-    ensure_json_serializable,
     filter_properties_dict,
     hyphen,
     is_ndarray_datetime_dtype,
@@ -559,6 +557,7 @@ def test_convert_ndarray_float_to_datetime_tuple(
 def test_hyphen():
     txt: str = "validation_result"
     assert hyphen(txt=txt) == "validation-result"
+<<<<<<< HEAD
 
 
 @pytest.mark.unit
