@@ -458,6 +458,12 @@ class Checkpoint(BaseModel):
 
 @public_api
 class CheckpointResult(BaseModel):
+    """
+    The result of running a Checkpoint.
+
+    Contains the results of running each validation definition in the checkpoint.
+    """
+
     run_id: RunIdentifier
     run_results: Dict[ValidationResultIdentifier, ExpectationSuiteValidationResult]
     checkpoint_config: Checkpoint
