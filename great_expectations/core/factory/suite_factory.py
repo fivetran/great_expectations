@@ -125,3 +125,23 @@ class SuiteFactory(Factory[ExpectationSuite]):
                 self._store.submit_all_deserialization_event(e)
                 raise
         return deserializable_suites
+
+    @public_api
+    def add_or_update(self, suite: ExpectationSuite) -> ExpectationSuite:
+        try:
+            existing_suite = self.get(name=suite.name)
+        except DataContextError:
+            return self.add(suite=suite)
+
+        # add IDs to expectations that haven't changed
+        existing_expectations = existing_suite.expectations
+        for expectation in suite.expectations:
+            try:
+                index = existing_expectations.index(expectation)
+                expectation.id = existing_expectations[index].id
+            except ValueError:
+                pass  # expectation is new or updated
+
+        suite.id = existing_suite.id
+        suite.save()
+        return suite
