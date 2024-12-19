@@ -134,9 +134,11 @@ def public_api(func: F) -> F:
 
     This tag is added at import time.
     """
-    public_api_introspector.add(func)
-    existing_docstring = func.__doc__ if func.__doc__ else ""
+    existing_docstring = func.__doc__
+    if not existing_docstring:
+        raise ValueError("Public API classes/functions must have docstrings.")  # noqa: TRY003
     func.__doc__ = WHITELISTED_TAG + existing_docstring
+    public_api_introspector.add(func)
     return func
 
 
