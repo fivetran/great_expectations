@@ -360,7 +360,7 @@ class CaseInsensitiveNameDict(UserDict):
         return item
 
 
-def get_sqlalchemy_column_metadata(  # noqa: C901
+def get_sqlalchemy_column_metadata(  # noqa: C901, PLR0912
     execution_engine: SqlAlchemyExecutionEngine,
     table_selectable: sqlalchemy.Select,
     schema_name: Optional[str] = None,
@@ -434,6 +434,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901
                 ]
             else:
                 return columns_copy
+
         return columns
     except AttributeError as e:
         logger.debug(f"Error while introspecting columns: {e!r}", exc_info=e)
