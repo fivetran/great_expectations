@@ -128,6 +128,13 @@ class SuiteFactory(Factory[ExpectationSuite]):
 
     @public_api
     def add_or_update(self, suite: ExpectationSuite) -> ExpectationSuite:
+        """Add or update an ExpectationSuite by name.
+
+        If an ExpectationSuite with the same name exists, overwrite it, otherwise
+        create a new ExpectationSuite. On update, Expectations in the Suite which
+        match a previously existing Expectation maintain a stable ID, and
+        Expectations which have changed receive a new ID.
+        """
         try:
             existing_suite = self.get(name=suite.name)
         except DataContextError:
