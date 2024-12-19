@@ -37,6 +37,11 @@ class SparkAzureBlobStorageDatasourceError(SparkDatasourceError):
 
 @public_api
 class SparkAzureBlobStorageDatasource(_SparkFilePathDatasource):
+    """
+    SparkAzureBlobStorageDatasource is a subclass of SparkDatasource which connects to
+    Azure Blob Storage.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[AzureBlobStorageDataConnector]] = (
         AzureBlobStorageDataConnector
