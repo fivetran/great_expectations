@@ -541,6 +541,9 @@ class AbstractDataContext(ConfigPeer, ABC):
     @property
     @public_api
     def data_sources(self) -> DataSourceManager:
+        """
+        Responsible for basic CRUD operations on a context's DataSources.
+        """
         return self._data_sources
 
     @property
