@@ -458,7 +458,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
     def _validate_sqlalchemy(self, actual_column_type, expected_types_list, execution_engine):
         if expected_types_list is None:
             success = True
-        elif execution_engine.dialect_name == GXSqlDialect.SNOWFLAKE:
+        elif execution_engine.dialect_name in [GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS]:
             success = isinstance(actual_column_type, str) and any(
                 actual_column_type.lower() == expected_type.lower()
                 for expected_type in expected_types_list

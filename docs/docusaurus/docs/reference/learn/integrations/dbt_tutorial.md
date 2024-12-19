@@ -414,5 +414,5 @@ Refresh the Data Docs page to see new results from the DAG run:
 ## Conclusion
 You have learned to build a pipeline using PostgreSQL, dbt, GX and Airflow. This tutorial covers a basic implementation for scheduling and running a data pipeline with open source tools. You can explore other possibilities with GX by connecting to your own Data Sources or exploring the other use cases in this section. See the [Expectations Gallery](https://greatexpectations.io/expectations/) to learn about all the Expectations you can run on your data.
 
-If you are ready to take next steps and collaborate with your team using GX, check out [GX Cloud](https://greatexpectations.io/cloud), where you can use our online platform to run GX in a no-code environment and share results.
+If you are ready to take next steps and collaborate with your team using GX, check out [GX Cloud](https://greatexpectations.io/cloud), where you can use our online platform to run GX in a no-code environment, automate rules, schedule validations, and share results.
 

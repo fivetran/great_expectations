@@ -306,7 +306,7 @@ jobs:
           # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
           # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
           # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
-          args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' 'docs/docusaurus/build/**/*.html'"
+          args: "--exclude='http.*' 'docs/docusaurus/build/**/*.html'"
 
   docs-tests:
     runs-on: ubuntu-latest
@@ -339,8 +339,8 @@ jobs:
       GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
       GX_SCHEDULER_EXECUTION_ROLE_ARN: ${{secrets.GX_SCHEDULER_EXECUTION_ROLE_ARN}}
       GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}}
+      GX_SCHEDULER_EVENTBRIDGE_REGION: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_REGION}}
       LOCALSTACK_AWS_ENDPOINT_URL: ${{secrets.LOCALSTACK_AWS_ENDPOINT_URL}}
-      LOCALSTACK_AWS_DEFAULT_REGION: ${{secrets.LOCALSTACK_AWS_DEFAULT_REGION}}
       LOCALSTACK_AWS_SECRET_ACCESS_KEY: ${{secrets.LOCALSTACK_AWS_SECRET_ACCESS_KEY}}
       LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
       PACT_DO_NOT_TRACK: true
