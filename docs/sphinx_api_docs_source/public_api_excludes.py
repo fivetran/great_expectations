@@ -39,11 +39,6 @@ DEFAULT_EXCLUDES: list[IncludeExcludeDefinition] = [
         filepath=pathlib.Path("great_expectations/types/__init__.py"),
     ),
     IncludeExcludeDefinition(
-        reason="ValidationActions are now run from Checkpoints: https://docs.greatexpectations.io/docs/guides/miscellaneous/migration_guide#manually-migrate-v2-checkpoints-to-v3-checkpoints",
-        name="run",
-        filepath=pathlib.Path("great_expectations/checkpoint/actions.py"),
-    ),
-    IncludeExcludeDefinition(
         reason="False match for from datasource_configuration_test_utilities import is_subset",
         name="is_subset",
         filepath=pathlib.Path("great_expectations/core/domain.py"),
