@@ -295,6 +295,24 @@ class Checkpoint(BaseModel):
         expectation_parameters: SuiteParameterDict | None = None,
         run_id: RunIdentifier | None = None,
     ) -> CheckpointResult:
+        """
+        Runs the Checkpoint's underlying validation definitions and actions.
+
+        Args:
+            batch_parameters: Parameters to be used when loading the batch.
+            expectation_parameters: Parameters to be used when validating the batch.
+            run_id: An optional unique identifier for the run.
+
+        Returns:
+            A CheckpointResult object containing the results of the run.
+
+        Raises:
+            CheckpointRunWithoutValidationDefinitionError: If the Checkpoint is run without any
+                                                           validation definitions.
+            CheckpointNotAddedError: If the Checkpoint has not been added to the store.
+            CheckpointNotFreshError: If the Checkpoint has been modified since it was last added
+                                     to the store.
+        """
         if not self.validation_definitions:
             raise CheckpointRunWithoutValidationDefinitionError()
 
