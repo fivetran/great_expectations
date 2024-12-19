@@ -19,9 +19,11 @@ from typing import (
     overload,
 )
 
-import great_expectations.exceptions as gx_exceptions
 import numpy as np
 from dateutil.parser import parse
+from packaging import version
+
+import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import aws, sqlalchemy, trino
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -38,7 +40,6 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
     GXSqlDialect,
 )
 from great_expectations.execution_engine.util import check_sql_engine_dialect
-from packaging import version
 
 try:
     import psycopg2  # noqa: F401
@@ -75,9 +76,8 @@ _BIGQUERY_MODULE_NAME = "sqlalchemy_bigquery"
 
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
-
     import pandas as pd
+    from typing_extensions import TypeAlias
 
 try:
     import teradatasqlalchemy.dialect
@@ -414,7 +414,11 @@ def get_sqlalchemy_column_metadata(  # noqa: C901
             )
 
         dialect_name = execution_engine.dialect.name
-        if dialect_name in [GXSqlDialect.DATABRICKS, GXSqlDialect.POSTGRESQL, GXSqlDialect.SNOWFLAKE]:
+        if dialect_name in [
+            GXSqlDialect.DATABRICKS,
+            GXSqlDialect.POSTGRESQL,
+            GXSqlDialect.SNOWFLAKE,
+        ]:
             # WARNING: Do not alter columns in place, as they are cached on the inspector
             columns_copy = [column.copy() for column in columns]
             for column in columns_copy:
