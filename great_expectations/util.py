@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections import OrderedDict
+
 import copy
 import datetime
 import decimal
@@ -13,7 +15,6 @@ import re
 import sys
 import time
 import uuid
-from collections import OrderedDict
 from functools import wraps
 from inspect import (
     BoundArguments,
@@ -37,7 +38,6 @@ from typing import (
     cast,
     overload,
 )
-
 import numpy as np
 import pandas as pd
 from dateutil.parser import parse
@@ -47,7 +47,6 @@ from great_expectations.compatibility import pydantic, pyspark, sqlalchemy
 from great_expectations.compatibility.sqlalchemy import LegacyRow, Row
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
-
 # import of private class will be removed when deprecated methods are removed from this module
 from great_expectations.exceptions import (
     InvalidExpectationConfigurationError,
@@ -1164,7 +1163,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
     if isinstance(data, np.float64):
         return float(data)
 
-    if isinstance(data, (datetime.datetime, datetime.date)):
+    if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):
         return data.isoformat()
 
     if isinstance(data, (np.datetime64)):
@@ -1309,7 +1308,7 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
         _ = [ensure_json_serializable(x) for x in data.tolist()]  # type: ignore[func-returns-value]
         return
 
-    if isinstance(data, (datetime.datetime, datetime.date)):
+    if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):
         return
 
     if isinstance(data, pathlib.PurePath):

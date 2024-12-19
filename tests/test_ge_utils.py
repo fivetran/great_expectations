@@ -2,7 +2,6 @@ import copy
 import datetime
 import os
 from typing import TYPE_CHECKING, Any
-
 import pytest
 
 import great_expectations as gx
@@ -11,7 +10,9 @@ from great_expectations.util import (
     convert_ndarray_datetime_to_float_dtype_utc_timezone,
     convert_ndarray_float_to_datetime_tuple,
     convert_ndarray_to_datetime_dtype_best_effort,
+    convert_to_json_serializable,
     deep_filter_properties_iterable,
+    ensure_json_serializable,
     filter_properties_dict,
     hyphen,
     is_ndarray_datetime_dtype,
@@ -557,3 +558,17 @@ def test_convert_ndarray_float_to_datetime_tuple(
 def test_hyphen():
     txt: str = "validation_result"
     assert hyphen(txt=txt) == "validation-result"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("data", [pytest.param({"t": datetime.time(hour=1, minute=30, second=45)}, id="datetime.time")])
+def test_convert_to_json_serializable_converts_correctly(data: dict):
+    ret = convert_to_json_serializable(data)
+    assert ret == {"t": "01:30:45"}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("data", [pytest.param({"t": datetime.time(hour=1, minute=30, second=45)}, id="datetime.time")])
+def test_ensure_json_serializable(data: dict):
+    ensure_json_serializable(data)
+    # Passes if no exception raised
