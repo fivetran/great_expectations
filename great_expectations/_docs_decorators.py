@@ -81,8 +81,9 @@ class _PublicApiIntrospector:
             raise
 
     def _add_to_docstring_violations(self, func: F) -> None:
-        if not func.__doc__:
-            self._docstring_violations.add(f"{func.__module__}.{func.__qualname__}")
+        name = f"{func.__module__}.{func.__qualname__}"
+        if not func.__doc__ and name.startswith("great_expectations"):
+            self._docstring_violations.add(name)
 
     def _add_to_class_registry(self, func: F) -> None:
         if isinstance(func, type):
