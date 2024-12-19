@@ -105,7 +105,17 @@ class ActionContext:
     def update(self, action: ValidationAction, action_result: dict) -> None:
         self._data.append((action, action_result))
 
+    @public_api
     def filter_results(self, class_: Type[ValidationAction]) -> list[dict]:
+        """
+        Filter the results of the actions in the context by class.
+
+        Args:
+            class_: The class to filter by.
+
+        Returns:
+            A list of action results.
+        """
         return [action_result for action, action_result in self._data if isinstance(action, class_)]
 
 
@@ -202,9 +212,20 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
     def _using_cloud_context(self) -> bool:
         return project_manager.is_using_cloud()
 
+    @public_api
     def run(
         self, checkpoint_result: CheckpointResult, action_context: ActionContext | None = None
     ) -> dict:
+        """
+        Run the action.
+
+        Args:
+            checkpoint_result: The result of the checkpoint run.
+            action_context: The context in which the action is run.
+
+        Returns:
+            A dictionary containing the result of the action.
+        """
         raise NotImplementedError
 
     def _get_data_docs_pages_from_prior_action(
