@@ -82,7 +82,7 @@ class _PublicApiIntrospector:
 
     def _add_to_docstring_violations(self, func: F) -> None:
         if not func.__doc__:
-            self._docstring_violations.add(func.__qualname__)
+            self._docstring_violations.add(f"{func.__module__}.{func.__qualname__}")
 
     def _add_to_class_registry(self, func: F) -> None:
         if isinstance(func, type):
