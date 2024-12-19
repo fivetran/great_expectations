@@ -211,6 +211,15 @@ work-around, until "type" naming convention and method for obtaining 'reader_met
 
     @public_api
     def add_batch_definition_whole_dataframe(self, name: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition that requests the whole dataframe.
+
+        Args:
+            name: The name of the BatchDefinition.
+
+        Returns:
+            A BatchDefinition with no partitioning.
+        """
         return self.add_batch_definition(
             name=name,
             partitioner=None,

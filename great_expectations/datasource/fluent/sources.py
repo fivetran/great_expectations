@@ -603,10 +603,19 @@ class DataSourceManager:
 
     @public_api
     def all(self) -> DatasourceDict:
+        """Get all Datasources."""
         return self._data_context._datasources
 
     @public_api
     def get(self, name: str) -> Datasource:
+        """Get a Datasource from the collection by name.
+
+        Parameters:
+            name: Name of Datasource to get
+
+        Raises:
+            KeyError when Datasource is not found.
+        """
         return self.all()[name]
 
     def __getattr__(self, attr_name: str):

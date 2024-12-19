@@ -1270,7 +1270,6 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             result_format = configuration_result_format
         return result_format
 
-    @public_api
     def validate_configuration(
         self, configuration: Optional[ExpectationConfiguration] = None
     ) -> None:

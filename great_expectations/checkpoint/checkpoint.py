@@ -438,6 +438,7 @@ class Checkpoint(BaseModel):
 
     @public_api
     def save(self) -> None:
+        """Save the current state of this Checkpoint."""
         store = project_manager.get_checkpoints_store()
         key = store.get_key(name=self.name, id=self.id)
 
