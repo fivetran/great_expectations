@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from collections import OrderedDict
-
 import copy
 import datetime
 import decimal
@@ -15,6 +13,7 @@ import re
 import sys
 import time
 import uuid
+from collections import OrderedDict
 from functools import wraps
 from inspect import (
     BoundArguments,
@@ -38,6 +37,7 @@ from typing import (
     cast,
     overload,
 )
+
 import numpy as np
 import pandas as pd
 from dateutil.parser import parse
@@ -47,6 +47,7 @@ from great_expectations.compatibility import pydantic, pyspark, sqlalchemy
 from great_expectations.compatibility.sqlalchemy import LegacyRow, Row
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
+
 # import of private class will be removed when deprecated methods are removed from this module
 from great_expectations.exceptions import (
     InvalidExpectationConfigurationError,

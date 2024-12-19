@@ -2,6 +2,7 @@ import copy
 import datetime
 import os
 from typing import TYPE_CHECKING, Any
+
 import pytest
 
 import great_expectations as gx
@@ -561,14 +562,18 @@ def test_hyphen():
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("data", [pytest.param({"t": datetime.time(hour=1, minute=30, second=45)}, id="datetime.time")])
+@pytest.mark.parametrize(
+    "data", [pytest.param({"t": datetime.time(hour=1, minute=30, second=45)}, id="datetime.time")]
+)
 def test_convert_to_json_serializable_converts_correctly(data: dict):
     ret = convert_to_json_serializable(data)
     assert ret == {"t": "01:30:45"}
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("data", [pytest.param({"t": datetime.time(hour=1, minute=30, second=45)}, id="datetime.time")])
+@pytest.mark.parametrize(
+    "data", [pytest.param({"t": datetime.time(hour=1, minute=30, second=45)}, id="datetime.time")]
+)
 def test_ensure_json_serializable(data: dict):
     ensure_json_serializable(data)
     # Passes if no exception raised
