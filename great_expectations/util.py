@@ -1164,7 +1164,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
     if isinstance(data, np.float64):
         return float(data)
 
-    if isinstance(data, (datetime.datetime, datetime.date)):
+    if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):
         return data.isoformat()
 
     if isinstance(data, (np.datetime64)):
@@ -1309,7 +1309,7 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
         _ = [ensure_json_serializable(x) for x in data.tolist()]  # type: ignore[func-returns-value]
         return
 
-    if isinstance(data, (datetime.datetime, datetime.date)):
+    if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):
         return
 
     if isinstance(data, pathlib.PurePath):
