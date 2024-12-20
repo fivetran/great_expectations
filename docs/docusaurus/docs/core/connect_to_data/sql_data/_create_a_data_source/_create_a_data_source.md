@@ -70,7 +70,7 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
       "schema": "my_schema"
    }
 
-   data_source = context.sources.add_snowflake(
+   data_source = context.data_sources.add_snowflake(
       name=datasource_name,
       connection_string=connection_details,
       kwargs={"connect_args": connect_args}
