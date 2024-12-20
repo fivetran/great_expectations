@@ -216,7 +216,7 @@ class GxContextWarning(GxDatasourceWarning):
     """
     Warning related to a Datasource with a missing context.
     Usually because the Datasource was created directly rather than using a
-    `context.sources` factory method.
+    `context.data_sources` factory method.
     """
 
 

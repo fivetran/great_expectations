@@ -33,7 +33,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def add(self, suite: ExpectationSuite) -> ExpectationSuite:
         """Add an ExpectationSuite to the collection.
 
-        Parameters:
+        Args:
             suite: ExpectationSuite to add
 
         Raises:
@@ -62,7 +62,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def delete(self, name: str) -> None:
         """Delete an ExpectationSuite from the collection.
 
-        Parameters:
+        Args:
             name: The name of the ExpectationSuite to delete
 
         Raises:
@@ -89,7 +89,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def get(self, name: str) -> ExpectationSuite:
         """Get an ExpectationSuite from the collection by name.
 
-        Parameters:
+        Args:
             name: Name of ExpectationSuite to get
 
         Raises:
@@ -125,3 +125,33 @@ class SuiteFactory(Factory[ExpectationSuite]):
                 self._store.submit_all_deserialization_event(e)
                 raise
         return deserializable_suites
+
+    @public_api
+    def add_or_update(self, suite: ExpectationSuite) -> ExpectationSuite:
+        """Add or update an ExpectationSuite by name.
+
+        If an ExpectationSuite with the same name exists, overwrite it, otherwise
+        create a new ExpectationSuite. On update, Expectations in the Suite which
+        match a previously existing Expectation maintain a stable ID, and
+        Expectations which have changed receive a new ID.
+
+        Args:
+            suite: ExpectationSuite to add or update
+        """
+        try:
+            existing_suite = self.get(name=suite.name)
+        except DataContextError:
+            return self.add(suite=suite)
+
+        # add IDs to expectations that haven't changed
+        existing_expectations = existing_suite.expectations
+        for expectation in suite.expectations:
+            try:
+                index = existing_expectations.index(expectation)
+                expectation.id = existing_expectations[index].id
+            except ValueError:
+                pass  # expectation is new or updated
+
+        suite.id = existing_suite.id
+        suite.save()
+        return suite

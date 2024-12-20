@@ -702,7 +702,7 @@ class AbstractDataContext(ConfigPeer, ABC):
         # "type" is only used in FDS so we check for its existence (equivalent for block-style would be "class_name" and "module_name")  # noqa: E501
         if "type" in kwargs:
             raise TypeError(  # noqa: TRY003
-                "Creation of fluent-datasources with individual arguments is not supported and should be done through the `context.sources` API."  # noqa: E501
+                "Creation of fluent-datasources with individual arguments is not supported and should be done through the `context.data_sources` API."  # noqa: E501
             )
 
     def _add_datasource(

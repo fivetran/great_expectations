@@ -1,9 +1,10 @@
+import datetime
 import re
 
 import numpy as np
 import pytest
 
-from great_expectations.util import convert_to_json_serializable
+from great_expectations.util import convert_to_json_serializable, ensure_json_serializable
 
 try:
     from shapely.geometry import LineString, MultiPolygon, Point, Polygon
@@ -63,3 +64,21 @@ def test_serialization_of_pattern():
     pattern_to_test = r"data_(?P<year>\d{4})-(?P<month>\d{2}).csv"
     data = re.compile(pattern_to_test)
     assert convert_to_json_serializable(data) == pattern_to_test
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "data", [pytest.param({"t": datetime.time(hour=1, minute=30, second=45)}, id="datetime.time")]
+)
+def test_convert_to_json_serializable_converts_correctly(data: dict):
+    ret = convert_to_json_serializable(data)
+    assert ret == {"t": "01:30:45"}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "data", [pytest.param({"t": datetime.time(hour=1, minute=30, second=45)}, id="datetime.time")]
+)
+def test_ensure_json_serializable(data: dict):
+    ensure_json_serializable(data)
+    # Passes if no exception raised
