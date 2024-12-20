@@ -17,7 +17,7 @@ An Expectation is a verifiable assertion about your data. They make implicit ass
 The following table lists the available GX Cloud Expectations.
 
 | Data quality issue |                    Expectation                       |                                                               Description                                                              | Dynamic Parameters? |
-|:------------------:|:----------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------:|:-------------------:|
+|------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-------------------|
 | Completeness       | **column values to be null**                         | Expect the column values to be null.                                                                                                   | Coming soon         |
 | Completeness       | **column values to not be null**                     | Expect the column values to not be null.                                                                                               | Coming soon         |
 | Numeric            | **column max to be between**                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 |
