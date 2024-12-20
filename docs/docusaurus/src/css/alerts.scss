@@ -31,7 +31,7 @@
   border-left-width: var(--ifm-alert-border-left-width);
   box-shadow: none;
 
-  & [class^="admonitionHeading"] {
+  [class^="admonitionHeading"] {
     text-transform: none;
   }
 
