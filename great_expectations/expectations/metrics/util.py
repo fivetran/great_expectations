@@ -360,7 +360,7 @@ class CaseInsensitiveNameDict(UserDict):
         return item
 
 
-def get_sqlalchemy_column_metadata(  # noqa: C901
+def get_sqlalchemy_column_metadata(  # noqa: C901, PLR0912
     execution_engine: SqlAlchemyExecutionEngine,
     table_selectable: sqlalchemy.Select,
     schema_name: Optional[str] = None,
@@ -414,16 +414,26 @@ def get_sqlalchemy_column_metadata(  # noqa: C901
             )
 
         dialect_name = execution_engine.dialect.name
-        if dialect_name == GXSqlDialect.SNOWFLAKE:
+        if dialect_name in [
+            GXSqlDialect.DATABRICKS,
+            GXSqlDialect.POSTGRESQL,
+            GXSqlDialect.SNOWFLAKE,
+        ]:
             # WARNING: Do not alter columns in place, as they are cached on the inspector
             columns_copy = [column.copy() for column in columns]
             for column in columns_copy:
-                column["type"] = column["type"].compile(dialect=execution_engine.dialect)
-            return [
-                # TODO: SmartColumn should know the dialect and do lookups based on that
-                CaseInsensitiveNameDict(column)
-                for column in columns_copy
-            ]
+                if column.get("type"):
+                    # When using column_reflection_fallback, we might not be able to
+                    # extract the column type, and only have the column name
+                    column["type"] = column["type"].compile(dialect=execution_engine.dialect)
+            if dialect_name == GXSqlDialect.SNOWFLAKE:
+                return [
+                    # TODO: SmartColumn should know the dialect and do lookups based on that
+                    CaseInsensitiveNameDict(column)
+                    for column in columns_copy
+                ]
+            else:
+                return columns_copy
 
         return columns
     except AttributeError as e:

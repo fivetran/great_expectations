@@ -88,10 +88,11 @@ def _build_renderer(config: dict) -> Renderer:
     return renderer
 
 
+@public_api
 class ActionContext:
     """
-    Shared context for all actions in a checkpoint run.
-    Note that order matters in the action list, as the context is updated with each action's result.
+    Shared context for all Actions in a Checkpoint run.
+    Note that order matters in the Action list, as the context is updated with each Action's result.
     """
 
     def __init__(self) -> None:
@@ -104,7 +105,17 @@ class ActionContext:
     def update(self, action: ValidationAction, action_result: dict) -> None:
         self._data.append((action, action_result))
 
+    @public_api
     def filter_results(self, class_: Type[ValidationAction]) -> list[dict]:
+        """
+        Filter the results of the actions in the context by class.
+
+        Args:
+            class_: The class to filter by.
+
+        Returns:
+            A list of action results.
+        """
         return [action_result for action, action_result in self._data if isinstance(action, class_)]
 
 
@@ -182,10 +193,10 @@ class MetaValidationAction(ModelMetaclass):
 @public_api
 class ValidationAction(BaseModel, metaclass=MetaValidationAction):
     """
-    ValidationActions define a set of steps to be run after a validation result is produced.
+    Actions define a set of steps to run after a Validation Result is produced. Subclass `ValidationAction` to create a [custom Action](/docs/core/trigger_actions_based_on_results/create_a_custom_action).
 
     Through a Checkpoint, one can orchestrate the validation of data and configure notifications, data documentation updates,
-    and other actions to take place after the validation result is produced.
+    and other actions to take place after the Validation Result is produced.
     """  # noqa: E501
 
     class Config:
@@ -201,9 +212,20 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
     def _using_cloud_context(self) -> bool:
         return project_manager.is_using_cloud()
 
+    @public_api
     def run(
         self, checkpoint_result: CheckpointResult, action_context: ActionContext | None = None
     ) -> dict:
+        """
+        Run the action.
+
+        Args:
+            checkpoint_result: The result of the checkpoint run.
+            action_context: The context in which the action is run.
+
+        Returns:
+            A dictionary containing the result of the action.
+        """
         raise NotImplementedError
 
     def _get_data_docs_pages_from_prior_action(

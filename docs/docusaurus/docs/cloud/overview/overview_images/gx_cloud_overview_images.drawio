@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" version="24.8.6" pages="2">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" version="24.8.6" pages="2">
   <diagram name="workflows" id="D7wG57QJHLXb0QdnoCGA">
-    <mxGraphModel dx="1307" dy="1107" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+    <mxGraphModel dx="1385" dy="1081" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -83,7 +83,7 @@
           <mxGeometry x="657.05" y="120" width="160.2" height="120" as="geometry" />
         </mxCell>
         <mxCell id="-vgSHcs_DyUJYBKirj9j-12" value="Schedule recurring Validations" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=none;fontStyle=0;fillColor=#aae1da;" parent="1" vertex="1">
-          <mxGeometry x="757.05" y="450" width="120" height="80" as="geometry" />
+          <mxGeometry x="757.05" y="440" width="120" height="80" as="geometry" />
         </mxCell>
         <mxCell id="MKeaaogaEU1yrKxKLzHu-5" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=#FF6310;fillColor=none;sketch=1;curveFitting=1;jiggle=2;" parent="1" vertex="1">
           <mxGeometry x="20" y="120" width="117.25" height="120" as="geometry" />
@@ -158,7 +158,19 @@
           <mxGeometry x="20" y="560" width="140" height="120" as="geometry" />
         </mxCell>
         <mxCell id="-vgSHcs_DyUJYBKirj9j-15" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=#3fa298;fontStyle=0;sketch=1;curveFitting=1;jiggle=2;fillColor=none;" parent="1" vertex="1">
-          <mxGeometry x="757.05" y="450" width="120" height="80" as="geometry" />
+          <mxGeometry x="757.05" y="440" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="eltq8oMHbreIp49xVEPe-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#404041;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=16;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="483" y="480" as="sourcePoint" />
+            <mxPoint x="523" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eltq8oMHbreIp49xVEPe-12" value="&lt;span id=&quot;docs-internal-guid-0e7e019a-7fff-dd0c-b0b4-b6bef8b01081&quot;&gt;&lt;span style=&quot;font-family: Arial, sans-serif; background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; font-variant-alternates: normal; font-variant-position: normal; font-variant-emoji: normal; vertical-align: baseline; white-space-collapse: preserve;&quot;&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;Automate schema change detection&lt;/font&gt;&lt;/span&gt;&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=none;fontStyle=0;fillColor=#aae1da;" vertex="1" parent="1">
+          <mxGeometry x="525" y="440" width="145" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="eltq8oMHbreIp49xVEPe-11" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=#3fa298;fontStyle=0;sketch=1;curveFitting=1;jiggle=2;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="525" y="440" width="145" height="80" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

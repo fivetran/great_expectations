@@ -134,6 +134,10 @@ To clear the Expectation condition, click the clear button located on the right-
 
 7. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 
+:::tip Automate rules for schema change detection
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes in that Data Asset.
+:::
+
 
 ## Optional. Define a Batch
 
@@ -143,13 +147,11 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Click the **Expectations** tab.
+3. Click **Define batch**.
 
-4. Click **Define batch**.
+4. Choose how to **Validate by**. Select the **Entire Asset** tab to provide all Data Asset records to your Expectations and validations, or select one of the **Year**/**Month**/**Day** tabs to use subsets of Data Asset records for your Expectations and validations. **Year** partitions Data Asset records by year, **Month** partitions Data Asset records by year and month, **Day** partitions Data Asset records by year, month, and day.
 
-5. Choose how to **Validate by**. Select the **Entire Asset** tab to provide all Data Asset records to your Expectations and validations, or select one of the **Year**/**Month**/**Day** tabs to use subsets of Data Asset records for your Expectations and validations. **Year** partitions Data Asset records by year, **Month** partitions Data Asset records by year and month, **Day** partitions Data Asset records by year, month, and day.
-
-6. Select the **Batch column** that contains the DATE or DATETIME data to partition on.
+5. Select the **Batch column** that contains the DATE or DATETIME data to partition on.
 
 ## Edit an Expectation
 
@@ -157,13 +159,11 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Click the **Expectations** tab.
+3. Click **Edit Expectation** for the Expectation that you want to edit.
 
-4. Click **Edit Expectation** for the Expectation that you want to edit.
+4. Edit the Expectation configuration.
 
-5. Edit the Expectation configuration.
-
-6. Click **Save**.
+5. Click **Save**.
 
 ## Delete an Expectation
 
@@ -171,11 +171,9 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Click the **Expectations** tab.
+3. Click **Delete Expectation** for the Expectation you want to delete.
 
-4. Click **Delete Expectation** for the Expectation you want to delete.
-
-5. Click **Yes, delete Expectation**.
+4. Click **Yes, delete Expectation**.
 
 ## GX-managed vs. API-managed Expectations
 
@@ -196,8 +194,6 @@ Here is a comparison of key characteristics of GX-managed and API-managed Expect
 | Schedule           | Keep default schedule or [edit schedule](/cloud/schedules/manage_schedules.md) in the Cloud UI                                                                                                      | Not supported, use an [orchestrator](/cloud/connect/connect_airflow.md) to control recurring validations                                                                                                                                                                                                                    |
 | Expectation Suite  | Automatically organized in a hidden default Expectation Suite                                                                                                                                       | Manually grouped into [custom Expectation Suites](/core/define_expectations/organize_expectation_suites.md) via the API                                                                                                                                                                                                     |
 | Delete             | [Delete Expectation](/docs/cloud/expectations/manage_expectations/#delete-an-expectation) with the Cloud UI                                                                                         | [Delete Expectation with the API](/reference/api/ExpectationSuite_class.mdx#great_expectations.ExpectationSuite.delete_expectation) or the Cloud UI                                                                                                                                                                         |
-
-
 
 :::note Hidden resources for GX-managed Expectations
 To support GX-managed Expectations, we create resources that you typically won't directly interact with. For example, we create a GX-managed Expectation Suite that we use to organize your Expectations. For some workflows you may need to work with these hidden resources, for example, you may need to [find the name of an automatically created Checkpoint](/cloud/connect/connect_airflow.md#create-a-dag-file-for-your-gx-cloud-checkpoint). But, typically you can ignore the existence of these hidden resources. 

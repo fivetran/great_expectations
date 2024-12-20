@@ -1,9 +1,15 @@
 import pandas as pd
 import pytest
 import sqlalchemy.types as sqltypes
+from packaging import version
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility.databricks import DATABRICKS_TYPES
+from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
+from great_expectations.compatibility.sqlalchemy import (
+    sqlalchemy as sa,
+)
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -14,6 +20,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
 )
 
@@ -379,3 +386,314 @@ def test_success_complete_snowflake(
     assert isinstance(result_dict["observed_value"], str)
     assert isinstance(expectation.type_list, list)
     assert result_dict["observed_value"] in expectation.type_list
+
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="CHAR", type_list=["CHAR", "CHAR(1)"]),
+            id="CHAR",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="TEXT", type_list=["TEXT"]),
+            id="TEXT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="INTEGER", type_list=["INTEGER"]),
+            id="INTEGER",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="SMALLINT", type_list=["SMALLINT"]),
+            id="SMALLINT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="BIGINT", type_list=["BIGINT"]),
+            id="BIGINT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="TIMESTAMP", type_list=["TIMESTAMP", "TIMESTAMP WITHOUT TIME ZONE"]
+            ),
+            id="TIMESTAMP",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="DATE", type_list=["DATE"]),
+            id="DATE",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="DOUBLE_PRECISION", type_list=["DOUBLE PRECISION"]
+            ),
+            id="DOUBLE_PRECISION",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="BOOLEAN", type_list=["BOOLEAN"]),
+            id="BOOLEAN",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="NUMERIC", type_list=["NUMERIC"]),
+            id="NUMERIC",
+        ),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        PostgreSQLDatasourceTestConfig(
+            column_types={
+                "CHAR": POSTGRESQL_TYPES.CHAR,
+                "TEXT": POSTGRESQL_TYPES.TEXT,
+                "INTEGER": POSTGRESQL_TYPES.INTEGER,
+                "SMALLINT": POSTGRESQL_TYPES.SMALLINT,
+                "BIGINT": POSTGRESQL_TYPES.BIGINT,
+                "TIMESTAMP": POSTGRESQL_TYPES.TIMESTAMP,
+                "DATE": POSTGRESQL_TYPES.DATE,
+                "DOUBLE_PRECISION": POSTGRESQL_TYPES.DOUBLE_PRECISION,
+                "BOOLEAN": POSTGRESQL_TYPES.BOOLEAN,
+                "NUMERIC": POSTGRESQL_TYPES.NUMERIC,
+            }
+        ),
+    ],
+    data=pd.DataFrame(
+        {
+            "CHAR": ["a", "b", "c"],
+            "TEXT": ["a", "b", "c"],
+            "INTEGER": [1, 2, 3],
+            "SMALLINT": [1, 2, 3],
+            "BIGINT": [1, 2, 3],
+            "TIMESTAMP": [
+                "2021-01-01 00:00:00",
+                "2021-01-02 00:00:00",
+                "2021-01-03 00:00:00",
+            ],
+            "DATE": [
+                # Date in isoformat
+                "2021-01-01",
+                "2021-01-02",
+                "2021-01-03",
+            ],
+            "DOUBLE_PRECISION": [1.0, 2.0, 3.0],
+            "BOOLEAN": [False, False, True],
+            "NUMERIC": [1, 2, 3],
+        },
+        dtype="object",
+    ),
+)
+def test_success_complete_postgres(
+    batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
+) -> None:
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    result_dict = result.to_json_dict()["result"]
+
+    assert result.success
+    assert isinstance(result_dict, dict)
+    assert isinstance(result_dict["observed_value"], str)
+    assert isinstance(expectation.type_list, list)
+    assert result_dict["observed_value"] in expectation.type_list
+
+
+@pytest.mark.parametrize(
+    "expectation",
+    [
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="STRING", type_list=["STRING"]),
+            id="STRING",
+        ),
+        # SqlA Text gets converted to Databricks STRING
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="TEXT", type_list=["STRING"]),
+            id="TEXT",
+        ),
+        # SqlA UNICODE gets converted to Databricks STRING
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="UNICODE", type_list=["STRING"]),
+            id="UNICODE",
+        ),
+        # SqlA UNICODE_TEXT gets converted to Databricks STRING
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="UNICODE_TEXT", type_list=["STRING"]),
+            id="UNICODE_TEXT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="BOOLEAN", type_list=["BOOLEAN"]),
+            id="BOOLEAN",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="DECIMAL", type_list=["DECIMAL", "DECIMAL(10, 0)"]
+            ),
+            id="DECIMAL",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="DATE", type_list=["DATE"]),
+            id="DATE",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="TIMESTAMP", type_list=["TIMESTAMP"]),
+            id="TIMESTAMP",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="TIMESTAMP_NTZ", type_list=["TIMESTAMP_NTZ"]
+            ),
+            id="TIMESTAMP_NTZ",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="FLOAT", type_list=["FLOAT"]),
+            id="FLOAT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="INT", type_list=["INT"]),
+            id="INT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="TINYINT", type_list=["TINYINT"]),
+            id="TINYINT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="DECIMAL", type_list=["DECIMAL", "DECIMAL(10, 0)"]
+            ),
+            id="DECIMAL",
+        ),
+        # SqlA Time gets converted to Databricks STRING,
+        # but is not supported by our testing framework
+        # pytest.param(
+        #     gxe.ExpectColumnValuesToBeInTypeList(column="TIME", type_list=["STRING"]),
+        #     id="TIME",
+        # ),
+        # SqlA UUID gets converted to Databricks STRING,
+        # but is not supported by our testing framework.
+        # pytest.param(
+        #     gxe.ExpectColumnValuesToBeInTypeList(column="UUID", type_list=["STRING"]),
+        #     id="UUID",
+        # )
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        DatabricksDatasourceTestConfig(
+            column_types={
+                "STRING": DATABRICKS_TYPES.STRING,
+                "TEXT": sqltypes.Text,
+                "UNICODE": sqltypes.Unicode,
+                "UNICODE_TEXT": sqltypes.UnicodeText,
+                "BIGINT": sqltypes.BigInteger,
+                "BOOLEAN": sqltypes.BOOLEAN,
+                "DATE": sqltypes.DATE,
+                "TIMESTAMP_NTZ": DATABRICKS_TYPES.TIMESTAMP_NTZ,
+                "TIMESTAMP": DATABRICKS_TYPES.TIMESTAMP,
+                "FLOAT": sqltypes.Float,
+                "INT": sqltypes.Integer,
+                "DECIMAL": sqltypes.Numeric,
+                "SMALLINT": sqltypes.SmallInteger,
+                "TINYINT": DATABRICKS_TYPES.TINYINT,
+                # "TIME": sqltypes.Time,
+                # "UUID": sqltypes.UUID,
+            }
+        )
+    ],
+    data=pd.DataFrame(
+        {
+            "STRING": ["a", "b", "c"],
+            "TEXT": ["a", "b", "c"],
+            "UNICODE": ["\u00e9", "\u00e9", "\u00e9"],
+            "UNICODE_TEXT": ["a", "b", "c"],
+            "BIGINT": [1111, 2222, 3333],
+            "BOOLEAN": [True, True, False],
+            "DATE": [
+                "2021-01-01",
+                "2021-01-02",
+                "2021-01-03",
+            ],
+            "TIMESTAMP_NTZ": [
+                "2021-01-01 00:00:00",
+                "2021-01-02 00:00:00",
+                "2021-01-03 00:00:00",
+            ],
+            "TIMESTAMP": [
+                "2021-01-01 00:00:00",
+                "2021-01-02 00:00:00",
+                "2021-01-03 00:00:00",
+            ],
+            "DOUBLE": [1.0, 2.0, 3.0],
+            "FLOAT": [1.0, 2.0, 3.0],
+            "INT": [1, 2, 3],
+            "DECIMAL": [1.1, 2.2, 3.3],
+            "SMALLINT": [1, 2, 3],
+            # "TIME": [
+            #     sa.Time("22:17:33.123456"),
+            #     sa.Time("22:17:33.123456"),
+            #     sa.Time("22:17:33.123456"),
+            # ],
+            # "UUID": [
+            #      uuid.UUID("905993ea-f50e-4284-bea0-5be3f0ed7031"),
+            #      uuid.UUID("9406b631-fa2f-41cf-b666-f9a2ac3118c1"),
+            #      uuid.UUID("47538f05-32e3-4594-80e2-0b3b33257ae7")
+            #  ],
+        },
+        dtype="object",
+    ),
+)
+def test_success_complete_databricks(
+    batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
+) -> None:
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    result_dict = result.to_json_dict()["result"]
+
+    assert result.success
+    assert isinstance(result_dict, dict)
+    assert isinstance(result_dict["observed_value"], str)
+    assert isinstance(expectation.type_list, list)
+    assert result_dict["observed_value"] in expectation.type_list
+
+
+if version.parse(sa.__version__) >= version.parse("2.0.0"):
+    # Note: why not use pytest.skip?
+    # the import of `sqltypes.Double` is only possible in sqlalchemy >= 2.0.0
+    # the import is done as part of the instantiation of the test, which includes
+    # processing the pytest.skip() statement. This way, we skip the instantiation
+    # of the test entirely.
+    @pytest.mark.parametrize(
+        "expectation",
+        [
+            pytest.param(
+                gxe.ExpectColumnValuesToBeInTypeList(
+                    column="DOUBLE", type_list=["DOUBLE", "FLOAT"]
+                ),
+                id="DOUBLE",
+            )
+        ],
+    )
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            DatabricksDatasourceTestConfig(
+                column_types={
+                    "DOUBLE": sqltypes.Double,
+                }
+            )
+        ],
+        data=pd.DataFrame(
+            {
+                "DOUBLE": [1.0, 2.0, 3.0],
+            },
+            dtype="object",
+        ),
+    )
+    def test_success_complete_databricks_double_type_only(
+        batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
+    ) -> None:
+        """What does this test and why?
+
+        Databricks mostly uses SqlA types directly, but the double type is
+        only available after sqlalchemy 2.0. We therefore split up the test
+        into 2 parts, with this test being skipped if the SA version is too low.
+        """
+        result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+        result_dict = result.to_json_dict()["result"]
+
+        assert result.success
+        assert isinstance(result_dict, dict)
+        assert isinstance(result_dict["observed_value"], str)
+        assert isinstance(expectation.type_list, list)
+        assert result_dict["observed_value"] in expectation.type_list
