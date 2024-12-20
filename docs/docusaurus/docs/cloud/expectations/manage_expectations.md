@@ -30,7 +30,7 @@ The following table lists the available GX Cloud Expectations.
 | Numeric            | **column values to be between**                      | Expect the column entries to be between a minimum value and a maximum value.                                                           | No                  |
 | Numeric            | **column z scores to be less than**                  | Expect the Z-scores of a column's values to be less than a given threshold.                                                            | No                  |
 | Numeric            | **multicolumn sum to equal**                         | Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.             | No                  |
-| Numeric,  Validity | **column most common value to be in set**            | Expect the most common value to be within the designated value set.                                                                    | No                  |
+| Numeric, Validity | **column most common value to be in set**            | Expect the most common value to be within the designated value set.                                                                    | No                  |
 | Numeric, Validity  | **column pair values to be equal**                   | Expect the values in column A to be the same as column B.                                                                              | No                  |
 | Numeric, Validity  | **column values to be in set**                       | Expect each column value to be in a given set.                                                                                         | No                  |
 | Numeric, Validity  | **column values to not be in set**                   | Expect column entries to not be in the set.                                                                                            | No                  |
@@ -124,7 +124,7 @@ To clear the Expectation condition, click the clear button located on the right-
 
 3. Click **New Expectation**.
 
-4. Select a data quality issue to test for
+4. Select a data quality issue to test for.
 
 5. Select an Expectation type.
 
