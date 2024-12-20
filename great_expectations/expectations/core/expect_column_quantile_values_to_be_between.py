@@ -12,6 +12,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
@@ -69,7 +70,7 @@ ALLOW_RELATIVE_ERROR_DESCRIPTION = (
     "communications on backends that support or require it."
 )
 SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift"]
-DATA_QUALITY_ISSUES = ["Numerical data"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
@@ -129,7 +130,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:

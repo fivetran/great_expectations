@@ -5,6 +5,7 @@ from typing import Any, ClassVar, Dict, List, Literal, Tuple, Type, Union
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -16,7 +17,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 VALUE_PAIRS_SET_DESCRIPTION = "All the valid pairs to be matched."
 SUPPORTED_DATA_SOURCES = ["Snowflake", "PostgreSQL"]
-DATA_QUALITY_ISSUES = ["Sets"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
 
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
@@ -79,8 +80,9 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
+        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2
