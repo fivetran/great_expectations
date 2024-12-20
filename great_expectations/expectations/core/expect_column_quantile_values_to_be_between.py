@@ -121,7 +121,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
         [ExpectColumnMaxToBeBetween](https://greatexpectations.io/expectations/expect_column_max_to_be_between)
         [ExpectColumnMedianToBeBetween](https://greatexpectations.io/expectations/expect_column_median_to_be_between)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)

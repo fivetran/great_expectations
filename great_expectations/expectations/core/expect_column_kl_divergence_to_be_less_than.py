@@ -195,7 +195,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         value will be set to None. This is because inf, -inf, Nan, are not json serializable and cause some json \
         parsers to crash when encountered. The python None token will be serialized to null in json.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
