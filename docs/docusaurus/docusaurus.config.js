@@ -52,7 +52,7 @@ module.exports = {
     gxCard: {
       title: 'What is GX Cloud?',
       description:
-        'GX Cloud is a fully-managed SaaS solution that simplifies deployment, scaling, and collaboration and lets you focus on data validation.',
+        'GX Cloud is a fully-managed SaaS solution that simplifies deployment, scaling, and collaboration—so you can focus on data validation.',
       buttons: {
         primary: {
           label: 'Request a demo',
