@@ -49,7 +49,6 @@ SUPPORTED_DATA_SOURCES = [
     "Spark",
     "PostgreSQL",
     "MySQL",
-    "Redshift",
     "Databricks (SQL)",
     "SQLite",
 ]
@@ -106,7 +105,6 @@ class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
