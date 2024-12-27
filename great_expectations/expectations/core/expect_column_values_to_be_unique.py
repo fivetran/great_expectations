@@ -46,6 +46,7 @@ SUPPORTED_DATA_SOURCES = [
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
+    "MySQL",
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
@@ -97,6 +98,8 @@ class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}

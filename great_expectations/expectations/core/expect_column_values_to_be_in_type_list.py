@@ -59,18 +59,7 @@ TYPE_LIST_DESCRIPTION = """
     A list of strings representing the data type that each column should have as entries. \
     Valid types are defined by the current backend implementation and are dynamically loaded.
     """
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MSSQL",
-    "Trino",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-]
+SUPPORTED_DATA_SOURCES = ["Spark", "SQLite", "PostgreSQL", "MSSQL", "Trino", "Redshift", "BigQuery"]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 
 
@@ -130,8 +119,6 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}

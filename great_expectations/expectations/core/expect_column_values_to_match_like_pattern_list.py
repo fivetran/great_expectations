@@ -47,7 +47,16 @@ MATCH_ON_DESCRIPTION = (
     "Use 'all' if it should match each like pattern in the list."
 )
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
+SUPPORTED_DATA_SOURCES = [
+    "SQLite",
+    "PostgreSQL",
+    "MySQL",
+    "MSSQL",
+    "Redshift",
+    "Databricks (SQL)",
+    "BigQuery",
+    "Snowflake",
+]
 
 
 class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
@@ -102,6 +111,9 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
