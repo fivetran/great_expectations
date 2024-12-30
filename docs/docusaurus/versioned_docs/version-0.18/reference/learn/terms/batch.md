@@ -45,7 +45,7 @@ The `BatchRequest` object is the primary API used to construct Batches. You cons
 
 - For more information, see [our documentation on Batch Requests](./batch_request.md).
 
-:::note
+:::note Note
 
 Instantiating a Batch does not necessarily “fetch” the data by immediately running a query or pulling data into memory. Instead, think of a Batch as a wrapper that includes the information that you will need to fetch the right data when it’s time to Validate.
 

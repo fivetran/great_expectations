@@ -8,7 +8,7 @@ sidebar_custom_props: { icon: 'img/integrations/airflow_icon.png' }
 
 Airflow is a data orchestration tool for creating and maintaining data pipelines through DAGs written in Python. DAGs complete work through operators, which are templates that encapsulate a specific type of work.
 
-:::info 
+:::info Info
 
 Consult Astronomer's [Orchestrate Great Expectations with Airflow](https://docs.astronomer.io/learn/airflow-great-expectations) guide for more information on how to set up and configure the `GreatExpectationsOperator` in an Airflow DAG.
 
