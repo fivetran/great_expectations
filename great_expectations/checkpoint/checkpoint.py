@@ -296,7 +296,7 @@ class Checkpoint(BaseModel):
         run_id: RunIdentifier | None = None,
     ) -> CheckpointResult:
         """
-        Runs the Checkpoint's underlying validation definitions and actions.
+        Runs the Checkpoint's underlying Validation Definitions and Actions.
 
         Args:
             batch_parameters: Parameters to be used when loading the batch.
