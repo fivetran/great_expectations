@@ -479,7 +479,7 @@ class CheckpointResult(BaseModel):
     """
     The result of running a Checkpoint.
 
-    Contains the results of running each validation definition in the checkpoint.
+    Contains the results of running each Validation Definition in the Checkpoint.
     """
 
     run_id: RunIdentifier
