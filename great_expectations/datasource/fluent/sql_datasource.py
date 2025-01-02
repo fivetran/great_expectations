@@ -836,7 +836,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         sort_ascending: bool = True,
         validate_batchable: bool = True,
     ) -> BatchDefinition:
-        """Adds a monthly batch definition to this data asset
+        """Adds a monthly Batch Definition to this Data Asset
 
         Args:
             name: The name of the batch definition to be added
