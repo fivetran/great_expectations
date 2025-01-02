@@ -69,7 +69,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
         Add a BatchDefinition which creates a single batch for each month in the directory.
 
         Args:
-            name: Name of the batch definition.
+            name: Name of the Batch Definition.
             column: Column to partition on.
 
         Returns:
