@@ -839,7 +839,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         """Adds a monthly Batch Definition to this Data Asset
 
         Args:
-            name: The name of the batch definition to be added
+            name: The name of the Batch Definition to be added
             column: The column name on which to partition the asset by month
             sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
                 When running a validation, we default to running the last batch definition
