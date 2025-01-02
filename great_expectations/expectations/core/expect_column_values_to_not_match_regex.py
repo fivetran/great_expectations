@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME COP
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -180,7 +180,7 @@ class ExpectColumnValuesToNotMatchRegex(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     regex: Union[str, SuiteParameterDict] = pydantic.Field(description=REGEX_DESCRIPTION)
 
@@ -294,15 +294,15 @@ class ExpectColumnValuesToNotMatchRegex(ColumnMapExpectation):
 
         if not params.get("regex"):
             template_str = "values must not match a regular expression but none was specified."
-        else:  # noqa: PLR5501 # FIXME COP
+        else:  # noqa: PLR5501 # FIXME CoP
             if params["mostly"] is not None and params["mostly"] < 1.0:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME COP
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 if include_column_name:
-                    template_str = "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time."  # noqa: E501 # FIXME COP
+                    template_str = "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
                 else:
-                    template_str = "values must not match this regular expression: $regex, at least $mostly_pct % of the time."  # noqa: E501 # FIXME COP
-            else:  # noqa: PLR5501 # FIXME COP
+                    template_str = "values must not match this regular expression: $regex, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
+            else:  # noqa: PLR5501 # FIXME CoP
                 if include_column_name:
                     template_str = "$column values must not match this regular expression: $regex."
                 else:

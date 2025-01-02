@@ -220,7 +220,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     type_: str = pydantic.Field(description=TYPE__DESCRIPTION)
 
@@ -451,7 +451,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             except AttributeError:
                 logger.debug(f"Unrecognized type: {expected_type}")
             if len(types) == 0:
-                raise ValueError("No recognized spark types in expected_types_list")  # noqa: TRY003 # FIXME COP
+                raise ValueError("No recognized spark types in expected_types_list")  # noqa: TRY003 # FIXME CoP
             types = tuple(types)
             success = isinstance(actual_column_type, types)
         return {
@@ -470,11 +470,11 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             PandasExecutionEngine,
         )
 
-        # This calls BatchExpectation.get_validation_dependencies to set baseline validation_dependencies for the aggregate version  # noqa: E501 # FIXME COP
+        # This calls BatchExpectation.get_validation_dependencies to set baseline validation_dependencies for the aggregate version  # noqa: E501 # FIXME CoP
         # of the expectation.
         # We need to keep this as super(ColumnMapExpectation, self), which calls
-        # BatchExpectation.get_validation_dependencies instead of ColumnMapExpectation.get_validation_dependencies.  # noqa: E501 # FIXME COP
-        # This is because the map version of this expectation is only supported for Pandas, so we want the aggregate  # noqa: E501 # FIXME COP
+        # BatchExpectation.get_validation_dependencies instead of ColumnMapExpectation.get_validation_dependencies.  # noqa: E501 # FIXME CoP
+        # This is because the map version of this expectation is only supported for Pandas, so we want the aggregate  # noqa: E501 # FIXME CoP
         # version for the other backends.
         validation_dependencies: ValidationDependencies = super(
             ColumnMapExpectation, self
@@ -524,7 +524,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                     None,
                 ]
             ):
-                # this resets validation_dependencies using  ColumnMapExpectation.get_validation_dependencies  # noqa: E501 # FIXME COP
+                # this resets validation_dependencies using  ColumnMapExpectation.get_validation_dependencies  # noqa: E501 # FIXME CoP
                 validation_dependencies = super().get_validation_dependencies(
                     execution_engine, runtime_configuration
                 )

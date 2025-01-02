@@ -8,7 +8,7 @@ from great_expectations.compatibility.pydantic import (
     root_validator,
 )
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME COP
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -213,7 +213,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Union[int, SuiteParameterDict, datetime, None] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -288,7 +288,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
         min_value = values.get("min_value")
         max_value = values.get("max_value")
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME COP
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
         return values
 
     @classmethod
@@ -328,14 +328,14 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
                     renderer_configuration=renderer_configuration
                 )
                 if params.min_value and params.max_value:
-                    template_str = f"values must be {at_least_str} $min_value and {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME COP
+                    template_str = f"values must be {at_least_str} $min_value and {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
                 elif not params.min_value:
-                    template_str = f"values must be {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME COP
+                    template_str = f"values must be {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
                 else:
-                    template_str = f"values must be {at_least_str} $min_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME COP
-            else:  # noqa: PLR5501 # FIXME COP
+                    template_str = f"values must be {at_least_str} $min_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
+            else:  # noqa: PLR5501 # FIXME CoP
                 if params.min_value and params.max_value:
-                    template_str = f"values must always be {at_least_str} $min_value and {at_most_str} $max_value characters long."  # noqa: E501 # FIXME COP
+                    template_str = f"values must always be {at_least_str} $min_value and {at_most_str} $max_value characters long."  # noqa: E501 # FIXME CoP
                 elif not params.min_value:
                     template_str = (
                         f"values must always be {at_most_str} $max_value characters long."
@@ -396,18 +396,18 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
 
             if params["mostly"] is not None and params["mostly"] < 1.0:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME COP
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 if params["min_value"] is not None and params["max_value"] is not None:
-                    template_str = f"values must be {at_least_str} $min_value and {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME COP
+                    template_str = f"values must be {at_least_str} $min_value and {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
                 elif params["min_value"] is None:
-                    template_str = f"values must be {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME COP
+                    template_str = f"values must be {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
                 elif params["max_value"] is None:
-                    template_str = f"values must be {at_least_str} $min_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME COP
-            else:  # noqa: PLR5501 # FIXME COP
+                    template_str = f"values must be {at_least_str} $min_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
+            else:  # noqa: PLR5501 # FIXME CoP
                 if params["min_value"] is not None and params["max_value"] is not None:
-                    template_str = f"values must always be {at_least_str} $min_value and {at_most_str} $max_value characters long."  # noqa: E501 # FIXME COP
+                    template_str = f"values must always be {at_least_str} $min_value and {at_most_str} $max_value characters long."  # noqa: E501 # FIXME CoP
 
                 elif params["min_value"] is None:
                     template_str = (

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Un
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME COP
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
@@ -14,7 +14,7 @@ from great_expectations.expectations.expectation import (
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_types import (
-    ConditionParser,  # noqa: TCH001 # FIXME COP
+    ConditionParser,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -157,7 +157,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Union[int, SuiteParameterDict, datetime, None] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -280,7 +280,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
         _ = runtime_configuration.get("include_column_name") is not False
         styling = runtime_configuration.get("styling")
         params = substitute_none_for_missing(
-            configuration.kwargs,  # type: ignore[union-attr] # FIXME COP
+            configuration.kwargs,  # type: ignore[union-attr] # FIXME CoP
             [
                 "min_value",
                 "max_value",
@@ -303,7 +303,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
             elif params["max_value"] is None:
                 template_str = f"Must have {at_least_str} $min_value rows."
             else:
-                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME COP
+                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME CoP
 
         return [
             RenderedStringTemplateContent(

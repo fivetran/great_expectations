@@ -1,7 +1,7 @@
 import glob
 
-json_files = glob.glob("tests/**/output/**/*.json", recursive=True)  # noqa: PTH207 # FIXME COP
-html_files = glob.glob("tests/**/output/**/*.html", recursive=True)  # noqa: PTH207 # FIXME COP
+json_files = glob.glob("tests/**/output/**/*.json", recursive=True)  # noqa: PTH207 # FIXME CoP
+html_files = glob.glob("tests/**/output/**/*.html", recursive=True)  # noqa: PTH207 # FIXME CoP
 
 html_list = ""
 for f_ in html_files:

@@ -23,7 +23,7 @@ from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.types import SerializableDictDot
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME COP
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark, sqlalchemy
@@ -116,7 +116,7 @@ def _parse_great_expectations_condition(row_condition: str):
     try:
         return condition.parseString(row_condition)
     except ParseException:
-        raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003 # FIXME COP
+        raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 
 
 # noinspection PyUnresolvedReferences
@@ -129,7 +129,7 @@ def parse_condition_to_spark(  # type: ignore[return] # return or raise exists f
         if parsed["op"] == "==":
             return F.col(column) == parsed["condition_value"]
         else:
-            raise ConditionParserError(  # noqa: TRY003 # FIXME COP
+            raise ConditionParserError(  # noqa: TRY003 # FIXME CoP
                 f"Invalid operator: {parsed['op']} for string literal spark condition."
             )
     elif "fnumber" in parsed:
@@ -151,7 +151,7 @@ def parse_condition_to_spark(  # type: ignore[return] # return or raise exists f
     elif "notnull" in parsed and parsed["notnull"] is True:
         return F.col(column).isNotNull()
     else:
-        raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003 # FIXME COP
+        raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 
 
 def generate_condition_by_operator(column, op, value):
@@ -188,4 +188,4 @@ def parse_condition_to_sqlalchemy(
     elif "notnull" in parsed and parsed["notnull"] is True:
         return sa.not_(sa.column(column).is_(None))
     else:
-        raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003 # FIXME COP
+        raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003 # FIXME CoP

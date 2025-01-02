@@ -13,9 +13,9 @@ with warnings.catch_warnings():
     try:
         import docstring_parser
     except ImportError:
-        docstring_parser = DOCSTRING_PARSER_NOT_IMPORTED  # type: ignore[assignment] # FIXME COP
+        docstring_parser = DOCSTRING_PARSER_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
 
     try:
         from docstring_parser import DocstringStyle
     except ImportError:
-        DocstringStyle = DOCSTRING_PARSER_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME COP
+        DocstringStyle = DOCSTRING_PARSER_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP

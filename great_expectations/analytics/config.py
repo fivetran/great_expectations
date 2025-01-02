@@ -51,5 +51,5 @@ def get_config() -> Config:
 
 
 def update_config(config: Config):
-    global _CONFIG  # noqa: PLW0603 # FIXME COP
+    global _CONFIG  # noqa: PLW0603 # FIXME CoP
     _CONFIG = config

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME COP
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -149,7 +149,7 @@ class ExpectTableColumnCountToBeBetween(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(description=MIN_VALUE_DESCRIPTION)
     max_value: Optional[Comparable] = pydantic.Field(description=MAX_VALUE_DESCRIPTION)
@@ -284,7 +284,7 @@ class ExpectTableColumnCountToBeBetween(BatchExpectation):
             elif params["max_value"] is None:
                 template_str = f"Must have {at_least_str} $min_value columns."
             else:
-                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME COP
+                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME CoP
 
         return [
             RenderedStringTemplateContent(

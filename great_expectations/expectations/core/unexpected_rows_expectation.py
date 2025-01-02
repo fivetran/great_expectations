@@ -164,7 +164,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
         runtime_configuration = runtime_configuration or {}
         styling = runtime_configuration.get("styling")
         params = substitute_none_for_missing(
-            configuration.kwargs,  # type: ignore[union-attr] # FIXME COP
+            configuration.kwargs,  # type: ignore[union-attr] # FIXME CoP
             ["unexpected_rows_query"],
         )
 

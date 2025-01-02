@@ -498,7 +498,7 @@ class TestPagerdutyAlertAction:
                             "payload": {
                                 "severity": "critical",
                                 "source": "Great Expectations",
-                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has succeeded",  # noqa: E501 # FIXME COP
+                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has succeeded",  # noqa: E501 # FIXME CoP
                             },
                             "routing_key": "test",
                         }
@@ -510,7 +510,7 @@ class TestPagerdutyAlertAction:
                             "payload": {
                                 "severity": "critical",
                                 "source": "Great Expectations",
-                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has failed",  # noqa: E501 # FIXME COP
+                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has failed",  # noqa: E501 # FIXME CoP
                             },
                             "routing_key": "test",
                         }
@@ -567,14 +567,14 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501 # FIXME COP
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501 # FIXME CoP
                         },
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501 # FIXME COP
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501 # FIXME CoP
                         },
                     },
                     {"type": "divider"},

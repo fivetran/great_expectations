@@ -59,11 +59,11 @@ class DatasourceStore(Store):
         super().__init__(
             store_backend=store_backend,
             runtime_environment=runtime_environment,
-            store_name=store_name,  # type: ignore[arg-type] # FIXME COP
+            store_name=store_name,  # type: ignore[arg-type] # FIXME CoP
         )
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME COP
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME COP
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "store_backend": store_backend,
             "runtime_environment": runtime_environment,
@@ -105,13 +105,13 @@ class DatasourceStore(Store):
         """
         See parent 'Store.deserialize()' for more information
         """
-        # When using the InlineStoreBackend, objects are already converted to their respective config types.  # noqa: E501 # FIXME COP
+        # When using the InlineStoreBackend, objects are already converted to their respective config types.  # noqa: E501 # FIXME CoP
         if isinstance(value, FluentDatasource):
             return value
         else:
             type_: str | None = value["type"]
             if not type_:
-                raise ValueError("Datasource type is missing")  # noqa: TRY003 # FIXME COP
+                raise ValueError("Datasource type is missing")  # noqa: TRY003 # FIXME CoP
             try:
                 datasource_model = DataSourceManager.type_lookup[type_]
                 return datasource_model(**value)
@@ -128,7 +128,7 @@ class DatasourceStore(Store):
     @classmethod
     def gx_cloud_response_json_to_object_dict(
         cls,
-        response_json: CloudResponsePayloadTD,  # type: ignore[override] # FIXME COP
+        response_json: CloudResponsePayloadTD,  # type: ignore[override] # FIXME CoP
     ) -> dict:
         """
         This method takes full json response from GX cloud and outputs a dict appropriate for
@@ -137,16 +137,16 @@ class DatasourceStore(Store):
         data = response_json["data"]
         if isinstance(data, list):
             if len(data) > 1:
-                # Larger arrays of datasources should be handled by `gx_cloud_response_json_to_object_collection`  # noqa: E501 # FIXME COP
-                raise TypeError(f"GX Cloud returned {len(data)} Datasources but expected 1")  # noqa: TRY003 # FIXME COP
+                # Larger arrays of datasources should be handled by `gx_cloud_response_json_to_object_collection`  # noqa: E501 # FIXME CoP
+                raise TypeError(f"GX Cloud returned {len(data)} Datasources but expected 1")  # noqa: TRY003 # FIXME CoP
             data = data[0]
 
         return DatasourceStore._convert_raw_json_to_object_dict(data)
 
     @override
     @staticmethod
-    def _convert_raw_json_to_object_dict(data: DataPayload) -> dict:  # type: ignore[override] # FIXME COP
-        return data  # type: ignore[return-value] # FIXME COP
+    def _convert_raw_json_to_object_dict(data: DataPayload) -> dict:  # type: ignore[override] # FIXME CoP
+        return data  # type: ignore[return-value] # FIXME CoP
 
     def retrieve_by_name(self, name: str) -> FluentDatasource:
         """Retrieves a Datasource persisted in the store by it's given name.
@@ -165,11 +165,11 @@ class DatasourceStore(Store):
             self.store_backend.build_key(name=name)
         )
         if not self.has_key(datasource_key):
-            raise ValueError(  # noqa: TRY003 # FIXME COP
-                f"Unable to load datasource `{name}` -- no configuration found or invalid configuration."  # noqa: E501 # FIXME COP
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to load datasource `{name}` -- no configuration found or invalid configuration."  # noqa: E501 # FIXME CoP
             )
 
-        datasource_config: FluentDatasource = copy.deepcopy(self.get(datasource_key))  # type: ignore[arg-type] # FIXME COP
+        datasource_config: FluentDatasource = copy.deepcopy(self.get(datasource_key))  # type: ignore[arg-type] # FIXME CoP
         datasource_config.name = name
         return datasource_config
 
@@ -183,7 +183,7 @@ class DatasourceStore(Store):
         self.remove_key(self._build_key_from_config(datasource_config))
 
     @override
-    def _build_key_from_config(  # type: ignore[override] # FIXME COP
+    def _build_key_from_config(  # type: ignore[override] # FIXME CoP
         self, datasource_config: FluentDatasource
     ) -> Union[GXCloudIdentifier, DataContextVariableKey]:
         id_: str | None = (
@@ -227,14 +227,14 @@ class DatasourceStore(Store):
         # values that may have been added to the config by the StoreBackend (i.e. object ids)
         ref: Optional[Union[bool, GXCloudResourceRef]] = super().set(key=key, value=config)
         if ref and isinstance(ref, GXCloudResourceRef):
-            key.id = ref.id  # type: ignore[attr-defined] # FIXME COP
+            key.id = ref.id  # type: ignore[attr-defined] # FIXME CoP
 
-        return_value: FluentDatasource = self.get(key)  # type: ignore[assignment] # FIXME COP
+        return_value: FluentDatasource = self.get(key)  # type: ignore[assignment] # FIXME CoP
         if not return_value.name and isinstance(key, DataContextVariableKey):
-            # Setting the name in the config is currently needed to handle adding the name to v2 datasource  # noqa: E501 # FIXME COP
+            # Setting the name in the config is currently needed to handle adding the name to v2 datasource  # noqa: E501 # FIXME CoP
             # configs and can be refactored (e.g. into `get()`)
             if not key.resource_name:
-                raise ValueError("Missing resource name")  # noqa: TRY003 # FIXME COP
+                raise ValueError("Missing resource name")  # noqa: TRY003 # FIXME CoP
             return_value.name = key.resource_name
 
         return return_value

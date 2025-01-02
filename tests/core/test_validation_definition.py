@@ -63,7 +63,7 @@ from great_expectations.validator.v1_validator import (
 )
 
 if TYPE_CHECKING:
-    from unittest.mock import MagicMock  # noqa: TID251 # FIXME COP
+    from unittest.mock import MagicMock  # noqa: TID251 # FIXME CoP
 
     from pytest_mock import MockerFixture
 

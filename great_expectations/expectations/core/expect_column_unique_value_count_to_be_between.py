@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME COP
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
@@ -175,7 +175,7 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -204,7 +204,7 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
 
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME COP
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.distinct_values.count",)
     success_keys = (
         "min_value",
@@ -288,7 +288,7 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
             elif not params.max_value:
                 template_str = f"must have {at_least_str} $min_value unique values."
             else:
-                template_str = f"must have {at_least_str} $min_value and {at_most_str} $max_value unique values."  # noqa: E501 # FIXME COP
+                template_str = f"must have {at_least_str} $min_value and {at_most_str} $max_value unique values."  # noqa: E501 # FIXME CoP
 
         if renderer_configuration.include_column_name:
             template_str = f"$column {template_str}"
@@ -327,13 +327,13 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
 
         if (params["min_value"] is None) and (params["max_value"] is None):
             template_str = "may have any number of unique values."
-        else:  # noqa: PLR5501 # FIXME COP
+        else:  # noqa: PLR5501 # FIXME CoP
             if params["min_value"] is None:
                 template_str = f"must have {at_most_str} $max_value unique values."
             elif params["max_value"] is None:
                 template_str = f"must have {at_least_str} $min_value unique values."
             else:
-                template_str = f"must have {at_least_str} $min_value and {at_most_str} $max_value unique values."  # noqa: E501 # FIXME COP
+                template_str = f"must have {at_least_str} $min_value and {at_most_str} $max_value unique values."  # noqa: E501 # FIXME CoP
 
         if include_column_name:
             template_str = f"$column {template_str}"

@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 def datetime_array():
     week_idx: int
     return [
-        datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME COP
+        datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME CoP
         for week_idx in range(4)
     ]
 
@@ -35,7 +35,7 @@ def datetime_string_array():
     week_idx: int
     return [
         (
-            datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME COP
+            datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME CoP
         ).isoformat()
         for week_idx in range(4)
     ]
@@ -51,9 +51,9 @@ def numeric_array():
 def test_gen_directory_tree_str(tmpdir):
     project_dir = str(tmpdir.mkdir("project_dir"))
     os.mkdir(os.path.join(project_dir, "BBB"))  # noqa: PTH102, PTH118
-    with open(os.path.join(project_dir, "BBB", "bbb.txt"), "w") as f:  # noqa: PTH118 # FIXME COP
+    with open(os.path.join(project_dir, "BBB", "bbb.txt"), "w") as f:  # noqa: PTH118 # FIXME CoP
         f.write("hello")
-    with open(os.path.join(project_dir, "BBB", "aaa.txt"), "w") as f:  # noqa: PTH118 # FIXME COP
+    with open(os.path.join(project_dir, "BBB", "aaa.txt"), "w") as f:  # noqa: PTH118 # FIXME CoP
         f.write("hello")
 
     os.mkdir(os.path.join(project_dir, "AAA"))  # noqa: PTH102, PTH118
@@ -61,7 +61,7 @@ def test_gen_directory_tree_str(tmpdir):
     res = gx.util.gen_directory_tree_str(project_dir)
     print(res)
 
-    # Note: files and directories are sorteds alphabetically, so that this method can be used for testing.  # noqa: E501 # FIXME COP
+    # Note: files and directories are sorteds alphabetically, so that this method can be used for testing.  # noqa: E501 # FIXME CoP
     assert (
         res
         == """\
@@ -76,7 +76,7 @@ project_dir/
 
 @pytest.mark.unit
 def test_nested_update():
-    # nested_update is useful for update nested dictionaries (such as batch_kwargs with reader_options as a dictionary)  # noqa: E501 # FIXME COP
+    # nested_update is useful for update nested dictionaries (such as batch_kwargs with reader_options as a dictionary)  # noqa: E501 # FIXME CoP
     batch_kwargs = {
         "path": "/a/path",
         "reader_method": "read_csv",
@@ -94,7 +94,7 @@ def test_nested_update():
 
 @pytest.mark.unit
 def test_nested_update_lists():
-    # nested_update is useful for update nested dictionaries (such as batch_kwargs with reader_options as a dictionary)  # noqa: E501 # FIXME COP
+    # nested_update is useful for update nested dictionaries (such as batch_kwargs with reader_options as a dictionary)  # noqa: E501 # FIXME CoP
     dependencies = {
         "suite.warning": {"metric.name": ["column=foo"]},
         "suite.failure": {"metric.blarg": [""]},
@@ -549,7 +549,7 @@ def test_convert_ndarray_float_to_datetime_tuple(
     with pytest.raises(TypeError) as e:
         _ = convert_ndarray_float_to_datetime_tuple(data=datetime_array)
 
-    # Error message varies based on version but mainly looking to validate type error by not using integer  # noqa: E501 # FIXME COP
+    # Error message varies based on version but mainly looking to validate type error by not using integer  # noqa: E501 # FIXME CoP
     assert all(string in str(e.value) for string in ("datetime.datetime", "integer"))
 
 

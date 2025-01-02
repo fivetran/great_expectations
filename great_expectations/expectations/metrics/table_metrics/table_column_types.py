@@ -53,8 +53,8 @@ class ColumnTypes(TableMetricProvider):
             if execution_engine.batch_manager.active_batch_data_id is not None:
                 batch_id = execution_engine.batch_manager.active_batch_data_id
             else:
-                raise GreatExpectationsError(  # noqa: TRY003 # FIXME COP
-                    "batch_id could not be determined from domain kwargs and no active_batch_data is loaded into the "  # noqa: E501 # FIXME COP
+                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                    "batch_id could not be determined from domain kwargs and no active_batch_data is loaded into the "  # noqa: E501 # FIXME CoP
                     "execution engine"
                 )
 
@@ -63,8 +63,8 @@ class ColumnTypes(TableMetricProvider):
             execution_engine.batch_manager.batch_data_cache.get(batch_id),
         )
         if batch_data is None:
-            raise GreatExpectationsError(  # noqa: TRY003 # FIXME COP
-                "the requested batch is not available; please load the batch into the execution engine."  # noqa: E501 # FIXME COP
+            raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                "the requested batch is not available; please load the batch into the execution engine."  # noqa: E501 # FIXME CoP
             )
 
         return _get_sqlalchemy_column_metadata(execution_engine, batch_data)
@@ -92,12 +92,12 @@ def _get_sqlalchemy_column_metadata(
 ):
     table_selectable: str | sqlalchemy.TextClause
 
-    if sqlalchemy.Table and isinstance(batch_data.selectable, sqlalchemy.Table):  # type: ignore[truthy-function] # FIXME COP
+    if sqlalchemy.Table and isinstance(batch_data.selectable, sqlalchemy.Table):  # type: ignore[truthy-function] # FIXME CoP
         table_selectable = batch_data.source_table_name or batch_data.selectable.name
         schema_name = batch_data.source_schema_name or batch_data.selectable.schema
 
     # if custom query was passed in
-    elif sqlalchemy.TextClause and isinstance(batch_data.selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME COP
+    elif sqlalchemy.TextClause and isinstance(batch_data.selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
         table_selectable = batch_data.selectable
         schema_name = None
     else:
@@ -106,7 +106,7 @@ def _get_sqlalchemy_column_metadata(
 
     return get_sqlalchemy_column_metadata(
         execution_engine=execution_engine,
-        table_selectable=table_selectable,  # type: ignore[arg-type] # FIXME COP
+        table_selectable=table_selectable,  # type: ignore[arg-type] # FIXME CoP
         schema_name=schema_name,
     )
 
@@ -146,6 +146,6 @@ def _get_spark_column_metadata(field, parent_name="", include_nested=True):  # n
                     include_nested=include_nested,
                 )
     else:
-        raise ValueError("unrecognized field type")  # noqa: TRY003 # FIXME COP
+        raise ValueError("unrecognized field type")  # noqa: TRY003 # FIXME CoP
 
     return cols

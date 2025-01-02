@@ -177,7 +177,7 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     column_list: Sequence[str] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
     ignore_row_if: str = pydantic.Field(

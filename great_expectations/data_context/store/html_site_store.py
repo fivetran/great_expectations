@@ -100,7 +100,7 @@ class HtmlSiteStore:
             bug_risk: Moderate
 
     --ge-feature-maturity-info--
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     _key_class = SiteSectionIdentifier
 
@@ -116,14 +116,14 @@ class HtmlSiteStore:
 
         # Store Class was loaded successfully; verify that it is of a correct subclass.
         if not issubclass(store_class, (TupleStoreBackend, GXCloudStoreBackend)):
-            raise DataContextError(  # noqa: TRY003 # FIXME COP
-                f"Invalid configuration: HtmlSiteStore needs a {TupleStoreBackend.__name__} or {GXCloudStoreBackend.__name__}"  # noqa: E501 # FIXME COP
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
+                f"Invalid configuration: HtmlSiteStore needs a {TupleStoreBackend.__name__} or {GXCloudStoreBackend.__name__}"  # noqa: E501 # FIXME CoP
             )
         if "filepath_template" in store_backend or (
             "fixed_length_key" in store_backend and store_backend["fixed_length_key"] is True
         ):
             logger.warning(
-                "Configuring a filepath_template or using fixed_length_key is not supported in SiteBuilder: "  # noqa: E501 # FIXME COP
+                "Configuring a filepath_template or using fixed_length_key is not supported in SiteBuilder: "  # noqa: E501 # FIXME CoP
                 "filepaths will be selected based on the type of asset rendered."
             )
 
@@ -234,16 +234,16 @@ class HtmlSiteStore:
 
         # NOTE: Instead of using the filesystem as the source of record for keys,
         # this class tracks keys separately in an internal set.
-        # This means that keys are stored for a specific session, but can't be fetched after the original  # noqa: E501 # FIXME COP
+        # This means that keys are stored for a specific session, but can't be fetched after the original  # noqa: E501 # FIXME CoP
         # HtmlSiteStore instance leaves scope.
-        # Doing it this way allows us to prevent namespace collisions among keys while still having multiple  # noqa: E501 # FIXME COP
+        # Doing it this way allows us to prevent namespace collisions among keys while still having multiple  # noqa: E501 # FIXME CoP
         # backends that write to the same directory structure.
-        # It's a pretty reasonable way for HtmlSiteStore to do its job---you just have to remember that it  # noqa: E501 # FIXME COP
+        # It's a pretty reasonable way for HtmlSiteStore to do its job---you just have to remember that it  # noqa: E501 # FIXME CoP
         # can't necessarily set and list_keys like most other Stores.
-        self.keys = set()  # type: ignore[var-annotated] # FIXME COP
+        self.keys = set()  # type: ignore[var-annotated] # FIXME CoP
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME COP
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME COP
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "store_backend": store_backend,
             "runtime_environment": runtime_environment,
@@ -288,7 +288,7 @@ class HtmlSiteStore:
             key = resource_identifier.to_tuple()
         else:
             # this method does not support getting the URL of static assets
-            raise ValueError(f"Cannot get URL for resource {resource_identifier!s:s}")  # noqa: TRY003 # FIXME COP
+            raise ValueError(f"Cannot get URL for resource {resource_identifier!s:s}")  # noqa: TRY003 # FIXME CoP
 
         # <WILL> : this is a hack for Taylor. Change this back. 20200924
         # if only_if_exists:
@@ -308,7 +308,7 @@ class HtmlSiteStore:
                 )
             else:
                 return store_backend.get_public_url_for_key(key)
-        else:  # noqa: PLR5501 # FIXME COP
+        else:  # noqa: PLR5501 # FIXME CoP
             if only_if_exists:
                 return store_backend.get_url_for_key(key) if store_backend.has_key(key) else None
             else:
@@ -316,7 +316,7 @@ class HtmlSiteStore:
 
     def _validate_key(self, key):
         if not isinstance(key, SiteSectionIdentifier):
-            raise TypeError(f"key: {key!r} must be a SiteSectionIdentifier, not {type(key)!r}")  # noqa: TRY003 # FIXME COP
+            raise TypeError(f"key: {key!r} must be a SiteSectionIdentifier, not {type(key)!r}")  # noqa: TRY003 # FIXME CoP
 
         for key_class in self.store_backends:
             try:
@@ -328,8 +328,8 @@ class HtmlSiteStore:
                 continue
 
         # The key's resource_identifier didn't match any known key_class
-        raise TypeError(  # noqa: TRY003 # FIXME COP
-            f"resource_identifier in key: {key!r} must one of {set(self.store_backends.keys())}, not {type(key)!r}"  # noqa: E501 # FIXME COP
+        raise TypeError(  # noqa: TRY003 # FIXME CoP
+            f"resource_identifier in key: {key!r} must one of {set(self.store_backends.keys())}, not {type(key)!r}"  # noqa: E501 # FIXME CoP
         )
 
     def list_keys(self):
@@ -369,17 +369,17 @@ class HtmlSiteStore:
         """
         Copies static assets, using a special "static_assets" backend store that accepts variable-length tuples as
         keys, with no filepath_template.
-        """  # noqa: E501 # FIXME COP
+        """  # noqa: E501 # FIXME CoP
         file_exclusions: list[str] = [".DS_Store"]
         dir_exclusions: list[str] = []
 
         if not static_assets_source_dir:
             static_assets_source_dir = file_relative_path(
                 __file__,
-                os.path.join("..", "..", "render", "view", "static"),  # noqa: PTH118 # FIXME COP
+                os.path.join("..", "..", "render", "view", "static"),  # noqa: PTH118 # FIXME CoP
             )
 
-        # If `static_assets_source_absdir` contains the string ".zip", then we try to extract (unzip)  # noqa: E501 # FIXME COP
+        # If `static_assets_source_absdir` contains the string ".zip", then we try to extract (unzip)  # noqa: E501 # FIXME CoP
         # the static files. If the unzipping is successful, that means that Great Expectations is
         # installed into a zip file (see PEP 273) and we need to run this function again
         if ".zip" in static_assets_source_dir.lower():
@@ -390,13 +390,13 @@ class HtmlSiteStore:
 
         for item in os.listdir(static_assets_source_dir):
             # Directory
-            if os.path.isdir(  # noqa: PTH112 # FIXME COP
-                os.path.join(static_assets_source_dir, item)  # noqa: PTH118 # FIXME COP
+            if os.path.isdir(  # noqa: PTH112 # FIXME CoP
+                os.path.join(static_assets_source_dir, item)  # noqa: PTH118 # FIXME CoP
             ):
                 if item in dir_exclusions:
                     continue
                 # Recurse
-                new_source_dir = os.path.join(  # noqa: PTH118 # FIXME COP
+                new_source_dir = os.path.join(  # noqa: PTH118 # FIXME CoP
                     static_assets_source_dir, item
                 )
                 self.copy_static_assets(new_source_dir)
@@ -405,7 +405,7 @@ class HtmlSiteStore:
                 # Copy file over using static assets store backend
                 if item in file_exclusions:
                     continue
-                source_name = os.path.join(  # noqa: PTH118 # FIXME COP
+                source_name = os.path.join(  # noqa: PTH118 # FIXME CoP
                     static_assets_source_dir, item
                 )
                 with open(source_name, "rb") as f:
@@ -444,7 +444,7 @@ class HtmlSiteStore:
         Otherwise, this function returns False
         """
 
-        static_assets_source_absdir = os.path.abspath(assets_full_path)  # noqa: PTH100 # FIXME COP
+        static_assets_source_absdir = os.path.abspath(assets_full_path)  # noqa: PTH100 # FIXME CoP
 
         zip_re = re.match(
             f"(.+[.]zip){re.escape(os.sep)}(.+)",

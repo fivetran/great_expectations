@@ -9,7 +9,7 @@ REDSHIFT_NOT_IMPORTED = NotImported(
     "AWS Redshift connection component is not installed, please 'pip install sqlalchemy_redshift'"
 )
 ATHENA_NOT_IMPORTED = NotImported(
-    "AWS Athena connection component is not installed, please 'pip install pyathena[SQLAlchemy]>=2.0.0,<3'"  # noqa: E501 # FIXME COP
+    "AWS Athena connection component is not installed, please 'pip install pyathena[SQLAlchemy]>=2.0.0,<3'"  # noqa: E501 # FIXME CoP
 )
 
 try:
@@ -43,7 +43,7 @@ except (ImportError, AttributeError):
     redshiftdialect = REDSHIFT_NOT_IMPORTED
 
 try:
-    import pyathena  # type: ignore[import-not-found] # FIXME COP
+    import pyathena  # type: ignore[import-not-found] # FIXME CoP
 except ImportError:
     pyathena = ATHENA_NOT_IMPORTED
 
@@ -54,7 +54,7 @@ except (ImportError, AttributeError):
 
 try:
     from pyathena.sqlalchemy_athena import (
-        types as athenatypes,  # type: ignore[import-not-found] # FIXME COP
+        types as athenatypes,  # type: ignore[import-not-found] # FIXME CoP
     )
 except (ImportError, AttributeError):
     athenatypes = ATHENA_NOT_IMPORTED

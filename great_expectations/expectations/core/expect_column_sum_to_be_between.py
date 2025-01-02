@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME COP
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
@@ -163,7 +163,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -186,7 +186,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
 
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME COP
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.sum",)
     success_keys = (
         "min_value",
@@ -326,7 +326,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
             elif params["max_value"] is None:
                 template_str = f"sum must be {at_least_str} $min_value."
             else:
-                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME COP
+                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME CoP
 
         if renderer_configuration.include_column_name:
             template_str = f"$column {template_str}"

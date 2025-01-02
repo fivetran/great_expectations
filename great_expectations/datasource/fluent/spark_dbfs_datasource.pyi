@@ -24,10 +24,10 @@ from great_expectations.datasource.fluent.interfaces import (
 logger: Logger
 
 class SparkDBFSDatasource(SparkFilesystemDatasource):
-    type: Literal["spark_dbfs"]  # type: ignore[assignment] # FIXME COP
+    type: Literal["spark_dbfs"]  # type: ignore[assignment] # FIXME CoP
 
     @override
-    def add_csv_asset(  # noqa: PLR0913 # FIXME COP
+    def add_csv_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,

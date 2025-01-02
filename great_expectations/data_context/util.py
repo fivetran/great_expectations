@@ -11,22 +11,22 @@ from urllib.parse import urlparse
 
 import pyparsing as pp
 
-from great_expectations.alias_types import PathStr  # noqa: TCH001 # FIXME COP
+from great_expectations.alias_types import PathStr  # noqa: TCH001 # FIXME CoP
 from great_expectations.exceptions import StoreConfigurationError
 from great_expectations.types import safe_deep_copy
 from great_expectations.util import load_class, verify_dynamic_loading_support
 
 try:
-    import sqlalchemy as sa  # noqa: TID251 # FIXME COP
+    import sqlalchemy as sa  # noqa: TID251 # FIXME CoP
 except ImportError:
-    sa = None  # type: ignore[assignment] # FIXME COP
+    sa = None  # type: ignore[assignment] # FIXME CoP
 
 logger = logging.getLogger(__name__)
 
 
 # TODO: Rename config to constructor_kwargs and config_defaults -> constructor_kwarg_default
-# TODO: Improve error messages in this method. Since so much of our workflow is config-driven, this will be a *super* important part of DX.  # noqa: E501 # FIXME COP
-def instantiate_class_from_config(  # noqa: C901 # FIXME COP
+# TODO: Improve error messages in this method. Since so much of our workflow is config-driven, this will be a *super* important part of DX.  # noqa: E501 # FIXME CoP
+def instantiate_class_from_config(  # noqa: C901 # FIXME CoP
     config, runtime_environment, config_defaults=None
 ):
     """Build a GX class from configuration dictionaries."""
@@ -41,8 +41,8 @@ def instantiate_class_from_config(  # noqa: C901 # FIXME COP
         try:
             module_name = config_defaults.pop("module_name")
         except KeyError:
-            raise KeyError(  # noqa: TRY003 # FIXME COP
-                f"Neither config : {config} nor config_defaults : {config_defaults} contains a module_name key."  # noqa: E501 # FIXME COP
+            raise KeyError(  # noqa: TRY003 # FIXME CoP
+                f"Neither config : {config} nor config_defaults : {config_defaults} contains a module_name key."  # noqa: E501 # FIXME CoP
             )
     else:
         # Pop the value without using it, to avoid sending an unwanted value to the config_class
@@ -54,14 +54,14 @@ def instantiate_class_from_config(  # noqa: C901 # FIXME COP
     class_name = config.pop("class_name", None)
     if class_name is None:
         logger.warning(
-            "Instantiating class from config without an explicit class_name is dangerous. Consider adding "  # noqa: E501 # FIXME COP
+            "Instantiating class from config without an explicit class_name is dangerous. Consider adding "  # noqa: E501 # FIXME CoP
             f"an explicit class_name for {config.get('name')}"
         )
         try:
             class_name = config_defaults.pop("class_name")
         except KeyError:
-            raise KeyError(  # noqa: TRY003 # FIXME COP
-                f"Neither config : {config} nor config_defaults : {config_defaults} contains a class_name key."  # noqa: E501 # FIXME COP
+            raise KeyError(  # noqa: TRY003 # FIXME CoP
+                f"Neither config : {config} nor config_defaults : {config_defaults} contains a class_name key."  # noqa: E501 # FIXME CoP
             )
     else:
         # Pop the value without using it, to avoid sending an unwanted value to the config_class
@@ -92,7 +92,7 @@ def instantiate_class_from_config(  # noqa: C901 # FIXME COP
         class_instance = class_(**config_with_defaults)
     except TypeError as e:
         raise TypeError(
-            f"Couldn't instantiate class: {class_name} with config: \n\t{format_dict_for_error_message(config_with_defaults)}\n \n"  # noqa: E501 # FIXME COP
+            f"Couldn't instantiate class: {class_name} with config: \n\t{format_dict_for_error_message(config_with_defaults)}\n \n"  # noqa: E501 # FIXME CoP
             + str(e)
         )
 
@@ -135,7 +135,7 @@ def parse_substitution_variable(substitution_variable: str) -> Optional[str]:
 
     Returns:
         string of variable name e.g. SOME_VAR or None if not parsable. If there are multiple substitution variables this currently returns the first e.g. $SOME_$TRING -> $SOME_
-    """  # noqa: E501 # FIXME COP
+    """  # noqa: E501 # FIXME CoP
     substitution_variable_name = pp.Word(pp.alphanums + "_").setResultsName(
         "substitution_variable_name"
     )
@@ -180,7 +180,7 @@ class PasswordMasker:
 
         Returns:
             url with password masked e.g. "postgresql+psycopg2://username:***@host:65432/database"
-        """  # noqa: E501 # FIXME COP
+        """  # noqa: E501 # FIXME CoP
 
         from great_expectations.datasource.fluent.config_str import ConfigStr
 
@@ -194,14 +194,14 @@ class PasswordMasker:
             try:
                 engine = sa.create_engine(url, **kwargs)
                 return engine.url.__repr__()
-            # Account for the edge case where we have SQLAlchemy in our env but haven't installed the appropriate dialect to match the input URL  # noqa: E501 # FIXME COP
+            # Account for the edge case where we have SQLAlchemy in our env but haven't installed the appropriate dialect to match the input URL  # noqa: E501 # FIXME CoP
             except Exception as e:
                 logger.warning(
                     f"Something went wrong when trying to use SQLAlchemy to obfuscate URL: {e}"
                 )
         else:
             warnings.warn(
-                "SQLAlchemy is not installed, using urlparse to mask database url password which ignores **kwargs."  # noqa: E501 # FIXME COP
+                "SQLAlchemy is not installed, using urlparse to mask database url password which ignores **kwargs."  # noqa: E501 # FIXME CoP
             )
         return cls._mask_db_url_no_sa(url=url)
 
@@ -215,13 +215,13 @@ class PasswordMasker:
             matched: re.Match[str] | None = azure_conn_str_re.match(url)
             if not matched:
                 raise StoreConfigurationError(  # noqa: TRY003, TRY301
-                    f"The URL for the Azure connection-string, was not configured properly. Please check and try again: {url} "  # noqa: E501 # FIXME COP
+                    f"The URL for the Azure connection-string, was not configured properly. Please check and try again: {url} "  # noqa: E501 # FIXME CoP
                 )
-            res = f"DefaultEndpointsProtocol={matched.group(2)};AccountName={matched.group(4)};AccountKey=***;EndpointSuffix={matched.group(8)}"  # noqa: E501 # FIXME COP
+            res = f"DefaultEndpointsProtocol={matched.group(2)};AccountName={matched.group(4)};AccountKey=***;EndpointSuffix={matched.group(8)}"  # noqa: E501 # FIXME CoP
             return res
         except Exception as e:
-            raise StoreConfigurationError(  # noqa: TRY003 # FIXME COP
-                f"Something went wrong when trying to obfuscate URL for Azure connection-string. Please check your configuration: {e}"  # noqa: E501 # FIXME COP
+            raise StoreConfigurationError(  # noqa: TRY003 # FIXME CoP
+                f"Something went wrong when trying to obfuscate URL for Azure connection-string. Please check your configuration: {e}"  # noqa: E501 # FIXME CoP
             )
 
     @classmethod

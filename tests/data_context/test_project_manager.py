@@ -1,4 +1,4 @@
-from unittest.mock import Mock  # noqa: TID251 # FIXME COP
+from unittest.mock import Mock  # noqa: TID251 # FIXME CoP
 
 import pytest
 
