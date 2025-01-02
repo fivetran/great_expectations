@@ -124,7 +124,7 @@ class ValidationDefinition(BaseModel):
     @public_api
     def asset(self) -> DataAsset:
         """
-        The parent data asset of the batch definition.
+        The parent Data Asset of the Batch Definition.
         """
         return self.data.data_asset
 
