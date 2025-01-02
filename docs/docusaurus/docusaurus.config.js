@@ -52,15 +52,15 @@ module.exports = {
     gxCard: {
       title: 'What is GX Cloud?',
       description:
-        'GX Cloud is a fully-managed SaaS solution that simplifies deployment, scaling, and collaboration and lets you focus on data validation.',
+        'GX Cloud is a fully-managed SaaS solution that simplifies deployment, scaling, and collaboration—so you can focus on data validation.',
       buttons: {
         primary: {
-          label: 'Try GX Cloud',
-          href: 'https://greatexpectations.io/cloud',
+          label: 'Request a demo',
+          href: 'https://greatexpectations.io/demo',
         },
         secondary: {
-          label: 'GX Cloud overview',
-          href: '/docs/cloud/overview/gx_cloud_overview',
+          label: 'Why GX Cloud?',
+          href: 'https://greatexpectations.io/why-gx-cloud',
         },
       },
     },
