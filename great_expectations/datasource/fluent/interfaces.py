@@ -1172,7 +1172,10 @@ class Batch:
         Args:
             expect: The Expectation or Expectation Suite to validate.
             result_format: The format to return the validation results in.
-            expectation_parameters: Optional parameters to use when validating the batch.
+            expectation_parameters: A dictionary of parameters values for any
+                                    expectations using parameterized values (the $PARAMETER syntax).
+                                    The keys are the parameter names and the values are the values
+                                    to be used for this validation run.
 
         Returns:
             An ExpectationValidationResult or ExpectationSuiteValidationResult object.

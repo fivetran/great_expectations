@@ -314,7 +314,9 @@ class DataSourceManager:
             setattr(ds_type, add_asset_factory_method_name, _add_asset_factory)
 
             # NOTE: Please review what this looks like in our Public API docs preview before merging
-            _add_asset_factory.__doc__ = f"""Add a {asset_type_name} asset to the datasource."""
+            _add_asset_factory.__doc__ = DataSourceManager._build_add_asset_docstring(
+                asset_type_name
+            )
 
             # add the public api decorator
             public_api(getattr(ds_type, add_asset_factory_method_name))
@@ -341,6 +343,11 @@ class DataSourceManager:
             logger.debug(
                 f"`{add_asset_factory_method_name}()` already defined `{ds_type.__name__}`"
             )
+
+    @staticmethod
+    def _build_add_asset_docstring(asset_type_name: str) -> str:
+        article = "an" if asset_type_name[0].lower() in "aeiou" else "a"
+        return f"""Add {article} {asset_type_name} asset to the datasource."""
 
     @property
     def pandas_default(self) -> PandasDatasource:
