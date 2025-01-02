@@ -810,8 +810,8 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         """Adds a yearly Batch Definition to this Data Asset
 
         Args:
-            name: The name of the Batch Definition to be added
-            column: The column name on which to partition the asset by year
+            name: The name of the Batch Definition to be added.
+            column: The column name on which to partition the asset by year.
             sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
                 When running a validation, we default to running the last Batch Definition
                 if one is not explicitly specified.
@@ -836,7 +836,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         sort_ascending: bool = True,
         validate_batchable: bool = True,
     ) -> BatchDefinition:
-        """Adds a monthly Batch Definition to this data asset
+        """Adds a monthly Batch Definition to this Data Asset
 
         Args:
             name: The name of the Batch Definition to be added
@@ -867,7 +867,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         sort_ascending: bool = True,
         validate_batchable: bool = True,
     ) -> BatchDefinition:
-        """Adds a daily Batch Definition to this data asset
+        """Adds a daily Batch Definition to this Data Asset
 
         Args:
             name: The name of the Batch Definition to be added
