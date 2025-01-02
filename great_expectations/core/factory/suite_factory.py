@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 @public_api
 class SuiteFactory(Factory[ExpectationSuite]):
     """
-    Responsible for basic CRUD operations on a context's ExpectationSuites.
+    Responsible for basic CRUD operations on a Data Context's ExpectationSuites.
     """
 
     def __init__(self, store: ExpectationsStore):
