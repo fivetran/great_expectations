@@ -1170,7 +1170,7 @@ class Batch:
         Validate the Batch using the provided Expectation or Expectation Suite.
 
         Args:
-            expect: The expectation or expectation suite to validate.
+            expect: The Expectation or Expectation Suite to validate.
             result_format: The format to return the validation results in.
             expectation_parameters: Optional parameters to use when validating the batch.
 
