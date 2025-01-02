@@ -133,7 +133,7 @@ def render_suite_parameter_string(render_func: Callable[P, T]) -> Callable[P, T]
         GreatExpectationsError: If runtime_configuration with suite_parameters is not provided.
     """
 
-    def inner_func(*args: P.args, **kwargs: P.kwargs) -> T:  # noqa: C901 - too complex
+    def inner_func(*args: P.args, **kwargs: P.kwargs) -> T:  # noqa: C901 #  too complex
         rendered_string_template = render_func(*args, **kwargs)
         current_expectation_params: list = []
         app_template_str = "\n - $eval_param = $eval_param_value (at time of validation)."
@@ -876,7 +876,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
     @classmethod
     @renderer(renderer_type=LegacyDiagnosticRendererType.UNEXPECTED_TABLE)
-    def _diagnostic_unexpected_table_renderer(  # noqa: C901, PLR0912
+    def _diagnostic_unexpected_table_renderer(  # noqa: C901, PLR0912 # FIXME CoP
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
@@ -1635,7 +1635,7 @@ class BatchExpectation(Expectation, ABC):
 
         return validation_dependencies
 
-    def _validate_metric_value_between(  # noqa: C901, PLR0912
+    def _validate_metric_value_between(  # noqa: C901, PLR0912 # FIXME CoP
         self,
         metric_name,
         metrics: Dict,
@@ -1778,7 +1778,7 @@ class QueryExpectation(BatchExpectation, ABC):
             raise InvalidExpectationConfigurationError(str(e))
         try:
             if not isinstance(query, str):
-                raise TypeError(f"'query' must be a string, but your query is type: {type(query)}")  # noqa: TRY003, TRY301
+                raise TypeError(f"'query' must be a string, but your query is type: {type(query)}")  # noqa: TRY003, TRY301 # FIXME CoP
             parsed_query: Set[str] = {
                 x
                 for x in re.split(", |\\(|\n|\\)| |/", query)
@@ -2663,7 +2663,7 @@ class UnexpectedRowsExpectation:
         )
 
 
-def _format_map_output(  # noqa: C901, PLR0912, PLR0913, PLR0915
+def _format_map_output(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     result_format: dict,
     success: bool,
     element_count: Optional[int] = None,

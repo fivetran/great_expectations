@@ -260,7 +260,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
             )
 
     @classmethod
-    def _prescriptive_template(  # noqa: C901 - too complex
+    def _prescriptive_template(  # noqa: C901 #  too complex
         cls,
         renderer_configuration: RendererConfiguration,
     ) -> RendererConfiguration:

@@ -170,10 +170,10 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
         # Assert that min_value and max_value are integers
         try:
             if min_value is not None and not float(min_value).is_integer():
-                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
 
             if max_value is not None and not float(max_value).is_integer():
-                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
 
         except ValueError:
             raise ValueError("min_value and max_value must be integers")  # noqa: TRY003 # FIXME CoP
@@ -211,10 +211,10 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
         # Assert that min_value and max_value are integers
         try:
             if min_value is not None and not float(min_value).is_integer():
-                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
 
             if max_value is not None and not float(max_value).is_integer():
-                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
 
         except ValueError:
             raise ValueError("min_value and max_value must be integers")  # noqa: TRY003 # FIXME CoP

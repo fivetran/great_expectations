@@ -248,7 +248,7 @@ class DataSourceManager:
             try:
                 asset_type_name = _get_field_details(t, "type").default_value
                 if asset_type_name is None:
-                    raise TypeError(  # noqa: TRY003, TRY301
+                    raise TypeError(  # noqa: TRY003, TRY301 # FIXME CoP
                         f"{t.__name__} `type` field must be assigned and cannot be `None`"
                     )
                 logger.debug(

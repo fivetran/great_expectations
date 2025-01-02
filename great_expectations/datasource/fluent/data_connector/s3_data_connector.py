@@ -214,7 +214,7 @@ requires "file_path_template_map_fn: Callable" to be set.
         return super()._preprocess_batching_regex(regex=regex)
 
 
-def list_s3_keys(  # noqa: C901 - too complex
+def list_s3_keys(  # noqa: C901 #  too complex
     s3, query_options: dict, iterator_dict: dict, recursive: bool = False
 ) -> Generator[str, None, None]:
     """

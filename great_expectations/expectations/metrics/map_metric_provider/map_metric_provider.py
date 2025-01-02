@@ -103,7 +103,7 @@ class MapMetricProvider(MetricProvider):
     filter_column_isnull = True
 
     @classmethod
-    def _register_metric_functions(cls):  # noqa: C901, PLR0912, PLR0915
+    def _register_metric_functions(cls):  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         if not (hasattr(cls, "function_metric_name") or hasattr(cls, "condition_metric_name")):
             return
 
@@ -119,7 +119,7 @@ class MapMetricProvider(MetricProvider):
 
             engine = candidate_metric_fn.metric_engine
             if not issubclass(engine, ExecutionEngine):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "Metric functions must be defined with an ExecutionEngine as part of registration."  # noqa: E501 # FIXME CoP
                 )
 

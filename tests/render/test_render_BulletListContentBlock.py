@@ -70,7 +70,7 @@ def test_parse_row_condition_string_pandas_engine():
 
 @pytest.mark.filesystem
 def test_all_expectations_using_test_definitions():
-    dir_path = os.path.dirname(os.path.abspath(__file__))  # noqa: PTH120, PTH100
+    dir_path = os.path.dirname(os.path.abspath(__file__))  # noqa: PTH120, PTH100 # FIXME CoP
     pattern = os.path.join(  # noqa: PTH118 # FIXME CoP
         dir_path, "..", "..", "tests", "test_definitions", "*", "expect*.json"
     )

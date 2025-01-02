@@ -57,7 +57,7 @@ class DomainKwargs(SerializableDotDict):
 
 class Domain(SerializableDotDict):
     # Adding an explicit constructor to highlight the specific properties that will be used.
-    def __init__(  # noqa: C901 - too complex
+    def __init__(  # noqa: C901 #  too complex
         self,
         domain_type: Union[str, MetricDomainTypes],
         domain_kwargs: Optional[Union[Dict[str, Any], DomainKwargs]] = None,
@@ -74,7 +74,7 @@ class Domain(SerializableDotDict):
 """
                 )
         elif not isinstance(domain_type, MetricDomainTypes):
-            raise ValueError(  # noqa: TRY003, TRY004
+            raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                 f"""Cannot instantiate Domain (domain_type "{domain_type!s}" of type "{type(domain_type)!s}" is \
 not supported).
 """  # noqa: E501 # FIXME CoP

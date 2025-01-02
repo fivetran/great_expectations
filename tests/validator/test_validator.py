@@ -66,7 +66,7 @@ def yellow_trip_pandas_data_context(
         exist_ok=True,
     )
     data_path: str = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     shutil.copy(
         file_relative_path(
             __file__,

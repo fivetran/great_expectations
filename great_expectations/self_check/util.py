@@ -579,7 +579,7 @@ def _get_test_validator_with_data_sqlalchemy(  # noqa: PLR0913 # FIXME CoP
     )
 
 
-def _get_test_validator_with_data_spark(  # noqa: C901, PLR0912, PLR0915
+def _get_test_validator_with_data_spark(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     data: dict,
     schemas: dict | None,
     context: AbstractDataContext | None,
@@ -711,7 +711,7 @@ def build_pandas_validator_with_data(
     )
 
 
-def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915
+def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     df,
     sa_engine_name,
     table_name,
@@ -1290,7 +1290,7 @@ def candidate_test_is_on_temporary_notimplemented_list_v3_api(context, expectati
     return False
 
 
-def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915
+def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     include_pandas=True,
     include_spark=False,
     include_sqlalchemy=True,
@@ -1530,7 +1530,7 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915
     return test_backends
 
 
-def generate_expectation_tests(  # noqa: C901, PLR0912, PLR0913, PLR0915
+def generate_expectation_tests(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     expectation_type: str,
     test_data_cases: List[ExpectationTestDataCases],
     execution_engine_diagnostics: ExpectationExecutionEngineDiagnostics,
@@ -1816,7 +1816,7 @@ def generate_expectation_tests(  # noqa: C901, PLR0912, PLR0913, PLR0915
     return parametrized_tests
 
 
-def should_we_generate_this_test(  # noqa: C901, PLR0911, PLR0912, PLR0913
+def should_we_generate_this_test(  # noqa: C901, PLR0911, PLR0912, PLR0913 # FIXME CoP
     backend: str,
     expectation_test_case: ExpectationTestCase,
     ignore_suppress: bool = False,
@@ -1913,7 +1913,7 @@ def sort_unexpected_values(test_value_list, result_value_list):
     return test_value_list, result_value_list
 
 
-def evaluate_json_test_v3_api(  # noqa: C901, PLR0912, PLR0913
+def evaluate_json_test_v3_api(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
     validator: Validator,
     expectation_type: str,
     test: Dict[str, Any],
@@ -2027,7 +2027,7 @@ def evaluate_json_test_v3_api(  # noqa: C901, PLR0912, PLR0913
     return (result, error_message, stack_trace)
 
 
-def check_json_test_result(  # noqa: C901, PLR0912, PLR0915
+def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     test, result, pk_column=False
 ) -> None:
     # check for id_pk results in cases where pk_column is true and unexpected_index_list already exists  # noqa: E501 # FIXME CoP

@@ -30,7 +30,7 @@ from great_expectations.expectations.metrics.util import (
 logger = logging.getLogger(__name__)
 
 
-def column_pair_function_partial(  # noqa: C901 - 16
+def column_pair_function_partial(  # noqa: C901 #  16
     engine: Type[ExecutionEngine],
     partial_fn_type: MetricPartialFunctionTypes | None = None,
     **kwargs,
@@ -236,6 +236,6 @@ def column_pair_function_partial(  # noqa: C901 - 16
         return wrapper
 
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
             'Unsupported engine for "column_pair_function_partial" metric function decorator.'
         )

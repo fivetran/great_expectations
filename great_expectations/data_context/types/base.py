@@ -295,7 +295,7 @@ class SorterConfigSchema(Schema):
 
 
 class AssetConfig(SerializableDictDot):
-    def __init__(  # noqa: C901, PLR0912, PLR0913
+    def __init__(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
         self,
         name: Optional[str] = None,
         class_name: Optional[str] = None,
@@ -462,7 +462,7 @@ class AssetConfigSchema(Schema):
 
 
 class DataConnectorConfig(AbstractConfig):
-    def __init__(  # noqa: C901, PLR0912, PLR0913, PLR0915
+    def __init__(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
         self,
         class_name,
         name: Optional[str] = None,
@@ -696,7 +696,7 @@ class DataConnectorConfigSchema(AbstractConfigSchema):
 
     # noinspection PyUnusedLocal
     @validates_schema
-    def validate_schema(self, data, **kwargs):  # noqa: C901, PLR0912
+    def validate_schema(self, data, **kwargs):  # noqa: C901, PLR0912 # FIXME CoP
         # If a class_name begins with the dollar sign ("$"), then it is assumed to be a variable name to be substituted.  # noqa: E501 # FIXME CoP
         if data["class_name"][0] == "$":
             return
@@ -917,7 +917,7 @@ continue.
 
 
 class ExecutionEngineConfig(DictDot):
-    def __init__(  # noqa: C901, PLR0913
+    def __init__(  # noqa: C901, PLR0913 # FIXME CoP
         self,
         class_name,
         module_name=None,
@@ -1535,7 +1535,7 @@ class GCSStoreBackendDefaults(BaseStoreBackendDefaults):
         checkpoint_store_name: Overrides default if supplied
     """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: C901, PLR0913
+    def __init__(  # noqa: C901, PLR0913 # FIXME CoP
         self,
         default_bucket_name: Optional[str] = None,
         default_project_name: Optional[str] = None,
@@ -1809,7 +1809,7 @@ class DataContextConfig(BaseYamlConfig):
         configured_stores = {config["class_name"] for config in store_configs.values()}
         for name, config in DataContextConfigDefaults.DEFAULT_STORES.value.items():
             if not isinstance(config, dict):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "Store defaults must be a mapping of default names to default dictionary configurations."  # noqa: E501 # FIXME CoP
                 )
             if config["class_name"] not in configured_stores:

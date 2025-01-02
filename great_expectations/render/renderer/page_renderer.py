@@ -910,7 +910,7 @@ class ProfilingResultsPageRenderer(Renderer):
                 class_name=column_section_renderer["class_name"],
             )
 
-    def render(self, validation_results):  # noqa: C901, PLR0912
+    def render(self, validation_results):  # noqa: C901, PLR0912 # FIXME CoP
         run_id = validation_results.meta["run_id"]
         if isinstance(run_id, str):
             try:

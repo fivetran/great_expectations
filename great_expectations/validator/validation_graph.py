@@ -211,7 +211,7 @@ class ValidationGraph:
 
         return resolved_metrics, aborted_metrics_info
 
-    def _resolve(  # noqa: C901, PLR0912, PLR0915
+    def _resolve(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
         metrics: Dict[_MetricKey, MetricValue],
         runtime_configuration: Optional[dict] = None,

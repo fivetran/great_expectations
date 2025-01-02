@@ -229,7 +229,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
     """  # noqa: E501 # FIXME CoP
 
     # noinspection PyUnusedLocal
-    def __init__(  # noqa: C901, PLR0912, PLR0913, PLR0915
+    def __init__(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
         self,
         name: Optional[str] = None,
         credentials: Optional[dict] = None,
@@ -539,7 +539,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         )
 
     @override
-    def get_domain_records(  # noqa: C901, PLR0912, PLR0915
+    def get_domain_records(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
         domain_kwargs: dict,
     ) -> sqlalchemy.Selectable:
@@ -895,7 +895,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         return PartitionDomainKwargs(compute_domain_kwargs, accessor_domain_kwargs)
 
     @override
-    def resolve_metric_bundle(  # noqa: C901 - too complex
+    def resolve_metric_bundle(  # noqa: C901 #  too complex
         self,
         metric_fn_bundle: Iterable[MetricComputationConfiguration],
     ) -> Dict[Tuple[str, str, str], MetricValue]:

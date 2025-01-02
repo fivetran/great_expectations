@@ -404,7 +404,7 @@ def _sqlalchemy_map_condition_rows(
         raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(message=exception_message)
 
 
-def _sqlalchemy_map_condition_query(  # noqa: C901 - too complex
+def _sqlalchemy_map_condition_query(  # noqa: C901 #  too complex
     cls,
     execution_engine: SqlAlchemyExecutionEngine,
     metric_domain_kwargs: Dict,
@@ -490,7 +490,7 @@ def _sqlalchemy_map_condition_query(  # noqa: C901 - too complex
     return query_as_string
 
 
-def _sqlalchemy_map_condition_index(  # noqa: C901 - too complex
+def _sqlalchemy_map_condition_index(  # noqa: C901 #  too complex
     cls,
     execution_engine: SqlAlchemyExecutionEngine,
     metric_domain_kwargs: Dict,
@@ -658,7 +658,7 @@ def _spark_map_condition_rows(
     return filtered.limit(limit).collect()
 
 
-def _spark_map_condition_index(  # noqa: C901 - too complex
+def _spark_map_condition_index(  # noqa: C901 #  too complex
     cls,
     execution_engine: SparkDFExecutionEngine,
     metric_domain_kwargs: Dict,

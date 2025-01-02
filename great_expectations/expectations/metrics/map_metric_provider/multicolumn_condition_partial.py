@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
 
-def multicolumn_condition_partial(  # noqa: C901 - 16
+def multicolumn_condition_partial(  # noqa: C901 #  16
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
     **kwargs,
@@ -263,6 +263,6 @@ def multicolumn_condition_partial(  # noqa: C901 - 16
         return wrapper
 
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
             'Unsupported engine for "multicolumn_condition_partial" metric function decorator.'
         )

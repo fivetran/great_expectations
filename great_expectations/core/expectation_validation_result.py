@@ -284,7 +284,7 @@ class ExpectationValidationResult(SerializableDictDot):
             myself["rendered_content"] = convert_to_json_serializable(myself["rendered_content"])
         return myself
 
-    def get_metric(self, metric_name, **kwargs):  # noqa: C901 - too complex
+    def get_metric(self, metric_name, **kwargs):  # noqa: C901 #  too complex
         if not self.expectation_config:
             raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003 # FIXME CoP
                 "No ExpectationConfig found in this ExpectationValidationResult. Unable to "
@@ -540,7 +540,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         myself = expectationSuiteValidationResultSchema.dump(myself)
         return myself
 
-    def get_metric(self, metric_name, **kwargs):  # noqa: C901 - too complex
+    def get_metric(self, metric_name, **kwargs):  # noqa: C901 #  too complex
         metric_name_parts = metric_name.split(".")
         metric_kwargs_id = get_metric_kwargs_id(metric_kwargs=kwargs)
 

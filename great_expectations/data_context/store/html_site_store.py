@@ -104,7 +104,7 @@ class HtmlSiteStore:
 
     _key_class = SiteSectionIdentifier
 
-    def __init__(  # noqa: C901 - 11
+    def __init__(  # noqa: C901 #  11
         self, store_backend=None, runtime_environment=None
     ) -> None:
         store_backend_module_name = store_backend.get(
@@ -363,7 +363,7 @@ class HtmlSiteStore:
             for key in keys:
                 target_store_backend.remove_key(key)
 
-    def copy_static_assets(  # noqa: C901 - 11
+    def copy_static_assets(  # noqa: C901 #  11
         self, static_assets_source_dir: str | None = None
     ):
         """

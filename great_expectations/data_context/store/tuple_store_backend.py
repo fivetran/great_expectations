@@ -122,7 +122,7 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
 
         return converted_string
 
-    def _convert_filepath_to_key(self, filepath):  # noqa: C901, PLR0912
+    def _convert_filepath_to_key(self, filepath):  # noqa: C901, PLR0912 # FIXME CoP
         if filepath == self.STORE_BACKEND_ID_KEY[0]:
             return self.STORE_BACKEND_ID_KEY
         if self.platform_specific_separator:
@@ -616,7 +616,7 @@ class TupleS3StoreBackend(TupleStoreBackend):
         s3.Object(self.bucket, source_filepath).delete()
 
     @override
-    def list_keys(self, prefix: Tuple = ()) -> List[Tuple]:  # noqa: C901 - too complex
+    def list_keys(self, prefix: Tuple = ()) -> List[Tuple]:  # noqa: C901 #  too complex
         # Note that the prefix arg is only included to maintain consistency with the parent class signature  # noqa: E501 # FIXME CoP
         s3r = self._create_resource()
         bucket = s3r.Bucket(self.bucket)
@@ -1051,7 +1051,7 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
                         account_url=self.account_url, credential=self.credential
                     )
                 else:
-                    raise StoreBackendError(  # noqa: TRY003, TRY301
+                    raise StoreBackendError(  # noqa: TRY003, TRY301 # FIXME CoP
                         "Unable to initialize ServiceClient, AZURE_STORAGE_CONNECTION_STRING should be set"  # noqa: E501 # FIXME CoP
                     )
             except Exception as e:

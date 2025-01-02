@@ -183,7 +183,7 @@ class SuiteParameterParser:
             self._parser = expr
         return self._parser
 
-    def evaluate_stack(self, s):  # noqa: C901, PLR0911, PLR0912
+    def evaluate_stack(self, s):  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         op, num_args, has_fn_kwargs = s.pop(), 0, False
         if isinstance(op, tuple):
             op, num_args, has_fn_kwargs = op
@@ -374,7 +374,7 @@ def _is_single_function_no_args(parse_results: Union[ParseResults, list]) -> boo
     )
 
 
-def _deduplicate_suite_parameter_dependencies(dependencies: dict) -> dict:  # noqa: C901 - too complex
+def _deduplicate_suite_parameter_dependencies(dependencies: dict) -> dict:  # noqa: C901 #  too complex
     deduplicated: dict = {}
     for suite_name, required_metrics in dependencies.items():
         deduplicated[suite_name] = []

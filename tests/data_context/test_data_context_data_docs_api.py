@@ -422,7 +422,7 @@ def test_build_data_docs_skipping_index_does_not_build_index(
     assert not os.path.isfile(index_path)  # noqa: PTH113 # FIXME CoP
 
     context.build_data_docs(build_index=False)
-    assert os.path.isdir(os.path.join(data_docs_dir, "static"))  # noqa: PTH112, PTH118
+    assert os.path.isdir(os.path.join(data_docs_dir, "static"))  # noqa: PTH112, PTH118 # FIXME CoP
     assert not os.path.isfile(index_path)  # noqa: PTH113 # FIXME CoP
 
 

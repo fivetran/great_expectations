@@ -51,7 +51,7 @@ class ColumnSectionRenderer(Renderer):
             elif isinstance(candidate_object, ExpectationValidationResult):
                 return candidate_object.expectation_config.kwargs["column"]
             else:
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "Provide a column section renderer an expectation, list of expectations, evr, or list of evrs."  # noqa: E501 # FIXME CoP
                 )
         except KeyError:

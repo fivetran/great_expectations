@@ -657,7 +657,7 @@ class PandasDatasource(_PandasDatasource):
         batch_request: BatchRequest
         if isinstance(asset, DataFrameAsset):
             if not isinstance(dataframe, pd.DataFrame):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     'Cannot execute "PandasDatasource.read_dataframe()" without a valid "dataframe" argument.'  # noqa: E501 # FIXME CoP
                 )
 

@@ -11,7 +11,7 @@ from great_expectations.validator.metric_configuration import MetricConfiguratio
 logger = logging.getLogger(__name__)
 
 try:
-    import sqlalchemy  # noqa: F401, TID251
+    import sqlalchemy  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     logger.debug("Unable to load SqlAlchemy or one of its subclasses.")
 
@@ -187,7 +187,7 @@ def build_categorical_partition_object(execution_engine, domain_kwargs, sort="va
     }
 
 
-def infer_distribution_parameters(  # noqa: C901, PLR0912
+def infer_distribution_parameters(  # noqa: C901, PLR0912 # FIXME CoP
     data, distribution, params=None
 ):
     """Convenience method for determining the shape parameters of a given distribution
@@ -321,7 +321,7 @@ def _scipy_distribution_positional_args_from_dict(distribution, params):
         return params["loc"], params["scale"]
 
 
-def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
+def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     distribution, params
 ):
     """Ensures that necessary parameters for a distribution are present and that all parameters are sensical.
@@ -451,7 +451,7 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
             raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003 # FIXME CoP
 
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
             "params must be a dict or list, or use great_expectations.dataset.util.infer_distribution_parameters(data, distribution)"  # noqa: E501 # FIXME CoP
         )
 

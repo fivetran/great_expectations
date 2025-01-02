@@ -652,7 +652,7 @@ def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_em
         pathlib.Path(context_path) / "plugins" / "extended_checkpoint.py",
     )
     data_path: str = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     shutil.copy(
         file_relative_path(
             __file__,
@@ -796,7 +796,7 @@ def deterministic_asset_data_connector_context(
         exist_ok=True,
     )
     data_path = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     shutil.copy(
         file_relative_path(
             __file__,
@@ -855,7 +855,7 @@ def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with
         exist_ok=True,
     )
     data_path: str = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     shutil.copy(
         file_relative_path(
             __file__,
@@ -1100,7 +1100,7 @@ def titanic_data_context(tmp_path_factory) -> FileDataContext:
         exist_ok=True,
     )
     data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_v013_titanic.yml"
     )
@@ -1131,7 +1131,7 @@ def titanic_data_context_no_data_docs_no_checkpoint_store(tmp_path_factory):
         exist_ok=True,
     )
     data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_titanic_pre_v013_no_data_docs.yml"
     )
@@ -1162,7 +1162,7 @@ def titanic_data_context_no_data_docs(tmp_path_factory):
         exist_ok=True,
     )
     data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_titanic_no_data_docs.yml"
     )
@@ -1193,7 +1193,7 @@ def titanic_data_context_stats_enabled(tmp_path_factory, monkeypatch):
         exist_ok=True,
     )
     data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_v013_titanic.yml"
     )
@@ -1224,7 +1224,7 @@ def titanic_data_context_stats_enabled_config_version_2(tmp_path_factory, monkey
         exist_ok=True,
     )
     data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_titanic.yml"
     )
@@ -1255,7 +1255,7 @@ def titanic_data_context_stats_enabled_config_version_3(tmp_path_factory, monkey
         exist_ok=True,
     )
     data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_v013_upgraded_titanic.yml"
     )

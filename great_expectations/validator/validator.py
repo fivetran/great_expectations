@@ -427,7 +427,7 @@ class Validator:
         else:
             raise AttributeError(f"'{type(self).__name__}'  object has no attribute '{name}'")  # noqa: TRY003 # FIXME CoP
 
-    def validate_expectation(self, name: str) -> Callable:  # noqa: C901, PLR0915
+    def validate_expectation(self, name: str) -> Callable:  # noqa: C901, PLR0915 # FIXME CoP
         """
         Given the name of an Expectation, obtains the Class-first Expectation implementation and utilizes the
                 expectation's validate method to obtain a validation result. Also adds in the runtime configuration
@@ -440,7 +440,7 @@ class Validator:
         """  # noqa: E501 # FIXME CoP
         expectation_impl = get_expectation_impl(name)
 
-        def inst_expectation(*args: dict, **kwargs):  # noqa: C901, PLR0912
+        def inst_expectation(*args: dict, **kwargs):  # noqa: C901, PLR0912 # FIXME CoP
             # this is used so that exceptions are caught appropriately when they occur in expectation config  # noqa: E501 # FIXME CoP
 
             # TODO: JPC - THIS LOGIC DOES NOT RESPECT DEFAULTS SET BY USERS IN THE VALIDATOR VS IN THE EXPECTATION  # noqa: E501 # FIXME CoP
@@ -945,7 +945,7 @@ class Validator:
 
         self._default_expectation_args[argument] = value
 
-    def get_expectation_suite(  # noqa: C901, PLR0912, PLR0913
+    def get_expectation_suite(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
         self,
         discard_failed_expectations: bool = True,
         discard_result_format_kwargs: bool = True,
@@ -1088,7 +1088,7 @@ class Validator:
         message="Only the str version of this argument is deprecated. run_id should be a RunIdentifier or dict. Support will be removed in 0.16.0.",  # noqa: E501 # FIXME CoP
         version="0.13.0",
     )
-    def validate(  # noqa: C901, PLR0912, PLR0913
+    def validate(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
         self,
         expectation_suite: str | ExpectationSuite | None = None,
         run_id: str | RunIdentifier | Dict[str, str] | None = None,

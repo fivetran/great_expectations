@@ -466,7 +466,7 @@ def convert_string_columns_to_datetime(
         df[column_name_to_convert] = pd.to_datetime(df[column_name_to_convert])
 
 
-def load_data_into_test_database(  # noqa: C901, PLR0912, PLR0915
+def load_data_into_test_database(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     table_name: str,
     connection_string: str,
     schema_name: Optional[str] = None,
@@ -695,7 +695,7 @@ def clean_up_tables_with_prefix(connection_string: str, table_prefix: str) -> Li
     return tables_dropped
 
 
-def introspect_db(  # noqa: C901, PLR0912
+def introspect_db(  # noqa: C901, PLR0912 # FIXME CoP
     execution_engine: SqlAlchemyExecutionEngine,
     schema_name: Union[str, None] = None,
     ignore_information_schemas_and_system_tables: bool = True,

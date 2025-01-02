@@ -231,7 +231,7 @@ class ProjectManager:
         if not isinstance(context, expected_type):
             # example I want an ephemeral context but the presence of a GX_CLOUD env var gives me a cloud context  # noqa: E501 # FIXME CoP
             # this kind of thing should not be possible but there may be some edge cases
-            raise ValueError(  # noqa: TRY003, TRY004
+            raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                 f"Provided mode {mode} returned context of type {type(context).__name__} instead of {expected_type.__name__}; please check your input arguments."  # noqa: E501 # FIXME CoP
             )
 

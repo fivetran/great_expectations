@@ -1007,7 +1007,7 @@ def get_batch_request_as_dict(
     return batch_request  # type: ignore[return-value] # FDS BatchRequest is missing data_connector (other fields)
 
 
-def _get_block_batch_request(  # noqa: C901, PLR0913
+def _get_block_batch_request(  # noqa: C901, PLR0913 # FIXME CoP
     *,
     datasource_name: str | None = None,
     data_connector_name: str | None = None,

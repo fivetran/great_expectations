@@ -135,7 +135,7 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
 
 
 @register_vcs_handler("git", "get_keywords")
-def git_get_keywords(versionfile_abs):  # noqa: C901 - too complex
+def git_get_keywords(versionfile_abs):  # noqa: C901 #  too complex
     """Extract version information from the given file."""
     # the code embedded in _version.py can just fetch the value of these
     # keywords. When used from setup.py, we don't want to import _version.py,
@@ -164,7 +164,7 @@ def git_get_keywords(versionfile_abs):  # noqa: C901 - too complex
 
 
 @register_vcs_handler("git", "keywords")
-def git_versions_from_keywords(keywords, tag_prefix, verbose):  # noqa: C901 - too complex
+def git_versions_from_keywords(keywords, tag_prefix, verbose):  # noqa: C901 #  too complex
     """Get version information from git keywords."""
     if not keywords:
         raise NotThisMethod("no keywords at all, weird")  # noqa: TRY003 # FIXME CoP
@@ -226,7 +226,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):  # noqa: C901 - t
 
 
 @register_vcs_handler("git", "pieces_from_vcs")
-def git_pieces_from_vcs(  # noqa: C901 - 11
+def git_pieces_from_vcs(  # noqa: C901 #  11
     tag_prefix, root, verbose, run_command=run_command
 ):
     """Get version from 'git describe' in the root of the source tree.
@@ -459,7 +459,7 @@ def render_git_describe_long(pieces):
     return rendered
 
 
-def render(pieces, style):  # noqa: C901 - too complex
+def render(pieces, style):  # noqa: C901 #  too complex
     """Render the given version pieces into the requested style."""
     if pieces["error"]:
         return {

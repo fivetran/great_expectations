@@ -337,7 +337,7 @@ class SlackNotificationAction(DataDocsAction):
         if isinstance(renderer, dict):
             _renderer = _build_renderer(config=renderer)
             if not isinstance(_renderer, SlackRenderer):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "renderer must be a SlackRenderer or a valid configuration for one."
                 )
             renderer = _renderer
@@ -553,7 +553,7 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
         if isinstance(renderer, dict):
             _renderer = _build_renderer(config=renderer)
             if not isinstance(_renderer, MicrosoftTeamsRenderer):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "renderer must be a MicrosoftTeamsRenderer or a valid configuration for one."
                 )
             renderer = _renderer
@@ -642,7 +642,7 @@ class OpsgenieAlertAction(ValidationAction):
         if isinstance(renderer, dict):
             _renderer = _build_renderer(config=renderer)
             if not isinstance(_renderer, OpsgenieRenderer):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "renderer must be a OpsgenieRenderer or a valid configuration for one."
                 )
             renderer = _renderer
@@ -776,7 +776,7 @@ class EmailAction(ValidationAction):
         if isinstance(renderer, dict):
             _renderer = _build_renderer(config=renderer)
             if not isinstance(_renderer, EmailRenderer):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "renderer must be a EmailRenderer or a valid configuration for one."
                 )
             renderer = _renderer

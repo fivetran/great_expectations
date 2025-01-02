@@ -42,7 +42,7 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
     expectation_dirs = [
         dir_
         for dir_ in os.listdir(dir_path)
-        if os.path.isdir(os.path.join(dir_path, dir_))  # noqa: PTH118, PTH112
+        if os.path.isdir(os.path.join(dir_path, dir_))  # noqa: PTH118, PTH112 # FIXME CoP
     ]
     parametrized_tests = []
     ids = []

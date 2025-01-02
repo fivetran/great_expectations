@@ -202,7 +202,7 @@ class PandasExecutionEngine(ExecutionEngine):
         super().load_batch_data(batch_id=batch_id, batch_data=batch_data)
 
     @override
-    def get_batch_data_and_markers(  # noqa: C901, PLR0912, PLR0915
+    def get_batch_data_and_markers(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self, batch_spec: BatchSpec | PandasBatchSpecProtocol
     ) -> Tuple[PandasBatchData, BatchMarkers]:  # batch_data
         # We need to build a batch_markers to be used in the dataframe
@@ -229,7 +229,7 @@ class PandasExecutionEngine(ExecutionEngine):
             elif isinstance(batch_spec.batch_data, PandasBatchData):
                 df = batch_spec.batch_data.dataframe
             else:
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "RuntimeDataBatchSpec must provide a Pandas DataFrame or PandasBatchData object."  # noqa: E501 # FIXME CoP
                 )
 
@@ -397,7 +397,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
 
     # NOTE Abe 20201105: Any reason this shouldn't be a private method?
     @staticmethod
-    def guess_reader_method_from_path(path: str):  # noqa: C901, PLR0911
+    def guess_reader_method_from_path(path: str):  # noqa: C901, PLR0911 # FIXME CoP
         """Helper method for deciding which reader to use to read in a certain path.
 
         Args:
@@ -484,7 +484,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         return {}  # This is NO-OP for "PandasExecutionEngine" (no bundling for direct execution computational backend).  # noqa: E501 # FIXME CoP
 
     @override
-    def get_domain_records(  # noqa: C901, PLR0912
+    def get_domain_records(  # noqa: C901, PLR0912 # FIXME CoP
         self,
         domain_kwargs: dict,
     ) -> pd.DataFrame:

@@ -328,7 +328,7 @@ def gen_directory_tree_str(startpath: PathStr):
     return output_str
 
 
-def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913
+def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
     properties: Optional[dict] = None,
     keep_fields: Optional[Set[str]] = None,
     delete_fields: Optional[Set[str]] = None,
@@ -370,7 +370,7 @@ def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913
         properties = {}
 
     if not isinstance(properties, dict):
-        raise ValueError(  # noqa: TRY003, TRY004
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
             f'Source "properties" must be a dictionary (illegal type "{type(properties)!s}" detected).'  # noqa: E501 # FIXME CoP
         )
 
@@ -501,7 +501,7 @@ def deep_filter_properties_iterable(
 ) -> None: ...
 
 
-def deep_filter_properties_iterable(  # noqa: C901, PLR0913
+def deep_filter_properties_iterable(  # noqa: C901, PLR0913 # FIXME CoP
     properties: Union[dict, list, set, tuple, None] = None,
     keep_fields: Optional[Set[str]] = None,
     delete_fields: Optional[Set[str]] = None,
@@ -1095,7 +1095,7 @@ def convert_to_json_serializable(
 ) -> None: ...
 
 
-def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
+def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     data: JSONConvertable,
 ) -> JSONValues:
     """Converts an object to one that is JSON-serializable.
@@ -1272,7 +1272,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
     raise TypeError(f"{data!s} is of type {type(data).__name__} which cannot be serialized.")  # noqa: TRY003 # FIXME CoP
 
 
-def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
+def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     """
     Helper function to convert an object to one that is json serializable
     Args:

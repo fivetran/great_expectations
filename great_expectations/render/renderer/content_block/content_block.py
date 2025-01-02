@@ -88,7 +88,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
         )
 
     @classmethod
-    def _render_list(  # noqa: C901, PLR0912
+    def _render_list(  # noqa: C901, PLR0912 # FIXME CoP
         cls,
         render_object: list,
         exception_list_content_block: bool,

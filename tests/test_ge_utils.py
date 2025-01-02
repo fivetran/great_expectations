@@ -50,13 +50,13 @@ def numeric_array():
 @pytest.mark.unit
 def test_gen_directory_tree_str(tmpdir):
     project_dir = str(tmpdir.mkdir("project_dir"))
-    os.mkdir(os.path.join(project_dir, "BBB"))  # noqa: PTH102, PTH118
+    os.mkdir(os.path.join(project_dir, "BBB"))  # noqa: PTH102, PTH118 # FIXME CoP
     with open(os.path.join(project_dir, "BBB", "bbb.txt"), "w") as f:  # noqa: PTH118 # FIXME CoP
         f.write("hello")
     with open(os.path.join(project_dir, "BBB", "aaa.txt"), "w") as f:  # noqa: PTH118 # FIXME CoP
         f.write("hello")
 
-    os.mkdir(os.path.join(project_dir, "AAA"))  # noqa: PTH102, PTH118
+    os.mkdir(os.path.join(project_dir, "AAA"))  # noqa: PTH102, PTH118 # FIXME CoP
 
     res = gx.util.gen_directory_tree_str(project_dir)
     print(res)

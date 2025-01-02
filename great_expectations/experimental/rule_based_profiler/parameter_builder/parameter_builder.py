@@ -332,7 +332,7 @@ class ParameterBuilder(ABC, Builder):
             parameters=parameters,
         )
 
-    def get_metrics(  # noqa: C901, PLR0913
+    def get_metrics(  # noqa: C901, PLR0913 # FIXME CoP
         self,
         metric_name: str,
         metric_domain_kwargs: Optional[Union[Union[str, dict], List[Union[str, dict]]]] = None,

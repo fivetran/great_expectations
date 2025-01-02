@@ -25,7 +25,7 @@ def titanic_data_context_modular_api(tmp_path_factory, monkeypatch):
         exist_ok=True,
     )
     data_path = os.path.join(context_path, "../data")  # noqa: PTH118 # FIXME CoP
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./fixtures/great_expectations_titanic_0.13.yml"
     )

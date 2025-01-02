@@ -32,7 +32,7 @@ def recursively_convert_to_json_serializable(
     return _recursively_convert_to_json_serializable(test_obj)
 
 
-def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
+def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     test_obj: Any,
 ) -> Any:
     # If it's one of our types, we pass

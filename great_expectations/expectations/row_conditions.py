@@ -120,7 +120,7 @@ def _parse_great_expectations_condition(row_condition: str):
 
 
 # noinspection PyUnresolvedReferences
-def parse_condition_to_spark(  # type: ignore[return] # return or raise exists for all branches  # noqa: C901, PLR0911
+def parse_condition_to_spark(  # type: ignore[return] # return or raise exists for all branches  # noqa: C901, PLR0911 # FIXME CoP
     row_condition: str,
 ) -> pyspark.Column:
     parsed = _parse_great_expectations_condition(row_condition)

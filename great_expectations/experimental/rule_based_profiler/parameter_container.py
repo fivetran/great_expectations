@@ -526,7 +526,7 @@ def _get_parameter_value_from_parameter_container(
                 name=parameter_name_part
             )
             if len(parsed_attribute_name) < 1:
-                raise KeyError(  # noqa: TRY003, TRY301
+                raise KeyError(  # noqa: TRY003, TRY301 # FIXME CoP
                     f"""Unable to get value for parameter name "{fully_qualified_parameter_name}": Part \
 "{parameter_name_part}" in fully-qualified parameter name does not represent a valid expression.
 """  # noqa: E501 # FIXME CoP

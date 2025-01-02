@@ -39,7 +39,7 @@ from great_expectations.render.util import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 
@@ -292,7 +292,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
         return values
 
     @classmethod
-    def _prescriptive_template(  # noqa: C901, PLR0912
+    def _prescriptive_template(  # noqa: C901, PLR0912 # FIXME CoP
         cls,
         renderer_configuration: RendererConfiguration,
     ) -> RendererConfiguration:
@@ -355,7 +355,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
-    def _prescriptive_renderer(  # noqa: C901 - too complex
+    def _prescriptive_renderer(  # noqa: C901 #  too complex
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,

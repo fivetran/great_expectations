@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
 
-def column_function_partial(  # noqa: C901, PLR0915
+def column_function_partial(  # noqa: C901, PLR0915 # FIXME CoP
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
     **kwargs,
@@ -257,6 +257,6 @@ def column_function_partial(  # noqa: C901, PLR0915
         return wrapper
 
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
             'Unsupported engine for "column_function_partial" metric function decorator.'
         )

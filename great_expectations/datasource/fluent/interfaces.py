@@ -1168,7 +1168,7 @@ class Batch:
         else:
             # If we are type checking, we should never fall through to this case. However, exploratory  # noqa: E501 # FIXME CoP
             # workflows are not being type checked.
-            raise ValueError(  # noqa: TRY003, TRY004
+            raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                 f"Trying to validate something that isn't an Expectation or an ExpectationSuite: {expect}"  # noqa: E501 # FIXME CoP
             )
 

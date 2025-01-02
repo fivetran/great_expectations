@@ -214,7 +214,7 @@ class PasswordMasker:
         try:
             matched: re.Match[str] | None = azure_conn_str_re.match(url)
             if not matched:
-                raise StoreConfigurationError(  # noqa: TRY003, TRY301
+                raise StoreConfigurationError(  # noqa: TRY003, TRY301 # FIXME CoP
                     f"The URL for the Azure connection-string, was not configured properly. Please check and try again: {url} "  # noqa: E501 # FIXME CoP
                 )
             res = f"DefaultEndpointsProtocol={matched.group(2)};AccountName={matched.group(4)};AccountKey=***;EndpointSuffix={matched.group(8)}"  # noqa: E501 # FIXME CoP
@@ -250,7 +250,7 @@ class PasswordMasker:
         return masked_url
 
     @classmethod
-    def sanitize_config(cls, config: dict) -> dict:  # noqa: C901 - too complex
+    def sanitize_config(cls, config: dict) -> dict:  # noqa: C901 #  too complex
         """
         Mask sensitive fields in a Dict.
         """

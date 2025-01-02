@@ -198,7 +198,7 @@ class SqlAlchemyBatchData(BatchData):
     def use_quoted_name(self):
         return self._use_quoted_name
 
-    def _create_temporary_table(  # noqa: C901, PLR0912
+    def _create_temporary_table(  # noqa: C901, PLR0912 # FIXME CoP
         self,
         dialect: GXSqlDialect,
         query: str,

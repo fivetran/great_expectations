@@ -122,6 +122,6 @@ class CheckpointFactory(Factory[Checkpoint]):
     def _get(self, key: GXCloudIdentifier | StringKey) -> Checkpoint:
         checkpoint = self._store.get(key=key)
         if not isinstance(checkpoint, Checkpoint):
-            raise ValueError(f"Object with key {key} was found, but it is not a Checkpoint.")  # noqa: TRY003, TRY004
+            raise ValueError(f"Object with key {key} was found, but it is not a Checkpoint.")  # noqa: TRY003, TRY004 # FIXME CoP
 
         return checkpoint

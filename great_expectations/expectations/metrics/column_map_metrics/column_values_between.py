@@ -60,7 +60,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
 
             return cls._pandas_vectorized(temp_column, min_value, max_value, strict_min, strict_max)
 
-        def is_between(val):  # noqa: C901, PLR0911, PLR0912
+        def is_between(val):  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
             # TODO Might be worth explicitly defining comparisons between types (for example, between strings and ints).  # noqa: E501 # FIXME CoP
             # Ensure types can be compared since some types in Python 3 cannot be logically compared.  # noqa: E501 # FIXME CoP
             # print type(val), type(min_value), type(max_value), val, min_value, max_value
@@ -121,7 +121,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         return temp_column.map(is_between)
 
     @classmethod
-    def _pandas_vectorized(  # noqa: C901, PLR0911
+    def _pandas_vectorized(  # noqa: C901, PLR0911 # FIXME CoP
         cls,
         column: pd.Series,
         min_value: Optional[Union[int, float, datetime.datetime]],
@@ -154,7 +154,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
             return (min_value <= column) & (column <= max_value)
 
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
-    def _sqlalchemy(  # noqa: C901, PLR0911
+    def _sqlalchemy(  # noqa: C901, PLR0911 # FIXME CoP
         cls,
         column,
         min_value=None,
@@ -206,7 +206,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
             )
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
-    def _spark(  # noqa: C901, PLR0911
+    def _spark(  # noqa: C901, PLR0911 # FIXME CoP
         cls,
         column,
         min_value=None,

@@ -559,7 +559,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
 
         return validation_dependencies
 
-    def _validate(  # noqa: C901, PLR0912, PLR0915
+    def _validate(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
         metrics: Dict,
         runtime_configuration: Optional[dict] = None,
@@ -900,7 +900,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         return return_obj
 
     @classmethod
-    def _get_kl_divergence_chart(  # noqa: C901 - 13
+    def _get_kl_divergence_chart(  # noqa: C901 #  13
         cls, partition_object, header=None
     ):
         weights = partition_object["weights"]

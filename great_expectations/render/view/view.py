@@ -129,7 +129,7 @@ class DefaultJinjaView:
         return url
 
     @contextfilter  # type: ignore[misc] # untyped 3rd party decorator
-    def render_content_block(  # noqa: C901, PLR0911, PLR0912
+    def render_content_block(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         self,
         jinja_context: Any,
         content_block: str | list | dict | RenderedComponentContent,
@@ -311,7 +311,7 @@ class DefaultJinjaView:
         except OSError:
             return markdown
 
-    def render_string_template(self, template):  # noqa: C901, PLR0912
+    def render_string_template(self, template):  # noqa: C901, PLR0912 # FIXME CoP
         # NOTE: Using this line for debugging. This should probably be logged...?
         # print(template)
 

@@ -18,7 +18,7 @@ from great_expectations.compatibility.bigquery import (
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine.sqlalchemy_dialect import (
-    GXSqlDialect,  # noqa: TC001, RUF100
+    GXSqlDialect,  # noqa: TC001, RUF100 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -633,7 +633,7 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
     return types
 
 
-def _get_dialect_type_module(  # noqa: C901, PLR0911
+def _get_dialect_type_module(  # noqa: C901, PLR0911 # FIXME CoP
     execution_engine,
 ):
     if execution_engine.dialect_module is None:
@@ -704,7 +704,7 @@ def _get_dialect_type_module(  # noqa: C901, PLR0911
     return execution_engine.dialect_module
 
 
-def _native_type_type_map(type_):  # noqa: C901, PLR0911
+def _native_type_type_map(type_):  # noqa: C901, PLR0911 # FIXME CoP
     # We allow native python types in cases where the underlying type is "object":
     if type_.lower() == "none":
         return (type(None),)

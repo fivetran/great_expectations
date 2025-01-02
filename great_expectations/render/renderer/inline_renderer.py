@@ -149,7 +149,7 @@ class InlineRenderer(Renderer):
                     render_object=render_object,
                 )
             else:
-                raise InlineRendererError(  # noqa: TRY003, TRY301
+                raise InlineRendererError(  # noqa: TRY003, TRY301 # FIXME CoP
                     f"renderer_name: {renderer_name} was not found in the registry for expectation_type: {expectation_type}"  # noqa: E501 # FIXME CoP
                 )
 

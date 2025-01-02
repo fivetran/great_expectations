@@ -29,7 +29,7 @@ from great_expectations.render.util import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 from great_expectations.expectations.expectation import (

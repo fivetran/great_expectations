@@ -378,7 +378,7 @@ class ExpectationDoctor:
             results = data["datasets"]
         return results
 
-    def _get_examples(  # noqa: C901 - too complex
+    def _get_examples(  # noqa: C901 #  too complex
         self, return_only_gallery_examples: bool = True
     ) -> List[ExpectationTestDataCases]:
         """
@@ -472,7 +472,7 @@ class ExpectationDoctor:
             }
         )
 
-    def _get_expectation_configuration_from_examples(  # noqa: C901 - too complex
+    def _get_expectation_configuration_from_examples(  # noqa: C901 #  too complex
         self,
         examples: List[ExpectationTestDataCases],
     ) -> Optional[ExpectationConfiguration]:
@@ -779,7 +779,7 @@ class ExpectationDoctor:
         supported_renderers.sort()
         return supported_renderers
 
-    def _get_rendered_result_as_string(  # noqa: C901, PLR0912
+    def _get_rendered_result_as_string(  # noqa: C901, PLR0912 # FIXME CoP
         self, rendered_result
     ) -> str:
         """Convenience method to get rendered results as strings."""

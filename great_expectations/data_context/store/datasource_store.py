@@ -198,7 +198,7 @@ class DatasourceStore(Store):
         )
         datasource = self.get(key)
         if not isinstance(datasource, FluentDatasource):
-            raise ValueError("Datasource is not a FluentDatasource")  # noqa: TRY003, TRY004
+            raise ValueError("Datasource is not a FluentDatasource")  # noqa: TRY003, TRY004 # FIXME CoP
         return datasource
 
     @override

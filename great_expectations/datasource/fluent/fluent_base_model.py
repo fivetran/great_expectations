@@ -305,7 +305,7 @@ class FluentBaseModel(pydantic.BaseModel):
 class GenericBaseModel(FluentBaseModel, pydantic.GenericModel): ...
 
 
-def _recursively_set_config_value(  # noqa: C901 - too complex
+def _recursively_set_config_value(  # noqa: C901 #  too complex
     data: MutableMapping | MutableSequence, config_provider: _ConfigurationProvider
 ) -> None:
     if isinstance(data, MutableMapping):

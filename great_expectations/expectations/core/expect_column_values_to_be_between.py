@@ -275,7 +275,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
 
     @classmethod
     @override
-    def _prescriptive_template(  # noqa: C901 - too complex
+    def _prescriptive_template(  # noqa: C901 #  too complex
         cls,
         renderer_configuration: RendererConfiguration,
     ):

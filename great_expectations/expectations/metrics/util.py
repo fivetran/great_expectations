@@ -110,7 +110,7 @@ def _is_databricks_dialect(dialect: ModuleType | sa.Dialect | Type[sa.Dialect]) 
     return False
 
 
-def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
+def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIXME CoP
     column: sa.Column,
     regex: str,
     dialect: ModuleType | Type[sa.Dialect] | sa.Dialect,
@@ -360,7 +360,7 @@ class CaseInsensitiveNameDict(UserDict):
         return item
 
 
-def get_sqlalchemy_column_metadata(  # noqa: C901, PLR0912
+def get_sqlalchemy_column_metadata(  # noqa: C901, PLR0912 # FIXME CoP
     execution_engine: SqlAlchemyExecutionEngine,
     table_selectable: sqlalchemy.Select,
     schema_name: Optional[str] = None,
@@ -441,7 +441,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901, PLR0912
         return None
 
 
-def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
+def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     selectable: sqlalchemy.Select,
     dialect: sqlalchemy.Dialect,
     sqlalchemy_engine: sqlalchemy.Engine,
@@ -852,7 +852,7 @@ def parse_value_set(value_set: Iterable) -> list:
     return parsed_value_set
 
 
-def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915
+def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     column: sa.Column, dialect: ModuleType, like_pattern: str, positive: bool = True
 ) -> sa.BinaryExpression | None:
     dialect_supported: bool = False
@@ -951,7 +951,7 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915
     return None
 
 
-def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
+def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     distribution, params
 ):
     """Ensures that necessary parameters for a distribution are present and that all parameters are sensical.
@@ -1081,7 +1081,7 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
             raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003 # FIXME CoP
 
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
             "params must be a dict or list, or use great_expectations.dataset.util.infer_distribution_parameters(data, distribution)"  # noqa: E501 # FIXME CoP
         )
 
