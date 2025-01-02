@@ -811,7 +811,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
         Args:
             name: The name of the Batch Definition to be added.
-            column: The column name on which to partition the asset by year
+            column: The column name on which to partition the asset by year.
             sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
                 When running a validation, we default to running the last batch definition
                 if one is not explicitly specified.
