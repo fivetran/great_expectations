@@ -8,6 +8,9 @@ from collections.abc import Iterator
 TYPE_IGNORE_COMMENT_REGEX: re.Pattern[str] = re.compile(
     r" # type: ignore(?P<code>\[.*?\])?(?P<comment>\s*# .*)?$"
 )
+NOQA_IGNORE_COMMENT_REGEX: re.Pattern[str] = re.compile(
+    r" # noqa: (?P<code>.*?)?(?P<comment>\s*# .*)?$"
+)
 
 
 def get_type_ignores(path: pathlib.Path) -> Iterator[tuple[int, str]]:
@@ -22,17 +25,8 @@ def get_type_ignores(path: pathlib.Path) -> Iterator[tuple[int, str]]:
 
 
 def check_type_ignores(paths: list[pathlib.Path]) -> list[tuple[str, str, str]]:
-    all_ignores: list[tuple[pathlib.Path, int, str]] = []
-    for path in paths[:]:
-        for lineno, ignore in get_type_ignores(path):
-            all_ignores.append((path, lineno, ignore))
-
-    return all_ignores
-
-
-NOQA_IGNORE_COMMENT_REGEX: re.Pattern[str] = re.compile(
-    r" # noqa: (?P<code>.*?)?(?P<comment>\s*# .*)?$"
-)
+    """Collect list of type ignores without comments."""
+    return [(path, lineno, ignore) for path in paths for lineno, ignore in get_type_ignores(path)]
 
 
 def get_noqa_ignores(path: pathlib.Path) -> Iterator[tuple[int, str]]:
@@ -47,16 +41,13 @@ def get_noqa_ignores(path: pathlib.Path) -> Iterator[tuple[int, str]]:
 
 
 def check_noqa_ignores(paths: list[pathlib.Path]) -> list[tuple[str, str, str]]:
-    all_ignores: list[tuple[pathlib.Path, int, str]] = []
-    for path in paths[:]:
-        for lineno, ignore in get_noqa_ignores(path):
-            all_ignores.append((path, lineno, ignore))
-
-    return all_ignores
+    """Collect list of noqa ignores without comments."""
+    return [(path, lineno, ignore) for path in paths for lineno, ignore in get_noqa_ignores(path)]
 
 
 if __name__ == "__main__":
     paths: list[pathlib.Path] = [pathlib.Path(p) for p in sys.argv[1:]]
+
     checks = {"type": check_type_ignores(paths), "noqa": check_noqa_ignores(paths)}
     should_fail = False
     total_errors = 0
@@ -68,8 +59,11 @@ if __name__ == "__main__":
             print(f"Found {key} ignores without explanatory comments:")
             for path, lineno, ignore in all_ignores:
                 print(f" {path}:{lineno}\n {ignore}")
+
     if should_fail:
-        print(f"Found {total_errors} ignores without comments that need to be fixed before merging")
+        print(
+            f"Found {total_errors} ignores without comments that need to be fixed before merging."
+        )
         sys.exit(1)
     else:
         sys.exit(0)
