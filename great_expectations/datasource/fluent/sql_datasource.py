@@ -952,7 +952,7 @@ class QueryAsset(_SQLAsset):
     """An asset made from a SQL query
 
     Args:
-        query: The query to be used to contruct the underlying data asset
+        query: The query to be used to construct the underlying Data Asset
     """
 
     # Instance fields
