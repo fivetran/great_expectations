@@ -230,8 +230,8 @@ except (ImportError, AttributeError):
     custom_op = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
 
 try:
-    from sqlalchemy.engine.cursor import (
-        LegacyCursorResult,  # type: ignore[attr-defined] # FIXME CoP
+    from sqlalchemy.engine.cursor import (  # type: ignore[attr-defined] # FIXME CoP
+        LegacyCursorResult,
     )
 except (ImportError, AttributeError):
     LegacyCursorResult = SQLALCHEMY_NOT_IMPORTED

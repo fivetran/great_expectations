@@ -53,8 +53,8 @@ except (ImportError, AttributeError):
     sqlalchemy_athena = ATHENA_NOT_IMPORTED
 
 try:
-    from pyathena.sqlalchemy_athena import (
-        types as athenatypes,  # type: ignore[import-not-found] # FIXME CoP
+    from pyathena.sqlalchemy_athena import (  # type: ignore[import-not-found] # FIXME CoP
+        types as athenatypes,
     )
 except (ImportError, AttributeError):
     athenatypes = ATHENA_NOT_IMPORTED
