@@ -46,7 +46,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
     @public_api
     def add_batch_definition_daily(self, name: str, column: str) -> BatchDefinition:
         """
-        Add a BatchDefinition which creates a single batch for each day in the directory.
+        Add a BatchDefinition, which creates a single Batch for each day in the directory.
 
         Args:
             name: Name of the batch definition.
