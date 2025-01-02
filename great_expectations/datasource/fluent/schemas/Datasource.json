@@ -529,7 +529,7 @@
         },
         "DataAsset": {
             "title": "DataAsset",
-            "description": "--Public API--\nA Data Asset is a collection of records within a Datasource which is usually named based\non the underlying data system and sliced to correspond to a desired specification.\n\nData Assets are used to specify how Great Expectations will organize data into Batches.",
+            "description": "--Public API--\nA Data Asset is a collection of records within a Data Source, which is usually named based\non the underlying data system and sliced to correspond to a desired specification.\n\nData Assets are used to specify how Great Expectations will organize data into Batches.",
             "type": "object",
             "properties": {
                 "name": {
