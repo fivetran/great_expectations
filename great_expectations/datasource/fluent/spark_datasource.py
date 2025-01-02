@@ -319,7 +319,7 @@ class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
         Add a BatchDefinition that represents the entire DataFrame.
 
         Args:
-            name: The name of the batch definition.
+            name: The name of the Batch Definition.
 
         Returns:
             A BatchDefinition object that represents the entire DataFrame.
