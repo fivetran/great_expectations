@@ -1167,7 +1167,7 @@ class Batch:
         expectation_parameters: Optional[SuiteParameterDict] = None,
     ) -> ExpectationValidationResult | ExpectationSuiteValidationResult:
         """
-        Validate the batch using the provided expectation or expectation suite.
+        Validate the Batch using the provided Expectation or Expectation Suite.
 
         Args:
             expect: The expectation or expectation suite to validate.
