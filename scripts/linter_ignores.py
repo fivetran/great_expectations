@@ -17,7 +17,7 @@ TYPE_IGNORE_COMMENT_REGEX: re.Pattern[str] = re.compile(
     r" # type: ignore(?P<code>\[.*?\])?(?P<comment>\s*# .*)?$"
 )
 NOQA_IGNORE_COMMENT_REGEX: re.Pattern[str] = re.compile(
-    r" # noqa: (?P<code>(\s*,)?.*?)*(?P<comment>\s*# .*)?$"
+    r" # noqa: (?P<code>.*?)*(?P<comment>\s*# .*)?$"
 )
 
 
