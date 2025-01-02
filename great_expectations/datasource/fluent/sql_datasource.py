@@ -789,7 +789,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         """Adds a whole table Batch Definition to this Data Asset
 
         Args:
-            name: The name of the batch definition to be added
+            name: The name of the Batch Definition to be added
 
         Returns:
             The added BatchDefinition object.
