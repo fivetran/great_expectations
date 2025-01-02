@@ -33,19 +33,19 @@ DATA = pd.DataFrame(
         EQUAL_STRINGS_B: ["foo", "bar", "baz"],
         UNEQUAL_STRINGS: ["foo", "bar", "wat"],
         EQUAL_DATES_A: [
-            datetime(2024, 1, 1).date(),  # noqa: DTZ001
-            datetime(2024, 2, 1).date(),  # noqa: DTZ001
-            datetime(2024, 3, 1).date(),  # noqa: DTZ001
+            datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME COP
+            datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME COP
+            datetime(2024, 3, 1).date(),  # noqa: DTZ001 # FIXME COP
         ],
         EQUAL_DATES_B: [
-            datetime(2024, 1, 1).date(),  # noqa: DTZ001
-            datetime(2024, 2, 1).date(),  # noqa: DTZ001
-            datetime(2024, 3, 1).date(),  # noqa: DTZ001
+            datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME COP
+            datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME COP
+            datetime(2024, 3, 1).date(),  # noqa: DTZ001 # FIXME COP
         ],
         UNEQUAL_DATES: [
-            datetime(2024, 1, 1).date(),  # noqa: DTZ001
-            datetime(2024, 2, 1).date(),  # noqa: DTZ001
-            datetime(2024, 4, 1).date(),  # noqa: DTZ001
+            datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME COP
+            datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME COP
+            datetime(2024, 4, 1).date(),  # noqa: DTZ001 # FIXME COP
         ],
         ALL_EQUAL_NUMS_A: [1, 2, 3],
         ALL_EQUAL_NUMS_B: [1, 2, 3],

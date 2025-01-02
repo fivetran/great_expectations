@@ -170,7 +170,7 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     domain_keys: ClassVar[Tuple[str, ...]] = (
         "column",

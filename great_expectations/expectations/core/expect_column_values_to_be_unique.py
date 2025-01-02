@@ -164,7 +164,7 @@ class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
                   "meta": {{}},
                   "success": true
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",

@@ -181,7 +181,7 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     sum_total: float = pydantic.Field(description=SUM_TOTAL_DESCRIPTION)
     ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (
@@ -304,7 +304,7 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
         if params["mostly"] is not None:
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
         mostly_str = "" if params.get("mostly") is None else ", at least $mostly_pct % of the time"
-        sum_total = params.get("sum_total")  # noqa: F841
+        sum_total = params.get("sum_total")  # noqa: F841 # FIXME COP
 
         column_list_str = ""
         for idx in range(len(params["column_list"]) - 1):

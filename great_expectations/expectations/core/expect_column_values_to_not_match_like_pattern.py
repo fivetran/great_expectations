@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME COP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -163,7 +163,7 @@ class ExpectColumnValuesToNotMatchLikePattern(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     like_pattern: Union[str, SuiteParameterDict] = pydantic.Field(
         description=LIKE_PATTERN_DESCRIPTION
@@ -279,7 +279,7 @@ class ExpectColumnValuesToNotMatchLikePattern(ColumnMapExpectation):
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
         mostly_str = "" if params.get("mostly") is None else ", at least $mostly_pct % of the time"
 
-        like_pattern = params.get("like_pattern")  # noqa: F841
+        like_pattern = params.get("like_pattern")  # noqa: F841 # FIXME COP
 
         template_str = f"Values must not match like pattern : $like_pattern {mostly_str} "
 

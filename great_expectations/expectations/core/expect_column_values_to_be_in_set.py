@@ -185,7 +185,7 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     value_set: ValueSetField
 
@@ -380,7 +380,7 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
 
         classes = ["col-3", "mt-1", "pl-1", "pr-1"]
 
-        if any(len(value) > 80 for value in values):  # noqa: PLR2004
+        if any(len(value) > 80 for value in values):  # noqa: PLR2004 # FIXME COP
             content_block_type = "bullet_list"
             content_block_class = RenderedBulletListContent
         else:

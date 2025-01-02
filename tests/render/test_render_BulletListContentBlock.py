@@ -58,7 +58,7 @@ def test_parse_row_condition_string_pandas_engine():
         "Survived == 1 and (SexCode not in (0, 7, x) | ~(Age > 50)) & not (PClass != '1st')"
     )
     assert parse_row_condition_string_pandas_engine(test_condition_string) == (
-        "if $row_condition__0 and ($row_condition__1 or not ($row_condition__2)) and not ($row_condition__3)",  # noqa: E501
+        "if $row_condition__0 and ($row_condition__1 or not ($row_condition__2)) and not ($row_condition__3)",  # noqa: E501 # FIXME COP
         {
             "row_condition__0": "Survived == 1",
             "row_condition__1": "SexCode not in [0, 7, x]",
@@ -71,12 +71,12 @@ def test_parse_row_condition_string_pandas_engine():
 @pytest.mark.filesystem
 def test_all_expectations_using_test_definitions():
     dir_path = os.path.dirname(os.path.abspath(__file__))  # noqa: PTH120, PTH100
-    pattern = os.path.join(  # noqa: PTH118
+    pattern = os.path.join(  # noqa: PTH118 # FIXME COP
         dir_path, "..", "..", "tests", "test_definitions", "*", "expect*.json"
     )
-    test_files = glob.glob(pattern)  # noqa: PTH207
+    test_files = glob.glob(pattern)  # noqa: PTH207 # FIXME COP
 
-    # Historically, collecting all the JSON tests was an issue - this step ensures we actually have test data.  # noqa: E501
+    # Historically, collecting all the JSON tests was an issue - this step ensures we actually have test data.  # noqa: E501 # FIXME COP
     assert (
         len(test_files) == 61
     ), "Something went wrong when collecting JSON Expectation test fixtures"
@@ -97,7 +97,7 @@ def test_all_expectations_using_test_definitions():
         for dataset in test_definitions["datasets"]:
             for test in dataset["tests"]:
                 # Construct an expectation from the test.
-                if type(test["in"]) == dict:  # noqa: E721
+                if type(test["in"]) == dict:  # noqa: E721 # FIXME COP
                     # Skip tests with invalid configurations
                     if test["in"].get("catch_exceptions"):
                         continue

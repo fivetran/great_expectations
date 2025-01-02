@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 from great_expectations.compatibility.pydantic import Field, StrictStr
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME COP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
@@ -135,7 +135,7 @@ class ExpectColumnToExist(BatchExpectation):
               "success": false,
               "result": {{}}
             }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
     column_index: Union[int, SuiteParameterDict, None] = Field(

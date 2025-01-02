@@ -174,7 +174,7 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     value_set: ValueSetField
 
@@ -347,7 +347,7 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
             )
         ]
 
-    def _pandas_column_values_not_in_set(  # noqa: PLR0913
+    def _pandas_column_values_not_in_set(  # noqa: PLR0913 # FIXME COP
         self,
         series: pd.Series,
         metrics: Dict,

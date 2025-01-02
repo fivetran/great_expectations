@@ -175,7 +175,7 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     value_set: ValueSetField
     ties_okay: Union[bool, None] = pydantic.Field(
@@ -195,7 +195,7 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
 
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME COP
     metric_dependencies = ("column.most_common_value",)
     success_keys = (
         "value_set",

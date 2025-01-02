@@ -22,11 +22,11 @@ class ColumnValuesMatchStrftimeFormat(ColumnMapMetricProvider):
     def _pandas(cls, column, strftime_format, **kwargs):
         def is_parseable_by_format(val):
             try:
-                datetime.strptime(val, strftime_format)  # noqa: DTZ007
+                datetime.strptime(val, strftime_format)  # noqa: DTZ007 # FIXME COP
                 return True
             except TypeError:
-                raise TypeError(  # noqa: TRY003
-                    "Values passed to expect_column_values_to_match_strftime_format must be of type string.\nIf you want to validate a column of dates or timestamps, please call the expectation before converting from string format."  # noqa: E501
+                raise TypeError(  # noqa: TRY003 # FIXME COP
+                    "Values passed to expect_column_values_to_match_strftime_format must be of type string.\nIf you want to validate a column of dates or timestamps, please call the expectation before converting from string format."  # noqa: E501 # FIXME COP
                 )
             except ValueError:
                 return False
@@ -35,25 +35,25 @@ class ColumnValuesMatchStrftimeFormat(ColumnMapMetricProvider):
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column, strftime_format, **kwargs):
-        # Below is a simple validation that the provided format can both format and parse a datetime object.  # noqa: E501
+        # Below is a simple validation that the provided format can both format and parse a datetime object.  # noqa: E501 # FIXME COP
         # %D is an example of a format that can format but not parse, e.g.
         try:
-            datetime.strptime(  # noqa: DTZ007
-                datetime.strftime(datetime.now(), strftime_format),  # noqa: DTZ005
+            datetime.strptime(  # noqa: DTZ007 # FIXME COP
+                datetime.strftime(datetime.now(), strftime_format),  # noqa: DTZ005 # FIXME COP
                 strftime_format,
             )
         except ValueError as e:
-            raise ValueError(f"Unable to use provided strftime_format: {e!s}")  # noqa: TRY003
+            raise ValueError(f"Unable to use provided strftime_format: {e!s}")  # noqa: TRY003 # FIXME COP
 
         def is_parseable_by_format(val):
             if val is None:
                 return False
             try:
-                datetime.strptime(val, strftime_format)  # noqa: DTZ007
+                datetime.strptime(val, strftime_format)  # noqa: DTZ007 # FIXME COP
                 return True
             except TypeError:
-                raise TypeError(  # noqa: TRY003
-                    "Values passed to expect_column_values_to_match_strftime_format must be of type string.\nIf you want to validate a column of dates or timestamps, please call the expectation before converting from string format."  # noqa: E501
+                raise TypeError(  # noqa: TRY003 # FIXME COP
+                    "Values passed to expect_column_values_to_match_strftime_format must be of type string.\nIf you want to validate a column of dates or timestamps, please call the expectation before converting from string format."  # noqa: E501 # FIXME COP
                 )
             except ValueError:
                 return False

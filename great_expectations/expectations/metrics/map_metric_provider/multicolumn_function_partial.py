@@ -56,7 +56,7 @@ def multicolumn_function_partial(  # noqa: C901 - 16
 
     Returns:
         An annotated metric_function which will be called with a simplified signature.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
     domain_type = MetricDomainTypes.MULTICOLUMN
     if issubclass(engine, PandasExecutionEngine):
         if partial_fn_type is None:
@@ -64,9 +64,9 @@ def multicolumn_function_partial(  # noqa: C901 - 16
 
         partial_fn_type__typed = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type != MetricPartialFunctionTypes.MAP_SERIES:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME COP
                 f"""PandasExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_SERIES.value}" for \
-"multicolumn_function_partial" "partial_fn_type" property."""  # noqa: E501
+"multicolumn_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME COP
             )
 
         def wrapper(metric_fn: Callable):
@@ -77,7 +77,7 @@ def multicolumn_function_partial(  # noqa: C901 - 16
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME COP
                 cls,
                 execution_engine: PandasExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -120,9 +120,9 @@ def multicolumn_function_partial(  # noqa: C901 - 16
 
         partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type != MetricPartialFunctionTypes.MAP_FN:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME COP
                 f"""SqlAlchemyExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_FN.value}" for \
-"multicolumn_function_partial" "partial_fn_type" property."""  # noqa: E501
+"multicolumn_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME COP
             )
 
         def wrapper(metric_fn: Callable):
@@ -135,7 +135,7 @@ def multicolumn_function_partial(  # noqa: C901 - 16
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME COP
                 cls,
                 execution_engine: SqlAlchemyExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -164,7 +164,7 @@ def multicolumn_function_partial(  # noqa: C901 - 16
 
                 sqlalchemy_engine: sqlalchemy.Engine = execution_engine.engine
 
-                column_selector = [sa.column(column_name) for column_name in column_list]  # type: ignore[var-annotated]
+                column_selector = [sa.column(column_name) for column_name in column_list]  # type: ignore[var-annotated] # FIXME COP
                 dialect = execution_engine.dialect_module
                 multicolumn_function = metric_fn(
                     cls,
@@ -193,9 +193,9 @@ def multicolumn_function_partial(  # noqa: C901 - 16
 
         partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type != MetricPartialFunctionTypes.MAP_FN:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME COP
                 f"""SparkDFExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_FN.value}" for \
-"multicolumn_function_partial" "partial_fn_type" property."""  # noqa: E501
+"multicolumn_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME COP
             )
 
         def wrapper(metric_fn: Callable):
@@ -206,7 +206,7 @@ def multicolumn_function_partial(  # noqa: C901 - 16
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME COP
                 cls,
                 execution_engine: SparkDFExecutionEngine,
                 metric_domain_kwargs: dict,

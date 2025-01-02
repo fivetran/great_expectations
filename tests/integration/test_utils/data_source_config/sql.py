@@ -56,12 +56,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types."""
         # implementations of the class can override this if more specific types are required
         return {
-            str: sqltypes.VARCHAR,  # type: ignore[dict-item]
-            int: sqltypes.INTEGER,  # type: ignore[dict-item]
-            float: sqltypes.DECIMAL,  # type: ignore[dict-item]
-            bool: sqltypes.BOOLEAN,  # type: ignore[dict-item]
-            date: sqltypes.DATE,  # type: ignore[dict-item]
-            datetime: sqltypes.DATETIME,  # type: ignore[dict-item]
+            str: sqltypes.VARCHAR,  # type: ignore[dict-item] # FIXME COP
+            int: sqltypes.INTEGER,  # type: ignore[dict-item] # FIXME COP
+            float: sqltypes.DECIMAL,  # type: ignore[dict-item] # FIXME COP
+            bool: sqltypes.BOOLEAN,  # type: ignore[dict-item] # FIXME COP
+            date: sqltypes.DATE,  # type: ignore[dict-item] # FIXME COP
+            datetime: sqltypes.DATETIME,  # type: ignore[dict-item] # FIXME COP
         }
 
     def __init__(
@@ -202,7 +202,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             non_null_value_list = [val for val in value_list if val is not None]
             if not non_null_value_list:
                 # if we have an all null column, just arbitrarily use INTEGER
-                inferred_column_types[str(column)] = sqltypes.INTEGER  # type: ignore[assignment]
+                inferred_column_types[str(column)] = sqltypes.INTEGER  # type: ignore[assignment] # FIXME COP
             else:
                 python_type = type(non_null_value_list[0])
                 if not all(isinstance(val, python_type) for val in non_null_value_list):

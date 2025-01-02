@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME COP
 from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
@@ -186,7 +186,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -207,7 +207,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
     }
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME COP
     metric_dependencies = ("column.max",)
     success_keys = (
         "min_value",
@@ -285,7 +285,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
                 if params.min_value == params.max_value:
                     template_str = "maximum value must be $min_value"
                 else:
-                    template_str = f"maximum value must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501
+                    template_str = f"maximum value must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME COP
             elif not params.min_value:
                 template_str = f"maximum value must be {at_most_str} $max_value."
             else:

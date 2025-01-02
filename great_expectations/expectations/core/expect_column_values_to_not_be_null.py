@@ -173,7 +173,7 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",
@@ -279,7 +279,7 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
                 )
             else:
                 template_str = "values must not be null, at least $mostly_pct % of the time."
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME COP
             if include_column_name:
                 template_str = "$column values must never be null."
             else:

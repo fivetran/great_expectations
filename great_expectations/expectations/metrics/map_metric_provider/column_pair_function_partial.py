@@ -47,7 +47,7 @@ def column_pair_function_partial(  # noqa: C901 - 16
 
     Returns:
         An annotated metric_function which will be called with a simplified signature.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
     domain_type = MetricDomainTypes.COLUMN_PAIR
     if issubclass(engine, PandasExecutionEngine):
         if partial_fn_type is None:
@@ -55,9 +55,9 @@ def column_pair_function_partial(  # noqa: C901 - 16
 
         partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type != MetricPartialFunctionTypes.MAP_SERIES:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME COP
                 f"""PandasExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_SERIES.value}" for \
-"column_pair_function_partial" "partial_fn_type" property."""  # noqa: E501
+"column_pair_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME COP
             )
 
         def wrapper(metric_fn: Callable):
@@ -70,7 +70,7 @@ def column_pair_function_partial(  # noqa: C901 - 16
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME COP
                 cls,
                 execution_engine: PandasExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -115,9 +115,9 @@ def column_pair_function_partial(  # noqa: C901 - 16
 
         partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type != MetricPartialFunctionTypes.MAP_FN:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME COP
                 f"""SqlAlchemyExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_FN.value}" for \
-"column_pair_function_partial" "partial_fn_type" property."""  # noqa: E501
+"column_pair_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME COP
             )
 
         def wrapper(metric_fn: Callable):
@@ -130,7 +130,7 @@ def column_pair_function_partial(  # noqa: C901 - 16
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME COP
                 cls,
                 execution_engine: SqlAlchemyExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -179,9 +179,9 @@ def column_pair_function_partial(  # noqa: C901 - 16
 
         partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type != MetricPartialFunctionTypes.MAP_FN:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME COP
                 f"""SparkDFExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_FN.value}" for \
-"column_pair_function_partial" "partial_fn_type" property."""  # noqa: E501
+"column_pair_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME COP
             )
 
         def wrapper(metric_fn: Callable):
@@ -192,7 +192,7 @@ def column_pair_function_partial(  # noqa: C901 - 16
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME COP
                 cls,
                 execution_engine: SparkDFExecutionEngine,
                 metric_domain_kwargs: dict,

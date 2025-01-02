@@ -13,12 +13,12 @@ Typical usage example:
 config = ModelConfig(...)
 serializer = DictConfigSerializer(schema=modelConfigSchema)
 serialized_value = serializer.serialize(config)
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME COP
 
 import abc
 from typing import TYPE_CHECKING
 
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME COP
 
 if TYPE_CHECKING:
     from marshmallow import Schema
@@ -30,7 +30,7 @@ class AbstractConfigSerializer(abc.ABC):
     """Serializer interface.
 
     Note: When mypy coverage is enhanced further, this Abstract class can be replaced with a Protocol.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME COP
 
     def __init__(self, schema: Schema) -> None:
         """
