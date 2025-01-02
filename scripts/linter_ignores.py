@@ -54,7 +54,7 @@ def check_noqa_ignores(paths: list[pathlib.Path]) -> list[tuple[str, str, str]]:
 
 
 if __name__ == "__main__":
-    paths: list[pathlib.Path] = [pathlib.Path(p) for p in sys.argv[1:]]
+    paths = [pathlib.Path(p) for p in sys.argv[1:]]
     checks = {"type": check_type_ignores(paths), "noqa": check_noqa_ignores(paths)}
 
     total_errors = 0
