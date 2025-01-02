@@ -116,7 +116,7 @@ class ValidationDefinition(BaseModel):
     @public_api
     def batch_definition(self) -> BatchDefinition:
         """
-        The batch definition to validate.
+        The Batch Definition to validate.
         """
         return self.data
 
