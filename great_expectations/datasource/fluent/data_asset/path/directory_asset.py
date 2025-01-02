@@ -93,7 +93,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
             column: Column to partition on.
 
         Returns:
-            A BatchDefinition that is partitioned year.
+            A BatchDefinition that is partitioned yearly.
         """
         # todo: test column
         return self.add_batch_definition(
