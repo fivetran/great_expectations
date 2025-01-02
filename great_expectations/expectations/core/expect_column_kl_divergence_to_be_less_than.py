@@ -19,6 +19,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
@@ -104,7 +105,7 @@ SUPPORTED_DATA_SOURCES = [
     "BigQuery",
     "Snowflake",
 ]
-DATA_QUALITY_ISSUES = ["Distribution"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
@@ -194,7 +195,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         value will be set to None. This is because inf, -inf, Nan, are not json serializable and cause some json \
         parsers to crash when encountered. The python None token will be serialized to null in json.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -205,7 +206,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
