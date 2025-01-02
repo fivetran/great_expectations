@@ -786,7 +786,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
     @public_api
     def add_batch_definition_whole_table(self, name: str) -> BatchDefinition:
-        """Adds a whole table batch definition to this data asset
+        """Adds a whole table Batch Definition to this Data Asset
 
         Args:
             name: The name of the batch definition to be added
