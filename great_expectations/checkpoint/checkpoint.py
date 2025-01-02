@@ -308,10 +308,10 @@ class Checkpoint(BaseModel):
 
         Raises:
             CheckpointRunWithoutValidationDefinitionError: If the Checkpoint is run without any
-                                                           validation definitions.
-            CheckpointNotAddedError: If the Checkpoint has not been added to the store.
+                                                           Validation Definitions.
+            CheckpointNotAddedError: If the Checkpoint has not been added to the Store.
             CheckpointNotFreshError: If the Checkpoint has been modified since it was last added
-                                     to the store.
+                                     to the Store.
         """
         if not self.validation_definitions:
             raise CheckpointRunWithoutValidationDefinitionError()
