@@ -299,8 +299,8 @@ class Checkpoint(BaseModel):
         Runs the Checkpoint's underlying Validation Definitions and Actions.
 
         Args:
-            batch_parameters: Parameters to be used when loading the batch.
-            expectation_parameters: Parameters to be used when validating the batch.
+            batch_parameters: Parameters to be used when loading the Batch.
+            expectation_parameters: Parameters to be used when validating the Batch.
             run_id: An optional unique identifier for the run.
 
         Returns:
