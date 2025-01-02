@@ -532,7 +532,7 @@
         },
         "_PandasDataAsset": {
             "title": "_PandasDataAsset",
-            "description": "--Public API--",
+            "description": "--Public API--\nA Pandas DataAsset is a DataAsset that is backed by a Pandas DataFrame.",
             "type": "object",
             "properties": {
                 "name": {

@@ -1,6 +1,6 @@
 {
     "title": "PandasGoogleCloudStorageDatasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nPandasGoogleCloudStorageDatasource is a PandasDatasource that uses Google Cloud Storage as a\ndata store.",
     "type": "object",
     "properties": {
         "type": {

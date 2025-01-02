@@ -1,6 +1,6 @@
 {
     "title": "PandasS3Datasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nPandasS3Datasource is a PandasDatasource that uses Amazon S3 as a data store.",
     "type": "object",
     "properties": {
         "type": {
