@@ -730,9 +730,9 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
     @public_api
     def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
-        """Validates that the batch definition column is of a permissible type
+        """Validates that the Batch Definition column is of a permissible type
 
-        This isn't meant to be called directly. This is called internally when a batch definition
+        This isn't meant to be called directly. This is called internally when a Batch Definition
          is added. Data asset implementers can override this for their specific data asset.
 
         Raises:
@@ -810,10 +810,10 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         """Adds a yearly Batch Definition to this Data Asset
 
         Args:
-            name: The name of the batch definition to be added
+            name: The name of the Batch Definition to be added
             column: The column name on which to partition the asset by year
             sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
-                When running a validation, we default to running the last batch definition
+                When running a validation, we default to running the last Batch Definition
                 if one is not explicitly specified.
 
         Returns:
@@ -836,13 +836,13 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         sort_ascending: bool = True,
         validate_batchable: bool = True,
     ) -> BatchDefinition:
-        """Adds a monthly batch definition to this data asset
+        """Adds a monthly Batch Definition to this data asset
 
         Args:
-            name: The name of the batch definition to be added
+            name: The name of the Batch Definition to be added
             column: The column name on which to partition the asset by month
             sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
-                When running a validation, we default to running the last batch definition
+                When running a validation, we default to running the last Batch Definition
                 if one is not explicitly specified.
 
         Returns:
@@ -867,10 +867,10 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         sort_ascending: bool = True,
         validate_batchable: bool = True,
     ) -> BatchDefinition:
-        """Adds a daily batch definition to this data asset
+        """Adds a daily Batch Definition to this data asset
 
         Args:
-            name: The name of the batch definition to be added
+            name: The name of the Batch Definition to be added
             column: The column name on which to partition the asset by day
             sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
                 When running a validation, we default to running the last Batch Definition

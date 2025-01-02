@@ -201,7 +201,7 @@ class SqliteDatasource(SQLDatasource):
         query: str,
         batch_metadata: Optional[BatchMetadata] = None,
     ) -> SqliteQueryAsset:
-        """Adds a table asset to this SQLite datasource
+        """Adds a query asset to this SQLite datasource
 
         Args:
             name: The name of this query asset
@@ -209,7 +209,7 @@ class SqliteDatasource(SQLDatasource):
             batch_metadata: An arbitrary dictionary for a caller to annotate the asset
 
         Returns:
-            The SqliteQueryAssetgit st added
+            The SqliteQueryAsset added
         """
 
         return cast(
