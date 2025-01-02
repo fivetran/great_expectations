@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 @public_api
 class CheckpointFactory(Factory[Checkpoint]):
     """
-    Responsible for basic CRUD operations on a context's Checkpoints.
+    Responsible for basic CRUD operations on a Data Context's Checkpoints.
     """
 
     def __init__(self, store: CheckpointStore):
