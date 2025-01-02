@@ -52,7 +52,7 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
     @public_api
     def data_asset(self) -> DataAsset[Any, PartitionerT]:
         """
-        The parent DataAsset for this batch definition.
+        The parent DataAsset for this Batch Definition.
         """
         return self._data_asset
 
