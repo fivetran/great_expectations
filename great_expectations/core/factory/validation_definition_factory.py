@@ -115,6 +115,10 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         Args:
             validation: ValidationDefinition to add or update
         """
+        # Add or update underlying suite
+        suite_factory = project_manager.get_suite_factory()
+        validation.suite = suite_factory.add_or_update(suite=validation.suite)
+
         try:
             existing_validation = self.get(name=validation.name)
             existing_batch_definition = existing_validation.data
@@ -125,10 +129,6 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         batch_definition = validation.data
         batch_definition.id = existing_batch_definition.id
         batch_definition.save()
-
-        # Add or update underlying suite
-        suite_factory = project_manager.get_suite_factory()
-        validation.suite = suite_factory.add_or_update(suite=validation.suite)
 
         # Update actual validation
         validation.id = existing_validation.id
