@@ -259,3 +259,27 @@ def test_is_fresh_fails_on_batch_definition_retrieval(in_memory_runtime_context)
     assert diagnostics.success is False
     assert len(diagnostics.errors) == 1
     assert isinstance(diagnostics.errors[0], BatchDefinitionNotFoundError)
+
+
+@pytest.mark.unit
+def test_save(in_memory_runtime_context):
+    context = in_memory_runtime_context
+
+    ds_name = "my_pandas_ds"
+    asset_name = "my_csv_asset"
+    batch_def_name = "my_batch_def"
+
+    datasource = context.data_sources.add_pandas(name=ds_name)
+    asset = datasource.add_csv_asset(name=asset_name, filepath_or_buffer="data.csv")
+    batch_definition = asset.add_batch_definition(name=batch_def_name)
+
+    assert batch_definition.partitioner is None
+
+    batch_definition.partitioner = FileNamePartitionerYearly(regex=re.compile("my_regex"))
+    batch_definition.save()
+
+    datasource = context.data_sources.get(name=ds_name)
+    asset = datasource.get_asset(name=asset_name)
+    batch_definition = asset.get_batch_definition(name=batch_def_name)
+
+    assert batch_definition.partitioner
