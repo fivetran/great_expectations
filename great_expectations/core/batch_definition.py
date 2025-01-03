@@ -70,6 +70,15 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
         )
 
     @public_api
+    def save(self) -> None:
+        """
+        Save the batch definition to the underlying data context.
+        """
+        project_datasources = project_manager.get_datasources()
+        data_source = self.data_asset.datasource
+        project_datasources.set_datasource(name=data_source.name, ds=data_source)
+
+    @public_api
     def get_batch(self, batch_parameters: Optional[BatchParameters] = None) -> Batch:
         """
         Retrieves a batch from the underlying asset. Defaults to the last batch

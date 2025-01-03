@@ -117,33 +117,21 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         """
         try:
             existing_validation = self.get(name=validation.name)
+            existing_batch_definition = existing_validation.data
         except DataContextError:
             return self.add(validation=validation)
 
+        # Update underlying batch definition
+        batch_definition = validation.data
+        batch_definition.id = existing_batch_definition.id
+        batch_definition.save()
+
+        # Add or update underlying suite
+        suite_factory = project_manager.get_suite_factory()
+        validation.suite = suite_factory.add_or_update(suite=validation.suite)
+
+        # Update actual validation
         validation.id = existing_validation.id
-        self._update_batch_definition(validation)
-        self._add_or_update_suite(validation)
         validation.save()
 
         return validation
-
-    def _update_batch_definition(self, validation: ValidationDefinition) -> None:
-        # Batch definitions do not support add_or_update
-        # The fluent API will ensure we have a persisted data source / asset / batch definition
-        # so we know we always update here
-        data_source_manager = project_manager.get_data_source_manager()
-
-        batch_definition = validation.batch_definition
-        asset = batch_definition.data_asset
-        data_source = asset.datasource
-
-        updated_data_source = data_source_manager.update(data_source=data_source)
-        updated_asset = updated_data_source.get_asset(asset.name)
-        updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
-
-        validation.data = updated_batch_definition
-
-    def _add_or_update_suite(self, validation: ValidationDefinition) -> None:
-        suite_factory = project_manager.get_suite_factory()
-
-        validation.suite = suite_factory.add_or_update(suite=validation.suite)
