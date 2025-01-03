@@ -21,6 +21,10 @@ if TYPE_CHECKING:
 
 @public_api
 class ValidationDefinitionFactory(Factory[ValidationDefinition]):
+    """
+    Responsible for basic CRUD operations on a Data Context's ValidationDefinitions.
+    """
+
     def __init__(self, store: ValidationDefinitionStore) -> None:
         self._store = store
 

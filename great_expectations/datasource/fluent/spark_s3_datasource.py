@@ -34,6 +34,11 @@ class SparkS3DatasourceError(SparkDatasourceError):
 
 @public_api
 class SparkS3Datasource(_SparkFilePathDatasource):
+    """
+    SparkS3Datasource is a subclass of SparkDatasource which connects to
+    Amazon S3.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[S3DataConnector]] = S3DataConnector
     # these fields should not be passed to the execution engine

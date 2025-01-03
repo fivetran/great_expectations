@@ -281,10 +281,8 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
     In some cases, subclasses of Expectation, such as ColumnMapExpectation will already
     have correct implementations that may simply be inherited.
 
-    Additionally, they *may* provide implementations of:
-        1. `validate_configuration`, which should raise an error if the configuration
-           will not be usable for the Expectation
-        2. Data Docs rendering methods decorated with the @renderer decorator. See the
+    Additionally, they *may* provide implementations of Data Docs rendering methods
+    decorated with the @renderer decorator.
     """
 
     class Config:
@@ -1270,7 +1268,6 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             result_format = configuration_result_format
         return result_format
 
-    @public_api
     def validate_configuration(
         self, configuration: Optional[ExpectationConfiguration] = None
     ) -> None:
@@ -1570,9 +1567,6 @@ class BatchExpectation(Expectation, ABC):
     BatchExpectations must implement a `_validate(...)` method containing logic
     for determining whether the Expectation is successfully validated.
 
-    BatchExpectations may optionally provide implementations of `validate_configuration`,
-    which should raise an error if the configuration will not be usable for the Expectation.
-
     Raises:
         InvalidExpectationConfigurationError: The configuration does not contain the values required by the Expectation.
 
@@ -1725,13 +1719,9 @@ class QueryExpectation(BatchExpectation, ABC):
 
     QueryExpectations must implement a `_validate(...)` method containing logic for determining whether data returned by the executed query is successfully validated.
 
-    Query Expectations may optionally provide implementations of:
+    Query Expectations may optionally provide implementations of Data Docs rendering methods decorated with the @renderer decorator.
 
-    1. `validate_configuration`, which should raise an error if the configuration will not be usable for the Expectation.
-
-    2. Data Docs rendering methods decorated with the @renderer decorator.
-
-    QueryExpectations may optionally define a `query` attribute
+    QueryExpectations may optionally define a `query` attribute.
 
     Doing so precludes the need to pass a query into the Expectation. This default will be overridden if a query is passed in.
 
@@ -1857,10 +1847,6 @@ class ColumnMapExpectation(BatchExpectation, ABC):
 
     ColumnMapExpectations must implement a `_validate(...)` method containing logic
     for determining whether the Expectation is successfully validated.
-
-    ColumnMapExpectations may optionally provide implementations of `validate_configuration`,
-    which should raise an error if the configuration will not be usable for the Expectation. By default,
-    the `validate_configuration` method will return an error if `column` is missing from the configuration.
 
     Raises:
         InvalidExpectationConfigurationError: If `column` is missing from configuration.
@@ -2124,10 +2110,6 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
     ColumnPairMapExpectations must implement a `_validate(...)` method containing logic
     for determining whether the Expectation is successfully validated.
 
-    ColumnPairMapExpectations may optionally provide implementations of `validate_configuration`,
-    which should raise an error if the configuration will not be usable for the Expectation. By default,
-    the `validate_configuration` method will return an error if `column_A` and `column_B` are missing from the configuration.
-
     Raises:
         InvalidExpectationConfigurationError:  If `column_A` and `column_B` parameters are missing from the configuration.
 
@@ -2380,10 +2362,6 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
 
     MulticolumnMapExpectations must implement a `_validate(...)` method containing logic
     for determining whether the Expectation is successfully validated.
-
-    MulticolumnMapExpectations may optionally provide implementations of `validate_configuration`,
-    which should raise an error if the configuration will not be usable for the Expectation. By default,
-    the `validate_configuration` method will return an error if `column_list` is missing from the configuration.
 
     Raises:
         InvalidExpectationConfigurationError: If `column_list` is missing from configuration.

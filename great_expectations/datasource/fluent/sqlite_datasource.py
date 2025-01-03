@@ -170,6 +170,17 @@ class SqliteDatasource(SQLDatasource):
         schema_name: Optional[str] = None,
         batch_metadata: Optional[BatchMetadata] = None,
     ) -> SqliteTableAsset:
+        """Adds a table asset to this SQLite datasource
+
+        Args:
+            name: The name of this table asset
+            table_name: The name of the database table
+            schema_name: The schema to which this table belongs
+            batch_metadata: An arbitrary dictionary for a caller to annotate the asset
+
+        Returns:
+            The SqliteTableAsset added
+        """
         return cast(
             SqliteTableAsset,
             super().add_table_asset(
@@ -190,6 +201,17 @@ class SqliteDatasource(SQLDatasource):
         query: str,
         batch_metadata: Optional[BatchMetadata] = None,
     ) -> SqliteQueryAsset:
+        """Adds a query asset to this SQLite datasource
+
+        Args:
+            name: The name of this query asset
+            query: The SQL query
+            batch_metadata: An arbitrary dictionary for a caller to annotate the asset
+
+        Returns:
+            The SqliteQueryAsset added
+        """
+
         return cast(
             SqliteQueryAsset,
             super().add_query_asset(name=name, query=query, batch_metadata=batch_metadata),

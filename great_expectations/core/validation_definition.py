@@ -115,11 +115,17 @@ class ValidationDefinition(BaseModel):
     @property
     @public_api
     def batch_definition(self) -> BatchDefinition:
+        """
+        The Batch Definition to validate.
+        """
         return self.data
 
     @property
     @public_api
     def asset(self) -> DataAsset:
+        """
+        The parent Data Asset of the Batch Definition.
+        """
         return self.data.data_asset
 
     @property
@@ -365,6 +371,7 @@ class ValidationDefinition(BaseModel):
 
     @public_api
     def save(self) -> None:
+        """Save the current state of this ValidationDefinition."""
         store = project_manager.get_validation_definition_store()
         key = store.get_key(name=self.name, id=self.id)
 

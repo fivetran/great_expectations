@@ -51,6 +51,9 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
     @property
     @public_api
     def data_asset(self) -> DataAsset[Any, PartitionerT]:
+        """
+        The parent DataAsset for this Batch Definition.
+        """
         return self._data_asset
 
     def set_data_asset(self, data_asset: DataAsset[Any, PartitionerT]) -> None:

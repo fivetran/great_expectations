@@ -35,6 +35,10 @@ module.exports = {
       defer: true,
     },
     {
+      src: '/scripts/web-tracking.js',
+      async: true
+    },
+    {
       src: 'https://fast.wistia.net/assets/external/E-v1.js',
       async: true
     }

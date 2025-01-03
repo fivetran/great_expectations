@@ -429,6 +429,9 @@ class AbstractDataContext(ConfigPeer, ABC):
     @property
     @public_api
     def suites(self) -> SuiteFactory:
+        """
+        Responsible for basic CRUD operations on a context's ExpectationSuites.
+        """
         if not self._suites:
             raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
                 "DataContext requires a configured ExpectationsStore to persist ExpectationSuites."
@@ -438,6 +441,9 @@ class AbstractDataContext(ConfigPeer, ABC):
     @property
     @public_api
     def checkpoints(self) -> CheckpointFactory:
+        """
+        Responsible for basic CRUD operations on a context's Checkpoints.
+        """
         if not self._checkpoints:
             raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
                 "DataContext requires a configured CheckpointStore to persist Checkpoints."
@@ -447,6 +453,9 @@ class AbstractDataContext(ConfigPeer, ABC):
     @property
     @public_api
     def validation_definitions(self) -> ValidationDefinitionFactory:
+        """
+        Responsible for basic CRUD operations on a context's ValidationDefinitions.
+        """
         if not self._validation_definitions:
             raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
                 "DataContext requires a configured ValidationDefinitionStore to persist "
@@ -532,6 +541,9 @@ class AbstractDataContext(ConfigPeer, ABC):
     @property
     @public_api
     def data_sources(self) -> DataSourceManager:
+        """
+        Responsible for basic CRUD operations on a context's DataSources.
+        """
         return self._data_sources
 
     @property

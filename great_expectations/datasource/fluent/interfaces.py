@@ -289,6 +289,13 @@ DatasourceT = TypeVar("DatasourceT", bound="Datasource")
 
 @public_api
 class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
+    """
+    A Data Asset is a collection of records within a Data Source, which is usually named based
+    on the underlying data system and sliced to correspond to a desired specification.
+
+    Data Assets are used to specify how Great Expectations will organize data into Batches.
+    """
+
     # To subclass a DataAsset one must define `type` as a Class literal explicitly on the sublass
     # as well as implementing the methods in the `Abstract Methods` section below.
     # Some examples:
@@ -619,6 +626,11 @@ class Datasource(
     Generic[_DataAssetT, _ExecutionEngineT],
     metaclass=MetaDatasource,
 ):
+    """
+    A Datasource provides a standard API for accessing and interacting with data from
+    a wide variety of source systems.
+    """
+
     # To subclass Datasource one needs to define:
     # asset_types
     # type
@@ -1154,6 +1166,23 @@ class Batch:
         result_format: ResultFormatUnion = DEFAULT_RESULT_FORMAT,
         expectation_parameters: Optional[SuiteParameterDict] = None,
     ) -> ExpectationValidationResult | ExpectationSuiteValidationResult:
+        """
+        Validate the Batch using the provided Expectation or Expectation Suite.
+
+        Args:
+            expect: The Expectation or Expectation Suite to validate.
+            result_format: The format to return the validation results in.
+            expectation_parameters: A dictionary of parameters values for any
+                                    expectations using parameterized values (the $PARAMETER syntax).
+                                    The keys are the parameter names and the values are the values
+                                    to be used for this validation run.
+
+        Returns:
+            An ExpectationValidationResult or ExpectationSuiteValidationResult object.
+
+        Raises:
+            ValueError: If the expect argument is not an Expectation or an ExpectationSuite.
+        """
         from great_expectations.core import ExpectationSuite
         from great_expectations.expectations.expectation import Expectation
 

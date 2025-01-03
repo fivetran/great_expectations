@@ -32,6 +32,10 @@ class PandasS3DatasourceError(PandasDatasourceError):
 
 @public_api
 class PandasS3Datasource(_PandasFilePathDatasource):
+    """
+    PandasS3Datasource is a PandasDatasource that uses Amazon S3 as a data store.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[S3DataConnector]] = S3DataConnector
     # these fields should not be passed to the execution engine

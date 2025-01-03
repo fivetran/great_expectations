@@ -40,6 +40,7 @@ class _PublicApiIntrospector:
 
     # Only used for testing
     _class_registry: dict[str, set[str]] = defaultdict(set)
+    _docstring_violations: set[str] = set()
 
     # This is a special key that is used to indicate that a class definition
     # is being added to the registry.
@@ -49,8 +50,14 @@ class _PublicApiIntrospector:
     def class_registry(self) -> dict[str, set[str]]:
         return self._class_registry
 
+    @property
+    def docstring_violations(self) -> set[str]:
+        return self._docstring_violations
+
     def add(self, func: F) -> None:
+        self._add_to_docstring_violations(func)
         self._add_to_class_registry(func)
+
         try:
             # We use an if statement instead of a ternary to work around
             # mypy's inability to type narrow inside a ternary.
@@ -72,6 +79,11 @@ class _PublicApiIntrospector:
         except Exception:
             logger.exception(f"Could not add this function to the public API list: {func}")
             raise
+
+    def _add_to_docstring_violations(self, func: F) -> None:
+        name = f"{func.__module__}.{func.__qualname__}"
+        if not func.__doc__ and name.startswith("great_expectations"):
+            self._docstring_violations.add(name)
 
     def _add_to_class_registry(self, func: F) -> None:
         if isinstance(func, type):
@@ -135,7 +147,7 @@ def public_api(func: F) -> F:
     This tag is added at import time.
     """
     public_api_introspector.add(func)
-    existing_docstring = func.__doc__ if func.__doc__ else ""
+    existing_docstring = func.__doc__ or ""
     func.__doc__ = WHITELISTED_TAG + existing_docstring
     return func
 

@@ -730,9 +730,9 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
     @public_api
     def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
-        """Validates that the batch definition column is of a permissible type
+        """Validates that the Batch Definition column is of a permissible type
 
-        This isn't meant to be called directly. This is called internally when a batch definition
+        This isn't meant to be called directly. This is called internally when a Batch Definition
          is added. Data asset implementers can override this for their specific data asset.
 
         Raises:
@@ -786,6 +786,14 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
     @public_api
     def add_batch_definition_whole_table(self, name: str) -> BatchDefinition:
+        """Adds a whole table Batch Definition to this Data Asset
+
+        Args:
+            name: The name of the Batch Definition to be added
+
+        Returns:
+            The added BatchDefinition object.
+        """
         return self.add_batch_definition(
             name=name,
             partitioner=None,
@@ -799,6 +807,19 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         sort_ascending: bool = True,
         validate_batchable: bool = True,
     ) -> BatchDefinition:
+        """Adds a yearly Batch Definition to this Data Asset
+
+        Args:
+            name: The name of the Batch Definition to be added.
+            column: The column name on which to partition the asset by year.
+            sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
+                When running a validation, we default to running the last Batch Definition
+                if one is not explicitly specified.
+
+        Returns:
+            The added BatchDefinition object.
+        """
+
         return self.add_batch_definition(
             name=name,
             partitioner=ColumnPartitionerYearly(
@@ -815,6 +836,19 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         sort_ascending: bool = True,
         validate_batchable: bool = True,
     ) -> BatchDefinition:
+        """Adds a monthly Batch Definition to this Data Asset
+
+        Args:
+            name: The name of the Batch Definition to be added
+            column: The column name on which to partition the asset by month
+            sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
+                When running a validation, we default to running the last Batch Definition
+                if one is not explicitly specified.
+
+        Returns:
+            The added BatchDefinition object.
+        """
+
         return self.add_batch_definition(
             name=name,
             partitioner=ColumnPartitionerMonthly(
@@ -833,6 +867,19 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         sort_ascending: bool = True,
         validate_batchable: bool = True,
     ) -> BatchDefinition:
+        """Adds a daily Batch Definition to this Data Asset
+
+        Args:
+            name: The name of the Batch Definition to be added
+            column: The column name on which to partition the asset by day
+            sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
+                When running a validation, we default to running the last Batch Definition
+                if one is not explicitly specified.
+
+        Returns:
+            The added BatchDefinition object.
+        """
+
         return self.add_batch_definition(
             name=name,
             partitioner=ColumnPartitionerDaily(
@@ -902,6 +949,12 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
 @public_api
 class QueryAsset(_SQLAsset):
+    """An asset made from a SQL query
+
+    Args:
+        query: The query to be used to construct the underlying Data Asset
+    """
+
     # Instance fields
     type: Literal["query"] = "query"
     query: str
@@ -937,6 +990,13 @@ class QueryAsset(_SQLAsset):
 
 @public_api
 class TableAsset(_SQLAsset):
+    """A class representing a table from a SQL database
+
+    Args:
+        table_name: The name of the database table to be added
+        schema_name: The name of the schema containing the database table to be added.
+    """
+
     # Instance fields
     type: Literal["table"] = "table"
     # TODO: quoted_name or str

@@ -31,6 +31,11 @@ class PandasGoogleCloudStorageDatasourceError(PandasDatasourceError):
 
 @public_api
 class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
+    """
+    PandasGoogleCloudStorageDatasource is a PandasDatasource that uses Google Cloud Storage as a
+    data store.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[GoogleCloudStorageDataConnector]] = (
         GoogleCloudStorageDataConnector

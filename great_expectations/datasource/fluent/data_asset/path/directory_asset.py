@@ -45,6 +45,16 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
 
     @public_api
     def add_batch_definition_daily(self, name: str, column: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition, which creates a single Batch for each day in the directory.
+
+        Args:
+            name: Name of the Batch Definition.
+            column: Column to partition on.
+
+        Returns:
+            A BatchDefinition that is partitioned daily.
+        """
         # todo: test column
         return self.add_batch_definition(
             name=name,
@@ -55,6 +65,16 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
 
     @public_api
     def add_batch_definition_monthly(self, name: str, column: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition which creates a single batch for each month in the directory.
+
+        Args:
+            name: Name of the Batch Definition.
+            column: Column to partition on.
+
+        Returns:
+            A BatchDefinition that is partitioned monthly.
+        """
         # todo: test column
         return self.add_batch_definition(
             name=name,
@@ -65,6 +85,16 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
 
     @public_api
     def add_batch_definition_yearly(self, name: str, column: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition which creates a single batch for each year in the directory.
+
+        Args:
+            name: Name of the Batch Definition.
+            column: Column to partition on.
+
+        Returns:
+            A BatchDefinition that is partitioned yearly.
+        """
         # todo: test column
         return self.add_batch_definition(
             name=name,

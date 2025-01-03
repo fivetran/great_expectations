@@ -295,6 +295,24 @@ class Checkpoint(BaseModel):
         expectation_parameters: SuiteParameterDict | None = None,
         run_id: RunIdentifier | None = None,
     ) -> CheckpointResult:
+        """
+        Runs the Checkpoint's underlying Validation Definitions and Actions.
+
+        Args:
+            batch_parameters: Parameters to be used when loading the Batch.
+            expectation_parameters: Parameters to be used when validating the Batch.
+            run_id: An optional unique identifier for the run.
+
+        Returns:
+            A CheckpointResult object containing the results of the run.
+
+        Raises:
+            CheckpointRunWithoutValidationDefinitionError: If the Checkpoint is run without any
+                                                           Validation Definitions.
+            CheckpointNotAddedError: If the Checkpoint has not been added to the Store.
+            CheckpointNotFreshError: If the Checkpoint has been modified since it was last added
+                                     to the Store.
+        """
         if not self.validation_definitions:
             raise CheckpointRunWithoutValidationDefinitionError()
 
@@ -438,6 +456,7 @@ class Checkpoint(BaseModel):
 
     @public_api
     def save(self) -> None:
+        """Save the current state of this Checkpoint."""
         store = project_manager.get_checkpoints_store()
         key = store.get_key(name=self.name, id=self.id)
 
@@ -457,6 +476,13 @@ class Checkpoint(BaseModel):
 
 @public_api
 class CheckpointResult(BaseModel):
+    """
+    The result of running a Checkpoint.
+
+    Contains information about Expectation successes and failures from running
+    each Validation Definition in the Checkpoint.
+    """
+
     run_id: RunIdentifier
     run_results: Dict[ValidationResultIdentifier, ExpectationSuiteValidationResult]
     checkpoint_config: Checkpoint

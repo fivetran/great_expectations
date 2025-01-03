@@ -172,6 +172,10 @@ class _SparkDatasource(Datasource):
 
 @public_api
 class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
+    """
+    A DataAsset that represents a Spark DataFrame.
+    """
+
     # instance attributes
     type: Literal["dataframe"] = "dataframe"
 
@@ -311,6 +315,15 @@ class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
 
     @public_api
     def add_batch_definition_whole_dataframe(self, name: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition that represents the entire DataFrame.
+
+        Args:
+            name: The name of the Batch Definition.
+
+        Returns:
+            A BatchDefinition object that represents the entire DataFrame.
+        """
         return self.add_batch_definition(
             name=name,
             partitioner=None,
@@ -327,6 +340,11 @@ class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
 
 @public_api
 class SparkDatasource(_SparkDatasource):
+    """
+    A SparkDatasource is a Datasource that connects to a Spark cluster and provides
+    access to Spark DataFrames.
+    """
+
     # class attributes
     asset_types: ClassVar[List[Type[DataAsset]]] = [DataFrameAsset]
 
