@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     from great_expectations.data_context.types.base import DataContextConfig
     from great_expectations.datasource.datasource_dict import DatasourceDict
     from great_expectations.datasource.fluent.batch_request import BatchRequest
+    from great_expectations.datasource.fluent.sources import DataSourceManager
     from great_expectations.validator.validator import Validator
 
 ContextModes: TypeAlias = Literal["file", "cloud", "ephemeral"]
@@ -106,8 +107,12 @@ class ProjectManager:
     def get_validation_definition_store(self) -> ValidationDefinitionStore:
         return self._project.validation_definition_store
 
+    def get_data_source_manager(self) -> DataSourceManager:
+        return self._project.data_sources
+
     def get_datasources(self) -> DatasourceDict:
-        return self._project.data_sources.all()
+        data_source_manager = self.get_data_source_manager()
+        return data_source_manager.all()
 
     def get_validator(self, batch_request: BatchRequest) -> Validator:
         return self._project.get_validator(batch_request=batch_request)

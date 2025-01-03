@@ -98,6 +98,22 @@ class DataSourceManager:
     def __init__(self, data_context: GXDataContext):
         self._data_context = data_context
 
+    def add_or_update(self, datasource: Datasource) -> Datasource:
+        """
+        Add or update a datasource.
+
+        If a datasource with the same name exists, overwrite it, otherwise create a new datasource.
+
+        Args:
+            datasource: Datasource to add or update
+        """
+        if datasource.name in self.data_sources.all():
+            self._data_context._update_fluent_datasource(datasource=datasource)
+        else:
+            self._data_context.self._add_fluent_datasource(datasource=datasource)
+
+        return self.all()[datasource.name]
+
     @classmethod
     def register_datasource(cls, ds_type: Type[Datasource]) -> None:
         """

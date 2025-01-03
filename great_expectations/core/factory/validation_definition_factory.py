@@ -116,12 +116,32 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             validation: ValidationDefinition to add or update
         """
         try:
-            _ = self.get(name=validation.name)
+            existing_validation = self.get(name=validation.name)
         except DataContextError:
             return self.add(validation=validation)
 
-        suite_factory = project_manager.get_suite_factory()
-        validation.suite = suite_factory.add_or_update(suite=validation.suite)
+        validation.id = existing_validation.id
+        self._add_or_update_batch_definition(validation)
+        self._add_or_update_suite(validation)
         validation.save()
 
         return validation
+
+    def _add_or_update_batch_definition(self, validation: ValidationDefinition) -> None:
+        data_source_manager = project_manager.get_data_source_manager()
+
+        batch_definition = validation.batch_definition
+        asset = batch_definition.data_asset
+        data_source = asset.datasource
+
+        persisted_data_source = data_source_manager.add_or_update(data_source=data_source)
+        persisted_asset = persisted_data_source.get_asset(asset.name)
+        persisted_batch_definition = persisted_asset.get_batch_definition(batch_definition.name)
+
+        batch_definition.id = persisted_batch_definition
+        validation.data = batch_definition
+
+    def _add_or_update_suite(self, validation: ValidationDefinition) -> None:
+        suite_factory = project_manager.get_suite_factory()
+
+        validation.suite = suite_factory.add_or_update(suite=validation.suite)
