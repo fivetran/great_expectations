@@ -38,8 +38,8 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
 
     properties = soup.select(".py.property")
     if properties:
-        wrapper_div = soup.new_tag('div')
-        title_h2 = soup.new_tag('h2')
+        wrapper_div = soup.new_tag("div")
+        title_h2 = soup.new_tag("h2")
         title_h2.string = "Properties"
         parent = properties[0].parent
         table = soup.new_tag("table")
@@ -68,8 +68,8 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
 
     methods = soup.select(".py.method")
     if methods:
-        wrapper_div_m = soup.new_tag('div')
-        title_h2_m = soup.new_tag('h2')
+        wrapper_div_m = soup.new_tag("div")
+        title_h2_m = soup.new_tag("h2")
         title_h2_m.string = "Methods"
         parent_m = methods[0].parent
 
