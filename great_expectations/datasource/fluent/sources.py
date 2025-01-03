@@ -98,9 +98,6 @@ class DataSourceManager:
     def __init__(self, data_context: GXDataContext):
         self._data_context = data_context
 
-    def update(self, datasource: Datasource) -> Datasource:
-        return self._data_context._update_fluent_datasource(datasource=datasource)
-
     @classmethod
     def register_datasource(cls, ds_type: Type[Datasource]) -> None:
         """
