@@ -138,8 +138,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         updated_asset = updated_data_source.get_asset(asset.name)
         updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
 
-        batch_definition.id = updated_batch_definition
-        validation.data = batch_definition
+        validation.data = updated_batch_definition
 
     def _add_or_update_suite(self, validation: ValidationDefinition) -> None:
         suite_factory = project_manager.get_suite_factory()
