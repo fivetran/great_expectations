@@ -48,7 +48,15 @@ MATCH_ON_DESCRIPTION = (
     "Use 'all' if it should match each regular expression in the list."
 )
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
+SUPPORTED_DATA_SOURCES = [
+    "Pandas",
+    "Spark",
+    "PostgreSQL",
+    "MySQL",
+    "Databricks (SQL)",
+    "BigQuery",
+    "SQLite",
+]
 
 
 class ExpectColumnValuesToMatchRegexList(ColumnMapExpectation):
@@ -106,6 +114,8 @@ class ExpectColumnValuesToMatchRegexList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}

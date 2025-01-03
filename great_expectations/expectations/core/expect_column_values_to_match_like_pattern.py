@@ -41,7 +41,15 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 LIKE_PATTERN_DESCRIPTION = "The SQL like pattern expression the column entries should match."
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
+SUPPORTED_DATA_SOURCES = [
+    "SQLite",
+    "PostgreSQL",
+    "MySQL",
+    "MSSQL",
+    "Databricks (SQL)",
+    "BigQuery",
+    "Snowflake",
+]
 
 
 class ExpectColumnValuesToMatchLikePattern(ColumnMapExpectation):
@@ -94,6 +102,8 @@ class ExpectColumnValuesToMatchLikePattern(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
