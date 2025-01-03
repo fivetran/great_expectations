@@ -69,7 +69,16 @@ ALLOW_RELATIVE_ERROR_DESCRIPTION = (
     "Whether to allow relative error in quantile "
     "communications on backends that support or require it."
 )
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift"]
+SUPPORTED_DATA_SOURCES = [
+    "Pandas",
+    "Spark",
+    "SQLite",
+    "PostgreSQL",
+    "MySQL",
+    "MSSQL",
+    "Snowflake",
+    "BigQuery",
+]
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
@@ -129,6 +138,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}

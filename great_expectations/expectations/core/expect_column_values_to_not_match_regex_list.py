@@ -44,7 +44,14 @@ REGEX_LIST_DESCRIPTION = (
     "The list of regular expressions which the column entries should not match."
 )
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
+SUPPORTED_DATA_SOURCES = [
+    "Pandas",
+    "Spark",
+    "PostgreSQL",
+    "MySQL",
+    "Databricks (SQL)",
+    "SQLite",
+]
 
 
 class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
@@ -97,6 +104,7 @@ class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}

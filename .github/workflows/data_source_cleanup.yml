@@ -30,7 +30,7 @@ jobs:
             requirements-types.txt
             reqs/requirements-dev-contrib.txt
       - name: Install dependencies
-        run: pip install -r requirements-types.txt -r reqs/requirements-dev-contrib.txt -e .
+        run: pip install -r requirements-types.txt -r reqs/requirements-dev-contrib.txt -r reqs/requirements-dev-bigquery.txt -e .
       - name: Create JSON file GCP
         run: |
           echo "$GE_TEST_GCP_CREDENTIALS" > gcp-credentials.json
