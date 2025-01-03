@@ -469,7 +469,7 @@ def test_validation_definition_factory_round_trip(
 class TestValidationDefinitionFactoryAddOrUpdate:
     def _build_batch_definition(self, context: AbstractDataContext):
         ds = context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_taxi_asset", "data.csv")
+        asset = ds.add_csv_asset("my_taxi_asset", pathlib.Path("data.csv"))
         return asset.add_batch_definition("my_batch_definition")
 
     def _build_suite(self) -> ExpectationSuite:
