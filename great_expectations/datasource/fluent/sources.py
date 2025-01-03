@@ -110,7 +110,7 @@ class DataSourceManager:
         if datasource.name in self.data_sources.all():
             self._data_context._update_fluent_datasource(datasource=datasource)
         else:
-            self._data_context.self._add_fluent_datasource(datasource=datasource)
+            self._data_context._add_fluent_datasource(datasource=datasource)
 
         return self.all()[datasource.name]
 

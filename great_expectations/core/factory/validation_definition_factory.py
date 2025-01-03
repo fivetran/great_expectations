@@ -134,11 +134,11 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         asset = batch_definition.data_asset
         data_source = asset.datasource
 
-        persisted_data_source = data_source_manager.add_or_update(data_source=data_source)
-        persisted_asset = persisted_data_source.get_asset(asset.name)
-        persisted_batch_definition = persisted_asset.get_batch_definition(batch_definition.name)
+        updated_data_source = data_source_manager.add_or_update(data_source=data_source)
+        updated_asset = updated_data_source.get_asset(asset.name)
+        updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
 
-        batch_definition.id = persisted_batch_definition
+        batch_definition.id = updated_batch_definition
         validation.data = batch_definition
 
     def _add_or_update_suite(self, validation: ValidationDefinition) -> None:
