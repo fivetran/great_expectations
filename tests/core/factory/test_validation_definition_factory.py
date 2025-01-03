@@ -466,6 +466,291 @@ def test_validation_definition_factory_round_trip(
     assert persisted_validation_definition.json() == retrieved_validation_definition.json()
 
 
+class TestValidationDefinitionFactoryAddOrUpdate:
+    def _build_batch_definition(self, context: AbstractDataContext):
+        ds = context.data_sources.add_pandas("my_datasource")
+        asset_path = (
+            pathlib.Path(__file__).parent.parent.parent
+            / "test_sets"
+            / "quickstart"
+            / "yellow_tripdata_sample_2022-01.csv"
+        )
+        assert asset_path.exists()
+        asset = ds.add_csv_asset("my_taxi_asset", asset_path)
+        return asset.add_batch_definition("my_batch_definition")
+
+    def _build_suite(self, context: AbstractDataContext):
+        return context.suites.add(
+            ExpectationSuite(
+                name="my_suite",
+                expectations=[
+                    gxe.ExpectColumnValuesToBeBetween(
+                        column="passenger_count", min_value=0, max_value=10
+                    )
+                ],
+            )
+        )
+
+    @pytest.mark.filesystem
+    def test_add_empty_new_validation__filesystem(self, empty_data_context):
+        self._test_add_empty_new_validation(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_add_empty_new_validation__cloud(self, empty_cloud_context_fluent):
+        self._test_add_empty_new_validation(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_add_empty_new_validation__ephemeral(self, ephemeral_context_with_defaults):
+        self._test_add_empty_new_validation(ephemeral_context_with_defaults)
+
+    def _test_add_empty_new_validation(self, context: AbstractDataContext):
+        # arrange
+        vd_name = "my_validation_definition"
+        vd = ValidationDefinition(
+            name=vd_name,
+            data=self._build_batch_definition(context),
+            suite=self._build_suite(context),
+        )
+
+        # act
+        created_vd = context.validation_definitions.add_or_update(validation=vd)
+
+        # assert
+        assert created_vd.id
+        context.validation_definitions.get(vd_name)
+
+    # # @pytest.mark.filesystem
+    # def test_add_new_suite_with_expectations_filesystem(self, empty_data_context):
+    #     self._test_add_new_suite_with_expectations(empty_data_context)
+
+    # @pytest.mark.cloud
+    # def test_add_new_suite_with_expectations__cloud(self, empty_cloud_context_fluent):
+    #     self._test_add_new_suite_with_expectations(empty_cloud_context_fluent)
+
+    # @pytest.mark.unit
+    # def test_add_new_suite_with_expectations__ephemeral(self, ephemeral_context_with_defaults):
+    #     self._test_add_new_suite_with_expectations(ephemeral_context_with_defaults)
+
+    # def _test_add_new_suite_with_expectations(self, context: AbstractDataContext):
+    #     # arrange
+    #     suite_name = "suite A"
+    #     expectations = [
+    #         ExpectColumnSumToBeBetween(
+    #             column="col A",
+    #             min_value=0,
+    #             max_value=10,
+    #         ),
+    #         ExpectColumnDistinctValuesToContainSet(
+    #             column="col B",
+    #             value_set=["a", "b", "c"],
+    #         ),
+    #     ]
+    #     suite = ExpectationSuite(
+    #         name=suite_name,
+    #         expectations=[copy(exp) for exp in expectations],
+    #     )
+
+    #     # act
+    #     created_suite = context.suites.add_or_update(suite=suite)
+
+    #     # assert
+    #     assert created_suite.id
+    #     context.suites.get(suite_name)
+    #     for exp, created_exp in zip(expectations, created_suite.expectations):
+    #         assert created_exp.id
+    #         exp.id = ANY
+    #         assert exp == created_exp
+
+    # @pytest.mark.filesystem
+    # def test_update_existing_suite_adds_expectations__filesystem(self, empty_data_context):
+    #     self._test_update_existing_suite_adds_expectations(empty_data_context)
+
+    # @pytest.mark.cloud
+    # def test_update_existing_suite_adds_expectations__cloud(self, empty_cloud_context_fluent):
+    #     self._test_update_existing_suite_adds_expectations(empty_cloud_context_fluent)
+
+    # @pytest.mark.unit
+    # def test_update_existing_suite_adds_expectations__ephemeral(
+    #     self, ephemeral_context_with_defaults
+    # ):
+    #     self._test_update_existing_suite_adds_expectations(ephemeral_context_with_defaults)
+
+    # def _test_update_existing_suite_adds_expectations(self, context: AbstractDataContext):
+    #     # arrange
+    #     suite_name = "suite A"
+    #     expectations = [
+    #         ExpectColumnSumToBeBetween(
+    #             column="col A",
+    #             min_value=0,
+    #             max_value=10,
+    #         ),
+    #         ExpectColumnDistinctValuesToContainSet(
+    #             column="col B",
+    #             value_set=["a", "b", "c"],
+    #         ),
+    #     ]
+    #     suite = ExpectationSuite(
+    #         name=suite_name,
+    #         expectations=[copy(exp) for exp in expectations],
+    #     )
+    #     existing_suite = context.suites.add(suite=ExpectationSuite(name=suite_name))
+
+    #     # act
+    #     updated_suite = context.suites.add_or_update(suite=suite)
+
+    #     # assert
+    #     assert updated_suite.id == existing_suite.id
+    #     for exp, created_exp in zip(expectations, updated_suite.expectations):
+    #         assert created_exp.id
+    #         exp.id = ANY
+    #         assert exp == created_exp
+
+    # @pytest.mark.filesystem
+    # def test_update_existing_suite_updates_expectations__filesystem(self, empty_data_context):
+    #     self._test_update_existing_suite_updates_expectations(empty_data_context)
+
+    # @pytest.mark.cloud
+    # def test_update_existing_suite_updates_expectations__cloud(self, empty_cloud_context_fluent):
+    #     self._test_update_existing_suite_updates_expectations(empty_cloud_context_fluent)
+
+    # @pytest.mark.unit
+    # def test_update_existing_suite_updates_expectations__ephemeral(
+    #     self, ephemeral_context_with_defaults
+    # ):
+    #     self._test_update_existing_suite_updates_expectations(ephemeral_context_with_defaults)
+
+    # def _test_update_existing_suite_updates_expectations(self, context: AbstractDataContext):
+    #     # arrange
+    #     suite_name = "suite A"
+    #     expectations = [
+    #         ExpectColumnSumToBeBetween(
+    #             column="col A",
+    #             min_value=0,
+    #             max_value=10,
+    #         ),
+    #         ExpectColumnDistinctValuesToContainSet(
+    #             column="col B",
+    #             value_set=["a", "b", "c"],
+    #         ),
+    #     ]
+    #     existing_suite = context.suites.add(
+    #         suite=ExpectationSuite(
+    #             name=suite_name,
+    #             expectations=[copy(exp) for exp in expectations],
+    #         )
+    #     )
+    #     new_col_name = "col C"
+    #     for exp in expectations:
+    #         exp.column = new_col_name
+    #     suite = ExpectationSuite(
+    #         name=suite_name,
+    #         expectations=[copy(exp) for exp in expectations],
+    #     )
+
+    #     # act
+    #     updated_suite = context.suites.add_or_update(suite=suite)
+
+    #     # assert
+    #     assert updated_suite.id == existing_suite.id
+    #     for exp, created_exp in zip(expectations, updated_suite.expectations):
+    #         assert created_exp.id
+    #         exp.id = ANY
+    #         assert exp == created_exp
+    #         assert created_exp.column == new_col_name  # type: ignore[attr-defined]
+
+    #     for old_exp, new_exp in zip(existing_suite.expectations, updated_suite.expectations):
+    #         # expectations have been deleted and re added, not updated
+    #         assert old_exp.id != new_exp.id
+
+    # @pytest.mark.filesystem
+    # def test_update_existing_suite_deletes_expectations__filesystem(self, empty_data_context):
+    #     self._test_update_existing_suite_deletes_expectations(empty_data_context)
+
+    # @pytest.mark.cloud
+    # def test_update_existing_suite_deletes_expectations__cloud(self, empty_cloud_context_fluent):
+    #     self._test_update_existing_suite_deletes_expectations(empty_cloud_context_fluent)
+
+    # @pytest.mark.unit
+    # def test_update_existing_suite_deletes_expectations__ephemeral(
+    #     self, ephemeral_context_with_defaults
+    # ):
+    #     self._test_update_existing_suite_deletes_expectations(ephemeral_context_with_defaults)
+
+    # def _test_update_existing_suite_deletes_expectations(self, context: AbstractDataContext):
+    #     # arrange
+    #     suite_name = "suite A"
+    #     expectations = [
+    #         ExpectColumnSumToBeBetween(
+    #             column="col A",
+    #             min_value=0,
+    #             max_value=10,
+    #         ),
+    #         ExpectColumnDistinctValuesToContainSet(
+    #             column="col B",
+    #             value_set=["a", "b", "c"],
+    #         ),
+    #     ]
+    #     existing_suite = context.suites.add(
+    #         suite=ExpectationSuite(
+    #             name=suite_name,
+    #             expectations=[copy(exp) for exp in expectations],
+    #         )
+    #     )
+    #     new_col_name = "col C"
+    #     for exp in expectations:
+    #         exp.column = new_col_name
+    #     suite = ExpectationSuite(
+    #         name=suite_name,
+    #         expectations=[],
+    #     )
+
+    #     # act
+    #     updated_suite = context.suites.add_or_update(suite=suite)
+
+    #     # assert
+    #     assert updated_suite.id == existing_suite.id
+    #     assert updated_suite.expectations == []
+
+    # @pytest.mark.filesystem
+    # def test_add_or_update_is_idempotent__filesystem(self, empty_data_context):
+    #     self._test_add_or_update_is_idempotent(empty_data_context)
+
+    # @pytest.mark.cloud
+    # def test_add_or_update_is_idempotent__cloud(self, empty_cloud_context_fluent):
+    #     self._test_add_or_update_is_idempotent(empty_cloud_context_fluent)
+
+    # @pytest.mark.unit
+    # def test_add_or_update_is_idempotent__ephemeral(self, ephemeral_context_with_defaults):
+    #     self._test_add_or_update_is_idempotent(ephemeral_context_with_defaults)
+
+    # def _test_add_or_update_is_idempotent(self, context: AbstractDataContext):
+    #     # arrange
+    #     suite_name = "suite A"
+    #     expectations = [
+    #         ExpectColumnSumToBeBetween(
+    #             column="col A",
+    #             min_value=0,
+    #             max_value=10,
+    #         ),
+    #         ExpectColumnDistinctValuesToContainSet(
+    #             column="col B",
+    #             value_set=["a", "b", "c"],
+    #         ),
+    #     ]
+    #     suite = ExpectationSuite(
+    #         name=suite_name,
+    #         expectations=[copy(exp) for exp in expectations],
+    #     )
+
+    #     # act
+    #     suite_1 = context.suites.add_or_update(suite=suite)
+    #     suite_2 = context.suites.add_or_update(suite=suite)
+    #     suite_3 = context.suites.add_or_update(suite=suite)
+
+    #     # assert
+    #     assert suite_1 == suite_2 == suite_3
+
+
 class TestValidationDefinitionFactoryAnalytics:
     @pytest.mark.filesystem
     def test_validation_definition_factory_add_emits_event_filesystem(self, empty_data_context):
