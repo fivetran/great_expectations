@@ -121,20 +121,23 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             return self.add(validation=validation)
 
         validation.id = existing_validation.id
-        self._add_or_update_batch_definition(validation)
+        self._update_batch_definition(validation)
         self._add_or_update_suite(validation)
         validation.save()
 
         return validation
 
-    def _add_or_update_batch_definition(self, validation: ValidationDefinition) -> None:
+    def _update_batch_definition(self, validation: ValidationDefinition) -> None:
+        # Batch definitions do not support add_or_update
+        # The fluent API will ensure we have a persisted data source / asset / batch definition
+        # so we know we always update here
         data_source_manager = project_manager.get_data_source_manager()
 
         batch_definition = validation.batch_definition
         asset = batch_definition.data_asset
         data_source = asset.datasource
 
-        updated_data_source = data_source_manager.add_or_update(data_source=data_source)
+        updated_data_source = data_source_manager.update(data_source=data_source)
         updated_asset = updated_data_source.get_asset(asset.name)
         updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
 
