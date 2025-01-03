@@ -115,23 +115,25 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         Args:
             validation: ValidationDefinition to add or update
         """
+        existing_validation: ValidationDefinition | None
+        try:
+            existing_validation = self.get(name=validation.name)
+        except DataContextError:
+            existing_validation = None
+
         # Add or update underlying suite
         suite_factory = project_manager.get_suite_factory()
         validation.suite = suite_factory.add_or_update(suite=validation.suite)
 
-        try:
-            existing_validation = self.get(name=validation.name)
-            existing_batch_definition = existing_validation.data
-        except DataContextError:
+        if not existing_validation:
             return self.add(validation=validation)
 
         # Update underlying batch definition
         batch_definition = validation.data
+        existing_batch_definition = existing_validation.data
         batch_definition.id = existing_batch_definition.id
         batch_definition.save()
 
-        # Update actual validation
         validation.id = existing_validation.id
         validation.save()
-
         return validation
