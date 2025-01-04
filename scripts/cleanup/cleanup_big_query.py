@@ -39,7 +39,7 @@ def cleanup_big_query(config: BigQueryConnectionConfig) -> None:
             ),
             {"schema_format": SCHEMA_FORMAT},
         ).fetchall()
-        to_run = "\n".join([row[0] for row in results])
+        to_run = TextClause("\n".join([row[0] for row in results]))
         conn.execute(to_run)
         logger.info(f"Cleaned up {len(results)} BigQuery schema(s)")
     engine.dispose()
