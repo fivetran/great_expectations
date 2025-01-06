@@ -2995,3 +2995,22 @@ def test_unexpected_rows_expectation_atomic_diagnostic_observed_value(
 
     # assert
     assert res["value"]["template"] == expected_template_string
+
+
+def test_unexpected_rows_expectation_atomic_diagnostic_observed_value_when_description_present(
+    get_diagnostic_rendered_content,
+):
+    """Fixes regression where description overwrote the template"""
+
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"description": "my description", "unexpected_rows_query": "valid query"},
+            description="plz ignore me",
+        ),
+        "result": {"observed_value": 123},
+    }
+
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    assert res["value"]["template"] == "$observed_value unexpected rows"
