@@ -71,7 +71,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
 
     @override
     def test_connection(self, test_assets: bool = ...) -> None: ...
-    def add_csv_asset(  # noqa: PLR0913
+    def add_csv_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -131,7 +131,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         memory_map: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> CSVAsset: ...
-    def add_excel_asset(  # noqa: PLR0913
+    def add_excel_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -163,7 +163,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         mangle_dupe_cols: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> ExcelAsset: ...
-    def add_feather_asset(  # noqa: PLR0913
+    def add_feather_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -175,7 +175,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         use_threads: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> FeatherAsset: ...
-    def add_fwf_asset(  # noqa: PLR0913
+    def add_fwf_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -187,7 +187,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         infer_nrows: int = ...,
         kwargs: Optional[dict] = ...,
     ) -> FWFAsset: ...
-    def add_hdf_asset(  # noqa: PLR0913
+    def add_hdf_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -206,7 +206,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         chunksize: typing.Union[int, None] = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> HDFAsset: ...
-    def add_html_asset(  # noqa: PLR0913
+    def add_html_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -229,7 +229,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         keep_default_na: bool = ...,
         displayed_only: bool = ...,
     ) -> HTMLAsset: ...
-    def add_json_asset(  # noqa: PLR0913
+    def add_json_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -253,7 +253,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         nrows: typing.Union[int, None] = ...,
         storage_options: StorageOptions = ...,
     ) -> JSONAsset: ...
-    def add_orc_asset(  # noqa: PLR0913
+    def add_orc_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -264,7 +264,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         columns: typing.Union[typing.List[str], None] = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> ORCAsset: ...
-    def add_parquet_asset(  # noqa: PLR0913
+    def add_parquet_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -278,7 +278,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         use_nullable_dtypes: bool = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> ParquetAsset: ...
-    def add_pickle_asset(  # noqa: PLR0913
+    def add_pickle_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -289,7 +289,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> PickleAsset: ...
-    def add_sas_asset(  # noqa: PLR0913
+    def add_sas_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -304,7 +304,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         iterator: bool = ...,
         compression: CompressionOptions = "infer",
     ) -> SASAsset: ...
-    def add_spss_asset(  # noqa: PLR0913
+    def add_spss_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -315,7 +315,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         usecols: typing.Union[int, str, typing.Sequence[int], None] = ...,
         convert_categoricals: bool = ...,
     ) -> SPSSAsset: ...
-    def add_stata_asset(  # noqa: PLR0913
+    def add_stata_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,
@@ -335,7 +335,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> StataAsset: ...
-    def add_xml_asset(  # noqa: PLR0913
+    def add_xml_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,

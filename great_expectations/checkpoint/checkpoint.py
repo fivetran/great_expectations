@@ -82,7 +82,7 @@ class Checkpoint(BaseModel):
         result_format: The format in which to return the results of the validation definitions. Default is ResultFormat.SUMMARY.
         id: An optional unique identifier for the checkpoint.
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     name: str
     validation_definitions: List[ValidationDefinition]
@@ -122,7 +122,7 @@ class Checkpoint(BaseModel):
             "result_format": "SUMMARY",
             "id": "b758816-64c8-46cb-8f7e-03c12cea1d67"
         }
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         extra = Extra.forbid
         arbitrary_types_allowed = (
@@ -151,7 +151,7 @@ class Checkpoint(BaseModel):
         return validated_actions
 
     @override
-    def json(  # noqa: PLR0913
+    def json(  # noqa: PLR0913 # FIXME CoP
         self,
         *,
         include: AbstractSet[int | str] | Mapping[int | str, Any] | None = None,
@@ -188,7 +188,7 @@ class Checkpoint(BaseModel):
         return json.dumps(data_with_validation_definitions, **dumps_kwargs)
 
     @override
-    def dict(  # noqa: PLR0913
+    def dict(  # noqa: PLR0913 # FIXME CoP
         self,
         *,
         include: AbstractSet[int | str] | Mapping[int | str, Any] | None = None,
@@ -278,10 +278,10 @@ class Checkpoint(BaseModel):
             try:
                 validation_definition = store.get(key=key)
             except (KeyError, gx_exceptions.InvalidKeyError):
-                raise ValueError(f"Unable to retrieve validation definition {id_bundle} from store")  # noqa: TRY003
+                raise ValueError(f"Unable to retrieve validation definition {id_bundle} from store")  # noqa: TRY003 # FIXME CoP
 
             if not validation_definition:
-                raise ValueError(  # noqa: TRY003
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
                     "ValidationDefinitionStore did not retrieve a validation definition"
                 )
             validation_definitions.append(validation_definition)
@@ -295,6 +295,24 @@ class Checkpoint(BaseModel):
         expectation_parameters: SuiteParameterDict | None = None,
         run_id: RunIdentifier | None = None,
     ) -> CheckpointResult:
+        """
+        Runs the Checkpoint's underlying Validation Definitions and Actions.
+
+        Args:
+            batch_parameters: Parameters to be used when loading the Batch.
+            expectation_parameters: Parameters to be used when validating the Batch.
+            run_id: An optional unique identifier for the run.
+
+        Returns:
+            A CheckpointResult object containing the results of the run.
+
+        Raises:
+            CheckpointRunWithoutValidationDefinitionError: If the Checkpoint is run without any
+                                                           Validation Definitions.
+            CheckpointNotAddedError: If the Checkpoint has not been added to the Store.
+            CheckpointNotFreshError: If the Checkpoint has been modified since it was last added
+                                     to the Store.
+        """
         if not self.validation_definitions:
             raise CheckpointRunWithoutValidationDefinitionError()
 
@@ -438,6 +456,7 @@ class Checkpoint(BaseModel):
 
     @public_api
     def save(self) -> None:
+        """Save the current state of this Checkpoint."""
         store = project_manager.get_checkpoints_store()
         key = store.get_key(name=self.name, id=self.id)
 
@@ -457,6 +476,13 @@ class Checkpoint(BaseModel):
 
 @public_api
 class CheckpointResult(BaseModel):
+    """
+    The result of running a Checkpoint.
+
+    Contains information about Expectation successes and failures from running
+    each Validation Definition in the Checkpoint.
+    """
+
     run_id: RunIdentifier
     run_results: Dict[ValidationResultIdentifier, ExpectationSuiteValidationResult]
     checkpoint_config: Checkpoint
@@ -470,7 +496,7 @@ class CheckpointResult(BaseModel):
     def _root_validate_result(cls, values: dict) -> dict:
         run_results = values["run_results"]
         if len(run_results) == 0:
-            raise ValueError("CheckpointResult must contain at least one run result")  # noqa: TRY003
+            raise ValueError("CheckpointResult must contain at least one run result")  # noqa: TRY003 # FIXME CoP
 
         if values["success"] is None:
             values["success"] = all(result.success for result in run_results.values())

@@ -3,7 +3,7 @@ from __future__ import annotations
 from great_expectations.compatibility.not_imported import NotImported
 
 AZURE_BLOB_STORAGE_NOT_IMPORTED = NotImported(
-    "azure blob storage components are not installed, please 'pip install azure-storage-blob azure-identity azure-keyvault-secrets'"  # noqa: E501
+    "azure blob storage components are not installed, please 'pip install azure-storage-blob azure-identity azure-keyvault-secrets'"  # noqa: E501 # FIXME CoP
 )
 
 try:

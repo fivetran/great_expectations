@@ -24,7 +24,7 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501 # FIXME CoP
     _is_sqlalchemy_metric_selectable,
 )
 from great_expectations.expectations.metrics.util import (
@@ -35,7 +35,7 @@ from great_expectations.expectations.metrics.util import (
     sql_statement_with_post_compile_to_string,
 )
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     generate_temporary_table_name,
     get_sqlalchemy_selectable,
 )
@@ -87,7 +87,7 @@ def _pandas_map_condition_index(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     domain_records_df: pd.DataFrame = execution_engine.get_domain_records(
         domain_kwargs=domain_kwargs
@@ -153,7 +153,7 @@ def _pandas_map_condition_query(
 
     Requires `unexpected_index_column_names` to be part of `result_format` dict to specify primary_key columns
     to return, along with column the Expectation is run on.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     result_format: dict = metric_value_kwargs["result_format"]
 
     # We will not return map_condition_query if return_unexpected_index_query = False
@@ -177,7 +177,7 @@ def _pandas_map_condition_query(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     domain_records_df: pd.DataFrame = execution_engine.get_domain_records(
         domain_kwargs=domain_kwargs
@@ -205,7 +205,7 @@ def _pandas_map_condition_rows(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> pd.DataFrame:
-    """Return values from the specified domain (ignoring the column constraint) that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return values from the specified domain (ignoring the column constraint) that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     (
         boolean_mapped_unexpected_values,
         compute_domain_kwargs,
@@ -220,7 +220,7 @@ def _pandas_map_condition_rows(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
@@ -291,12 +291,12 @@ def _sqlalchemy_map_condition_unexpected_count_value(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     selectable = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
-    # The integral values are cast to SQL Numeric in order to avoid a bug in AWS Redshift (converted to integer later).  # noqa: E501
-    count_case_statement: List[sqlalchemy.Label] = sa.case(  # type: ignore[assignment]
+    # The integral values are cast to SQL Numeric in order to avoid a bug in AWS Redshift (converted to integer later).  # noqa: E501 # FIXME CoP
+    count_case_statement: List[sqlalchemy.Label] = sa.case(  # type: ignore[assignment] # FIXME CoP
         (
             unexpected_condition,
             sa.sql.expression.cast(1, sa.Numeric),
@@ -304,10 +304,10 @@ def _sqlalchemy_map_condition_unexpected_count_value(
         else_=sa.sql.expression.cast(0, sa.Numeric),
     ).label("condition")
 
-    count_selectable: sqlalchemy.Select = sa.select(count_case_statement)  # type: ignore[call-overload]
+    count_selectable: sqlalchemy.Select = sa.select(count_case_statement)  # type: ignore[call-overload] # FIXME CoP
     if not _is_sqlalchemy_metric_selectable(map_metric_provider=cls):
-        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type]
-        count_selectable = count_selectable.select_from(selectable)  # type: ignore[arg-type]
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
+        count_selectable = count_selectable.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     try:
         if execution_engine.dialect_name == GXSqlDialect.MSSQL:
@@ -328,22 +328,22 @@ def _sqlalchemy_map_condition_unexpected_count_value(
                             metrics=metrics,
                         )
             inner_case_query: sqlalchemy.Insert = temp_table_obj.insert().from_select(
-                [count_case_statement],  # type: ignore[list-item]
+                [count_case_statement],  # type: ignore[list-item] # FIXME CoP
                 count_selectable,
             )
-            execution_engine.execute_query_in_transaction(inner_case_query)  # type: ignore[arg-type]
+            execution_engine.execute_query_in_transaction(inner_case_query)  # type: ignore[arg-type] # FIXME CoP
 
-            count_selectable = temp_table_obj  # type: ignore[assignment]
+            count_selectable = temp_table_obj  # type: ignore[assignment] # FIXME CoP
 
-        count_selectable = get_sqlalchemy_selectable(count_selectable)  # type: ignore[assignment]
+        count_selectable = get_sqlalchemy_selectable(count_selectable)  # type: ignore[assignment] # FIXME CoP
         unexpected_count_query: sqlalchemy.Select = (
-            sa.select(  # type: ignore[assignment]
+            sa.select(  # type: ignore[assignment] # FIXME CoP
                 sa.func.sum(sa.column("condition")).label("unexpected_count"),
             )
-            .select_from(count_selectable)  # type: ignore[arg-type]
+            .select_from(count_selectable)  # type: ignore[arg-type] # FIXME CoP
             .alias("UnexpectedCountSubquery")
         )
-        unexpected_count: Union[float, int] = execution_engine.execute_query(  # type: ignore[assignment]
+        unexpected_count: Union[float, int] = execution_engine.execute_query(  # type: ignore[assignment] # FIXME CoP
             sa.select(
                 unexpected_count_query.c[
                     f"{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
@@ -375,23 +375,23 @@ def _sqlalchemy_map_condition_rows(
     """
     Returns all rows of the metric values which do not meet an expected Expectation condition for instances
     of ColumnMapExpectation.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     unexpected_condition, compute_domain_kwargs, accessor_domain_kwargs = metrics[
         "unexpected_condition"
     ]
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     selectable = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
     table_columns: list[str] = metrics["table.columns"]
-    column_selector = [sa.column(column_name) for column_name in table_columns]  # type: ignore[var-annotated]
+    column_selector = [sa.column(column_name) for column_name in table_columns]  # type: ignore[var-annotated] # FIXME CoP
     query = sa.select(*column_selector).where(unexpected_condition)
     if not _is_sqlalchemy_metric_selectable(map_metric_provider=cls):
-        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type]
-        query = query.select_from(selectable)  # type: ignore[arg-type]
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
+        query = query.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     result_format = metric_value_kwargs["result_format"]
     if result_format["result_format"] != "COMPLETE":
@@ -404,7 +404,7 @@ def _sqlalchemy_map_condition_rows(
         raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(message=exception_message)
 
 
-def _sqlalchemy_map_condition_query(  # noqa: C901 - too complex
+def _sqlalchemy_map_condition_query(  # noqa: C901 #  too complex
     cls,
     execution_engine: SqlAlchemyExecutionEngine,
     metric_domain_kwargs: Dict,
@@ -418,7 +418,7 @@ def _sqlalchemy_map_condition_query(  # noqa: C901 - too complex
 
     Requires `unexpected_index_column_names` to be part of `result_format` dict to specify primary_key columns
     to return, along with column the Expectation is run on.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     (
         unexpected_condition,
         _compute_domain_kwargs,
@@ -461,16 +461,16 @@ def _sqlalchemy_map_condition_query(  # noqa: C901 - too complex
         for column_name in unexpected_index_column_names:
             if column_name not in all_table_columns:
                 raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(
-                    message=f'Error: The unexpected_index_column: "{column_name}" in does not exist in SQL Table. '  # noqa: E501
+                    message=f'Error: The unexpected_index_column: "{column_name}" in does not exist in SQL Table. '  # noqa: E501 # FIXME CoP
                     f"Please check your configuration and try again."
                 )
 
-            column_selector.append(sa.column(column_name))  # type: ignore[arg-type]
+            column_selector.append(sa.column(column_name))  # type: ignore[arg-type] # FIXME CoP
 
     for column_name in domain_column_name_list:
-        column_selector.append(sa.column(column_name))  # type: ignore[arg-type]
+        column_selector.append(sa.column(column_name))  # type: ignore[arg-type] # FIXME CoP
 
-    unexpected_condition_query_with_selected_columns: sa.select = sa.select(*column_selector).where(  # type: ignore[valid-type]
+    unexpected_condition_query_with_selected_columns: sa.select = sa.select(*column_selector).where(  # type: ignore[valid-type] # FIXME CoP
         unexpected_condition
     )
     source_table_and_schema: sa.Table = get_sqlalchemy_source_table_and_schema(execution_engine)
@@ -478,8 +478,8 @@ def _sqlalchemy_map_condition_query(  # noqa: C901 - too complex
     source_table_and_schema_as_selectable: Union[sa.Table, sa.Select] = get_sqlalchemy_selectable(
         source_table_and_schema
     )
-    final_select_statement: sa.select = (  # type: ignore[valid-type]
-        unexpected_condition_query_with_selected_columns.select_from(  # type: ignore[attr-defined]
+    final_select_statement: sa.select = (  # type: ignore[valid-type] # FIXME CoP
+        unexpected_condition_query_with_selected_columns.select_from(  # type: ignore[attr-defined] # FIXME CoP
             source_table_and_schema_as_selectable
         )
     )
@@ -490,7 +490,7 @@ def _sqlalchemy_map_condition_query(  # noqa: C901 - too complex
     return query_as_string
 
 
-def _sqlalchemy_map_condition_index(  # noqa: C901 - too complex
+def _sqlalchemy_map_condition_index(  # noqa: C901 #  too complex
     cls,
     execution_engine: SqlAlchemyExecutionEngine,
     metric_domain_kwargs: Dict,
@@ -504,7 +504,7 @@ def _sqlalchemy_map_condition_index(  # noqa: C901 - too complex
 
     Requires `unexpected_index_column_names` to be part of `result_format` dict to specify primary_key columns
     to return.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     (
         unexpected_condition,
         compute_domain_kwargs,
@@ -544,30 +544,30 @@ def _sqlalchemy_map_condition_index(  # noqa: C901 - too complex
     for column_name in unexpected_index_column_names:
         if column_name not in all_table_columns:
             raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(
-                message=f'Error: The unexpected_index_column: "{column_name}" in does not exist in SQL Table. '  # noqa: E501
+                message=f'Error: The unexpected_index_column: "{column_name}" in does not exist in SQL Table. '  # noqa: E501 # FIXME CoP
                 f"Please check your configuration and try again."
             )
-        column_selector.append(sa.column(column_name))  # type: ignore[arg-type]
+        column_selector.append(sa.column(column_name))  # type: ignore[arg-type] # FIXME CoP
 
     # the last column we SELECT is the column the Expectation is being run on
     for column_name in domain_column_name_list:
-        column_selector.append(sa.column(column_name))  # type: ignore[arg-type]
+        column_selector.append(sa.column(column_name))  # type: ignore[arg-type] # FIXME CoP
 
     domain_records_as_selectable: sa.sql.Selectable = execution_engine.get_domain_records(
         domain_kwargs=domain_kwargs
     )
-    unexpected_condition_query_with_selected_columns: sa.select = sa.select(*column_selector).where(  # type: ignore[valid-type]
+    unexpected_condition_query_with_selected_columns: sa.select = sa.select(*column_selector).where(  # type: ignore[valid-type] # FIXME CoP
         unexpected_condition
     )
 
     if not _is_sqlalchemy_metric_selectable(map_metric_provider=cls):
-        domain_records_as_selectable = get_sqlalchemy_selectable(domain_records_as_selectable)  # type: ignore[arg-type]
+        domain_records_as_selectable = get_sqlalchemy_selectable(domain_records_as_selectable)  # type: ignore[arg-type] # FIXME CoP
 
-    # since SQL tables can be **very** large, truncate query_result values at 20, or at `partial_unexpected_count`  # noqa: E501
-    final_query: sa.select = unexpected_condition_query_with_selected_columns.select_from(  # type: ignore[valid-type,attr-defined]
+    # since SQL tables can be **very** large, truncate query_result values at 20, or at `partial_unexpected_count`  # noqa: E501 # FIXME CoP
+    final_query: sa.select = unexpected_condition_query_with_selected_columns.select_from(  # type: ignore[valid-type,attr-defined] # FIXME CoP
         domain_records_as_selectable
     ).limit(result_format["partial_unexpected_count"])
-    query_result: List[sqlalchemy.Row] = execution_engine.execute_query(final_query).fetchall()  # type: ignore[assignment]
+    query_result: List[sqlalchemy.Row] = execution_engine.execute_query(final_query).fetchall()  # type: ignore[assignment] # FIXME CoP
 
     exclude_unexpected_values: bool = result_format.get("exclude_unexpected_values", False)
 
@@ -612,13 +612,13 @@ def _spark_map_condition_unexpected_count_value(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
     # withColumn is required to transform window functions returned by some metrics to boolean mask
     data = df.withColumn("__unexpected", unexpected_condition)
-    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712
+    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712 # FIXME CoP
         F.col("__unexpected")
     )
 
@@ -639,13 +639,13 @@ def _spark_map_condition_rows(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
     # withColumn is required to transform window functions returned by some metrics to boolean mask
     data = df.withColumn("__unexpected", unexpected_condition)
-    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712
+    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712 # FIXME CoP
         F.col("__unexpected")
     )
 
@@ -658,7 +658,7 @@ def _spark_map_condition_rows(
     return filtered.limit(limit).collect()
 
 
-def _spark_map_condition_index(  # noqa: C901 - too complex
+def _spark_map_condition_index(  # noqa: C901 #  too complex
     cls,
     execution_engine: SparkDFExecutionEngine,
     metric_domain_kwargs: Dict,
@@ -672,7 +672,7 @@ def _spark_map_condition_index(  # noqa: C901 - too complex
 
     Requires `unexpected_index_column_names` to be part of `result_format` dict to specify primary_key columns
     to return.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     (
         unexpected_condition,
         compute_domain_kwargs,
@@ -712,12 +712,12 @@ def _spark_map_condition_index(  # noqa: C901 - too complex
     result_format = metric_value_kwargs["result_format"]
     if not result_format.get("unexpected_index_column_names"):
         raise gx_exceptions.MetricResolutionError(
-            message="unexpected_indices cannot be returned without 'unexpected_index_column_names'. Please check your configuration.",  # noqa: E501
+            message="unexpected_indices cannot be returned without 'unexpected_index_column_names'. Please check your configuration.",  # noqa: E501 # FIXME CoP
             failed_metrics=["unexpected_index_list"],
         )
     # withColumn is required to transform window functions returned by some metrics to boolean mask
     data = df.withColumn("__unexpected", unexpected_condition)
-    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712
+    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712 # FIXME CoP
         F.col("__unexpected")
     )
     exclude_unexpected_values: bool = result_format.get("exclude_unexpected_values", False)
@@ -729,8 +729,8 @@ def _spark_map_condition_index(  # noqa: C901 - too complex
     # check that column name is in row
     for col_name in columns_to_keep:
         if col_name not in filtered.columns:
-            raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(  # noqa: TRY003
-                f"Error: The unexpected_index_column '{col_name}' does not exist in Spark DataFrame. Please check your configuration and try again."  # noqa: E501
+            raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(  # noqa: TRY003 # FIXME CoP
+                f"Error: The unexpected_index_column '{col_name}' does not exist in Spark DataFrame. Please check your configuration and try again."  # noqa: E501 # FIXME CoP
             )
 
     if result_format["result_format"] != "COMPLETE":
@@ -765,7 +765,7 @@ def _spark_map_condition_query(
 
         df.filter(F.expr( [unexpected_condition] ))
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     result_format: dict = metric_value_kwargs["result_format"]
     # We will not return map_condition_query if return_unexpected_index_query = False
     return_unexpected_index_query: Optional[bool] = result_format.get(
@@ -780,7 +780,7 @@ def _spark_map_condition_query(
         _,
     ) = metrics.get("unexpected_condition", (None, None, None))
 
-    # unexpected_condition is an F.column object, meaning the str representation is wrapped in Column<> syntax.  # noqa: E501
+    # unexpected_condition is an F.column object, meaning the str representation is wrapped in Column<> syntax.  # noqa: E501 # FIXME CoP
     # like Column<'[unexpected_expression]'>
     unexpected_condition_as_string: str = str(unexpected_condition)
     unexpected_condition_filtered: str = unexpected_condition_as_string.replace(

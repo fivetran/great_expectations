@@ -1,6 +1,6 @@
 {
     "title": "SparkS3Datasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nSparkS3Datasource is a subclass of SparkDatasource which connects to\nAmazon S3.",
     "type": "object",
     "properties": {
         "type": {

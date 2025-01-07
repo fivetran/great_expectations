@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
@@ -51,7 +51,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -174,7 +173,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     column_set: Union[list, set, SuiteParameterDict, None] = pydantic.Field(
         description=COLUMN_SET_DESCRIPTION
@@ -306,7 +305,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
 
             exact_match_str = "exactly" if params["exact_match"] is True else "at least"
 
-            template_str = f"Must have {exact_match_str} these columns (in any order): {column_list_template_str}"  # noqa: E501
+            template_str = f"Must have {exact_match_str} these columns (in any order): {column_list_template_str}"  # noqa: E501 # FIXME CoP
 
             for idx in range(len(params["column_list"])):
                 params[f"column_list_{idx!s}"] = params["column_list"][idx]
@@ -433,9 +432,9 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             return {"success": True, "result": {"observed_value": actual_column_list}}
         else:
             # Convert to lists and sort to lock order for testing and output rendering
-            # unexpected_list contains items from the dataset columns that are not in expected_column_set  # noqa: E501
+            # unexpected_list contains items from the dataset columns that are not in expected_column_set  # noqa: E501 # FIXME CoP
             unexpected_list = sorted(list(actual_column_set - expected_column_set))
-            # missing_list contains items from expected_column_set that are not in the dataset columns  # noqa: E501
+            # missing_list contains items from expected_column_set that are not in the dataset columns  # noqa: E501 # FIXME CoP
             missing_list = sorted(list(expected_column_set - actual_column_set))
             # observed_value contains items that are in the dataset columns
             observed_value = sorted(actual_column_list)
@@ -462,7 +461,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
 
             if exact_match:
                 return return_failed
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 # Failed if there are items in the missing list (but OK to have unexpected_list)
                 if len(missing_list) > 0:
                     return return_failed

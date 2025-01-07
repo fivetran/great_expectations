@@ -10,14 +10,14 @@ from typing_extensions import TypedDict
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
-from great_expectations.alias_types import JSONValues  # noqa: TCH001
+from great_expectations.alias_types import JSONValues  # noqa: TCH001 # FIXME CoP
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.batch import (  # noqa: TCH001
+from great_expectations.core.batch import (  # noqa: TCH001 # FIXME CoP
     BatchMarkers,
     LegacyBatchDefinition,
 )
-from great_expectations.core.id_dict import BatchSpec  # noqa: TCH001
-from great_expectations.core.run_identifier import RunIdentifier  # noqa: TCH001
+from great_expectations.core.id_dict import BatchSpec  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.run_identifier import RunIdentifier  # noqa: TCH001 # FIXME CoP
 from great_expectations.data_context.util import instantiate_class_from_config
 from great_expectations.exceptions import ClassInstantiationError
 from great_expectations.render import (
@@ -27,8 +27,8 @@ from great_expectations.render import (
 )
 from great_expectations.types import SerializableDictDot
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
-    ensure_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
+    ensure_json_serializable,  # noqa: TID251 # FIXME CoP
 )
 
 if TYPE_CHECKING:
@@ -82,7 +82,7 @@ class ExpectationValidationResult(SerializableDictDot):
         InvalidCacheValueError: Raised if the result does not pass validation.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         success: Optional[bool] = None,
         expectation_config: Optional[ExpectationConfiguration] = None,
@@ -114,7 +114,7 @@ class ExpectationValidationResult(SerializableDictDot):
         self.rendered_content = rendered_content
 
     def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
-        """ExpectationValidationResult equality ignores instance identity, relying only on properties."""  # noqa: E501
+        """ExpectationValidationResult equality ignores instance identity, relying only on properties."""  # noqa: E501 # FIXME CoP
         # NOTE: JPC - 20200213 - need to spend some time thinking about whether we want to
         # consistently allow dict as a comparison alternative in situations like these...
         # if isinstance(other, dict):
@@ -144,8 +144,8 @@ class ExpectationValidationResult(SerializableDictDot):
                             other=other.expectation_config, match_type="success"
                         )
                     ),
-                    # Result is a dictionary allowed to have nested dictionaries that are still of complex types (e.g.  # noqa: E501
-                    # numpy) consequently, series' comparison can persist. Wrapping in all() ensures comparison is  # noqa: E501
+                    # Result is a dictionary allowed to have nested dictionaries that are still of complex types (e.g.  # noqa: E501 # FIXME CoP
+                    # numpy) consequently, series' comparison can persist. Wrapping in all() ensures comparison is  # noqa: E501 # FIXME CoP
                     # handled appropriately.
                     not (self.result or other.result) or contents_equal,
                     self.meta == other.meta,
@@ -157,7 +157,7 @@ class ExpectationValidationResult(SerializableDictDot):
             return False
 
     def __ne__(self, other):  # type: ignore[explicit-override] # FIXME
-        # Negated implementation of '__eq__'. TODO the method should be deleted when it will coincide with __eq__.  # noqa: E501
+        # Negated implementation of '__eq__'. TODO the method should be deleted when it will coincide with __eq__.  # noqa: E501 # FIXME CoP
         # return not self == other
         if not isinstance(other, self.__class__):
             # Delegate comparison to the other instance's __ne__.
@@ -171,7 +171,7 @@ class ExpectationValidationResult(SerializableDictDot):
                         self.expectation_config is not None
                         and not self.expectation_config.isEquivalentTo(other.expectation_config)
                     ),
-                    # TODO should it be wrapped in all()/any()? Since it is the only difference to __eq__:  # noqa: E501
+                    # TODO should it be wrapped in all()/any()? Since it is the only difference to __eq__:  # noqa: E501 # FIXME CoP
                     (self.result is None and other.result is not None)
                     or (self.result != other.result),
                     self.meta != other.meta,
@@ -188,7 +188,7 @@ class ExpectationValidationResult(SerializableDictDot):
         # TODO: <Alex>5/9/2022</Alex>
         This implementation is non-ideal (it was agreed to employ it for development expediency).  A better approach
         would consist of "__str__()" calling "__repr__()", while all output options are handled through state variables.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         return json.dumps(json_dict, indent=2)
 
@@ -198,7 +198,7 @@ class ExpectationValidationResult(SerializableDictDot):
         # TODO: <Alex>5/9/2022</Alex>
         This implementation is non-ideal (it was agreed to employ it for development expediency).  A better approach
         would consist of "__str__()" calling "__repr__()", while all output options are handled through state variables.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return json.dumps(self.to_json_dict(), indent=2)
 
     def render(self) -> None:
@@ -245,16 +245,16 @@ class ExpectationValidationResult(SerializableDictDot):
         if result.get("unexpected_count") and result["unexpected_count"] < 0:
             return False
         if result.get("unexpected_percent") and (
-            result["unexpected_percent"] < 0 or result["unexpected_percent"] > 100  # noqa: PLR2004
+            result["unexpected_percent"] < 0 or result["unexpected_percent"] > 100  # noqa: PLR2004 # FIXME CoP
         ):
             return False
         if result.get("missing_percent") and (
-            result["missing_percent"] < 0 or result["missing_percent"] > 100  # noqa: PLR2004
+            result["missing_percent"] < 0 or result["missing_percent"] > 100  # noqa: PLR2004 # FIXME CoP
         ):
             return False
         if result.get("unexpected_percent_nonmissing") and (
             result["unexpected_percent_nonmissing"] < 0
-            or result["unexpected_percent_nonmissing"] > 100  # noqa: PLR2004
+            or result["unexpected_percent_nonmissing"] > 100  # noqa: PLR2004 # FIXME CoP
         ):
             return False
         return not (result.get("missing_count") and result["missing_count"] < 0)
@@ -268,7 +268,7 @@ class ExpectationValidationResult(SerializableDictDot):
             A JSON-serializable dict representation of this ExpectationValidationResult.
         """
         myself = expectationValidationResultSchema.dump(self)
-        # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501
+        # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501 # FIXME CoP
         # schemas to get serialization all-the-way down via dump
         if "expectation_config" in myself:
             myself["expectation_config"] = convert_to_json_serializable(
@@ -284,9 +284,9 @@ class ExpectationValidationResult(SerializableDictDot):
             myself["rendered_content"] = convert_to_json_serializable(myself["rendered_content"])
         return myself
 
-    def get_metric(self, metric_name, **kwargs):  # noqa: C901 - too complex
+    def get_metric(self, metric_name, **kwargs):  # noqa: C901 #  too complex
         if not self.expectation_config:
-            raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003
+            raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003 # FIXME CoP
                 "No ExpectationConfig found in this ExpectationValidationResult. Unable to "
                 "return a metric."
             )
@@ -303,29 +303,29 @@ class ExpectationValidationResult(SerializableDictDot):
                         metric_kwargs_id or "None", curr_metric_kwargs or "None"
                     )
                 )
-            if len(metric_name_parts) < 2:  # noqa: PLR2004
-                raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003
+            if len(metric_name_parts) < 2:  # noqa: PLR2004 # FIXME CoP
+                raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003 # FIXME CoP
                     "Expectation-defined metrics must include a requested metric."
                 )
-            elif len(metric_name_parts) == 2:  # noqa: PLR2004
+            elif len(metric_name_parts) == 2:  # noqa: PLR2004 # FIXME CoP
                 if metric_name_parts[1] == "success":
                     return self.success
                 else:
-                    raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003
+                    raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003 # FIXME CoP
                         "Metric name must have more than two parts for keys other than " "success."
                     )
             elif metric_name_parts[1] == "result":
                 try:
-                    if len(metric_name_parts) == 3:  # noqa: PLR2004
+                    if len(metric_name_parts) == 3:  # noqa: PLR2004 # FIXME CoP
                         return self.result.get(metric_name_parts[2])
                     elif metric_name_parts[2] == "details":
                         return self.result["details"].get(metric_name_parts[3])
                 except KeyError:
-                    raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003
+                    raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003 # FIXME CoP
                         f"Unable to get metric {metric_name} -- KeyError in "
                         "ExpectationValidationResult."
                     )
-        raise gx_exceptions.UnavailableMetricError(f"Unrecognized metric name {metric_name}")  # noqa: TRY003
+        raise gx_exceptions.UnavailableMetricError(f"Unrecognized metric name {metric_name}")  # noqa: TRY003 # FIXME CoP
 
     def describe_dict(self) -> dict:
         if self.expectation_config:
@@ -353,7 +353,7 @@ class ExpectationValidationResult(SerializableDictDot):
 class ExpectationValidationResultSchema(Schema):
     success = fields.Bool(required=False, allow_none=True)
     expectation_config = fields.Nested(
-        lambda: "ExpectationConfigurationSchema",  # type: ignore[arg-type,return-value]
+        lambda: "ExpectationConfigurationSchema",  # type: ignore[arg-type,return-value] # FIXME CoP
         required=False,
         allow_none=True,
     )
@@ -379,7 +379,7 @@ class ExpectationValidationResultSchema(Schema):
     @post_dump
     def clean_null_attrs(self, data: dict, **kwargs: dict) -> dict:
         """Removes the attributes in ExpectationValidationResultSchema.REMOVE_KEYS_IF_NONE during serialization if
-        their values are None."""  # noqa: E501
+        their values are None."""  # noqa: E501 # FIXME CoP
         from great_expectations.expectations.expectation_configuration import (
             ExpectationConfigurationSchema,
         )
@@ -468,9 +468,9 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         meta: Instance of ExpectationSuiteValidationResult, a Dict of meta values, or None.
         batch_id: A unique identifier for the batch of data that was validated.
         result_url: A URL where the results are stored.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         success: bool,
         results: list[ExpectationValidationResult],
@@ -502,7 +502,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         return None
 
     def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
-        """ExpectationSuiteValidationResult equality ignores instance identity, relying only on properties."""  # noqa: E501
+        """ExpectationSuiteValidationResult equality ignores instance identity, relying only on properties."""  # noqa: E501 # FIXME CoP
         if not isinstance(other, self.__class__):
             # Delegate comparison to the other instance's __eq__.
             return NotImplemented
@@ -531,7 +531,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
             A JSON-serializable dict representation of this ExpectationSuiteValidationResult.
         """
         myself = deepcopy(self)
-        # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501
+        # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501 # FIXME CoP
         # schemas to get serialization all-the-way down via dump
         myself["suite_parameters"] = convert_to_json_serializable(myself["suite_parameters"])
         myself["statistics"] = convert_to_json_serializable(myself["statistics"])
@@ -540,17 +540,17 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         myself = expectationSuiteValidationResultSchema.dump(myself)
         return myself
 
-    def get_metric(self, metric_name, **kwargs):  # noqa: C901 - too complex
+    def get_metric(self, metric_name, **kwargs):  # noqa: C901 #  too complex
         metric_name_parts = metric_name.split(".")
         metric_kwargs_id = get_metric_kwargs_id(metric_kwargs=kwargs)
 
         metric_value = None
         # Expose overall statistics
         if metric_name_parts[0] == "statistics":
-            if len(metric_name_parts) == 2:  # noqa: PLR2004
+            if len(metric_name_parts) == 2:  # noqa: PLR2004 # FIXME CoP
                 return self.statistics.get(metric_name_parts[1])
             else:
-                raise gx_exceptions.UnavailableMetricError(f"Unrecognized metric {metric_name}")  # noqa: TRY003
+                raise gx_exceptions.UnavailableMetricError(f"Unrecognized metric {metric_name}")  # noqa: TRY003 # FIXME CoP
 
         # Expose expectation-defined metrics
         elif metric_name_parts[0].lower().startswith("expect_"):
@@ -569,7 +569,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                     self._metrics[(metric_name, metric_kwargs_id)] = metric_value
                     return metric_value
 
-        raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003
+        raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003 # FIXME CoP
             f"Metric {metric_name} with metric_kwargs_id {metric_kwargs_id} is not available."
         )
 

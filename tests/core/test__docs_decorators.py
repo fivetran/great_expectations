@@ -88,6 +88,16 @@ class TestPublicAPI:
         print(f"Classes missing @public_api ->\n{pf(classes_that_need_public_api_decorator)}")
         assert sorted(classes_that_need_public_api_decorator.keys()) == []
 
+    @pytest.mark.unit
+    def test_public_api_objects_have_docstrings(self):
+        """
+        All objects that are decorated with @public_api should have a docstring.
+        """
+        violations = public_api_introspector.docstring_violations
+        assert (
+            len(violations) == 0
+        ), f"Public API decorated objects without docstrings: {pf(violations)}"
+
 
 # @deprecated
 
@@ -609,7 +619,7 @@ def _func_full_docstring_all_decorators_all_sections(
 
 @pytest.mark.unit
 def test_all_decorators_full_docstring_all_sections():
-    """Makes sure that Returns and Raises are rendered correctly in the context of a full docstring."""  # noqa: E501
+    """Makes sure that Returns and Raises are rendered correctly in the context of a full docstring."""  # noqa: E501 # FIXME CoP
 
     assert _func_full_docstring_all_decorators_all_sections.__doc__ == (
         "--Public API--My docstring.\n"

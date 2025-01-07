@@ -24,7 +24,7 @@ from great_expectations.core.id_dict import BatchKwargs, BatchSpec, IDDict
 from great_expectations.exceptions import InvalidBatchIdError
 from great_expectations.types import DictDot, SerializableDictDot, safe_deep_copy
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     deep_filter_properties_iterable,
     load_class,
 )
@@ -105,7 +105,7 @@ class LegacyBatchDefinition(SerializableDictDot):
         BatchDefinition
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_connector_name: str,
@@ -168,31 +168,31 @@ class LegacyBatchDefinition(SerializableDictDot):
         batch_identifiers: IDDict,
     ) -> None:
         if datasource_name is None:
-            raise ValueError("A valid datasource must be specified.")  # noqa: TRY003
+            raise ValueError("A valid datasource must be specified.")  # noqa: TRY003 # FIXME CoP
         if datasource_name and not isinstance(datasource_name, str):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of an datasource name must be a string (Python "str").  The type given is
 "{type(datasource_name)!s}", which is illegal.
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
             )
         if data_connector_name is None:
-            raise ValueError("A valid data_connector must be specified.")  # noqa: TRY003
+            raise ValueError("A valid data_connector must be specified.")  # noqa: TRY003 # FIXME CoP
         if data_connector_name and not isinstance(data_connector_name, str):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of a data_connector name must be a string (Python "str").  The type given is
 "{type(data_connector_name)!s}", which is illegal.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if data_asset_name is None:
-            raise ValueError("A valid data_asset_name must be specified.")  # noqa: TRY003
+            raise ValueError("A valid data_asset_name must be specified.")  # noqa: TRY003 # FIXME CoP
         if data_asset_name and not isinstance(data_asset_name, str):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of a data_asset name must be a string (Python "str").  The type given is
 "{type(data_asset_name)!s}", which is illegal.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if batch_identifiers and not isinstance(batch_identifiers, IDDict):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of batch_identifiers must be an IDDict object.  The type given is \
 "{type(batch_identifiers)!s}", which is illegal.
 """
@@ -266,9 +266,9 @@ class BatchRequestBase(SerializableDictDot):
     for the internal protocol use, whereby NULL values are allowed as per the internal needs.  The BatchRequest class extends
     BatchRequestBase and adds to it strong validation (described above plus additional attribute validation) so as to formally
     validate user specified fields.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_connector_name: str,
@@ -373,9 +373,9 @@ class BatchRequestBase(SerializableDictDot):
             A JSON-serializable dict representation of this BatchRequestBase.
         """
         # TODO: <Alex>2/4/2022</Alex>
-        # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501
-        # reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,  # noqa: E501
-        # due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules  # noqa: E501
+        # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501 # FIXME CoP
+        # reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,  # noqa: E501 # FIXME CoP
+        # due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules  # noqa: E501 # FIXME CoP
         # make this refactoring infeasible at the present time.
 
         # if batch_data appears in BatchRequest, temporarily replace it with
@@ -384,7 +384,7 @@ class BatchRequestBase(SerializableDictDot):
         serializeable_dict: dict
         if batch_request_contains_batch_data(batch_request=self):
             if self.runtime_parameters is None:
-                raise ValueError("BatchRequestBase missing runtime_parameters during serialization")  # noqa: TRY003
+                raise ValueError("BatchRequestBase missing runtime_parameters during serialization")  # noqa: TRY003 # FIXME CoP
             batch_data: BatchRequestBase | dict = self.runtime_parameters["batch_data"]
             self.runtime_parameters["batch_data"] = str(type(batch_data))
 
@@ -424,7 +424,7 @@ class BatchRequestBase(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -440,7 +440,7 @@ class BatchRequestBase(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()
 
     @staticmethod
@@ -453,35 +453,35 @@ class BatchRequestBase(SerializableDictDot):
     ) -> None:
         # TODO test and check all logic in this validator!
         if not (datasource_name and isinstance(datasource_name, str)):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of an datasource name must be a string (Python "str").  The type given is
 "{type(datasource_name)!s}", which is illegal.
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
             )
         if not (data_connector_name and isinstance(data_connector_name, str)):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of data_connector name must be a string (Python "str").  The type given is
 "{type(data_connector_name)!s}", which is illegal.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if not (data_asset_name and isinstance(data_asset_name, str)):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of data_asset name must be a string (Python "str").  The type given is
         "{type(data_asset_name)!s}", which is illegal.
                         """
             )
         # TODO Abe 20201015: Switch this to DataConnectorQuery.
         if data_connector_query and not isinstance(data_connector_query, dict):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of data_connector_query must be a dict object.  The type given is
 "{type(data_connector_query)!s}", which is illegal.
                 """
             )
         if limit and not isinstance(limit, int):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of limit must be an integer (Python "int").  The type given is "{type(limit)!s}", which
 is illegal.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
 
 
@@ -534,7 +534,7 @@ class BatchRequest(BatchRequestBase):
         "batch_spec_passthrough",
     }
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_connector_name: str,
@@ -609,7 +609,7 @@ class RuntimeBatchRequest(BatchRequestBase):
         "batch_spec_passthrough",
     }
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_connector_name: str,
@@ -646,46 +646,46 @@ class RuntimeBatchRequest(BatchRequestBase):
         """
         We must have both or neither of runtime_parameters and batch_identifiers (but not either one of them).
         This is strict equivalence ("if-and-only") condition ("exclusive NOR"); otherwise, ("exclusive OR") means error.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if (not runtime_parameters and batch_identifiers) or (
             runtime_parameters and not batch_identifiers
         ):
-            raise ValueError(  # noqa: TRY003
-                "It must be that either both runtime_parameters and batch_identifiers are present, or both are missing"  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                "It must be that either both runtime_parameters and batch_identifiers are present, or both are missing"  # noqa: E501 # FIXME CoP
             )
 
         # if there is a value, make sure it is a dict
         if runtime_parameters and not (isinstance(runtime_parameters, dict)):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The runtime_parameters must be a non-empty dict object.
-                The type given is "{type(runtime_parameters)!s}", which is an illegal type or an empty dictionary."""  # noqa: E501
+                The type given is "{type(runtime_parameters)!s}", which is an illegal type or an empty dictionary."""  # noqa: E501 # FIXME CoP
             )
 
         # if there is a value, make sure it is a dict
         if batch_identifiers and not isinstance(batch_identifiers, dict):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type for batch_identifiers must be a dict object, with keys being identifiers defined in the
-                data connector configuration.  The type given is "{type(batch_identifiers)!s}", which is illegal."""  # noqa: E501
+                data connector configuration.  The type given is "{type(batch_identifiers)!s}", which is illegal."""  # noqa: E501 # FIXME CoP
             )
 
         if batch_spec_passthrough and not (isinstance(batch_spec_passthrough, dict)):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"""The type for batch_spec_passthrough must be a dict object. The type given is \
 "{type(batch_spec_passthrough)!s}", which is illegal.
 """
             )
 
 
-# TODO: <Alex>The following class is to support the backward compatibility with the legacy design.</Alex>  # noqa: E501
+# TODO: <Alex>The following class is to support the backward compatibility with the legacy design.</Alex>  # noqa: E501 # FIXME CoP
 class BatchMarkers(BatchKwargs):
     """A BatchMarkers is a special type of BatchKwargs (so that it has a batch_fingerprint) but it generally does
     NOT require specific keys and instead captures information about the OUTPUT of a datasource's fetch
-    process, such as the timestamp at which a query was executed."""  # noqa: E501
+    process, such as the timestamp at which a query was executed."""  # noqa: E501 # FIXME CoP
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if "ge_load_time" not in self:
-            raise InvalidBatchIdError("BatchMarkers requires a ge_load_time")  # noqa: TRY003
+            raise InvalidBatchIdError("BatchMarkers requires a ge_load_time")  # noqa: TRY003 # FIXME CoP
 
     @property
     def ge_load_time(self):
@@ -708,8 +708,8 @@ class BatchData:
 
 # TODO: <Alex>This module needs to be cleaned up.
 #  We have Batch used for the legacy design, and we also need Batch for the new design.
-#  However, right now, the Batch from the legacy design is imported into execution engines of the new design.  # noqa: E501
-#  As a result, we have multiple, inconsistent versions of BatchMarkers, extending legacy/new classes.</Alex>  # noqa: E501
+#  However, right now, the Batch from the legacy design is imported into execution engines of the new design.  # noqa: E501 # FIXME CoP
+#  As a result, we have multiple, inconsistent versions of BatchMarkers, extending legacy/new classes.</Alex>  # noqa: E501 # FIXME CoP
 # TODO: <Alex>See also "great_expectations/datasource/types/batch_spec.py".</Alex>
 @deprecated_argument(argument_name="data_context", version="0.14.0")
 @deprecated_argument(argument_name="datasource_name", version="0.14.0")
@@ -742,7 +742,7 @@ class Batch(SerializableDictDot):
         Batch instance created.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         data: BatchDataType | None = None,
         batch_request: BatchRequestBase | dict | None = None,
@@ -762,7 +762,7 @@ class Batch(SerializableDictDot):
         self._batch_request = batch_request
 
         if batch_definition is None:
-            batch_definition = IDDict()  # type: ignore[assignment]
+            batch_definition = IDDict()  # type: ignore[assignment] # FIXME CoP
 
         self._batch_definition = batch_definition
 
@@ -900,9 +900,9 @@ class Batch(SerializableDictDot):
         Returns:
             A Pandas DataFrame
         """
-        self._data.execution_engine.batch_manager.load_batch_list(batch_list=[self])  # type: ignore[union-attr]
+        self._data.execution_engine.batch_manager.load_batch_list(batch_list=[self])  # type: ignore[union-attr] # FIXME CoP
         metrics_calculator = _get_metrics_calculator_class()(
-            execution_engine=self._data.execution_engine,  # type: ignore[union-attr, arg-type]
+            execution_engine=self._data.execution_engine,  # type: ignore[union-attr, arg-type] # FIXME CoP
             show_progress_bars=True,
         )
         table_head_df: pd.DataFrame = metrics_calculator.head(
@@ -1007,7 +1007,7 @@ def get_batch_request_as_dict(
     return batch_request  # type: ignore[return-value] # FDS BatchRequest is missing data_connector (other fields)
 
 
-def _get_block_batch_request(  # noqa: C901, PLR0913
+def _get_block_batch_request(  # noqa: C901, PLR0913 # FIXME CoP
     *,
     datasource_name: str | None = None,
     data_connector_name: str | None = None,
@@ -1032,7 +1032,7 @@ def _get_block_batch_request(  # noqa: C901, PLR0913
     """
     if data_connector_query is None:
         if batch_filter_parameters is not None and batch_identifiers is not None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 'Must provide either "batch_filter_parameters" or "batch_identifiers", not both.'
             )
 
@@ -1094,7 +1094,7 @@ def _get_block_batch_request(  # noqa: C901, PLR0913
     return BatchRequest(**batch_request_as_dict)
 
 
-def _get_runtime_batch_request(  # noqa: PLR0913
+def _get_runtime_batch_request(  # noqa: PLR0913 # FIXME CoP
     *,
     datasource_name: str,
     data_connector_name: str,
@@ -1113,7 +1113,7 @@ def _get_runtime_batch_request(  # noqa: PLR0913
     ):  # one of these must be specified for runtime batch requests
         # parameter checking
         if len([arg for arg in [batch_data, query, path] if arg is not None]) > 1:
-            raise ValueError("Must provide only one of batch_data, query, or path.")  # noqa: TRY003
+            raise ValueError("Must provide only one of batch_data, query, or path.")  # noqa: TRY003 # FIXME CoP
 
         if runtime_parameters and any(
             [
@@ -1122,8 +1122,8 @@ def _get_runtime_batch_request(  # noqa: PLR0913
                 path and "path" in runtime_parameters,
             ]
         ):
-            raise ValueError(  # noqa: TRY003
-                "If batch_data, query, or path arguments are provided, the same keys cannot appear in the "  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                "If batch_data, query, or path arguments are provided, the same keys cannot appear in the "  # noqa: E501 # FIXME CoP
                 "runtime_parameters argument."
             )
 
@@ -1167,7 +1167,7 @@ def _get_runtime_batch_request(  # noqa: PLR0913
         return None
 
 
-def get_batch_request_from_acceptable_arguments(  # noqa: PLR0913
+def get_batch_request_from_acceptable_arguments(  # noqa: PLR0913 # FIXME CoP
     datasource_name: str | None = None,
     data_connector_name: str | None = None,
     data_asset_name: str | None = None,
@@ -1226,7 +1226,7 @@ def get_batch_request_from_acceptable_arguments(  # noqa: PLR0913
 
     Returns:
         (BatchRequest, RuntimeBatchRequest or FluentBatchRequest) The formal BatchRequest, RuntimeBatchRequest or FluentBatchRequest object
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # block-style batch-request args, includes arguments for both runtime and basic batch requests
     block_config_args = {
@@ -1251,10 +1251,10 @@ def get_batch_request_from_acceptable_arguments(  # noqa: PLR0913
         """Returns a list of the block-config batch request arguments"""
         return [k for k, v in block_config_args.items() if v]
 
-    # ensure that the first parameter is datasource_name, which should be a str. This check prevents users  # noqa: E501
+    # ensure that the first parameter is datasource_name, which should be a str. This check prevents users  # noqa: E501 # FIXME CoP
     # from passing in batch_request as an unnamed parameter.
     if datasource_name and not isinstance(datasource_name, str):
-        raise TypeError(  # noqa: TRY003
+        raise TypeError(  # noqa: TRY003 # FIXME CoP
             f"the first parameter, datasource_name, must be a str, not {type(datasource_name)}"
         )
 
@@ -1264,7 +1264,7 @@ def get_batch_request_from_acceptable_arguments(  # noqa: PLR0913
             batch_request,
             (BatchRequest, RuntimeBatchRequest, _get_fluent_batch_request_class()),
         ):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 "batch_request must be a BatchRequest, RuntimeBatchRequest, or a "
                 f"fluent BatchRequest object, not {type(batch_request)}"
             )
@@ -1292,8 +1292,8 @@ def get_batch_request_from_acceptable_arguments(  # noqa: PLR0913
     if (datasource_name and data_asset_name) and not data_connector_name:
         block_args = block_style_args()
         if block_args:
-            raise ValueError(  # noqa: TRY003
-                f"Arguments: {', '.join(block_args)} are not supported for Fluent Batch Requests. Block-config Requests require a data connector name"  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"Arguments: {', '.join(block_args)} are not supported for Fluent Batch Requests. Block-config Requests require a data connector name"  # noqa: E501 # FIXME CoP
             )
 
         result = _get_fluent_batch_request_class()(

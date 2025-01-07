@@ -88,7 +88,7 @@ def check_store_backend_store_backend_id_functionality(
         store_backend_id: Manually input store_backend_id
     Returns:
         None
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     # Check that store_backend_id exists can be read
     assert store_backend.store_backend_id is not None
     store_error_uuid = "00000000-0000-0000-0000-00000000e003"
@@ -122,7 +122,7 @@ def test_StoreBackend_id_initialization(tmp_path_factory, aws_credentials):
     Note: StoreBackend & TupleStoreBackend are abstract classes, so we will test the
     concrete classes that inherit from them.
     See also test_database_store_backend::test_database_store_backend_id_initialization
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # InMemoryStoreBackend
     # Initialize without store_backend_id and check that it is generated correctly
@@ -131,8 +131,8 @@ def test_StoreBackend_id_initialization(tmp_path_factory, aws_credentials):
 
     # Create a new store with the same config and make sure it reports the same store_backend_id
     # in_memory_store_backend_duplicate = InMemoryStoreBackend()
-    # assert in_memory_store_backend.store_backend_id == in_memory_store_backend_duplicate.store_backend_id  # noqa: E501
-    # This is not currently implemented for the InMemoryStoreBackend, the store_backend_id is ephemeral since  # noqa: E501
+    # assert in_memory_store_backend.store_backend_id == in_memory_store_backend_duplicate.store_backend_id  # noqa: E501 # FIXME CoP
+    # This is not currently implemented for the InMemoryStoreBackend, the store_backend_id is ephemeral since  # noqa: E501 # FIXME CoP
     # there is no place to persist it.
 
     # TupleFilesystemStoreBackend
@@ -144,7 +144,7 @@ def test_StoreBackend_id_initialization(tmp_path_factory, aws_credentials):
 
     tuple_filesystem_store_backend = TupleFilesystemStoreBackend(
         root_directory=project_path,
-        base_directory=os.path.join(project_path, path),  # noqa: PTH118
+        base_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
     )
     # Check that store_backend_id is created on instantiation, before being accessed
     desired_directory_tree_str = f"""\
@@ -164,7 +164,7 @@ def test_StoreBackend_id_initialization(tmp_path_factory, aws_credentials):
     project_path_with_filepath_template = str(full_test_dir_with_file_template)
 
     tuple_filesystem_store_backend_with_filepath_template = TupleFilesystemStoreBackend(
-        root_directory=os.path.join(project_path, path),  # noqa: PTH118
+        root_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
         base_directory=project_path_with_filepath_template,
         filepath_template="my_file_{0}",
     )
@@ -182,7 +182,7 @@ def test_StoreBackend_id_initialization(tmp_path_factory, aws_credentials):
     # Create a new store with the same config and make sure it reports the same store_backend_id
     tuple_filesystem_store_backend_duplicate = TupleFilesystemStoreBackend(
         root_directory=project_path,
-        base_directory=os.path.join(project_path, path),  # noqa: PTH118
+        base_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
         # filepath_template="my_file_{0}",
     )
     check_store_backend_store_backend_id_functionality(
@@ -223,7 +223,7 @@ def test_StoreBackend_id_initialization(tmp_path_factory, aws_credentials):
     # TODO: Improve GCS Testing e.g. using a docker service to mock
     # Note: Currently there is not a great way to mock GCS so here we are just testing that a config
     # with unreachable bucket returns the error store backend id
-    # If we were to mock GCS, we would need to provide the value returned from the TupleGCSStoreBackend which  # noqa: E501
+    # If we were to mock GCS, we would need to provide the value returned from the TupleGCSStoreBackend which  # noqa: E501 # FIXME CoP
     # is circumventing actually testing the store backend.
 
     bucket = "leakybucket"
@@ -307,7 +307,7 @@ def test_tuple_filesystem_store_filepath_prefix_error(tmp_path_factory):
     with pytest.raises(StoreBackendError) as e:
         TupleFilesystemStoreBackend(
             root_directory=project_path,
-            base_directory=os.path.join(project_path, path),  # noqa: PTH118
+            base_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
             filepath_prefix="invalid_prefix_ends_with/",
         )
     assert "filepath_prefix may not end with" in e.value.message
@@ -315,7 +315,7 @@ def test_tuple_filesystem_store_filepath_prefix_error(tmp_path_factory):
     with pytest.raises(StoreBackendError) as e:
         TupleFilesystemStoreBackend(
             root_directory=project_path,
-            base_directory=os.path.join(project_path, path),  # noqa: PTH118
+            base_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
             filepath_prefix="invalid_prefix_ends_with\\",
         )
     assert "filepath_prefix may not end with" in e.value.message
@@ -330,7 +330,7 @@ def test_FilesystemStoreBackend_two_way_string_conversion(tmp_path_factory):
 
     my_store = TupleFilesystemStoreBackend(
         root_directory=project_path,
-        base_directory=os.path.join(project_path, path),  # noqa: PTH118
+        base_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
         filepath_template="{0}/{1}/{2}/foo-{2}-expectations.txt",
     )
 
@@ -356,7 +356,7 @@ def test_TupleFilesystemStoreBackend(tmp_path_factory):
 
     my_store = TupleFilesystemStoreBackend(
         root_directory=project_path,
-        base_directory=os.path.join(project_path, path),  # noqa: PTH118
+        base_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
         filepath_template="my_file_{0}",
     )
 
@@ -386,7 +386,7 @@ def test_TupleFilesystemStoreBackend(tmp_path_factory):
 
     my_store_with_base_public_path = TupleFilesystemStoreBackend(
         root_directory=project_path,
-        base_directory=os.path.join(project_path, path),  # noqa: PTH118
+        base_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
         filepath_template="my_file_{0}",
         base_public_path=base_public_path,
     )
@@ -403,7 +403,7 @@ def test_TupleFilesystemStoreBackend_get_all(tmp_path_factory):
 
     my_store = TupleFilesystemStoreBackend(
         root_directory=project_path,
-        base_directory=os.path.join(project_path, path),  # noqa: PTH118
+        base_directory=os.path.join(project_path, path),  # noqa: PTH118 # FIXME CoP
         filepath_template="my_file_{0}",
     )
 
@@ -426,16 +426,16 @@ def test_TupleFilesystemStoreBackend_ignores_jupyter_notebook_checkpoints(
     test_dir = full_test_dir.parts[-1]
     project_path = str(full_test_dir)
 
-    checkpoint_dir = os.path.join(project_path, ".ipynb_checkpoints")  # noqa: PTH118
-    os.mkdir(checkpoint_dir)  # noqa: PTH102
-    assert os.path.isdir(checkpoint_dir)  # noqa: PTH112
-    nb_file = os.path.join(checkpoint_dir, "foo.json")  # noqa: PTH118
+    checkpoint_dir = os.path.join(project_path, ".ipynb_checkpoints")  # noqa: PTH118 # FIXME CoP
+    os.mkdir(checkpoint_dir)  # noqa: PTH102 # FIXME CoP
+    assert os.path.isdir(checkpoint_dir)  # noqa: PTH112 # FIXME CoP
+    nb_file = os.path.join(checkpoint_dir, "foo.json")  # noqa: PTH118 # FIXME CoP
 
     with open(nb_file, "w") as f:
         f.write("")
-    assert os.path.isfile(nb_file)  # noqa: PTH113
+    assert os.path.isfile(nb_file)  # noqa: PTH113 # FIXME CoP
     my_store = TupleFilesystemStoreBackend(
-        root_directory=os.path.join(project_path, "dummy_str"),  # noqa: PTH118
+        root_directory=os.path.join(project_path, "dummy_str"),  # noqa: PTH118 # FIXME CoP
         base_directory=project_path,
     )
 
@@ -595,7 +595,7 @@ def test_TupleS3StoreBackend_get_all(aws_credentials):
 
 @mock_s3
 @pytest.mark.aws_deps
-def test_tuple_s3_store_backend_slash_conditions(aws_credentials):  # noqa: PLR0915
+def test_tuple_s3_store_backend_slash_conditions(aws_credentials):  # noqa: PLR0915 # FIXME CoP
     bucket = "my_bucket"
     prefix = None
     conn = boto3.resource("s3", region_name="us-east-1")
@@ -816,7 +816,7 @@ def test_TupleS3StoreBackend_with_s3_put_options(aws_credentials):
 
     my_store = TupleS3StoreBackend(
         bucket=bucket,
-        # Since not all out options are supported in moto, only Metadata and StorageClass is passed here.  # noqa: E501
+        # Since not all out options are supported in moto, only Metadata and StorageClass is passed here.  # noqa: E501 # FIXME CoP
         s3_put_options={
             "Metadata": {"test": "testMetadata"},
             "StorageClass": "REDUCED_REDUNDANCY",
@@ -857,7 +857,7 @@ def test_TupleGCSStoreBackend_base_public_path():
 
     This test will exercise the get_url_for_key method twice to see that we are getting the expected url,
     with or without base_public_path
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     bucket = "leakybucket"
     prefix = "this_is_a_test_prefix"
     project = "dummy-project"
@@ -876,7 +876,7 @@ def test_TupleGCSStoreBackend_base_public_path():
             ("BBB",), b"bbb", content_encoding=None, content_type="image/png"
         )
 
-    run_id = RunIdentifier("my_run_id", datetime.datetime.utcnow())  # noqa: DTZ003
+    run_id = RunIdentifier("my_run_id", datetime.datetime.utcnow())  # noqa: DTZ003 # FIXME CoP
     key = ValidationResultIdentifier(
         ExpectationSuiteIdentifier(name="my_suite_name"),
         run_id,
@@ -902,7 +902,7 @@ def test_TupleGCSStoreBackend_base_public_path():
 )
 @pytest.mark.slow  # 1.35s
 @pytest.mark.big
-def test_TupleGCSStoreBackend():  # noqa: PLR0915
+def test_TupleGCSStoreBackend():  # noqa: PLR0915 # FIXME CoP
     # pytest.importorskip("google-cloud-storage")
     """
     What does this test test and why?
@@ -911,7 +911,7 @@ def test_TupleGCSStoreBackend():  # noqa: PLR0915
     and assert that the store backend makes the right calls for set, get, and list.
 
     TODO : One option may be to have a GCS Store in Docker, which can be use to "actually" run these tests.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     bucket = "leakybucket"
     prefix = "this_is_a_test_prefix"
@@ -993,7 +993,7 @@ def test_TupleGCSStoreBackend():  # noqa: PLR0915
         with pytest.raises(InvalidKeyError):
             my_store.get(("non_existent_key",))
 
-    run_id = RunIdentifier("my_run_id", datetime.datetime.utcnow())  # noqa: DTZ003
+    run_id = RunIdentifier("my_run_id", datetime.datetime.utcnow())  # noqa: DTZ003 # FIXME CoP
     key = ValidationResultIdentifier(
         ExpectationSuiteIdentifier(name="my_suite_name"),
         run_id,
@@ -1120,7 +1120,7 @@ def test_TupleAzureBlobStoreBackend_connection_string():
     Since no package like moto exists for Azure-Blob services, we mock the Azure-blob client
     and assert that the store backend makes the right calls for set, get, and list.
     """
-    connection_string = "DefaultEndpointsProtocol=https;AccountName=dummy;AccountKey=secret;EndpointSuffix=core.windows.net"  # noqa: E501
+    connection_string = "DefaultEndpointsProtocol=https;AccountName=dummy;AccountKey=secret;EndpointSuffix=core.windows.net"  # noqa: E501 # FIXME CoP
     prefix = "this_is_a_test_prefix"
     container = "dummy-container"
 
@@ -1539,11 +1539,11 @@ def test_InMemoryStoreBackend_add_or_update(previous_key_exists: bool):
 
 @pytest.mark.unit
 def test_store_backend_path_special_character_escape():
-    path = "/validations/default/pandas_data_asset/20230315T205136.109084Z/default_pandas_datasource-#ephemeral_pandas_asset.html"  # noqa: E501
+    path = "/validations/default/pandas_data_asset/20230315T205136.109084Z/default_pandas_datasource-#ephemeral_pandas_asset.html"  # noqa: E501 # FIXME CoP
     escaped_path = StoreBackend._url_path_escape_special_characters(path=path)
     assert (
         escaped_path
-        == "/validations/default/pandas_data_asset/20230315T205136.109084Z/default_pandas_datasource-%23ephemeral_pandas_asset.html"  # noqa: E501
+        == "/validations/default/pandas_data_asset/20230315T205136.109084Z/default_pandas_datasource-%23ephemeral_pandas_asset.html"  # noqa: E501 # FIXME CoP
     )
 
 

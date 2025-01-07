@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
@@ -51,7 +51,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -175,7 +174,7 @@ class ExpectColumnStdevToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -277,7 +276,7 @@ class ExpectColumnStdevToBeBetween(ColumnAggregateExpectation):
                 )
 
             if params.min_value and params.max_value:
-                template_str = f"standard deviation must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501
+                template_str = f"standard deviation must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
             elif not params.min_value:
                 template_str = f"standard deviation must be {at_most_str} $max_value."
             else:
@@ -324,7 +323,7 @@ class ExpectColumnStdevToBeBetween(ColumnAggregateExpectation):
             at_least_str, at_most_str = handle_strict_min_max(params)
 
             if params["min_value"] is not None and params["max_value"] is not None:
-                template_str = f"standard deviation must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501
+                template_str = f"standard deviation must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
             elif params["min_value"] is None:
                 template_str = f"standard deviation must be {at_most_str} $max_value."
             elif params["max_value"] is None:

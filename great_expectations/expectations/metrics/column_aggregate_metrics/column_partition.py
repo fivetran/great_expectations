@@ -126,7 +126,7 @@ class ColumnPartition(ColumnAggregateMetricProvider):
                 },
             )
         else:
-            raise ValueError("Invalid parameter for bins argument")  # noqa: TRY003
+            raise ValueError("Invalid parameter for bins argument")  # noqa: TRY003 # FIXME CoP
 
         return dependencies
 
@@ -199,10 +199,10 @@ def _get_column_partition_using_metrics(
             max_as_float_ = max_
 
         if (
-            iqr < 1.0e-10  # noqa: PLR2004
+            iqr < 1.0e-10  # noqa: PLR2004 # FIXME CoP
         ):  # Consider IQR 0 and do not use variance-based estimator
             n_bins = int(np.ceil(sturges))
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if nonnull_count == 0:
                 n_bins = 0
             else:
@@ -219,7 +219,7 @@ def _get_column_partition_using_metrics(
             max_=max_,
         )
     else:
-        raise ValueError("Invalid parameter for bins argument")  # noqa: TRY003
+        raise ValueError("Invalid parameter for bins argument")  # noqa: TRY003 # FIXME CoP
 
     return result_bins
 

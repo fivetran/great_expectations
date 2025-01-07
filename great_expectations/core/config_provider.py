@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, Type, cast
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.config_substitutor import _ConfigurationSubstitutor
 from great_expectations.core.yaml_handler import YAMLHandler
-from great_expectations.data_context.types.base import GXCloudConfig  # noqa: TCH001
+from great_expectations.data_context.types.base import GXCloudConfig  # noqa: TCH001 # FIXME CoP
 
 yaml = YAMLHandler()
 
@@ -37,7 +37,7 @@ class _AbstractConfigurationProvider(ABC):
 
         Returns:
             The input config object with any $VARIABLES replaced with their corresponding config values.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if config_values is None:
             config_values = self.get_values()
         return self._substitutor.substitute_all_config_variables(config, config_values)
@@ -70,7 +70,7 @@ class _ConfigurationProvider(_AbstractConfigurationProvider):
         """
         type_ = type(provider)
         if type_ in self._providers:
-            raise ValueError(f"Provider of type {type_} has already been registered!")  # noqa: TRY003
+            raise ValueError(f"Provider of type {type_} has already been registered!")  # noqa: TRY003 # FIXME CoP
         self._providers[type_] = provider
 
     def get_provider(
@@ -147,16 +147,16 @@ class _ConfigurationVariablesConfigurationProvider(_AbstractConfigurationProvide
     def get_values(self) -> Dict[str, str]:
         env_vars = dict(os.environ)  # noqa: TID251 # os.environ allowed in config files
         try:
-            # If the user specifies the config variable path with an environment variable, we want to substitute it  # noqa: E501
-            defined_path: str = self._substitutor.substitute_config_variable(  # type: ignore[assignment]
+            # If the user specifies the config variable path with an environment variable, we want to substitute it  # noqa: E501 # FIXME CoP
+            defined_path: str = self._substitutor.substitute_config_variable(  # type: ignore[assignment] # FIXME CoP
                 self._config_variables_file_path, env_vars
             )
-            if not os.path.isabs(defined_path):  # noqa: PTH117
+            if not os.path.isabs(defined_path):  # noqa: PTH117 # FIXME CoP
                 root_directory: str = self._root_directory or os.curdir
             else:
                 root_directory = ""
 
-            var_path = os.path.join(root_directory, defined_path)  # noqa: PTH118
+            var_path = os.path.join(root_directory, defined_path)  # noqa: PTH118 # FIXME CoP
             with open(var_path) as config_variables_file:
                 contents = config_variables_file.read()
 

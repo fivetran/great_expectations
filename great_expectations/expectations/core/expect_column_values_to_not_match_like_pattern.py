@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -37,7 +37,14 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 LIKE_PATTERN_DESCRIPTION = "The SQL like pattern expression the column entries should NOT match."
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
+SUPPORTED_DATA_SOURCES = [
+    "SQLite",
+    "PostgreSQL",
+    "MySQL",
+    "MSSQL",
+    "Databricks (SQL)",
+    "Snowflake",
+]
 
 
 class ExpectColumnValuesToNotMatchLikePattern(ColumnMapExpectation):
@@ -90,6 +97,7 @@ class ExpectColumnValuesToNotMatchLikePattern(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -163,7 +171,7 @@ class ExpectColumnValuesToNotMatchLikePattern(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     like_pattern: Union[str, SuiteParameterDict] = pydantic.Field(
         description=LIKE_PATTERN_DESCRIPTION
@@ -279,7 +287,7 @@ class ExpectColumnValuesToNotMatchLikePattern(ColumnMapExpectation):
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
         mostly_str = "" if params.get("mostly") is None else ", at least $mostly_pct % of the time"
 
-        like_pattern = params.get("like_pattern")  # noqa: F841
+        like_pattern = params.get("like_pattern")  # noqa: F841 # FIXME CoP
 
         template_str = f"Values must not match like pattern : $like_pattern {mostly_str} "
 

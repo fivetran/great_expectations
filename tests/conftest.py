@@ -164,7 +164,7 @@ def spark_warehouse_session(tmp_path_factory):
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
-        "smoketest: mark test as smoketest--it does not have useful assertions but may produce side effects "  # noqa: E501
+        "smoketest: mark test as smoketest--it does not have useful assertions but may produce side effects "  # noqa: E501 # FIXME CoP
         "that require manual inspection.",
     )
     config.addinivalue_line(
@@ -279,7 +279,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--performance-tests",
         action="store_true",
-        help="If set, run performance tests (which might also require additional arguments like --bigquery)",  # noqa: E501
+        help="If set, run performance tests (which might also require additional arguments like --bigquery)",  # noqa: E501 # FIXME CoP
     )
 
 
@@ -292,12 +292,12 @@ def build_test_backends_list_v3_api(metafunc):
     # adding deprecation warnings
     if metafunc.config.getoption("--no-postgresql"):
         warnings.warn(
-            "--no-sqlalchemy is deprecated as of v0.14 in favor of the --postgresql flag. It will be removed in v0.16. Please adjust your tests accordingly",  # noqa: E501
+            "--no-sqlalchemy is deprecated as of v0.14 in favor of the --postgresql flag. It will be removed in v0.16. Please adjust your tests accordingly",  # noqa: E501 # FIXME CoP
             DeprecationWarning,
         )
     if metafunc.config.getoption("--no-spark"):
         warnings.warn(
-            "--no-spark is deprecated as of v0.14 in favor of the --spark flag. It will be removed in v0.16. Please adjust your tests accordingly.",  # noqa: E501
+            "--no-spark is deprecated as of v0.14 in favor of the --spark flag. It will be removed in v0.16. Please adjust your tests accordingly.",  # noqa: E501 # FIXME CoP
             DeprecationWarning,
         )
     include_pandas: bool = True
@@ -494,7 +494,7 @@ def sa(test_backends):
 def spark_session(test_backends) -> pyspark.SparkSession:
     from great_expectations.compatibility import pyspark
 
-    if pyspark.SparkSession:  # type: ignore[truthy-function]
+    if pyspark.SparkSession:  # type: ignore[truthy-function] # FIXME CoP
         return SparkDFExecutionEngine.get_or_create_spark_session()
 
     raise ValueError("spark tests are requested, but pyspark is not installed")
@@ -504,7 +504,7 @@ def spark_session(test_backends) -> pyspark.SparkSession:
 def spark_connect_session(test_backends):
     from great_expectations.compatibility import pyspark
 
-    if pyspark.SparkConnectSession:  # type: ignore[truthy-function]
+    if pyspark.SparkConnectSession:  # type: ignore[truthy-function] # FIXME CoP
         spark_connect_session = pyspark.SparkSession.builder.remote(
             "sc://localhost:15002"
         ).getOrCreate()
@@ -575,8 +575,8 @@ def spark_df_taxi_data_schema(spark_session):
 @pytest.fixture
 def spark_session_v012(test_backends):
     try:
-        import pyspark  # noqa: F401
-        from pyspark.sql import SparkSession  # noqa: F401
+        import pyspark  # noqa: F401 # FIXME CoP
+        from pyspark.sql import SparkSession  # noqa: F401 # FIXME CoP
 
         return SparkDFExecutionEngine.get_or_create_spark_session()
     except ImportError:
@@ -612,29 +612,29 @@ def empty_data_context(
     project_path.mkdir()
     project_path = str(project_path)
     context = gx.get_context(mode="file", project_root_dir=project_path)
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118
-    os.makedirs(asset_config_path, exist_ok=True)  # noqa: PTH103
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(asset_config_path, exist_ok=True)  # noqa: PTH103 # FIXME CoP
     assert context.list_datasources() == []
     project_manager.set_project(context)
     return context
 
 
 @pytest.fixture
-def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501
+def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501 # FIXME CoP
     tmp_path_factory,
     monkeypatch,
 ):
     project_path: str = str(tmp_path_factory.mktemp("titanic_data_context_013"))
-    context_path: str = os.path.join(  # noqa: PTH118
+    context_path: str = os.path.join(  # noqa: PTH118 # FIXME CoP
         project_path, FileDataContext.GX_DIR
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "plugins"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "plugins"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
     shutil.copy(
@@ -651,8 +651,8 @@ def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_em
         ),
         pathlib.Path(context_path) / "plugins" / "extended_checkpoint.py",
     )
-    data_path: str = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path: str = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     shutil.copy(
         file_relative_path(
             __file__,
@@ -663,15 +663,15 @@ def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_em
                 )
             ),
         ),
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118
+            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118 # FIXME CoP
         ),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_19120414_1313.csv"
             )
         ),
@@ -679,10 +679,10 @@ def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_em
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118
+            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118 # FIXME CoP
         ),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_19120414_1313"
             )
         ),
@@ -690,10 +690,10 @@ def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_em
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118
+            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118 # FIXME CoP
         ),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_1911.csv"
             )
         ),
@@ -701,10 +701,10 @@ def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_em
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118
+            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118 # FIXME CoP
         ),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_1912.csv"
             )
         ),
@@ -719,30 +719,30 @@ def titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_em
 
 
 @pytest.fixture
-def titanic_v013_multi_datasource_pandas_data_context_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501
+def titanic_v013_multi_datasource_pandas_data_context_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501 # FIXME CoP
     titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_empty_store_stats_enabled,
     tmp_path_factory,
     monkeypatch,
 ):
-    context = titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_pandas_data_context_with_v013_datasource_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
 
     project_manager.set_project(context)
     return context
 
 
 @pytest.fixture
-def titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501
+def titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501 # FIXME CoP
     sa,
-    titanic_v013_multi_datasource_pandas_data_context_with_checkpoints_v1_with_empty_store_stats_enabled: AbstractDataContext,  # noqa: E501
+    titanic_v013_multi_datasource_pandas_data_context_with_checkpoints_v1_with_empty_store_stats_enabled: AbstractDataContext,  # noqa: E501 # FIXME CoP
     tmp_path_factory,
     test_backends,
     monkeypatch,
 ):
-    context = titanic_v013_multi_datasource_pandas_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_v013_multi_datasource_pandas_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
 
     project_dir = context.root_directory
     assert isinstance(project_dir, str)
-    data_path: str = os.path.join(project_dir, "..", "data", "titanic")  # noqa: PTH118
+    data_path: str = os.path.join(project_dir, "..", "data", "titanic")  # noqa: PTH118 # FIXME CoP
 
     if (
         any(dbms in test_backends for dbms in ["postgresql", "sqlite", "mysql", "mssql"])
@@ -751,9 +751,9 @@ def titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_co
     ):
         db_fixture_file_path: str = file_relative_path(
             __file__,
-            os.path.join("test_sets", "titanic_sql_test_cases.db"),  # noqa: PTH118
+            os.path.join("test_sets", "titanic_sql_test_cases.db"),  # noqa: PTH118 # FIXME CoP
         )
-        db_file_path: str = os.path.join(  # noqa: PTH118
+        db_file_path: str = os.path.join(  # noqa: PTH118 # FIXME CoP
             data_path,
             "titanic_sql_test_cases.db",
         )
@@ -771,7 +771,7 @@ def titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_co
 
 
 @pytest.fixture
-def titanic_v013_multi_datasource_multi_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501
+def titanic_v013_multi_datasource_multi_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501 # FIXME CoP
     sa,
     spark_session,
     titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled,
@@ -779,7 +779,7 @@ def titanic_v013_multi_datasource_multi_execution_engine_data_context_with_check
     test_backends,
     monkeypatch,
 ):
-    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
     project_manager.set_project(context)
     return context
 
@@ -790,13 +790,13 @@ def deterministic_asset_data_connector_context(
     monkeypatch,
 ):
     project_path = str(tmp_path_factory.mktemp("titanic_data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    data_path = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     shutil.copy(
         file_relative_path(
             __file__,
@@ -807,12 +807,12 @@ def deterministic_asset_data_connector_context(
                 )
             ),
         ),
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     shutil.copy(
         file_relative_path(__file__, "./test_sets/Titanic.csv"),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_19120414_1313.csv"
             )
         ),
@@ -820,7 +820,7 @@ def deterministic_asset_data_connector_context(
     shutil.copy(
         file_relative_path(__file__, "./test_sets/Titanic.csv"),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_1911.csv"
             )
         ),
@@ -828,7 +828,7 @@ def deterministic_asset_data_connector_context(
     shutil.copy(
         file_relative_path(__file__, "./test_sets/Titanic.csv"),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_1912.csv"
             )
         ),
@@ -842,20 +842,20 @@ def deterministic_asset_data_connector_context(
 
 
 @pytest.fixture
-def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501
+def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501 # FIXME CoP
     tmp_path_factory,
     monkeypatch,
 ):
     project_path: str = str(tmp_path_factory.mktemp("titanic_data_context_013"))
-    context_path: str = os.path.join(  # noqa: PTH118
+    context_path: str = os.path.join(  # noqa: PTH118 # FIXME CoP
         project_path, FileDataContext.GX_DIR
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    data_path: str = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path: str = os.path.join(context_path, "..", "data", "titanic")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     shutil.copy(
         file_relative_path(
             __file__,
@@ -866,10 +866,10 @@ def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with
                 )
             ),
         ),
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "plugins"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "plugins"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
     shutil.copy(
@@ -889,10 +889,10 @@ def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118
+            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118 # FIXME CoP
         ),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_19120414_1313.csv"
             )
         ),
@@ -900,10 +900,10 @@ def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118
+            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118 # FIXME CoP
         ),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_19120414_1313"
             )
         ),
@@ -911,10 +911,10 @@ def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118
+            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118 # FIXME CoP
         ),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_1911.csv"
             )
         ),
@@ -922,10 +922,10 @@ def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118
+            os.path.join("test_sets", "Titanic.csv"),  # noqa: PTH118 # FIXME CoP
         ),
         str(
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 context_path, "..", "data", "titanic", "Titanic_1912.csv"
             )
         ),
@@ -976,12 +976,12 @@ def titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with
 
 
 @pytest.fixture
-def titanic_data_context_with_fluent_pandas_and_spark_datasources_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501
+def titanic_data_context_with_fluent_pandas_and_spark_datasources_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501 # FIXME CoP
     titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with_empty_store_stats_enabled,
     spark_df_from_pandas_df,
     spark_session,
 ):
-    context = titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
     context_path: str = context.root_directory
     path_to_folder_containing_csv_files = pathlib.Path(
         context_path,
@@ -1031,12 +1031,12 @@ def titanic_data_context_with_fluent_pandas_and_spark_datasources_with_checkpoin
 
 
 @pytest.fixture
-def titanic_data_context_with_fluent_pandas_and_sqlite_datasources_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501
+def titanic_data_context_with_fluent_pandas_and_sqlite_datasources_with_checkpoints_v1_with_empty_store_stats_enabled(  # noqa: E501 # FIXME CoP
     titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with_empty_store_stats_enabled,
     db_file,
     sa,
 ):
-    context = titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_data_context_with_fluent_pandas_datasources_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
 
     datasource_name = "my_sqlite_datasource"
     connection_string = f"sqlite:///{db_file}"
@@ -1067,11 +1067,11 @@ def empty_context_with_checkpoint(empty_data_context):
     root_dir = empty_data_context.root_directory
     fixture_name = "my_checkpoint.yml"
     fixture_path = file_relative_path(__file__, f"./data_context/fixtures/contexts/{fixture_name}")
-    checkpoints_file = os.path.join(  # noqa: PTH118
+    checkpoints_file = os.path.join(  # noqa: PTH118 # FIXME CoP
         root_dir, "checkpoints", fixture_name
     )
     shutil.copy(fixture_path, checkpoints_file)
-    assert os.path.isfile(checkpoints_file)  # noqa: PTH113
+    assert os.path.isfile(checkpoints_file)  # noqa: PTH113 # FIXME CoP
     project_manager.set_project(context)
     return context
 
@@ -1080,9 +1080,9 @@ def empty_context_with_checkpoint(empty_data_context):
 def empty_data_context_stats_enabled(tmp_path_factory, monkeypatch):
     project_path = str(tmp_path_factory.mktemp("empty_data_context"))
     context = gx.get_context(mode="file", project_root_dir=project_path)
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118
-    os.makedirs(asset_config_path, exist_ok=True)  # noqa: PTH103
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(asset_config_path, exist_ok=True)  # noqa: PTH103 # FIXME CoP
     project_manager.set_project(context)
     return context
 
@@ -1090,28 +1090,28 @@ def empty_data_context_stats_enabled(tmp_path_factory, monkeypatch):
 @pytest.fixture
 def titanic_data_context(tmp_path_factory) -> FileDataContext:
     project_path = str(tmp_path_factory.mktemp("titanic_data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "checkpoints"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "checkpoints"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_v013_titanic.yml"
     )
     shutil.copy(
         titanic_yml_path,
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     titanic_csv_path = file_relative_path(__file__, "./test_sets/Titanic.csv")
     shutil.copy(
         titanic_csv_path,
-        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118
+        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118 # FIXME CoP
     )
     context = get_context(context_root_dir=context_path)
     project_manager.set_project(context)
@@ -1121,28 +1121,28 @@ def titanic_data_context(tmp_path_factory) -> FileDataContext:
 @pytest.fixture
 def titanic_data_context_no_data_docs_no_checkpoint_store(tmp_path_factory):
     project_path = str(tmp_path_factory.mktemp("titanic_data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "checkpoints"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "checkpoints"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_titanic_pre_v013_no_data_docs.yml"
     )
     shutil.copy(
         titanic_yml_path,
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     titanic_csv_path = file_relative_path(__file__, "./test_sets/Titanic.csv")
     shutil.copy(
         titanic_csv_path,
-        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118
+        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118 # FIXME CoP
     )
     context = get_context(context_root_dir=context_path)
     project_manager.set_project(context)
@@ -1152,28 +1152,28 @@ def titanic_data_context_no_data_docs_no_checkpoint_store(tmp_path_factory):
 @pytest.fixture
 def titanic_data_context_no_data_docs(tmp_path_factory):
     project_path = str(tmp_path_factory.mktemp("titanic_data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "checkpoints"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "checkpoints"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_titanic_no_data_docs.yml"
     )
     shutil.copy(
         titanic_yml_path,
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     titanic_csv_path = file_relative_path(__file__, "./test_sets/Titanic.csv")
     shutil.copy(
         titanic_csv_path,
-        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118
+        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118 # FIXME CoP
     )
     context = get_context(context_root_dir=context_path)
     project_manager.set_project(context)
@@ -1183,28 +1183,28 @@ def titanic_data_context_no_data_docs(tmp_path_factory):
 @pytest.fixture
 def titanic_data_context_stats_enabled(tmp_path_factory, monkeypatch):
     project_path = str(tmp_path_factory.mktemp("titanic_data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "checkpoints"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "checkpoints"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_v013_titanic.yml"
     )
     shutil.copy(
         titanic_yml_path,
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     titanic_csv_path = file_relative_path(__file__, "./test_sets/Titanic.csv")
     shutil.copy(
         titanic_csv_path,
-        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118
+        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118 # FIXME CoP
     )
     context = get_context(context_root_dir=context_path)
     project_manager.set_project(context)
@@ -1214,28 +1214,28 @@ def titanic_data_context_stats_enabled(tmp_path_factory, monkeypatch):
 @pytest.fixture
 def titanic_data_context_stats_enabled_config_version_2(tmp_path_factory, monkeypatch):
     project_path = str(tmp_path_factory.mktemp("titanic_data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "checkpoints"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "checkpoints"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_titanic.yml"
     )
     shutil.copy(
         titanic_yml_path,
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     titanic_csv_path = file_relative_path(__file__, "./test_sets/Titanic.csv")
     shutil.copy(
         titanic_csv_path,
-        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118
+        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118 # FIXME CoP
     )
     context = get_context(context_root_dir=context_path)
     project_manager.set_project(context)
@@ -1245,28 +1245,28 @@ def titanic_data_context_stats_enabled_config_version_2(tmp_path_factory, monkey
 @pytest.fixture
 def titanic_data_context_stats_enabled_config_version_3(tmp_path_factory, monkeypatch):
     project_path = str(tmp_path_factory.mktemp("titanic_data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "expectations"),  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "expectations"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "checkpoints"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "checkpoints"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
-    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118
-    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103
+    data_path = os.path.join(context_path, "..", "data")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(os.path.join(data_path), exist_ok=True)  # noqa: PTH118, PTH103 # FIXME CoP
     titanic_yml_path = file_relative_path(
         __file__, "./test_fixtures/great_expectations_v013_upgraded_titanic.yml"
     )
     shutil.copy(
         titanic_yml_path,
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     titanic_csv_path = file_relative_path(__file__, "./test_sets/Titanic.csv")
     shutil.copy(
         titanic_csv_path,
-        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118
+        str(os.path.join(context_path, "..", "data", "Titanic.csv")),  # noqa: PTH118 # FIXME CoP
     )
     context = get_context(context_root_dir=context_path)
     project_manager.set_project(context)
@@ -1276,7 +1276,7 @@ def titanic_data_context_stats_enabled_config_version_3(tmp_path_factory, monkey
 @pytest.fixture(scope="module")
 def titanic_spark_db(tmp_path_factory, spark_warehouse_session):
     try:
-        from pyspark.sql import DataFrame  # noqa: TCH002
+        from pyspark.sql import DataFrame  # noqa: TCH002 # FIXME CoP
     except ImportError:
         raise ValueError("spark tests are requested, but pyspark is not installed")
 
@@ -1284,7 +1284,7 @@ def titanic_spark_db(tmp_path_factory, spark_warehouse_session):
     titanic_csv_path: str = file_relative_path(__file__, "./test_sets/Titanic.csv")
     project_path: str = str(tmp_path_factory.mktemp("data"))
     project_dataset_path: str = str(
-        os.path.join(project_path, "Titanic.csv")  # noqa: PTH118
+        os.path.join(project_path, "Titanic.csv")  # noqa: PTH118 # FIXME CoP
     )
 
     shutil.copy(titanic_csv_path, project_dataset_path)
@@ -1385,26 +1385,26 @@ def data_context_parameterized_expectation_suite(tmp_path_factory):
     created with gx.get_context()
     """
     project_path = str(tmp_path_factory.mktemp("data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118 # FIXME CoP
     fixture_dir = file_relative_path(__file__, "./test_fixtures")
-    os.makedirs(  # noqa: PTH103
-        os.path.join(asset_config_path, "my_dag_node"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(asset_config_path, "my_dag_node"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
     shutil.copy(
-        os.path.join(fixture_dir, "great_expectations_v013_basic.yml"),  # noqa: PTH118
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        os.path.join(fixture_dir, "great_expectations_v013_basic.yml"),  # noqa: PTH118 # FIXME CoP
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     shutil.copy(
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             fixture_dir,
             "expectation_suites/parameterized_expectation_suite_fixture.json",
         ),
-        os.path.join(asset_config_path, "my_dag_node", "default.json"),  # noqa: PTH118
+        os.path.join(asset_config_path, "my_dag_node", "default.json"),  # noqa: PTH118 # FIXME CoP
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "plugins"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "plugins"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
     return get_context(context_root_dir=context_path, cloud_mode=False)
@@ -1476,7 +1476,7 @@ def evr_success():
 
 
 @pytest.fixture
-def sqlite_view_engine(test_backends) -> Engine:  # type: ignore[return]
+def sqlite_view_engine(test_backends) -> Engine:  # type: ignore[return] # FIXME CoP
     # Create a small in-memory engine with two views, one of which is temporary
     if "sqlite" in test_backends:
         try:
@@ -1501,7 +1501,7 @@ def sqlite_view_engine(test_backends) -> Engine:  # type: ignore[return]
                 )
             return sqlite_engine
         except ImportError:
-            sa = None  # type: ignore[assignment]
+            sa = None  # type: ignore[assignment] # FIXME CoP
     else:
         pytest.skip("SqlAlchemy tests disabled; not testing views")
 
@@ -1515,7 +1515,7 @@ def expectation_suite_identifier():
 def test_folder_connection_path_csv(tmp_path_factory):
     df1 = pd.DataFrame({"col_1": [1, 2, 3, 4, 5], "col_2": ["a", "b", "c", "d", "e"]})
     path = str(tmp_path_factory.mktemp("test_folder_connection_path_csv"))
-    df1.to_csv(path_or_buf=os.path.join(path, "test.csv"), index=False)  # noqa: PTH118
+    df1.to_csv(path_or_buf=os.path.join(path, "test.csv"), index=False)  # noqa: PTH118 # FIXME CoP
     return str(path)
 
 
@@ -1530,7 +1530,7 @@ def test_db_connection_string(tmp_path_factory, test_backends):
         import sqlalchemy as sa
 
         basepath = str(tmp_path_factory.mktemp("db_context"))
-        path = os.path.join(basepath, "test.db")  # noqa: PTH118
+        path = os.path.join(basepath, "test.db")  # noqa: PTH118 # FIXME CoP
         engine = sa.create_engine("sqlite:///" + str(path))
         add_dataframe_to_db(df=df1, name="table_1", con=engine, index=True)
         add_dataframe_to_db(df=df2, name="table_2", con=engine, index=True, schema="main")
@@ -1546,7 +1546,7 @@ def test_df(tmp_path_factory):
     def generate_ascending_list_of_datetimes(
         k, start_date=datetime.date(2020, 1, 1), end_date=datetime.date(2020, 12, 31)
     ):
-        start_time = datetime.datetime(start_date.year, start_date.month, start_date.day)  # noqa: DTZ001
+        start_time = datetime.datetime(start_date.year, start_date.month, start_date.day)  # noqa: DTZ001 # FIXME CoP
         days_between_dates = (end_date - start_date).total_seconds()
 
         datetime_list = [
@@ -1593,7 +1593,7 @@ def test_df(tmp_path_factory):
 def sqlite_connection_string() -> str:
     db_file_path: str = file_relative_path(
         __file__,
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             "test_sets", "test_cases_for_sql_data_connector.db"
         ),
     )
@@ -1634,7 +1634,7 @@ def fds_data_context(
 def db_file():
     return file_relative_path(
         __file__,
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             "test_sets", "test_cases_for_sql_data_connector.db"
         ),
     )
@@ -1759,7 +1759,7 @@ def ge_cloud_config_e2e() -> GXCloudConfig:
         GXCloudEnvironmentVariable.ACCESS_TOKEN,
     )
     cloud_config = GXCloudConfig(
-        base_url=base_url,  # type: ignore[arg-type]
+        base_url=base_url,  # type: ignore[arg-type] # FIXME CoP
         organization_id=organization_id,
         access_token=access_token,
     )
@@ -1772,7 +1772,7 @@ def ge_cloud_config_e2e() -> GXCloudConfig:
     return_value=[],
 )
 def empty_base_data_context_in_cloud_mode(
-    mock_list_keys: MagicMock,  # Avoid making a call to Cloud backend during datasource instantiation  # noqa: E501
+    mock_list_keys: MagicMock,  # Avoid making a call to Cloud backend during datasource instantiation  # noqa: E501 # FIXME CoP
     tmp_path: pathlib.Path,
     empty_ge_cloud_data_context_config: DataContextConfig,
     ge_cloud_config: GXCloudConfig,
@@ -1797,7 +1797,7 @@ def empty_data_context_in_cloud_mode(
     ge_cloud_config: GXCloudConfig,
     empty_ge_cloud_data_context_config: DataContextConfig,
 ):
-    """This fixture is a DataContext in cloud mode that mocks calls to the cloud backend during setup so that it can be instantiated in tests."""  # noqa: E501
+    """This fixture is a DataContext in cloud mode that mocks calls to the cloud backend during setup so that it can be instantiated in tests."""  # noqa: E501 # FIXME CoP
     project_path = tmp_path / "empty_data_context"
     project_path.mkdir(exist_ok=True)
 
@@ -1892,7 +1892,7 @@ def empty_base_data_context_in_cloud_mode_custom_base_url(
 ) -> CloudDataContext:
     project_path = tmp_path / "empty_data_context"
     project_path.mkdir()
-    project_path = str(project_path)  # type: ignore[assignment]
+    project_path = str(project_path)  # type: ignore[assignment] # FIXME CoP
 
     custom_base_url: str = "https://some_url.org/"
     custom_ge_cloud_config = copy.deepcopy(ge_cloud_config)
@@ -1922,7 +1922,7 @@ def cloud_data_context_with_datasource_pandas_engine(
     return context
 
 
-# TODO: AJB 20210525 This fixture is not yet used but may be helpful to generate batches for unit tests of multibatch  # noqa: E501
+# TODO: AJB 20210525 This fixture is not yet used but may be helpful to generate batches for unit tests of multibatch  # noqa: E501 # FIXME CoP
 #  workflows.  It should probably be extended to add different column types / data.
 @pytest.fixture
 def multibatch_generic_csv_generator():
@@ -1938,7 +1938,7 @@ def multibatch_generic_csv_generator():
     ) -> List[str]:
         data_path = pathlib.Path(data_path)
         if start_date is None:
-            start_date = datetime.datetime(2000, 1, 1)  # noqa: DTZ001
+            start_date = datetime.datetime(2000, 1, 1)  # noqa: DTZ001 # FIXME CoP
 
         file_list = []
         category_strings = {
@@ -1950,22 +1950,22 @@ def multibatch_generic_csv_generator():
             5: "category5",
             6: "category6",
         }
-        for batch_num in range(num_event_batches):  # type: ignore[arg-type]
+        for batch_num in range(num_event_batches):  # type: ignore[arg-type] # FIXME CoP
             # generate a dataframe with multiple column types
             batch_start_date = start_date + datetime.timedelta(
-                days=(batch_num * num_events_per_batch)  # type: ignore[operator]
+                days=(batch_num * num_events_per_batch)  # type: ignore[operator] # FIXME CoP
             )
             # TODO: AJB 20210416 Add more column types
             df = pd.DataFrame(
                 {
                     "event_date": [
                         (batch_start_date + datetime.timedelta(days=i)).strftime("%Y-%m-%d")
-                        for i in range(num_events_per_batch)  # type: ignore[arg-type]
+                        for i in range(num_events_per_batch)  # type: ignore[arg-type] # FIXME CoP
                     ],
-                    "batch_num": [batch_num + 1 for _ in range(num_events_per_batch)],  # type: ignore[arg-type]
+                    "batch_num": [batch_num + 1 for _ in range(num_events_per_batch)],  # type: ignore[arg-type] # FIXME CoP
                     "string_cardinality_3": [
                         category_strings[i % 3]
-                        for i in range(num_events_per_batch)  # type: ignore[arg-type]
+                        for i in range(num_events_per_batch)  # type: ignore[arg-type] # FIXME CoP
                     ],
                 }
             )

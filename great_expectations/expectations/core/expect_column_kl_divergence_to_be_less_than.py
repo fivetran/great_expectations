@@ -9,7 +9,7 @@ import pandas as pd
 from scipy import stats
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.execution_engine.util import (
     is_valid_categorical_partition_object,
     is_valid_partition_object,
@@ -19,6 +19,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
@@ -100,11 +101,10 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
 ]
-DATA_QUALITY_ISSUES = ["Distribution"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
@@ -194,7 +194,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         value will be set to None. This is because inf, -inf, Nan, are not json serializable and cause some json \
         parsers to crash when encountered. The python None token will be serialized to null in json.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -203,9 +203,8 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -317,7 +316,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     partition_object: Union[dict, None] = pydantic.Field(description=PARTITION_OBJECT_DESCRIPTION)
     threshold: Union[float, None] = pydantic.Field(description=THRESHOLD_DESCRIPTION)
@@ -455,9 +454,9 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                     metric_value_kwargs=None,
                 )
                 #
-                # NOTE 20201117 - JPC - Would prefer not to include partition_metric_configuration here,  # noqa: E501
-                # since we have already evaluated it, and its result is in the kwargs for the histogram.  # noqa: E501
-                # However, currently the validation_dependencies' configurations are not passed to the _validate method  # noqa: E501
+                # NOTE 20201117 - JPC - Would prefer not to include partition_metric_configuration here,  # noqa: E501 # FIXME CoP
+                # since we have already evaluated it, and its result is in the kwargs for the histogram.  # noqa: E501 # FIXME CoP
+                # However, currently the validation_dependencies' configurations are not passed to the _validate method  # noqa: E501 # FIXME CoP
                 #
                 validation_dependencies.set_metric_configuration(
                     metric_name="column.partition",
@@ -516,7 +515,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                 bins is None
             ):  # if the user did not supply a partition_object, so we just computed it
                 if not is_valid_partition_object(partition_object):
-                    raise ValueError("Invalid partition_object provided")  # noqa: TRY003
+                    raise ValueError("Invalid partition_object provided")  # noqa: TRY003 # FIXME CoP
                 bins = partition_object["bins"]
 
             hist_metric_configuration = MetricConfiguration(
@@ -558,7 +557,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
 
         return validation_dependencies
 
-    def _validate(  # noqa: C901, PLR0912, PLR0915
+    def _validate(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
         metrics: Dict,
         runtime_configuration: Optional[dict] = None,
@@ -581,7 +580,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         )
         if partition_object is None:
             if bucketize_data:
-                # in this case, we have requested a partition, histogram using said partition, and nonnull count  # noqa: E501
+                # in this case, we have requested a partition, histogram using said partition, and nonnull count  # noqa: E501 # FIXME CoP
                 bins = list(metrics["column.partition"])
                 weights = list(
                     np.array(metrics["column.histogram"]) / metrics["column_values.nonnull.count"]
@@ -602,34 +601,34 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                 }
 
         if not is_valid_partition_object(partition_object):
-            raise ValueError("Invalid partition object.")  # noqa: TRY003
+            raise ValueError("Invalid partition object.")  # noqa: TRY003 # FIXME CoP
 
         if threshold is not None and ((not isinstance(threshold, (int, float))) or (threshold < 0)):
-            raise ValueError("Threshold must be specified, greater than or equal to zero.")  # noqa: TRY003
+            raise ValueError("Threshold must be specified, greater than or equal to zero.")  # noqa: TRY003 # FIXME CoP
 
         if (
             (not isinstance(tail_weight_holdout, (int, float)))
             or (tail_weight_holdout < 0)
             or (tail_weight_holdout > 1)
         ):
-            raise ValueError("tail_weight_holdout must be between zero and one.")  # noqa: TRY003
+            raise ValueError("tail_weight_holdout must be between zero and one.")  # noqa: TRY003 # FIXME CoP
 
         if (
             (not isinstance(internal_weight_holdout, (int, float)))
             or (internal_weight_holdout < 0)
             or (internal_weight_holdout > 1)
         ):
-            raise ValueError("internal_weight_holdout must be between zero and one.")  # noqa: TRY003
+            raise ValueError("internal_weight_holdout must be between zero and one.")  # noqa: TRY003 # FIXME CoP
 
         if tail_weight_holdout != 0 and "tail_weights" in partition_object:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "tail_weight_holdout must be 0 when using tail_weights in partition object"
             )
 
         # TODO: add checks for duplicate values in is_valid_categorical_partition_object
         if is_valid_categorical_partition_object(partition_object):
             if internal_weight_holdout > 0:
-                raise ValueError("Internal weight holdout cannot be used for discrete data.")  # noqa: TRY003
+                raise ValueError("Internal weight holdout cannot be used for discrete data.")  # noqa: TRY003 # FIXME CoP
 
             # Data are expected to be discrete, use value_counts
             observed_weights = (
@@ -690,8 +689,8 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         else:
             # Data are expected to be continuous; discretize first
             if bucketize_data is False:
-                raise ValueError(  # noqa: TRY003
-                    "KL Divergence cannot be computed with a continuous partition object and the bucketize_data "  # noqa: E501
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
+                    "KL Divergence cannot be computed with a continuous partition object and the bucketize_data "  # noqa: E501 # FIXME CoP
                     "parameter set to false."
                 )
             # Build the histogram first using expected bins so that the largest bin is >=
@@ -702,7 +701,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
             below_partition = metrics["below_partition"]
             above_partition = metrics["above_partition"]
 
-            # Observed Weights is just the histogram values divided by the total number of observations  # noqa: E501
+            # Observed Weights is just the histogram values divided by the total number of observations  # noqa: E501 # FIXME CoP
             observed_weights = hist / nonnull_count
 
             # Adjust expected_weights to account for tail_weight and internal_weight
@@ -724,17 +723,17 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                             expected_weights[index] = internal_weight_holdout / zero_count
 
             # Assign tail weight holdout if applicable
-            # We need to check cases to only add tail weight holdout if it makes sense based on the provided partition.  # noqa: E501
+            # We need to check cases to only add tail weight holdout if it makes sense based on the provided partition.  # noqa: E501 # FIXME CoP
             if (partition_object["bins"][0] == -np.inf) and (
                 partition_object["bins"][-1]
             ) == np.inf:
                 if tail_weight_holdout > 0:
-                    raise ValueError(  # noqa: TRY003
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
                         "tail_weight_holdout cannot be used for partitions with infinite endpoints."
                     )
                 if "tail_weights" in partition_object:
-                    raise ValueError(  # noqa: TRY003
-                        "There can be no tail weights for partitions with one or both endpoints at infinity"  # noqa: E501
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
+                        "There can be no tail weights for partitions with one or both endpoints at infinity"  # noqa: E501 # FIXME CoP
                     )
 
                 # Remove -inf and inf
@@ -758,8 +757,8 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
 
             elif partition_object["bins"][0] == -np.inf:
                 if "tail_weights" in partition_object:
-                    raise ValueError(  # noqa: TRY003
-                        "There can be no tail weights for partitions with one or both endpoints at infinity"  # noqa: E501
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
+                        "There can be no tail weights for partitions with one or both endpoints at infinity"  # noqa: E501 # FIXME CoP
                     )
 
                 # Remove -inf
@@ -791,8 +790,8 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
 
             elif partition_object["bins"][-1] == np.inf:
                 if "tail_weights" in partition_object:
-                    raise ValueError(  # noqa: TRY003
-                        "There can be no tail weights for partitions with one or both endpoints at infinity"  # noqa: E501
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
+                        "There can be no tail weights for partitions with one or both endpoints at infinity"  # noqa: E501 # FIXME CoP
                     )
 
                 # Remove inf
@@ -858,7 +857,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                     np.concatenate(([below_partition], [above_partition])) / nonnull_count
                 )
 
-                # Main expected_weights and main observed weights had no tail_weights, so nothing needs to be removed.  # noqa: E501
+                # Main expected_weights and main observed weights had no tail_weights, so nothing needs to be removed.  # noqa: E501 # FIXME CoP
 
             # TODO: VERIFY THAT THIS STILL WORKS BASED ON CHANGE TO HIST
             # comb_expected_weights = np.array(comb_expected_weights).astype(float)
@@ -882,7 +881,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                     "observed_value": observed_value,
                     "details": {
                         "observed_partition": {
-                            # return expected_bins, since we used those bins to compute the observed_weights  # noqa: E501
+                            # return expected_bins, since we used those bins to compute the observed_weights  # noqa: E501 # FIXME CoP
                             "bins": expected_bins,
                             "weights": observed_weights.tolist(),
                             "tail_weights": observed_tail_weights.tolist(),
@@ -899,12 +898,12 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         return return_obj
 
     @classmethod
-    def _get_kl_divergence_chart(  # noqa: C901 - 13
+    def _get_kl_divergence_chart(  # noqa: C901 #  13
         cls, partition_object, header=None
     ):
         weights = partition_object["weights"]
 
-        if len(weights) > 60:  # noqa: PLR2004
+        if len(weights) > 60:  # noqa: PLR2004 # FIXME CoP
             expected_distribution = cls._get_kl_divergence_partition_object_table(
                 partition_object, header=header
             )
@@ -912,11 +911,11 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
             chart_pixel_width = (len(weights) / 60.0) * 500
             chart_pixel_width = max(chart_pixel_width, 250)
             chart_container_col_width = round((len(weights) / 60.0) * 6)
-            if chart_container_col_width < 4:  # noqa: PLR2004
+            if chart_container_col_width < 4:  # noqa: PLR2004 # FIXME CoP
                 chart_container_col_width = 4
-            elif chart_container_col_width >= 5:  # noqa: PLR2004
+            elif chart_container_col_width >= 5:  # noqa: PLR2004 # FIXME CoP
                 chart_container_col_width = 6
-            elif chart_container_col_width >= 4:  # noqa: PLR2004
+            elif chart_container_col_width >= 4:  # noqa: PLR2004 # FIXME CoP
                 chart_container_col_width = 5
 
             mark_bar_args = {}
@@ -1010,11 +1009,11 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         chart_pixel_width = (len(weights) / 60.0) * 500
         chart_pixel_width = max(chart_pixel_width, 250)
         chart_container_col_width = round((len(weights) / 60.0) * 6)
-        if chart_container_col_width < 4:  # noqa: PLR2004
+        if chart_container_col_width < 4:  # noqa: PLR2004 # FIXME CoP
             chart_container_col_width = 4
-        elif chart_container_col_width >= 5:  # noqa: PLR2004
+        elif chart_container_col_width >= 5:  # noqa: PLR2004 # FIXME CoP
             chart_container_col_width = 6
-        elif chart_container_col_width >= 4:  # noqa: PLR2004
+        elif chart_container_col_width >= 4:  # noqa: PLR2004 # FIXME CoP
             chart_container_col_width = 5
 
         mark_bar_args = {}
@@ -1231,7 +1230,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
             template_str = "can match any distribution."
         else:
             template_str = (
-                "Kullback-Leibler (KL) divergence with respect to the following distribution must be "  # noqa: E501
+                "Kullback-Leibler (KL) divergence with respect to the following distribution must be "  # noqa: E501 # FIXME CoP
                 "lower than $threshold."
             )
 
@@ -1240,7 +1239,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
             template_str = f"$column {template_str}"
 
         # generate table or chart depending on number of weights
-        if len(weights) > 60:  # noqa: PLR2004
+        if len(weights) > 60:  # noqa: PLR2004 # FIXME CoP
             (
                 renderer_configuration.header_row,
                 renderer_configuration.table,
@@ -1347,7 +1346,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
             template_str = "can match any distribution."
         else:
             template_str = (
-                "Kullback-Leibler (KL) divergence with respect to the following distribution must be "  # noqa: E501
+                "Kullback-Leibler (KL) divergence with respect to the following distribution must be "  # noqa: E501 # FIXME CoP
                 "lower than $threshold."
             )
             expected_distribution = cls._get_kl_divergence_chart(params.get("partition_object"))
@@ -1403,7 +1402,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         distribution_table_header_row = None
         distribution_table_rows = None
 
-        if len(weights) > 60:  # noqa: PLR2004
+        if len(weights) > 60:  # noqa: PLR2004 # FIXME CoP
             (
                 distribution_table_header_row,
                 distribution_table_rows,
@@ -1554,7 +1553,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         assert result, "Must pass in result."
         observed_partition_object = result.result["details"]["observed_partition"]
         weights = observed_partition_object["weights"]
-        if len(weights) > 60:  # noqa: PLR2004
+        if len(weights) > 60:  # noqa: PLR2004 # FIXME CoP
             return None
 
         header = RenderedStringTemplateContent(

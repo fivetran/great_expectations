@@ -30,28 +30,28 @@ def data_context_parameterized_expectation_suite_with_usage_statistics_enabled(
     created with DataContext.create()
     """
     project_path = str(tmp_path_factory.mktemp("data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118 # FIXME CoP
     fixture_dir = file_relative_path(__file__, "../test_fixtures")
-    os.makedirs(  # noqa: PTH103
-        os.path.join(asset_config_path, "my_dag_node"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(asset_config_path, "my_dag_node"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
     shutil.copy(
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             fixture_dir, "great_expectations_v013_basic_with_usage_stats_enabled.yml"
         ),
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     shutil.copy(
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             fixture_dir,
             "expectation_suites/parameterized_expectation_suite_fixture.json",
         ),
-        os.path.join(asset_config_path, "my_dag_node", "default.json"),  # noqa: PTH118
+        os.path.join(asset_config_path, "my_dag_node", "default.json"),  # noqa: PTH118 # FIXME CoP
     )
-    os.makedirs(  # noqa: PTH103
-        os.path.join(context_path, "plugins"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(context_path, "plugins"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
     return gx.get_context(context_root_dir=context_path)
@@ -60,9 +60,9 @@ def data_context_parameterized_expectation_suite_with_usage_statistics_enabled(
 def test_preserve_comments_in_yml_after_adding_datasource(
     data_context_parameterized_expectation_suite_with_usage_statistics_enabled,
 ):
-    # Skipping this test for now, because the order of the contents of the returned CommentedMap is inconsistent.  # noqa: E501
+    # Skipping this test for now, because the order of the contents of the returned CommentedMap is inconsistent.  # noqa: E501 # FIXME CoP
     pytest.skip("KNOWN ISSUE")
-    config_filepath = os.path.join(  # noqa: PTH118
+    config_filepath = os.path.join(  # noqa: PTH118 # FIXME CoP
         data_context_parameterized_expectation_suite_with_usage_statistics_enabled.root_directory,
         FileDataContext.GX_YML,
     )

@@ -40,13 +40,13 @@ def pandas_execution_engine_fake(
             appropriate exception to be raised, while its dependencies resolve to actual values ("my_value" is used here
             as placeholder).  This makes "ValidationGraph.resolve()" -- method under test -- evaluate every
             "MetricConfiguration" of parsed "ValidationGraph" successfully, except "failed" "MetricConfiguration".
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
             metric_configuration: MetricConfiguration
             if failed_metric_config.id in [
                 metric_configuration.id for metric_configuration in metrics_to_resolve
             ]:
                 raise gx_exceptions.MetricResolutionError(
-                    message=f'Error: The column "not_in_table" in BatchData does not exist.{uuid.uuid4()}',  # Randomizing the message to assert that only one exception is kept  # noqa: E501
+                    message=f'Error: The column "not_in_table" in BatchData does not exist.{uuid.uuid4()}',  # Randomizing the message to assert that only one exception is kept  # noqa: E501 # FIXME CoP
                     failed_metrics=[failed_metric_config],
                 )
 
@@ -213,7 +213,7 @@ def test_ExpectationValidationGraph_constructor(
         )
 
     assert ve.value.args == (
-        'Instantiation of "ExpectationValidationGraph" requires valid "ExpectationConfiguration" object.',  # noqa: E501
+        'Instantiation of "ExpectationValidationGraph" requires valid "ExpectationConfiguration" object.',  # noqa: E501 # FIXME CoP
     )
 
     with pytest.raises(ValueError) as ve:
@@ -296,7 +296,7 @@ def test_parse_validation_graph(
 ):
     available_metrics: Dict[Tuple[str, str, str], MetricValue]
 
-    # Parse input "ValidationGraph" object and confirm the numbers of ready and still needed metrics.  # noqa: E501
+    # Parse input "ValidationGraph" object and confirm the numbers of ready and still needed metrics.  # noqa: E501 # FIXME CoP
     available_metrics = {}
     (
         ready_metrics,
@@ -306,7 +306,7 @@ def test_parse_validation_graph(
     )
     assert len(ready_metrics) == 2 and len(needed_metrics) == 9
 
-    # Show that including "nonexistent" metric in dictionary of resolved metrics does not increase ready_metrics count.  # noqa: E501
+    # Show that including "nonexistent" metric in dictionary of resolved metrics does not increase ready_metrics count.  # noqa: E501 # FIXME CoP
     available_metrics = {("nonexistent", "nonexistent", "nonexistent"): "NONE"}
     (
         ready_metrics,
@@ -427,7 +427,7 @@ def test_progress_bar_config(
     """
     This test creates mocked environment for progress bar tests; it then executes the method under test that utilizes
     the progress bar, "ValidationGraph.resolve()", with composed arguments, and verifies result.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     class DummyMetricConfiguration:
         pass

@@ -56,7 +56,7 @@ from tests.datasource.fluent.conftest import (
 from tests.sqlalchemy_test_doubles import Dialect, MockSaEngine, MockSaInspector
 
 if TYPE_CHECKING:
-    from unittest.mock import Mock  # noqa: TID251
+    from unittest.mock import Mock  # noqa: TID251 # FIXME CoP
 
     from pytest_mock import MockFixture
 
@@ -211,7 +211,7 @@ def year_month_partitioner(column_name: str) -> SqlPartitionerYearAndMonth:
 def test_construct_table_asset_directly_with_partitioner(create_source):
     with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source,
@@ -253,7 +253,7 @@ def test_datasource_gets_batch_list_no_partitioner(empty_data_context, create_so
         data_context=empty_data_context,
     ) as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -305,7 +305,7 @@ def test_datasource_gets_batch_partitioner_with_unspecified_batch_parameters(
         data_context=empty_data_context,
     ) as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -339,7 +339,7 @@ def test_datasource_gets_batch_list_partitioner_with_batch_parameters_set_to_non
         data_context=empty_data_context,
     ) as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -383,7 +383,7 @@ def test_datasource_gets_batch_partitioner_with_partially_specified_batch_parame
         partitioner_query_response=[{"year": year, "month": month} for month in list(range(1, 13))],
     ) as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -436,7 +436,7 @@ def test_datasource_gets_batch_with_fully_specified_batch_parameters(
         partitioner_query_response=[{"month": month, "year": year}],
     ) as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -547,7 +547,7 @@ def test_get_batch_with_good_batch_request(
         data_context=empty_data_context,
     ) as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -578,7 +578,7 @@ def test_get_batch_with_malformed_batch_request(
 ):
     with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -599,7 +599,7 @@ def test_get_batch_with_malformed_batch_request(
 def test_get_bad_batch_request(create_source: CreateSourceFixture):
     with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -613,20 +613,20 @@ def test_get_bad_batch_request(create_source: CreateSourceFixture):
 def test_data_source_json_has_properties(create_source: CreateSourceFixture):
     with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
         )
         # type should be in dumped json even if not explicitly set
-        assert f'"type": "{asset.type}"'  # noqa: PLW0129
+        assert f'"type": "{asset.type}"'  # noqa: PLW0129 # FIXME CoP
 
 
 @pytest.mark.postgresql
 def test_data_source_yaml_has_properties(create_source: CreateSourceFixture):
     with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             asset,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -640,7 +640,7 @@ def test_data_source_yaml_has_properties(create_source: CreateSourceFixture):
 def test_datasource_dict_has_properties(create_source):
     with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
         (
-            source,  # noqa: PLW2901
+            source,  # noqa: PLW2901 # FIXME CoP
             _,
         ) = create_and_add_table_asset_without_testing_connection(
             source=source, name="my_asset", table_name="my_table"
@@ -679,7 +679,7 @@ def test_validate_valid_postgres_connection_string(
         dialect="postgresql",
         connection_string=connection_string,
     ):
-        # As long as no exception is thrown we consider this a pass. Pydantic normalizes the underlying  # noqa: E501
+        # As long as no exception is thrown we consider this a pass. Pydantic normalizes the underlying  # noqa: E501 # FIXME CoP
         # connection string so a direct str comparison isn't possible.
         pass
 
@@ -802,9 +802,9 @@ def mock_inspector(
         return table_name in mock_inspector_returns["table_names"]
 
     # directly patching the instance rather then using mocker.patch
-    mock_inspector.get_schema_names = get_schema_names  # type: ignore[method-assign]
-    mock_inspector.get_table_names = get_table_names  # type: ignore[method-assign]
-    mock_inspector.has_table = has_table  # type: ignore[method-assign]
+    mock_inspector.get_schema_names = get_schema_names  # type: ignore[method-assign] # FIXME CoP
+    mock_inspector.get_table_names = get_table_names  # type: ignore[method-assign] # FIXME CoP
+    mock_inspector.has_table = has_table  # type: ignore[method-assign] # FIXME CoP
 
     inspect = mocker.patch("sqlalchemy.inspect")
     inspect.return_value = mock_inspector
@@ -890,7 +890,7 @@ def test_adding_partitioner_persists_results(
         validate_partitioner=False,
     )
 
-    final_yaml: dict = YAMLHandler().load(  # type: ignore[assignment]
+    final_yaml: dict = YAMLHandler().load(  # type: ignore[assignment] # FIXME CoP
         gx_yaml.read_text(),
     )["fluent_datasources"]
 

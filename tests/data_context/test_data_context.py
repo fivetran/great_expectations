@@ -56,18 +56,18 @@ def data_context_with_bad_datasource(tmp_path_factory):
     It is used by test_get_batch_multiple_datasources_do_not_scan_all()
     """
     project_path = str(tmp_path_factory.mktemp("data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118 # FIXME CoP
     fixture_dir = file_relative_path(__file__, "../test_fixtures")
-    os.makedirs(  # noqa: PTH103
-        os.path.join(asset_config_path, "my_dag_node"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(asset_config_path, "my_dag_node"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
     shutil.copy(
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             fixture_dir, "great_expectations_bad_datasource.yml"
         ),
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     return get_context(context_root_dir=context_path)
 
@@ -174,7 +174,7 @@ def test__normalize_absolute_or_relative_path(tmp_path_factory, basic_data_conte
     )
 
     assert context._normalize_absolute_or_relative_path("yikes").endswith(
-        os.path.join(test_dir, "yikes")  # noqa: PTH118
+        os.path.join(test_dir, "yikes")  # noqa: PTH118 # FIXME CoP
     )
 
     assert test_dir not in context._normalize_absolute_or_relative_path("/yikes")
@@ -199,11 +199,11 @@ def test_load_data_context_from_environment_variables(tmp_path, monkeypatch):
     shutil.copy(
         file_relative_path(
             __file__,
-            os.path.join(  # noqa: PTH118
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 "..", "test_fixtures", "great_expectations_basic.yml"
             ),
         ),
-        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(context_path, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     monkeypatch.setenv("GX_HOME", str(context_path))
     assert FileDataContext.find_context_root_dir() == str(context_path)
@@ -220,12 +220,12 @@ def test_data_context_create_does_not_raise_error_or_warning_if_ge_dir_exists(
 @pytest.fixture()
 def empty_context(tmp_path_factory) -> FileDataContext:
     project_path = str(tmp_path_factory.mktemp("data_context"))
-    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
+    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
     context = get_context(context_root_dir=ge_dir)
     assert isinstance(context, FileDataContext)
-    assert os.path.isdir(ge_dir)  # noqa: PTH112
-    assert os.path.isfile(  # noqa: PTH113
-        os.path.join(ge_dir, FileDataContext.GX_YML)  # noqa: PTH118
+    assert os.path.isdir(ge_dir)  # noqa: PTH112 # FIXME CoP
+    assert os.path.isfile(  # noqa: PTH113 # FIXME CoP
+        os.path.join(ge_dir, FileDataContext.GX_YML)  # noqa: PTH118 # FIXME CoP
     )
     return context
 
@@ -248,12 +248,12 @@ def test_data_context_does_ge_yml_exist_returns_false_when_it_does_not_exist(
 ):
     ge_dir = empty_context.root_directory
     # mangle project
-    safe_remove(os.path.join(ge_dir, empty_context.GX_YML))  # noqa: PTH118
+    safe_remove(os.path.join(ge_dir, empty_context.GX_YML))  # noqa: PTH118 # FIXME CoP
     assert FileDataContext.does_config_exist_on_disk(ge_dir) is False
 
 
 @pytest.mark.filesystem
-def test_data_context_does_project_have_a_datasource_in_config_file_returns_true_when_it_has_a_datasource_configured_in_yml_file_on_disk(  # noqa: E501
+def test_data_context_does_project_have_a_datasource_in_config_file_returns_true_when_it_has_a_datasource_configured_in_yml_file_on_disk(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     ge_dir = empty_context.root_directory
@@ -262,7 +262,7 @@ def test_data_context_does_project_have_a_datasource_in_config_file_returns_true
 
 
 @pytest.mark.filesystem
-def test_data_context_does_project_have_a_datasource_in_config_file_returns_false_when_it_does_not_have_a_datasource_configured_in_yml_file_on_disk(  # noqa: E501
+def test_data_context_does_project_have_a_datasource_in_config_file_returns_false_when_it_does_not_have_a_datasource_configured_in_yml_file_on_disk(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     ge_dir = empty_context.root_directory
@@ -270,35 +270,35 @@ def test_data_context_does_project_have_a_datasource_in_config_file_returns_fals
 
 
 @pytest.mark.filesystem
-def test_data_context_does_project_have_a_datasource_in_config_file_returns_false_when_it_does_not_have_a_ge_yml_file(  # noqa: E501
+def test_data_context_does_project_have_a_datasource_in_config_file_returns_false_when_it_does_not_have_a_ge_yml_file(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     ge_dir = empty_context.root_directory
-    safe_remove(os.path.join(ge_dir, empty_context.GX_YML))  # noqa: PTH118
+    safe_remove(os.path.join(ge_dir, empty_context.GX_YML))  # noqa: PTH118 # FIXME CoP
     assert FileDataContext._does_project_have_a_datasource_in_config_file(ge_dir) is False
 
 
 @pytest.mark.filesystem
-def test_data_context_does_project_have_a_datasource_in_config_file_returns_false_when_it_does_not_have_a_ge_dir(  # noqa: E501
+def test_data_context_does_project_have_a_datasource_in_config_file_returns_false_when_it_does_not_have_a_ge_dir(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     ge_dir = empty_context.root_directory
-    safe_remove(os.path.join(ge_dir))  # noqa: PTH118
+    safe_remove(os.path.join(ge_dir))  # noqa: PTH118 # FIXME CoP
     assert FileDataContext._does_project_have_a_datasource_in_config_file(ge_dir) is False
 
 
 @pytest.mark.filesystem
-def test_data_context_does_project_have_a_datasource_in_config_file_returns_false_when_the_project_has_an_invalid_config_file(  # noqa: E501
+def test_data_context_does_project_have_a_datasource_in_config_file_returns_false_when_the_project_has_an_invalid_config_file(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     ge_dir = empty_context.root_directory
-    with open(os.path.join(ge_dir, FileDataContext.GX_YML), "w") as yml:  # noqa: PTH118
+    with open(os.path.join(ge_dir, FileDataContext.GX_YML), "w") as yml:  # noqa: PTH118 # FIXME CoP
         yml.write("this file: is not a valid ge config")
     assert FileDataContext._does_project_have_a_datasource_in_config_file(ge_dir) is False
 
 
 @pytest.mark.filesystem
-def test_data_context_is_project_initialized_returns_true_when_its_valid_context_has_one_datasource_and_one_suite(  # noqa: E501
+def test_data_context_is_project_initialized_returns_true_when_its_valid_context_has_one_datasource_and_one_suite(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     context = empty_context
@@ -311,7 +311,7 @@ def test_data_context_is_project_initialized_returns_true_when_its_valid_context
 
 
 @pytest.mark.filesystem
-def test_data_context_is_project_initialized_returns_true_when_its_valid_context_has_one_datasource_and_no_suites(  # noqa: E501
+def test_data_context_is_project_initialized_returns_true_when_its_valid_context_has_one_datasource_and_no_suites(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     context = empty_context
@@ -336,7 +336,7 @@ def test_data_context_is_project_initialized_returns_false_when_config_yml_is_mi
 ):
     ge_dir = empty_context.root_directory
     # mangle project
-    safe_remove(os.path.join(ge_dir, empty_context.GX_YML))  # noqa: PTH118
+    safe_remove(os.path.join(ge_dir, empty_context.GX_YML))  # noqa: PTH118 # FIXME CoP
 
     assert FileDataContext.is_project_initialized(ge_dir) is False
 
@@ -348,20 +348,20 @@ def test_data_context_is_project_initialized_returns_false_when_uncommitted_dir_
     ge_dir = empty_context.root_directory
     # mangle project
     shutil.rmtree(
-        os.path.join(ge_dir, empty_context.GX_UNCOMMITTED_DIR)  # noqa: PTH118
+        os.path.join(ge_dir, empty_context.GX_UNCOMMITTED_DIR)  # noqa: PTH118 # FIXME CoP
     )
 
     assert FileDataContext.is_project_initialized(ge_dir) is False
 
 
 @pytest.mark.filesystem
-def test_data_context_is_project_initialized_returns_false_when_uncommitted_data_docs_dir_is_missing(  # noqa: E501
+def test_data_context_is_project_initialized_returns_false_when_uncommitted_data_docs_dir_is_missing(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     ge_dir = empty_context.root_directory
     # mangle project
     shutil.rmtree(
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             ge_dir, empty_context.GX_UNCOMMITTED_DIR, "data_docs"
         )
     )
@@ -370,13 +370,13 @@ def test_data_context_is_project_initialized_returns_false_when_uncommitted_data
 
 
 @pytest.mark.filesystem
-def test_data_context_is_project_initialized_returns_false_when_uncommitted_validations_dir_is_missing(  # noqa: E501
+def test_data_context_is_project_initialized_returns_false_when_uncommitted_validations_dir_is_missing(  # noqa: E501 # FIXME CoP
     empty_context,
 ):
     ge_dir = empty_context.root_directory
     # mangle project
     shutil.rmtree(
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             ge_dir, empty_context.GX_UNCOMMITTED_DIR, "validations"
         )
     )
@@ -391,7 +391,7 @@ def test_data_context_is_project_initialized_returns_false_when_config_variable_
     ge_dir = empty_context.root_directory
     # mangle project
     safe_remove(
-        os.path.join(  # noqa: PTH118
+        os.path.join(  # noqa: PTH118 # FIXME CoP
             ge_dir, empty_context.GX_UNCOMMITTED_DIR, "config_variables.yml"
         )
     )
@@ -405,7 +405,7 @@ def test_data_context_create_raises_warning_and_leaves_existing_yml_untouched(
 ):
     project_path = str(tmp_path_factory.mktemp("data_context"))
     gx.get_context(mode="file", project_root_dir=project_path)
-    ge_yml = os.path.join(project_path, "gx/great_expectations.yml")  # noqa: PTH118
+    ge_yml = os.path.join(project_path, "gx/great_expectations.yml")  # noqa: PTH118 # FIXME CoP
     with open(ge_yml, "a") as ff:
         ff.write("# LOOK I WAS MODIFIED")
 
@@ -424,15 +424,15 @@ def test_data_context_create_makes_uncommitted_dirs_when_all_are_missing(
     gx.get_context(mode="file", project_root_dir=project_path)
 
     # mangle the existing setup
-    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    uncommitted_dir = os.path.join(ge_dir, "uncommitted")  # noqa: PTH118
+    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    uncommitted_dir = os.path.join(ge_dir, "uncommitted")  # noqa: PTH118 # FIXME CoP
     shutil.rmtree(uncommitted_dir)
 
     # re-run create to simulate onboarding
     gx.get_context(mode="file", project_root_dir=project_path)
     obs = gen_directory_tree_str(ge_dir)
 
-    assert os.path.isdir(  # noqa: PTH112
+    assert os.path.isdir(  # noqa: PTH112 # FIXME CoP
         uncommitted_dir
     ), "No uncommitted directory created"
     assert (
@@ -485,7 +485,7 @@ gx/
     validation_definitions/
 """
     project_path = str(tmp_path_factory.mktemp("stuff"))
-    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
+    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
 
     gx.get_context(mode="file", project_root_dir=project_path)
     fixture = gen_directory_tree_str(ge_dir)
@@ -509,8 +509,8 @@ uncommitted/
         .ge_store_backend_id
 """
     project_path = str(tmp_path_factory.mktemp("stuff"))
-    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    uncommitted_dir = os.path.join(ge_dir, "uncommitted")  # noqa: PTH118
+    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    uncommitted_dir = os.path.join(ge_dir, "uncommitted")  # noqa: PTH118 # FIXME CoP
     gx.get_context(mode="file", project_root_dir=project_path)
     fixture = gen_directory_tree_str(uncommitted_dir)
     assert fixture == expected
@@ -519,8 +519,8 @@ uncommitted/
     assert FileDataContext.all_uncommitted_directories_exist(ge_dir)
 
     # remove a few
-    shutil.rmtree(os.path.join(uncommitted_dir, "data_docs"))  # noqa: PTH118
-    shutil.rmtree(os.path.join(uncommitted_dir, "validations"))  # noqa: PTH118
+    shutil.rmtree(os.path.join(uncommitted_dir, "data_docs"))  # noqa: PTH118 # FIXME CoP
+    shutil.rmtree(os.path.join(uncommitted_dir, "validations"))  # noqa: PTH118 # FIXME CoP
 
     # Test that not all exist
     assert not FileDataContext.all_uncommitted_directories_exist(project_path)
@@ -538,8 +538,8 @@ def test_data_context_create_builds_base_directories(tmp_path_factory):
         "checkpoints",
         "uncommitted",
     ]:
-        base_dir = os.path.join(project_path, context.GX_DIR, directory)  # noqa: PTH118
-        assert os.path.isdir(base_dir)  # noqa: PTH112
+        base_dir = os.path.join(project_path, context.GX_DIR, directory)  # noqa: PTH118 # FIXME CoP
+        assert os.path.isdir(base_dir)  # noqa: PTH112 # FIXME CoP
 
 
 @pytest.mark.filesystem
@@ -548,9 +548,9 @@ def test_data_context_create_does_not_overwrite_existing_config_variables_yml(
 ):
     project_path = str(tmp_path_factory.mktemp("data_context"))
     gx.get_context(mode="file", project_root_dir=project_path)
-    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    uncommitted_dir = os.path.join(ge_dir, "uncommitted")  # noqa: PTH118
-    config_vars_yml = os.path.join(  # noqa: PTH118
+    ge_dir = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    uncommitted_dir = os.path.join(ge_dir, "uncommitted")  # noqa: PTH118 # FIXME CoP
+    config_vars_yml = os.path.join(  # noqa: PTH118 # FIXME CoP
         uncommitted_dir, "config_variables.yml"
     )
 
@@ -581,7 +581,7 @@ def test_scaffold_directories(tmp_path_factory):
         "validation_definitions",
     }
     assert set(
-        os.listdir(os.path.join(empty_directory, "uncommitted"))  # noqa: PTH118
+        os.listdir(os.path.join(empty_directory, "uncommitted"))  # noqa: PTH118 # FIXME CoP
     ) == {
         "data_docs",
         "validations",
@@ -592,17 +592,17 @@ def test_scaffold_directories(tmp_path_factory):
 def test_load_config_variables_property(basic_data_context_config, tmp_path_factory, monkeypatch):
     # Setup:
     base_path = str(tmp_path_factory.mktemp("test_load_config_variables_file"))
-    os.makedirs(  # noqa: PTH103
-        os.path.join(base_path, "uncommitted"),  # noqa: PTH118
+    os.makedirs(  # noqa: PTH103 # FIXME CoP
+        os.path.join(base_path, "uncommitted"),  # noqa: PTH118 # FIXME CoP
         exist_ok=True,
     )
     with open(
-        os.path.join(base_path, "uncommitted", "dev_variables.yml"),  # noqa: PTH118
+        os.path.join(base_path, "uncommitted", "dev_variables.yml"),  # noqa: PTH118 # FIXME CoP
         "w",
     ) as outfile:
         yaml.dump({"env": "dev"}, outfile)
     with open(
-        os.path.join(base_path, "uncommitted", "prod_variables.yml"),  # noqa: PTH118
+        os.path.join(base_path, "uncommitted", "prod_variables.yml"),  # noqa: PTH118 # FIXME CoP
         "w",
     ) as outfile:
         yaml.dump({"env": "prod"}, outfile)
@@ -776,7 +776,7 @@ class TestRenderedContent:
                     }
                 ),
                 value_type="StringValueType",
-                exception='Renderer "atomic.prescriptive.custom_renderer_type" failed to render Expectation '  # noqa: E501
+                exception='Renderer "atomic.prescriptive.custom_renderer_type" failed to render Expectation '  # noqa: E501 # FIXME CoP
                 '"expect_sky_to_be_color with exception message: This renderer is broken!".',
             ),
             RenderedAtomicContent(

@@ -41,7 +41,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -171,7 +170,7 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     column_list: Sequence[str] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
 
@@ -246,7 +245,7 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
             renderer_configuration = cls._add_mostly_pct_param(
                 renderer_configuration=renderer_configuration
             )
-            template_str = "Values for given compound columns must be unique together, at least $mostly_pct % of the time: "  # noqa: E501
+            template_str = "Values for given compound columns must be unique together, at least $mostly_pct % of the time: "  # noqa: E501 # FIXME CoP
         else:
             template_str = "Values for given compound columns must be unique together: "
 
@@ -294,7 +293,7 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
 
         if params["mostly"] is not None and params["mostly"] < 1.0:
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-            template_str = "Values for given compound columns must be unique together, at least $mostly_pct % of the time: "  # noqa: E501
+            template_str = "Values for given compound columns must be unique together, at least $mostly_pct % of the time: "  # noqa: E501 # FIXME CoP
         else:
             template_str = "Values for given compound columns must be unique together: "
 

@@ -49,7 +49,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -174,7 +173,7 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     value_set: ValueSetField
 
@@ -347,7 +346,7 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
             )
         ]
 
-    def _pandas_column_values_not_in_set(  # noqa: PLR0913
+    def _pandas_column_values_not_in_set(  # noqa: PLR0913 # FIXME CoP
         self,
         series: pd.Series,
         metrics: Dict,

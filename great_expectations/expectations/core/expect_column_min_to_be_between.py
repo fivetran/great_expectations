@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
@@ -56,7 +56,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -179,7 +178,7 @@ class ExpectColumnMinToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -200,7 +199,7 @@ class ExpectColumnMinToBeBetween(ColumnAggregateExpectation):
     }
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.min",)
     success_keys = (
         "min_value",
@@ -250,7 +249,7 @@ class ExpectColumnMinToBeBetween(ColumnAggregateExpectation):
 
     @classmethod
     @override
-    def _prescriptive_template(  # noqa: C901 - too complex
+    def _prescriptive_template(  # noqa: C901 #  too complex
         cls,
         renderer_configuration: RendererConfiguration,
     ) -> RendererConfiguration:
@@ -284,7 +283,7 @@ class ExpectColumnMinToBeBetween(ColumnAggregateExpectation):
                 if params.min_value == params.max_value:
                     template_str = "minimum value must be $min_value"
                 else:
-                    template_str = f"minimum value must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501
+                    template_str = f"minimum value must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
             elif not params.min_value:
                 template_str = f"minimum value must be {at_most_str} $max_value."
             else:

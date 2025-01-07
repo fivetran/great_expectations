@@ -15,7 +15,7 @@ class Action:
 
     Attributes:
         name: A description of what happened. For example (<object>.<verb>) "validation_result.saved" or "token.deleted"
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     name: str
 
@@ -63,7 +63,7 @@ class Event:
     def __post_init__(self):
         allowed_actions = self.get_allowed_actions()
         if allowed_actions is not None and self.action not in self.get_allowed_actions():
-            raise ValueError(f"Action [{self.action}] must be one of {self.get_allowed_actions()}")  # noqa: TRY003
+            raise ValueError(f"Action [{self.action}] must be one of {self.get_allowed_actions()}")  # noqa: TRY003 # FIXME CoP
 
     @classmethod
     def get_allowed_actions(cls):

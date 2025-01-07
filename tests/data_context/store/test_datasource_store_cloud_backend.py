@@ -21,7 +21,7 @@ def test_datasource_store_get_by_id(
     """What does this test and why?
 
     The datasource store when used with a cloud backend should emit the correct request when getting a datasource.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     id = "8706d5fb-0432-47ab-943c-daa824210e99"
 
@@ -61,7 +61,7 @@ def test_datasource_store_get_by_name(
     """What does this test and why?
 
     The datasource store when used with a cloud backend should emit the correct request when getting a datasource with a name.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     id = "8706d5fb-0432-47ab-943c-daa824210e99"
     datasource_name: str = "example_datasource_config_name"
@@ -84,7 +84,7 @@ def test_datasource_store_get_by_name(
             "great_expectations.data_context.store.DatasourceStore.has_key", autospec=True
         ) as mock_has_key,
     ):
-        # Mocking has_key so that we don't try to connect to the cloud backend to verify key existence.  # noqa: E501
+        # Mocking has_key so that we don't try to connect to the cloud backend to verify key existence.  # noqa: E501 # FIXME CoP
         mock_has_key.return_value = True
 
         datasource_store_ge_cloud_backend.retrieve_by_name(name=datasource_name)
@@ -107,7 +107,7 @@ def test_datasource_store_delete_by_id(
     """What does this test and why?
 
     The datasource store when used with a cloud backend should emit the correct request when getting a datasource.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     id: str = "example_id_normally_uuid"
 
     key = GXCloudIdentifier(resource_type=GXCloudRESTResource.DATASOURCE, id=id)
@@ -142,7 +142,7 @@ def test_datasource_store_delete_by_id(
 )
 def test_datasource_http_error_handling(
     datasource_store_ge_cloud_backend: DatasourceStore,
-    mock_http_unavailable: Dict[str, mock.Mock],  # noqa: TID251
+    mock_http_unavailable: Dict[str, mock.Mock],  # noqa: TID251 # FIXME CoP
     http_verb: str,
     method: str,
     args: list,

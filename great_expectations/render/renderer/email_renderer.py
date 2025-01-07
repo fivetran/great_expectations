@@ -38,7 +38,7 @@ class EmailRenderer(Renderer):
         n_checks = result.statistics["evaluated_expectations"]
         run_id = result.meta.get("run_id", "__no_run_id__")
         batch_id = result.batch_id
-        check_details_text = f"<strong>{n_checks_succeeded}</strong> of <strong>{n_checks}</strong> expectations were met"  # noqa: E501
+        check_details_text = f"<strong>{n_checks_succeeded}</strong> of <strong>{n_checks}</strong> expectations were met"  # noqa: E501 # FIXME CoP
         status = "Success 🎉" if result.success else "Failed ❌"
 
         title = f"<h3><u>{suite_name}</u></h3>"
@@ -65,16 +65,16 @@ class EmailRenderer(Renderer):
                 if "file://" in docs_link:
                     # handle special case since the email does not render these links
                     report_element = str(
-                        f'<p><strong>DataDocs</strong> can be found here: <a href="{docs_link}">{docs_link}</a>.</br>'  # noqa: E501
+                        f'<p><strong>DataDocs</strong> can be found here: <a href="{docs_link}">{docs_link}</a>.</br>'  # noqa: E501 # FIXME CoP
                         "(Please copy and paste link into a browser to view)</p>",
                     )
                 else:
-                    report_element = f'<p><strong>DataDocs</strong> can be found here: <a href="{docs_link}">{docs_link}</a>.</p>'  # noqa: E501
+                    report_element = f'<p><strong>DataDocs</strong> can be found here: <a href="{docs_link}">{docs_link}</a>.</p>'  # noqa: E501 # FIXME CoP
             except Exception as e:
                 logger.warning(
                     f"""EmailRenderer had a problem with generating the docs link.
                     link used to generate the docs link is: {docs_link} and is of type: {type(docs_link)}.
-                    Error: {e}"""  # noqa: E501
+                    Error: {e}"""  # noqa: E501 # FIXME CoP
                 )
                 return
         else:

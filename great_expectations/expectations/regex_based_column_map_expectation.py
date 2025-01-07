@@ -74,7 +74,7 @@ class RegexColumnMapMetricProvider(ColumnMapMetricProvider):
 
     ---Documentation---
         - https://docs.greatexpectations.io/docs/guides/expectations/creating_custom_expectations/how_to_create_custom_regex_based_column_map_expectations
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     condition_value_keys = ()
 
@@ -121,7 +121,7 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
         regex_ (str): A valid regex pattern.
         semantic_type_name_plural (optional[str]): The plural form of a semantic type being validated by a regex pattern.
         map_metric (str): The name of an ephemeral metric, as returned by `register_metric(...)`.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     @staticmethod
     def register_metric(
@@ -136,7 +136,7 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
 
         Returns:
             map_metric: The constructed name of the ephemeral metric.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         regex_snake_name: str = camel_to_snake(regex_camel_name)
         map_metric: str = "column_values.match_" + regex_snake_name + "_regex"
 
@@ -164,7 +164,7 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
         Raises:
             InvalidExpectationConfigurationError: If no `regex` or `column` specified, or if `mostly` parameter
                 incorrectly defined.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().validate_configuration(configuration)
         try:
             assert (
@@ -193,14 +193,14 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
 
         if mostly == 1 or mostly is None:
             if semantic_type_name_plural is not None:
-                return f'Are all values in column "{column}" valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}?'  # noqa: E501
+                return f'Are all values in column "{column}" valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}?'  # noqa: E501 # FIXME CoP
             else:
                 return f'Do all values in column "{column}" match the regular expression {regex}?'
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if semantic_type_name_plural is not None:
-                return f'Are at least {mostly * 100}% of values in column "{column}" valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}?'  # noqa: E501
+                return f'Are at least {mostly * 100}% of values in column "{column}" valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}?'  # noqa: E501 # FIXME CoP
             else:
-                return f'Do at least {mostly * 100}% of values in column "{column}" match the regular expression {regex}?'  # noqa: E501
+                return f'Do at least {mostly * 100}% of values in column "{column}" match the regular expression {regex}?'  # noqa: E501 # FIXME CoP
 
     @classmethod
     @renderer(renderer_type=LegacyRendererType.ANSWER)
@@ -213,19 +213,19 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
         if result.success:
             if mostly == 1 or mostly is None:
                 if semantic_type_name_plural is not None:
-                    return f'All values in column "{column}" are valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}.'  # noqa: E501
+                    return f'All values in column "{column}" are valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}.'  # noqa: E501 # FIXME CoP
                 else:
                     return f'All values in column "{column}" match the regular expression {regex}.'
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if semantic_type_name_plural is not None:
-                    return f'At least {mostly * 100}% of values in column "{column}" are valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}.'  # noqa: E501
+                    return f'At least {mostly * 100}% of values in column "{column}" are valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}.'  # noqa: E501 # FIXME CoP
                 else:
-                    return f'At least {mostly * 100}% of values in column "{column}" match the regular expression {regex}.'  # noqa: E501
-        else:  # noqa: PLR5501
+                    return f'At least {mostly * 100}% of values in column "{column}" match the regular expression {regex}.'  # noqa: E501 # FIXME CoP
+        else:  # noqa: PLR5501 # FIXME CoP
             if semantic_type_name_plural is not None:
-                return f' Less than {mostly * 100}% of values in column "{column}" are valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}.'  # noqa: E501
+                return f' Less than {mostly * 100}% of values in column "{column}" are valid {semantic_type_name_plural}, as judged by matching the regular expression {regex}.'  # noqa: E501 # FIXME CoP
             else:
-                return f'Less than {mostly * 100}% of values in column "{column}" match the regular expression {regex}.'  # noqa: E501
+                return f'Less than {mostly * 100}% of values in column "{column}" match the regular expression {regex}.'  # noqa: E501 # FIXME CoP
 
     @override
     @classmethod
@@ -289,7 +289,7 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
             template_str = "values must match this regular expression: $regex"
             if params["mostly"] is not None:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 template_str += ", at least $mostly_pct % of the time."
             else:
                 template_str += "."

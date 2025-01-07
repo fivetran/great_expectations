@@ -116,7 +116,7 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
     rootdirs = []
 
     for i in range(3):
-        dirname = os.path.basename(root)  # noqa: PTH119
+        dirname = os.path.basename(root)  # noqa: PTH119 # FIXME CoP
         if dirname.startswith(parentdir_prefix):
             return {
                 "version": dirname[len(parentdir_prefix) :],
@@ -127,15 +127,15 @@ def versions_from_parentdir(parentdir_prefix, root, verbose):
             }
         else:
             rootdirs.append(root)
-            root = os.path.dirname(root)  # up a level  # noqa: PTH120
+            root = os.path.dirname(root)  # up a level  # noqa: PTH120 # FIXME CoP
 
     if verbose:
         print(f"Tried directories {rootdirs!s} but none started with prefix {parentdir_prefix}")
-    raise NotThisMethod("rootdir doesn't start with parentdir_prefix")  # noqa: TRY003
+    raise NotThisMethod("rootdir doesn't start with parentdir_prefix")  # noqa: TRY003 # FIXME CoP
 
 
 @register_vcs_handler("git", "get_keywords")
-def git_get_keywords(versionfile_abs):  # noqa: C901 - too complex
+def git_get_keywords(versionfile_abs):  # noqa: C901 #  too complex
     """Extract version information from the given file."""
     # the code embedded in _version.py can just fetch the value of these
     # keywords. When used from setup.py, we don't want to import _version.py,
@@ -164,10 +164,10 @@ def git_get_keywords(versionfile_abs):  # noqa: C901 - too complex
 
 
 @register_vcs_handler("git", "keywords")
-def git_versions_from_keywords(keywords, tag_prefix, verbose):  # noqa: C901 - too complex
+def git_versions_from_keywords(keywords, tag_prefix, verbose):  # noqa: C901 #  too complex
     """Get version information from git keywords."""
     if not keywords:
-        raise NotThisMethod("no keywords at all, weird")  # noqa: TRY003
+        raise NotThisMethod("no keywords at all, weird")  # noqa: TRY003 # FIXME CoP
     date = keywords.get("date")
     if date is not None:
         # git-2.2.0 added "%cI", which expands to an ISO-8601 -compliant
@@ -181,7 +181,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):  # noqa: C901 - t
     if refnames.startswith("$Format"):
         if verbose:
             print("keywords are unexpanded, not using")
-        raise NotThisMethod("unexpanded keywords, not a git-archive tarball")  # noqa: TRY003
+        raise NotThisMethod("unexpanded keywords, not a git-archive tarball")  # noqa: TRY003 # FIXME CoP
     refs = {r.strip() for r in refnames.strip("()").split(",")}
     # starting in git-1.8.3, tags are listed as "tag: foo-1.0" instead of
     # just "foo-1.0". If we see a "tag: " prefix, prefer those.
@@ -226,7 +226,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):  # noqa: C901 - t
 
 
 @register_vcs_handler("git", "pieces_from_vcs")
-def git_pieces_from_vcs(  # noqa: C901 - 11
+def git_pieces_from_vcs(  # noqa: C901 #  11
     tag_prefix, root, verbose, run_command=run_command
 ):
     """Get version from 'git describe' in the root of the source tree.
@@ -243,7 +243,7 @@ def git_pieces_from_vcs(  # noqa: C901 - 11
     if rc != 0:
         if verbose:
             print(f"Directory {root} not under git control")
-        raise NotThisMethod("'git rev-parse --git-dir' returned error")  # noqa: TRY003
+        raise NotThisMethod("'git rev-parse --git-dir' returned error")  # noqa: TRY003 # FIXME CoP
 
     # if there is a tag matching tag_prefix, this yields TAG-NUM-gHEX[-dirty]
     # if there isn't one, this yields HEX[-dirty] (no NUM)
@@ -262,11 +262,11 @@ def git_pieces_from_vcs(  # noqa: C901 - 11
     )
     # --long was added in git-1.5.5
     if describe_out is None:
-        raise NotThisMethod("'git describe' failed")  # noqa: TRY003
+        raise NotThisMethod("'git describe' failed")  # noqa: TRY003 # FIXME CoP
     describe_out = describe_out.strip()
     full_out, rc = run_command(GITS, ["rev-parse", "HEAD"], cwd=root)
     if full_out is None:
-        raise NotThisMethod("'git rev-parse' failed")  # noqa: TRY003
+        raise NotThisMethod("'git rev-parse' failed")  # noqa: TRY003 # FIXME CoP
     full_out = full_out.strip()
 
     pieces = {}
@@ -343,12 +343,12 @@ def render_pep440(pieces):
         rendered = pieces["closest-tag"]
         if pieces["distance"] or pieces["dirty"]:
             rendered += plus_or_dot(pieces)
-            rendered += "%d.g%s" % (pieces["distance"], pieces["short"])  # noqa: UP031
+            rendered += "%d.g%s" % (pieces["distance"], pieces["short"])  # noqa: UP031 # FIXME CoP
             if pieces["dirty"]:
                 rendered += ".dirty"
     else:
         # exception #1
-        rendered = "0+untagged.%d.g%s" % (pieces["distance"], pieces["short"])  # noqa: UP031
+        rendered = "0+untagged.%d.g%s" % (pieces["distance"], pieces["short"])  # noqa: UP031 # FIXME CoP
         if pieces["dirty"]:
             rendered += ".dirty"
     return rendered
@@ -363,10 +363,10 @@ def render_pep440_pre(pieces):
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]
         if pieces["distance"]:
-            rendered += ".post.dev%d" % pieces["distance"]  # noqa: UP031
+            rendered += ".post.dev%d" % pieces["distance"]  # noqa: UP031 # FIXME CoP
     else:
         # exception #1
-        rendered = "0.post.dev%d" % pieces["distance"]  # noqa: UP031
+        rendered = "0.post.dev%d" % pieces["distance"]  # noqa: UP031 # FIXME CoP
     return rendered
 
 
@@ -383,14 +383,14 @@ def render_pep440_post(pieces):
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]
         if pieces["distance"] or pieces["dirty"]:
-            rendered += ".post%d" % pieces["distance"]  # noqa: UP031
+            rendered += ".post%d" % pieces["distance"]  # noqa: UP031 # FIXME CoP
             if pieces["dirty"]:
                 rendered += ".dev0"
             rendered += plus_or_dot(pieces)
             rendered += f"g{pieces['short']}"
     else:
         # exception #1
-        rendered = "0.post%d" % pieces["distance"]  # noqa: UP031
+        rendered = "0.post%d" % pieces["distance"]  # noqa: UP031 # FIXME CoP
         if pieces["dirty"]:
             rendered += ".dev0"
         rendered += f"+g{pieces['short']}"
@@ -408,12 +408,12 @@ def render_pep440_old(pieces):
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]
         if pieces["distance"] or pieces["dirty"]:
-            rendered += ".post%d" % pieces["distance"]  # noqa: UP031
+            rendered += ".post%d" % pieces["distance"]  # noqa: UP031 # FIXME CoP
             if pieces["dirty"]:
                 rendered += ".dev0"
     else:
         # exception #1
-        rendered = "0.post%d" % pieces["distance"]  # noqa: UP031
+        rendered = "0.post%d" % pieces["distance"]  # noqa: UP031 # FIXME CoP
         if pieces["dirty"]:
             rendered += ".dev0"
     return rendered
@@ -430,7 +430,7 @@ def render_git_describe(pieces):
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]
         if pieces["distance"]:
-            rendered += "-%d-g%s" % (pieces["distance"], pieces["short"])  # noqa: UP031
+            rendered += "-%d-g%s" % (pieces["distance"], pieces["short"])  # noqa: UP031 # FIXME CoP
     else:
         # exception #1
         rendered = pieces["short"]
@@ -450,7 +450,7 @@ def render_git_describe_long(pieces):
     """
     if pieces["closest-tag"]:
         rendered = pieces["closest-tag"]
-        rendered += "-%d-g%s" % (pieces["distance"], pieces["short"])  # noqa: UP031
+        rendered += "-%d-g%s" % (pieces["distance"], pieces["short"])  # noqa: UP031 # FIXME CoP
     else:
         # exception #1
         rendered = pieces["short"]
@@ -459,7 +459,7 @@ def render_git_describe_long(pieces):
     return rendered
 
 
-def render(pieces, style):  # noqa: C901 - too complex
+def render(pieces, style):  # noqa: C901 #  too complex
     """Render the given version pieces into the requested style."""
     if pieces["error"]:
         return {
@@ -486,7 +486,7 @@ def render(pieces, style):  # noqa: C901 - too complex
     elif style == "git-describe-long":
         rendered = render_git_describe_long(pieces)
     else:
-        raise ValueError(f"unknown style '{style}'")  # noqa: TRY003
+        raise ValueError(f"unknown style '{style}'")  # noqa: TRY003 # FIXME CoP
 
     return {
         "version": rendered,
@@ -518,7 +518,7 @@ def get_versions():
         # tree (where the .git directory might live) to this file. Invert
         # this to find the root from __file__.
         for _ in cfg.versionfile_source.split("/"):
-            root = os.path.dirname(root)  # noqa: PTH120
+            root = os.path.dirname(root)  # noqa: PTH120 # FIXME CoP
     except NameError:
         return {
             "version": "0+unknown",

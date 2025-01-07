@@ -5,14 +5,16 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues
-from great_expectations.expectations.model_field_types import ConditionParser  # noqa: TCH001
+from great_expectations.expectations.model_field_types import (
+    ConditionParser,  # noqa: TCH001 # FIXME CoP
+)
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -39,7 +41,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -139,7 +140,7 @@ class ExpectTableRowCountToEqual(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     value: Union[int, SuiteParameterDict] = pydantic.Field(description=VALUE_DESCRIPTION)
     row_condition: Union[str, None] = None
@@ -225,7 +226,7 @@ class ExpectTableRowCountToEqual(BatchExpectation):
 
         return [
             RenderedStringTemplateContent(
-                **{  # type: ignore[arg-type]
+                **{  # type: ignore[arg-type] # FIXME CoP
                     "content_block_type": "string_template",
                     "string_template": {
                         "template": template_str,

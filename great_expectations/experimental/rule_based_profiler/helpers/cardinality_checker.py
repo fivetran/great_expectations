@@ -10,7 +10,7 @@ from great_expectations.experimental.rule_based_profiler.exceptions import (
     ProfilerConfigurationError,
 )
 from great_expectations.types import SerializableDictDot
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 
 @dataclass(frozen=True)
@@ -136,7 +136,7 @@ class CardinalityChecker:
 
     def cardinality_within_limit(
         self,
-        metric_value: Union[int, float],  # noqa: PYI041
+        metric_value: Union[int, float],  # noqa: PYI041 # FIXME CoP
     ) -> bool:
         """Determine if the cardinality is within configured limit.
 
@@ -157,20 +157,20 @@ class CardinalityChecker:
         if isinstance(self._cardinality_limit_mode, RelativeCardinalityLimit):
             return float(metric_value) <= self._cardinality_limit_mode.max_proportion_unique
 
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             f'Unknown "cardinality_limit_mode" mode "{self._cardinality_limit_mode}" encountered.'
         )
 
     @staticmethod
-    def _validate_metric_value(metric_value: Union[int, float]) -> None:  # noqa: PYI041
+    def _validate_metric_value(metric_value: Union[int, float]) -> None:  # noqa: PYI041 # FIXME CoP
         if not isinstance(metric_value, (int, float)):
-            raise ProfilerConfigurationError(  # noqa: TRY003
-                f"Value of measured cardinality must be of type int or float, you provided {type(metric_value)}"  # noqa: E501
+            raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
+                f"Value of measured cardinality must be of type int or float, you provided {type(metric_value)}"  # noqa: E501 # FIXME CoP
             )
 
         if metric_value < 0.00:
-            raise ProfilerConfigurationError(  # noqa: TRY003
-                f"Value of cardinality (number of rows or percent unique) should be greater than 0.00, your value is {metric_value}"  # noqa: E501
+            raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
+                f"Value of cardinality (number of rows or percent unique) should be greater than 0.00, your value is {metric_value}"  # noqa: E501 # FIXME CoP
             )
 
     @staticmethod
@@ -181,8 +181,8 @@ class CardinalityChecker:
             try:
                 return CardinalityLimitMode[cardinality_limit_mode.upper()].value
             except KeyError:
-                raise ProfilerConfigurationError(  # noqa: TRY003
-                    f"Please specify a supported cardinality mode. Supported cardinality modes are {[member.name for member in CardinalityLimitMode]}"  # noqa: E501
+                raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
+                    f"Please specify a supported cardinality mode. Supported cardinality modes are {[member.name for member in CardinalityLimitMode]}"  # noqa: E501 # FIXME CoP
                 )
         elif isinstance(cardinality_limit_mode, dict):
             validate_input_parameters(
@@ -207,8 +207,8 @@ class CardinalityChecker:
                         ],
                     )
                 except (KeyError, ValueError):
-                    raise ProfilerConfigurationError(  # noqa: TRY003
-                        f"Please specify a supported cardinality mode.  Supported cardinality modes are {[member.name for member in CardinalityLimitMode]}"  # noqa: E501
+                    raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
+                        f"Please specify a supported cardinality mode.  Supported cardinality modes are {[member.name for member in CardinalityLimitMode]}"  # noqa: E501 # FIXME CoP
                     )
         else:
             return cast(CardinalityLimitMode, cardinality_limit_mode).value
@@ -235,14 +235,14 @@ class CardinalityChecker:
         else:
             assert (
                 max_proportion_unique is not None
-            ), "Guaranteed to have `max_proportion_unique` due to prior call to `validate_input_parameters`"  # noqa: E501
+            ), "Guaranteed to have `max_proportion_unique` due to prior call to `validate_input_parameters`"  # noqa: E501 # FIXME CoP
             return RelativeCardinalityLimit(
                 name=f"CUSTOM_REL_{max_proportion_unique}",
                 max_proportion_unique=max_proportion_unique,
             )
 
 
-def validate_input_parameters(  # noqa: C901
+def validate_input_parameters(  # noqa: C901 # FIXME CoP
     cardinality_limit_mode: str | CardinalityLimitMode | dict | None = None,
     max_unique_values: int | None = None,
     max_proportion_unique: float | None = None,
@@ -257,33 +257,33 @@ def validate_input_parameters(  # noqa: C901
         )
     )
     if num_supplied_params != required_num_supplied_params:
-        raise ProfilerConfigurationError(  # noqa: TRY003
-            f"Please pass ONE of the following parameters: cardinality_limit_mode, max_unique_values, max_proportion_unique, you passed {num_supplied_params} parameters."  # noqa: E501
+        raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
+            f"Please pass ONE of the following parameters: cardinality_limit_mode, max_unique_values, max_proportion_unique, you passed {num_supplied_params} parameters."  # noqa: E501 # FIXME CoP
         )
 
     if cardinality_limit_mode is not None:
         if not isinstance(cardinality_limit_mode, (str, CardinalityLimitMode, dict)):
-            raise ProfilerConfigurationError(  # noqa: TRY003
-                f"Please specify a supported cardinality limit type, supported classes are {','.join(CardinalityChecker.SUPPORTED_LIMIT_MODE_CLASS_NAMES)} and supported strings are {','.join(CardinalityChecker.SUPPORTED_CARDINALITY_LIMIT_MODE_STRINGS)}"  # noqa: E501
+            raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
+                f"Please specify a supported cardinality limit type, supported classes are {','.join(CardinalityChecker.SUPPORTED_LIMIT_MODE_CLASS_NAMES)} and supported strings are {','.join(CardinalityChecker.SUPPORTED_CARDINALITY_LIMIT_MODE_STRINGS)}"  # noqa: E501 # FIXME CoP
             )
 
-        if required_num_supplied_params == 2:  # noqa: PLR2004
+        if required_num_supplied_params == 2:  # noqa: PLR2004 # FIXME CoP
             try:
                 assert isinstance(cardinality_limit_mode, str)
                 return CardinalityLimitMode[cardinality_limit_mode.upper()].value
             except KeyError:
-                raise ProfilerConfigurationError(  # noqa: TRY003
-                    f"Please specify a supported cardinality mode. Supported cardinality modes are {[member.name for member in CardinalityLimitMode]}"  # noqa: E501
+                raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
+                    f"Please specify a supported cardinality mode. Supported cardinality modes are {[member.name for member in CardinalityLimitMode]}"  # noqa: E501 # FIXME CoP
                 )
 
     if max_unique_values is not None:
         if not isinstance(max_unique_values, int):
-            raise ProfilerConfigurationError(  # noqa: TRY003
+            raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
                 f"Please specify an int, you specified a {type(max_unique_values)}"
             )
 
     if max_proportion_unique is not None:
         if not isinstance(max_proportion_unique, (float, int)):
-            raise ProfilerConfigurationError(  # noqa: TRY003
+            raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
                 f"Please specify a float or int, you specified a {type(max_proportion_unique)}"
             )

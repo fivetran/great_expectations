@@ -43,7 +43,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -178,7 +177,7 @@ class ExpectColumnPairValuesAToBeGreaterThanB(ColumnPairMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     or_equal: Union[bool, None] = pydantic.Field(default=None, description=OR_EQUAL_DESCRIPTION)
     ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
@@ -268,7 +267,7 @@ class ExpectColumnPairValuesAToBeGreaterThanB(ColumnPairMapExpectation):
         template_str = ""
 
         if not params.column_A or not params.column_B:
-            template_str += "$column has a bogus `expect_column_pair_values_A_to_be_greater_than_B` expectation. "  # noqa: E501
+            template_str += "$column has a bogus `expect_column_pair_values_A_to_be_greater_than_B` expectation. "  # noqa: E501 # FIXME CoP
 
         if not params.mostly or params.mostly.value == 1.0:
             if not params.or_equal:
@@ -276,15 +275,15 @@ class ExpectColumnPairValuesAToBeGreaterThanB(ColumnPairMapExpectation):
                     "Values in $column_A must always be greater than those in $column_B."
                 )
             else:
-                template_str += "Values in $column_A must always be greater than or equal to those in $column_B."  # noqa: E501
+                template_str += "Values in $column_A must always be greater than or equal to those in $column_B."  # noqa: E501 # FIXME CoP
         else:
             renderer_configuration = cls._add_mostly_pct_param(
                 renderer_configuration=renderer_configuration
             )
             if not params.or_equal:
-                template_str = "Values in $column_A must be greater than those in $column_B, at least $mostly_pct % of the time."  # noqa: E501
+                template_str = "Values in $column_A must be greater than those in $column_B, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
             else:
-                template_str = "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time."  # noqa: E501
+                template_str = "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
         renderer_configuration.template_str = template_str
 
@@ -317,21 +316,21 @@ class ExpectColumnPairValuesAToBeGreaterThanB(ColumnPairMapExpectation):
         )
 
         if (params["column_A"] is None) or (params["column_B"] is None):
-            template_str = "$column has a bogus `expect_column_pair_values_A_to_be_greater_than_B` expectation."  # noqa: E501
+            template_str = "$column has a bogus `expect_column_pair_values_A_to_be_greater_than_B` expectation."  # noqa: E501 # FIXME CoP
             params["row_condition"] = None
 
         if params["mostly"] is None or params["mostly"] == 1.0:
             if params["or_equal"] in [None, False]:
                 template_str = "Values in $column_A must always be greater than those in $column_B."
             else:
-                template_str = "Values in $column_A must always be greater than or equal to those in $column_B."  # noqa: E501
+                template_str = "Values in $column_A must always be greater than or equal to those in $column_B."  # noqa: E501 # FIXME CoP
         else:
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
             # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")
             if params["or_equal"] in [None, False]:
-                template_str = "Values in $column_A must be greater than those in $column_B, at least $mostly_pct % of the time."  # noqa: E501
+                template_str = "Values in $column_A must be greater than those in $column_B, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
             else:
-                template_str = "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time."  # noqa: E501
+                template_str = "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
         if params["row_condition"] is not None:
             (

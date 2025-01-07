@@ -82,7 +82,7 @@ def test_construct_csv_asset_directly():
 
 @pytest.mark.spark
 @pytest.mark.xfail(
-    reason="Accessing objects on pyfakefs.fake_filesystem.FakeFilesystem using Spark is not working (this test is conducted using Jupyter notebook manually)."  # noqa: E501
+    reason="Accessing objects on pyfakefs.fake_filesystem.FakeFilesystem using Spark is not working (this test is conducted using Jupyter notebook manually)."  # noqa: E501 # FIXME CoP
 )
 def test_get_batch_list_from_fully_specified_batch_request(
     spark_dbfs_datasource: SparkDBFSDatasource,

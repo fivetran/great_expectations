@@ -63,7 +63,7 @@ from great_expectations.validator.v1_validator import (
 )
 
 if TYPE_CHECKING:
-    from unittest.mock import MagicMock  # noqa: TID251
+    from unittest.mock import MagicMock  # noqa: TID251 # FIXME CoP
 
     from pytest_mock import MockerFixture
 
@@ -99,7 +99,7 @@ def validation_definition(ephemeral_context: EphemeralDataContext) -> Validation
     context = ephemeral_context
     batch_definition = (
         context.data_sources.add_pandas(DATA_SOURCE_NAME)
-        .add_csv_asset(ASSET_NAME, "taxi.csv")  # type: ignore
+        .add_csv_asset(ASSET_NAME, "taxi.csv")  # type: ignore # FIXME CoP
         .add_batch_definition(BATCH_DEFINITION_NAME)
     )
     return context.validation_definitions.add(
@@ -165,7 +165,7 @@ def cloud_validation_definition(
     context = empty_cloud_data_context
     batch_definition = (
         empty_cloud_data_context.data_sources.add_pandas(DATA_SOURCE_NAME)
-        .add_csv_asset(ASSET_NAME, "taxi.csv")  # type: ignore
+        .add_csv_asset(ASSET_NAME, "taxi.csv")  # type: ignore # FIXME CoP
         .add_batch_definition(BATCH_DEFINITION_NAME)
     )
     suite = context.suites.add(ExpectationSuite(name="my_suite"))

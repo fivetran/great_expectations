@@ -96,8 +96,8 @@ class ExpectationsStore(Store):
             store_name=store_name,
         )
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "store_backend": store_backend,
             "runtime_environment": runtime_environment,
@@ -120,7 +120,7 @@ class ExpectationsStore(Store):
             if len(response_json["data"]) == 1:
                 suite_data = response_json["data"][0]
             else:
-                raise ValueError(  # noqa: TRY003
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
                     "More than one Expectation Suite was found with the expectation_suite_name."
                 )
         else:
@@ -160,17 +160,17 @@ class ExpectationsStore(Store):
             if len(new_ids) > 1:
                 # edge case: suite has been changed remotely, and one or more new expectations
                 #            have been added. Since the store doesn't return the updated object,
-                #            we have no reliable way to know which new ID belongs to this expectation,  # noqa: E501
+                #            we have no reliable way to know which new ID belongs to this expectation,  # noqa: E501 # FIXME CoP
                 #            so we raise an exception and ask the user to refresh their suite.
                 #            The Expectation should have been successfully added to the suite.
-                raise RuntimeError(  # noqa: TRY003
-                    "Expectation was added, however this ExpectationSuite is out of sync with the Cloud backend. "  # noqa: E501
-                    f'Please fetch the latest state of this suite by calling `context.suites.get(name="{suite.name}")`.'  # noqa: E501
+                raise RuntimeError(  # noqa: TRY003 # FIXME CoP
+                    "Expectation was added, however this ExpectationSuite is out of sync with the Cloud backend. "  # noqa: E501 # FIXME CoP
+                    f'Please fetch the latest state of this suite by calling `context.suites.get(name="{suite.name}")`.'  # noqa: E501 # FIXME CoP
                 )
             elif len(new_ids) == 0:
-                # edge case: this is an unexpected state - if the cloud backend failed to add the expectation,  # noqa: E501
+                # edge case: this is an unexpected state - if the cloud backend failed to add the expectation,  # noqa: E501 # FIXME CoP
                 #            it should have already raised an exception.
-                raise RuntimeError("Unknown error occurred and Expectation was not added.")  # noqa: TRY003
+                raise RuntimeError("Unknown error occurred and Expectation was not added.")  # noqa: TRY003 # FIXME CoP
             else:
                 new_id = new_ids[0]
             expectation.id = new_id
@@ -180,7 +180,7 @@ class ExpectationsStore(Store):
         suite_identifier, fetched_suite = self._refresh_suite(suite)
 
         if expectation.id not in {exp.id for exp in fetched_suite.expectations}:
-            raise KeyError("Cannot update Expectation because it was not found.")  # noqa: TRY003
+            raise KeyError("Cannot update Expectation because it was not found.")  # noqa: TRY003 # FIXME CoP
 
         for i, old_expectation in enumerate(fetched_suite.expectations):
             if old_expectation.id == expectation.id:
@@ -197,7 +197,7 @@ class ExpectationsStore(Store):
         suite_identifier, suite = self._refresh_suite(suite)
 
         if expectation.id not in {exp.id for exp in suite.expectations}:
-            raise KeyError("Cannot delete Expectation because it was not found.")  # noqa: TRY003
+            raise KeyError("Cannot delete Expectation because it was not found.")  # noqa: TRY003 # FIXME CoP
 
         for i, old_expectation in enumerate(suite.expectations):
             if old_expectation.id == expectation.id:
@@ -235,7 +235,7 @@ class ExpectationsStore(Store):
                 )
             return result
         except gx_exceptions.StoreBackendError as exc:
-            raise gx_exceptions.ExpectationSuiteError(  # noqa: TRY003
+            raise gx_exceptions.ExpectationSuiteError(  # noqa: TRY003 # FIXME CoP
                 f"An error occurred while trying to save ExpectationSuite: {exc.message}"
             ) from exc
 
@@ -287,7 +287,7 @@ class ExpectationsStore(Store):
         # enforce that every ID in this suite is unique
         expectation_ids = [exp.id for exp in suite.expectations if exp.id]
         if len(expectation_ids) != len(set(expectation_ids)):
-            raise RuntimeError("Expectation IDs must be unique within a suite.")  # noqa: TRY003
+            raise RuntimeError("Expectation IDs must be unique within a suite.")  # noqa: TRY003 # FIXME CoP
 
         for expectation in suite.expectations:
             if not expectation.id:
@@ -310,14 +310,14 @@ class ExpectationsStore(Store):
 
     @override
     def get(self, key) -> dict:
-        return super().get(key)  # type: ignore[return-value]
+        return super().get(key)  # type: ignore[return-value] # FIXME CoP
 
     @override
-    def _validate_key(  # type: ignore[override]
+    def _validate_key(  # type: ignore[override] # FIXME CoP
         self, key: ExpectationSuiteIdentifier | GXCloudIdentifier
     ) -> None:
         if isinstance(key, GXCloudIdentifier) and not key.id and not key.resource_name:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "GXCloudIdentifier for ExpectationsStore must contain either "
                 "an id or a resource_name, but neither are present."
             )
@@ -336,7 +336,7 @@ class ExpectationsStore(Store):
         elif isinstance(value, str):
             return self._expectationSuiteSchema.loads(value)
         else:
-            raise TypeError(f"Cannot deserialize value of unknown type: {type(value)}")  # noqa: TRY003
+            raise TypeError(f"Cannot deserialize value of unknown type: {type(value)}")  # noqa: TRY003 # FIXME CoP
 
     def deserialize_suite_dict(self, suite_dict: dict) -> ExpectationSuite:
         suite = ExpectationSuite(**suite_dict)

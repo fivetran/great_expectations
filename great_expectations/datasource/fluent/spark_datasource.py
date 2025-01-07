@@ -86,16 +86,16 @@ class _SparkDatasource(Datasource):
             # deprecated-v1.0.0
             warnings.warn(
                 "force_reuse_spark_context is deprecated and will be removed in version 1.0. "
-                "In environments that allow it, the existing Spark context will be reused, adding the "  # noqa: E501
-                "spark_config options that have been passed. If the Spark context cannot be updated with "  # noqa: E501
-                "the spark_config, the context will be stopped and restarted with the new spark_config.",  # noqa: E501
+                "In environments that allow it, the existing Spark context will be reused, adding the "  # noqa: E501 # FIXME CoP
+                "spark_config options that have been passed. If the Spark context cannot be updated with "  # noqa: E501 # FIXME CoP
+                "the spark_config, the context will be stopped and restarted with the new spark_config.",  # noqa: E501 # FIXME CoP
                 category=DeprecationWarning,
             )
         return v
 
     @classmethod
     @override
-    def update_forward_refs(cls) -> None:  # type: ignore[override]
+    def update_forward_refs(cls) -> None:  # type: ignore[override] # FIXME CoP
         from great_expectations.compatibility.pyspark import SparkSession
 
         super().update_forward_refs(SparkSession=SparkSession)
@@ -129,7 +129,7 @@ class _SparkDatasource(Datasource):
 
     @override
     def get_execution_engine(self) -> SparkDFExecutionEngine:
-        # Method override is required because PrivateAttr _spark won't be passed into Execution Engine  # noqa: E501
+        # Method override is required because PrivateAttr _spark won't be passed into Execution Engine  # noqa: E501 # FIXME CoP
         # unless it is passed explicitly.
         current_execution_engine_kwargs = self.dict(
             exclude=self._get_exec_engine_excludes(),
@@ -172,6 +172,10 @@ class _SparkDatasource(Datasource):
 
 @public_api
 class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
+    """
+    A DataAsset that represents a Spark DataFrame.
+    """
+
     # instance attributes
     type: Literal["dataframe"] = "dataframe"
 
@@ -191,12 +195,12 @@ class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
 
     def _get_reader_method(self) -> str:
         raise NotImplementedError(
-            """Spark DataFrameAsset does not implement "_get_reader_method()" method, because DataFrame is already available."""  # noqa: E501
+            """Spark DataFrameAsset does not implement "_get_reader_method()" method, because DataFrame is already available."""  # noqa: E501 # FIXME CoP
         )
 
     def _get_reader_options_include(self) -> set[str]:
         raise NotImplementedError(
-            """Spark DataFrameAsset does not implement "_get_reader_options_include()" method, because DataFrame is already available."""  # noqa: E501
+            """Spark DataFrameAsset does not implement "_get_reader_options_include()" method, because DataFrame is already available."""  # noqa: E501 # FIXME CoP
         )
 
     @override
@@ -263,9 +267,9 @@ class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
                 datasource_name=self.datasource.name,
                 data_asset_name=self.name,
                 options={},
-                batch_slice=batch_request._batch_slice_input,  # type: ignore[attr-defined]
+                batch_slice=batch_request._batch_slice_input,  # type: ignore[attr-defined] # FIXME CoP
             )
-            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
+            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
                 "BatchRequest should have form:\n"
                 f"{pf(expect_batch_request_form.dict())}\n"
                 f"but actually has form:\n{pf(batch_request.dict())}\n"
@@ -311,6 +315,15 @@ class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
 
     @public_api
     def add_batch_definition_whole_dataframe(self, name: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition that represents the entire DataFrame.
+
+        Args:
+            name: The name of the Batch Definition.
+
+        Returns:
+            A BatchDefinition object that represents the entire DataFrame.
+        """
         return self.add_batch_definition(
             name=name,
             partitioner=None,
@@ -327,6 +340,11 @@ class DataFrameAsset(DataAsset, Generic[_SparkDataFrameT]):
 
 @public_api
 class SparkDatasource(_SparkDatasource):
+    """
+    A SparkDatasource is a Datasource that connects to a Spark cluster and provides
+    access to Spark DataFrames.
+    """
+
     # class attributes
     asset_types: ClassVar[List[Type[DataAsset]]] = [DataFrameAsset]
 
@@ -351,7 +369,7 @@ class SparkDatasource(_SparkDatasource):
 
         Returns:
             The DataFameAsset that has been added to this datasource.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         asset: DataFrameAsset = DataFrameAsset(
             name=name,
             batch_metadata=batch_metadata or {},

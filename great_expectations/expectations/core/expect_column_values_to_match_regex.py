@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -41,7 +41,15 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 REGEX_DESCRIPTION = "The regular expression the column entries should match."
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
+SUPPORTED_DATA_SOURCES = [
+    "Pandas",
+    "Spark",
+    "PostgreSQL",
+    "MySQL",
+    "Databricks (SQL)",
+    "BigQuery",
+    "SQLite",
+]
 
 
 class ExpectColumnValuesToMatchRegex(ColumnMapExpectation):
@@ -98,6 +106,8 @@ class ExpectColumnValuesToMatchRegex(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -167,7 +177,7 @@ class ExpectColumnValuesToMatchRegex(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     regex: Union[str, SuiteParameterDict] = pydantic.Field(
         default="(?s).*", description=REGEX_DESCRIPTION
@@ -235,7 +245,7 @@ class ExpectColumnValuesToMatchRegex(ColumnMapExpectation):
         mostly = configuration.kwargs.get("mostly")
         regex = configuration.kwargs.get("regex")
 
-        return f'Do at least {mostly * 100}% of values in column "{column}" match the regular expression {regex}?'  # noqa: E501
+        return f'Do at least {mostly * 100}% of values in column "{column}" match the regular expression {regex}?'  # noqa: E501 # FIXME CoP
 
     @classmethod
     @renderer(renderer_type=LegacyRendererType.ANSWER)
@@ -244,9 +254,9 @@ class ExpectColumnValuesToMatchRegex(ColumnMapExpectation):
         mostly = result.expectation_config.kwargs.get("mostly")
         regex = result.expectation_config.kwargs.get("regex")
         if result.success:
-            return f'At least {mostly * 100}% of values in column "{column}" match the regular expression {regex}.'  # noqa: E501
+            return f'At least {mostly * 100}% of values in column "{column}" match the regular expression {regex}.'  # noqa: E501 # FIXME CoP
         else:
-            return f'Less than {mostly * 100}% of values in column "{column}" match the regular expression {regex}.'  # noqa: E501
+            return f'Less than {mostly * 100}% of values in column "{column}" match the regular expression {regex}.'  # noqa: E501 # FIXME CoP
 
     @classmethod
     def _prescriptive_template(
@@ -306,7 +316,7 @@ class ExpectColumnValuesToMatchRegex(ColumnMapExpectation):
             template_str = "values must match this regular expression: $regex"
             if params["mostly"] is not None and params["mostly"] < 1.0:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 template_str += ", at least $mostly_pct % of the time."
             else:
                 template_str += "."

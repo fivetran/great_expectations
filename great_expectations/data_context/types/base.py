@@ -49,7 +49,7 @@ from great_expectations.data_context.constants import (
 )
 from great_expectations.types import DictDot, SerializableDictDot
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     deep_filter_properties_iterable,
 )
 
@@ -99,13 +99,13 @@ class BaseYamlConfig(SerializableDictDot):
     @classmethod
     def _get_schema_instance(cls: Type[BYC]) -> Schema:
         if not issubclass(cls.get_schema_class(), Schema):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
-                "Invalid type: A configuration schema class needs to inherit from the Marshmallow Schema class."  # noqa: E501
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
+                "Invalid type: A configuration schema class needs to inherit from the Marshmallow Schema class."  # noqa: E501 # FIXME CoP
             )
 
         if not issubclass(cls.get_config_class(), BaseYamlConfig):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
-                "Invalid type: A configuration class needs to inherit from the BaseYamlConfig class."  # noqa: E501
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
+                "Invalid type: A configuration class needs to inherit from the BaseYamlConfig class."  # noqa: E501 # FIXME CoP
             )
 
         if hasattr(cls.get_config_class(), "_schema_instance"):
@@ -130,7 +130,7 @@ class BaseYamlConfig(SerializableDictDot):
 
             return config
         except ValidationError:
-            logger.error(  # noqa: TRY400
+            logger.error(  # noqa: TRY400 # FIXME CoP
                 "Encountered errors during loading config.  See ValidationError for more details."
             )
             raise
@@ -177,7 +177,7 @@ class BaseYamlConfig(SerializableDictDot):
 
 
 class SorterConfig(DictDot):
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         name,
         class_name=None,
@@ -295,7 +295,7 @@ class SorterConfigSchema(Schema):
 
 
 class AssetConfig(SerializableDictDot):
-    def __init__(  # noqa: C901, PLR0912, PLR0913
+    def __init__(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
         self,
         name: Optional[str] = None,
         class_name: Optional[str] = None,
@@ -364,9 +364,9 @@ class AssetConfig(SerializableDictDot):
             A JSON-serializable dict representation of this AssetConfig.
         """
         # TODO: <Alex>2/4/2022</Alex>
-        # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501
-        # reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,  # noqa: E501
-        # due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules  # noqa: E501
+        # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501 # FIXME CoP
+        # reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,  # noqa: E501 # FIXME CoP
+        # due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules  # noqa: E501 # FIXME CoP
         # make this refactoring infeasible at the present time.
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
@@ -462,7 +462,7 @@ class AssetConfigSchema(Schema):
 
 
 class DataConnectorConfig(AbstractConfig):
-    def __init__(  # noqa: C901, PLR0912, PLR0913, PLR0915
+    def __init__(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
         self,
         class_name,
         name: Optional[str] = None,
@@ -597,9 +597,9 @@ class DataConnectorConfig(AbstractConfig):
             A JSON-serializable dict representation of this DataConnectorConfig.
         """
         # # TODO: <Alex>2/4/2022</Alex>
-        # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501
-        # reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,  # noqa: E501
-        # due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules  # noqa: E501
+        # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501 # FIXME CoP
+        # reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,  # noqa: E501 # FIXME CoP
+        # due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules  # noqa: E501 # FIXME CoP
         # make this refactoring infeasible at the present time.
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
@@ -696,8 +696,8 @@ class DataConnectorConfigSchema(AbstractConfigSchema):
 
     # noinspection PyUnusedLocal
     @validates_schema
-    def validate_schema(self, data, **kwargs):  # noqa: C901, PLR0912
-        # If a class_name begins with the dollar sign ("$"), then it is assumed to be a variable name to be substituted.  # noqa: E501
+    def validate_schema(self, data, **kwargs):  # noqa: C901, PLR0912 # FIXME CoP
+        # If a class_name begins with the dollar sign ("$"), then it is assumed to be a variable name to be substituted.  # noqa: E501 # FIXME CoP
         if data["class_name"][0] == "$":
             return
         if ("default_regex" in data) and not (
@@ -715,11 +715,11 @@ class DataConnectorConfigSchema(AbstractConfigSchema):
                 "ConfiguredAssetDBFSDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by a
 subclass of the FilePathDataConnector class (your data connector is "{data['class_name']}").  Please update your
 configuration to continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if ("glob_directive" in data) and not (
             data["class_name"]  # noqa: E713 # membership check
@@ -730,11 +730,11 @@ configuration to continue.
                 "ConfiguredAssetDBFSDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by a
 filesystem type of the data connector (your data connector is "{data['class_name']}").  Please update your
 configuration to continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if ("delimiter" in data) and not (
             data["class_name"]  # noqa: E713 # membership check
@@ -747,11 +747,11 @@ configuration to continue.
                 "ConfiguredAssetGCSDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
 S3/Azure/GCS type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration \
 to continue.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
         if ("prefix" in data) and not (
             data["class_name"]  # noqa: E713 # membership check
@@ -762,11 +762,11 @@ to continue.
                 "ConfiguredAssetGCSDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
 S3/GCS type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
 continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if ("bucket" in data or "max_keys" in data) and not (
             data["class_name"]  # noqa: E713 # membership check
@@ -775,11 +775,11 @@ continue.
                 "ConfiguredAssetS3DataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
 S3 type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
 continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if ("azure_options" in data or "container" in data or "name_starts_with" in data) and not (
             data["class_name"]  # noqa: E713 # membership check
@@ -788,11 +788,11 @@ continue.
                 "ConfiguredAssetAzureDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
 Azure type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
 continue.
-                    """  # noqa: E501
+                    """  # noqa: E501 # FIXME CoP
             )
         if "azure_options" in data and data["class_name"] in [
             "InferredAssetAzureDataConnector",
@@ -800,11 +800,11 @@ continue.
         ]:
             azure_options = data["azure_options"]
             if not (("conn_str" in azure_options) ^ ("account_url" in azure_options)):
-                raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+                raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                     """Your current configuration is either missing methods of authentication or is using too many for \
 the Azure type of data connector. You must only select one between `conn_str` or `account_url`. Please update your \
 configuration to continue.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
                 )
         if ("gcs_options" in data or "bucket_or_name" in data or "max_results" in data) and not (
             data["class_name"]  # noqa: E713 # membership check
@@ -813,11 +813,11 @@ configuration to continue.
                 "ConfiguredAssetGCSDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by a
 GCS type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
 continue.
-                    """  # noqa: E501
+                    """  # noqa: E501 # FIXME CoP
             )
         if "gcs_options" in data and data["class_name"] in [
             "InferredAssetGCSDataConnector",
@@ -825,11 +825,11 @@ continue.
         ]:
             gcs_options = data["gcs_options"]
             if "filename" in gcs_options and "info" in gcs_options:
-                raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+                raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                     """Your current configuration can only use a single method of authentication for the GCS type of \
 data connector. You must only select one between `filename` (from_service_account_file) and `info` \
 (from_service_account_info). Please update your configuration to continue.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
                 )
         if (
             "include_schema_name" in data
@@ -845,11 +845,11 @@ data connector. You must only select one between `filename` (from_service_accoun
                 "ConfiguredAssetSqlDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
 SQL type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
 continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if (
             "data_asset_name_prefix" in data
@@ -865,11 +865,11 @@ continue.
                 "ConfiguredAssetAWSGlueDataCatalogDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
 SQL/GlueCatalog type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
 continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
 
         if (
@@ -881,11 +881,11 @@ continue.
                 "ConfiguredAssetAWSGlueDataCatalogDataConnector",
             ]
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
 GlueCatalog type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
 continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
 
     # noinspection PyUnusedLocal
@@ -917,7 +917,7 @@ continue.
 
 
 class ExecutionEngineConfig(DictDot):
-    def __init__(  # noqa: C901, PLR0913
+    def __init__(  # noqa: C901, PLR0913 # FIXME CoP
         self,
         class_name,
         module_name=None,
@@ -1012,24 +1012,24 @@ class ExecutionEngineConfigSchema(Schema):
     # noinspection PyUnusedLocal
     @validates_schema
     def validate_schema(self, data, **kwargs):
-        # If a class_name begins with the dollar sign ("$"), then it is assumed to be a variable name to be substituted.  # noqa: E501
+        # If a class_name begins with the dollar sign ("$"), then it is assumed to be a variable name to be substituted.  # noqa: E501 # FIXME CoP
         if data["class_name"][0] == "$":
             return
         if ("connection_string" in data or "credentials" in data) and not (
             data["class_name"] == "SqlAlchemyExecutionEngine"
         ):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses the "connection_string" key in an execution engine, but only
 SqlAlchemyExecutionEngine requires this attribute (your execution engine is "{data['class_name']}").  Please update your
 configuration to continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if "spark_config" in data and not (data["class_name"] == "SparkDFExecutionEngine"):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses the "spark_config" key in an execution engine, but only
 SparkDFExecutionEngine requires this attribute (your execution engine is "{data['class_name']}").  Please update your
 configuration to continue.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
 
     # noinspection PyUnusedLocal
@@ -1064,7 +1064,7 @@ class GXCloudConfig(DictDot):
     ) -> None:
         # access_token was given a default value to maintain arg position of organization_id
         if access_token is None:
-            raise ValueError("Access token cannot be None.")  # noqa: TRY003
+            raise ValueError("Access token cannot be None.")  # noqa: TRY003 # FIXME CoP
 
         # The base url doesn't point to a specific resource but is the prefix for constructing GX
         # cloud urls. We want it to end in a '/' so we can manipulate it using tools such as
@@ -1092,8 +1092,8 @@ class GXCloudConfig(DictDot):
 
 
 class DataContextConfigSchema(Schema):
-    config_version = fields.Number(
-        validate=lambda x: 0 < x < 100,  # noqa: PLR2004
+    config_version: fields.Number = fields.Number(
+        validate=lambda x: 0 < x < 100,  # noqa: PLR2004 # FIXME CoP
         error_messages={"invalid": "config version must " "be a number."},
     )
     fluent_datasources = fields.Dict(
@@ -1114,7 +1114,7 @@ class DataContextConfigSchema(Schema):
     progress_bars = fields.Nested(ProgressBarsConfigSchema, required=False, allow_none=True)
 
     # To ensure backwards compatability, we need to ensure that new options are "opt-in"
-    # If a user has not explicitly configured the value, it will be None and will be wiped by the post_dump hook  # noqa: E501
+    # If a user has not explicitly configured the value, it will be None and will be wiped by the post_dump hook  # noqa: E501 # FIXME CoP
     REMOVE_KEYS_IF_NONE = [
         "progress_bars",  # 0.13.49
         "fluent_datasources",
@@ -1130,7 +1130,7 @@ class DataContextConfigSchema(Schema):
         return data
 
     @override
-    def handle_error(self, exc, data, **kwargs) -> None:  # type: ignore[override]
+    def handle_error(self, exc, data, **kwargs) -> None:  # type: ignore[override] # FIXME CoP
         """Log and raise our custom exception when (de)serialization fails."""
         if (
             exc
@@ -1150,13 +1150,13 @@ class DataContextConfigSchema(Schema):
     @validates_schema
     def validate_schema(self, data, **kwargs) -> None:
         if "config_version" not in data:
-            raise gx_exceptions.InvalidDataContextConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidDataContextConfigError(  # noqa: TRY003 # FIXME CoP
                 "The key `config_version` is missing; please check your config file.",
                 validation_error=ValidationError(message="no config_version key"),
             )
 
         if not isinstance(data["config_version"], (int, float)):
-            raise gx_exceptions.InvalidDataContextConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidDataContextConfigError(  # noqa: TRY003 # FIXME CoP
                 "The key `config_version` must be a number. Please check your config file.",
                 validation_error=ValidationError(message="config version not a number"),
             )
@@ -1166,13 +1166,13 @@ class DataContextConfigSchema(Schema):
             store_config["class_name"] == "ValidationResultsStore"
             for store_config in data["stores"].values()
         ):
-            raise gx_exceptions.UnsupportedConfigVersionError(  # noqa: TRY003
-                "You appear to be using a config version from the 0.7.x series. This version is no longer supported."  # noqa: E501
+            raise gx_exceptions.UnsupportedConfigVersionError(  # noqa: TRY003 # FIXME CoP
+                "You appear to be using a config version from the 0.7.x series. This version is no longer supported."  # noqa: E501 # FIXME CoP
             )
 
         if data["config_version"] < MINIMUM_SUPPORTED_CONFIG_VERSION:
             raise gx_exceptions.UnsupportedConfigVersionError(
-                "You appear to have an invalid config version ({}).\n    The version number must be at least {}. "  # noqa: E501
+                "You appear to have an invalid config version ({}).\n    The version number must be at least {}. "  # noqa: E501 # FIXME CoP
                 "Please see the migration guide at https://docs.greatexpectations.io/docs/guides/miscellaneous/migration_guide#migrating-to-the-batch-request-v3-api".format(
                     data["config_version"], MINIMUM_SUPPORTED_CONFIG_VERSION
                 ),
@@ -1180,7 +1180,7 @@ class DataContextConfigSchema(Schema):
 
         if data["config_version"] > CURRENT_GX_CONFIG_VERSION:
             raise gx_exceptions.InvalidDataContextConfigError(
-                "You appear to have an invalid config version ({}).\n    The maximum valid version is {}.".format(  # noqa: E501
+                "You appear to have an invalid config version ({}).\n    The maximum valid version is {}.".format(  # noqa: E501 # FIXME CoP
                     data["config_version"], CURRENT_GX_CONFIG_VERSION
                 ),
                 validation_error=ValidationError(message="config version too high"),
@@ -1289,12 +1289,12 @@ class BaseStoreBackendDefaults(DictDot):
     Define base defaults for platform specific StoreBackendDefaults.
     StoreBackendDefaults define defaults for specific cases of often used configurations.
     For example, if you plan to store expectations, validations, and data_docs in s3 use the S3StoreBackendDefaults and you may be able to specify less parameters.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
-        expectations_store_name: str = DataContextConfigDefaults.DEFAULT_EXPECTATIONS_STORE_NAME.value,  # noqa: E501
-        validation_results_store_name: str = DataContextConfigDefaults.DEFAULT_VALIDATIONS_STORE_NAME.value,  # noqa: E501
+        expectations_store_name: str = DataContextConfigDefaults.DEFAULT_EXPECTATIONS_STORE_NAME.value,  # noqa: E501 # FIXME CoP
+        validation_results_store_name: str = DataContextConfigDefaults.DEFAULT_VALIDATIONS_STORE_NAME.value,  # noqa: E501 # FIXME CoP
         checkpoint_store_name: str = DataContextConfigDefaults.DEFAULT_CHECKPOINT_STORE_NAME.value,
         data_docs_site_name: str = DataContextConfigDefaults.DEFAULT_DATA_DOCS_SITE_NAME.value,
         stores: Optional[dict] = None,
@@ -1336,7 +1336,7 @@ class S3StoreBackendDefaults(BaseStoreBackendDefaults):
         checkpoint_store_name: Overrides default if supplied
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         default_bucket_name: Optional[str] = None,
         expectations_store_bucket_name: Optional[str] = None,
@@ -1444,19 +1444,19 @@ class FilesystemStoreBackendDefaults(BaseStoreBackendDefaults):
         self.plugins_directory = str(plugins_directory)
         if root_directory is not None:
             root_directory = str(root_directory)
-            self.stores[self.expectations_store_name]["store_backend"][  # type: ignore[index]
+            self.stores[self.expectations_store_name]["store_backend"][  # type: ignore[index] # FIXME CoP
                 "root_directory"
             ] = root_directory
-            self.stores[self.validation_results_store_name]["store_backend"][  # type: ignore[index]
+            self.stores[self.validation_results_store_name]["store_backend"][  # type: ignore[index] # FIXME CoP
                 "root_directory"
             ] = root_directory
-            self.stores[self.checkpoint_store_name]["store_backend"][  # type: ignore[index]
+            self.stores[self.checkpoint_store_name]["store_backend"][  # type: ignore[index] # FIXME CoP
                 "root_directory"
             ] = root_directory
-            self.stores[self.validation_definition_store_name]["store_backend"][  # type: ignore[index]
+            self.stores[self.validation_definition_store_name]["store_backend"][  # type: ignore[index] # FIXME CoP
                 "root_directory"
             ] = root_directory
-            self.data_docs_sites[self.data_docs_site_name]["store_backend"][  # type: ignore[index]
+            self.data_docs_sites[self.data_docs_site_name]["store_backend"][  # type: ignore[index] # FIXME CoP
                 "root_directory"
             ] = root_directory
 
@@ -1505,7 +1505,7 @@ class InMemoryStoreBackendDefaults(BaseStoreBackendDefaults):
             temp_dir = tempfile.TemporaryDirectory()
             path = temp_dir.name
             logger.info(f"Created temporary directory '{path}' for ephemeral docs site")
-            self.data_docs_sites[DataContextConfigDefaults.DEFAULT_DATA_DOCS_SITE_NAME.value][  # type: ignore[index]
+            self.data_docs_sites[DataContextConfigDefaults.DEFAULT_DATA_DOCS_SITE_NAME.value][  # type: ignore[index] # FIXME CoP
                 "store_backend"
             ]["base_directory"] = path
         else:
@@ -1533,9 +1533,9 @@ class GCSStoreBackendDefaults(BaseStoreBackendDefaults):
         expectations_store_name: Overrides default if supplied
         validation_results_store_name: Overrides default if supplied
         checkpoint_store_name: Overrides default if supplied
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: C901, PLR0913
+    def __init__(  # noqa: C901, PLR0913 # FIXME CoP
         self,
         default_bucket_name: Optional[str] = None,
         default_project_name: Optional[str] = None,
@@ -1655,9 +1655,9 @@ class DatabaseStoreBackendDefaults(BaseStoreBackendDefaults):
         expectations_store_name: Overrides default if supplied
         validation_results_store_name: Overrides default if supplied
         checkpoint_store_name: Overrides default if supplied
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         default_credentials: Optional[Dict] = None,
         expectations_store_credentials: Optional[Dict] = None,
@@ -1671,7 +1671,7 @@ class DatabaseStoreBackendDefaults(BaseStoreBackendDefaults):
         # Initialize base defaults
         super().__init__()
 
-        # Use default credentials if separate credentials not supplied for expectations_store and validation_results_store  # noqa: E501
+        # Use default credentials if separate credentials not supplied for expectations_store and validation_results_store  # noqa: E501 # FIXME CoP
         if expectations_store_credentials is None:
             expectations_store_credentials = default_credentials
         if validation_results_store_credentials is None:
@@ -1748,9 +1748,9 @@ class DataContextConfig(BaseYamlConfig):
         commented_map (Optional[CommentedMap]): the CommentedMap associated with DataContext configuration. Used when
             instantiating with yml file.
         progress_bars (Optional[ProgressBarsConfig]): allows progress_bars to be enabled or disabled globally or for metrics calculations.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         config_version: Optional[float] = None,
         fluent_datasources: Optional[dict] = None,
@@ -1772,7 +1772,7 @@ class DataContextConfig(BaseYamlConfig):
             config_version = DataContextConfigDefaults.DEFAULT_CONFIG_VERSION.value
 
         # Set defaults via store_backend_defaults if one is passed in
-        # Override attributes from store_backend_defaults with any items passed into the constructor:  # noqa: E501
+        # Override attributes from store_backend_defaults with any items passed into the constructor:  # noqa: E501 # FIXME CoP
         if store_backend_defaults is not None:
             if stores is None:
                 stores = store_backend_defaults.stores
@@ -1809,8 +1809,8 @@ class DataContextConfig(BaseYamlConfig):
         configured_stores = {config["class_name"] for config in store_configs.values()}
         for name, config in DataContextConfigDefaults.DEFAULT_STORES.value.items():
             if not isinstance(config, dict):
-                raise ValueError(  # noqa: TRY003, TRY004
-                    "Store defaults must be a mapping of default names to default dictionary configurations."  # noqa: E501
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+                    "Store defaults must be a mapping of default names to default dictionary configurations."  # noqa: E501 # FIXME CoP
                 )
             if config["class_name"] not in configured_stores:
                 # Create ephemeral store config
@@ -1844,9 +1844,9 @@ class DataContextConfig(BaseYamlConfig):
             A JSON-serializable dict representation of this DataContextConfig.
         """
         # TODO: <Alex>2/4/2022</Alex>
-        # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501
-        # reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,  # noqa: E501
-        # due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules  # noqa: E501
+        # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501 # FIXME CoP
+        # reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,  # noqa: E501 # FIXME CoP
+        # due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules  # noqa: E501 # FIXME CoP
         # make this refactoring infeasible at the present time.
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
@@ -1874,7 +1874,7 @@ class DataContextConfig(BaseYamlConfig):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_sanitized_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -1896,7 +1896,7 @@ class DataContextConfig(BaseYamlConfig):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()
 
 

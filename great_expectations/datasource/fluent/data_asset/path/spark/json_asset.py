@@ -17,7 +17,7 @@ from great_expectations.datasource.fluent.serializable_types.pyspark import (
 
 
 class JSONAssetBase(_SparkGenericFilePathAssetMixin):
-    # vvv spark parameters for pyspark.sql.DataFrameReader.json() (ordered as in pyspark v3.4.0) appear in comment above  # noqa: E501
+    # vvv spark parameters for pyspark.sql.DataFrameReader.json() (ordered as in pyspark v3.4.0) appear in comment above  # noqa: E501 # FIXME CoP
     # parameter for reference (from https://github.com/apache/spark/blob/v3.4.0/python/pyspark/sql/readwriter.py#L309)
     # path: Union[str, List[str], RDD[str]],
     # NA - path determined by asset

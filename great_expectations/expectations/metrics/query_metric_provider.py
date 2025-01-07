@@ -69,9 +69,9 @@ class QueryMetricProvider(MetricProvider):
             query_param
         )
         if not query:
-            raise ValueError(f"Must provide `{query_param}` to `{cls.__name__}` metric.")  # noqa: TRY003
+            raise ValueError(f"Must provide `{query_param}` to `{cls.__name__}` metric.")  # noqa: TRY003 # FIXME CoP
         if not isinstance(query, str):
-            raise TypeError(f"`{query_param}` must be provided as a string.")  # noqa: TRY003
+            raise TypeError(f"`{query_param}` must be provided as a string.")  # noqa: TRY003 # FIXME CoP
 
         return query
 

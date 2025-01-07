@@ -11,7 +11,7 @@ from great_expectations.compatibility import pyspark, sqlalchemy
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.types import SerializableDictDot
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     deep_filter_properties_iterable,
 )
 
@@ -25,17 +25,17 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _condition_metric_values(metric_values: MetricValues) -> MetricValues:  # noqa: C901
-    def _detect_illegal_array_type_or_shape(values: MetricValues) -> bool:  # noqa: C901
-        # Pandas "DataFrame" and "Series" are illegal as candidates for conversion into "numpy.ndarray" type.  # noqa: E501
+def _condition_metric_values(metric_values: MetricValues) -> MetricValues:  # noqa: C901 # FIXME CoP
+    def _detect_illegal_array_type_or_shape(values: MetricValues) -> bool:  # noqa: C901 # FIXME CoP
+        # Pandas "DataFrame" and "Series" are illegal as candidates for conversion into "numpy.ndarray" type.  # noqa: E501 # FIXME CoP
         if isinstance(
             values,
             deep_filter_properties_iterable(
                 properties=(
                     pd.DataFrame,
                     pd.Series,
-                    sqlalchemy.Row if sqlalchemy.Row else None,  # type: ignore[truthy-function]
-                    pyspark.Row if pyspark.Row else None,  # type: ignore[truthy-function]
+                    sqlalchemy.Row if sqlalchemy.Row else None,  # type: ignore[truthy-function] # FIXME CoP
+                    pyspark.Row if pyspark.Row else None,  # type: ignore[truthy-function] # FIXME CoP
                     set,
                 )
             ),
@@ -48,7 +48,7 @@ def _condition_metric_values(metric_values: MetricValues) -> MetricValues:  # no
                 values = deep_filter_properties_iterable(properties=values)
                 if values:
                     values_iterator: Iterator
-                    # Components of different lengths cannot be packaged into "numpy.ndarray" type (due to undefined shape).  # noqa: E501
+                    # Components of different lengths cannot be packaged into "numpy.ndarray" type (due to undefined shape).  # noqa: E501 # FIXME CoP
                     if all(isinstance(value, (list, tuple)) for value in values):
                         values_iterator = iter(values)
                         first_value_length: int = len(next(values_iterator))
@@ -59,7 +59,7 @@ def _condition_metric_values(metric_values: MetricValues) -> MetricValues:  # no
                         ):
                             return True
 
-                    # Components of different types cannot be packaged into "numpy.ndarray" type (due to type mismatch).  # noqa: E501
+                    # Components of different types cannot be packaged into "numpy.ndarray" type (due to type mismatch).  # noqa: E501 # FIXME CoP
                     values_iterator = iter(values)
                     first_value_type: type = type(next(values_iterator))
                     current_type: type
@@ -89,7 +89,7 @@ class AttributedResolvedMetrics(SerializableDictDot):
 
     In order to gather results pertaining to diverse MetricConfiguration directives, computed metrics are augmented
     with uniquely identifiable attribution object so that receivers can filter them from overall resolved metrics.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     batch_ids: Optional[List[str]] = None
     metric_attributes: Optional[Attributes] = None
@@ -101,7 +101,7 @@ class AttributedResolvedMetrics(SerializableDictDot):
     ) -> Dict[str, MetricValues]:
         """
         Converts "attributed_metric_values" to Numpy array for each "batch_id" key (recursively, wherever possible).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if attributed_metric_values is None:
             return {}
 
@@ -118,7 +118,7 @@ class AttributedResolvedMetrics(SerializableDictDot):
     ) -> Optional[MetricValues]:
         """
         Converts all "attributed_metric_values" as list (together) to Numpy array (recursively, wherever possible).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if attributed_metric_values is None:
             return None
 
@@ -158,7 +158,7 @@ class AttributedResolvedMetrics(SerializableDictDot):
         if self.attributed_metric_values is None:
             return {}
 
-        return AttributedResolvedMetrics.get_conditioned_attributed_metric_values_from_attributed_metric_values(  # noqa: E501
+        return AttributedResolvedMetrics.get_conditioned_attributed_metric_values_from_attributed_metric_values(  # noqa: E501 # FIXME CoP
             attributed_metric_values=self.attributed_metric_values
         )
 

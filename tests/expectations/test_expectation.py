@@ -320,7 +320,7 @@ class TestSuiteParameterOptions:
     """Tests around the suite_parameter_options property of Expectations.
 
     Note: evaluation_parameter_options is currently a sorted tuple, but doesn't necessarily have to be
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     SUITE_PARAMETER_MIN = "my_min"
     SUITE_PARAMETER_MAX = "my_max"

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, List, Optional, Union
 
 from marshmallow import Schema, fields, post_dump, post_load
 
-from great_expectations.alias_types import JSONValues  # noqa: TCH001
+from great_expectations.alias_types import JSONValues  # noqa: TCH001 # FIXME CoP
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.render.exceptions import InvalidRenderedContentError
 from great_expectations.types import DictDot
@@ -282,9 +282,9 @@ class RenderedTableContent(RenderedComponentContent):
             name and the values being a dictionary with the following form:
 
             sortable: A boolean indicating whether the column is sortable.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         table: list[RenderedContent],
         header: Optional[Union[RenderedContent, dict]] = None,
@@ -363,7 +363,7 @@ class RenderedTabsContent(RenderedComponentContent):
 
 
 class RenderedBootstrapTableContent(RenderedComponentContent):
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         table_data,
         table_columns,
@@ -465,7 +465,7 @@ class RenderedStringTemplateContent(RenderedComponentContent):
             styling: A dictionary containing styling information.
         styling: A dictionary containing styling information.
         content_block_type: The type of content block.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -613,9 +613,9 @@ class CollapseContent(RenderedComponentContent):
         styling: A dictionary containing styling information.
         content_block_type: The type of content block.
         inline_link: Whether to include a link inline.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         collapse: Union[RenderedContent, list],
         collapse_toggle_link: Optional[Union[RenderedContent, dict]] = None,
@@ -663,7 +663,7 @@ class CollapseContent(RenderedComponentContent):
 
 class RenderedDocumentContent(RenderedContent):
     # NOTE: JPC 20191028 - review these keys to consolidate and group
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         sections,
         data_asset_name=None,
@@ -680,7 +680,7 @@ class RenderedDocumentContent(RenderedContent):
         if not isinstance(sections, list) and all(
             isinstance(section, RenderedSectionContent) for section in sections
         ):
-            raise InvalidRenderedContentError(  # noqa: TRY003
+            raise InvalidRenderedContentError(  # noqa: TRY003 # FIXME CoP
                 "RenderedDocumentContent requires a list of RenderedSectionContent for " "sections."
             )
         self.sections = sections
@@ -722,7 +722,7 @@ class RenderedSectionContent(RenderedContent):
         if not isinstance(content_blocks, list) and all(
             isinstance(content_block, RenderedComponentContent) for content_block in content_blocks
         ):
-            raise InvalidRenderedContentError(  # noqa: TRY003
+            raise InvalidRenderedContentError(  # noqa: TRY003 # FIXME CoP
                 "Rendered section content requires a list of RenderedComponentContent "
                 "for content blocks."
             )
@@ -743,7 +743,7 @@ class RenderedSectionContent(RenderedContent):
 
 
 class RenderedAtomicValue(DictDot):
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         schema: Optional[dict] = None,
         header: Optional[RenderedAtomicValue] = None,
@@ -950,7 +950,7 @@ class RenderedAtomicContentSchema(Schema):
     @post_dump
     def clean_null_attrs(self, data: dict, **kwargs: dict) -> dict:
         """Removes the attributes in RenderedAtomicContentSchema.REMOVE_KEYS_IF_NONE during serialization if
-        their values are None."""  # noqa: E501
+        their values are None."""  # noqa: E501 # FIXME CoP
         data = deepcopy(data)
         for key in RenderedAtomicContentSchema.REMOVE_KEYS_IF_NONE:
             if key in data and data[key] is None:

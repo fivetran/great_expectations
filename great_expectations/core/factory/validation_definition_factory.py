@@ -21,6 +21,10 @@ if TYPE_CHECKING:
 
 @public_api
 class ValidationDefinitionFactory(Factory[ValidationDefinition]):
+    """
+    Responsible for basic CRUD operations on a Data Context's ValidationDefinitions.
+    """
+
     def __init__(self, store: ValidationDefinitionStore) -> None:
         self._store = store
 
@@ -37,8 +41,8 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         """
         key = self._store.get_key(name=validation.name, id=None)
         if self._store.has_key(key=key):
-            raise DataContextError(  # noqa: TRY003
-                f"Cannot add ValidationDefinition with name {validation.name} because it already exists."  # noqa: E501
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
+                f"Cannot add ValidationDefinition with name {validation.name} because it already exists."  # noqa: E501 # FIXME CoP
             )
         self._store.add(key=key, value=validation)
 
@@ -64,7 +68,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         try:
             validation_definition = self.get(name=name)
         except DataContextError as e:
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 f"Cannot delete ValidationDefinition with name {name} because it cannot be found."
             ) from e
 
@@ -90,7 +94,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         """
         key = self._store.get_key(name=name, id=None)
         if not self._store.has_key(key=key):
-            raise DataContextError(f"ValidationDefinition with name {name} was not found.")  # noqa: TRY003
+            raise DataContextError(f"ValidationDefinition with name {name} was not found.")  # noqa: TRY003 # FIXME CoP
 
         return cast(ValidationDefinition, self._store.get(key=key))
 

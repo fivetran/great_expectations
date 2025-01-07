@@ -27,7 +27,7 @@ from pyparsing import (
 )
 
 from great_expectations.exceptions import SuiteParameterError
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias, TypeGuard
@@ -77,7 +77,7 @@ class SuiteParameterParser:
     expr    :: term [ addop term ]*
 
     The parser is modified from: https://github.com/pyparsing/pyparsing/blob/master/examples/fourFn.py
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # map operator symbols to corresponding arithmetic operations
     opn = {
@@ -153,7 +153,7 @@ class SuiteParameterParser:
             keyval = dictOf(key.setParseAction(self.push_first), value)
             kwarglist = delimitedList(keyval)
 
-            # add parse action that replaces the function identifier with a (name, number of args, has_fn_kwargs) tuple  # noqa: E501
+            # add parse action that replaces the function identifier with a (name, number of args, has_fn_kwargs) tuple  # noqa: E501 # FIXME CoP
             # 20211009 - JPC - Note that it's important that we consider kwarglist
             # first as part of disabling backtracking for the function's arguments
             fn_call = (variable + lpar + rpar).setParseAction(
@@ -174,7 +174,7 @@ class SuiteParameterParser:
                 )
             ).setParseAction(self.push_unary_minus)
 
-            # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left  # noqa: E501
+            # by defining exponentiation as "atom [ ^ factor ]..." instead of "atom [ ^ atom ]...", we get right-to-left  # noqa: E501 # FIXME CoP
             # exponents, instead of left-to-right that is, 2^3^2 = 2^(3^2), not (2^3)^2.
             factor = Forward()
             factor <<= atom + (expop + factor).setParseAction(self.push_first)[...]
@@ -183,7 +183,7 @@ class SuiteParameterParser:
             self._parser = expr
         return self._parser
 
-    def evaluate_stack(self, s):  # noqa: C901, PLR0911, PLR0912
+    def evaluate_stack(self, s):  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         op, num_args, has_fn_kwargs = s.pop(), 0, False
         if isinstance(op, tuple):
             op, num_args, has_fn_kwargs = op
@@ -211,8 +211,8 @@ class SuiteParameterParser:
                 args = reversed([self.evaluate_stack(s) for _ in range(num_args)])
                 return self.fn[op](*args)
         else:
-            # Require that the *entire* expression evaluates to number or datetime UNLESS there is *exactly one*  # noqa: E501
-            # expression to substitute (see cases where len(parse_results) == 1 in the parse_suite_parameter  # noqa: E501
+            # Require that the *entire* expression evaluates to number or datetime UNLESS there is *exactly one*  # noqa: E501 # FIXME CoP
+            # expression to substitute (see cases where len(parse_results) == 1 in the parse_suite_parameter  # noqa: E501 # FIXME CoP
             # method).
             evaluated: Union[int, float, datetime.datetime]
             try:
@@ -230,7 +230,7 @@ class SuiteParameterParser:
                         logger.info("Suite parameter operand successfully parsed as datetime.")
                     except ValueError as e:
                         logger.info("Parsing suite parameter operand as datetime failed.")
-                        raise e  # noqa: TRY201
+                        raise e  # noqa: TRY201 # FIXME CoP
             return evaluated
 
 
@@ -243,7 +243,7 @@ def build_suite_parameters(
     """Build a dictionary of parameters to evaluate, using the provided suite_parameters,
     AND mutate expectation_args by removing any parameter values passed in as temporary values during
     exploratory work.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     suite_args = copy.deepcopy(expectation_args)
     substituted_parameters = {}
 
@@ -251,7 +251,7 @@ def build_suite_parameters(
     # specified parameters.
     for key, value in suite_args.items():
         if isinstance(value, dict) and "$PARAMETER" in value:
-            # We do not even need to search for a value if we are not going to do interactive evaluation  # noqa: E501
+            # We do not even need to search for a value if we are not going to do interactive evaluation  # noqa: E501 # FIXME CoP
             if not interactive_evaluation:
                 continue
 
@@ -281,7 +281,7 @@ def build_suite_parameters(
 EXPR = SuiteParameterParser()
 
 
-def parse_suite_parameter(  # noqa: C901
+def parse_suite_parameter(  # noqa: C901 # FIXME CoP
     parameter_expression: str,
     suite_parameters: Optional[Dict[str, Any]] = None,
     data_context: Optional[AbstractDataContext] = None,
@@ -298,7 +298,7 @@ def parse_suite_parameter(  # noqa: C901
     obtain integer values when needed for certain expectations (e.g. expect_column_value_length_to_be_between).
 
     Valid variables must begin with an alphabetic character and may contain alphanumeric characters plus '_' and '$'.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if suite_parameters is None:
         suite_parameters = {}
 
@@ -306,20 +306,20 @@ def parse_suite_parameter(  # noqa: C901
 
     if _is_single_function_no_args(parse_results):
         # Necessary to catch `now()` (which only needs to be evaluated with `expr.exprStack`)
-        # NOTE: 20211122 - Chetan - Any future built-ins that are zero arity functions will match this behavior  # noqa: E501
+        # NOTE: 20211122 - Chetan - Any future built-ins that are zero arity functions will match this behavior  # noqa: E501 # FIXME CoP
         pass
 
     elif len(parse_results) == 1 and parse_results[0] not in suite_parameters:
-        # In this special case there were no operations to find, so only one value, but we don't have something to  # noqa: E501
+        # In this special case there were no operations to find, so only one value, but we don't have something to  # noqa: E501 # FIXME CoP
         # substitute for that value
-        raise SuiteParameterError(  # noqa: TRY003
+        raise SuiteParameterError(  # noqa: TRY003 # FIXME CoP
             f"No value found for $PARAMETER {parse_results[0]!s}"
         )
 
     elif len(parse_results) == 1:
-        # In this case, we *do* have a substitution for a single type. We treat this specially because in this  # noqa: E501
-        # case, we allow complex type substitutions (i.e. do not coerce to string as part of parsing)  # noqa: E501
-        # NOTE: 20201023 - JPC - to support MetricDefinition as an suite parameter type, we need to handle that  # noqa: E501
+        # In this case, we *do* have a substitution for a single type. We treat this specially because in this  # noqa: E501 # FIXME CoP
+        # case, we allow complex type substitutions (i.e. do not coerce to string as part of parsing)  # noqa: E501 # FIXME CoP
+        # NOTE: 20201023 - JPC - to support MetricDefinition as an suite parameter type, we need to handle that  # noqa: E501 # FIXME CoP
         # case here; is the suite parameter provided here in fact a metric definition?
         return suite_parameters[parse_results[0]]
 
@@ -331,7 +331,7 @@ def parse_suite_parameter(  # noqa: C901
 
     else:
         err_str, err_line, err_col = parse_results[-1]
-        raise SuiteParameterError(  # noqa: TRY003
+        raise SuiteParameterError(  # noqa: TRY003 # FIXME CoP
             f"Parse Failure: {err_str}\nStatement: {err_line}\nColumn: {err_col}"
         )
 
@@ -342,7 +342,7 @@ def parse_suite_parameter(  # noqa: C901
         exception_traceback = traceback.format_exc()
         exception_message = f'{type(e).__name__}: "{e!s}".  Traceback: "{exception_traceback}".'
         logger.debug(exception_message, e, exc_info=True)
-        raise SuiteParameterError(  # noqa: TRY003
+        raise SuiteParameterError(  # noqa: TRY003 # FIXME CoP
             f"Error while evaluating suite parameter expression: {e!s}"
         ) from e
 
@@ -374,7 +374,7 @@ def _is_single_function_no_args(parse_results: Union[ParseResults, list]) -> boo
     )
 
 
-def _deduplicate_suite_parameter_dependencies(dependencies: dict) -> dict:  # noqa: C901 - too complex
+def _deduplicate_suite_parameter_dependencies(dependencies: dict) -> dict:  # noqa: C901 #  too complex
     deduplicated: dict = {}
     for suite_name, required_metrics in dependencies.items():
         deduplicated[suite_name] = []

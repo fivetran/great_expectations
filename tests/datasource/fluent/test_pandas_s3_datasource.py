@@ -117,7 +117,7 @@ def test_construct_csv_asset_directly():
 @pytest.mark.aws_deps
 def test_invalid_connect_options(pandas_s3_datasource: PandasS3Datasource, aws_credentials):
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        pandas_s3_datasource.add_csv_asset(  # type: ignore[call-arg]
+        pandas_s3_datasource.add_csv_asset(  # type: ignore[call-arg] # FIXME CoP
             name="csv_asset",
             extra_field="invalid",
         )
@@ -185,7 +185,7 @@ def test_invalid_connect_options_value(
         param({}, id="default connect options"),
         param({"s3_prefix": ""}, id="prefix ''"),
         param({"s3_delimiter": "/"}, id="s3_delimiter '/'"),
-        # param({"s3_prefix": "non_default"}, id="s3_prefix 'non_default'"), # TODO: what prefix should I test?  # noqa: E501
+        # param({"s3_prefix": "non_default"}, id="s3_prefix 'non_default'"), # TODO: what prefix should I test?  # noqa: E501 # FIXME CoP
         param(
             {"s3_prefix": "", "s3_delimiter": "/", "s3_max_keys": 20},
             id="all options",

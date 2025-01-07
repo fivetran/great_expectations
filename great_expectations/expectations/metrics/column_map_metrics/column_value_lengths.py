@@ -71,7 +71,7 @@ class ColumnValuesValueLengthEquals(ColumnMapMetricProvider):
 
         if (
             metric.metric_name
-            == f"column_values.value_length.equals.{MetricPartialFunctionTypeSuffixes.CONDITION.value}"  # noqa: E501
+            == f"column_values.value_length.equals.{MetricPartialFunctionTypeSuffixes.CONDITION.value}"  # noqa: E501 # FIXME CoP
         ):
             dependencies[
                 f"column_values.value_length.{MetricPartialFunctionTypeSuffixes.MAP.value}"
@@ -107,7 +107,7 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
         return F.length(column)
 
     @column_condition_partial(engine=PandasExecutionEngine)
-    def _pandas(  # noqa: C901
+    def _pandas(  # noqa: C901 # FIXME CoP
         cls,
         column,
         _metrics,
@@ -145,7 +145,7 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
                 metric_series = column_lengths >= min_value
 
         else:
-            raise ValueError("Invalid configuration")  # noqa: TRY003
+            raise ValueError("Invalid configuration")  # noqa: TRY003 # FIXME CoP
 
         return metric_series
 
@@ -165,18 +165,18 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
         )
 
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         # Assert that min_value and max_value are integers
         try:
             if min_value is not None and not float(min_value).is_integer():
-                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
 
             if max_value is not None and not float(max_value).is_integer():
-                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
 
         except ValueError:
-            raise ValueError("min_value and max_value must be integers")  # noqa: TRY003
+            raise ValueError("min_value and max_value must be integers")  # noqa: TRY003 # FIXME CoP
 
         if min_value is not None and max_value is not None:
             return sa.and_(
@@ -206,18 +206,18 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
         )
 
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         # Assert that min_value and max_value are integers
         try:
             if min_value is not None and not float(min_value).is_integer():
-                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
 
             if max_value is not None and not float(max_value).is_integer():
-                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301
+                raise ValueError("min_value and max_value must be integers")  # noqa: TRY003, TRY301 # FIXME CoP
 
         except ValueError:
-            raise ValueError("min_value and max_value must be integers")  # noqa: TRY003
+            raise ValueError("min_value and max_value must be integers")  # noqa: TRY003 # FIXME CoP
 
         if min_value is not None and max_value is not None:
             return (column_lengths >= min_value) & (column_lengths <= max_value)
@@ -246,7 +246,7 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
 
         if (
             metric.metric_name
-            == f"column_values.value_length.between.{MetricPartialFunctionTypeSuffixes.CONDITION.value}"  # noqa: E501
+            == f"column_values.value_length.between.{MetricPartialFunctionTypeSuffixes.CONDITION.value}"  # noqa: E501 # FIXME CoP
         ):
             dependencies[
                 f"column_values.value_length.{MetricPartialFunctionTypeSuffixes.MAP.value}"

@@ -45,6 +45,16 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
 
     @public_api
     def add_batch_definition_daily(self, name: str, column: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition, which creates a single Batch for each day in the directory.
+
+        Args:
+            name: Name of the Batch Definition.
+            column: Column to partition on.
+
+        Returns:
+            A BatchDefinition that is partitioned daily.
+        """
         # todo: test column
         return self.add_batch_definition(
             name=name,
@@ -55,6 +65,16 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
 
     @public_api
     def add_batch_definition_monthly(self, name: str, column: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition which creates a single batch for each month in the directory.
+
+        Args:
+            name: Name of the Batch Definition.
+            column: Column to partition on.
+
+        Returns:
+            A BatchDefinition that is partitioned monthly.
+        """
         # todo: test column
         return self.add_batch_definition(
             name=name,
@@ -65,6 +85,16 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
 
     @public_api
     def add_batch_definition_yearly(self, name: str, column: str) -> BatchDefinition:
+        """
+        Add a BatchDefinition which creates a single batch for each year in the directory.
+
+        Args:
+            name: Name of the Batch Definition.
+            column: Column to partition on.
+
+        Returns:
+            A BatchDefinition that is partitioned yearly.
+        """
         # todo: test column
         return self.add_batch_definition(
             name=name,
@@ -165,7 +195,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
         ):
             allowed_keys = set(self.get_batch_parameters_keys(partitioner=partitioner))
             actual_keys = set(options.keys())
-            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
+            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
                 "Batch parameters should only contain keys from the following set:\n"
                 f"{allowed_keys}\nbut your specified keys contain\n"
                 f"{actual_keys.difference(allowed_keys)}\nwhich is not valid.\n"
@@ -191,7 +221,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
         """
         get_reader_options_include: set[str] | None = self._get_reader_options_include()
         if not get_reader_options_include:
-            # Set to None if empty set to include any additional `extra_kwargs` passed to `add_*_asset`  # noqa: E501
+            # Set to None if empty set to include any additional `extra_kwargs` passed to `add_*_asset`  # noqa: E501 # FIXME CoP
             get_reader_options_include = None
         batch_spec_options = {
             "reader_method": self._get_reader_method(),

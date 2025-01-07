@@ -92,7 +92,7 @@ class FilePathDataConnector(DataConnector):
         Returns:
             A list of BatchDefinition objects that match BatchRequest
 
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         legacy_batch_definition_list: List[LegacyBatchDefinition] = (
             self._get_unfiltered_batch_definition_list(batch_request=batch_request)
         )
@@ -112,7 +112,7 @@ class FilePathDataConnector(DataConnector):
         data_connector_query_dict.update({"index": batch_request.batch_slice})
 
         batch_filter_obj: BatchFilter = build_batch_filter(
-            data_connector_query_dict=data_connector_query_dict  # type: ignore[arg-type]
+            data_connector_query_dict=data_connector_query_dict  # type: ignore[arg-type] # FIXME CoP
         )
         legacy_batch_definition_list = batch_filter_obj.select_from_data_connector_query(
             batch_definition_list=legacy_batch_definition_list
@@ -165,7 +165,7 @@ class FilePathDataConnector(DataConnector):
 
         Returns:
             number of matched data_references known by this DataConnector.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return len(self.get_matched_data_references())
 
     # Interface Method
@@ -177,7 +177,7 @@ class FilePathDataConnector(DataConnector):
 
         Returns:
             list of data_references that are not matched by configuration.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self._get_data_references(matched=False)
 
     # Interface Method
@@ -188,7 +188,7 @@ class FilePathDataConnector(DataConnector):
 
         Returns:
             number of unmached data_references known by this DataConnector.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return len(self.get_unmatched_data_references())
 
     def _get_unfiltered_batch_definition_list(
@@ -252,7 +252,7 @@ class FilePathDataConnector(DataConnector):
 
         Returns:
             list of data_references that are not matched by configuration.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not regex:
             regex = self._preprocess_batching_regex(MATCH_ALL_PATTERN)
 
@@ -293,7 +293,7 @@ class FilePathDataConnector(DataConnector):
 
         Returns:
             dict -- dictionary of "BatchSpec" properties
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # this class is overloaded with two separate implementations:
         if self._whole_directory_path_override:
             return self._get_batch_spec_params_directory(batch_definition=batch_definition)
@@ -303,7 +303,7 @@ class FilePathDataConnector(DataConnector):
     def _get_batch_spec_params_file(self, batch_definition: LegacyBatchDefinition) -> dict:
         """File specific implementation of batch spec parameters"""
         if not batch_definition.batching_regex:
-            raise RuntimeError("BatchDefinition must contain a batching_regex.")  # noqa: TRY003
+            raise RuntimeError("BatchDefinition must contain a batching_regex.")  # noqa: TRY003 # FIXME CoP
 
         batching_regex = batch_definition.batching_regex
 
@@ -318,10 +318,10 @@ class FilePathDataConnector(DataConnector):
             group_names=group_names,
         )
         if not path:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""No data reference for data asset name "{batch_definition.data_asset_name}" matches the given
         batch identifiers {batch_definition.batch_identifiers} from batch definition {batch_definition}.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
             )
 
         path = self._get_full_file_path(path=path)
@@ -453,7 +453,7 @@ def map_batch_definition_to_data_reference_string_using_regex(
     group_names: List[str],
 ) -> str:
     if not isinstance(batch_definition, LegacyBatchDefinition):
-        raise TypeError("batch_definition is not of an instance of type BatchDefinition")  # noqa: TRY003
+        raise TypeError("batch_definition is not of an instance of type BatchDefinition")  # noqa: TRY003 # FIXME CoP
 
     data_asset_name: str = batch_definition.data_asset_name
     batch_identifiers: IDDict = batch_definition.batch_identifiers
@@ -473,7 +473,7 @@ def convert_batch_identifiers_to_data_reference_string_using_regex(
     data_asset_name: Optional[str] = None,
 ) -> str:
     if not isinstance(batch_identifiers, IDDict):
-        raise TypeError("batch_identifiers is not " "an instance of type IDDict")  # noqa: TRY003
+        raise TypeError("batch_identifiers is not " "an instance of type IDDict")  # noqa: TRY003 # FIXME CoP
 
     template_arguments: dict = copy.deepcopy(batch_identifiers)
     if data_asset_name is not None:
@@ -488,7 +488,7 @@ def convert_batch_identifiers_to_data_reference_string_using_regex(
     return converted_string
 
 
-def _invert_regex_to_data_reference_template(  # noqa: C901 - too complex
+def _invert_regex_to_data_reference_template(  # noqa: C901 #  too complex
     regex_pattern: re.Pattern | str,
     group_names: List[str],
 ) -> str:
@@ -514,7 +514,7 @@ def _invert_regex_to_data_reference_template(  # noqa: C901 - too complex
 
 
     NOTE Abe 20201017: This method is almost certainly still brittle. I haven't exhaustively mapped the OPCODES in sre_constants
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     data_reference_template: str = ""
     group_name_index: int = 0
 
@@ -525,7 +525,7 @@ def _invert_regex_to_data_reference_template(  # noqa: C901 - too complex
 
     # print("-"*80)
     parsed_sre = sre_parse.parse(str(regex_pattern))
-    for parsed_sre_tuple, char in zip(parsed_sre, list(str(regex_pattern))):  # type: ignore[call-overload]
+    for parsed_sre_tuple, char in zip(parsed_sre, list(str(regex_pattern))):  # type: ignore[call-overload] # FIXME CoP
         token, value = parsed_sre_tuple
         if token == sre_constants.LITERAL:
             # Transcribe the character directly into the template
@@ -555,10 +555,10 @@ def _invert_regex_to_data_reference_template(  # noqa: C901 - too complex
         ]:
             pass
         else:
-            raise ValueError(f"Unrecognized regex token {token} in regex pattern {regex_pattern}.")  # noqa: TRY003
+            raise ValueError(f"Unrecognized regex token {token} in regex pattern {regex_pattern}.")  # noqa: TRY003 # FIXME CoP
 
     # Collapse adjacent wildcards into a single wildcard
-    data_reference_template: str = re.sub("\\*+", "*", data_reference_template)  # type: ignore[no-redef]
+    data_reference_template: str = re.sub("\\*+", "*", data_reference_template)  # type: ignore[no-redef] # FIXME CoP
 
     return data_reference_template
 

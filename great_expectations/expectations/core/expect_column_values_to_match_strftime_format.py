@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -65,7 +65,7 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     strftime_format: Union[str, SuiteParameterDict]
 
@@ -75,12 +75,12 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
     ) -> str | SuiteParameterDict:
         if isinstance(strftime_format, str):
             try:
-                datetime.strptime(  # noqa: DTZ007
-                    datetime.strftime(datetime.now(), strftime_format),  # noqa: DTZ005
+                datetime.strptime(  # noqa: DTZ007 # FIXME CoP
+                    datetime.strftime(datetime.now(), strftime_format),  # noqa: DTZ005 # FIXME CoP
                     strftime_format,
                 )
             except ValueError as e:
-                raise ValueError(f"Unable to use provided strftime_format. {e!s}") from e  # noqa: TRY003
+                raise ValueError(f"Unable to use provided strftime_format. {e!s}") from e  # noqa: TRY003 # FIXME CoP
 
         return strftime_format
 
@@ -169,7 +169,7 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
             template_str = "values must match the following strftime format: $strftime_format"
             if params["mostly"] is not None and params["mostly"] < 1.0:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 template_str += ", at least $mostly_pct % of the time."
             else:
                 template_str += "."

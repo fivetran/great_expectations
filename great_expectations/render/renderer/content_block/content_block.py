@@ -51,7 +51,7 @@ class ContentBlockRenderer(Renderer):
 An unexpected Exception occurred during data docs rendering.  Because of this error, certain parts of data docs will \
 not be rendered properly and/or may not appear altogether.  Please use the trace, included in this message, to \
 diagnose and repair the underlying issue.  Detailed information follows:
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         runtime_configuration = {
             "styling": cls._get_element_styling(),
@@ -88,7 +88,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
         )
 
     @classmethod
-    def _render_list(  # noqa: C901, PLR0912
+    def _render_list(  # noqa: C901, PLR0912 # FIXME CoP
         cls,
         render_object: list,
         exception_list_content_block: bool,
@@ -129,7 +129,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                         data_docs_exception_message
                         + f'{type(e).__name__}: "{e!s}".  Traceback: "{exception_traceback}".'
                     )
-                    logger.error(exception_message)  # noqa: TRY400
+                    logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
 
                     if isinstance(obj_, ExpectationValidationResult):
                         content_block_fn = cls._get_content_block_fn("_missing_content_block_fn")
@@ -147,7 +147,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                             runtime_configuration=runtime_configuration,
                             **kwargs,
                         )
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if isinstance(obj_, ExpectationValidationResult):
                     content_block_fn = (
                         cls._missing_content_block_fn
@@ -214,7 +214,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
             return None
 
     @classmethod
-    def _render_other(  # noqa: C901
+    def _render_other(  # noqa: C901 # FIXME CoP
         cls,
         render_object: Any,
         exception_list_content_block: bool,
@@ -244,7 +244,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                     data_docs_exception_message
                     + f'{type(e).__name__}: "{e!s}".  Traceback: "{exception_traceback}".'
                 )
-                logger.error(exception_message)  # noqa: TRY400
+                logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
 
                 if isinstance(render_object, ExpectationValidationResult):
                     content_block_fn = cls._get_content_block_fn("_missing_content_block_fn")
@@ -260,7 +260,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                         runtime_configuration=runtime_configuration,
                         **kwargs,
                     )
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if isinstance(render_object, ExpectationValidationResult):
                 content_block_fn = (
                     cls._missing_content_block_fn
@@ -296,7 +296,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
         expectation = configuration.to_domain_obj()
         description = expectation.description
         if not description:
-            raise ValueError("Cannot render an expectation with no description.")  # noqa: TRY003
+            raise ValueError("Cannot render an expectation with no description.")  # noqa: TRY003 # FIXME CoP
         return [
             RenderedStringTemplateContent(
                 string_template={"template": description},

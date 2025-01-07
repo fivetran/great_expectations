@@ -38,7 +38,7 @@ class ColumnValuesNonNull(ColumnMapMetricProvider):
 
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column, **kwargs):
-        return column != None  # noqa: E711
+        return column != None  # noqa: E711 # FIXME CoP
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column, **kwargs):
