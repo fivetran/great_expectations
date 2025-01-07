@@ -734,11 +734,10 @@ class Datasource(
         updated_datasource = self.data_context.update_datasource(loaded_datasource)
         assert isinstance(updated_datasource, Datasource)
 
-        output = updated_datasource.get_asset(asset_name).get_batch_definition(
-            batch_definition.name
-        )
-        output.set_data_asset(batch_definition.data_asset)
-        return output
+        updated_asset = updated_datasource.get_asset(asset_name)
+        updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
+
+        return updated_batch_definition
 
     def delete_batch_definition(self, batch_definition: BatchDefinition[PartitionerT]) -> None:
         asset_name = batch_definition.data_asset.name

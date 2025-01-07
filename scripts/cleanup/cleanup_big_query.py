@@ -1,10 +1,12 @@
 import logging
+import sys
 
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.sqlalchemy import TextClause, create_engine
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class BigQueryConnectionConfig(BaseSettings):
@@ -39,9 +41,12 @@ def cleanup_big_query(config: BigQueryConnectionConfig) -> None:
             ),
             {"schema_format": SCHEMA_FORMAT},
         ).fetchall()
-        to_run = TextClause("\n".join([row[0] for row in results]))
-        conn.execute(to_run)
-        logger.info(f"Cleaned up {len(results)} BigQuery schema(s)")
+        if results:
+            to_run = TextClause("\n".join([row[0] for row in results]))
+            conn.execute(to_run)
+            logger.info(f"Cleaned up {len(results)} BigQuery schema(s)")
+        else:
+            logger.info("No BigQuery schemas to clean up!")
     engine.dispose()
 
 

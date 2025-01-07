@@ -627,7 +627,7 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
     except AttributeError:
         logger.debug(f"Unrecognized type: {expected_type}")
     if len(types) == 0:
-        logger.warning("No recognized sqlalchemy types in type_list for current dialect.")
+        logger.debug("No recognized sqlalchemy types in type_list for current dialect.")
 
     return types
 
