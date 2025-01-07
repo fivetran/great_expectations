@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 import re
 import uuid
 from typing import TYPE_CHECKING, Optional
@@ -273,7 +274,7 @@ def test_save(in_memory_runtime_context: EphemeralDataContext):
     batch_def_name = "my_batch_def"
 
     datasource = context.data_sources.add_pandas(name=ds_name)
-    asset = datasource.add_csv_asset(name=asset_name, filepath_or_buffer="data.csv")
+    asset = datasource.add_csv_asset(name=asset_name, filepath_or_buffer=pathlib.Path("data.csv"))
     batch_definition = asset.add_batch_definition(name=batch_def_name)
 
     assert batch_definition.partitioner is None
@@ -281,8 +282,8 @@ def test_save(in_memory_runtime_context: EphemeralDataContext):
     batch_definition.partitioner = FileNamePartitionerYearly(regex=re.compile("my_regex"))
     batch_definition.save()
 
-    datasource = context.data_sources.get(name=ds_name)
-    asset = datasource.get_asset(name=asset_name)
-    batch_definition = asset.get_batch_definition(name=batch_def_name)
+    retrieved_datasource = context.data_sources.get(name=ds_name)
+    retrieved_asset = retrieved_datasource.get_asset(name=asset_name)
+    retrieved_batch_definition = retrieved_asset.get_batch_definition(name=batch_def_name)
 
-    assert batch_definition.partitioner
+    assert retrieved_batch_definition.partitioner
