@@ -2997,6 +2997,7 @@ def test_unexpected_rows_expectation_atomic_diagnostic_observed_value(
     assert res["value"]["template"] == expected_template_string
 
 
+@pytest.mark.unit
 def test_unexpected_rows_expectation_atomic_diagnostic_observed_value_when_description_present(
     get_diagnostic_rendered_content,
 ):
