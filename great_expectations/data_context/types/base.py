@@ -1092,7 +1092,7 @@ class GXCloudConfig(DictDot):
 
 
 class DataContextConfigSchema(Schema):
-    config_version = fields.Number(
+    config_version: fields.Number = fields.Number(
         validate=lambda x: 0 < x < 100,  # noqa: PLR2004 # FIXME CoP
         error_messages={"invalid": "config version must " "be a number."},
     )

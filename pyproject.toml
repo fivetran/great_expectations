@@ -464,7 +464,8 @@ filterwarnings = [
     # This deprecation warning comes from getsentry/responses, a mocking utility for requests. It is a dependency in moto.
     "ignore:stream argument is deprecated. Use stream parameter in request directly:DeprecationWarning",
     # We likely won't be updating to `marhsmallow` 4, these errors should be filtered out
-    "error::marshmallow.warnings.RemovedInMarshmallow4Warning",
+    "ignore::marshmallow.warnings.RemovedInMarshmallow4Warning",
+    "ignore::marshmallow.warnings.ChangedInMarshmallow4Warning",
     # pkg_resources is deprecated as an API, but third party libraries still use it
     'ignore: Deprecated call to `pkg_resources.declare_namespace\(.*\)`',
 

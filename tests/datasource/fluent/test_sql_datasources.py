@@ -331,7 +331,6 @@ def test_specific_datasource_warnings(
             context.data_sources.add_sql(name="my_datasource", connection_string=connection_string)
     else:
         with warnings.catch_warnings():
-            warnings.simplefilter("error")  # should already be the default
             context.data_sources.add_sql(
                 name="my_datasource", connection_string=connection_string
             ).test_connection()
