@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ruamel.yaml import YAML
 
-from great_expectations.alias_types import JSONValues  # noqa: TCH001
+from great_expectations.alias_types import JSONValues  # noqa: TCH001 # FIXME CoP
 
 
 class YAMLHandler:
@@ -60,7 +60,7 @@ class YAMLHandler:
 
         Returns:
             The deserialized dictionary form of the input stream.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self._handler.load(stream=stream)
 
     def dump(
@@ -90,9 +90,9 @@ class YAMLHandler:
         Returns:
             If no stream argument is provided, the str that results from ``_handler.dump()``.
             Otherwise, None as the ``_handler.dump()`` works in place and will exercise the handler accordingly.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if stream:
-            return self._dump(data=data, stream=stream, **kwargs)  # type: ignore[func-returns-value]
+            return self._dump(data=data, stream=stream, **kwargs)  # type: ignore[func-returns-value] # FIXME CoP
         return self._dump_and_return_value(data=data, **kwargs)
 
     def _dump(self, data: dict, stream, **kwargs) -> None:

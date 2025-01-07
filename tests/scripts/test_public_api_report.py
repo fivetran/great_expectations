@@ -62,7 +62,7 @@ name: {datasource_name}
 class_name: Something
 \"\"\"
 
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
 
 
 @pytest.fixture
@@ -355,7 +355,7 @@ def test__get_import_names(various_imports: str):
 
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
-            import_names.extend(_get_import_names(node))  # type: ignore[arg-type]
+            import_names.extend(_get_import_names(node))  # type: ignore[arg-type] # FIXME CoP
 
     assert import_names == [
         "some_module",
@@ -789,7 +789,7 @@ class TestCodeReferenceFilter:
         will not include multiple copies of the same definitions (when not
         accounting for different but equivalent ast definition object instances).
         """
-        observed = code_reference_filter_with_include_by_file_and_name_already_included.filter_definitions()  # noqa: E501
+        observed = code_reference_filter_with_include_by_file_and_name_already_included.filter_definitions()  # noqa: E501 # FIXME CoP
         # There are two extra (8 vs 6) here due to the ast_definition classes
         #  pointing to different but equivalent objects.
         assert len(observed) == 8
@@ -813,7 +813,7 @@ class TestCodeReferenceFilter:
 
         Include overrides exclude.
         """
-        observed = code_reference_filter_with_include_by_file_and_name_already_excluded.filter_definitions()  # noqa: E501
+        observed = code_reference_filter_with_include_by_file_and_name_already_excluded.filter_definitions()  # noqa: E501 # FIXME CoP
         # There are two extra (4 vs 2) here due to the ast_definition classes
         #  pointing to different but equivalent objects.
         assert len(observed) == 4
@@ -827,14 +827,14 @@ class TestCodeReferenceFilter:
 
     def test_filter_definitions_include_by_file_and_name_already_excluded_not_used_in_docs_example(
         self,
-        code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example_exclude_file: CodeReferenceFilter,  # noqa: E501
+        code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example_exclude_file: CodeReferenceFilter,  # noqa: E501 # FIXME CoP
     ):
         """What does this test and why?
 
         Include overrides exclude. Method that was not included in docs examples
         is still included if manually added.
         """
-        observed = code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example_exclude_file.filter_definitions()  # noqa: E501
+        observed = code_reference_filter_with_include_by_file_and_name_not_used_in_docs_example_exclude_file.filter_definitions()  # noqa: E501 # FIXME CoP
         assert len(observed) == 1
         assert {d.name for d in observed} == {
             "example_no_usages_in_sample_docs_example_python_file_string",

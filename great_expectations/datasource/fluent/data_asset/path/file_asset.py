@@ -251,7 +251,7 @@ class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], Generic[Dat
             Option "batch_slice" is supported for all "DataAsset" extensions of this class identically.  This mechanism
             applies to every "Datasource" type and any "ExecutionEngine" that is capable of loading data from files on
             local and/or cloud/networked filesystems (currently, Pandas and Spark backends work with files).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if options:
             for option, value in options.items():
                 if (
@@ -259,8 +259,8 @@ class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], Generic[Dat
                     and value
                     and not isinstance(value, str)
                 ):
-                    raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
-                        f"All batching_regex matching options must be strings. The value of '{option}' is "  # noqa: E501
+                    raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
+                        f"All batching_regex matching options must be strings. The value of '{option}' is "  # noqa: E501 # FIXME CoP
                         f"not a string: {value}"
                     )
 
@@ -270,7 +270,7 @@ class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], Generic[Dat
         ):
             allowed_keys = set(self.get_batch_parameters_keys(partitioner=partitioner))
             actual_keys = set(options.keys())
-            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
+            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
                 "Batch parameters should only contain keys from the following set:\n"
                 f"{allowed_keys}\nbut your specified keys contain\n"
                 f"{actual_keys.difference(allowed_keys)}\nwhich is not valid.\n"
@@ -296,7 +296,7 @@ class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], Generic[Dat
         """
         get_reader_options_include: set[str] | None = self._get_reader_options_include()
         if not get_reader_options_include:
-            # Set to None if empty set to include any additional `extra_kwargs` passed to `add_*_asset`  # noqa: E501
+            # Set to None if empty set to include any additional `extra_kwargs` passed to `add_*_asset`  # noqa: E501 # FIXME CoP
             get_reader_options_include = None
         batch_spec_options = {
             "reader_method": self._get_reader_method(),

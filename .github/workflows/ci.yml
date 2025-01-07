@@ -78,6 +78,8 @@ jobs:
           invoke type-check --ci --pretty  --check-stub-sources
       - name: Marker-coverage-check
         run: invoke marker-coverage
+      - name: Check for linter ignores without comments
+        run: ./scripts/check_linter_ignores.sh
 
   docs-snippets:
     needs: [unit-tests, doc-checks, ci-is-on-main-repo]

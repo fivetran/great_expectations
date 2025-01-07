@@ -161,7 +161,7 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     value_pairs_set: List[Tuple[Any, Any]]
     ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (

@@ -195,7 +195,7 @@ class _PowerBIAsset(DataAsset):
                 options={},
                 batch_slice=batch_request._batch_slice_input,  # type: ignore[attr-defined] # private attr does exist
             )
-            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
+            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
                 "BatchRequest should have form:\n"
                 f"{pf(expect_batch_request_form.dict())}\n"
                 f"but actually has form:\n{pf(batch_request.dict())}\n"
@@ -241,7 +241,7 @@ class PowerBITable(_PowerBIAsset):
     mode: Mode = "xmla"
 
 
-# This improves our error messages by providing a more specific type for pydantic to validate against  # noqa: E501
+# This improves our error messages by providing a more specific type for pydantic to validate against  # noqa: E501 # FIXME CoP
 # It also ensure the generated jsonschema has a oneOf instead of anyOf field for assets
 # https://docs.pydantic.dev/1.10/usage/types/#discriminated-unions-aka-tagged-unions
 AssetTypes = Annotated[
@@ -298,12 +298,12 @@ class FabricPowerBIDatasource(Datasource):
             TestConnectionError: If the connection test fails.
         """
         if not self._running_on_fabric():
-            raise TestConnectionError("Must be running Microsoft Fabric to use this datasource")  # noqa: TRY003
+            raise TestConnectionError("Must be running Microsoft Fabric to use this datasource")  # noqa: TRY003 # FIXME CoP
 
         try:
             from sempy import fabric  # noqa: F401 # test if fabric is installed
         except Exception as import_err:
-            raise TestConnectionError(  # noqa: TRY003
+            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 "Could not import `sempy.fabric`\npip install semantic-link-sempy"
             ) from import_err
 
@@ -328,7 +328,7 @@ class FabricPowerBIDatasource(Datasource):
 
         Returns:
             The asset that is added to the datasource.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         asset = PowerBIDax(
             name=name,
             batch_metadata=batch_metadata or {},
@@ -337,7 +337,7 @@ class FabricPowerBIDatasource(Datasource):
         return self._add_asset(asset)
 
     @public_api
-    def add_powerbi_measure_asset(  # noqa: PLR0913
+    def add_powerbi_measure_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         measure: Union[str, List[str]],
@@ -356,7 +356,7 @@ class FabricPowerBIDatasource(Datasource):
 
         Returns:
             The asset that is added to the datasource.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         asset = PowerBIMeasure(
             name=name,
             batch_metadata=batch_metadata or {},
@@ -371,7 +371,7 @@ class FabricPowerBIDatasource(Datasource):
         return self._add_asset(asset)
 
     @public_api
-    def add_powerbi_table_asset(  # noqa: PLR0913
+    def add_powerbi_table_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         table: str,
@@ -391,7 +391,7 @@ class FabricPowerBIDatasource(Datasource):
 
         Returns:
             The asset that is added to the datasource.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         asset = PowerBITable(
             name=name,
             batch_metadata=batch_metadata or {},

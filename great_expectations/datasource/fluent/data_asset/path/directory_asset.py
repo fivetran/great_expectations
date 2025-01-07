@@ -195,7 +195,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
         ):
             allowed_keys = set(self.get_batch_parameters_keys(partitioner=partitioner))
             actual_keys = set(options.keys())
-            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
+            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
                 "Batch parameters should only contain keys from the following set:\n"
                 f"{allowed_keys}\nbut your specified keys contain\n"
                 f"{actual_keys.difference(allowed_keys)}\nwhich is not valid.\n"
@@ -221,7 +221,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
         """
         get_reader_options_include: set[str] | None = self._get_reader_options_include()
         if not get_reader_options_include:
-            # Set to None if empty set to include any additional `extra_kwargs` passed to `add_*_asset`  # noqa: E501
+            # Set to None if empty set to include any additional `extra_kwargs` passed to `add_*_asset`  # noqa: E501 # FIXME CoP
             get_reader_options_include = None
         batch_spec_options = {
             "reader_method": self._get_reader_method(),

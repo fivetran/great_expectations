@@ -247,7 +247,7 @@ def deprecated_argument(
         argument_name: Name of the argument to associate with the deprecation note.
         version: Version number when the method was deprecated.
         message: Optional deprecation message.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     text = f".. deprecated:: {version}" "\n" f"    {message}"
 
@@ -326,7 +326,7 @@ def _add_text_to_function_docstring_after_summary(func: F, text: str) -> F:
     split_docstring = existing_docstring.split("\n", 1)
 
     docstring = ""
-    if len(split_docstring) == 2:  # noqa: PLR2004
+    if len(split_docstring) == 2:  # noqa: PLR2004 # FIXME CoP
         short_description, docstring = split_docstring
         docstring = f"{short_description.strip()}\n" "\n" f"{text}\n" "\n" f"{dedent(docstring)}"
     elif len(split_docstring) == 1:
@@ -384,7 +384,7 @@ def _add_text_below_string_docstring_argument(docstring: str, argument_name: str
 
     arg_list = list(param.arg_name for param in parsed_docstring.params)
     if argument_name not in arg_list:
-        raise ValueError(f"Please specify an existing argument, you specified {argument_name}.")  # noqa: TRY003
+        raise ValueError(f"Please specify an existing argument, you specified {argument_name}.")  # noqa: TRY003 # FIXME CoP
 
     for param in parsed_docstring.params:
         if param.arg_name == argument_name:

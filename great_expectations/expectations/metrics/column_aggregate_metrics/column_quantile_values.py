@@ -44,15 +44,15 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
             allow_relative_error = "nearest"
 
         if allow_relative_error not in interpolation_options:
-            raise ValueError(  # noqa: TRY003
-                f"If specified for pandas, allow_relative_error must be one an allowed value for the 'interpolation'"  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"If specified for pandas, allow_relative_error must be one an allowed value for the 'interpolation'"  # noqa: E501 # FIXME CoP
                 f"parameter of .quantile() (one of {interpolation_options})"
             )
 
         return column.quantile(quantiles, interpolation=allow_relative_error).tolist()
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
-    def _sqlalchemy(  # noqa: C901, PLR0911
+    def _sqlalchemy(  # noqa: C901, PLR0911 # FIXME CoP
         cls,
         execution_engine: SqlAlchemyExecutionEngine,
         metric_domain_kwargs: dict,
@@ -68,7 +68,7 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
             metric_domain_kwargs, domain_type=MetricDomainTypes.COLUMN
         )
         column_name = accessor_domain_kwargs["column"]
-        column = sa.column(column_name)  # type: ignore[var-annotated]
+        column = sa.column(column_name)  # type: ignore[var-annotated] # FIXME CoP
         dialect_name = execution_engine.dialect_name
         quantiles = metric_value_kwargs["quantiles"]
         allow_relative_error = metric_value_kwargs.get("allow_relative_error", False)
@@ -96,7 +96,7 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
             )
         elif dialect_name.lower() == GXSqlDialect.CLICKHOUSE:
             return _get_column_quantiles_clickhouse(
-                column=column,  # type: ignore[arg-type]
+                column=column,  # type: ignore[arg-type] # FIXME CoP
                 quantiles=quantiles,
                 selectable=selectable,
                 execution_engine=execution_engine,
@@ -176,11 +176,11 @@ class ColumnQuantileValues(ColumnAggregateMetricProvider):
             or allow_relative_error < 0.0
             or allow_relative_error > 1.0
         ):
-            raise ValueError(  # noqa: TRY003
-                "SparkDFExecutionEngine requires relative error to be False or to be a float between 0 and 1."  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                "SparkDFExecutionEngine requires relative error to be False or to be a float between 0 and 1."  # noqa: E501 # FIXME CoP
             )
 
-        return df.approxQuantile(column, list(quantiles), allow_relative_error)  # type: ignore[attr-defined]
+        return df.approxQuantile(column, list(quantiles), allow_relative_error)  # type: ignore[attr-defined] # FIXME CoP
 
 
 def _get_column_quantiles_mssql(
@@ -188,20 +188,20 @@ def _get_column_quantiles_mssql(
 ) -> list:
     # mssql requires over(), so we add an empty over() clause
     selects: list[sqlalchemy.WithinGroup] = [
-        sa.func.percentile_disc(quantile).within_group(column.asc()).over()  # type: ignore[misc]
+        sa.func.percentile_disc(quantile).within_group(column.asc()).over()  # type: ignore[misc] # FIXME CoP
         for quantile in quantiles
     ]
     quantiles_query: sqlalchemy.Select = sa.select(*selects).select_from(selectable)
 
     try:
         quantiles_results = execution_engine.execute_query(quantiles_query).fetchone()
-        return list(quantiles_results)  # type: ignore[arg-type]
+        return list(quantiles_results)  # type: ignore[arg-type] # FIXME CoP
     except sqlalchemy.ProgrammingError as pe:
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
         exception_message += f'{type(pe).__name__}: "{pe!s}".  Traceback: "{exception_traceback}".'
-        logger.error(exception_message)  # noqa: TRY400
-        raise pe  # noqa: TRY201
+        logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
+        raise pe  # noqa: TRY201 # FIXME CoP
 
 
 def _get_column_quantiles_bigquery(
@@ -209,27 +209,27 @@ def _get_column_quantiles_bigquery(
 ) -> list:
     # BigQuery does not support "WITHIN", so we need a special case for it
     selects: list[sqlalchemy.WithinGroup] = [
-        sa.func.percentile_disc(column, quantile).over()  # type: ignore[misc]
+        sa.func.percentile_disc(column, quantile).over()  # type: ignore[misc] # FIXME CoP
         for quantile in quantiles
     ]
     quantiles_query: sqlalchemy.Select = sa.select(*selects).select_from(selectable)
 
     try:
         quantiles_results = execution_engine.execute_query(quantiles_query).fetchone()
-        return list(quantiles_results)  # type: ignore[arg-type]
+        return list(quantiles_results)  # type: ignore[arg-type] # FIXME CoP
     except sqlalchemy.ProgrammingError as pe:
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
         exception_message += f'{type(pe).__name__}: "{pe!s}".  Traceback: "{exception_traceback}".'
-        logger.error(exception_message)  # noqa: TRY400
-        raise pe  # noqa: TRY201
+        logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
+        raise pe  # noqa: TRY201 # FIXME CoP
 
 
 def _get_column_quantiles_mysql(
     column, quantiles: Iterable, selectable, execution_engine: SqlAlchemyExecutionEngine
 ) -> list:
     # MySQL does not support "percentile_disc", so we implement it as a compound query.
-    # Please see https://stackoverflow.com/questions/19770026/calculate-percentile-value-using-mysql for reference.  # noqa: E501
+    # Please see https://stackoverflow.com/questions/19770026/calculate-percentile-value-using-mysql for reference.  # noqa: E501 # FIXME CoP
     percent_rank_query: sqlalchemy.CTE = (
         sa.select(
             column,
@@ -247,7 +247,7 @@ def _get_column_quantiles_mysql(
     for idx, quantile in enumerate(quantiles):
         # pymysql cannot handle conversion of numpy float64 to float; convert just in case
         if np.issubdtype(type(quantile), np.double):
-            quantile = float(quantile)  # noqa: PLW2901
+            quantile = float(quantile)  # noqa: PLW2901 # FIXME CoP
         quantile_column: sqlalchemy.Label = (
             sa.func.first_value(column)
             .over(
@@ -262,20 +262,20 @@ def _get_column_quantiles_mysql(
             )
             .label(f"q_{idx}")
         )
-        selects.append(quantile_column)  # type: ignore[arg-type]
+        selects.append(quantile_column)  # type: ignore[arg-type] # FIXME CoP
     quantiles_query: sqlalchemy.Select = (
         sa.select(*selects).distinct().order_by(percent_rank_query.columns.p.desc())
     )
 
     try:
         quantiles_results = execution_engine.execute_query(quantiles_query).fetchone()
-        return list(quantiles_results)  # type: ignore[arg-type]
+        return list(quantiles_results)  # type: ignore[arg-type] # FIXME CoP
     except sqlalchemy.ProgrammingError as pe:
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
         exception_message += f'{type(pe).__name__}: "{pe!s}".  Traceback: "{exception_traceback}".'
-        logger.error(exception_message)  # noqa: TRY400
-        raise pe  # noqa: TRY201
+        logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
+        raise pe  # noqa: TRY201 # FIXME CoP
 
 
 def _get_column_quantiles_trino(
@@ -288,13 +288,13 @@ def _get_column_quantiles_trino(
 
     try:
         quantiles_results = execution_engine.execute_query(quantiles_query).fetchone()
-        return list(quantiles_results)[0]  # type: ignore[arg-type]
+        return list(quantiles_results)[0]  # type: ignore[arg-type] # FIXME CoP
     except (sqlalchemy.ProgrammingError, trino.trinoexceptions.TrinoUserError) as pe:
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
         exception_message += f'{type(pe).__name__}: "{pe!s}".  Traceback: "{exception_traceback}".'
-        logger.error(exception_message)  # noqa: TRY400
-        raise pe  # noqa: TRY201
+        logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
+        raise pe  # noqa: TRY201 # FIXME CoP
 
 
 def _get_column_quantiles_clickhouse(
@@ -303,7 +303,7 @@ def _get_column_quantiles_clickhouse(
     quantiles_list = list(quantiles)
     sql_approx: str = f"quantilesExact({', '.join([str(x) for x in quantiles_list])})({column})"
     selects_approx: list[sqlalchemy.TextClause] = [sa.text(sql_approx)]
-    quantiles_query: sqlalchemy.Select = sa.select(selects_approx).select_from(selectable)  # type: ignore[call-overload]
+    quantiles_query: sqlalchemy.Select = sa.select(selects_approx).select_from(selectable)  # type: ignore[call-overload] # FIXME CoP
     try:
         quantiles_results = execution_engine.execute(quantiles_query).fetchone()[0]
         return quantiles_results
@@ -312,8 +312,8 @@ def _get_column_quantiles_clickhouse(
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
         exception_message += f'{type(pe).__name__}: "{pe!s}".  Traceback: "{exception_traceback}".'
-        logger.error(exception_message)  # noqa: TRY400
-        raise pe  # noqa: TRY201
+        logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
+        raise pe  # noqa: TRY201 # FIXME CoP
 
 
 def _get_column_quantiles_sqlite(
@@ -328,7 +328,7 @@ def _get_column_quantiles_sqlite(
     "execution_engine.execute_query()" as the number of partitions in the "quantiles" parameter (albeit, typically,
     only a few).  However, this is the only mechanism available for SQLite at the present time (11/17/2021), because
     the analytical processing is not a very strongly represented capability of the SQLite database management system.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     offsets: list[int] = [quantile * table_row_count - 1 for quantile in quantiles]
     quantile_queries: list[sqlalchemy.Select] = [
         sa.select(column).order_by(column.asc()).offset(offset).limit(1).select_from(selectable)
@@ -342,15 +342,15 @@ def _get_column_quantiles_sqlite(
         ]
         return list(
             itertools.chain.from_iterable(
-                [list(quantile_result) for quantile_result in quantiles_results]  # type: ignore[arg-type]
+                [list(quantile_result) for quantile_result in quantiles_results]  # type: ignore[arg-type] # FIXME CoP
             )
         )
     except sqlalchemy.ProgrammingError as pe:
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
         exception_message += f'{type(pe).__name__}: "{pe!s}".  Traceback: "{exception_traceback}".'
-        logger.error(exception_message)  # noqa: TRY400
-        raise pe  # noqa: TRY201
+        logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
+        raise pe  # noqa: TRY201 # FIXME CoP
 
 
 def _get_column_quantiles_athena(
@@ -364,21 +364,21 @@ def _get_column_quantiles_athena(
     quantiles_query_approx: sqlalchemy.Select = sa.select(*selects_approx).select_from(selectable)
     try:
         quantiles_results = execution_engine.execute_query(quantiles_query_approx).fetchone()
-        # the ast literal eval is needed because the method is returning a json string and not a dict  # noqa: E501
-        results = ast.literal_eval(quantiles_results[0])  # type: ignore[index]
+        # the ast literal eval is needed because the method is returning a json string and not a dict  # noqa: E501 # FIXME CoP
+        results = ast.literal_eval(quantiles_results[0])  # type: ignore[index] # FIXME CoP
         return results
     except sqlalchemy.ProgrammingError as pe:
         exception_message: str = "An SQL syntax Exception occurred."
         exception_traceback: str = traceback.format_exc()
         exception_message += f'{type(pe).__name__}: "{pe!s}".  Traceback: "{exception_traceback}".'
-        logger.error(exception_message)  # noqa: TRY400
-        raise pe  # noqa: TRY201
+        logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
+        raise pe  # noqa: TRY201 # FIXME CoP
 
 
-# Support for computing the quantiles column for PostGreSQL and Redshift is included in the same method as that for  # noqa: E501
-# the generic sqlalchemy compatible DBMS engine, because users often use the postgresql driver to connect to Redshift  # noqa: E501
+# Support for computing the quantiles column for PostGreSQL and Redshift is included in the same method as that for  # noqa: E501 # FIXME CoP
+# the generic sqlalchemy compatible DBMS engine, because users often use the postgresql driver to connect to Redshift  # noqa: E501 # FIXME CoP
 # The key functional difference is that Redshift does not support the aggregate function
-# "percentile_disc", but does support the approximate percentile_disc or percentile_cont function version instead.```  # noqa: E501
+# "percentile_disc", but does support the approximate percentile_disc or percentile_cont function version instead.```  # noqa: E501 # FIXME CoP
 def _get_column_quantiles_generic_sqlalchemy(
     column,
     quantiles: Iterable,
@@ -393,12 +393,12 @@ def _get_column_quantiles_generic_sqlalchemy(
 
     try:
         quantiles_results = execution_engine.execute_query(quantiles_query).fetchone()
-        return list(quantiles_results)  # type: ignore[arg-type]
+        return list(quantiles_results)  # type: ignore[arg-type] # FIXME CoP
     except sqlalchemy.ProgrammingError:
-        # ProgrammingError: (psycopg2.errors.SyntaxError) Aggregate function "percentile_disc" is not supported;  # noqa: E501
+        # ProgrammingError: (psycopg2.errors.SyntaxError) Aggregate function "percentile_disc" is not supported;  # noqa: E501 # FIXME CoP
         # use approximate percentile_disc or percentile_cont instead.
         if attempt_allowing_relative_error(execution_engine.dialect):
-            # Redshift does not have a percentile_disc method, but does support an approximate version.  # noqa: E501
+            # Redshift does not have a percentile_disc method, but does support an approximate version.  # noqa: E501 # FIXME CoP
             sql_approx: str = get_approximate_percentile_disc_sql(
                 selects=selects, sql_engine_dialect=execution_engine.dialect
             )
@@ -411,22 +411,22 @@ def _get_column_quantiles_generic_sqlalchemy(
                     quantiles_results = execution_engine.execute_query(
                         quantiles_query_approx
                     ).fetchone()
-                    return list(quantiles_results)  # type: ignore[arg-type]
+                    return list(quantiles_results)  # type: ignore[arg-type] # FIXME CoP
                 except sqlalchemy.ProgrammingError as pe:
                     exception_message: str = "An SQL syntax Exception occurred."
                     exception_traceback: str = traceback.format_exc()
                     exception_message += (
                         f'{type(pe).__name__}: "{pe!s}".  Traceback: "{exception_traceback}".'
                     )
-                    logger.error(exception_message)  # noqa: TRY400
-                    raise pe  # noqa: TRY201
+                    logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
+                    raise pe  # noqa: TRY201 # FIXME CoP
             else:
-                raise ValueError(  # noqa: TRY003
-                    f'The SQL engine dialect "{execution_engine.dialect!s}" does not support computing quantiles '  # noqa: E501
-                    "without approximation error; set allow_relative_error to True to allow approximate quantiles."  # noqa: E501
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
+                    f'The SQL engine dialect "{execution_engine.dialect!s}" does not support computing quantiles '  # noqa: E501 # FIXME CoP
+                    "without approximation error; set allow_relative_error to True to allow approximate quantiles."  # noqa: E501 # FIXME CoP
                 )
         else:
-            raise ValueError(  # noqa: TRY003
-                f'The SQL engine dialect "{execution_engine.dialect!s}" does not support computing quantiles with '  # noqa: E501
-                "approximation error; set allow_relative_error to False to disable approximate quantiles."  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f'The SQL engine dialect "{execution_engine.dialect!s}" does not support computing quantiles with '  # noqa: E501 # FIXME CoP
+                "approximation error; set allow_relative_error to False to disable approximate quantiles."  # noqa: E501 # FIXME CoP
             )

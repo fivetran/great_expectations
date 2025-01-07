@@ -25,7 +25,7 @@ class SparkGoogleCloudStorageDatasource(_SparkFilePathDatasource):
     gcs_options: dict[str, ConfigStr | Any] = {}
 
     _gcs_client: google.Client | None
-    def add_csv_asset(  # noqa: PLR0913
+    def add_csv_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,

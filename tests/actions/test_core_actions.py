@@ -61,6 +61,7 @@ SUITE_A: str = "suite_a"
 SUITE_B: str = "suite_b"
 BATCH_ID_A: str = "my_datasource-my_first_asset"
 BATCH_ID_B: str = "my_datasource-my_second_asset"
+utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzinfo=timezone.utc)
 
 
 @pytest.fixture
@@ -497,7 +498,7 @@ class TestPagerdutyAlertAction:
                             "payload": {
                                 "severity": "critical",
                                 "source": "Great Expectations",
-                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has succeeded",  # noqa: E501
+                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has succeeded",  # noqa: E501 # FIXME CoP
                             },
                             "routing_key": "test",
                         }
@@ -509,7 +510,7 @@ class TestPagerdutyAlertAction:
                             "payload": {
                                 "severity": "critical",
                                 "source": "Great Expectations",
-                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has failed",  # noqa: E501
+                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has failed",  # noqa: E501 # FIXME CoP
                             },
                             "routing_key": "test",
                         }
@@ -566,14 +567,14 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501 # FIXME CoP
                         },
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501 # FIXME CoP
                         },
                     },
                     {"type": "divider"},

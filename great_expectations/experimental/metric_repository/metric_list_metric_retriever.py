@@ -38,7 +38,7 @@ class MetricListMetricRetriever(MetricRetriever):
         metrics_result: List[Metric] = []
 
         if not metric_list:
-            raise ValueError("metric_list cannot be empty")  # noqa: TRY003
+            raise ValueError("metric_list cannot be empty")  # noqa: TRY003 # FIXME CoP
 
         self._check_valid_metric_types(metric_list)
 
@@ -111,7 +111,7 @@ class MetricListMetricRetriever(MetricRetriever):
         Returns:
             Sequence[Metric]: List of metrics for non-numeric columns.
         """
-        # currently only the null-count is supported. If more metrics are added, this set will need to be updated.  # noqa: E501
+        # currently only the null-count is supported. If more metrics are added, this set will need to be updated.  # noqa: E501 # FIXME CoP
         column_metric_names = {MetricTypes.COLUMN_NULL_COUNT}
         metrics: list[Metric] = []
         metrics_list_as_set = set(metrics_list)
@@ -191,7 +191,7 @@ class MetricListMetricRetriever(MetricRetriever):
             return metrics
 
         # Note: Timestamps are returned as strings for Snowflake, this may need to be adjusted
-        # when we support other datasources. For example in Pandas, timestamps can be returned as Timestamp().  # noqa: E501
+        # when we support other datasources. For example in Pandas, timestamps can be returned as Timestamp().  # noqa: E501 # FIXME CoP
         return self._get_column_metrics(
             batch_request=batch_request,
             column_list=column_list,
@@ -228,7 +228,7 @@ class MetricListMetricRetriever(MetricRetriever):
 
         Returns:
             bool: True if all the metric types in the list are valid, False otherwise.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return all(metric in MetricTypes for metric in metric_list)
 
     def _column_metrics_in_metric_list(self, metric_list: List[MetricTypes]) -> bool:
@@ -239,7 +239,7 @@ class MetricListMetricRetriever(MetricRetriever):
 
         Returns:
             bool: True if any column metrics are present in the metric list, False otherwise.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         column_metrics: List[MetricTypes] = [
             MetricTypes.COLUMN_MIN,
             MetricTypes.COLUMN_MAX,

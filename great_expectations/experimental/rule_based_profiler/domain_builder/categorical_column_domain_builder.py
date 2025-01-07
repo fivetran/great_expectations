@@ -53,7 +53,7 @@ class CategoricalColumnDomainBuilder(ColumnDomainBuilder):
     }
     cardinality_limit_modes: Type[CardinalityLimitMode] = CardinalityLimitMode
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         include_column_names: Optional[Union[str, Optional[List[str]]]] = None,
         exclude_column_names: Optional[Union[str, Optional[List[str]]]] = None,
@@ -110,7 +110,7 @@ class CategoricalColumnDomainBuilder(ColumnDomainBuilder):
             max_proportion_unique: proportion of unique values for a
                 custom cardinality limit to use when filtering columns.
             data_context: AbstractDataContext associated with this DomainBuilder
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if exclude_column_names is None:
             exclude_column_names = [
                 "id",
@@ -216,7 +216,7 @@ class CategoricalColumnDomainBuilder(ColumnDomainBuilder):
 
         Returns:
             List of domains that match the desired cardinality.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         batch_ids: Optional[List[str]] = self.get_batch_ids(variables=variables)
 
         validator: Optional[Validator] = self.get_validator(variables=variables)
@@ -227,7 +227,7 @@ class CategoricalColumnDomainBuilder(ColumnDomainBuilder):
             variables=variables,
         )
 
-        # Obtain cardinality_limit_mode from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain cardinality_limit_mode from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         cardinality_limit_mode: Optional[Union[str, CardinalityLimitMode, dict]] = (
             get_parameter_value_and_validate_return_type(
                 domain=None,
@@ -238,7 +238,7 @@ class CategoricalColumnDomainBuilder(ColumnDomainBuilder):
             )
         )
 
-        # Obtain max_unique_values from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain max_unique_values from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         max_unique_values: Optional[int] = get_parameter_value_and_validate_return_type(
             domain=None,
             parameter_reference=self.max_unique_values,
@@ -247,7 +247,7 @@ class CategoricalColumnDomainBuilder(ColumnDomainBuilder):
             parameters=None,
         )
 
-        # Obtain max_proportion_unique from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain max_proportion_unique from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         max_proportion_unique: Optional[float] = get_parameter_value_and_validate_return_type(
             domain=None,
             parameter_reference=self.max_proportion_unique,
@@ -268,7 +268,7 @@ class CategoricalColumnDomainBuilder(ColumnDomainBuilder):
             max_proportion_unique=max_proportion_unique,
         )
 
-        # Obtain allowed_semantic_types_passthrough from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain allowed_semantic_types_passthrough from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         allowed_semantic_types_passthrough: Union[
             str, SemanticDomainTypes, List[Union[str, SemanticDomainTypes]]
         ] = get_parameter_value_and_validate_return_type(
@@ -384,7 +384,7 @@ class CategoricalColumnDomainBuilder(ColumnDomainBuilder):
 
         Returns:
             List of column names meeting cardinality.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         column_name: str
         resolved_metrics: Dict[Tuple[str, str, str], MetricValue]
         metric_value: MetricValue

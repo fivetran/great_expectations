@@ -34,7 +34,7 @@ def integer_and_datetime_sample_dataset() -> dict:
             11,
         ],
         "b": [
-            datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001
+            datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME CoP
             for week_idx in range(12)
         ],
     }
@@ -86,7 +86,7 @@ def _test_column_partition_metric(
     For "datetime.datetime" data, test set contains 12 dates, starting with January 1, 2021, separated by 7 days.
 
     Expected partition boundaries are pre-computed algorithmically and asserted to be "close" to actual metric values.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     validator_with_data: Validator = get_test_validator_with_data(
         execution_engine=backend,
         table_name="column_partition_metric_test",
@@ -140,7 +140,7 @@ def _test_column_partition_metric(
             operand_a=element.to_pydatetime()
             if isinstance(validator_with_data.execution_engine, PandasExecutionEngine)
             else element,
-            operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001
+            operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001 # FIXME CoP
         )
         for idx, element in enumerate(results[desired_metric.id])
     )
@@ -161,7 +161,7 @@ def test_get_metric_calls_get_metrics_and_returns_correct_result():
 
     The "with mock.patch" is used judiciously, trading off the focus on the functionality under test (i.e., avoiding
     "test leakage") against going as far as mocking all non-essential methods and properties, favoring code readability.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     class DummyExecutionEngine:
         pass

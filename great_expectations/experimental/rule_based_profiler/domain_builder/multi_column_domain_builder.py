@@ -12,7 +12,7 @@ from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.rule_based_profiler.domain_builder import ColumnDomainBuilder
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001
+    ParameterContainer,  # noqa: TCH001 # FIXME CoP
 )
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 class MultiColumnDomainBuilder(ColumnDomainBuilder):
     """
     This DomainBuilder uses "include_column_names" property of its parent class to specify "column_list" (order-non-preserving).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     exclude_field_names: ClassVar[Set[str]] = ColumnDomainBuilder.exclude_field_names | {
         "exclude_column_names",
@@ -80,7 +80,7 @@ class MultiColumnDomainBuilder(ColumnDomainBuilder):
 
         Returns:
             List of domains that match the desired tolerance limits.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         batch_ids: List[str] = self.get_batch_ids(variables=variables)  # type: ignore[assignment] # could be None
 
         validator: Validator = self.get_validator(variables=variables)  # type: ignore[assignment] # could be None
@@ -98,7 +98,7 @@ class MultiColumnDomainBuilder(ColumnDomainBuilder):
 
         column_name: str
         semantic_types_by_column_name: Dict[str, SemanticDomainTypes] = {
-            column_name: self.semantic_type_filter.table_column_name_to_inferred_semantic_domain_type_map[  # type: ignore[union-attr] # could be None  # noqa: E501
+            column_name: self.semantic_type_filter.table_column_name_to_inferred_semantic_domain_type_map[  # type: ignore[union-attr] # could be None  # noqa: E501 # FIXME CoP
                 column_name
             ]
             for column_name in effective_column_names

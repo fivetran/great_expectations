@@ -77,7 +77,7 @@ class ExpectColumnValuesToEqualThree__SecondIteration(ExpectColumnValuesToEqualT
                     "title": "other_negative_test_with_mostly",
                     "exact_match_out": False,
                     "in": {"column": "mostly_threes", "mostly": 0.9},
-                    # "include_in_gallery": False, #This key is omitted, so the example shouldn't show up in the gallery  # noqa: E501
+                    # "include_in_gallery": False, #This key is omitted, so the example shouldn't show up in the gallery  # noqa: E501 # FIXME CoP
                     "out": {
                         "success": False,
                         "unexpected_index_list": [6, 7],
@@ -122,7 +122,7 @@ class ExpectColumnValuesToEqualThree__ThirdIteration(
                 return f'At least {mostly * 100}% of values in column "{column}" equal 3.'
             else:
                 return f'Less than {mostly * 100}% of values in column "{column}" equal 3.'
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if result.success:
                 return f'All of the values in column "{column}" equal 3.'
             else:
@@ -216,7 +216,7 @@ class ExpectColumnValuesToEqualThree__BrokenIteration(
                     "title": "other_negative_test_with_mostly",
                     "exact_match_out": False,
                     "in": {"column": "mostly_threes", "mostly": 0.9},
-                    # "include_in_gallery": False, #This key is omitted, so the example shouldn't show up in the gallery  # noqa: E501
+                    # "include_in_gallery": False, #This key is omitted, so the example shouldn't show up in the gallery  # noqa: E501 # FIXME CoP
                     "out": {
                         "success": False,
                         "unexpected_index_list": [6, 7],

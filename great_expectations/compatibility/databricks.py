@@ -13,24 +13,30 @@ DATABRICKS_CONNECT_NOT_IMPORTED = NotImported(
 # https://github.com/databricks/databricks-sql-python/blob/main/src/databricks/sqlalchemy/README.sqlalchemy.md
 
 try:
-    from databricks.sqlalchemy._types import TIMESTAMP_NTZ as TIMESTAMP_NTZ  # noqa: PLC0414, RUF100
+    from databricks.sqlalchemy._types import (
+        TIMESTAMP_NTZ as TIMESTAMP_NTZ,  # noqa: PLC0414, RUF100 # FIXME CoP
+    )
 except (ImportError, AttributeError):
-    TIMESTAMP_NTZ = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
+    TIMESTAMP_NTZ = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
-    from databricks.sqlalchemy._types import DatabricksStringType as STRING  # noqa: PLC0414, RUF100
+    from databricks.sqlalchemy._types import (
+        DatabricksStringType as STRING,  # noqa: PLC0414, RUF100 # FIXME CoP
+    )
 except (ImportError, AttributeError):
-    STRING = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
+    STRING = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
-    from databricks.sqlalchemy._types import TIMESTAMP as TIMESTAMP  # noqa: PLC0414, RUF100
+    from databricks.sqlalchemy._types import (
+        TIMESTAMP as TIMESTAMP,  # noqa: PLC0414, RUF100 # FIXME CoP
+    )
 except (ImportError, AttributeError):
-    TIMESTAMP = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
+    TIMESTAMP = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
-    from databricks.sqlalchemy._types import TINYINT as TINYINT  # noqa: PLC0414, RUF100
+    from databricks.sqlalchemy._types import TINYINT as TINYINT  # noqa: PLC0414, RUF100 # FIXME CoP
 except (ImportError, AttributeError):
-    TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment]
+    TINYINT = DATABRICKS_CONNECT_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 
 class DATABRICKS_TYPES:

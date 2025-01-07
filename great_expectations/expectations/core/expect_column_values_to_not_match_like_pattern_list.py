@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -176,7 +176,7 @@ class ExpectColumnValuesToNotMatchLikePatternList(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     like_pattern_list: Union[List[str], SuiteParameterDict] = pydantic.Field(
         description=LIKE_PATTERN_LIST_DESCRIPTION
@@ -187,7 +187,7 @@ class ExpectColumnValuesToNotMatchLikePatternList(ColumnMapExpectation):
         cls, like_pattern_list: list[str] | SuiteParameterDict
     ) -> list[str] | SuiteParameterDict:
         if len(like_pattern_list) < 1:
-            raise ValueError("At least one like_pattern must be supplied in the like_pattern_list.")  # noqa: TRY003
+            raise ValueError("At least one like_pattern must be supplied in the like_pattern_list.")  # noqa: TRY003 # FIXME CoP
 
         return like_pattern_list
 

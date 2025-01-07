@@ -2,7 +2,7 @@
 This file is intended to
 1. test the basic behavior of SerializableDictDot, in combination with @dataclass, and
 2. provides examples of best practice for working with typed objects within the Great Expectations codebase
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -332,7 +332,7 @@ def test_can_be_nested():
     assert my_C["A_list"][1].bar == 102
     assert my_C["B_list"][0]["quux"] == 43
 
-    # Note: we don't currently support dot notation access within lists: `assert my_C["A_list"].1.bar == 102`  # noqa: E501
+    # Note: we don't currently support dot notation access within lists: `assert my_C["A_list"].1.bar == 102`  # noqa: E501 # FIXME CoP
 
     # Demonstrate that we can access Enum sub-objects
     assert my_C["beta_var"] == MyEnum("x")
@@ -391,14 +391,14 @@ def test_to_raw_dict_works_recursively():
     C_dict = my_C.to_raw_dict()
 
     # Make sure it's a dictionary, not a DictDot
-    assert type(C_dict) == dict  # noqa: E721
+    assert type(C_dict) == dict  # noqa: E721 # FIXME CoP
     assert isinstance(C_dict, DictDot) is False
     # Dictionaries don't support dot notation.
     with raises(AttributeError):
-        C_dict.A_list  # noqa: B018
+        C_dict.A_list  # noqa: B018 # FIXME CoP
 
-    assert type(C_dict["A_list"][0]) == dict  # noqa: E721
-    assert type(C_dict["B_list"][0]) == dict  # noqa: E721
+    assert type(C_dict["A_list"][0]) == dict  # noqa: E721 # FIXME CoP
+    assert type(C_dict["B_list"][0]) == dict  # noqa: E721 # FIXME CoP
 
     assert C_dict == {
         "alpha_var": 20,
@@ -451,7 +451,7 @@ def test_instantiation_with_a_from_legacy_dict_method():
     One especially thorny example is when the dictionary contains keys that are reserved words in python.
 
     For example, test cases use the reserved word: "in" as one of their required fields.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     import inspect
     import logging
@@ -464,13 +464,13 @@ def test_instantiation_with_a_from_legacy_dict_method():
 
         @classmethod
         def from_legacy_dict(cls, dict):
-            """This method is an adapter to allow typing of legacy my_class_e dictionary objects, without needing to immediately clean up every object."""  # noqa: E501
+            """This method is an adapter to allow typing of legacy my_class_e dictionary objects, without needing to immediately clean up every object."""  # noqa: E501 # FIXME CoP
             temp_dict = {}
             for k, v in dict.items():
                 # Ignore parameters that don't match the type definition
                 if k in inspect.signature(cls).parameters:
                     temp_dict[k] = v
-                else:  # noqa: PLR5501
+                else:  # noqa: PLR5501 # FIXME CoP
                     if k == "in":
                         temp_dict["input"] = v
                     else:
@@ -497,7 +497,7 @@ def test_instantiation_with_a_from_legacy_dict_method():
 
     # Note that after instantiation, the class does NOT have an "in" property
     with raises(AttributeError):
-        my_E["in"] == 10  # noqa: B015
+        my_E["in"] == 10  # noqa: B015 # FIXME CoP
 
     # Because `in` is a reserved word, this will raise a SyntaxError:
     # my_F.in == 100

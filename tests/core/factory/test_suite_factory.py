@@ -4,7 +4,7 @@ from typing import Dict
 from unittest import mock
 from unittest.mock import (
     ANY,
-    Mock,  # noqa: TID251
+    Mock,  # noqa: TID251 # FIXME CoP
 )
 from unittest.mock import ANY as ANY_TEST_ARG
 
@@ -268,7 +268,7 @@ def test_suite_factory_all_with_bad_marshmallow_config(
 
     # Put suite_2 into an invalid state, These BadExpectations are real Expectations since
     # we want them to not deserialize correctly.
-    suite_2.expectations = [BadExpectation(id=1), BadExpectation(id=2)]  # type: ignore[list-item]
+    suite_2.expectations = [BadExpectation(id=1), BadExpectation(id=2)]  # type: ignore[list-item] # FIXME CoP
     suite_2.save()
 
     # Act

@@ -38,7 +38,7 @@ from great_expectations.core.batch_spec import (
 )
 from great_expectations.core.id_dict import IDDict
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,  # noqa: TCH001
+    MetricDomainTypes,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.core.util import AzureUrl
 from great_expectations.exceptions import (
@@ -50,8 +50,8 @@ from great_expectations.exceptions import (
 from great_expectations.exceptions import exceptions as gx_exceptions
 from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.execution_engine.execution_engine import (
-    MetricComputationConfiguration,  # noqa: TCH001
-    PartitionDomainKwargs,  # noqa: TCH001
+    MetricComputationConfiguration,  # noqa: TCH001 # FIXME CoP
+    PartitionDomainKwargs,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.execution_engine.partition_and_sample.sparkdf_data_partitioner import (
     SparkDataPartitioner,
@@ -70,10 +70,10 @@ from great_expectations.expectations.row_conditions import (
     RowConditionParserType,
     parse_condition_to_spark,
 )
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
 from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001
+    MetricConfiguration,  # noqa: TCH001 # FIXME CoP
 )
 
 if TYPE_CHECKING:
@@ -92,8 +92,8 @@ def apply_dateutil_parse(column):
 @deprecated_argument(
     argument_name="force_reuse_spark_context",
     version="1.0",
-    message="The force_reuse_spark_context attribute is no longer part of any Spark Datasource classes. "  # noqa: E501
-    "The existing Spark context will be reused if possible. If a spark_config is passed that doesn't match "  # noqa: E501
+    message="The force_reuse_spark_context attribute is no longer part of any Spark Datasource classes. "  # noqa: E501 # FIXME CoP
+    "The existing Spark context will be reused if possible. If a spark_config is passed that doesn't match "  # noqa: E501 # FIXME CoP
     "the existing config, the context will be stopped and restarted in local environments only.",
 )
 class SparkDFExecutionEngine(ExecutionEngine):
@@ -193,7 +193,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
             expectation_completeness: Moderate
 
     --ge-feature-maturity-info--
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     recognized_batch_definition_keys = {"limit"}
 
@@ -229,9 +229,9 @@ class SparkDFExecutionEngine(ExecutionEngine):
             # deprecated-v1.0.0
             warnings.warn(
                 "force_reuse_spark_context is deprecated and will be removed in version 1.0. "
-                "In environments that allow it, the existing Spark context will be reused, adding the "  # noqa: E501
-                "spark_config options that have been passed. If the Spark context cannot be updated with "  # noqa: E501
-                "the spark_config, the context will be stopped and restarted with the new spark_config.",  # noqa: E501
+                "In environments that allow it, the existing Spark context will be reused, adding the "  # noqa: E501 # FIXME CoP
+                "spark_config options that have been passed. If the Spark context cannot be updated with "  # noqa: E501 # FIXME CoP
+                "the spark_config, the context will be stopped and restarted with the new spark_config.",  # noqa: E501 # FIXME CoP
                 category=DeprecationWarning,
             )
         super().__init__(*args, **kwargs)
@@ -249,9 +249,9 @@ class SparkDFExecutionEngine(ExecutionEngine):
 
     @property
     def dataframe(self) -> pyspark.DataFrame:
-        """If a batch has been loaded, returns a Spark Dataframe containing the data within the loaded batch"""  # noqa: E501
+        """If a batch has been loaded, returns a Spark Dataframe containing the data within the loaded batch"""  # noqa: E501 # FIXME CoP
         if self.batch_manager.active_batch_data is None:
-            raise ValueError("Batch has not been loaded - please run load_batch() to load a batch.")  # noqa: TRY003
+            raise ValueError("Batch has not been loaded - please run load_batch() to load a batch.")  # noqa: TRY003 # FIXME CoP
 
         return cast(SparkDFBatchData, self.batch_manager.active_batch_data).dataframe
 
@@ -266,7 +266,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
 
         Returns:
             SparkSession
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         spark_config = spark_config or {}
 
         spark_session: pyspark.SparkSession
@@ -337,7 +337,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
             pyspark.SparkConnectSession  # type: ignore[truthy-function]  # returns false if module is not installed
             and isinstance(spark_session, pyspark.SparkConnectSession)
         ) or (
-            os.environ.get("DATABRICKS_RUNTIME_VERSION") is not None  # noqa: TID251
+            os.environ.get("DATABRICKS_RUNTIME_VERSION") is not None  # noqa: TID251 # FIXME CoP
         )
 
     @staticmethod
@@ -353,7 +353,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
 
         Returns:
             SparkSession, Boolean specifying if SparkSession is stopped
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         stopped = False
         warning_messages = []
         for key, value in spark_config.items():
@@ -371,15 +371,15 @@ class SparkDFExecutionEngine(ExecutionEngine):
                     spark_session.conf.set(key, value)
                 elif key == "spark.app.name" and spark_session.sparkContext.appName != value:
                     spark_session.sparkContext.appName = value
-            # attribute error can be raised for connect sessions that haven't implemented a conf for sparkContext method  # noqa: E501
-            # analysis exception can be raised in environments that don't allow updating config of that option  # noqa: E501
+            # attribute error can be raised for connect sessions that haven't implemented a conf for sparkContext method  # noqa: E501 # FIXME CoP
+            # analysis exception can be raised in environments that don't allow updating config of that option  # noqa: E501 # FIXME CoP
             except (
                 pyspark.PySparkAttributeError,
                 pyspark.AnalysisException,
             ):
                 if SparkDFExecutionEngine._session_is_not_stoppable(spark_session=spark_session):
                     warning_messages.append(
-                        f"Passing spark_config option `{key}` had no effect, because in this environment "  # noqa: E501
+                        f"Passing spark_config option `{key}` had no effect, because in this environment "  # noqa: E501 # FIXME CoP
                         "it is not modifiable and the Spark Session cannot be restarted."
                     )
                 else:
@@ -400,14 +400,14 @@ class SparkDFExecutionEngine(ExecutionEngine):
         return spark_session, stopped
 
     @override
-    def load_batch_data(  # type: ignore[override]
+    def load_batch_data(  # type: ignore[override] # FIXME CoP
         self, batch_id: str, batch_data: Union[SparkDFBatchData, pyspark.DataFrame]
     ) -> None:
-        if pyspark.DataFrame and isinstance(batch_data, pyspark.DataFrame):  # type: ignore[truthy-function]
+        if pyspark.DataFrame and isinstance(batch_data, pyspark.DataFrame):  # type: ignore[truthy-function] # FIXME CoP
             batch_data = SparkDFBatchData(self, batch_data)
         elif not isinstance(batch_data, SparkDFBatchData):
-            raise GreatExpectationsError(  # noqa: TRY003
-                "SparkDFExecutionEngine requires batch data that is either a DataFrame or a SparkDFBatchData object"  # noqa: E501
+            raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                "SparkDFExecutionEngine requires batch data that is either a DataFrame or a SparkDFBatchData object"  # noqa: E501 # FIXME CoP
             )
 
         if self._persist:
@@ -416,7 +416,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
         super().load_batch_data(batch_id=batch_id, batch_data=batch_data)
 
     @override
-    def get_batch_data_and_markers(  # noqa: C901, PLR0912, PLR0915
+    def get_batch_data_and_markers(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self, batch_spec: BatchSpec
     ) -> Tuple[Any, BatchMarkers]:  # batch_data
         # We need to build a batch_markers to be used in the dataframe
@@ -434,7 +434,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
         path formats for accessing all other supported cloud storage services (AWS S3 and Google Cloud Storage).
         Moreover, these formats (encapsulated in S3BatchSpec and GCSBatchSpec) extend PathBatchSpec (common to them).
         Therefore, at the present time, all cases with the exception of Azure Blob Storage, are handled generically.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         batch_data: Any
         reader_method: str
@@ -447,9 +447,9 @@ class SparkDFExecutionEngine(ExecutionEngine):
             # batch_data != None is already checked when RuntimeDataBatchSpec is instantiated
             batch_data = batch_spec.batch_data
             if isinstance(batch_data, str):
-                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     f"""SparkDFExecutionEngine has been passed a string type batch_data, "{batch_data}", which is \
-illegal.  Please check your config."""  # noqa: E501
+illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
                 )
             batch_spec.batch_data = "SparkDataFrame"
 
@@ -458,7 +458,7 @@ illegal.  Please check your config."""  # noqa: E501
             reader_options = batch_spec.reader_options or {}
             path = batch_spec.path
             azure_url = AzureUrl(path)
-            # TODO <WILL> 202209 - Add `schema` definition to Azure like PathBatchSpec below (GREAT-1224)  # noqa: E501
+            # TODO <WILL> 202209 - Add `schema` definition to Azure like PathBatchSpec below (GREAT-1224)  # noqa: E501 # FIXME CoP
             try:
                 credential = self._azure_options.get("credential")
                 storage_account_url = azure_url.account_url
@@ -476,7 +476,7 @@ illegal.  Please check your config."""  # noqa: E501
                 )
                 batch_data = reader_fn(path)
             except AttributeError:
-                raise ExecutionEngineError(  # noqa: TRY003
+                raise ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     """
                     Unable to load pyspark. Pyspark is required for SparkDFExecutionEngine.
                     """
@@ -495,7 +495,7 @@ illegal.  Please check your config."""  # noqa: E501
 
             # this can happen if we have not converted schema into json at Datasource-config level
             elif isinstance(schema, str):
-                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     """
                     Spark schema was not properly serialized.
                     Please run the .jsonValue() method on the schema object before loading into GX.
@@ -516,19 +516,19 @@ illegal.  Please check your config."""  # noqa: E501
                 )
                 batch_data = reader_fn(path)
             except AttributeError:
-                raise ExecutionEngineError(  # noqa: TRY003
+                raise ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     """
                     Unable to load pyspark. Pyspark is required for SparkDFExecutionEngine.
                     """
                 )
             # pyspark will raise an AnalysisException error if path is incorrect
             except pyspark.AnalysisException:
-                raise ExecutionEngineError(  # noqa: TRY003
-                    f"""Unable to read in batch from the following path: {path}. Please check your configuration."""  # noqa: E501
+                raise ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
+                    f"""Unable to read in batch from the following path: {path}. Please check your configuration."""  # noqa: E501 # FIXME CoP
                 )
 
         else:
-            raise BatchSpecError(  # noqa: TRY003
+            raise BatchSpecError(  # noqa: TRY003 # FIXME CoP
                 """
                 Invalid batch_spec: batch_data is required for a SparkDFExecutionEngine to operate.
                 """
@@ -564,7 +564,7 @@ illegal.  Please check your config."""  # noqa: E501
 
         return batch_data
 
-    # TODO: <Alex>Similar to Abe's note in PandasExecutionEngine: Any reason this shouldn't be a private method?</Alex>  # noqa: E501
+    # TODO: <Alex>Similar to Abe's note in PandasExecutionEngine: Any reason this shouldn't be a private method?</Alex>  # noqa: E501 # FIXME CoP
     @staticmethod
     def guess_reader_method_from_path(path: str):
         """
@@ -577,14 +577,14 @@ illegal.  Please check your config."""  # noqa: E501
         Returns:
             A dictionary entry of format {'reader_method': reader_method}
 
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         path = path.lower()
         if path.endswith(".csv") or path.endswith(".tsv"):
             return "csv"
         elif path.endswith(".parquet") or path.endswith(".parq") or path.endswith(".pqt"):
             return "parquet"
 
-        raise ExecutionEngineError(f"Unable to determine reader method from path: {path}")  # noqa: TRY003
+        raise ExecutionEngineError(f"Unable to determine reader method from path: {path}")  # noqa: TRY003 # FIXME CoP
 
     @overload
     def _get_reader_fn(
@@ -605,9 +605,9 @@ illegal.  Please check your config."""  # noqa: E501
         Returns:
             ReaderMethod to use for the filepath
 
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if reader_method is None and path is None:
-            raise ExecutionEngineError(  # noqa: TRY003
+            raise ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                 "Unable to determine spark reader function without reader_method or path"
             )
 
@@ -620,12 +620,12 @@ illegal.  Please check your config."""  # noqa: E501
                 return reader.format(reader_method_op).load
             return getattr(reader, reader_method_op)
         except AttributeError:
-            raise ExecutionEngineError(  # noqa: TRY003
+            raise ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to find reader_method {reader_method} in spark.",
             )
 
     @override
-    def get_domain_records(  # noqa: C901, PLR0912, PLR0915
+    def get_domain_records(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
         domain_kwargs: dict,
     ) -> "pyspark.DataFrame":  # noqa F821
@@ -636,15 +636,15 @@ illegal.  Please check your config."""  # noqa: E501
 
         Returns:
             A DataFrame (the data on which to compute returned in the format of a Spark DataFrame)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         """
         # TODO: <Alex>Docusaurus run fails, unless "pyspark.DataFrame" type hint above is enclosed in quotes.
         This may be caused by it becoming great_expectations.compatibility.not_imported.NotImported when pyspark is not installed.
         </Alex>
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         table = domain_kwargs.get("table", None)
         if table:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "SparkDFExecutionEngine does not currently support multiple named tables."
             )
 
@@ -654,16 +654,16 @@ illegal.  Please check your config."""  # noqa: E501
             if self.batch_manager.active_batch_data:
                 data = cast(SparkDFBatchData, self.batch_manager.active_batch_data).dataframe
             else:
-                raise ValidationError(  # noqa: TRY003
+                raise ValidationError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
                 )
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data = cast(
                     SparkDFBatchData, self.batch_manager.batch_data_cache[batch_id]
                 ).dataframe
             else:
-                raise ValidationError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003
+                raise ValidationError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003 # FIXME CoP
 
         # Filtering by row condition.
         row_condition = domain_kwargs.get("row_condition", None)
@@ -678,7 +678,7 @@ illegal.  Please check your config."""  # noqa: E501
                 parsed_condition = parse_condition_to_spark(row_condition)
                 data = data.filter(parsed_condition)
             else:
-                raise GreatExpectationsError(  # noqa: TRY003
+                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     f"unrecognized condition_parser {condition_parser!s} for Spark execution engine"
                 )
 
@@ -709,9 +709,9 @@ illegal.  Please check your config."""  # noqa: E501
             elif ignore_row_if == "either_value_is_missing":
                 ignore_condition = F.col(column_A_name).isNull() | F.col(column_B_name).isNull()
                 data = data.filter(~ignore_condition)
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if ignore_row_if != "neither":
-                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003
+                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003 # FIXME CoP
 
             return data
 
@@ -726,9 +726,9 @@ illegal.  Please check your config."""  # noqa: E501
                 conditions = [F.col(column_name).isNull() for column_name in column_list]
                 ignore_condition = reduce(lambda a, b: a | b, conditions)
                 data = data.filter(~ignore_condition)
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if ignore_row_if != "never":
-                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003
+                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003 # FIXME CoP
 
             return data
 
@@ -785,15 +785,15 @@ illegal.  Please check your config."""  # noqa: E501
               - a dictionary of compute_domain_kwargs, describing the DataFrame
               - a dictionary of accessor_domain_kwargs, describing any accessors needed to
                 identify the Domain within the compute domain
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         """
         # TODO: <Alex>Docusaurus run fails, unless "pyspark.DataFrame" type hint above is enclosed in quotes.
         This may be caused by it becoming great_expectations.compatibility.not_imported.NotImported when pyspark is not installed.
         </Alex>
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         table: str = domain_kwargs.get("table", None)
         if table:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "SparkDFExecutionEngine does not currently support multiple named tables."
             )
 
@@ -863,7 +863,7 @@ illegal.  Please check your config."""  # noqa: E501
 
             Returns:
                 A dictionary of "MetricConfiguration" IDs and their corresponding fully resolved values for domains.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         resolved_metrics: Dict[Tuple[str, str, str], MetricValue] = {}
 
         res: List[pyspark.Row]
@@ -904,7 +904,7 @@ illegal.  Please check your config."""  # noqa: E501
             res = df.agg(*aggregate["column_aggregates"]).collect()
 
             logger.debug(
-                f"SparkDFExecutionEngine computed {len(res[0])} metrics on domain_id {IDDict(domain_kwargs).to_id()}"  # noqa: E501
+                f"SparkDFExecutionEngine computed {len(res[0])} metrics on domain_id {IDDict(domain_kwargs).to_id()}"  # noqa: E501 # FIXME CoP
             )
 
             assert len(res) == 1, "all bundle-computed metrics must be single-value statistics"
@@ -915,8 +915,8 @@ illegal.  Please check your config."""  # noqa: E501
             idx: int
             metric_id: Tuple[str, str, str]
             for idx, metric_id in enumerate(aggregate["metric_ids"]):
-                # Converting DataFrame.collect() results into JSON-serializable format produces simple data types,  # noqa: E501
-                # amenable for subsequent post-processing by higher-level "Metric" and "Expectation" layers.  # noqa: E501
+                # Converting DataFrame.collect() results into JSON-serializable format produces simple data types,  # noqa: E501 # FIXME CoP
+                # amenable for subsequent post-processing by higher-level "Metric" and "Expectation" layers.  # noqa: E501 # FIXME CoP
                 resolved_metrics[metric_id] = convert_to_json_serializable(data=res[0][idx])
 
         return resolved_metrics

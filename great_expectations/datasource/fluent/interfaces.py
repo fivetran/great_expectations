@@ -258,7 +258,7 @@ def _sorter_from_list(sorters: SortersDefinition) -> list[Sorter]:
 
     # This should never be reached because of static typing but is necessary because
     # mypy doesn't know of the if conditions must evaluate to True.
-    raise ValueError(  # noqa: TRY003
+    raise ValueError(  # noqa: TRY003 # FIXME CoP
         f"sorters is a not a SortersDefinition but is a {type(sorters)}"
     )
 
@@ -356,7 +356,7 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
         Returns:
             A BatchRequest object that can be used to obtain a batch from an asset by calling the
             get_batch method.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         raise NotImplementedError(
             """One must implement "build_batch_request" on a DataAsset subclass."""
         )
@@ -398,11 +398,11 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
         """
         batch_definition_names = {bc.name for bc in self.batch_definitions}
         if name in batch_definition_names:
-            raise ValueError(  # noqa: TRY003
-                f'"{name}" already exists (all existing batch_definition names are {", ".join(batch_definition_names)})'  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f'"{name}" already exists (all existing batch_definition names are {", ".join(batch_definition_names)})'  # noqa: E501 # FIXME CoP
             )
 
-        # Let mypy know that self.datasource is a Datasource (it is currently bound to MetaDatasource)  # noqa: E501
+        # Let mypy know that self.datasource is a Datasource (it is currently bound to MetaDatasource)  # noqa: E501 # FIXME CoP
         assert isinstance(self.datasource, Datasource)
 
         batch_definition = BatchDefinition[PartitionerT](name=name, partitioner=partitioner)
@@ -432,13 +432,13 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
             # We collect the names as a list because while we shouldn't have more than 1
             # batch definition with the same name, we want to represent it if it does occur.
             batch_definition_names = [bc.name for bc in self.batch_definitions]
-            raise ValueError(  # noqa: TRY003
-                f'"{name}" does not exist. Existing batch_definition names are {batch_definition_names})'  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f'"{name}" does not exist. Existing batch_definition names are {batch_definition_names})'  # noqa: E501 # FIXME CoP
             ) from err
         self._delete_batch_definition(batch_def)
 
     def _delete_batch_definition(self, batch_definition: BatchDefinition[PartitionerT]) -> None:
-        # Let mypy know that self.datasource is a Datasource (it is currently bound to MetaDatasource)  # noqa: E501
+        # Let mypy know that self.datasource is a Datasource (it is currently bound to MetaDatasource)  # noqa: E501 # FIXME CoP
         assert isinstance(self.datasource, Datasource)
 
         self.batch_definitions.remove(batch_definition)
@@ -452,7 +452,7 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
         self.update_batch_definition_field_set()
 
     def update_batch_definition_field_set(self) -> None:
-        """Ensure that we have __fields_set__ set correctly for batch_definitions to ensure we serialize IFF needed."""  # noqa: E501
+        """Ensure that we have __fields_set__ set correctly for batch_definitions to ensure we serialize IFF needed."""  # noqa: E501 # FIXME CoP
 
         has_batch_definitions = len(self.batch_definitions) > 0
         if "batch_definitions" in self.__fields_set__ and not has_batch_definitions:
@@ -475,13 +475,13 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
             if batch_definition.name == name
         ]
         if len(batch_definitions) == 0:
-            raise KeyError(  # noqa: TRY003
+            raise KeyError(  # noqa: TRY003 # FIXME CoP
                 f"BatchDefinition {name} not found"
             )
         elif len(batch_definitions) > 1:
             # Our add_batch_definition() method should enforce that different
             # batch definitions do not share a name.
-            raise KeyError(  # noqa: TRY003
+            raise KeyError(  # noqa: TRY003 # FIXME CoP
                 f"Multiple keys for {name} found"
             )
         return batch_definitions[0]
@@ -585,7 +585,7 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
                     reverse=reverse,
                 )
             except KeyError as e:
-                raise KeyError(  # noqa: TRY003
+                raise KeyError(  # noqa: TRY003 # FIXME CoP
                     f"Trying to sort {self.name}'s batches on key {key}, "
                     "which isn't available on all batches."
                 ) from e
@@ -645,7 +645,7 @@ class Datasource(
     asset_types: ClassVar[Sequence[Type[DataAsset]]] = []
     # Not all Datasources require a DataConnector
     data_connector_type: ClassVar[Optional[Type[DataConnector]]] = None
-    # Datasource sublcasses should update this set if the field should not be passed to the execution engine  # noqa: E501
+    # Datasource sublcasses should update this set if the field should not be passed to the execution engine  # noqa: E501 # FIXME CoP
     _EXTRA_EXCLUDED_EXEC_ENG_ARGS: ClassVar[Set[str]] = set()
     _type_lookup: ClassVar[TypeLookup]  # This attribute is set in `MetaDatasource.__new__`
     # Setting this in a Datasource subclass will override the execution engine type.
@@ -719,7 +719,7 @@ class Datasource(
     ) -> BatchDefinition[PartitionerT]:
         asset_name = batch_definition.data_asset.name
         if not self.data_context:
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 "Cannot save datasource without a data context."
             )
 
@@ -742,7 +742,7 @@ class Datasource(
     def delete_batch_definition(self, batch_definition: BatchDefinition[PartitionerT]) -> None:
         asset_name = batch_definition.data_asset.name
         if not self.data_context:
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 "Cannot save datasource without a data context."
             )
 
@@ -830,7 +830,7 @@ class Datasource(
             found_asset._datasource = self
             return found_asset
         except IndexError as exc:
-            raise LookupError(  # noqa: TRY003
+            raise LookupError(  # noqa: TRY003 # FIXME CoP
                 f'"{name}" not found. Available assets are ({", ".join(self.get_asset_names())})'
             ) from exc
 
@@ -840,7 +840,7 @@ class Datasource(
 
         Args:
             name: name of DataAsset to be deleted.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         from great_expectations.data_context import CloudDataContext
 
         asset: _DataAssetT
@@ -870,13 +870,13 @@ class Datasource(
 
         asset_names: Set[str] = self.get_asset_names()
         if asset.name in asset_names:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f'"{asset.name}" already exists (all existing assets are {", ".join(asset_names)})'
             )
 
         self.assets.append(asset)
 
-        # if asset was added to a cloud FDS, _update_fluent_datasource will return FDS fetched from cloud,  # noqa: E501
+        # if asset was added to a cloud FDS, _update_fluent_datasource will return FDS fetched from cloud,  # noqa: E501 # FIXME CoP
         # which will contain the new asset populated with an id
         if self._data_context:
             updated_datasource = self._data_context._update_fluent_datasource(datasource=self)
@@ -901,7 +901,7 @@ class Datasource(
         A warning is raised if a data_connector cannot be built for an asset.
         Not all users will have access to the needed dependencies (packages or credentials) for every asset.
         Missing dependencies will stop them from using the asset but should not stop them from loading it from config.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         asset_build_failure_direct_cause: dict[str, Exception | BaseException] = {}
 
         if self.data_connector_type:
@@ -912,7 +912,7 @@ class Datasource(
                     self._build_data_connector(data_asset, **connect_options)
                 except Exception as dc_build_err:
                     logger.info(
-                        f"Unable to build data_connector for {self.type} {data_asset.type} {data_asset.name}",  # noqa: E501
+                        f"Unable to build data_connector for {self.type} {data_asset.type} {data_asset.name}",  # noqa: E501 # FIXME CoP
                         exc_info=True,
                     )
                     # reveal direct cause instead of generic, unhelpful MyDatasourceError
@@ -926,7 +926,7 @@ class Datasource(
                 for (name, exc) in asset_build_failure_direct_cause.items()
             ]
             warnings.warn(
-                f"data_connector build failure for {self.name} assets - {', '.join(names_and_error)}",  # noqa: E501
+                f"data_connector build failure for {self.name} assets - {', '.join(names_and_error)}",  # noqa: E501 # FIXME CoP
                 category=RuntimeWarning,
             )
 
@@ -963,7 +963,7 @@ class Datasource(
 
         Raises:
             TestConnectionError: If the connection test fails.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         raise NotImplementedError(
             """One needs to implement "test_connection" on a Datasource subclass."""
         )
@@ -976,7 +976,7 @@ class Datasource(
         Args:
             data_asset: DataAsset using this DataConnector instance
             kwargs: Extra keyword arguments allow specification of arguments used by particular DataConnector subclasses
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         pass
 
     @classmethod
@@ -988,7 +988,7 @@ class Datasource(
 
         Default implementation is to return the combined set of field names from `_EXTRA_EXCLUDED_EXEC_ENG_ARGS`
         and `_BASE_DATASOURCE_FIELD_NAMES`.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return cls._EXTRA_EXCLUDED_EXEC_ENG_ARGS.union(_BASE_DATASOURCE_FIELD_NAMES)
 
     # End Abstract Methods
@@ -1020,7 +1020,7 @@ class Batch:
     a spark or a sql database. An exception exists for pandas or any in-memory datastore.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource: Datasource,
         data_asset: DataAsset,
@@ -1044,7 +1044,7 @@ class Batch:
         self._batch_definition = batch_definition
 
         # Mutable Attribute
-        # metadata is any arbitrary data one wants to associate with a batch. GX will add arbitrary metadata  # noqa: E501
+        # metadata is any arbitrary data one wants to associate with a batch. GX will add arbitrary metadata  # noqa: E501 # FIXME CoP
         # to a batch so developers may want to namespace any custom metadata they add.
         self.metadata = metadata or {}
 
@@ -1194,10 +1194,10 @@ class Batch:
                 expect, result_format=result_format, expectation_parameters=expectation_parameters
             )
         else:
-            # If we are type checking, we should never fall through to this case. However, exploratory  # noqa: E501
+            # If we are type checking, we should never fall through to this case. However, exploratory  # noqa: E501 # FIXME CoP
             # workflows are not being type checked.
-            raise ValueError(  # noqa: TRY003, TRY004
-                f"Trying to validate something that isn't an Expectation or an ExpectationSuite: {expect}"  # noqa: E501
+            raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+                f"Trying to validate something that isn't an Expectation or an ExpectationSuite: {expect}"  # noqa: E501 # FIXME CoP
             )
 
     def _validate_expectation(
@@ -1227,7 +1227,7 @@ class Batch:
 
         context = self.datasource.data_context
         if context is None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "We can't validate batches that are attached to datasources without a data context"
             )
 

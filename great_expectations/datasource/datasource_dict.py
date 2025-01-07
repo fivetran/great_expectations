@@ -42,14 +42,14 @@ class DatasourceDict(UserDict):
     d["my_fds"] = pandas_fds # Underlying DatasourceStore makes a `set()` call
     pandas_fds = d["my_fds"] # Underlying DatasourceStore makes a `get()` call
     ```
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
         context: AbstractDataContext,
         datasource_store: DatasourceStore,
     ):
-        self._context = context  # If possible, we should avoid passing the context through - once block-style is removed, we can extract this  # noqa: E501
+        self._context = context  # If possible, we should avoid passing the context through - once block-style is removed, we can extract this  # noqa: E501 # FIXME CoP
         self._datasource_store = datasource_store
         self._in_memory_data_assets: dict[str, DataAsset] = {}
 
@@ -65,7 +65,7 @@ class DatasourceDict(UserDict):
         (__setitem__, __getitem__, etc)
 
         This is generated just-in-time as the contents of the store may have changed.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         datasources: dict[str, FluentDatasource] = {}
 
         configs = self._datasource_store.get_all()
@@ -103,7 +103,7 @@ class DatasourceDict(UserDict):
         try:
             return self._datasource_store.retrieve_by_name(name)
         except ValueError:
-            raise KeyError(f"Could not find a datasource named '{name}'")  # noqa: TRY003
+            raise KeyError(f"Could not find a datasource named '{name}'")  # noqa: TRY003 # FIXME CoP
 
     @override
     def __delitem__(self, name: str) -> None:
@@ -136,7 +136,7 @@ class CacheableDatasourceDict(DatasourceDict):
 
     Any retrievals will firstly check an in-memory dictionary before requesting from the store. Other CRUD methods will ensure that
     both cache and store are kept in sync.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,

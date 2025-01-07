@@ -805,7 +805,7 @@ def test_get_batch_list_from_directory_merges_files(
     batch_data = batch.data
     # The directory contains 12 files with 10,000 records each so the batch data
     # (spark dataframe) should contain 120,000 records:
-    assert batch_data.dataframe.count() == 12 * 10000  # type: ignore[attr-defined]
+    assert batch_data.dataframe.count() == 12 * 10000  # type: ignore[attr-defined] # FIXME CoP
 
 
 @pytest.mark.spark
@@ -952,7 +952,7 @@ def bad_batching_regex_config(
 ) -> tuple[re.Pattern, TestConnectionError]:
     batching_regex = re.compile(r"green_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv")
     test_connection_error = TestConnectionError(
-        f"""No file at base_directory path "{csv_path.resolve()}" matched regular expressions pattern "{batching_regex.pattern}" and/or glob_directive "**/*" for DataAsset "csv_asset"."""  # noqa: E501
+        f"""No file at base_directory path "{csv_path.resolve()}" matched regular expressions pattern "{batching_regex.pattern}" and/or glob_directive "**/*" for DataAsset "csv_asset"."""  # noqa: E501 # FIXME CoP
     )
     return batching_regex, test_connection_error
 
@@ -995,7 +995,7 @@ def test_get_batch_identifiers_list_does_not_modify_input_batch_request(
     request = batch_def.build_batch_request({"year": "2018"})
     request_before_call = copy.deepcopy(request)
     batches = asset.get_batch_identifiers_list(request)
-    # We assert the request before the call to get_batch_identifiers_list is equal to the request after the  # noqa: E501
+    # We assert the request before the call to get_batch_identifiers_list is equal to the request after the  # noqa: E501 # FIXME CoP
     # call. This test exists because this call was modifying the request.
     assert request == request_before_call
     # We get all 12 batches, one for each month of 2018.
@@ -1016,7 +1016,7 @@ def test_get_batch_does_not_modify_input_batch_request(
     request = batch_def.build_batch_request({"year": "2018"})
     request_before_call = copy.deepcopy(request)
     _ = asset.get_batch(request)
-    # We assert the request before the call to get_batch is equal to the request after the  # noqa: E501
+    # We assert the request before the call to get_batch is equal to the request after the  # noqa: E501 # FIXME CoP
     # call. This test exists because this call was modifying the request.
     assert request == request_before_call
 
@@ -1068,7 +1068,7 @@ def expected_num_records_directory_asset_no_partitioner_2020_passenger_count_2(
         directory_asset_with_no_partitioner.build_batch_request()
     )
     pre_partitioner_batch_data = pre_partitioner_batch.data
-    expected_num_records = pre_partitioner_batch_data.dataframe.filter(  # type: ignore[attr-defined]
+    expected_num_records = pre_partitioner_batch_data.dataframe.filter(  # type: ignore[attr-defined] # FIXME CoP
         F.col("pickup_datetime").contains("2018-01-11")
     ).count()
     assert expected_num_records == 3, "Check that the referenced data hasn't changed"
@@ -1233,7 +1233,7 @@ def expected_num_records_file_asset_no_partitioner_2020_10_passenger_count_2(
     )
     batch = file_asset_with_no_partitioner.get_batch(single_batch_batch_request)
     pre_partitioner_batch_data = batch.data
-    expected_num_records = pre_partitioner_batch_data.dataframe.filter(  # type: ignore[attr-defined]
+    expected_num_records = pre_partitioner_batch_data.dataframe.filter(  # type: ignore[attr-defined] # FIXME CoP
         F.col("passenger_count") == 2
     ).count()
     assert expected_num_records == 2, "Check that the referenced data hasn't changed"
@@ -1257,7 +1257,7 @@ def expected_num_records_file_asset_no_partitioner_2020_10(
     pre_partitioner_batch_data = batch.data
 
     expected_num_records = (
-        pre_partitioner_batch_data.dataframe.filter(  # type: ignore[attr-defined]
+        pre_partitioner_batch_data.dataframe.filter(  # type: ignore[attr-defined] # FIXME CoP
             F.year(F.col("pickup_datetime")) == 2020
         )
         .filter(F.month(F.col("pickup_datetime")) == 11)
@@ -1371,6 +1371,6 @@ class TestPartitionerFileAsset:
         post_partitioner_batch_data = post_partitioner_batch.data
 
         assert (
-            post_partitioner_batch_data.dataframe.count()  # type: ignore[attr-defined]
+            post_partitioner_batch_data.dataframe.count()  # type: ignore[attr-defined] # FIXME CoP
             == expected_num_records_file_asset_no_partitioner_2020_10
         )

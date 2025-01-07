@@ -23,7 +23,7 @@ pytestmark = pytest.mark.big
 
 # noinspection PyPep8Naming
 @pytest.mark.filterwarnings(
-    "ignore:Cannot get %*::great_expectations.render.renderer.profiling_results_overview_section_renderer"  # noqa: E501
+    "ignore:Cannot get %*::great_expectations.render.renderer.profiling_results_overview_section_renderer"  # noqa: E501 # FIXME CoP
 )
 def test_render_DefaultJinjaPageView_meta_info():
     validation_results = ExpectationSuiteValidationResult(
@@ -42,7 +42,7 @@ def test_render_DefaultJinjaPageView_meta_info():
                 "expectation_suite_name": "my_suite",
                 "run_id": "2019-06-25T14:58:09.960521",
                 "batch_kwargs": {
-                    "path": "/Users/user/project_data/public_healthcare_datasets/tetanusvaricella/tetvardata.csv",  # noqa: E501
+                    "path": "/Users/user/project_data/public_healthcare_datasets/tetanusvaricella/tetvardata.csv",  # noqa: E501 # FIXME CoP
                     "timestamp": 1561474688.693565,
                 },
             },
@@ -140,7 +140,7 @@ def test_render_section_page():
 </table>
 </div>
     </div>
-</div>""".replace(" ", "")  # noqa: E501
+</div>""".replace(" ", "")  # noqa: E501 # FIXME CoP
         .replace("\t", "")
         .replace("\n", "")
     )
@@ -331,7 +331,7 @@ def test_rendering_components_with_styling():
           <td id="section-1-content-block-2-cell-1-1" ><div class="show-scrollbars">Mean</div></td><td id="section-1-content-block-2-cell-1-2" ><div class="show-scrollbars">446</div></td></tr><tr>
           <td id="section-1-content-block-2-cell-2-1" ><div class="show-scrollbars">Minimum</div></td><td id="section-1-content-block-2-cell-2-2" ><div class="show-scrollbars">1</div></td></tr></tbody>
 </table>
-</div>""".replace(" ", "")  # noqa: E501
+</div>""".replace(" ", "")  # noqa: E501 # FIXME CoP
         .replace("\t", "")
         .replace("\n", "")
     )
@@ -420,7 +420,7 @@ def test_render_table_component():
           <td id="section-1-content-block-2-cell-2-1" ><div class="show-scrollbars">Minimum</div></td><td id="section-1-content-block-2-cell-2-2" ><div class="show-scrollbars">1</div></td></tr></tbody>
 </table>
 
-</div>""".replace(" ", "")  # noqa: E501
+</div>""".replace(" ", "")  # noqa: E501 # FIXME CoP
         .replace("\t", "")
         .replace("\n", "")
     )
@@ -490,7 +490,7 @@ def test_render_graph():
         **{
             "content_block_type": "graph",
             "header": "Histogram",
-            "graph": '{"$schema": "https://vega.github.io/schema/vega-lite/v2.6.0.json", "autosize": "fit", "config": {"view": {"height": 300, "width": 400}}, "data": {"name": "data-a681d02fb484e64eadd9721b37015d5b"}, "datasets": {"data-a681d02fb484e64eadd9721b37015d5b": [{"bins": 3.7, "weights": 5.555555555555555}, {"bins": 10.8, "weights": 3.439153439153439}, {"bins": 17.9, "weights": 17.857142857142858}, {"bins": 25.0, "weights": 24.206349206349206}, {"bins": 32.0, "weights": 16.137566137566136}, {"bins": 39.1, "weights": 12.3015873015873}, {"bins": 46.2, "weights": 9.788359788359788}, {"bins": 53.3, "weights": 5.423280423280423}, {"bins": 60.4, "weights": 3.439153439153439}, {"bins": 67.5, "weights": 1.8518518518518516}]}, "encoding": {"x": {"field": "bins", "type": "ordinal"}, "y": {"field": "weights", "type": "quantitative"}}, "height": 200, "mark": "bar", "width": 200}',  # noqa: E501
+            "graph": '{"$schema": "https://vega.github.io/schema/vega-lite/v2.6.0.json", "autosize": "fit", "config": {"view": {"height": 300, "width": 400}}, "data": {"name": "data-a681d02fb484e64eadd9721b37015d5b"}, "datasets": {"data-a681d02fb484e64eadd9721b37015d5b": [{"bins": 3.7, "weights": 5.555555555555555}, {"bins": 10.8, "weights": 3.439153439153439}, {"bins": 17.9, "weights": 17.857142857142858}, {"bins": 25.0, "weights": 24.206349206349206}, {"bins": 32.0, "weights": 16.137566137566136}, {"bins": 39.1, "weights": 12.3015873015873}, {"bins": 46.2, "weights": 9.788359788359788}, {"bins": 53.3, "weights": 5.423280423280423}, {"bins": 60.4, "weights": 3.439153439153439}, {"bins": 67.5, "weights": 1.8518518518518516}]}, "encoding": {"x": {"field": "bins", "type": "ordinal"}, "y": {"field": "weights", "type": "quantitative"}}, "height": 200, "mark": "bar", "width": 200}',  # noqa: E501 # FIXME CoP
             "styling": {"classes": ["col-4"]},
         }
     ).to_json_dict()
@@ -525,7 +525,7 @@ def test_render_graph():
     }).then(result=>console.log(result)).catch(console.warn);
 </script>
 </div>
-""".replace(" ", "")  # noqa: E501
+""".replace(" ", "")  # noqa: E501 # FIXME CoP
         .replace("\t", "")
         .replace("\n", "")
     )

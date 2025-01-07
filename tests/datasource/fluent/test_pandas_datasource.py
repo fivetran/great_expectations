@@ -208,7 +208,7 @@ class TestDynamicPandasAssets:
         This is also a proxy for testing that the dynamic pydantic model creation was successful.
         """
         with pytest.raises(pydantic.ValidationError) as exc_info:
-            asset_class(  # type: ignore[call-arg]
+            asset_class(  # type: ignore[call-arg] # FIXME CoP
                 name="test",
                 invalid_keyword_arg="bad",
             )
@@ -355,15 +355,15 @@ class TestDynamicPandasAssets:
         # This is not a an ideal mock.
         # In this test we are validating that the read_method for a particular pandas datasource
         # has the correct positional arguments.
-        # We don't care about the actual data being read in and the batch that will be produced from that data.  # noqa: E501
-        # In fact, we call all our read methods on a path which might not be readable by the reader (eg calling  # noqa: E501
-        # read_json on a csv file). We patch the internal call that actually tries to read and create the batch.  # noqa: E501
+        # We don't care about the actual data being read in and the batch that will be produced from that data.  # noqa: E501 # FIXME CoP
+        # In fact, we call all our read methods on a path which might not be readable by the reader (eg calling  # noqa: E501 # FIXME CoP
+        # read_json on a csv file). We patch the internal call that actually tries to read and create the batch.  # noqa: E501 # FIXME CoP
         # Ideally, we would rewrite this test so we wouldn't need to mock like this.
         mocker.patch(
             "great_expectations.datasource.fluent.pandas_datasource._PandasDataAsset.get_batch"
         )
-        # read_* normally returns batch but, since we've added a mock in the line above, we get a mock object returned.  # noqa: E501
-        # We are calling it here for it's side effect on the default asset so get and inspect that afterwards.  # noqa: E501
+        # read_* normally returns batch but, since we've added a mock in the line above, we get a mock object returned.  # noqa: E501 # FIXME CoP
+        # We are calling it here for it's side effect on the default asset so get and inspect that afterwards.  # noqa: E501 # FIXME CoP
         _ = read_method(*positional_args.values())
         default_asset = empty_data_context.data_sources.pandas_default.get_asset(
             name=DEFAULT_PANDAS_DATA_ASSET_NAME
@@ -439,7 +439,7 @@ def test_default_pandas_datasource_name_conflict(
 def test_read_dataframe(empty_data_context: AbstractDataContext, test_df_pandas: pd.DataFrame):
     # validates that a dataframe object is passed
     with pytest.raises(ValueError) as exc_info:
-        _ = empty_data_context.data_sources.pandas_default.read_dataframe(dataframe={})  # type: ignore[arg-type]
+        _ = empty_data_context.data_sources.pandas_default.read_dataframe(dataframe={})  # type: ignore[arg-type] # FIXME CoP
 
     assert (
         'Cannot execute "PandasDatasource.read_dataframe()" without a valid "dataframe" argument.'

@@ -334,7 +334,7 @@ def test_validation_definition_factory_all(
 
     # Arrange
     ds = context.data_sources.add_pandas("my_datasource")
-    asset = ds.add_csv_asset("my_asset", "data.csv")  # type: ignore[arg-type]
+    asset = ds.add_csv_asset("my_asset", "data.csv")  # type: ignore[arg-type] # FIXME CoP
     suite = context.suites.add(ExpectationSuite(name="my_suite"))
     validation_definition_a = ValidationDefinition(
         name="validation definition a",
@@ -375,7 +375,7 @@ def test_validation_definition_factory_all_with_bad_config(
 
     # Arrange
     ds = context.data_sources.add_pandas("my_datasource")
-    asset = ds.add_csv_asset("my_asset", "data.csv")  # type: ignore[arg-type]
+    asset = ds.add_csv_asset("my_asset", "data.csv")  # type: ignore[arg-type] # FIXME CoP
     suite = context.suites.add(ExpectationSuite(name="my_suite"))
 
     validation_definition_1 = ValidationDefinition(

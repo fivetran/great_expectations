@@ -22,7 +22,7 @@ from great_expectations.render.util import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 
@@ -165,7 +165,7 @@ class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
                   "meta": {{}},
                   "success": true
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",

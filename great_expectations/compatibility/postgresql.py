@@ -7,60 +7,60 @@ POSTGRESQL_NOT_IMPORTED = NotImported(
 )
 
 try:
-    import psycopg2  # noqa: F401
+    import psycopg2  # noqa: F401 # FIXME CoP
     import sqlalchemy.dialects.postgresql as postgresqltypes
 except ImportError:
-    postgresqltypes = POSTGRESQL_NOT_IMPORTED  # type: ignore[assignment]
+    postgresqltypes = POSTGRESQL_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import TEXT
 except (ImportError, AttributeError):
-    TEXT = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    TEXT = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import CHAR
 except (ImportError, AttributeError):
-    CHAR = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    CHAR = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import INTEGER
 except (ImportError, AttributeError):
-    INTEGER = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    INTEGER = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import SMALLINT
 except (ImportError, AttributeError):
-    SMALLINT = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    SMALLINT = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import BIGINT
 except (ImportError, AttributeError):
-    BIGINT = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    BIGINT = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import TIMESTAMP
 except (ImportError, AttributeError):
-    TIMESTAMP = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    TIMESTAMP = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import DATE
 except (ImportError, AttributeError):
-    DATE = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    DATE = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
 except (ImportError, AttributeError):
-    DOUBLE_PRECISION = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    DOUBLE_PRECISION = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import BOOLEAN
 except (ImportError, AttributeError):
-    BOOLEAN = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    BOOLEAN = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 try:
     from sqlalchemy.dialects.postgresql import NUMERIC
 except (ImportError, AttributeError):
-    NUMERIC = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment]
+    NUMERIC = POSTGRESQL_NOT_IMPORTED  # type: ignore[misc, assignment] # FIXME CoP
 
 
 class POSTGRESQL_TYPES:

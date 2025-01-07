@@ -360,7 +360,7 @@ class TableFactory(Protocol):
 @pytest.fixture(
     scope="class",
 )
-def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901
+def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXME CoP
     """
     Class scoped.
     Given a SQLALchemy engine, table_name and schema,
@@ -380,7 +380,7 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901
             LOGGER.info(f"Skipping table creation for {table_names} for {sa_engine.dialect.name}")
             return
         LOGGER.info(
-            f"SQLA:{SQLA_VERSION} - Creating `{sa_engine.dialect.name}` table for {table_names} if it does not exist"  # noqa: E501
+            f"SQLA:{SQLA_VERSION} - Creating `{sa_engine.dialect.name}` table for {table_names} if it does not exist"  # noqa: E501 # FIXME CoP
         )
         dialect = GXSqlDialect(sa_engine.dialect.name)
         created_tables: list[dict[Literal["table_name", "schema"], str | None]] = []
@@ -501,7 +501,7 @@ def snowflake_ds(
         "snowflake",
         connection_string="snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci"
         f"/{RAND_SCHEMA}?warehouse=ci&role=ci",
-        # NOTE: uncomment this and set SNOWFLAKE_USER to run tests against your own snowflake account  # noqa: E501
+        # NOTE: uncomment this and set SNOWFLAKE_USER to run tests against your own snowflake account  # noqa: E501 # FIXME CoP
         # connection_string="snowflake://${SNOWFLAKE_USER}@oca29081.us-east-1/DEMO_DB/RESTAURANTS?warehouse=COMPUTE_WH&role=PUBLIC&authenticator=externalbrowser",
     )
     return ds
@@ -720,7 +720,7 @@ def _fails_expectation(param_id: str) -> bool:
     This does not mean that it SHOULD fail, but that it currently does.
     """
     column_name: ColNameParamId
-    dialect, column_name, *_ = param_id.split("-")  # type: ignore[assignment]
+    dialect, column_name, *_ = param_id.split("-")  # type: ignore[assignment] # FIXME CoP
     dialects_need_fixes: list[DatabaseType] = FAILS_EXPECTATION.get(column_name, [])
     return dialect in dialects_need_fixes
 
@@ -742,7 +742,7 @@ def _raw_query_check_column_exists(
     qualified_table_name: str,
     gx_execution_engine: SqlAlchemyExecutionEngine,
 ) -> bool:
-    """Use a simple 'SELECT {column_name_param} from {qualified_table_name};' query to check if the column exists.'"""  # noqa: E501
+    """Use a simple 'SELECT {column_name_param} from {qualified_table_name};' query to check if the column exists.'"""  # noqa: E501 # FIXME CoP
     with gx_execution_engine.get_connection() as connection:
         query = f"""SELECT {column_name_param} FROM {qualified_table_name} LIMIT 1;"""
         print(f"query:\n  {query}")

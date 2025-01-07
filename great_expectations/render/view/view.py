@@ -129,7 +129,7 @@ class DefaultJinjaView:
         return url
 
     @contextfilter  # type: ignore[misc] # untyped 3rd party decorator
-    def render_content_block(  # noqa: C901, PLR0911, PLR0912
+    def render_content_block(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         self,
         jinja_context: Any,
         content_block: str | list | dict | RenderedComponentContent,
@@ -145,13 +145,13 @@ class DefaultJinjaView:
         :param content_block_id:
         :param render_to_markdown: Whether this method should render the markdown version instead of HTML
         :return:
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if isinstance(content_block, str):
             return content_block
         elif content_block is None:
             return ""
         elif isinstance(content_block, list):
-            # If the content_block item here is actually a list of content blocks then we want to recursively render  # noqa: E501
+            # If the content_block item here is actually a list of content blocks then we want to recursively render  # noqa: E501 # FIXME CoP
             rendered_block = ""
             for idx, content_block_el in enumerate(content_block):
                 if (
@@ -168,7 +168,7 @@ class DefaultJinjaView:
                         idx,
                         content_block_id=new_content_block_id,
                     )
-                else:  # noqa: PLR5501
+                else:  # noqa: PLR5501 # FIXME CoP
                     if render_to_markdown:
                         rendered_block += str(content_block_el)
                     else:
@@ -251,14 +251,14 @@ class DefaultJinjaView:
         If they aren't present, they simply won't be rendered.
 
         Other dictionary keys are also allowed and ignored.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         class_list = styling.get("classes", None)
         if class_list is None:
             class_str = ""
         else:
-            if type(class_list) == str:  # noqa: E721
-                raise TypeError("classes must be a list, not a string.")  # noqa: TRY003
+            if type(class_list) == str:  # noqa: E721 # FIXME CoP
+                raise TypeError("classes must be a list, not a string.")  # noqa: TRY003 # FIXME CoP
             class_str = f"class=\"{' '.join(class_list)}\" "
 
         attribute_dict = styling.get("attributes", None)
@@ -289,7 +289,7 @@ class DefaultJinjaView:
 
     def render_styling_from_string_template(self, template: dict | OrderedDict) -> str:
         # NOTE: We should add some kind of type-checking to template
-        """This method is a thin wrapper use to call `render_styling` from within jinja templates."""  # noqa: E501
+        """This method is a thin wrapper use to call `render_styling` from within jinja templates."""  # noqa: E501 # FIXME CoP
         if not isinstance(template, (dict, OrderedDict)):
             return template
 
@@ -311,7 +311,7 @@ class DefaultJinjaView:
         except OSError:
             return markdown
 
-    def render_string_template(self, template):  # noqa: C901, PLR0912
+    def render_string_template(self, template):  # noqa: C901, PLR0912 # FIXME CoP
         # NOTE: Using this line for debugging. This should probably be logged...?
         # print(template)
 
@@ -369,7 +369,7 @@ class DefaultJinjaView:
                 )
 
                 for parameter in template["params"]:
-                    # If this param has styling that over-rides the default, skip it here and get it in the next loop.  # noqa: E501
+                    # If this param has styling that over-rides the default, skip it here and get it in the next loop.  # noqa: E501 # FIXME CoP
                     if "params" in template["styling"]:
                         if parameter in template["styling"]["params"]:
                             continue
@@ -467,7 +467,7 @@ class DefaultMarkdownPageView(DefaultJinjaView):
         Handle list as well as single document
         """
         if isinstance(document, list):
-            # We need to keep this as super(DefaultMarkdownPageView, self); otherwise a wrong render will be called.  # noqa: E501
+            # We need to keep this as super(DefaultMarkdownPageView, self); otherwise a wrong render will be called.  # noqa: E501 # FIXME CoP
             return [
                 super(DefaultMarkdownPageView, self).render(document=d, template=template, **kwargs)
                 for d in document

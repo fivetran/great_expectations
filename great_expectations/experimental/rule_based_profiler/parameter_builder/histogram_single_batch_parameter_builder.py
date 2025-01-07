@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Set
 import numpy as np
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.domain import Domain  # noqa: TCH001
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.rule_based_profiler.config import ParameterBuilderConfig
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
@@ -26,7 +26,7 @@ from great_expectations.experimental.rule_based_profiler.parameter_container imp
     ParameterNode,
 )
 from great_expectations.types.attributes import Attributes
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.data_context.data_context.abstract_data_context import (
@@ -52,7 +52,7 @@ class HistogramSingleBatchParameterBuilder(MetricSingleBatchParameterBuilder):
         }
     )
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         bins: str = "uniform",
@@ -74,7 +74,7 @@ class HistogramSingleBatchParameterBuilder(MetricSingleBatchParameterBuilder):
             ParameterBuilder objects' outputs available (as fully-qualified parameter names) is pre-requisite.
             These "ParameterBuilder" configurations help build parameters needed for this "ParameterBuilder".
             data_context: AbstractDataContext associated with this ParameterBuilder
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         self._column_partition_metric_single_batch_parameter_builder_config = (
             ParameterBuilderConfig(
@@ -125,10 +125,10 @@ class HistogramSingleBatchParameterBuilder(MetricSingleBatchParameterBuilder):
 
         Returns:
             Attributes object, containing computed parameter values and parameter computation details metadata.
-        """  # noqa: E501
-        fully_qualified_column_partition_metric_single_batch_parameter_builder_name: str = f"{RAW_PARAMETER_KEY}{self._column_partition_metric_single_batch_parameter_builder_config.name}"  # noqa: E501
-        # Obtain "column.partition" from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
-        column_partition_parameter_node: ParameterNode = get_parameter_value_and_validate_return_type(  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
+        fully_qualified_column_partition_metric_single_batch_parameter_builder_name: str = f"{RAW_PARAMETER_KEY}{self._column_partition_metric_single_batch_parameter_builder_config.name}"  # noqa: E501 # FIXME CoP
+        # Obtain "column.partition" from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
+        column_partition_parameter_node: ParameterNode = get_parameter_value_and_validate_return_type(  # noqa: E501 # FIXME CoP
             domain=domain,
             parameter_reference=fully_qualified_column_partition_metric_single_batch_parameter_builder_name,
             expected_return_type=None,
@@ -140,7 +140,7 @@ class HistogramSingleBatchParameterBuilder(MetricSingleBatchParameterBuilder):
         ]
 
         if domain.domain_type == MetricDomainTypes.COLUMN and "." in domain.domain_kwargs["column"]:
-            raise ProfilerExecutionError(  # noqa: TRY003
+            raise ProfilerExecutionError(  # noqa: TRY003 # FIXME CoP
                 "Column names cannot contain '.' when computing the histogram metric."
             )
 
@@ -149,17 +149,17 @@ class HistogramSingleBatchParameterBuilder(MetricSingleBatchParameterBuilder):
                 message=f"""Partitioning values for {self.__class__.__name__} by \
 {self._column_partition_metric_single_batch_parameter_builder_config.name} into bins encountered empty or non-existent \
 elements.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
         if not _is_iterable_of_numeric_dtypes(bins):
             raise ProfilerExecutionError(
                 message=f"""Partitioning values for {self.__class__.__name__} by \
 {self._column_partition_metric_single_batch_parameter_builder_config.name} did not yield bins of supported data type.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
-        # Only unique "bins" are necessary (hence, "n_bins" is potentially lowered to fit data distribution).  # noqa: E501
+        # Only unique "bins" are necessary (hence, "n_bins" is potentially lowered to fit data distribution).  # noqa: E501 # FIXME CoP
         bins = sorted(set(bins))
 
         column_values_nonnull_count_metric_single_batch_parameter_builder = (
@@ -183,8 +183,8 @@ elements.
             batch_request=self.batch_request,
             runtime_configuration=runtime_configuration,
         )
-        # Obtain "column_values.nonnull.count" from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
-        column_values_nonnull_count_parameter_node: ParameterNode = get_parameter_value_and_validate_return_type(  # noqa: E501
+        # Obtain "column_values.nonnull.count" from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
+        column_values_nonnull_count_parameter_node: ParameterNode = get_parameter_value_and_validate_return_type(  # noqa: E501 # FIXME CoP
             domain=domain,
             parameter_reference=column_values_nonnull_count_metric_single_batch_parameter_builder.raw_fully_qualified_parameter_name,
             expected_return_type=None,

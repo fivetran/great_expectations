@@ -28,7 +28,7 @@ from great_expectations.datasource.fluent.snowflake_datasource import (
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 if TYPE_CHECKING:
-    from pytest.mark.structures import ParameterSet  # type: ignore[import-not-found]
+    from pytest.mark.structures import ParameterSet  # type: ignore[import-not-found] # FIXME CoP
     from pytest_mock import MockerFixture
 
 TEST_LOGGER: Final = logging.getLogger(__name__)

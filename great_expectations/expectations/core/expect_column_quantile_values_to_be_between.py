@@ -243,7 +243,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     quantile_ranges: QuantileRange = pydantic.Field(description=QUANTILE_RANGES_DESCRIPTION)
     allow_relative_error: Union[bool, str] = pydantic.Field(
@@ -319,7 +319,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
             raise InvalidExpectationConfigurationError(str(e))
 
         if len(quantile_ranges.quantiles) != len(quantile_ranges.value_ranges):
-            raise ValueError("quantile_values and quantiles must have the same number of elements")  # noqa: TRY003
+            raise ValueError("quantile_values and quantiles must have the same number of elements")  # noqa: TRY003 # FIXME CoP
 
         return quantile_ranges
 
@@ -679,8 +679,8 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
                                 quantile_string if quantile_string else f"{quantile:3.2f}"
                             ),
                             "tooltip": {
-                                "content": "expect_column_quantile_values_to_be_between \n expect_column_median_to_be_between"  # noqa: E501
-                                if quantile == 0.50  # noqa: PLR2004
+                                "content": "expect_column_quantile_values_to_be_between \n expect_column_median_to_be_between"  # noqa: E501 # FIXME CoP
+                                if quantile == 0.50  # noqa: PLR2004 # FIXME CoP
                                 else "expect_column_quantile_values_to_be_between"
                             },
                         },

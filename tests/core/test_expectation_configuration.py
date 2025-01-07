@@ -97,8 +97,8 @@ def config8():
 @pytest.mark.unit
 def test_expectation_configuration_equality(config1, config2, config3, config4):
     """Equality should depend on all defined properties of a configuration object, but not on whether the *instances*
-    are the same."""  # noqa: E501
-    assert config1 is config1  # no difference  # noqa: PLR0124
+    are the same."""  # noqa: E501 # FIXME CoP
+    assert config1 is config1  # no difference  # noqa: PLR0124 # FIXME CoP
     assert config1 is not config2  # different instances, but same content
     assert config1 == config2  # different instances, but same content
     assert not (config1 != config2)  # ne works properly

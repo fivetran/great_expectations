@@ -40,12 +40,12 @@ from great_expectations.core.batch_spec import (
     S3BatchSpec,
 )
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,  # noqa: TCH001
+    MetricDomainTypes,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.core.util import AzureUrl, GCSUrl, S3Url, sniff_s3_compression
 from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.execution_engine.execution_engine import (
-    PartitionDomainKwargs,  # noqa: TCH001
+    PartitionDomainKwargs,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.execution_engine.pandas_batch_data import PandasBatchData
 from great_expectations.execution_engine.partition_and_sample.pandas_data_partitioner import (
@@ -100,7 +100,7 @@ class PandasExecutionEngine(ExecutionEngine):
             expectation_completeness: Complete
 
     --ge-feature-maturity-info--
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     recognized_batch_spec_defaults = {
         "reader_method",
@@ -162,7 +162,7 @@ class PandasExecutionEngine(ExecutionEngine):
             2. passing in explicit credentials via gcs_options
             3. running Great Expectations from within a GCP container, at which you would be able to create a Client
                 without passing in an additional environment variable or explicit credentials
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         gcs_options = self.config.get("gcs_options", {})
         try:
             credentials = None  # If configured with gcloud CLI / env vars
@@ -190,19 +190,19 @@ class PandasExecutionEngine(ExecutionEngine):
     def load_batch_data(
         self,
         batch_id: str,
-        batch_data: Union[PandasBatchData, pd.DataFrame],  # type: ignore[override]
+        batch_data: Union[PandasBatchData, pd.DataFrame],  # type: ignore[override] # FIXME CoP
     ) -> None:
         if isinstance(batch_data, pd.DataFrame):
             batch_data = PandasBatchData(self, batch_data)
         elif not isinstance(batch_data, PandasBatchData):
-            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003
-                "PandasExecutionEngine requires batch data that is either a DataFrame or a PandasBatchData object"  # noqa: E501
+            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                "PandasExecutionEngine requires batch data that is either a DataFrame or a PandasBatchData object"  # noqa: E501 # FIXME CoP
             )
 
         super().load_batch_data(batch_id=batch_id, batch_data=batch_data)
 
     @override
-    def get_batch_data_and_markers(  # noqa: C901, PLR0912, PLR0915
+    def get_batch_data_and_markers(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self, batch_spec: BatchSpec | PandasBatchSpecProtocol
     ) -> Tuple[PandasBatchData, BatchMarkers]:  # batch_data
         # We need to build a batch_markers to be used in the dataframe
@@ -219,9 +219,9 @@ class PandasExecutionEngine(ExecutionEngine):
             # batch_data != None is already checked when RuntimeDataBatchSpec is instantiated
             batch_data = batch_spec.batch_data
             if isinstance(batch_data, str):
-                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     f"""PandasExecutionEngine has been passed a string type batch_data, "{batch_data}", which is illegal.  Please check your config.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
                 )
 
             if isinstance(batch_spec.batch_data, pd.DataFrame):
@@ -229,8 +229,8 @@ class PandasExecutionEngine(ExecutionEngine):
             elif isinstance(batch_spec.batch_data, PandasBatchData):
                 df = batch_spec.batch_data.dataframe
             else:
-                raise ValueError(  # noqa: TRY003, TRY004
-                    "RuntimeDataBatchSpec must provide a Pandas DataFrame or PandasBatchData object."  # noqa: E501
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+                    "RuntimeDataBatchSpec must provide a Pandas DataFrame or PandasBatchData object."  # noqa: E501 # FIXME CoP
                 )
 
             batch_spec.batch_data = "PandasDataFrame"
@@ -254,8 +254,8 @@ class PandasExecutionEngine(ExecutionEngine):
                 aws.exceptions.ParamValidationError,
                 aws.exceptions.ClientError,
             ) as error:
-                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
-                    f"""PandasExecutionEngine encountered the following error while trying to read data from S3 Bucket: {error}"""  # noqa: E501
+                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
+                    f"""PandasExecutionEngine encountered the following error while trying to read data from S3 Bucket: {error}"""  # noqa: E501 # FIXME CoP
                 )
             logger.debug(f"Fetching s3 object. Bucket: {s3_url.bucket} Key: {s3_url.key}")
             reader_fn: DataFrameFactoryFn = self._get_reader_fn(reader_method, s3_url.key)
@@ -268,9 +268,9 @@ class PandasExecutionEngine(ExecutionEngine):
                 self._instantiate_azure_client()
             # if we were not able to instantiate Azure client, then raise error
             if self._azure is None:
-                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     """PandasExecutionEngine has been passed a AzureBatchSpec,
-                        but the ExecutionEngine does not have an Azure client configured. Please check your config."""  # noqa: E501
+                        but the ExecutionEngine does not have an Azure client configured. Please check your config."""  # noqa: E501 # FIXME CoP
                 )
             azure_engine = self._azure
             reader_method = batch_spec.reader_method
@@ -294,9 +294,9 @@ class PandasExecutionEngine(ExecutionEngine):
                 self._instantiate_gcs_client()
             # if we were not able to instantiate GCS client, then raise error
             if self._gcs is None:
-                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     """PandasExecutionEngine has been passed a GCSBatchSpec,
-                        but the ExecutionEngine does not have an GCS client configured. Please check your config."""  # noqa: E501
+                        but the ExecutionEngine does not have an GCS client configured. Please check your config."""  # noqa: E501 # FIXME CoP
                 )
             gcs_engine = self._gcs
             gcs_url = GCSUrl(batch_spec.path)
@@ -307,9 +307,9 @@ class PandasExecutionEngine(ExecutionEngine):
                 gcs_blob = gcs_bucket.blob(gcs_url.blob)
                 logger.debug(f"Fetching GCS blob. Bucket: {gcs_url.bucket} Blob: {gcs_url.blob}")
             except google.GoogleAPIError as error:
-                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     f"""PandasExecutionEngine encountered the following error while trying to read data from GCS \
-Bucket: {error}"""  # noqa: E501
+Bucket: {error}"""  # noqa: E501 # FIXME CoP
                 )
             reader_fn = self._get_reader_fn(reader_method, gcs_url.blob)
             buf = BytesIO(gcs_blob.download_as_bytes())
@@ -333,7 +333,7 @@ Bucket: {error}"""  # noqa: E501
             )
             if isinstance(reader_fn_result, list):
                 if len(reader_fn_result) > 1:
-                    raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                    raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                         "Pandas reader method must return a single DataFrame, "
                         f'but "{reader_method}" returned {len(reader_fn_result)} DataFrames.'
                     )
@@ -347,12 +347,12 @@ Bucket: {error}"""  # noqa: E501
             df = reader_fn(**batch_spec.reader_options)
 
         else:
-            raise gx_exceptions.BatchSpecError(  # noqa: TRY003
+            raise gx_exceptions.BatchSpecError(  # noqa: TRY003 # FIXME CoP
                 f"""batch_spec must be of type RuntimeDataBatchSpec, PandasBatchSpec, PathBatchSpec, S3BatchSpec, AzureBatchSpec or FabricBatchSpec \
-not {batch_spec.__class__.__name__}"""  # noqa: E501
+not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
             )
 
-        df = self._apply_partitioning_and_sampling_methods(batch_spec, df)  # type: ignore[arg-type]
+        df = self._apply_partitioning_and_sampling_methods(batch_spec, df)  # type: ignore[arg-type] # FIXME CoP
         if df.memory_usage().sum() < HASH_THRESHOLD:
             batch_markers["pandas_data_fingerprint"] = hash_pandas_dataframe(df)
 
@@ -386,10 +386,10 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
     def dataframe(self) -> pd.DataFrame:
         """Tests whether or not a Batch has been loaded. If the loaded batch does not exist, raises a
         ValueError Exception
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # Changed to is None because was breaking prior
         if self.batch_manager.active_batch_data is None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "Batch has not been loaded - please run load_batch_data() to load a batch."
             )
 
@@ -397,7 +397,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
 
     # NOTE Abe 20201105: Any reason this shouldn't be a private method?
     @staticmethod
-    def guess_reader_method_from_path(path: str):  # noqa: C901, PLR0911
+    def guess_reader_method_from_path(path: str):  # noqa: C901, PLR0911 # FIXME CoP
         """Helper method for deciding which reader to use to read in a certain path.
 
         Args:
@@ -429,7 +429,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
             return {"reader_method": "read_sas"}
 
         else:
-            raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+            raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                 f'Unable to determine reader method from path: "{path}".'
             )
 
@@ -454,9 +454,9 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
         Returns:
             ReaderMethod to use for the filepath
 
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if reader_method is None and path is None:
-            raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+            raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                 "Unable to determine pandas reader function without reader_method or path."
             )
 
@@ -474,17 +474,17 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
                 reader_fn = partial(reader_fn, **reader_options)
             return reader_fn
         except AttributeError:
-            raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+            raise gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                 f'Unable to find reader_method "{reader_method}" in pandas.'
             )
 
     @override
     def resolve_metric_bundle(self, metric_fn_bundle) -> Dict[Tuple[str, str, str], Any]:
-        """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501
-        return {}  # This is NO-OP for "PandasExecutionEngine" (no bundling for direct execution computational backend).  # noqa: E501
+        """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501 # FIXME CoP
+        return {}  # This is NO-OP for "PandasExecutionEngine" (no bundling for direct execution computational backend).  # noqa: E501 # FIXME CoP
 
     @override
-    def get_domain_records(  # noqa: C901, PLR0912
+    def get_domain_records(  # noqa: C901, PLR0912 # FIXME CoP
         self,
         domain_kwargs: dict,
     ) -> pd.DataFrame:
@@ -495,10 +495,10 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
 
         Returns:
             A DataFrame (the data on which to compute returned in the format of a Pandas DataFrame)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         table = domain_kwargs.get("table", None)
         if table:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "PandasExecutionEngine does not currently support multiple named tables."
             )
 
@@ -508,16 +508,16 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
             if self.batch_manager.active_batch_data_id is not None:
                 data = cast(PandasBatchData, self.batch_manager.active_batch_data).dataframe
             else:
-                raise gx_exceptions.ValidationError(  # noqa: TRY003
+                raise gx_exceptions.ValidationError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
                 )
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data = cast(
                     PandasBatchData, self.batch_manager.batch_data_cache[batch_id]
                 ).dataframe
             else:
-                raise gx_exceptions.ValidationError(  # noqa: TRY003
+                raise gx_exceptions.ValidationError(  # noqa: TRY003 # FIXME CoP
                     f"Unable to find batch with batch_id {batch_id}"
                 )
 
@@ -529,7 +529,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
             if condition_parser == CONDITION_PARSER_PANDAS:
                 data = data.query(row_condition, parser=condition_parser)
             else:
-                raise ValueError(  # noqa: TRY003
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
                     "condition_parser for Pandas is required when setting a row_condition."
                 )
 
@@ -559,9 +559,9 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
                     how="any",
                     subset=[column_A_name, column_B_name],
                 )
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if ignore_row_if != "neither":
-                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003
+                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003 # FIXME CoP
 
             return data
 
@@ -581,9 +581,9 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
                     how="any",
                     subset=column_list,
                 )
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if ignore_row_if != "never":
-                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003
+                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003 # FIXME CoP
 
             return data
 
@@ -616,10 +616,10 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501
               - a dictionary of compute_domain_kwargs, describing the DataFrame
               - a dictionary of accessor_domain_kwargs, describing any accessors needed to
                 identify the Domain within the compute domain
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         table: str = domain_kwargs.get("table", None)
         if table:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "PandasExecutionEngine does not currently support multiple named tables."
             )
 

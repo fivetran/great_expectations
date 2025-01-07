@@ -61,7 +61,7 @@ def test_SlackRenderer_render(mocker):
         },
         {
             "text": {
-                "text": "*DataDocs* can be found here: `file:///localsite/index.html` \n (Please copy and paste link into a browser to view)\n",  # noqa: E501
+                "text": "*DataDocs* can be found here: `file:///localsite/index.html` \n (Please copy and paste link into a browser to view)\n",  # noqa: E501 # FIXME CoP
                 "type": "mrkdwn",
             },
             "type": "section",

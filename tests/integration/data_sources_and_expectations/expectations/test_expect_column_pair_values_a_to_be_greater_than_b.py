@@ -31,18 +31,18 @@ DATA = pd.DataFrame(
         NUMBERS_A_EQUAL: [5, 8, 11, 13, 14],
         NUMBERS_B: [1, 5, 9, 12, 12],
         DATES_A: [
-            datetime(2024, 1, 1).date(),  # noqa: DTZ001
-            datetime(2024, 2, 1).date(),  # noqa: DTZ001
-            datetime(2024, 3, 1).date(),  # noqa: DTZ001
-            datetime(2024, 4, 1).date(),  # noqa: DTZ001
-            datetime(2024, 5, 1).date(),  # noqa: DTZ001
+            datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 3, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 4, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 5, 1).date(),  # noqa: DTZ001 # FIXME CoP
         ],
         DATES_B: [
-            datetime(2023, 12, 1).date(),  # noqa: DTZ001
-            datetime(2024, 1, 1).date(),  # noqa: DTZ001
-            datetime(2024, 2, 1).date(),  # noqa: DTZ001
-            datetime(2024, 3, 1).date(),  # noqa: DTZ001
-            datetime(2024, 4, 1).date(),  # noqa: DTZ001
+            datetime(2023, 12, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 3, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 4, 1).date(),  # noqa: DTZ001 # FIXME CoP
         ],
         STRINGS_A: ["b", "m", "y", "z", "zz"],
         STRINGS_B: ["a", "k", "x", "y", "za"],

@@ -63,7 +63,7 @@ def parse_requirements_files_to_specs(
         abs_path = req_file.absolute().as_posix()
         key = abs_path.rsplit(os.path.sep, 1)[-1]
         with open(req_file) as f:
-            req_set_dict[key] = {line.name: line.specs for line in rp.parse(f) if line.specs}  # type: ignore[misc]
+            req_set_dict[key] = {line.name: line.specs for line in rp.parse(f) if line.specs}  # type: ignore[misc] # FIXME CoP
 
     return req_set_dict
 

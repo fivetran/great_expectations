@@ -58,8 +58,8 @@ from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
 )
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
 
 del get_versions  # isort:skip
 
@@ -96,7 +96,7 @@ from great_expectations.util import (
     import_make_url,
 )
 from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001
+    MetricConfiguration,  # noqa: TCH001 # FIXME CoP
 )
 
 logger = logging.getLogger(__name__)
@@ -107,24 +107,24 @@ if sa:
 
 
 try:
-    import psycopg2  # noqa: F401
-    import sqlalchemy.dialects.postgresql.psycopg2 as sqlalchemy_psycopg2  # noqa: TID251
+    import psycopg2  # noqa: F401 # FIXME CoP
+    import sqlalchemy.dialects.postgresql.psycopg2 as sqlalchemy_psycopg2  # noqa: TID251 # FIXME CoP
 except (ImportError, KeyError):
-    sqlalchemy_psycopg2 = None  # type: ignore[assignment]
+    sqlalchemy_psycopg2 = None  # type: ignore[assignment] # FIXME CoP
 
 try:
     import sqlalchemy_dremio.pyodbc
 
     if sa:
-        sa.dialects.registry.register(GXSqlDialect.DREMIO, "sqlalchemy_dremio.pyodbc", "dialect")  # type: ignore[arg-type]
+        sa.dialects.registry.register(GXSqlDialect.DREMIO, "sqlalchemy_dremio.pyodbc", "dialect")  # type: ignore[arg-type] # FIXME CoP
 except ImportError:
     sqlalchemy_dremio = None
 
 if snowflake.snowflakedialect:
     if sa:
-        # Sometimes "snowflake-sqlalchemy" fails to self-register in certain environments, so we do it explicitly.  # noqa: E501
+        # Sometimes "snowflake-sqlalchemy" fails to self-register in certain environments, so we do it explicitly.  # noqa: E501 # FIXME CoP
         # (see https://stackoverflow.com/questions/53284762/nosuchmoduleerror-cant-load-plugin-sqlalchemy-dialectssnowflake)
-        sa.dialects.registry.register(GXSqlDialect.SNOWFLAKE, "snowflake.sqlalchemy", "dialect")  # type: ignore[arg-type]
+        sa.dialects.registry.register(GXSqlDialect.SNOWFLAKE, "snowflake.sqlalchemy", "dialect")  # type: ignore[arg-type] # FIXME CoP
 
 from great_expectations.compatibility.bigquery import (
     _BIGQUERY_MODULE_NAME,
@@ -134,7 +134,7 @@ from great_expectations.compatibility.bigquery import (
 )
 
 if sqla_bigquery and sa:
-    sa.dialects.registry.register(GXSqlDialect.BIGQUERY, _BIGQUERY_MODULE_NAME, "BigQueryDialect")  # type: ignore[arg-type]
+    sa.dialects.registry.register(GXSqlDialect.BIGQUERY, _BIGQUERY_MODULE_NAME, "BigQueryDialect")  # type: ignore[arg-type] # FIXME CoP
 
 try:
     import teradatasqlalchemy.dialect
@@ -144,7 +144,7 @@ except ImportError:
     teradatatypes = None
 
 if TYPE_CHECKING:
-    from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251
+    from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251 # FIXME CoP
 
 
 _PERSISTED_CONNECTION_DIALECTS = (
@@ -173,7 +173,7 @@ def _dialect_requires_persisted_connection(
         Boolean indicating whether the dialect requires a persisted connection.
     """
     if sum(bool(x) for x in [connection_string, credentials, url is not None]) != 1:
-        raise ValueError("Exactly one of connection_string, credentials, url must be specified")  # noqa: TRY003
+        raise ValueError("Exactly one of connection_string, credentials, url must be specified")  # noqa: TRY003 # FIXME CoP
     return_val = False
     if connection_string is not None:
         str_to_check = connection_string
@@ -226,10 +226,10 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
     ```python
         execution_engine: ExecutionEngine = SqlAlchemyExecutionEngine(connection_string="dbmstype://user:password@host:5432/database_name")
     ```
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # noinspection PyUnusedLocal
-    def __init__(  # noqa: C901, PLR0912, PLR0913, PLR0915
+    def __init__(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
         self,
         name: Optional[str] = None,
         credentials: Optional[dict] = None,
@@ -239,7 +239,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         url: Optional[str] = None,
         batch_data_dict: Optional[dict] = None,
         create_temp_table: bool = True,
-        # kwargs will be passed as optional parameters to the SQLAlchemy engine, **not** the ExecutionEngine  # noqa: E501
+        # kwargs will be passed as optional parameters to the SQLAlchemy engine, **not** the ExecutionEngine  # noqa: E501 # FIXME CoP
         **kwargs,
     ) -> None:
         super().__init__(name=name, batch_data_dict=batch_data_dict)
@@ -249,11 +249,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         self._connection_string = connection_string
         self._url = url
         self._create_temp_table = create_temp_table
-        os.environ["SF_PARTNER"] = "great_expectations_oss"  # noqa: TID251
+        os.environ["SF_PARTNER"] = "great_expectations_oss"  # noqa: TID251 # FIXME CoP
 
-        # sqlite/mssql temp tables only persist within a connection, so we need to keep the connection alive by  # noqa: E501
+        # sqlite/mssql temp tables only persist within a connection, so we need to keep the connection alive by  # noqa: E501 # FIXME CoP
         # keeping a reference to it.
-        # Even though we use a single connection pool for dialects that need a single persisted connection  # noqa: E501
+        # Even though we use a single connection pool for dialects that need a single persisted connection  # noqa: E501 # FIXME CoP
         # (e.g. for accessing temporary tables), if we don't keep a reference
         # then we get errors like sqlite3.ProgrammingError: Cannot operate on a closed database.
         self._connection: sqlalchemy.Connection | None = None
@@ -266,7 +266,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         if engine is not None:
             if credentials is not None:
                 logger.warning(
-                    "Both credentials and engine were provided during initialization of SqlAlchemyExecutionEngine. "  # noqa: E501
+                    "Both credentials and engine were provided during initialization of SqlAlchemyExecutionEngine. "  # noqa: E501 # FIXME CoP
                     "Ignoring credentials."
                 )
             self.engine = engine
@@ -278,12 +278,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 url=url,
             )
 
-        # these are two backends where temp_table_creation is not supported we set the default value to False.  # noqa: E501
+        # these are two backends where temp_table_creation is not supported we set the default value to False.  # noqa: E501 # FIXME CoP
         if (
             self.dialect_name
             in [
                 GXSqlDialect.TRINO,
-                GXSqlDialect.AWSATHENA,  # WKS 202201 - AWS Athena currently doesn't support temp_tables.  # noqa: E501
+                GXSqlDialect.AWSATHENA,  # WKS 202201 - AWS Athena currently doesn't support temp_tables.  # noqa: E501 # FIXME CoP
                 GXSqlDialect.CLICKHOUSE,
             ]
         ):
@@ -329,9 +329,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         else:
             self.dialect_module = None
 
-        # <WILL> 20210726 - engine_backup is used by the snowflake connector, which requires connection and engine  # noqa: E501
-        # to be closed and disposed separately. Currently self.engine can refer to either a Connection or Engine,  # noqa: E501
-        # depending on the backend. This will need to be cleaned up in an upcoming refactor, so that Engine and  # noqa: E501
+        # <WILL> 20210726 - engine_backup is used by the snowflake connector, which requires connection and engine  # noqa: E501 # FIXME CoP
+        # to be closed and disposed separately. Currently self.engine can refer to either a Connection or Engine,  # noqa: E501 # FIXME CoP
+        # depending on the backend. This will need to be cleaned up in an upcoming refactor, so that Engine and  # noqa: E501 # FIXME CoP
         # Connection can be handled separately.
         self._engine_backup = None
         if self.engine and self.dialect_name in [
@@ -359,18 +359,18 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                     _add_sqlite_functions(dbapi_con)
 
                 sa.event.listen(self.engine, "connect", _on_connect)
-                # Also immediately add the sqlite functions in case there already exists an underlying  # noqa: E501
+                # Also immediately add the sqlite functions in case there already exists an underlying  # noqa: E501 # FIXME CoP
                 # sqlite3.Connection (distinct from a sqlalchemy Connection).
                 _add_sqlite_functions(self.engine.raw_connection())
             self._engine_backup = self.engine
 
-        # Gather the call arguments of the present function (and add the "class_name"), filter out the Falsy values,  # noqa: E501
+        # Gather the call arguments of the present function (and add the "class_name"), filter out the Falsy values,  # noqa: E501 # FIXME CoP
         # and set the instance "_config" variable equal to the resulting dictionary.
         self._config = {
             "name": name,
             "credentials": credentials,
             "data_context": data_context,
-            "engine": engine,  # type: ignore[dict-item]
+            "engine": engine,  # type: ignore[dict-item] # FIXME CoP
             "connection_string": connection_string,
             "url": url,
             "batch_data_dict": batch_data_dict,
@@ -400,7 +400,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         Returns:
             Nothing, the engine instance variable is set.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if credentials is not None:
             self.engine = self._build_engine(credentials=credentials, **kwargs)
         elif connection_string is not None:
@@ -422,7 +422,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             else:
                 self.engine = sa.create_engine(url, **kwargs)
         else:
-            raise InvalidConfigError(  # noqa: TRY003
+            raise InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 "Credentials or an engine are required for a SqlAlchemyExecutionEngine."
             )
 
@@ -456,7 +456,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         """
         Using a set of given credentials, constructs an Execution Engine , connecting to a database using a URL or a
         private key path.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # Update credentials with anything passed during connection time
         drivername = credentials.pop("drivername")
         schema_name = credentials.pop("schema_name", None)
@@ -503,7 +503,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         Returns:
             a tuple consisting of a url with the serialized key-pair authentication, and a dictionary of engine kwargs.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         from cryptography.hazmat.backends import default_backend
         from cryptography.hazmat.primitives import serialization
 
@@ -524,7 +524,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                         message="Decryption of key failed, was the passphrase incorrect?",
                     ) from e
                 else:
-                    raise e  # noqa: TRY201
+                    raise e  # noqa: TRY201 # FIXME CoP
         pkb = p_key.private_bytes(
             encoding=serialization.Encoding.DER,
             format=serialization.PrivateFormat.PKCS8,
@@ -539,7 +539,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         )
 
     @override
-    def get_domain_records(  # noqa: C901, PLR0912, PLR0915
+    def get_domain_records(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
         domain_kwargs: dict,
     ) -> sqlalchemy.Selectable:
@@ -550,7 +550,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         Returns:
             An SqlAlchemy table/column(s) (the selectable object for obtaining data on which to compute returned in the format of an SqlAlchemy table/column(s) object)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         data_object: SqlAlchemyBatchData
 
         batch_id: Optional[str] = domain_kwargs.get("batch_id")
@@ -559,16 +559,16 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             if self.batch_manager.active_batch_data:
                 data_object = cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data)
             else:
-                raise GreatExpectationsError(  # noqa: TRY003
+                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
                 )
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data_object = cast(
                     SqlAlchemyBatchData, self.batch_manager.batch_data_cache[batch_id]
                 )
             else:
-                raise GreatExpectationsError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003
+                raise GreatExpectationsError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003 # FIXME CoP
 
         selectable: sqlalchemy.Selectable
         if "table" in domain_kwargs and domain_kwargs["table"] is not None:
@@ -584,7 +584,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             else:
                 selectable = data_object.selectable
         elif "query" in domain_kwargs:
-            raise ValueError("query is not currently supported by SqlAlchemyExecutionEngine")  # noqa: TRY003
+            raise ValueError("query is not currently supported by SqlAlchemyExecutionEngine")  # noqa: TRY003 # FIXME CoP
         else:
             selectable = data_object.selectable
 
@@ -593,7 +593,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         as a subquery wrapped in "(subquery) alias". TextClause must first be converted
         to TextualSelect using sa.columns() before it can be converted to type Subquery
         """
-        if sqlalchemy.TextClause and isinstance(selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
+        if sqlalchemy.TextClause and isinstance(selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
             selectable = selectable.columns().subquery()
 
         # Filtering by row condition.
@@ -604,10 +604,10 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
             ]:
                 parsed_condition = parse_condition_to_sqlalchemy(domain_kwargs["row_condition"])
-                selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type]
+                selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type] # FIXME CoP
             else:
-                raise GreatExpectationsError(  # noqa: TRY003
-                    "SqlAlchemyExecutionEngine only supports the great_expectations condition_parser."  # noqa: E501
+                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                    "SqlAlchemyExecutionEngine only supports the great_expectations condition_parser."  # noqa: E501 # FIXME CoP
                 )
 
         # Filtering by filter_conditions
@@ -620,17 +620,17 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             ), "filter_condition must be of type GX for SqlAlchemyExecutionEngine"
 
             # SQLAlchemy 2.0 deprecated select_from() from a non-Table asset without a subquery.
-            # Implicit coercion of SELECT and textual SELECT constructs into FROM clauses is deprecated.  # noqa: E501
+            # Implicit coercion of SELECT and textual SELECT constructs into FROM clauses is deprecated.  # noqa: E501 # FIXME CoP
             if not isinstance(selectable, (sa.Table, Subquery)):
-                selectable = selectable.subquery()  # type: ignore[attr-defined]
+                selectable = selectable.subquery()  # type: ignore[attr-defined] # FIXME CoP
 
             selectable = (
                 sa.select(sa.text("*"))
-                .select_from(selectable)  # type: ignore[arg-type]
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
                 .where(parse_condition_to_sqlalchemy(filter_condition.condition))
             )
         elif len(filter_conditions) > 1:
-            raise GreatExpectationsError(  # noqa: TRY003
+            raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                 "SqlAlchemyExecutionEngine currently only supports a single filter condition."
             )
 
@@ -659,12 +659,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             if ignore_row_if == "both_values_are_missing":
                 selectable = get_sqlalchemy_selectable(
                     sa.select(sa.text("*"))
-                    .select_from(get_sqlalchemy_selectable(selectable))  # type: ignore[arg-type]
+                    .select_from(get_sqlalchemy_selectable(selectable))  # type: ignore[arg-type] # FIXME CoP
                     .where(
                         sa.not_(
                             sa.and_(
-                                sa.column(column_A_name) == None,  # noqa: E711
-                                sa.column(column_B_name) == None,  # noqa: E711
+                                sa.column(column_A_name) == None,  # noqa: E711 # FIXME CoP
+                                sa.column(column_B_name) == None,  # noqa: E711 # FIXME CoP
                             )
                         )
                     )
@@ -672,19 +672,19 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             elif ignore_row_if == "either_value_is_missing":
                 selectable = get_sqlalchemy_selectable(
                     sa.select(sa.text("*"))
-                    .select_from(get_sqlalchemy_selectable(selectable))  # type: ignore[arg-type]
+                    .select_from(get_sqlalchemy_selectable(selectable))  # type: ignore[arg-type] # FIXME CoP
                     .where(
                         sa.not_(
                             sa.or_(
-                                sa.column(column_A_name) == None,  # noqa: E711
-                                sa.column(column_B_name) == None,  # noqa: E711
+                                sa.column(column_A_name) == None,  # noqa: E711 # FIXME CoP
+                                sa.column(column_B_name) == None,  # noqa: E711 # FIXME CoP
                             )
                         )
                     )
                 )
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if ignore_row_if != "neither":
-                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003
+                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003 # FIXME CoP
 
             return selectable
 
@@ -702,12 +702,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             if ignore_row_if == "all_values_are_missing":
                 selectable = get_sqlalchemy_selectable(
                     sa.select(sa.text("*"))
-                    .select_from(get_sqlalchemy_selectable(selectable))  # type: ignore[arg-type]
+                    .select_from(get_sqlalchemy_selectable(selectable))  # type: ignore[arg-type] # FIXME CoP
                     .where(
                         sa.not_(
                             sa.and_(
                                 *(
-                                    sa.column(column_name) == None  # noqa: E711
+                                    sa.column(column_name) == None  # noqa: E711 # FIXME CoP
                                     for column_name in column_list
                                 )
                             )
@@ -717,21 +717,21 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             elif ignore_row_if == "any_value_is_missing":
                 selectable = get_sqlalchemy_selectable(
                     sa.select(sa.text("*"))
-                    .select_from(get_sqlalchemy_selectable(selectable))  # type: ignore[arg-type]
+                    .select_from(get_sqlalchemy_selectable(selectable))  # type: ignore[arg-type] # FIXME CoP
                     .where(
                         sa.not_(
                             sa.or_(
                                 *(
-                                    sa.column(column_name) == None  # noqa: E711
+                                    sa.column(column_name) == None  # noqa: E711 # FIXME CoP
                                     for column_name in column_list
                                 )
                             )
                         )
                     )
                 )
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if ignore_row_if != "never":
-                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003
+                    raise ValueError(f'Unrecognized value of ignore_row_if ("{ignore_row_if}").')  # noqa: TRY003 # FIXME CoP
 
             return selectable
 
@@ -757,7 +757,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         Returns:
             SqlAlchemy column
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         partitioned_domain_kwargs: PartitionDomainKwargs = self._partition_domain_kwargs(
             domain_kwargs, domain_type, accessor_keys
         )
@@ -786,7 +786,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         Returns:
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         assert (
             domain_type == MetricDomainTypes.COLUMN
         ), "This method only supports MetricDomainTypes.COLUMN"
@@ -795,7 +795,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         accessor_domain_kwargs: dict = {}
 
         if "column" not in compute_domain_kwargs:
-            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003
+            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                 "Column not provided in compute_domain_kwargs"
             )
 
@@ -825,7 +825,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         Returns:
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         assert (
             domain_type == MetricDomainTypes.COLUMN_PAIR
         ), "This method only supports MetricDomainTypes.COLUMN_PAIR"
@@ -834,7 +834,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         accessor_domain_kwargs: dict = {}
 
         if not ("column_A" in compute_domain_kwargs and "column_B" in compute_domain_kwargs):
-            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003
+            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                 "column_A or column_B not found within compute_domain_kwargs"
             )
 
@@ -868,7 +868,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         Returns:
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         assert (
             domain_type == MetricDomainTypes.MULTICOLUMN
         ), "This method only supports MetricDomainTypes.MULTICOLUMN"
@@ -877,12 +877,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         accessor_domain_kwargs: dict = {}
 
         if "column_list" not in domain_kwargs:
-            raise GreatExpectationsError("column_list not found within domain_kwargs")  # noqa: TRY003
+            raise GreatExpectationsError("column_list not found within domain_kwargs")  # noqa: TRY003 # FIXME CoP
 
         column_list = compute_domain_kwargs.pop("column_list")
 
-        if len(column_list) < 2:  # noqa: PLR2004
-            raise GreatExpectationsError("column_list must contain at least 2 columns")  # noqa: TRY003
+        if len(column_list) < 2:  # noqa: PLR2004 # FIXME CoP
+            raise GreatExpectationsError("column_list must contain at least 2 columns")  # noqa: TRY003 # FIXME CoP
 
         # Checking if case-sensitive and using appropriate name
         if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
@@ -895,7 +895,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         return PartitionDomainKwargs(compute_domain_kwargs, accessor_domain_kwargs)
 
     @override
-    def resolve_metric_bundle(  # noqa: C901 - too complex
+    def resolve_metric_bundle(  # noqa: C901 #  too complex
         self,
         metric_fn_bundle: Iterable[MetricComputationConfiguration],
     ) -> Dict[Tuple[str, str, str], MetricValue]:
@@ -911,7 +911,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
             Returns:
                 A dictionary of "MetricConfiguration" IDs and their corresponding now-queried (fully resolved) values.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         resolved_metrics: Dict[Tuple[str, str, str], MetricValue] = {}
 
         res: List[sqlalchemy.Row]
@@ -966,19 +966,19 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 as a subquery wrapped in "(subquery) alias". TextClause must first be converted
                 to TextualSelect using sa.columns() before it can be converted to type Subquery
                 """
-                if sqlalchemy.TextClause and isinstance(selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
+                if sqlalchemy.TextClause and isinstance(selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
                     sa_query_object = sa.select(*query["select"]).select_from(
                         selectable.columns().subquery()
                     )
-                elif (sqlalchemy.Select and isinstance(selectable, sqlalchemy.Select)) or (  # type: ignore[truthy-function]
-                    sqlalchemy.TextualSelect and isinstance(selectable, sqlalchemy.TextualSelect)  # type: ignore[truthy-function]
+                elif (sqlalchemy.Select and isinstance(selectable, sqlalchemy.Select)) or (  # type: ignore[truthy-function] # FIXME CoP
+                    sqlalchemy.TextualSelect and isinstance(selectable, sqlalchemy.TextualSelect)  # type: ignore[truthy-function] # FIXME CoP
                 ):
                     sa_query_object = sa.select(*query["select"]).select_from(selectable.subquery())
                 else:
-                    sa_query_object = sa.select(*query["select"]).select_from(selectable)  # type: ignore[arg-type]
+                    sa_query_object = sa.select(*query["select"]).select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
                 logger.debug(f"Attempting query {sa_query_object!s}")
-                res = self.execute_query(sa_query_object).fetchall()  # type: ignore[assignment]
+                res = self.execute_query(sa_query_object).fetchall()  # type: ignore[assignment] # FIXME CoP
 
                 logger.debug(
                     f"""SqlAlchemyExecutionEngine computed {len(res[0])} metrics on domain_id \
@@ -990,7 +990,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 exception_message += (
                     f'{type(oe).__name__}: "{oe!s}".  Traceback: "{exception_traceback}".'
                 )
-                logger.error(exception_message)  # noqa: TRY400
+                logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
                 raise ExecutionEngineError(message=exception_message)
 
             assert len(res) == 1, "all bundle-computed metrics must be single-value statistics"
@@ -999,8 +999,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             idx: int
             metric_id: Tuple[str, str, str]
             for idx, metric_id in enumerate(query["metric_ids"]):
-                # Converting SQL query execution results into JSON-serializable format produces simple data types,  # noqa: E501
-                # amenable for subsequent post-processing by higher-level "Metric" and "Expectation" layers.  # noqa: E501
+                # Converting SQL query execution results into JSON-serializable format produces simple data types,  # noqa: E501 # FIXME CoP
+                # amenable for subsequent post-processing by higher-level "Metric" and "Expectation" layers.  # noqa: E501 # FIXME CoP
                 resolved_metrics[metric_id] = convert_to_json_serializable(data=res[0][idx])
 
         return resolved_metrics
@@ -1022,7 +1022,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         self.engine.dispose()
 
         More background can be found here: https://github.com/great-expectations/great_expectations/pull/3104/
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if self._engine_backup:
             if self._connection:
                 self._connection.close()
@@ -1056,14 +1056,14 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             # Note: Athena does not support casting to string, only to varchar
             # but sqlalchemy currently generates a query as `CAST(colname AS STRING)` instead
             # of `CAST(colname AS VARCHAR)` with other dialects.
-            partitioned_query = str(  # type: ignore[assignment]
+            partitioned_query = str(  # type: ignore[assignment] # FIXME CoP
                 partitioned_query.compile(self.engine, compile_kwargs={"literal_binds": True})
             )
 
             pattern = re.compile(r"(CAST\(EXTRACT\(.*?\))( AS STRING\))", re.IGNORECASE)
-            partitioned_query = re.sub(pattern, r"\1 AS VARCHAR)", partitioned_query)  # type: ignore[call-overload]
+            partitioned_query = re.sub(pattern, r"\1 AS VARCHAR)", partitioned_query)  # type: ignore[call-overload] # FIXME CoP
 
-        return self.execute_query(partitioned_query).fetchall()  # type: ignore[return-value]
+        return self.execute_query(partitioned_query).fetchall()  # type: ignore[return-value] # FIXME CoP
 
     def get_data_for_batch_identifiers(
         self,
@@ -1082,7 +1082,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         Returns:
             List of dicts of the form [{column_name: {"key": value}}]
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self._data_partitioner.get_data_for_batch_identifiers(
             execution_engine=self,
             selectable=selectable,
@@ -1092,7 +1092,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
     def _build_selectable_from_batch_spec(self, batch_spec: BatchSpec) -> sqlalchemy.Selectable:
         if batch_spec.get("query") is not None and batch_spec.get("sampling_method") is not None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "Sampling is not supported on query data. "
                 "It is currently only supported on table data."
             )
@@ -1106,7 +1106,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 **batch_spec["partitioner_kwargs"],
             )
 
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if self.dialect_name == GXSqlDialect.SQLITE:
                 partition_clause = sa.text("1 = 1")
             else:
@@ -1131,7 +1131,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 sampler_fn = self._data_sampler.get_sampler_method(sampling_method)
                 return (
                     sa.select("*")
-                    .select_from(selectable)  # type: ignore[arg-type]
+                    .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
                     .where(
                         sa.and_(
                             partition_clause,
@@ -1140,7 +1140,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                     )
                 )
 
-        return sa.select("*").select_from(selectable).where(partition_clause)  # type: ignore[arg-type]
+        return sa.select("*").select_from(selectable).where(partition_clause)  # type: ignore[arg-type] # FIXME CoP
 
     def _subselectable(self, batch_spec: BatchSpec) -> sqlalchemy.Selectable:
         table_name = batch_spec.get("table_name")
@@ -1150,7 +1150,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             selectable = sa.table(table_name, schema=batch_spec.get("schema_name", None))
         else:
             if not isinstance(query, str):
-                raise ValueError(f"SQL query should be a str but got {query}")  # noqa: TRY003
+                raise ValueError(f"SQL query should be a str but got {query}")  # noqa: TRY003 # FIXME CoP
             # Query is a valid SELECT query that begins with r"\w+select\w"
             selectable = sa.select(
                 sa.text(query.lstrip()[6:].strip().rstrip(";").rstrip())
@@ -1163,13 +1163,13 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         self, batch_spec: BatchSpec
     ) -> Tuple[SqlAlchemyBatchData, BatchMarkers]:
         if not isinstance(batch_spec, (SqlAlchemyDatasourceBatchSpec, RuntimeQueryBatchSpec)):
-            raise InvalidBatchSpecError(  # noqa: TRY003
+            raise InvalidBatchSpecError(  # noqa: TRY003 # FIXME CoP
                 f"""SqlAlchemyExecutionEngine accepts batch_spec only of type SqlAlchemyDatasourceBatchSpec or
         RuntimeQueryBatchSpec (illegal type "{type(batch_spec)!s}" was received).
-                        """  # noqa: E501
+                        """  # noqa: E501 # FIXME CoP
             )
         if sum(1 if x else 0 for x in [batch_spec.get("query"), batch_spec.get("table_name")]) != 1:
-            raise InvalidBatchSpecError(  # noqa: TRY003
+            raise InvalidBatchSpecError(  # noqa: TRY003 # FIXME CoP
                 "SqlAlchemyExecutionEngine only accepts a batch_spec where exactly 1 of "
                 "'query' or 'table_name' is specified. "
                 f"table_name={batch_spec.get('table_name')}, query={batch_spec.get('query')}"
@@ -1193,7 +1193,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         selectable: sqlalchemy.Selectable = self._build_selectable_from_batch_spec(
             batch_spec=batch_spec
         )
-        # NOTE: what's being checked here is the presence of a `query` attribute, we could check this directly  # noqa: E501
+        # NOTE: what's being checked here is the presence of a `query` attribute, we could check this directly  # noqa: E501 # FIXME CoP
         # instead of doing an instance check
         if isinstance(batch_spec, RuntimeQueryBatchSpec):
             # query != None is already checked when RuntimeQueryBatchSpec is instantiated
@@ -1224,11 +1224,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         if self._inspector is None:
             if version.parse(sa.__version__) < version.parse("1.4"):
                 # Inspector.from_engine deprecated since 1.4, sa.inspect() should be used instead
-                self._inspector = sqlalchemy.reflection.Inspector.from_engine(self.engine)  # type: ignore[assignment]
+                self._inspector = sqlalchemy.reflection.Inspector.from_engine(self.engine)  # type: ignore[assignment] # FIXME CoP
             else:
-                self._inspector = sa.inspect(self.engine)  # type: ignore[assignment]
+                self._inspector = sa.inspect(self.engine)  # type: ignore[assignment] # FIXME CoP
 
-        return self._inspector  # type: ignore[return-value]
+        return self._inspector  # type: ignore[return-value] # FIXME CoP
 
     @contextmanager
     def get_connection(self) -> Generator[sqlalchemy.Connection, None, None]:
@@ -1242,7 +1242,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         Returns:
             Sqlalchemy connection
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if self.dialect_name in _PERSISTED_CONNECTION_DIALECTS:
             try:
                 if not self._connection:
@@ -1286,7 +1286,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         Returns:
             CursorResult for sqlalchemy 2.0+ or LegacyCursorResult for earlier versions.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         with self.get_connection() as connection:
             if (
                 is_version_greater_or_equal(sqlalchemy.sqlalchemy.__version__, "2.0.0")

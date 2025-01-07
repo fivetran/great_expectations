@@ -5,7 +5,7 @@ import json
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import IDDict
 from great_expectations.types.base import SerializableDotDict
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 
 class ExceptionInfo(SerializableDotDict):

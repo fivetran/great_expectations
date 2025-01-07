@@ -27,8 +27,8 @@ def renderer(renderer_type: str, **kwargs) -> Callable[[Callable[P, T]], Callabl
         def inner_func(*args: P.args, **kwargs: P.kwargs):
             return renderer_fn(*args, **kwargs)
 
-        inner_func._renderer_type = renderer_type  # type: ignore[attr-defined]
-        inner_func._renderer_definition_kwargs = kwargs  # type: ignore[attr-defined]
+        inner_func._renderer_type = renderer_type  # type: ignore[attr-defined] # FIXME CoP
+        inner_func._renderer_definition_kwargs = kwargs  # type: ignore[attr-defined] # FIXME CoP
         return inner_func
 
     return wrapper
@@ -44,7 +44,7 @@ class Renderer:
         return type(self) is type(other)
 
     def serialize(self) -> dict:
-        # Necessary to enable proper serialization within an Action (and additionally, within a Checkpoint)  # noqa: E501
+        # Necessary to enable proper serialization within an Action (and additionally, within a Checkpoint)  # noqa: E501 # FIXME CoP
         # TODO: Renderers should be ported over to Pydantic to prevent this fork in logic
         return {
             "module_name": self.__class__.__module__,
@@ -91,7 +91,7 @@ class Renderer:
 
         :param evrs:
         :return: list of columns with best effort sorting
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         evrs_ = evrs if isinstance(evrs, list) else evrs.results
 
         expect_table_columns_to_match_ordered_list_evr = cls._find_evr_by_type(
@@ -115,7 +115,7 @@ class Renderer:
         else:
             ordered_columns = []
 
-        # only return ordered columns from expect_table_columns_to_match_ordered_list evr if they match set of column  # noqa: E501
+        # only return ordered columns from expect_table_columns_to_match_ordered_list evr if they match set of column  # noqa: E501 # FIXME CoP
         # names from entire evr
         if set(sorted_columns) == set(ordered_columns):
             return ordered_columns

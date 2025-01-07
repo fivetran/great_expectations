@@ -43,7 +43,7 @@ class SliceValidator:
         # the returned value will be ignored
         field_schema.update(
             slice={
-                "description": "A slice object representing the set of indices specified by range(start, stop, step).",  # noqa: E501
+                "description": "A slice object representing the set of indices specified by range(start, stop, step).",  # noqa: E501 # FIXME CoP
                 "type": "object",
                 "properties": {
                     "start": {
@@ -65,7 +65,7 @@ class SliceValidator:
     @classmethod
     def validate(cls, v):
         if not isinstance(v, slice):
-            raise TypeError("slice required")  # noqa: TRY003
+            raise TypeError("slice required")  # noqa: TRY003 # FIXME CoP
         return cls(v)
 
 
@@ -74,7 +74,7 @@ BatchSlice: TypeAlias = Union[
 ]
 
 
-def build_batch_filter(  # noqa: C901 - too complex
+def build_batch_filter(  # noqa: C901 #  too complex
     data_connector_query_dict: Optional[
         Dict[
             str,
@@ -101,53 +101,53 @@ def build_batch_filter(  # noqa: C901 - too complex
         )
     data_connector_query_keys: set = set(data_connector_query_dict.keys())
     if not data_connector_query_keys <= BatchFilter.RECOGNIZED_KEYS:
-        raise gx_exceptions.BatchFilterError(  # noqa: TRY003
+        raise gx_exceptions.BatchFilterError(  # noqa: TRY003 # FIXME CoP
             f"""Unrecognized data_connector_query key(s):
 "{data_connector_query_keys - BatchFilter.RECOGNIZED_KEYS!s}" detected.
             """
         )
-    custom_filter_function: Optional[Callable] = data_connector_query_dict.get(  # type: ignore[assignment]
+    custom_filter_function: Optional[Callable] = data_connector_query_dict.get(  # type: ignore[assignment] # FIXME CoP
         "custom_filter_function"
     )
-    if custom_filter_function and not isinstance(custom_filter_function, Callable):  # type: ignore[arg-type]
-        raise gx_exceptions.BatchFilterError(  # noqa: TRY003
+    if custom_filter_function and not isinstance(custom_filter_function, Callable):  # type: ignore[arg-type] # FIXME CoP
+        raise gx_exceptions.BatchFilterError(  # noqa: TRY003 # FIXME CoP
             f"""The type of a custom_filter must be a function (Python "Callable").  The type given is
 "{type(custom_filter_function)!s}", which is illegal.
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
         )
-    batch_filter_parameters: Optional[Union[dict, IDDict]] = data_connector_query_dict.get(  # type: ignore[assignment]
+    batch_filter_parameters: Optional[Union[dict, IDDict]] = data_connector_query_dict.get(  # type: ignore[assignment] # FIXME CoP
         "batch_filter_parameters"
     )
     if batch_filter_parameters:
         if not isinstance(batch_filter_parameters, dict):
-            raise gx_exceptions.BatchFilterError(  # noqa: TRY003
+            raise gx_exceptions.BatchFilterError(  # noqa: TRY003 # FIXME CoP
                 f"""The type of batch_filter_parameters must be a dictionary (Python "dict").  The type given is
 "{type(batch_filter_parameters)!s}", which is illegal.
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         if not all(isinstance(key, str) for key in batch_filter_parameters):
-            raise gx_exceptions.BatchFilterError(  # noqa: TRY003
+            raise gx_exceptions.BatchFilterError(  # noqa: TRY003 # FIXME CoP
                 'All batch_filter_parameters keys must strings (Python "str").'
             )
         batch_filter_parameters = IDDict(batch_filter_parameters)
-    index: Optional[BatchSlice] = data_connector_query_dict.get(  # type: ignore[assignment]
+    index: Optional[BatchSlice] = data_connector_query_dict.get(  # type: ignore[assignment] # FIXME CoP
         "index"
     )
-    limit: Optional[int] = data_connector_query_dict.get("limit")  # type: ignore[assignment]
+    limit: Optional[int] = data_connector_query_dict.get("limit")  # type: ignore[assignment] # FIXME CoP
     if limit and (not isinstance(limit, int) or limit < 0):
-        raise gx_exceptions.BatchFilterError(  # noqa: TRY003
+        raise gx_exceptions.BatchFilterError(  # noqa: TRY003 # FIXME CoP
             f"""The type of a limit must be an integer (Python "int") that is greater than or equal to 0.  The
 type and value given are "{type(limit)!s}" and "{limit}", respectively, which is illegal.
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
         )
     if index is not None and limit is not None:
-        raise gx_exceptions.BatchFilterError(  # noqa: TRY003
-            "Only one of index or limit, but not both, can be specified (specifying both is illegal)."  # noqa: E501
+        raise gx_exceptions.BatchFilterError(  # noqa: TRY003 # FIXME CoP
+            "Only one of index or limit, but not both, can be specified (specifying both is illegal)."  # noqa: E501 # FIXME CoP
         )
     parsed_index: slice | None = parse_batch_slice(batch_slice=index) if index is not None else None
     return BatchFilter(
         custom_filter_function=custom_filter_function,
-        batch_filter_parameters=batch_filter_parameters,  # type: ignore[arg-type]
+        batch_filter_parameters=batch_filter_parameters,  # type: ignore[arg-type] # FIXME CoP
         index=parsed_index,
         limit=limit,
     )
@@ -169,13 +169,13 @@ def _batch_slice_string_to_slice_params(batch_slice: str) -> list[int | None]:
 
         # split and convert string to int
         for param in parsed_batch_slice.split(delimiter):
-            param = param.strip()  # noqa: PLW2901
+            param = param.strip()  # noqa: PLW2901 # FIXME CoP
             if param and param != "None":
                 try:
                     slice_params.append(int(param))
                 except ValueError as e:
-                    raise ValueError(  # noqa: TRY003
-                        f'Attempt to convert string slice index "{param}" to integer failed with message: {e}'  # noqa: E501
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
+                        f'Attempt to convert string slice index "{param}" to integer failed with message: {e}'  # noqa: E501 # FIXME CoP
                     )
             else:
                 slice_params.append(None)
@@ -190,13 +190,13 @@ def _batch_slice_from_string(batch_slice: str) -> slice:
         return slice(0, None, None)
     elif len(slice_params) == 1 and slice_params[0] is not None:
         return _batch_slice_from_int(batch_slice=slice_params[0])
-    elif len(slice_params) == 2:  # noqa: PLR2004
+    elif len(slice_params) == 2:  # noqa: PLR2004 # FIXME CoP
         return slice(slice_params[0], slice_params[1], None)
-    elif len(slice_params) == 3:  # noqa: PLR2004
+    elif len(slice_params) == 3:  # noqa: PLR2004 # FIXME CoP
         return slice(slice_params[0], slice_params[1], slice_params[2])
     else:
-        raise ValueError(  # noqa: TRY003
-            f"batch_slice string must take the form of a python slice, but {batch_slice} was provided."  # noqa: E501
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
+            f"batch_slice string must take the form of a python slice, but {batch_slice} was provided."  # noqa: E501 # FIXME CoP
         )
 
 
@@ -205,12 +205,12 @@ def _batch_slice_from_list_or_tuple(batch_slice: list[int] | tuple[int, ...]) ->
         return slice(0, None, None)
     elif len(batch_slice) == 1 and batch_slice[0] is not None:
         return slice(batch_slice[0] - 1, batch_slice[0])
-    elif len(batch_slice) == 2:  # noqa: PLR2004
+    elif len(batch_slice) == 2:  # noqa: PLR2004 # FIXME CoP
         return slice(batch_slice[0], batch_slice[1])
-    elif len(batch_slice) == 3:  # noqa: PLR2004
+    elif len(batch_slice) == 3:  # noqa: PLR2004 # FIXME CoP
         return slice(batch_slice[0], batch_slice[1], batch_slice[2])
     else:
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             f'batch_slice sequence must be of length 0-3, but "{batch_slice}" was provided.'
         )
 
@@ -237,8 +237,8 @@ def parse_batch_slice(batch_slice: Optional[BatchSlice]) -> slice:
     elif isinstance(batch_slice, (list, tuple)):
         return_slice = _batch_slice_from_list_or_tuple(batch_slice=batch_slice)
     else:
-        raise TypeError(  # noqa: TRY003
-            f"`batch_slice` should be of type `BatchSlice`, but type: {type(batch_slice)} was passed."  # noqa: E501
+        raise TypeError(  # noqa: TRY003 # FIXME CoP
+            f"`batch_slice` should be of type `BatchSlice`, but type: {type(batch_slice)} was passed."  # noqa: E501 # FIXME CoP
         )
     logger.info(f"batch_slice: {batch_slice} was parsed to: {return_slice}")
     return return_slice
@@ -278,7 +278,7 @@ class BatchFilter:
 
     @property
     def limit(self) -> int:
-        return self._limit  # type: ignore[return-value]
+        return self._limit  # type: ignore[return-value] # FIXME CoP
 
     @override
     def __repr__(self) -> str:
@@ -314,7 +314,7 @@ class BatchFilter:
 
         if self.index is None:
             selected_batch_definitions = selected_batch_definitions[: self.limit]
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if isinstance(self.index, int):
                 selected_batch_definitions = [selected_batch_definitions[self.index]]
             else:
