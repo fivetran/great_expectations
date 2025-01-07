@@ -27,6 +27,9 @@ if TYPE_CHECKING:
 
     import pytest_mock
 
+    from great_expectations.data_context.data_context.ephemeral_data_context import (
+        EphemeralDataContext,
+    )
     from great_expectations.datasource.fluent.batch_request import BatchRequest
 
 
@@ -262,7 +265,7 @@ def test_is_fresh_fails_on_batch_definition_retrieval(in_memory_runtime_context)
 
 
 @pytest.mark.unit
-def test_save(in_memory_runtime_context):
+def test_save(in_memory_runtime_context: EphemeralDataContext):
     context = in_memory_runtime_context
 
     ds_name = "my_pandas_ds"
