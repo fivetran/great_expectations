@@ -14,6 +14,32 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.1
+* [FEATURE] Implement suite factory add_or_update ([#10796](GxURL.PULL_REQUESTS/10796))
+* [FEATURE] add expectation params to ColumnMapExpectation `mostly` field ([#10829](GxURL.PULL_REQUESTS/10829))
+* [BUGFIX] Ensure datetime.time can be serialized to JSON ([#10795](GxURL.PULL_REQUESTS/10795))
+* [BUGFIX] Stop overwriting template with description ([#10826](GxURL.PULL_REQUESTS/10826))
+* [DOCS] restore Lychee link checking ([#10797](GxURL.PULL_REQUESTS/10797))
+* [DOCS] replace `context.sources` with `context.data_sources` ([#10794](GxURL.PULL_REQUESTS/10794))
+* [DOCS] ADR around public API docstrings ([#10798](GxURL.PULL_REQUESTS/10798))
+* [DOCS] Change home banner buttons ([#10804](GxURL.PULL_REQUESTS/10804))
+* [DOCS] Remove uppercase transformation for alerts' titles ([#10800](GxURL.PULL_REQUESTS/10800))
+* [DOCS] Adding commonroom web tracking snippet ([#10805](GxURL.PULL_REQUESTS/10805))
+* [DOCS] Adding/deleting other supported databases ([#10812](GxURL.PULL_REQUESTS/10812))
+* [DOCS] Update Learn data pipeline tutorial page ([#10828](GxURL.PULL_REQUESTS/10828))
+* [MAINTENANCE] Bump `posthog` to V3 ([#10814](GxURL.PULL_REQUESTS/10814))
+* [MAINTENANCE]  Update expectations to use canonical data quality issues ([#10807](GxURL.PULL_REQUESTS/10807))
+* [MAINTENANCE] Nightly cleanup of stray bigquery schemas ([#10815](GxURL.PULL_REQUESTS/10815))
+* [MAINTENANCE] Enforce mandatory docstrings for public API decorated objects ([#10799](GxURL.PULL_REQUESTS/10799))
+* [MAINTENANCE] Add bigquery requirements file to bigquery cleanup script ([#10819](GxURL.PULL_REQUESTS/10819))
+* [MAINTENANCE] Fix cleanup script ([#10820](GxURL.PULL_REQUESTS/10820))
+* [MAINTENANCE] Enforce comments with linter ignores ([#10817](GxURL.PULL_REQUESTS/10817))
+* [MAINTENANCE] Add to git blame ignore rev ([#10822](GxURL.PULL_REQUESTS/10822))
+* [MAINTENANCE] Ignore Marshmallow V4 warnings ([#10825](GxURL.PULL_REQUESTS/10825))
+* [MAINTENANCE] Change logger warning to debug ([#10790](GxURL.PULL_REQUESTS/10790))
+* [MAINTENANCE] Better logging around and only calling cleanup when we have old BigQuery schemas ([#10824](GxURL.PULL_REQUESTS/10824))
+* [MAINTENANCE] Add `context.validation_definitions.add_or_update` support ([#10818](GxURL.PULL_REQUESTS/10818))
+
 ### 1.3.0
 * [BUGFIX] Handle expectation description from cloud ([#10768](https://github.com/great-expectations/great_expectations/pull/10768))
 * [BUGFIX] Renderer for UnexpectedRowsExpectation ([#10758](https://github.com/great-expectations/great_expectations/pull/10758))
