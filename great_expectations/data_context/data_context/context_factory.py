@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
     from great_expectations.alias_types import PathStr
     from great_expectations.core.config_provider import _ConfigurationProvider
+    from great_expectations.core.factory.suite_factory import SuiteFactory
     from great_expectations.data_context import (
         AbstractDataContext,
         CloudDataContext,
@@ -110,6 +111,9 @@ class ProjectManager:
 
     def get_validator(self, batch_request: BatchRequest) -> Validator:
         return self._project.get_validator(batch_request=batch_request)
+
+    def get_suite_factory(self) -> SuiteFactory:
+        return self._project.suites
 
     def is_using_cloud(self) -> bool:
         from great_expectations.data_context import CloudDataContext

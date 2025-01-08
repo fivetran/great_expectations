@@ -2995,3 +2995,57 @@ def test_unexpected_rows_expectation_atomic_diagnostic_observed_value(
 
     # assert
     assert res["value"]["template"] == expected_template_string
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_atomic_diagnostic_observed_value_when_description_present(
+    get_diagnostic_rendered_content,
+):
+    """Fixes regression where description overwrote the template"""
+
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"description": "my description", "unexpected_rows_query": "valid query"},
+            description="plz ignore me",
+        ),
+        "result": {"observed_value": 123},
+    }
+
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    assert res["value"]["template"] == "$observed_value unexpected rows"
+
+
+@pytest.mark.unit
+def test_atomic_prescriptive_summary_with_description(
+    get_prescriptive_rendered_content,
+):
+    description = "I should overwite"
+    update_dict = {
+        "type": "expect_column_distinct_values_to_be_in_set",
+        "description": description,
+        "kwargs": {
+            "column": "my_column",
+            "value_set": [1, 2, 3],
+        },
+    }
+    rendered_content = get_prescriptive_rendered_content(update_dict)
+
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "v__0": {"schema": {"type": "number"}, "value": 1},
+                "v__1": {"schema": {"type": "number"}, "value": 2},
+                "v__2": {"schema": {"type": "number"}, "value": 3},
+                "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": description,
+        },
+        "value_type": "StringValueType",
+    }
