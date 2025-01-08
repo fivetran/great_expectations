@@ -76,9 +76,16 @@
             "title": "Mostly",
             "description": "Successful if at least `mostly` fraction of values match the expectation.",
             "default": 1,
-            "minimum": 0.0,
-            "maximum": 1.0,
-            "type": "number",
+            "anyOf": [
+                {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                {
+                    "type": "object"
+                }
+            ],
             "multipleOf": 0.01
         },
         "row_condition": {
