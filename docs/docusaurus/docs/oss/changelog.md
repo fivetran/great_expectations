@@ -15,8 +15,6 @@ When we deprecate our public APIs, we will
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
 ### 1.3.1
-* [FEATURE] Implement suite factory add_or_update ([#10796](https://github.com/great-expectations/great_expectations/pull/10796))
-* [FEATURE] add expectation params to ColumnMapExpectation `mostly` field ([#10829](https://github.com/great-expectations/great_expectations/pull/10829))
 * [BUGFIX] Ensure datetime.time can be serialized to JSON ([#10795](https://github.com/great-expectations/great_expectations/pull/10795))
 * [BUGFIX] Stop overwriting template with description ([#10826](https://github.com/great-expectations/great_expectations/pull/10826))
 * [DOCS] restore Lychee link checking ([#10797](https://github.com/great-expectations/great_expectations/pull/10797))
@@ -27,6 +25,8 @@ Before we completely remove the functionality in a new major release, there will
 * [DOCS] Adding commonroom web tracking snippet ([#10805](https://github.com/great-expectations/great_expectations/pull/10805))
 * [DOCS] Adding/deleting other supported databases ([#10812](https://github.com/great-expectations/great_expectations/pull/10812))
 * [DOCS] Update Learn data pipeline tutorial page ([#10828](https://github.com/great-expectations/great_expectations/pull/10828))
+* [MAINTENANCE] Implement suite factory add_or_update ([#10796](https://github.com/great-expectations/great_expectations/pull/10796))
+* [MAINTENANCE] add expectation params to ColumnMapExpectation `mostly` field ([#10829](https://github.com/great-expectations/great_expectations/pull/10829))
 * [MAINTENANCE] Bump `posthog` to V3 ([#10814](https://github.com/great-expectations/great_expectations/pull/10814))
 * [MAINTENANCE]  Update expectations to use canonical data quality issues ([#10807](https://github.com/great-expectations/great_expectations/pull/10807))
 * [MAINTENANCE] Nightly cleanup of stray bigquery schemas ([#10815](https://github.com/great-expectations/great_expectations/pull/10815))
