@@ -144,6 +144,7 @@
 # Redirects for renamed reference docs
 
 /docs/reference/anonymous_usage_statistics /docs/reference/usage_statistics
+/docs/reference/learn/integrations/airflow_pipeline_tutorial /docs/reference/learn/integrations/data_pipeline_tutorial
 
 # Redirect from Getting Started Tutorial to Quickstart
 
