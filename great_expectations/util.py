@@ -1036,9 +1036,9 @@ def pandas_series_between(
     elif inclusive == "right":
         metric_series = (series > min_value) & (series <= max_value)
     elif inclusive == "neither":
-        metric_series = series.between(min_value, max_value, inclusive=False)
+        metric_series = series.between(min_value, max_value, inclusive=False)  # type: ignore[arg-type]  # valid for pandas < 1.3
     elif inclusive == "both":
-        metric_series = series.between(min_value, max_value, inclusive=True)
+        metric_series = series.between(min_value, max_value, inclusive=True)  # type: ignore[arg-type]  # valid for pandas < 1.3
     else:
         metric_series = series.between(min_value, max_value)
 
