@@ -208,12 +208,16 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
     success_keys = (
         "min_value",
         "max_value",
+        "strict_min",
+        "strict_max",
     )
 
     args_keys = (
         "column",
         "min_value",
         "max_value",
+        "strict_min",
+        "strict_max",
     )
 
     """ A Column Aggregate Metric Decorator for the Unique Value Count"""

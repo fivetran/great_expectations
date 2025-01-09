@@ -72,14 +72,12 @@ def test_success(
                 column=COL_NAME, min_value=5, strict_min=True
             ),
             id="strict_min",
-            marks=pytest.mark.xfail(strict=True),
         ),
         pytest.param(
             gxe.ExpectColumnUniqueValueCountToBeBetween(
                 column=COL_NAME, max_value=5, strict_max=True
             ),
             id="strict_max",
-            marks=pytest.mark.xfail(strict=True),
         ),
     ],
 )
