@@ -80,6 +80,7 @@ def test_data_is_subset(batch_for_datasource: Batch) -> None:
     assert result.success
 
 
+@pytest.mark.unit
 @pytest.mark.parametrize(
     "value_set",
     [

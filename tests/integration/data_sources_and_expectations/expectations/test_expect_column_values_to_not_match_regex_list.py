@@ -127,6 +127,7 @@ class TestNormalSql:
         assert not result.success
 
 
-def invalid_config() -> None:
+@pytest.mark.unit
+def test_invalid_config() -> None:
     with pytest.raises(pydantic.ValidationError):
         gxe.ExpectColumnValuesToNotMatchRegexList(column=COL_A, regex_list=[])
