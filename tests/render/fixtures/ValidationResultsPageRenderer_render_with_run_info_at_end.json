@@ -654,7 +654,7 @@
                     "template": "values must belong to this set: [ ].",
                     "params": {
                       "column": "Unnamed: 0",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
@@ -1158,7 +1158,7 @@
                     "template": "values must belong to this set: [ ].",
                     "params": {
                       "column": "Name",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
@@ -1745,7 +1745,7 @@
                     "template": "values must belong to this set: [ ].",
                     "params": {
                       "column": "PClass",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
@@ -1921,7 +1921,7 @@
                   "template": "distinct values must belong to a set, but that set is not specified.",
                   "params": {
                     "column": "PClass",
-                    "value_set": null,
+                      "value_set": ["a", "b", "c"],
                     "result_format": "SUMMARY",
                     "row_condition": null,
                     "condition_parser": null
@@ -2310,7 +2310,7 @@
                     "template": "values must belong to this set: [ ].",
                     "params": {
                       "column": "Age",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
@@ -3392,7 +3392,7 @@
                     "template": "values must belong to this set: [ ].",
                     "params": {
                       "column": "Sex",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
@@ -3560,7 +3560,7 @@
                   "template": "distinct values must belong to a set, but that set is not specified.",
                   "params": {
                     "column": "Sex",
-                    "value_set": null,
+                    "value_set": ["a", "b", "c"],
                     "result_format": "SUMMARY",
                     "row_condition": null,
                     "condition_parser": null
@@ -3951,7 +3951,7 @@
                     "template": "values must belong to this set: [ ].",
                     "params": {
                       "column": "Survived",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
@@ -4057,7 +4057,7 @@
                   "template": "distinct values must belong to a set, but that set is not specified.",
                   "params": {
                     "column": "Survived",
-                    "value_set": null,
+                    "value_set": ["a", "b", "c"],
                     "result_format": "SUMMARY",
                     "row_condition": null,
                     "condition_parser": null
@@ -4448,7 +4448,7 @@
                     "template": "values must belong to this set: [ ].",
                     "params": {
                       "column": "SexCode",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
@@ -4554,7 +4554,7 @@
                   "template": "distinct values must belong to a set, but that set is not specified.",
                   "params": {
                     "column": "SexCode",
-                    "value_set": null,
+                    "value_set": ["a", "b", "c"],
                     "result_format": "SUMMARY",
                     "row_condition": null,
                     "condition_parser": null
