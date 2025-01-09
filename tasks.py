@@ -967,7 +967,7 @@ def _get_marker_dependencies(markers: str | Sequence[str]) -> list[TestDependenc
         "force_reinstall": "Force re-installation of dependencies.",
     },
 )
-def deps(  # noqa: C901 - too complex (9)
+def deps(  # noqa: C901 - too complex
     ctx: Context,
     markers: list[str],
     requirements_dev: list[str],
