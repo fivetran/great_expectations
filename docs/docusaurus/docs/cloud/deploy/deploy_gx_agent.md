@@ -36,7 +36,7 @@ The GX Agent is not enabled by default in GX Cloud. To enable the GX Agent for y
 <TabItem value="none">
 
 1. Go to **Data Assets**.
-2. Select a **Data Source**.
+2. Select a Data Source type.
 3. Click **Request Agent**.
 
 </TabItem>
@@ -45,7 +45,7 @@ The GX Agent is not enabled by default in GX Cloud. To enable the GX Agent for y
 1. Go to **Data Assets**.
 2. Select **New Data Asset**.
 3. Select **New Data Source**.
-4. Select a **Data Source**.
+4. Select a Data Source type.
 5. Click **Request Agent**.
 
 </TabItem>
