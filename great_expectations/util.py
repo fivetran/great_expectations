@@ -1026,7 +1026,7 @@ def pandas_series_between(
     series: pd.Series, min_value: int, max_value: int, inclusive: Inclusive
 ) -> pd.Series:
     """
-    As of Pandas 1.3.0, the 'inclusive' arg in between() is a string leteral: {"left", "right", "neither", "both"}
+    As of Pandas 1.3.0, the 'inclusive' arg in between() is a string literal: {"left", "right", "neither", "both"}
     """  # noqa: E501 # FIXME CoP
     metric_series: pd.Series
     if version.parse(pd.__version__) >= version.parse("1.3.0"):
