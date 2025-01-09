@@ -123,7 +123,7 @@ class ColumnValuesValueLength(ColumnMapMetricProvider):
 
         metric_series = None
         if min_value is not None and max_value is not None:
-            # the word "strict" can be taken as a synonmym for the word "exclusive"
+            # the word "strict" can be taken as a synonym for the word "exclusive"
             if strict_min and strict_max:
                 metric_series = pandas_series_between(
                     series=column_lengths,
