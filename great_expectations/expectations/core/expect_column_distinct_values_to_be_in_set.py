@@ -256,7 +256,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
 
     @pydantic.validator("value_set")
     def _validate_value_set(cls, value_set: ValueSetField) -> ValueSetField:
-        if not value_set:
+        if value_set is not None and len(value_set) == 0:
             raise ValueError("value_set must be a non-empty set-like object.")  # noqa: TRY003 # Error messaged gets swallowed by Pydantic
         return value_set
 
