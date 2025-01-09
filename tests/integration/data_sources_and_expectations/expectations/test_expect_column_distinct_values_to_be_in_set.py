@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility import pydantic
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -77,25 +80,16 @@ def test_data_is_subset(batch_for_datasource: Batch) -> None:
     assert result.success
 
 
-@pytest.mark.xfail(strict=True)
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+@pytest.mark.parametrize(
+    "value_set",
+    [
+        pytest.param([], id="empty"),
+        pytest.param(None, id="none"),
+    ],
 )
-def test_empty_value_set(batch_for_datasource: Batch) -> None:
-    """Failing test that seems like a (pretty minor) bug"""
-    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[])
-    result = batch_for_datasource.validate(expectation)
-    assert not result.success
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
-)
-def test_value_set_is_none(batch_for_datasource: Batch) -> None:
-    # why do we even allow this?!?
-    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=None)
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
+def test_bad_value_set(value_set: list | None) -> None:
+    with pytest.raises(pydantic.ValidationError):
+        gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=value_set)
 
 
 @parameterize_batch_for_data_sources(
