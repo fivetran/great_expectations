@@ -962,15 +962,19 @@ def _get_marker_dependencies(markers: str | Sequence[str]) -> list[TestDependenc
         "markers": "Optional marker to install dependencies for. Can be specified multiple times.",
         "requirements_dev": "Short name of `requirements-dev-*.txt` file to install, e.g. test, spark, cloud, etc. Can be specified multiple times.",  # noqa: E501
         "constraints": "Optional flag to install dependencies with constraints, default True",
+        "gx_install": "Install the local version of Great Expectations.",
+        "editable_install": "Install an editable local version of Great Expectations.",
+        "force_reinstall": "Force re-installation of dependencies.",
     },
 )
-def deps(
+def deps(  # noqa: C901 - too complex
     ctx: Context,
     markers: list[str],
     requirements_dev: list[str],
     constraints: bool = True,
     gx_install: bool = False,
     editable_install: bool = False,
+    force_reinstall: bool = False,
 ):
     """
     Install dependencies for development and testing.
@@ -992,6 +996,9 @@ def deps(
         cmds.append("-e .")
     elif gx_install:
         cmds.append(".")
+
+    if force_reinstall:
+        cmds.append("--force-reinstall")
 
     req_files: list[str] = ["requirements.txt"]
 
