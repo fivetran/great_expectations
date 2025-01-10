@@ -27,7 +27,7 @@ To validate Google Cloud Platform (GCP) data with GX Core, you create your GX Py
 
    Run the following terminal command to install GX Core with the additional dependencies for GCP support:
 
-   :::info
+   :::info Info
    <InfoUsingAVirtualEnvironment/>
    :::
 

@@ -109,7 +109,7 @@ The method implemented in this guide is an optional feature for Experimental Exp
 
 If you would like to contribute your Custom Expectation to the Great Expectations codebase, please submit a [Pull Request](https://github.com/great-expectations/great_expectations/pulls).
 
-:::note
+:::note Note
 For more information on our code standards and contribution, see our guide on [Levels of Maturity](/oss/contributing/contributing_maturity.md#expectation-contributions) for Expectations.
 
 To view the full script used in this page, see it on GitHub:
