@@ -25,7 +25,7 @@ class TestSnowflake:
         "connection_string",
         [
             param(
-                "snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci/public?warehouse=ci&role=ci_no_select&database=ci&schema=public",
+                "snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci/public?warehouse=ci&role=ci_no_select",
                 id="role wo select",
             ),
         ],
@@ -43,7 +43,7 @@ class TestSnowflake:
         )
 
         inspector: Inspector = sa.inspection.inspect(snowflake_ds.get_engine())
-        inspector_tables: list[str] = list(inspector.get_table_names())
+        inspector_tables: list[str] = list(inspector.get_table_names(schema="public"))
         print(f"tables: {len(inspector_tables)}\n{inspector_tables}")
         random.shuffle(inspector_tables)
 
