@@ -12,6 +12,7 @@ from great_expectations.analytics.events import (
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.factory.factory import Factory
+from great_expectations.data_context import project_manager
 from great_expectations.exceptions import DataContextError
 
 if TYPE_CHECKING:
@@ -128,4 +129,35 @@ class CheckpointFactory(Factory[Checkpoint]):
         if not isinstance(checkpoint, Checkpoint):
             raise ValueError(f"Object with key {key} was found, but it is not a Checkpoint.")  # noqa: TRY003, TRY004
 
+        return checkpoint
+
+    @public_api
+    def add_or_update(self, checkpoint: Checkpoint) -> Checkpoint:
+        """Add or update a Checkpoint by name.
+
+        If an Checkpoint with the same name exists, overwrite it, otherwise
+        create a new Checkpoint. Calls add_or_update
+
+        Args:
+            checkpoint: Checkpoint to add or update
+        """
+        try:
+            existing_checkpoint = self.get(name=checkpoint.name)
+        except DataContextError:
+            # checkpoint doesn't exist yet, so add it
+            return self.add(checkpoint=checkpoint)
+
+        # update checkpoint
+        checkpoint.id = existing_checkpoint.id
+
+        val_def_ids_by_name = {
+            val_def.name: val_def.id
+            for val_def in existing_checkpoint.validation_definitions
+        }
+        val_def_factory = project_manager.get_validation_definitions_factory()
+        for val_def in checkpoint.validation_definitions:
+            if val_def.name in val_def_ids_by_name:
+                val_def.id = val_def_ids_by_name[val_def.name]
+            val_def_factory.add_or_update(validation_definition=val_def)
+        checkpoint.save()
         return checkpoint

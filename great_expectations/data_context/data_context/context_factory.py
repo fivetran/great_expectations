@@ -13,6 +13,8 @@ from typing import (
     overload,
 )
 
+from great_expectations.core.factory import SuiteFactory, ValidationDefinitionFactory
+
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
 from great_expectations.exceptions import (
@@ -96,6 +98,9 @@ class ProjectManager:
     def get_expectations_store(self) -> ExpectationsStore:
         return self._project.expectations_store
 
+    def get_suites_factory(self) -> SuiteFactory:
+        return self.__project.suites
+
     def get_checkpoints_store(self) -> CheckpointStore:
         return self._project.checkpoint_store
 
@@ -104,6 +109,9 @@ class ProjectManager:
 
     def get_validation_definition_store(self) -> ValidationDefinitionStore:
         return self._project.validation_definition_store
+
+    def get_validation_definitions_factory(self) -> ValidationDefinitionFactory:
+        return self.__project.validation_definitions
 
     def get_datasources(self) -> DatasourceDict:
         return self._project.data_sources.all()

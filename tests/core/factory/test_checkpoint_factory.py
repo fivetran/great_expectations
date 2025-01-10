@@ -1,6 +1,6 @@
 import re
 from unittest import mock
-from unittest.mock import ANY as ANY_TEST_ARG
+from unittest.mock import ANY as ANY_TEST_ARG, ANY
 
 import pytest
 from pytest_mock import MockerFixture
@@ -415,3 +415,136 @@ class TestCheckpointFactoryAnalytics:
         mock_submit.assert_called_once_with(
             event=CheckpointDeletedEvent(checkpoint_id=checkpoint.id)
         )
+
+
+class TestCheckpointFactoryAddOrUpdate:
+
+    @pytest.mark.filesystem
+    def test_add_empty_new_checkpoint__filesystem(self, empty_data_context):
+        return self._test_add_empty_new_checkpoint(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_add_empty_new_checkpoint__cloud(self, empty_cloud_context_fluent):
+        return self._test_add_empty_new_checkpoint(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_add_empty_new_checkpoint__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_add_empty_new_checkpoint(ephemeral_context_with_defaults)
+
+    def _test_add_empty_new_checkpoint(self, context: AbstractDataContext):
+        # arrange
+        checkpoint_name = "checkpoint A"
+        checkpoint = Checkpoint(name=checkpoint_name, validation_definitions=[])
+
+        # act
+        created_checkpoint = context.checkpoints.add_or_update(checkpoint=checkpoint)
+
+        # assert
+        assert created_checkpoint.id
+        context.checkpoints.get(checkpoint_name)
+
+    @pytest.mark.filesystem
+    def test_add_new_checkpoint_with_validations__filesystem(self, empty_data_context):
+        return self._test_add_new_checkpoint_with_validations(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_add_new_checkpoint_with_validations__cloud(self, empty_cloud_context_fluent):
+        return self._test_add_new_checkpoint_with_validations(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_add_new_checkpoint_with_validations__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_add_new_checkpoint_with_validations(ephemeral_context_with_defaults)
+
+    def _test_add_new_checkpoint_with_validations(self, context: AbstractDataContext):
+        # arrange
+        checkpoint_name = "checkpoint A"
+        batch_def = context.data_sources.add_pandas(
+            "data source A"
+        ).add_dataframe_asset(
+            "asset A"
+        ).add_batch_definition_whole_dataframe("batch def A")
+
+        validation_definitions = [
+            ValidationDefinition(
+                name="val def A",
+                data=batch_def,
+                suite=ExpectationSuite(name="suite A"),
+            ),
+            ValidationDefinition(
+                name="val def B",
+                data=batch_def,
+                suite=ExpectationSuite(name="suite B"),
+            )
+        ]
+        checkpoint = Checkpoint(name=checkpoint_name, validation_definitions=validation_definitions)
+
+        # act
+        created_checkpoint = context.checkpoints.add_or_update(checkpoint=checkpoint)
+
+        # assert
+        assert created_checkpoint.id
+        for val_def, created_val_def in zip(validation_definitions, created_checkpoint.validation_definitions):
+            assert created_val_def.id
+            val_def.id = ANY
+            assert val_def == created_val_def
+
+    @pytest.mark.filesystem
+    def test_update_existing_checkpoint_adds_validations__filesystem(self, empty_data_context):
+        return self._test_update_existing_checkpoint_adds_validations(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_update_existing_checkpoint_adds_validations__cloud(self, empty_cloud_context_fluent):
+        return self._test_update_existing_checkpoint_adds_validations(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_update_existing_checkpoint_adds_validations__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_update_existing_checkpoint_adds_validations(ephemeral_context_with_defaults)
+
+    def _test_update_existing_checkpoint_adds_validations(self, context: AbstractDataContext):
+        ...
+
+    @pytest.mark.filesystem
+    def test_update_existing_checkpoint_updates_validations__filesystem(self, empty_data_context):
+        return self._test_update_existing_checkpoint_updates_validations(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_update_existing_checkpoint_updates_validations__cloud(self, empty_cloud_context_fluent):
+        return self._test_update_existing_checkpoint_updates_validations(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_update_existing_checkpoint_updates_validations__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_update_existing_checkpoint_updates_validations(ephemeral_context_with_defaults)
+
+    def _test_update_existing_checkpoint_updates_validations(self, context: AbstractDataContext):
+        ...
+
+    @pytest.mark.filesystem
+    def test_update_existing_checkpoint_deletes_validations__filesystem(self, empty_data_context):
+        return self._test_update_existing_checkpoint_deletes_validations(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_update_existing_checkpoint_deletes_validations__cloud(self, empty_cloud_context_fluent):
+        return self._test_update_existing_checkpoint_deletes_validations(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_update_existing_checkpoint_deletes_validations__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_update_existing_checkpoint_deletes_validations(ephemeral_context_with_defaults)
+
+    def _test_update_existing_checkpoint_deletes_validations(self, context: AbstractDataContext):
+        ...
+
+    @pytest.mark.filesystem
+    def test_add_or_update_is_idempotent__filesystem(self, empty_data_context):
+        return self._test_add_or_update_is_idempotent(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_add_or_update_is_idempotent__cloud(self, empty_cloud_context_fluent):
+        return self._test_add_or_update_is_idempotent(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_add_or_update_is_idempotent__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_add_or_update_is_idempotent(ephemeral_context_with_defaults)
+
+    def _test_add_or_update_is_idempotent(self, context: AbstractDataContext):
+        ...
+
