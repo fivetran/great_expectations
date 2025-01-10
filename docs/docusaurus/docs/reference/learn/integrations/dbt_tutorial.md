@@ -19,7 +19,7 @@ Finally, to interact with our data, you will be using pgAdmin to query/view it (
 
 
 ## Prerequisites
-:::note
+:::note Note
 In addition to the prerequisites below, you are recommneded to use an IDE like VSCode to organize your project.
 :::
 
@@ -124,7 +124,7 @@ docker compose up -d --build
 
 When you run this for the first time, it may take several minutes to download and install the required libraries. 
 
-:::note
+:::note Note
 You will also notice that one of the services `airflow-init` exits after running, but that is expected because it’s only used to initialize the airflow service. 
 :::
 
@@ -167,7 +167,7 @@ Open the dbt Docker container’s terminal via running the following command in 
 docker exec -it dbt bash -l
 ```
 
-:::note
+:::note Note
 Here you are using the `docker exec` command to open an interactive terminal inside the container using bash as the shell. The -l flag is important here because it tells the shell to be a login shell, which automatically sources the .bashrc file in the container, which in turn exports the dbt environment variables. See the dbt.Dockerfile for more info.
 :::
 
@@ -229,7 +229,7 @@ from great_expectations.checkpoint import UpdateDataDocsAction
 context = gx.get_context(mode="file")
 ```
 
-:::note
+:::note Note
 You can either press the b button on your keyboard or press the “Insert a cell below” button in any cell to create a new cell.
 :::
 
@@ -399,7 +399,7 @@ Run the DAG by navigating to **Actions** and clicking the **play** button. Then 
 
 ![Trigger DAG](./dbt_tutorial/trigger_dag.png)
 
-:::note
+:::note Note
 If you see an error saying “Task exited with return code Negsignal.SIGKILL” then it usually means that Airflow doesn’t have enough resources to run. Airflow recommends 4GB memory. Make sure your Docker resources are set appropriately (Docker Desktop > settings > Resources.)
 :::
 
@@ -414,5 +414,5 @@ Refresh the Data Docs page to see new results from the DAG run:
 ## Conclusion
 You have learned to build a pipeline using PostgreSQL, dbt, GX and Airflow. This tutorial covers a basic implementation for scheduling and running a data pipeline with open source tools. You can explore other possibilities with GX by connecting to your own Data Sources or exploring the other use cases in this section. See the [Expectations Gallery](https://greatexpectations.io/expectations/) to learn about all the Expectations you can run on your data.
 
-If you are ready to take next steps and collaborate with your team using GX, check out [GX Cloud](https://greatexpectations.io/cloud), where you can use our online platform to run GX in a no-code environment and share results.
+If you are ready to take next steps and collaborate with your team using GX, check out [GX Cloud](https://greatexpectations.io/cloud), where you can use our online platform to run GX in a no-code environment, automate rules, schedule validations, and share results.
 

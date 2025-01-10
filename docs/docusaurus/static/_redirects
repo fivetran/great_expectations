@@ -144,6 +144,7 @@
 # Redirects for renamed reference docs
 
 /docs/reference/anonymous_usage_statistics /docs/reference/usage_statistics
+/docs/reference/learn/integrations/airflow_pipeline_tutorial /docs/reference/learn/integrations/data_pipeline_tutorial
 
 # Redirect from Getting Started Tutorial to Quickstart
 
@@ -401,6 +402,8 @@ https://docs.greatexpectations.io/docs/reference/api/profile/user_configurable_p
 /docs/reference/learn/expectations/* /docs/0.18/reference/learn/expectations/:splat
 /docs/reference/learn/conceptual_guides/* /docs/0.18/reference/learn/conceptual_guides/:splat
 /docs/reference/api/* /docs/0.18/reference/api/:splat
+
+/docs/cloud/expectation_suites/manage_expectation_suites /docs/cloud/expectations/manage_expectations
 
 ## Redirects for old versioned docs
 

@@ -3,12 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import (
     LegacyDescriptiveRendererType,
     LegacyRendererType,
@@ -57,12 +58,11 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Cardinality"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
 
 class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation):
@@ -116,7 +116,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
     See Also:
         [ExpectColumnUniqueValueCountToBeBetween](https://greatexpectations.io/expectations/expect_column_unique_value_count_to_be_between)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -127,7 +127,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -183,7 +183,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -206,7 +206,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
 
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.unique_proportion",)
     success_keys = (
         "min_value",
@@ -259,7 +259,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
             )
 
     @classmethod
-    def _prescriptive_template(  # noqa: C901 - too complex
+    def _prescriptive_template(  # noqa: C901 #  too complex
         cls,
         renderer_configuration: RendererConfiguration,
     ) -> RendererConfiguration:
@@ -292,9 +292,9 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
                 template_str = f"fraction of unique values must be {at_most_str} $max_value."
             elif not params.max_value:
                 template_str = f"fraction of unique values must be {at_least_str} $min_value."
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if params.min_value.value != params.max_value.value:
-                    template_str = f"fraction of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501
+                    template_str = f"fraction of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
                 else:
                     template_str = "fraction of unique values must be exactly $min_value."
 
@@ -339,9 +339,9 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
                 template_str = f"fraction of unique values must be {at_most_str} $max_value."
             elif params["max_value"] is None:
                 template_str = f"fraction of unique values must be {at_least_str} $min_value."
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if params["min_value"] != params["max_value"]:
-                    template_str = f"fraction of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501
+                    template_str = f"fraction of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
                 else:
                     template_str = "fraction of unique values must be exactly $min_value."
 

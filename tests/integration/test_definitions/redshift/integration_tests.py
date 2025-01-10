@@ -4,7 +4,7 @@ from tests.integration.integration_test_fixture import IntegrationTestFixture
 redshift_integration_tests = []
 
 connecting_to_your_data = [
-    # TODO: <Alex>ALEX: Rename test modules to include "configured" and "inferred_and_runtime" suffixes in names.</Alex>  # noqa: E501
+    # TODO: <Alex>ALEX: Rename test modules to include "configured" and "inferred_and_runtime" suffixes in names.</Alex>  # noqa: E501 # FIXME CoP
     # IntegrationTestFixture(
     #     name = "redshift_python_example",
     #     user_flow_script= "docs/docusaurus/docs/snippets/redshift_python_example.py",

@@ -2,7 +2,7 @@
 
 Individual tests can be run by setting the '-k' flag and referencing the name of test, like the following example:
     pytest -v --docs-tests -k "test_docs[quickstart]" tests/integration/test_script_runner.py
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
 
 import importlib.machinery
 import importlib.util
@@ -95,13 +95,13 @@ docs_test_matrix: List[IntegrationTestFixture] = []
 local_tests = [
     # IntegrationTestFixture(
     #     name="how_to_add_validations_data_or_suites_to_a_checkpoint.py",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/validation/checkpoints/how_to_add_validations_data_or_suites_to_a_checkpoint.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/validation/checkpoints/how_to_add_validations_data_or_suites_to_a_checkpoint.py",  # noqa: E501 # FIXME CoP
     #     data_dir="tests/test_sets/taxi_yellow_tripdata_samples/first_3_files",
     #     backend_dependencies=[],
     # ),
     # IntegrationTestFixture(
     #     name="how_to_validate_multiple_batches_within_single_checkpoint",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/validation/checkpoints/how_to_validate_multiple_batches_within_single_checkpoint.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/validation/checkpoints/how_to_validate_multiple_batches_within_single_checkpoint.py",  # noqa: E501 # FIXME CoP
     #     data_dir="tests/test_sets/taxi_yellow_tripdata_samples/first_3_files",
     #     backend_dependencies=[BackendDependencies.PANDAS],
     # ),
@@ -112,12 +112,12 @@ local_tests = [
     ),
     # IntegrationTestFixture(
     #     name="expect_column_values_to_be_in_solfege_scale_set",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/expect_column_values_to_be_in_solfege_scale_set.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/expect_column_values_to_be_in_solfege_scale_set.py",  # noqa: E501 # FIXME CoP
     #     backend_dependencies=[],
     # ),
     # IntegrationTestFixture(
     #     name="expect_column_values_to_only_contain_vowels",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/expect_column_values_to_only_contain_vowels.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/expect_column_values_to_only_contain_vowels.py",  # noqa: E501 # FIXME CoP
     #     backend_dependencies=[],
     # ),
     IntegrationTestFixture(
@@ -128,20 +128,20 @@ local_tests = [
     # Fluent Datasources
     # IntegrationTestFixture(
     #     name="how_to_create_and_edit_expectations_with_instant_feedback_fluent",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/how_to_create_and_edit_expectations_with_instant_feedback_fluent.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/how_to_create_and_edit_expectations_with_instant_feedback_fluent.py",  # noqa: E501 # FIXME CoP
     #     data_dir="tests/test_sets/taxi_yellow_tripdata_samples/first_3_files",
     #     backend_dependencies=[],
     # ),
     # IntegrationTestFixture(
     #     name="data_docs",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/setup/configuring_data_docs/data_docs.py",  # noqa: E501
-    #     data_context_dir="tests/integration/fixtures/yellow_trip_data_fluent_pandas/great_expectations",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/setup/configuring_data_docs/data_docs.py",  # noqa: E501 # FIXME CoP
+    #     data_context_dir="tests/integration/fixtures/yellow_trip_data_fluent_pandas/great_expectations",  # noqa: E501 # FIXME CoP
     #     data_dir="tests/test_sets/taxi_yellow_tripdata_samples",
     #     backend_dependencies=[],
     # ),
     # IntegrationTestFixture(
     #     name="how_to_edit_an_existing_expectation_suite",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/how_to_edit_an_expectation_suite.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/how_to_edit_an_expectation_suite.py",  # noqa: E501 # FIXME CoP
     #     backend_dependencies=[],
     # ),
     IntegrationTestFixture(
@@ -186,7 +186,7 @@ fluent_datasources = [
     ),
     # IntegrationTestFixture(
     #     name="how_to_pass_an_in_memory_dataframe_to_a_checkpoint",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/validation/checkpoints/how_to_pass_an_in_memory_dataframe_to_a_checkpoint.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/validation/checkpoints/how_to_pass_an_in_memory_dataframe_to_a_checkpoint.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     data_dir="tests/test_sets/taxi_yellow_tripdata_samples/first_3_files",
     #     backend_dependencies=[],
@@ -200,7 +200,7 @@ fluent_datasources = [
     ),
     # IntegrationTestFixture(
     #     name="how_to_create_and_edit_an_expectation_with_domain_knowledge",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/how_to_create_and_edit_an_expectationsuite_domain_knowledge.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/how_to_create_and_edit_an_expectationsuite_domain_knowledge.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir=None,
     #     backend_dependencies=[],
     # ),
@@ -213,7 +213,7 @@ fluent_datasources = [
     ),
     # IntegrationTestFixture(
     #     name="how_to_organize_batches_in_a_file_based_data_asset",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/data_assets/organize_batches_in_pandas_filesystem_datasource.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/data_assets/organize_batches_in_pandas_filesystem_datasource.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     data_dir="tests/test_sets/taxi_yellow_tripdata_samples/first_3_files",
     #     backend_dependencies=[BackendDependencies.PANDAS],
@@ -226,26 +226,26 @@ fluent_datasources = [
     ),
     # IntegrationTestFixture(
     #     name="how_to_connect_to_one_or_more_files_using_pandas",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_connect_to_one_or_more_files_using_pandas.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_connect_to_one_or_more_files_using_pandas.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     data_dir="tests/test_sets/taxi_yellow_tripdata_samples/first_3_files",
     #     backend_dependencies=[BackendDependencies.PANDAS],
     # ),
     # IntegrationTestFixture(
     #     name="how_to_connect_to_sql_data_using_a_query",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/how_to_connect_to_sql_data_using_a_query.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/how_to_connect_to_sql_data_using_a_query.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     backend_dependencies=[],
     # ),
     # IntegrationTestFixture(
     #     name="how_to_quickly_connect_to_a_single_file_with_pandas",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_quickly_connect_to_a_single_file_with_pandas.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/filesystem/how_to_quickly_connect_to_a_single_file_with_pandas.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     backend_dependencies=[BackendDependencies.PANDAS],
     # ),
     # IntegrationTestFixture(
     #     name="how_to_connect_to_sqlite_data",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/how_to_connect_to_sqlite_data.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/how_to_connect_to_sqlite_data.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     backend_dependencies=[BackendDependencies.SQLALCHEMY],
     # ),
@@ -257,19 +257,19 @@ fluent_datasources = [
     ),
     # IntegrationTestFixture(
     #     name="how_to_connect_to_sql_data",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/how_to_connect_to_sqlite_data.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/how_to_connect_to_sqlite_data.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     backend_dependencies=[],
     # ),
     # IntegrationTestFixture(
     #     name="how_to_instantiate_a_specific_filesystem_data_context",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/setup/configuring_data_contexts/instantiating_data_contexts/how_to_instantiate_a_specific_filesystem_data_context.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/setup/configuring_data_contexts/instantiating_data_contexts/how_to_instantiate_a_specific_filesystem_data_context.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     backend_dependencies=[],
     # ),
     # IntegrationTestFixture(
     #     name="how_to_initialize_a_filesystem_data_context_in_python",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/setup/configuring_data_contexts/instantiating_data_contexts/how_to_initialize_a_filesystem_data_context_in_python.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/setup/configuring_data_contexts/instantiating_data_contexts/how_to_initialize_a_filesystem_data_context_in_python.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     backend_dependencies=[],
     # ),
@@ -281,13 +281,13 @@ fluent_datasources = [
     ),
     # IntegrationTestFixture(
     #     name="how_to_connect_to_in_memory_data_using_pandas",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/in_memory/how_to_connect_to_in_memory_data_using_pandas.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/in_memory/how_to_connect_to_in_memory_data_using_pandas.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     backend_dependencies=[BackendDependencies.PANDAS],
     # ),
     # IntegrationTestFixture(
     #     name="how_to_connect_to_in_memory_data_using_spark",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/in_memory/how_to_connect_to_in_memory_data_using_spark.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/in_memory/how_to_connect_to_in_memory_data_using_spark.py",  # noqa: E501 # FIXME CoP
     #     data_context_dir="tests/integration/fixtures/no_datasources/great_expectations",
     #     backend_dependencies=[BackendDependencies.SPARK],
     # ),
@@ -298,21 +298,21 @@ failed_rows_tests = [
     #     name="failed_rows_pandas",
     #     data_context_dir="tests/integration/fixtures/failed_rows/great_expectations",
     #     data_dir="tests/test_sets/visits",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/advanced/failed_rows_pandas.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/advanced/failed_rows_pandas.py",  # noqa: E501 # FIXME CoP
     #     backend_dependencies=[],
     # ),
     # IntegrationTestFixture(
     #     name="failed_rows_sqlalchemy",
     #     data_context_dir="tests/integration/fixtures/failed_rows/great_expectations",
     #     data_dir="tests/test_sets/visits",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/advanced/failed_rows_sql.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/advanced/failed_rows_sql.py",  # noqa: E501 # FIXME CoP
     #     backend_dependencies=[BackendDependencies.SQLALCHEMY],
     # ),
     # IntegrationTestFixture(
     #     name="failed_rows_spark",
     #     data_context_dir="tests/integration/fixtures/failed_rows/great_expectations",
     #     data_dir="tests/test_sets/visits",
-    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/advanced/failed_rows_spark.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/oss/guides/expectations/advanced/failed_rows_spark.py",  # noqa: E501 # FIXME CoP
     #     backend_dependencies=[BackendDependencies.SPARK],
     # ),
 ]
@@ -370,7 +370,7 @@ def test_integration_tests(test_configuration, tmp_path, pytest_parsed_arguments
     _execute_integration_test(test_configuration, tmp_path)
 
 
-def _execute_integration_test(  # noqa: C901, PLR0915
+def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
     integration_test_fixture: IntegrationTestFixture, tmp_path: pathlib.Path
 ):
     """
@@ -432,7 +432,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915
         script_path = tmp_path / "test_script.py"
         shutil.copyfile(script_source, script_path)
         logger.debug(
-            f"(_execute_integration_test) script_source -> {script_source} :: copied to {script_path}"  # noqa: E501
+            f"(_execute_integration_test) script_source -> {script_source} :: copied to {script_path}"  # noqa: E501 # FIXME CoP
         )
         if script_source.suffix != ".py":
             logger.error(f"{script_source} is not a python script!")
@@ -453,7 +453,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915
         test_script_module = importlib.util.module_from_spec(spec)
         loader.exec_module(test_script_module)
     except Exception as e:
-        logger.error(str(e))  # noqa: TRY400
+        logger.error(str(e))  # noqa: TRY400 # FIXME CoP
         if "JavaPackage" in str(e) and "aws_glue" in user_flow_script:
             logger.debug("This is something aws_glue related, so just going to return")
             # Should try to copy aws-glue-libs jar files to Spark jar during pipeline setup
@@ -465,7 +465,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915
         os.chdir(workdir)
 
 
-def _check_for_skipped_tests(  # noqa: C901, PLR0912
+def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     pytest_args,
     integration_test_fixture,
 ) -> None:
@@ -488,10 +488,10 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912
     elif BackendDependencies.BIGQUERY in dependencies and (
         pytest_args.no_sqlalchemy or not pytest_args.bigquery
     ):
-        # TODO : Investigate whether this test should be handled by azure-pipelines-cloud-db-integration.yml  # noqa: E501
+        # TODO : Investigate whether this test should be handled by azure-pipelines-cloud-db-integration.yml  # noqa: E501 # FIXME CoP
         pytest.skip("Skipping bigquery tests")
     elif BackendDependencies.GCS in dependencies and not pytest_args.bigquery:
-        # TODO : Investigate whether this test should be handled by azure-pipelines-cloud-db-integration.yml  # noqa: E501
+        # TODO : Investigate whether this test should be handled by azure-pipelines-cloud-db-integration.yml  # noqa: E501 # FIXME CoP
         pytest.skip("Skipping GCS tests")
     elif BackendDependencies.AWS in dependencies and not pytest_args.aws:
         pytest.skip("Skipping AWS tests")

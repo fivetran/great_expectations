@@ -108,6 +108,7 @@ module.exports = {
       link: { type: 'doc', id: 'core/trigger_actions_based_on_results/trigger_actions_based_on_results' },
       items: [
         { type: 'doc', id: 'core/trigger_actions_based_on_results/create_a_checkpoint_with_actions' },
+        { type: 'doc', id: 'core/trigger_actions_based_on_results/create_a_custom_action' },
         { type: 'doc', id: 'core/trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format' },
         { type: 'doc', id: 'core/trigger_actions_based_on_results/run_a_checkpoint' },
       ]
@@ -263,40 +264,23 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Edit an Expectation',
-          href: '/docs/cloud/expectations/manage_expectations#edit-an-expectation',
+          label: 'Optional. Define a Batch',
+          href: '/docs/cloud/expectations/manage_expectations#optional-define-a-batch',
         },
         {
           type: 'link',
-          label: 'View Expectation history',
-          href: '/docs/cloud/expectations/manage_expectations#view-expectation-history',
+          label: 'Edit an Expectation',
+          href: '/docs/cloud/expectations/manage_expectations#edit-an-expectation',
         },
         {
           type: 'link',
           label: 'Delete an Expectation',
           href: '/docs/cloud/expectations/manage_expectations#delete-an-expectation',
         },
-      ]
-    },
-    {
-      type: 'category',
-      label: 'Manage Expectation Suites',
-      link: { type: 'doc', id: 'cloud/expectation_suites/manage_expectation_suites' },
-      items: [
         {
           type: 'link',
-          label: 'Create an Expectation Suite ',
-          href: '/docs/cloud/expectation_suites/manage_expectation_suites#create-an-expectation-suite',
-        },
-        {
-          type: 'link',
-          label: 'Edit an Expectation Suite name',
-          href: '/docs/cloud/expectation_suites/manage_expectation_suites#edit-an-expectation-suite-name',
-        },
-        {
-          type: 'link',
-          label: 'Delete an Expectation Suite',
-          href: '/docs/cloud/expectation_suites/manage_expectation_suites#delete-an-expectation-suite',
+          label: 'GX-managed vs. API-managed Expectations',
+          href: '/docs/cloud/expectations/manage_expectations#gx-managed-vs-api-managed-expectations',
         },
       ]
     },
@@ -312,8 +296,8 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Run a Validation on a Data Asset containing partitions',
-          href: '/docs/cloud/validations/manage_validations#run-a-validation-on-a-data-asset-containing-partitions',
+          label: 'Run a Validation on a subset of a Data Asset',
+          href: '/docs/cloud/validations/manage_validations#run-a-validation-on-a-subset-of-a-data-asset',
         },
         {
           type: 'link',
@@ -327,11 +311,6 @@ module.exports = {
       label: 'Manage schedules',
       link: { type: 'doc', id: 'cloud/schedules/manage_schedules' },
       items: [
-        {
-          type: 'link',
-          label: 'Add a schedule',
-          href: '/docs/cloud/schedules/manage_schedules#create-a-schedule-for-an-existing-expectation-suite',
-        },
         {
           type: 'link',
           label: 'Edit a schedule',
@@ -434,6 +413,7 @@ module.exports = {
       link: { type: 'doc', id: 'reference/learn/data_quality_use_cases/dq_use_cases_lp' },
       items: [
         'reference/learn/data_quality_use_cases/distribution',
+        'reference/learn/data_quality_use_cases/freshness',
         'reference/learn/data_quality_use_cases/integrity',
         'reference/learn/data_quality_use_cases/missingness',
         'reference/learn/data_quality_use_cases/schema',
@@ -446,7 +426,7 @@ module.exports = {
       label: 'Integration tutorials',
       link: { type: 'doc', id: 'reference/learn/integrations/integrations_lp' },
       items: [
-        'reference/learn/integrations/airflow_pipeline_tutorial',
+        'reference/learn/integrations/data_pipeline_tutorial',
         'reference/learn/integrations/dbt_tutorial',
       ]
     },

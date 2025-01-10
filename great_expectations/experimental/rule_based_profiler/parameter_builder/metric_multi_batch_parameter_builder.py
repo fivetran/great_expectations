@@ -4,16 +4,16 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 
-from great_expectations.core.domain import Domain  # noqa: TCH001
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001
+    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-    MetricComputationDetails,  # noqa: TCH001
-    MetricComputationResult,  # noqa: TCH001
+    MetricComputationDetails,  # noqa: TCH001 # FIXME CoP
+    MetricComputationResult,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import ParameterBuilder
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
@@ -34,9 +34,9 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
     """
     A Single/Multi-Batch implementation for obtaining a resolved (evaluated) metric, using domain_kwargs, value_kwargs,
     and metric_name as arguments.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         metric_name: str,
@@ -75,7 +75,7 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
                 ParameterBuilder objects' outputs available (as fully-qualified parameter names) is pre-requisite.
                 These "ParameterBuilder" configurations help build parameters needed for this "ParameterBuilder".
                 data_context: AbstractDataContext associated with this ParameterBuilder
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().__init__(
             name=name,
             suite_parameter_builder_configs=suite_parameter_builder_configs,
@@ -141,8 +141,8 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
 
         Returns:
             Attributes object, containing computed parameter values and parameter computation details metadata.
-        """  # noqa: E501
-        # Obtain single_batch_mode from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
+        # Obtain single_batch_mode from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         single_batch_mode: bool = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=self.single_batch_mode,
@@ -167,7 +167,7 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
         )
         details: MetricComputationDetails = metric_computation_result.details
 
-        # Obtain reduce_scalar_metric from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain reduce_scalar_metric from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         reduce_scalar_metric: bool = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=self.reduce_scalar_metric,
@@ -177,7 +177,7 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
         )
 
         if len(metric_computation_result.attributed_resolved_metrics) == 1:
-            # As a simplification, apply reduction to scalar in case of one-dimensional metric (for convenience).  # noqa: E501
+            # As a simplification, apply reduction to scalar in case of one-dimensional metric (for convenience).  # noqa: E501 # FIXME CoP
             if (
                 reduce_scalar_metric
                 and isinstance(
@@ -197,10 +197,10 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
             ):
                 return Attributes(
                     {
-                        FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[  # noqa: E501
+                        FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[  # noqa: E501 # FIXME CoP
                             0
                         ].conditioned_metric_values[:, 0],
-                        FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[  # noqa: E501
+                        FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[  # noqa: E501 # FIXME CoP
                             0
                         ].conditioned_attributed_metric_values,
                         FULLY_QUALIFIED_PARAMETER_NAME_METADATA_KEY: details,
@@ -209,10 +209,10 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
 
             return Attributes(
                 {
-                    FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[  # noqa: E501
+                    FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[  # noqa: E501 # FIXME CoP
                         0
                     ].conditioned_metric_values,
-                    FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[  # noqa: E501
+                    FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics[  # noqa: E501 # FIXME CoP
                         0
                     ].conditioned_attributed_metric_values,
                     FULLY_QUALIFIED_PARAMETER_NAME_METADATA_KEY: details,
@@ -221,8 +221,8 @@ class MetricMultiBatchParameterBuilder(ParameterBuilder):
 
         return Attributes(
             {
-                FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_computation_result.attributed_resolved_metrics,  # noqa: E501
-                FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics,  # noqa: E501
+                FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY: metric_computation_result.attributed_resolved_metrics,  # noqa: E501 # FIXME CoP
+                FULLY_QUALIFIED_PARAMETER_NAME_ATTRIBUTED_VALUE_KEY: metric_computation_result.attributed_resolved_metrics,  # noqa: E501 # FIXME CoP
                 FULLY_QUALIFIED_PARAMETER_NAME_METADATA_KEY: details,
             }
         )

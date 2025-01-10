@@ -34,6 +34,11 @@ class SparkS3DatasourceError(SparkDatasourceError):
 
 @public_api
 class SparkS3Datasource(_SparkFilePathDatasource):
+    """
+    SparkS3Datasource is a subclass of SparkDatasource which connects to
+    Amazon S3.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[S3DataConnector]] = S3DataConnector
     # these fields should not be passed to the execution engine
@@ -54,25 +59,25 @@ class SparkS3Datasource(_SparkFilePathDatasource):
     def _get_s3_client(self) -> BaseClient:
         s3_client: Union[BaseClient, None] = self._s3_client
         if not s3_client:
-            # Validate that "boto3" libarary was successfully imported and attempt to create "s3_client" handle.  # noqa: E501
+            # Validate that "boto3" libarary was successfully imported and attempt to create "s3_client" handle.  # noqa: E501 # FIXME CoP
             if aws.boto3:
                 _check_config_substitutions_needed(
                     self, self.boto3_options, raise_warning_if_provider_not_present=True
                 )
                 # pull in needed config substitutions using the `_config_provider`
-                # The `FluentBaseModel.dict()` call will do the config substitution on the serialized dict if a `config_provider` is passed.  # noqa: E501
+                # The `FluentBaseModel.dict()` call will do the config substitution on the serialized dict if a `config_provider` is passed.  # noqa: E501 # FIXME CoP
                 boto3_options: dict = self.dict(config_provider=self._config_provider).get(
                     "boto3_options", {}
                 )
                 try:
                     s3_client = aws.boto3.client("s3", **boto3_options)
                 except Exception as e:
-                    # Failure to create "s3_client" is most likely due invalid "boto3_options" dictionary.  # noqa: E501
-                    raise SparkS3DatasourceError(  # noqa: TRY003
+                    # Failure to create "s3_client" is most likely due invalid "boto3_options" dictionary.  # noqa: E501 # FIXME CoP
+                    raise SparkS3DatasourceError(  # noqa: TRY003 # FIXME CoP
                         f'Due to exception: "{e!s}", "s3_client" could not be created.'
                     ) from e
             else:
-                raise SparkS3DatasourceError(  # noqa: TRY003
+                raise SparkS3DatasourceError(  # noqa: TRY003 # FIXME CoP
                     'Unable to create "SparkS3Datasource" due to missing boto3 dependency.'
                 )
 
@@ -89,12 +94,12 @@ class SparkS3Datasource(_SparkFilePathDatasource):
 
         Raises:
             TestConnectionError: If the connection test fails.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         try:
             # tests S3 connection
             _ = self._get_s3_client()
         except Exception as e:
-            raise TestConnectionError(  # noqa: TRY003
+            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 "Attempt to connect to datasource failed with the following error message: "
                 f"{e!s}"
             ) from e
@@ -118,7 +123,7 @@ class SparkS3Datasource(_SparkFilePathDatasource):
     ) -> None:
         """Builds and attaches the `S3DataConnector` to the asset."""
         if kwargs:
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"_build_data_connector() got unexpected keyword arguments {list(kwargs.keys())}"
             )
 

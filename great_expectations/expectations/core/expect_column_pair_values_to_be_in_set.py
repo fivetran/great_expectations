@@ -5,6 +5,7 @@ from typing import Any, ClassVar, Dict, List, Literal, Tuple, Type, Union
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -16,7 +17,7 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 VALUE_PAIRS_SET_DESCRIPTION = "All the valid pairs to be matched."
 SUPPORTED_DATA_SOURCES = ["Snowflake", "PostgreSQL"]
-DATA_QUALITY_ISSUES = ["Sets"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
 
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
@@ -25,7 +26,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
 ]
@@ -68,7 +68,7 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -77,10 +77,10 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
+        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2
@@ -161,7 +161,7 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     value_pairs_set: List[Tuple[Any, Any]]
     ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (

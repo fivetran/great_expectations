@@ -30,7 +30,7 @@ class ColumnValuesBetweenCount(MetricProvider):
     )
 
     @metric_value(engine=PandasExecutionEngine)
-    def _pandas(  # noqa: C901, PLR0912
+    def _pandas(  # noqa: C901, PLR0912 # FIXME CoP
         cls,
         execution_engine: PandasExecutionEngine,
         metric_domain_kwargs: dict,
@@ -43,10 +43,10 @@ class ColumnValuesBetweenCount(MetricProvider):
         strict_min = metric_value_kwargs.get("strict_min")
         strict_max = metric_value_kwargs.get("strict_max")
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         if min_value is not None and max_value is not None and min_value > max_value:
-            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003
+            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
 
         (
             df,
@@ -79,12 +79,12 @@ class ColumnValuesBetweenCount(MetricProvider):
             else:
                 series = min_value <= val
         else:
-            raise ValueError("unable to parse domain and value kwargs")  # noqa: TRY003
+            raise ValueError("unable to parse domain and value kwargs")  # noqa: TRY003 # FIXME CoP
 
         return np.count_nonzero(series)
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
-    def _sqlalchemy(  # noqa: C901, PLR0912
+    def _sqlalchemy(  # noqa: C901, PLR0912 # FIXME CoP
         cls,
         execution_engine: SqlAlchemyExecutionEngine,
         metric_domain_kwargs: dict,
@@ -97,10 +97,10 @@ class ColumnValuesBetweenCount(MetricProvider):
         strict_min = metric_value_kwargs.get("strict_min")
         strict_max = metric_value_kwargs.get("strict_max")
         if min_value is not None and max_value is not None and min_value > max_value:
-            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003
+            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
         dialect_name = execution_engine.engine.dialect.name.lower()
 
         if (
@@ -154,7 +154,7 @@ class ColumnValuesBetweenCount(MetricProvider):
         ) = execution_engine.get_compute_domain(
             domain_kwargs=metric_domain_kwargs, domain_type=MetricDomainTypes.COLUMN
         )
-        column = sa.column(accessor_domain_kwargs["column"])  # type: ignore[var-annotated]
+        column = sa.column(accessor_domain_kwargs["column"])  # type: ignore[var-annotated] # FIXME CoP
 
         if min_value is None:
             if strict_max:
@@ -168,7 +168,7 @@ class ColumnValuesBetweenCount(MetricProvider):
             else:
                 condition = column >= min_value
 
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if strict_min and strict_max:
                 condition = sa.and_(column > min_value, column < max_value)
             elif strict_min:
@@ -179,11 +179,11 @@ class ColumnValuesBetweenCount(MetricProvider):
                 condition = sa.and_(column >= min_value, column <= max_value)
 
         return execution_engine.execute_query(
-            sa.select(sa.func.count()).select_from(selectable).where(condition)  # type: ignore[arg-type]
+            sa.select(sa.func.count()).select_from(selectable).where(condition)  # type: ignore[arg-type] # FIXME CoP
         ).scalar()
 
     @metric_value(engine=SparkDFExecutionEngine)
-    def _spark(  # noqa: C901, PLR0912
+    def _spark(  # noqa: C901, PLR0912 # FIXME CoP
         cls,
         execution_engine: SparkDFExecutionEngine,
         metric_domain_kwargs: dict,
@@ -196,10 +196,10 @@ class ColumnValuesBetweenCount(MetricProvider):
         strict_min = metric_value_kwargs.get("strict_min")
         strict_max = metric_value_kwargs.get("strict_max")
         if min_value is not None and max_value is not None and min_value > max_value:
-            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003
+            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         (
             df,
@@ -211,10 +211,10 @@ class ColumnValuesBetweenCount(MetricProvider):
         column = df[accessor_domain_kwargs["column"]]
 
         if min_value is not None and max_value is not None and min_value > max_value:
-            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003
+            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None:
             if strict_max:
@@ -228,7 +228,7 @@ class ColumnValuesBetweenCount(MetricProvider):
             else:
                 condition = column >= min_value
 
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if strict_min and strict_max:
                 condition = (column > min_value) & (column < max_value)
             elif strict_min:

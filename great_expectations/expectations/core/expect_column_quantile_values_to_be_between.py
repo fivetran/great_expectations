@@ -12,6 +12,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
@@ -68,8 +69,17 @@ ALLOW_RELATIVE_ERROR_DESCRIPTION = (
     "Whether to allow relative error in quantile "
     "communications on backends that support or require it."
 )
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift"]
-DATA_QUALITY_ISSUES = ["Numerical data"]
+SUPPORTED_DATA_SOURCES = [
+    "Pandas",
+    "Spark",
+    "SQLite",
+    "PostgreSQL",
+    "MySQL",
+    "MSSQL",
+    "Snowflake",
+    "BigQuery",
+]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
@@ -120,7 +130,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
         [ExpectColumnMaxToBeBetween](https://greatexpectations.io/expectations/expect_column_max_to_be_between)
         [ExpectColumnMedianToBeBetween](https://greatexpectations.io/expectations/expect_column_median_to_be_between)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -128,8 +138,9 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -232,7 +243,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     quantile_ranges: QuantileRange = pydantic.Field(description=QUANTILE_RANGES_DESCRIPTION)
     allow_relative_error: Union[bool, str] = pydantic.Field(
@@ -308,7 +319,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
             raise InvalidExpectationConfigurationError(str(e))
 
         if len(quantile_ranges.quantiles) != len(quantile_ranges.value_ranges):
-            raise ValueError("quantile_values and quantiles must have the same number of elements")  # noqa: TRY003
+            raise ValueError("quantile_values and quantiles must have the same number of elements")  # noqa: TRY003 # FIXME CoP
 
         return quantile_ranges
 
@@ -668,8 +679,8 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
                                 quantile_string if quantile_string else f"{quantile:3.2f}"
                             ),
                             "tooltip": {
-                                "content": "expect_column_quantile_values_to_be_between \n expect_column_median_to_be_between"  # noqa: E501
-                                if quantile == 0.50  # noqa: PLR2004
+                                "content": "expect_column_quantile_values_to_be_between \n expect_column_median_to_be_between"  # noqa: E501 # FIXME CoP
+                                if quantile == 0.50  # noqa: PLR2004 # FIXME CoP
                                 else "expect_column_quantile_values_to_be_between"
                             },
                         },

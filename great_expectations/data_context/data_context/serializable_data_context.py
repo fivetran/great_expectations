@@ -93,8 +93,8 @@ class SerializableDataContext(AbstractDataContext):
         cls, context_root_dir: PathStr | None, project_root_dir: PathStr | None
     ) -> PathStr | None:
         if project_root_dir and context_root_dir:
-            raise TypeError(  # noqa: TRY003
-                "'project_root_dir' and 'context_root_dir' are conflicting args; please only provide one"  # noqa: E501
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
+                "'project_root_dir' and 'context_root_dir' are conflicting args; please only provide one"  # noqa: E501 # FIXME CoP
             )
 
         if project_root_dir:
@@ -130,7 +130,7 @@ class SerializableDataContext(AbstractDataContext):
 
         Returns:
             DataContext
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         gx_dir = cls._scaffold(
             project_root_dir=project_root_dir,
         )
@@ -218,7 +218,7 @@ class SerializableDataContext(AbstractDataContext):
         try:
             cls._scaffold_gitignore(base_dir)
         except Exception as e:
-            raise gx_exceptions.GitIgnoreScaffoldingError(  # noqa: TRY003
+            raise gx_exceptions.GitIgnoreScaffoldingError(  # noqa: TRY003 # FIXME CoP
                 f"Could not create .gitignore in {base_dir} because of an error: {e}"
             )
 
@@ -282,19 +282,19 @@ class SerializableDataContext(AbstractDataContext):
         yml_path = None
         gx_home_environment = os.getenv("GX_HOME")
         if gx_home_environment:
-            gx_home_environment = os.path.expanduser(  # noqa: PTH111
+            gx_home_environment = os.path.expanduser(  # noqa: PTH111 # FIXME CoP
                 gx_home_environment
             )
-            if os.path.isdir(  # noqa: PTH112
+            if os.path.isdir(  # noqa: PTH112 # FIXME CoP
                 gx_home_environment
-            ) and os.path.isfile(  # noqa: PTH113
-                os.path.join(gx_home_environment, cls.GX_YML)  # noqa: PTH118
+            ) and os.path.isfile(  # noqa: PTH113 # FIXME CoP
+                os.path.join(gx_home_environment, cls.GX_YML)  # noqa: PTH118 # FIXME CoP
             ):
                 result = gx_home_environment
         else:
             yml_path = cls._find_context_yml_file()
             if yml_path:
-                result = os.path.dirname(yml_path)  # noqa: PTH120
+                result = os.path.dirname(yml_path)  # noqa: PTH120 # FIXME CoP
 
         if result is None:
             raise gx_exceptions.ConfigNotFoundError()
@@ -317,25 +317,25 @@ class SerializableDataContext(AbstractDataContext):
     @classmethod
     def set_ge_config_version(
         cls,
-        config_version: Union[int, float],  # noqa: PYI041
+        config_version: Union[int, float],  # noqa: PYI041 # FIXME CoP
         context_root_dir: Optional[str] = None,
         validate_config_version: bool = True,
     ) -> bool:
         if not isinstance(config_version, (int, float)):
-            raise gx_exceptions.UnsupportedConfigVersionError(  # noqa: TRY003
+            raise gx_exceptions.UnsupportedConfigVersionError(  # noqa: TRY003 # FIXME CoP
                 "The argument `config_version` must be a number.",
             )
 
         if validate_config_version:
             if config_version < MINIMUM_SUPPORTED_CONFIG_VERSION:
-                raise gx_exceptions.UnsupportedConfigVersionError(  # noqa: TRY003
+                raise gx_exceptions.UnsupportedConfigVersionError(  # noqa: TRY003 # FIXME CoP
                     f"""Invalid config version ({config_version})\n
-                                                                  The version number must be at least {MINIMUM_SUPPORTED_CONFIG_VERSION}"""  # noqa: E501
+                                                                  The version number must be at least {MINIMUM_SUPPORTED_CONFIG_VERSION}"""  # noqa: E501 # FIXME CoP
                 )
             elif config_version > CURRENT_GX_CONFIG_VERSION:
-                raise gx_exceptions.UnsupportedConfigVersionError(  # noqa: TRY003
+                raise gx_exceptions.UnsupportedConfigVersionError(  # noqa: TRY003 # FIXME CoP
                     f"""Invalid config version ({config_version}).\n
-                                                                  The maximum valid version is {CURRENT_GX_CONFIG_VERSION}."""  # noqa: E501
+                                                                  The maximum valid version is {CURRENT_GX_CONFIG_VERSION}."""  # noqa: E501 # FIXME CoP
                 )
 
         yml_path = cls._find_context_yml_file(search_start_dir=context_root_dir)

@@ -41,9 +41,9 @@ from great_expectations.core.domain import (
     SemanticDomainTypes,
 )
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,  # noqa: TCH001
+    MetricDomainTypes,  # noqa: TCH001 # FIXME CoP
 )
-from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501
+from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501 # FIXME CoP
     NUM_HISTOGRAM_BINS,
     NumericRangeEstimationResult,
 )
@@ -62,9 +62,9 @@ from great_expectations.util import (
     convert_ndarray_float_to_datetime_dtype,
     convert_ndarray_to_datetime_dtype_best_effort,
 )
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
 from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001
+    MetricConfiguration,  # noqa: TCH001 # FIXME CoP
 )
 
 if TYPE_CHECKING:
@@ -98,7 +98,7 @@ RECOGNIZED_QUANTILE_STATISTIC_INTERPOLATION_METHODS: set = {
 NP_RANDOM_GENERATOR: Final = np.random.default_rng()
 
 
-def get_validator(  # noqa: PLR0913
+def get_validator(  # noqa: PLR0913 # FIXME CoP
     purpose: str,
     *,
     data_context: Optional[AbstractDataContext] = None,
@@ -134,7 +134,7 @@ def get_validator(  # noqa: PLR0913
         if num_batches == 0:
             raise ProfilerExecutionError(
                 message=f"""{__name__}.get_validator() must utilize at least one Batch ({num_batches} are available).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
     validator = get_validator_with_expectation_suite(
@@ -153,7 +153,7 @@ def get_validator(  # noqa: PLR0913
     return validator
 
 
-def get_batch_ids(  # noqa: PLR0913
+def get_batch_ids(  # noqa: PLR0913 # FIXME CoP
     data_context: Optional[AbstractDataContext] = None,
     batch_list: Optional[List[Batch]] = None,
     batch_request: Optional[Union[str, BatchRequestBase, dict]] = None,
@@ -181,19 +181,19 @@ def get_batch_ids(  # noqa: PLR0913
     num_batch_ids: int = len(batch_ids)
 
     if limit is not None:
-        # No need to verify that type of "limit" is "integer", because static type checking already ascertains this.  # noqa: E501
+        # No need to verify that type of "limit" is "integer", because static type checking already ascertains this.  # noqa: E501 # FIXME CoP
         if not (0 <= limit <= num_batch_ids):
             raise ProfilerExecutionError(
                 message=f"""{__name__}.get_batch_ids() allows integer limit values between 0 and {num_batch_ids} \
 ({limit} was requested).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
         batch_ids = batch_ids[-limit:]
 
     if num_batch_ids == 0:
         raise ProfilerExecutionError(
             message=f"""{__name__}.get_batch_ids() must return at least one batch_id ({num_batch_ids} were retrieved).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     return batch_ids
@@ -208,7 +208,7 @@ def build_batch_request(
     if batch_request is None:
         return None
 
-    # Obtain BatchRequest from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+    # Obtain BatchRequest from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
     effective_batch_request: Optional[Union[BatchRequestBase, dict]] = (
         get_parameter_value_and_validate_return_type(
             domain=domain,
@@ -232,7 +232,7 @@ def build_metric_domain_kwargs(
     variables: Optional[ParameterContainer] = None,
     parameters: Optional[Dict[str, ParameterContainer]] = None,
 ):
-    # Obtain domain kwargs from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+    # Obtain domain kwargs from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
     metric_domain_kwargs = get_parameter_value_and_validate_return_type(
         domain=domain,
         parameter_reference=metric_domain_kwargs,
@@ -261,7 +261,7 @@ def get_parameter_value_and_validate_return_type(
     """
     This method allows for the parameter_reference to be specified as an object (literal, dict, any typed object, etc.)
     or as a fully-qualified parameter name.  In either case, it can optionally validate the type of the return value.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if isinstance(parameter_reference, dict):
         parameter_reference = safe_deep_copy(data=parameter_reference)
 
@@ -277,7 +277,7 @@ def get_parameter_value_and_validate_return_type(
             raise ProfilerExecutionError(
                 message=f"""Argument "{parameter_reference}" must be of type "{expected_return_type!s}" \
 (value of type "{type(parameter_reference)!s}" was encountered).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
     return parameter_reference
@@ -293,7 +293,7 @@ def get_parameter_value(
     This method allows for the parameter_reference to be specified as an object (literal, dict, any typed object, etc.)
     or as a fully-qualified parameter name.  Moreover, if the parameter_reference argument is an object of type "dict",
     it will recursively detect values using the fully-qualified parameter name format and evaluate them accordingly.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if isinstance(parameter_reference, dict):
         for key, value in parameter_reference.items():
             parameter_reference[key] = get_parameter_value(
@@ -357,13 +357,13 @@ def get_resolved_metrics_by_key(
         Dictionary of the form {
             "my_key": Dict[Tuple[str, str, str], MetricValue],
         }
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     key: str
     metric_configuration: MetricConfiguration
     metric_configurations_for_key: List[MetricConfiguration]
 
-    # Step 1: Gather "MetricConfiguration" objects corresponding to all possible key values/combinations.  # noqa: E501
-    # and compute all metric values (resolve "MetricConfiguration" objects ) using a single method call.  # noqa: E501
+    # Step 1: Gather "MetricConfiguration" objects corresponding to all possible key values/combinations.  # noqa: E501 # FIXME CoP
+    # and compute all metric values (resolve "MetricConfiguration" objects ) using a single method call.  # noqa: E501 # FIXME CoP
     resolved_metrics: _MetricsDict
     resolved_metrics, _ = validator.compute_metrics(
         metric_configurations=[
@@ -375,14 +375,14 @@ def get_resolved_metrics_by_key(
         min_graph_edges_pbar_enable=0,
     )
 
-    # Step 2: Gather "MetricConfiguration" ID values for each key (one element per batch_id in every list).  # noqa: E501
+    # Step 2: Gather "MetricConfiguration" ID values for each key (one element per batch_id in every list).  # noqa: E501 # FIXME CoP
     metric_configuration_ids_by_key: Dict[str, List[Tuple[str, str, str]]] = {
         key: [metric_configuration.id for metric_configuration in metric_configurations_for_key]
         for key, metric_configurations_for_key in metric_configurations_by_key.items()
     }
 
     metric_configuration_ids: List[Tuple[str, str, str]]
-    # Step 3: Obtain flattened list of "MetricConfiguration" ID values across all key values/combinations.  # noqa: E501
+    # Step 3: Obtain flattened list of "MetricConfiguration" ID values across all key values/combinations.  # noqa: E501 # FIXME CoP
     metric_configuration_ids_all_keys: List[Tuple[str, str, str]] = list(
         itertools.chain(
             *[
@@ -392,7 +392,7 @@ def get_resolved_metrics_by_key(
         )
     )
 
-    # Step 4: Retain only those metric computation results that both, correspond to "MetricConfiguration" objects of  # noqa: E501
+    # Step 4: Retain only those metric computation results that both, correspond to "MetricConfiguration" objects of  # noqa: E501 # FIXME CoP
     # interest (reflecting specified key values/combinations).
     metric_configuration_id: Tuple[str, str, str]
     metric_value: Any
@@ -444,7 +444,7 @@ def build_domains_from_column_names(
     :param domain_type: type of Domain objects (same "domain_type" must be applicable to all Domain objects returned)
     :param table_column_name_to_inferred_semantic_domain_type_map: map from column name to inferred semantic type
     :return: list of resulting Domain objects
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     column_name: str
     domains: List[Domain] = [
         Domain(
@@ -506,7 +506,7 @@ def integer_semantic_domain_type(domain: Domain) -> bool:
     Returns:
         Boolean value indicating whether or not specified "Domain" is inferred to denote "integer" values
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     inferred_semantic_domain_type: Dict[str, SemanticDomainTypes] = domain.details.get(
         INFERRED_SEMANTIC_TYPE_KEY
@@ -535,7 +535,7 @@ def datetime_semantic_domain_type(domain: Domain) -> bool:
 
     Returns:
         Boolean value indicating whether or not specified "Domain" is inferred as "SemanticDomainTypes.DATETIME"
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     inferred_semantic_domain_type: Dict[str, SemanticDomainTypes] = domain.details.get(
         INFERRED_SEMANTIC_TYPE_KEY
@@ -556,11 +556,11 @@ def get_false_positive_rate_from_rule_state(
 ) -> Union[float, np.float64]:
     """
     This method obtains false_positive_rate from "rule state" (i.e., variables and parameters) and validates the result.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if false_positive_rate is None:
         return 5.0e-2
 
-    # Obtain false_positive_rate from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+    # Obtain false_positive_rate from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
     false_positive_rate = get_parameter_value_and_validate_return_type(
         domain=domain,
         parameter_reference=false_positive_rate,
@@ -569,23 +569,23 @@ def get_false_positive_rate_from_rule_state(
         parameters=parameters,
     )
     if not (0.0 <= false_positive_rate <= 1.0):
-        raise ProfilerExecutionError(  # noqa: TRY003
+        raise ProfilerExecutionError(  # noqa: TRY003 # FIXME CoP
             f"""false_positive_rate must be a positive decimal number between 0 and 1 inclusive [0, 1], but \
 {false_positive_rate} was provided.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
     elif false_positive_rate <= NP_EPSILON:
         warnings.warn(
             f"""You have chosen a false_positive_rate of {false_positive_rate}, which is too close to 0.  A \
 false_positive_rate of {NP_EPSILON} has been selected instead.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
         false_positive_rate = np.float64(NP_EPSILON)
     elif false_positive_rate >= (1.0 - NP_EPSILON):
         warnings.warn(
             f"""You have chosen a false_positive_rate of {false_positive_rate}, which is too close to 1.  A \
 false_positive_rate of {1.0 - NP_EPSILON} has been selected instead.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
         false_positive_rate = np.float64(1.0 - NP_EPSILON)
 
@@ -602,8 +602,8 @@ def get_quantile_statistic_interpolation_method_from_rule_state(
     """
     This method obtains quantile_statistic_interpolation_method from "rule state" (i.e., variables and parameters) and
     validates the result.
-    """  # noqa: E501
-    # Obtain quantile_statistic_interpolation_method directive from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
+    # Obtain quantile_statistic_interpolation_method directive from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
     quantile_statistic_interpolation_method = get_parameter_value_and_validate_return_type(
         domain=domain,
         parameter_reference=quantile_statistic_interpolation_method,
@@ -618,7 +618,7 @@ def get_quantile_statistic_interpolation_method_from_rule_state(
         raise ProfilerExecutionError(
             message=f"""The directive "quantile_statistic_interpolation_method" can be only one of \
 {RECOGNIZED_QUANTILE_STATISTIC_INTERPOLATION_METHODS} ("{quantile_statistic_interpolation_method}" was detected).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     if quantile_statistic_interpolation_method == "auto":
@@ -654,7 +654,7 @@ def compute_quantiles(
     )
 
 
-def compute_kde_quantiles_point_estimate(  # noqa: PLR0913
+def compute_kde_quantiles_point_estimate(  # noqa: PLR0913 # FIXME CoP
     metric_values: np.ndarray,
     false_positive_rate: np.float64,
     n_resamples: int,
@@ -685,7 +685,7 @@ def compute_kde_quantiles_point_estimate(  # noqa: PLR0913
             https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html
         random_seed: An optional random_seed to pass to "np.random.Generator(np.random.PCG64(random_seed))"
             for making probabilistic sampling deterministic.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     lower_quantile_pct: float = false_positive_rate / 2.0
     upper_quantile_pct: float = 1.0 - (false_positive_rate / 2.0)
 
@@ -722,7 +722,7 @@ def compute_kde_quantiles_point_estimate(  # noqa: PLR0913
     )
 
 
-def compute_bootstrap_quantiles_point_estimate(  # noqa: PLR0913
+def compute_bootstrap_quantiles_point_estimate(  # noqa: PLR0913 # FIXME CoP
     metric_values: np.ndarray,
     false_positive_rate: np.float64,
     n_resamples: int,
@@ -784,7 +784,7 @@ def compute_bootstrap_quantiles_point_estimate(  # noqa: PLR0913
     bootstrap sampling technique (see https://en.wikipedia.org/wiki/Bootstrapping_(statistics) for background) for
     computing the stopping criterion, expressed as the optimal number of bootstrap samples, needed to achieve a maximum
     probability that the value of the statistic of interest will be minimally deviating from its actual (ideal) value.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     lower_quantile_pct: float = false_positive_rate / 2.0
     upper_quantile_pct: float = 1.0 - false_positive_rate / 2.0
 
@@ -851,7 +851,7 @@ def build_numeric_range_estimation_result(
 
     Returns:
         Structured "NumericRangeEstimationResult" object, containing histogram and value_range attributes.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     ndarray_is_datetime_type: bool
     metric_values_converted: np.ndarray
     (
@@ -863,7 +863,7 @@ def build_numeric_range_estimation_result(
     bin_edges: np.ndarray
     if ndarray_is_datetime_type:
         histogram = np.histogram(a=metric_values_converted, bins=NUM_HISTOGRAM_BINS)
-        # Use "UTC" TimeZone normalization in "bin_edges" when "metric_values" consists of "datetime.datetime" objects.  # noqa: E501
+        # Use "UTC" TimeZone normalization in "bin_edges" when "metric_values" consists of "datetime.datetime" objects.  # noqa: E501 # FIXME CoP
         bin_edges = convert_ndarray_float_to_datetime_dtype(data=histogram[1])
     else:
         histogram = np.histogram(a=metric_values, bins=NUM_HISTOGRAM_BINS)
@@ -885,7 +885,7 @@ def build_numeric_range_estimation_result(
     )
 
 
-def _determine_quantile_bias_corrected_point_estimate(  # noqa: PLR0913
+def _determine_quantile_bias_corrected_point_estimate(  # noqa: PLR0913 # FIXME CoP
     bootstraps: np.ndarray,
     quantile_pct: float,
     quantile_statistic_interpolation_method: str,
@@ -905,7 +905,7 @@ def _determine_quantile_bias_corrected_point_estimate(  # noqa: PLR0913
 
     # Bias / Standard Error > 0.25 is a rule of thumb for when to apply bias correction.
     # See:
-    # Efron, B., & Tibshirani, R. J. (1993). Estimates of bias. An Introduction to the Bootstrap (pp. 128).  # noqa: E501
+    # Efron, B., & Tibshirani, R. J. (1993). Estimates of bias. An Introduction to the Bootstrap (pp. 128).  # noqa: E501 # FIXME CoP
     #         Springer Science and Business Media Dordrecht. DOI 10.1007/978-1-4899-4541-9
     quantile_bias_corrected_point_estimate: np.float64
 
@@ -934,7 +934,7 @@ def convert_metric_values_to_float_dtype_best_effort(
 
     Return:
         Boolean flag -- True, if conversion of original "np.ndarray" to "datetime.datetime" occurred; False, otherwise.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     original_ndarray_is_datetime_type: bool
     conversion_ndarray_to_datetime_type_performed: bool
     metric_values_converted: np.ndaarray
@@ -961,7 +961,7 @@ def convert_metric_values_to_float_dtype_best_effort(
     return ndarray_is_datetime_type, metric_values_converted
 
 
-def get_validator_with_expectation_suite(  # noqa: PLR0913
+def get_validator_with_expectation_suite(  # noqa: PLR0913 # FIXME CoP
     data_context: AbstractDataContext,
     batch_list: Optional[List[Batch]] = None,
     batch_request: Optional[Union[BatchRequestBase, dict]] = None,
@@ -974,7 +974,7 @@ def get_validator_with_expectation_suite(  # noqa: PLR0913
     Instantiates and returns "Validator" using "data_context", "batch_list" or "batch_request", and other information.
     Use "expectation_suite" if provided; otherwise, if "expectation_suite_name" is specified, then create
     "ExpectationSuite" from it.  Otherwise, generate temporary "expectation_suite_name" using supplied "component_name".
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     assert expectation_suite is None or isinstance(expectation_suite, ExpectationSuite)
     assert expectation_suite_name is None or isinstance(expectation_suite_name, str)
 
@@ -995,7 +995,7 @@ def get_validator_with_expectation_suite(  # noqa: PLR0913
     return validator
 
 
-def get_or_create_expectation_suite(  # noqa: C901
+def get_or_create_expectation_suite(  # noqa: C901 # FIXME CoP
     data_context: Optional[AbstractDataContext],
     expectation_suite: Optional[ExpectationSuite] = None,
     expectation_suite_name: Optional[str] = None,
@@ -1005,14 +1005,14 @@ def get_or_create_expectation_suite(  # noqa: C901
     """
     Use "expectation_suite" if provided.  If not, then if "expectation_suite_name" is specified, then create
     "ExpectationSuite" from it.  Otherwise, generate temporary "expectation_suite_name" using supplied "component_name".
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     generate_temp_expectation_suite_name: bool
     create_expectation_suite: bool
 
     if expectation_suite is not None and expectation_suite_name is not None:
         if expectation_suite.name != expectation_suite_name:
-            raise ValueError(  # noqa: TRY003
-                'Mutually inconsistent "expectation_suite" and "expectation_suite_name" were specified.'  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                'Mutually inconsistent "expectation_suite" and "expectation_suite_name" were specified.'  # noqa: E501 # FIXME CoP
             )
 
         return expectation_suite
@@ -1030,7 +1030,7 @@ def get_or_create_expectation_suite(  # noqa: C901
         if not component_name:
             component_name = "test"
 
-        expectation_suite_name = f"{TEMPORARY_EXPECTATION_SUITE_NAME_PREFIX}.{component_name}.{TEMPORARY_EXPECTATION_SUITE_NAME_STEM}.{str(uuid.uuid4())[:8]}"  # noqa: E501
+        expectation_suite_name = f"{TEMPORARY_EXPECTATION_SUITE_NAME_PREFIX}.{component_name}.{TEMPORARY_EXPECTATION_SUITE_NAME_STEM}.{str(uuid.uuid4())[:8]}"  # noqa: E501 # FIXME CoP
 
     if create_expectation_suite:
         if persist and data_context:
@@ -1069,7 +1069,7 @@ def sanitize_parameter_name(
 
     Returns:
         string-valued sanitized concatenation of "name" and MD5-digest of "suffix" arguments.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if suffix:
         suffix = hashlib.md5(suffix.encode("utf-8")).hexdigest()
         name = f"{name}{FULLY_QUALIFIED_PARAMETER_NAME_SEPARATOR_CHARACTER}{suffix}"

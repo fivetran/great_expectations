@@ -95,7 +95,7 @@ def test_run_checkpoint_and_data_doc(
 def test_batch_head(
     datasource_test_data: tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest],
     fetch_all: bool | str,
-    n_rows: int | float | str | None,  # noqa: PYI041
+    n_rows: int | float | str | None,  # noqa: PYI041 # FIXME CoP
     success: bool,
 ) -> None:
     run_batch_head(
@@ -114,7 +114,7 @@ class TestQueryAssets:
         passenger_count_value = 5
         asset = datasource.add_query_asset(
             name="query_asset",
-            query=f"   SELECT * from yellow_tripdata_sample_2019_02 WHERE passenger_count = {passenger_count_value}",  # noqa: E501
+            query=f"   SELECT * from yellow_tripdata_sample_2019_02 WHERE passenger_count = {passenger_count_value}",  # noqa: E501 # FIXME CoP
         )
         validator = context.get_validator(
             batch_request=asset.build_batch_request(
@@ -318,7 +318,7 @@ def test_partitioner_build_batch_request_allows_selecting_by_date_and_datetime_a
 
     asset = datasource.add_query_asset(
         "query_asset",
-        "SELECT date(pickup_datetime) as pickup_date, passenger_count FROM yellow_tripdata_sample_2019_02",  # noqa: E501
+        "SELECT date(pickup_datetime) as pickup_date, passenger_count FROM yellow_tripdata_sample_2019_02",  # noqa: E501 # FIXME CoP
     )
     partitioner = PartitionerColumnValue(column_name="pickup_date")
     # Test getting all batches
@@ -345,8 +345,8 @@ def test_partitioner_build_batch_request_allows_selecting_by_date_and_datetime_a
         "great_expectations.datasource.fluent.sql_datasource._partitioner_and_sql_asset_to_batch_identifier_data"
     ) as mock_batch_identifiers:
         mock_batch_identifiers.return_value = [
-            {"pickup_date": datetime.datetime(2019, 2, 1)},  # noqa: DTZ001
-            {"pickup_date": datetime.datetime(2019, 2, 2)},  # noqa: DTZ001
+            {"pickup_date": datetime.datetime(2019, 2, 1)},  # noqa: DTZ001 # FIXME CoP
+            {"pickup_date": datetime.datetime(2019, 2, 2)},  # noqa: DTZ001 # FIXME CoP
         ]
         specified_batches = asset.get_batch_identifiers_list(
             asset.build_batch_request(
@@ -378,7 +378,7 @@ def test_success_with_partitioners_from_batch_definitions(
     passenger_count_value = 5
     asset = datasource.add_query_asset(
         name="query_asset",
-        query=f"SELECT * from yellow_tripdata_sample_2020 WHERE passenger_count = {passenger_count_value}",  # noqa: E501
+        query=f"SELECT * from yellow_tripdata_sample_2020 WHERE passenger_count = {passenger_count_value}",  # noqa: E501 # FIXME CoP
     )
     batch_definition = asset.add_batch_definition(
         name="whatevs",
@@ -442,13 +442,13 @@ def test_batch_request_error_messages(
     assert "new_option" in batch_request.options
 
     with pytest.raises(pydantic.ValidationError):
-        batch_request.options = {10: "value for non-string key"}  # type: ignore[dict-item]
+        batch_request.options = {10: "value for non-string key"}  # type: ignore[dict-item] # FIXME CoP
 
     with pytest.raises(pydantic.ValidationError):
-        batch_request.options = "not a dictionary"  # type: ignore[assignment]
+        batch_request.options = "not a dictionary"  # type: ignore[assignment] # FIXME CoP
 
     # batch_slice can be updated if it takes the correct form
-    batch_request.batch_slice = "[5:10]"  # type: ignore[assignment]
+    batch_request.batch_slice = "[5:10]"  # type: ignore[assignment] # FIXME CoP
     assert batch_request.batch_slice == slice(5, 10, None)
 
     # batch_slice can be updated via update method
@@ -456,10 +456,10 @@ def test_batch_request_error_messages(
     assert batch_request.batch_slice == slice(2, 10, 2)
 
     with pytest.raises(ValueError):
-        batch_request.batch_slice = "nonsense slice"  # type: ignore[assignment]
+        batch_request.batch_slice = "nonsense slice"  # type: ignore[assignment] # FIXME CoP
 
     with pytest.raises(ValueError):
-        batch_request.batch_slice = True  # type: ignore[assignment]
+        batch_request.batch_slice = True  # type: ignore[assignment] # FIXME CoP
 
 
 @pytest.mark.cloud

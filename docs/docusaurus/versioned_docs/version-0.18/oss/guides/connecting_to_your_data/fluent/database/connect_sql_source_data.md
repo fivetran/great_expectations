@@ -411,7 +411,7 @@ Connect GX to a BigQuery SQL database to access Data Assets.
 ### Create a BigQuery Data Source.
 
 
-:::note
+:::note Note
 
 Tables that are created by BigQuery queries are automatically set to expire after one day.
 

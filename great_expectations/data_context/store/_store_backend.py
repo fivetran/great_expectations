@@ -43,7 +43,7 @@ class StoreBackend(metaclass=ABCMeta):
             suppress_store_backend_id: skip construction of a StoreBackend.store_backend_id
             manually_initialize_store_backend_id: UUID as a string to use if the store_backend_id is not already set
             store_name: store name given in the DataContextConfig (via either in-code or yaml configuration)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self._fixed_length_key = fixed_length_key
         self._suppress_store_backend_id = suppress_store_backend_id
         self._manually_initialize_store_backend_id: str = (
@@ -76,7 +76,7 @@ class StoreBackend(metaclass=ABCMeta):
         if self._suppress_store_backend_id:
             if not suppress_warning:
                 logger.warning(
-                    f"You are attempting to access the store_backend_id of a store or store_backend named {self.store_name} that has been explicitly suppressed."  # noqa: E501
+                    f"You are attempting to access the store_backend_id of a store or store_backend named {self.store_name} that has been explicitly suppressed."  # noqa: E501 # FIXME CoP
                 )
             return None
         try:
@@ -103,11 +103,11 @@ class StoreBackend(metaclass=ABCMeta):
         except Exception as e:
             if not suppress_warning:
                 logger.warning(
-                    f"Invalid store configuration: Please check the configuration of your {self.__class__.__name__} named {self.store_name}. Exception was: \n {e}"  # noqa: E501
+                    f"Invalid store configuration: Please check the configuration of your {self.__class__.__name__} named {self.store_name}. Exception was: \n {e}"  # noqa: E501 # FIXME CoP
                 )
             return uuid.UUID(self.STORE_BACKEND_INVALID_CONFIGURATION_ID)
 
-    # NOTE: AJB20201130 This store_backend_id and store_backend_id_warnings_suppressed was implemented to remove multiple warnings in DataContext.__init__ but this can be done more cleanly by more carefully going through initialization order in DataContext  # noqa: E501
+    # NOTE: AJB20201130 This store_backend_id and store_backend_id_warnings_suppressed was implemented to remove multiple warnings in DataContext.__init__ but this can be done more cleanly by more carefully going through initialization order in DataContext  # noqa: E501 # FIXME CoP
     @property
     def store_backend_id(self):
         return self._construct_store_backend_id(suppress_warning=False)
@@ -132,7 +132,7 @@ class StoreBackend(metaclass=ABCMeta):
             return self._set(key, value, **kwargs)
         except ValueError as e:
             logger.debug(str(e))
-            raise StoreBackendError("ValueError while calling _set on store backend.")  # noqa: TRY003
+            raise StoreBackendError("ValueError while calling _set on store backend.")  # noqa: TRY003 # FIXME CoP
 
     def add(self, key, value, **kwargs):
         """
@@ -142,7 +142,7 @@ class StoreBackend(metaclass=ABCMeta):
 
     def _add(self, key, value, **kwargs):
         if self.has_key(key):
-            raise StoreBackendError(f"Store already has the following key: {key}.")  # noqa: TRY003
+            raise StoreBackendError(f"Store already has the following key: {key}.")  # noqa: TRY003 # FIXME CoP
         return self.set(key=key, value=value, **kwargs)
 
     def update(self, key, value, **kwargs):
@@ -153,7 +153,7 @@ class StoreBackend(metaclass=ABCMeta):
 
     def _update(self, key, value, **kwargs):
         if not self.has_key(key):
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Store does not have a value associated the following key: {key}."
             )
         return self.set(key=key, value=value, **kwargs)
@@ -187,7 +187,7 @@ class StoreBackend(metaclass=ABCMeta):
 
     def get_url_for_key(self, key, protocol=None) -> str:
         raise StoreError(
-            "Store backend of type {:s} does not have an implementation of get_url_for_key".format(  # noqa: UP032
+            "Store backend of type {:s} does not have an implementation of get_url_for_key".format(  # noqa: UP032 # FIXME CoP
                 type(self).__name__
             )
         )
@@ -197,14 +197,14 @@ class StoreBackend(metaclass=ABCMeta):
             for key_element in key:
                 if not isinstance(key_element, str):
                     raise TypeError(
-                        "Elements within tuples passed as keys to {} must be instances of {}, not {}".format(  # noqa: E501 UP032
+                        "Elements within tuples passed as keys to {} must be instances of {}, not {}".format(  # noqa: E501, UP032 # FIXME CoP
                             self.__class__.__name__,
                             str,
                             type(key_element),
                         )
                     )
         else:
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"Keys in {self.__class__.__name__} must be instances of {tuple}, not {type(key)}"
             )
 

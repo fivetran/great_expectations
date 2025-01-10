@@ -7,6 +7,7 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -21,7 +22,7 @@ from great_expectations.render.util import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 
@@ -41,12 +42,12 @@ SUPPORTED_DATA_SOURCES = [
     "SQLite",
     "PostgreSQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
+    "MySQL",
 ]
-DATA_QUALITY_ISSUES = ["Cardinality"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
 
 class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
@@ -87,7 +88,7 @@ class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -96,8 +97,9 @@ class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -163,7 +165,7 @@ class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
                   "meta": {{}},
                   "success": true
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",

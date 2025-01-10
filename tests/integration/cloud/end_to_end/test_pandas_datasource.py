@@ -39,7 +39,7 @@ def datasource(
         datasource.name == new_datasource_name
     ), "The datasource was not updated in the previous method call."
     datasource.name = datasource_name
-    datasource = context.add_or_update_datasource(  # type: ignore[assignment]
+    datasource = context.data_sources.add_or_update_pandas(
         datasource=datasource,
     )
     assert (

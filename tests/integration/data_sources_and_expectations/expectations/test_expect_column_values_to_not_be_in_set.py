@@ -23,9 +23,9 @@ DATA = pd.DataFrame(
         NUMBERS_COLUMN: [1, 2, 3, None],
         STRINGS_COLUMN: ["a", "b", "c", None],
         DATES_COLUMN: [
-            datetime(2024, 1, 1).date(),  # noqa: DTZ001
-            datetime(2024, 2, 1).date(),  # noqa: DTZ001
-            datetime(2024, 3, 1).date(),  # noqa: DTZ001
+            datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 3, 1).date(),  # noqa: DTZ001 # FIXME CoP
             None,
         ],
     },
@@ -75,8 +75,8 @@ def test_success_complete_sql(batch_for_datasource: Batch) -> None:
             gxe.ExpectColumnValuesToNotBeInSet(
                 column=DATES_COLUMN,
                 value_set=[
-                    datetime(2024, 4, 1).date(),  # noqa: DTZ001
-                    datetime(2024, 5, 1).date(),  # noqa: DTZ001
+                    datetime(2024, 4, 1).date(),  # noqa: DTZ001 # FIXME CoP
+                    datetime(2024, 5, 1).date(),  # noqa: DTZ001 # FIXME CoP
                 ],
             ),
             id="dates",
@@ -122,8 +122,8 @@ def test_empty_data(batch_for_datasource: Batch) -> None:
             gxe.ExpectColumnValuesToNotBeInSet(
                 column=DATES_COLUMN,
                 value_set=[
-                    datetime(2024, 1, 1).date(),  # noqa: DTZ001
-                    datetime(2024, 2, 1).date(),  # noqa: DTZ001
+                    datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+                    datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME CoP
                 ],
             ),
             id="dates",

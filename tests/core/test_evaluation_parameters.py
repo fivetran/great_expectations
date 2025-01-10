@@ -89,7 +89,7 @@ def test_parse_suite_parameter():
 @pytest.mark.unit
 def test_parser_timing():
     """We currently reuse the parser, clearing the stack between calls, which is about 10 times faster than not
-    doing so. But these operations are really quick, so this may not be necessary."""  # noqa: E501
+    doing so. But these operations are really quick, so this may not be necessary."""  # noqa: E501 # FIXME CoP
     assert (
         timeit(
             "parse_suite_parameter('x', {'x': 1})",
@@ -110,7 +110,7 @@ def test_math_suite_paramaters():
 @pytest.mark.unit
 def test_temporal_suite_parameters():
     # allow 1 second for "now" tolerance
-    now = datetime.now()  # noqa: DTZ005
+    now = datetime.now()  # noqa: DTZ005 # FIXME CoP
     assert (
         (now - timedelta(weeks=1, seconds=3))
         < dateutil.parser.parse(parse_suite_parameter("now() - timedelta(weeks=1, seconds=2)"))
@@ -121,7 +121,7 @@ def test_temporal_suite_parameters():
 @pytest.mark.unit
 def test_temporal_suite_parameters_complex():
     # allow 1 second for "now" tolerance
-    now = datetime.now()  # noqa: DTZ005
+    now = datetime.now()  # noqa: DTZ005 # FIXME CoP
     # Choosing "2*3" == 6 weeks shows we can parse an expression inside a kwarg.
     assert (
         (now - timedelta(weeks=2 * 3, seconds=3))
@@ -173,7 +173,7 @@ def test_now_suite_parameter():
     """
     now() is unique in the fact that it is the only suite param built-in that has zero arity (takes no arguments).
     The following tests ensure that it is properly parsed and evaluated in a variety of contexts.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     # By itself
     res = parse_suite_parameter("now()")
     assert dateutil.parser.parse(res), "Provided suite parameter is not dateutil-parseable"

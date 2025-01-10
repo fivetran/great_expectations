@@ -30,16 +30,16 @@ def empty_data_context_module_scoped(tmp_path_factory) -> FileDataContext:
     # Re-enable GE_USAGE_STATS
     project_path = str(tmp_path_factory.mktemp("empty_data_context"))
     context = gx.data_context.FileDataContext.create(project_path)
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118
-    os.makedirs(asset_config_path, exist_ok=True)  # noqa: PTH103
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118 # FIXME CoP
+    os.makedirs(asset_config_path, exist_ok=True)  # noqa: PTH103 # FIXME CoP
     return context
 
 
 @pytest.fixture
 def titanic_profiled_name_column_evrs() -> ExpectationSuiteValidationResult:
     # This is a janky way to fetch expectations matching a specific name from an EVR suite.
-    # TODO: It will no longer be necessary once we implement ValidationResultSuite._group_evrs_by_column  # noqa: E501
+    # TODO: It will no longer be necessary once we implement ValidationResultSuite._group_evrs_by_column  # noqa: E501 # FIXME CoP
     from great_expectations.render.renderer.renderer import Renderer
 
     with open(

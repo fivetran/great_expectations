@@ -2,21 +2,34 @@ from __future__ import annotations
 
 import logging
 from string import Formatter
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.expectations.expectation import BatchExpectation
+from great_expectations.expectations.expectation import (
+    BatchExpectation,
+    render_suite_parameter_string,
+)
+from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.render import (
+    AtomicDiagnosticRendererType,
+    RenderedAtomicContent,
+    renderedAtomicValueSchema,
+)
+from great_expectations.render.components import LegacyRendererType, RenderedStringTemplateContent
+from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     CodeBlock,
     CodeBlockLanguage,
     RendererConfiguration,
     RendererValueType,
 )
+from great_expectations.render.util import substitute_none_for_missing
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
     from great_expectations.execution_engine import ExecutionEngine
+    from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 
 
 logger = logging.getLogger(__name__)
@@ -28,10 +41,14 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 UNEXPECTED_ROWS_QUERY_DESCRIPTION = "A SQL or Spark-SQL query to be executed for validation."
 SUPPORTED_DATA_SOURCES = [
+    "Spark",
     "PostgreSQL",
+    "BigQuery",
     "Snowflake",
-    "SQLite",
+    "MySQL",
+    "Databricks (SQL)",
 ]
+DATA_QUALITY_ISSUES = [DataQualityIssues.SQL.value]
 
 
 class UnexpectedRowsExpectation(BatchExpectation):
@@ -57,10 +74,16 @@ class UnexpectedRowsExpectation(BatchExpectation):
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+
+    Data Quality Issues:
+        {DATA_QUALITY_ISSUES[0]}
     """
 
     unexpected_rows_query: str = pydantic.Field(description=UNEXPECTED_ROWS_QUERY_DESCRIPTION)
@@ -103,7 +126,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
                     "data_quality_issues": {
                         "title": "Data Quality Issues",
                         "type": "array",
-                        "const": [],
+                        "const": DATA_QUALITY_ISSUES,
                     },
                     "short_description": {
                         "title": "Short Description",
@@ -133,6 +156,86 @@ class UnexpectedRowsExpectation(BatchExpectation):
         )
         return renderer_configuration
 
+    @classmethod
+    @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
+    @render_suite_parameter_string
+    @override
+    def _prescriptive_renderer(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+        **kwargs,
+    ) -> list[RenderedStringTemplateContent]:
+        runtime_configuration = runtime_configuration or {}
+        styling = runtime_configuration.get("styling")
+        params = substitute_none_for_missing(
+            configuration.kwargs,  # type: ignore[union-attr] # FIXME CoP
+            ["unexpected_rows_query"],
+        )
+
+        template_str = "Unexpected rows query: $unexpected_rows_query"
+
+        return [
+            RenderedStringTemplateContent(
+                content_block_type="string_template",
+                string_template={
+                    "template": template_str,
+                    "params": params,
+                    "styling": styling,
+                },
+            )
+        ]
+
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    @override
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+
+        unexpected_row_count = (
+            result.get("result").get("observed_value") if result is not None else None
+        )
+
+        template_str = ""
+        if isinstance(unexpected_row_count, (int, float)):
+            renderer_configuration.add_param(
+                name="observed_value",
+                param_type=RendererValueType.NUMBER,
+                value=unexpected_row_count,
+            )
+
+            template_str = "$observed_value unexpected "
+            if unexpected_row_count == 1:
+                template_str += "row"
+            else:
+                template_str += "rows"
+
+        renderer_configuration.template_str = template_str
+
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )
+
     @override
     def _validate(
         self,
@@ -142,15 +245,10 @@ class UnexpectedRowsExpectation(BatchExpectation):
     ) -> Union[ExpectationValidationResult, dict]:
         metric_value = metrics["unexpected_rows_query.table"]
         unexpected_row_count = metrics["unexpected_rows_query.row_count"]
-        observed_value = f"{unexpected_row_count} unexpected "
-        if unexpected_row_count == 1:
-            observed_value += "row"
-        else:
-            observed_value += "rows"
         return {
             "success": unexpected_row_count == 0,
             "result": {
-                "observed_value": observed_value,
+                "observed_value": unexpected_row_count,
                 "details": {"unexpected_rows": metric_value},
             },
         }

@@ -43,7 +43,7 @@ def batch_selectable() -> sa.Table:
 
 class MockSqlAlchemyExecutionEngine(SqlAlchemyExecutionEngine):
     def __init__(self, create_temp_table: bool = True, *args, **kwargs):
-        self.engine = MockSaEngine(dialect=Dialect("sqlite"))  # type: ignore[assignment]
+        self.engine = MockSaEngine(dialect=Dialect("sqlite"))  # type: ignore[assignment] # FIXME CoP
         self._create_temp_table = create_temp_table
         self._connection = MockConnection()
 

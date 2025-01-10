@@ -60,7 +60,7 @@ Environment variables securely store your GX Cloud access credentials.
     export GX_CLOUD_ORGANIZATION_ID=<organization_id>
     ```
 
-    :::note
+    :::note Note
    After you save your **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZTION_ID**, you can use Python scripts to access GX Cloud and complete other tasks. See the [GX Core guides](/core/introduction/introduction.mdx).
     :::
 
@@ -110,17 +110,12 @@ Environment variables securely store your GX Cloud access credentials.
 
 ## Validate data
 
-1. Run the following Python code to define a Checkpoint and examine the data to determine if it matches the defined Expectations:
-
-    ```python title="Python" name="tutorials/quickstart/quickstart.py create_checkpoint"
-    ```
-
-2. Use the following command to return the Validation Results:
+1. Run the following Python code to examine the data and determine if it matches the defined Expectations. This will return Validation Results:
 
     ```python title="Python" name="tutorials/quickstart/quickstart.py run_checkpoint"
     ```
 
-3. Run the following Python code to view an HTML representation of the Validation Results in the generated Data Docs:
+2. Run the following Python code to view a JSON representation of the Validation Results in the generated Data Docs:
 
     ```python title="Python" name="tutorials/quickstart/quickstart.py view_results"
     ```

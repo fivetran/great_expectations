@@ -7,6 +7,7 @@ from great_expectations.expectations.expectation import (
     MulticolumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     IGNORE_ROW_IF_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -44,12 +45,11 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Cardinality"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
 
 class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
@@ -87,7 +87,7 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -98,7 +98,7 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     For example:
@@ -147,7 +147,7 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
         Failing Case:
             Input:
                 ExpectSelectColumnValuesToBeUniqueWithinRecord(
-                    column_list=["test", "test2, "test3"],
+                    column_list=["test", "test2", "test3"],
             )
 
             Output:
@@ -176,7 +176,7 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     column_list: Sequence[str] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
     ignore_row_if: str = pydantic.Field(

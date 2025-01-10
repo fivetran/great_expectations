@@ -5,7 +5,7 @@ import smtplib
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from types import ModuleType
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, Iterator, Literal
 from unittest import mock
 
 import pytest
@@ -23,6 +23,7 @@ from great_expectations.checkpoint.actions import (
     SlackNotificationAction,
     SNSNotificationAction,
     UpdateDataDocsAction,
+    ValidationAction,
 )
 from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
 from great_expectations.core.batch import IDDict, LegacyBatchDefinition
@@ -45,6 +46,7 @@ from great_expectations.data_context.types.resource_identifiers import (
     GXCloudIdentifier,
     ValidationResultIdentifier,
 )
+from great_expectations.exceptions.exceptions import ValidationActionAlreadyRegisteredError
 from great_expectations.util import is_library_loadable
 
 if TYPE_CHECKING:
@@ -59,6 +61,7 @@ SUITE_A: str = "suite_a"
 SUITE_B: str = "suite_b"
 BATCH_ID_A: str = "my_datasource-my_first_asset"
 BATCH_ID_B: str = "my_datasource-my_second_asset"
+utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzinfo=timezone.utc)
 
 
 @pytest.fixture
@@ -495,7 +498,7 @@ class TestPagerdutyAlertAction:
                             "payload": {
                                 "severity": "critical",
                                 "source": "Great Expectations",
-                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has succeeded",  # noqa: E501
+                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has succeeded",  # noqa: E501 # FIXME CoP
                             },
                             "routing_key": "test",
                         }
@@ -507,7 +510,7 @@ class TestPagerdutyAlertAction:
                             "payload": {
                                 "severity": "critical",
                                 "source": "Great Expectations",
-                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has failed",  # noqa: E501
+                                "summary": f"Great Expectations Checkpoint {checkpoint_name} has failed",  # noqa: E501 # FIXME CoP
                             },
                             "routing_key": "test",
                         }
@@ -564,14 +567,14 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501 # FIXME CoP
                         },
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501
+                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501 # FIXME CoP
                         },
                     },
                     {"type": "divider"},
@@ -883,3 +886,12 @@ class TestUpdateDataDocsAction:
             validation_identifier_a: {},
             validation_identifier_b: {},
         }
+
+
+class TestCustomActions:
+    @pytest.mark.unit
+    def test_custom_action_shadows_existing_type(self):
+        with pytest.raises(ValidationActionAlreadyRegisteredError):
+
+            class CustomSlackAction(ValidationAction):
+                type: Literal["slack"] = "slack"  # Shadows existing value

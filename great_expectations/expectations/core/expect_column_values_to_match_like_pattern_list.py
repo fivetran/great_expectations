@@ -4,11 +4,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Literal, Optional, 
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -45,8 +46,16 @@ MATCH_ON_DESCRIPTION = (
     "Use 'any' if the value should match at least one like pattern in the list. "
     "Use 'all' if it should match each like pattern in the list."
 )
-DATA_QUALITY_ISSUES = ["Pattern matching"]
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
+SUPPORTED_DATA_SOURCES = [
+    "SQLite",
+    "PostgreSQL",
+    "MySQL",
+    "MSSQL",
+    "Databricks (SQL)",
+    "BigQuery",
+    "Snowflake",
+]
 
 
 class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
@@ -95,14 +104,16 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
         [ExpectColumnValuesToNotMatchLikePattern](https://greatexpectations.io/expectations/expect_column_values_to_not_match_like_pattern)
         [ExpectColumnValuesToNotMatchLikePatternList](https://greatexpectations.io/expectations/expect_column_values_to_not_match_like_pattern_list)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -171,7 +182,7 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     like_pattern_list: Union[List[str], SuiteParameterDict] = pydantic.Field(
         description=LIKE_PATTERN_DESCRIPTION
@@ -185,7 +196,7 @@ class ExpectColumnValuesToMatchLikePatternList(ColumnMapExpectation):
         cls, like_pattern_list: list[str] | SuiteParameterDict
     ) -> list[str] | SuiteParameterDict:
         if len(like_pattern_list) < 1:
-            raise ValueError("At least one like_pattern must be supplied in the like_pattern_list.")  # noqa: TRY003
+            raise ValueError("At least one like_pattern must be supplied in the like_pattern_list.")  # noqa: TRY003 # FIXME CoP
 
         return like_pattern_list
 

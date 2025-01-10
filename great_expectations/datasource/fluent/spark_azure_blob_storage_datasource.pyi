@@ -32,7 +32,7 @@ class SparkAzureBlobStorageDatasource(_SparkFilePathDatasource):
     azure_options: dict[str, ConfigStr | Any] = {}
     # private
     _azure_client: azure.BlobServiceClient | None
-    def add_csv_asset(  # noqa: PLR0913
+    def add_csv_asset(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         *,

@@ -7,6 +7,7 @@ from great_expectations.expectations.expectation import (
     MulticolumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_LIST_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -40,12 +41,11 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Cardinality"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
 
 class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
@@ -83,7 +83,7 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -94,7 +94,7 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -170,7 +170,7 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     column_list: Sequence[str] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
 
@@ -245,7 +245,7 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
             renderer_configuration = cls._add_mostly_pct_param(
                 renderer_configuration=renderer_configuration
             )
-            template_str = "Values for given compound columns must be unique together, at least $mostly_pct % of the time: "  # noqa: E501
+            template_str = "Values for given compound columns must be unique together, at least $mostly_pct % of the time: "  # noqa: E501 # FIXME CoP
         else:
             template_str = "Values for given compound columns must be unique together: "
 
@@ -293,7 +293,7 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
 
         if params["mostly"] is not None and params["mostly"] < 1.0:
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-            template_str = "Values for given compound columns must be unique together, at least $mostly_pct % of the time: "  # noqa: E501
+            template_str = "Values for given compound columns must be unique together, at least $mostly_pct % of the time: "  # noqa: E501 # FIXME CoP
         else:
             template_str = "Values for given compound columns must be unique together: "
 

@@ -4,12 +4,13 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -42,8 +43,15 @@ EXPECTATION_SHORT_DESCRIPTION = (
 REGEX_LIST_DESCRIPTION = (
     "The list of regular expressions which the column entries should not match."
 )
-DATA_QUALITY_ISSUES = ["Pattern matching"]
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
+SUPPORTED_DATA_SOURCES = [
+    "Pandas",
+    "Spark",
+    "PostgreSQL",
+    "MySQL",
+    "Databricks (SQL)",
+    "SQLite",
+]
 
 
 class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
@@ -90,14 +98,15 @@ class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
         [ExpectColumnValuesToNotMatchLikePattern](https://greatexpectations.io/expectations/expect_column_values_to_not_match_like_pattern)
         [ExpectColumnValuesToNotMatchLikePatternList](https://greatexpectations.io/expectations/expect_column_values_to_not_match_like_pattern_list)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -164,7 +173,7 @@ class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     regex_list: Union[List[str], SuiteParameterDict] = pydantic.Field(
         description=REGEX_LIST_DESCRIPTION

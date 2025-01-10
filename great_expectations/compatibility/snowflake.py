@@ -5,7 +5,7 @@ from typing import Final
 from great_expectations.compatibility.not_imported import NotImported
 
 SNOWFLAKE_NOT_IMPORTED = NotImported(
-    "snowflake connection components are not installed, please 'pip install snowflake-sqlalchemy snowflake-connector-python'"  # noqa: E501
+    "snowflake connection components are not installed, please 'pip install snowflake-sqlalchemy snowflake-connector-python'"  # noqa: E501 # FIXME CoP
 )
 
 try:

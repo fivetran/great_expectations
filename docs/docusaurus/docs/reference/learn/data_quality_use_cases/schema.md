@@ -17,11 +17,7 @@ established rules, such as verifying column names, data types, and the presence 
 Schema changes, whether planned or unexpected, can significantly impact data integrity and the
 performance of data-dependent systems.
 
-Great Expectations (GX) provides a powerful suite of schema-focused Expectations that allow you
-to define and enforce the structural integrity of your datasets. These tools enable you to establish
-robust schema validation within your data pipelines, helping to catch and address schema-related
-issues before they propagate through your data ecosystem. This guide will walk you through
-leveraging these Expectations to implement effective schema validation in your data workflows.
+Great Expectations (GX) provides schema-focused Expectations that allow you to define and enforce the structural integrity of your datasets. You can automatically generate some of these Expectations when you add a new Data Asset in GX Cloud. These tools enable you to establish robust schema validation within your data pipelines, helping to catch and address schema-related issues before they propagate through your data ecosystem. This guide will walk you through leveraging these Expectations to implement effective schema validation in your data workflows.
 
 ## Prerequisite knowledge
 This article assumes basic familiarity with GX components and workflows. See the [GX Overview](/core/introduction/gx_overview.md) for additional content on GX fundamentals.
@@ -41,11 +37,9 @@ You can [access this dataset](https://raw.githubusercontent.com/great-expectatio
 
 ## Key schema Expectations
 
-GX offers a collection of Expectations for schema validation, all of which can be added to an Expectation Suite directly from the GX Cloud UI or using the GX Core Python library.
+GX offers a collection of Expectations for schema validation, all of which can be added directly from the GX Cloud UI or using the GX Core Python library. Some of them can be automatically generated when you add a new Data Asset using GX Cloud. 
 
-![Add a schema Expectation in GX Cloud](./schema_resources/gx_cloud_schema_expectations_add.gif)
-
-The schema Expectations provide straightforward, practical solutions for common validation scenarios and can also be used to satisfy more nuanced validation needs.
+The schema Expectations provide basic practical solutions for common validation scenarios and can also be used to satisfy more nuanced validation needs.
 
 ### Column-level Expectations
 
@@ -144,6 +138,10 @@ flexibility where column presence is more critical than their sequence.
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/schema_resources/schema_expectations.py ExpectTableColumnsToMatchSet"
 ```
 
+:::tip Automate this rule
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate this Expectation to test that columns don't diverge from the initial set over time.
+:::
+
 <small>View `ExpectTableColumnsToMatchSet` in the [Expectation
 Gallery](https://greatexpectations.io/expectations/expect_table_columns_to_match_set).</small>
 
@@ -175,9 +173,7 @@ Gallery](https://greatexpectations.io/expectations/expect_table_column_count_to_
 
 ## Examples
 
-**GX Cloud** provides a visual interface to create and run schema validation workflows. The GX Cloud workflow for validating data schema is to create a Data Asset, define an Expectation Suite, run a Checkpoint, and review Validation Results.
-
-![Validate schema Expectations in GX Cloud](./schema_resources/gx_cloud_schema_expectations_validate.gif)
+**GX Cloud** provides a visual interface to create and run schema validation workflows. The GX Cloud workflow for validating data schemas is to create Data Assets with automatically generated Expectations, manually define additional Expectations, run Validations, and review Validation Results.
 
 **GX Core** can be used to complement and extend the capabilities of GX Cloud to programmatically implement custom validation workflows. The examples provided in this section feature use cases that leverage GX Core to achieve schema validation.
 

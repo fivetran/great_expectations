@@ -291,7 +291,7 @@ In `0.X`, a Data Source represents where the data lives and the execution engine
 
 **id**: This is a new field and is an arbitrary UUID. If migrating you can pick any unique UUID.
 
-:::note
+:::note Note
 We no longer support arbitrary batching regexes. Batches must be defined by one of our temporal batch definitions which are yearly, monthly, or daily.
 :::
 
@@ -673,7 +673,7 @@ A few configurations are **NO LONGER SUPPORTED**:
     ```python title="Python"
     # Create datasource
     connection_string = "snowflake://<user_login_name>:<password>@<account_identifier>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>"
-    snowflake_ds = context.sources.add_snowflake(name="snowflake_ds", connection_string=connection_string)
+    snowflake_ds = context.data_sources.add_snowflake(name="snowflake_ds", connection_string=connection_string)
 
     # Create table asset and batch definitions
     table_asset = snowflake_ds.add_table_asset(name="taxi_data", table_name="TAXI_DATA_ALL_SAMPLES")

@@ -9,7 +9,10 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.model_field_types import ConditionParser  # noqa: TCH001
+from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.model_field_types import (
+    ConditionParser,  # noqa: TCH001 # FIXME CoP
+)
 from great_expectations.render import (
     LegacyDiagnosticRendererType,
     LegacyRendererType,
@@ -21,7 +24,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import num_to_str, substitute_none_for_missing
-from great_expectations.validator.metric_configuration import (  # noqa: TCH001
+from great_expectations.validator.metric_configuration import (  # noqa: TCH001 # FIXME CoP
     MetricConfiguration,
 )
 
@@ -41,8 +44,15 @@ EXPECTATION_SHORT_DESCRIPTION = (
 OTHER_TABLE_NAME_DESCRIPTION = (
     "The name of the other table. Other table must be located within the same database."
 )
-SUPPORTED_DATA_SOURCES = ["SQLite", "PostgreSQL", "MySQL", "MSSQL", "Redshift", "Databricks (SQL)"]
-DATA_QUALITY_ISSUES = ["Volume"]
+SUPPORTED_DATA_SOURCES = [
+    "SQLite",
+    "PostgreSQL",
+    "MySQL",
+    "MSSQL",
+    "Databricks (SQL)",
+    "Snowflake",
+]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VOLUME.value]
 
 
 class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
@@ -77,14 +87,15 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         [ExpectTableRowCountToBeBetween](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between)
         [ExpectTableRowCountToEqual](https://greatexpectations.io/expectations/expect_table_row_count_to_equal)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -145,7 +156,7 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     other_table_name: str = pydantic.Field(description=OTHER_TABLE_NAME_DESCRIPTION)
     row_condition: Union[str, None] = None
@@ -228,7 +239,7 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         runtime_configuration = runtime_configuration or {}
         styling = runtime_configuration.get("styling")
         if not configuration:
-            raise ValueError("configuration is required for prescriptive renderer")  # noqa: TRY003
+            raise ValueError("configuration is required for prescriptive renderer")  # noqa: TRY003 # FIXME CoP
         params = substitute_none_for_missing(configuration.kwargs, ["other_table_name"])
         template_str = "Row count must equal the row count of table $other_table_name."
 
@@ -262,7 +273,7 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         return RenderedStringTemplateContent(
             content_block_type="string_template",
             string_template={
-                "template": "Row Count: $self_table_row_count<br>Other Table Row Count: $other_table_row_count",  # noqa: E501
+                "template": "Row Count: $self_table_row_count<br>Other Table Row Count: $other_table_row_count",  # noqa: E501 # FIXME CoP
                 "params": {
                     "self_table_row_count": self_table_row_count,
                     "other_table_row_count": other_table_row_count,
@@ -285,7 +296,7 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         kwargs = configuration.kwargs if configuration else {}
         other_table_name = kwargs.get("other_table_name")
 
-        # create copy of table.row_count metric and modify "table" metric domain kwarg to be other table name  # noqa: E501
+        # create copy of table.row_count metric and modify "table" metric domain kwarg to be other table name  # noqa: E501 # FIXME CoP
         table_row_count_metric_config_other: Optional[MetricConfiguration] = deepcopy(
             validation_dependencies.get_metric_configuration(metric_name="table.row_count")
         )

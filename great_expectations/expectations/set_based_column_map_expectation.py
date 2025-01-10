@@ -69,7 +69,7 @@ class SetColumnMapMetricProvider(ColumnMapMetricProvider):
             Constructed by the `register_metric(...)` function during Expectation execution.
         domain_keys (tuple): A tuple of the keys used to determine the domain of the metric.
         condition_value_keys (tuple): A tuple of the keys used to determine the value of the metric.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     condition_value_keys = ()
 
@@ -112,7 +112,7 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
 
     ---Documentation---
         - https://docs.greatexpectations.io/docs/guides/expectations/creating_custom_expectations/how_to_create_custom_set_based_column_map_expectations
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     @staticmethod
     def register_metric(
@@ -127,7 +127,7 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
 
         Returns:
             map_metric: The constructed name of the ephemeral metric.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         set_snake_name = camel_to_snake(set_camel_name)
         map_metric: str = "column_values.match_" + set_snake_name + "_set"
 
@@ -154,7 +154,7 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
         Raises:
             InvalidExpectationConfigurationError: If no `set_` or `column` specified, or if `mostly` parameter
                 incorrectly defined.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().validate_configuration(configuration)
         try:
             assert (
@@ -189,11 +189,11 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
                 return f'Are all values in column "{column}" in {set_semantic_name}: {set_!s}?'
             else:
                 return f'Are all values in column "{column}" in the set {set_!s}?'
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if set_semantic_name is not None:
-                return f'Are at least {mostly * 100}% of values in column "{column}" in {set_semantic_name}: {set_!s}?'  # noqa: E501
+                return f'Are at least {mostly * 100}% of values in column "{column}" in {set_semantic_name}: {set_!s}?'  # noqa: E501 # FIXME CoP
             else:
-                return f'Are at least {mostly * 100}% of values in column "{column}" in the set {set_!s}?'  # noqa: E501
+                return f'Are at least {mostly * 100}% of values in column "{column}" in the set {set_!s}?'  # noqa: E501 # FIXME CoP
 
     @classmethod
     @renderer(renderer_type=LegacyRendererType.ANSWER)
@@ -209,16 +209,16 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
                     return f'All values in column "{column}" are in {set_semantic_name}: {set_!s}.'
                 else:
                     return f'All values in column "{column}" are in the set {set_!s}.'
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if set_semantic_name is not None:
-                    return f'At least {mostly * 100}% of values in column "{column}" are in {set_semantic_name}: {set_!s}.'  # noqa: E501
+                    return f'At least {mostly * 100}% of values in column "{column}" are in {set_semantic_name}: {set_!s}.'  # noqa: E501 # FIXME CoP
                 else:
-                    return f'At least {mostly * 100}% of values in column "{column}" are in the set {set!s}.'  # noqa: E501
-        else:  # noqa: PLR5501
+                    return f'At least {mostly * 100}% of values in column "{column}" are in the set {set!s}.'  # noqa: E501 # FIXME CoP
+        else:  # noqa: PLR5501 # FIXME CoP
             if set_semantic_name is not None:
-                return f' Less than {mostly * 100}% of values in column "{column}" are in {set_semantic_name}: {set_!s}.'  # noqa: E501
+                return f' Less than {mostly * 100}% of values in column "{column}" are in {set_semantic_name}: {set_!s}.'  # noqa: E501 # FIXME CoP
             else:
-                return f'Less than {mostly * 100}% of values in column "{column}" are in the set {set_!s}.'  # noqa: E501
+                return f'Less than {mostly * 100}% of values in column "{column}" are in the set {set_!s}.'  # noqa: E501 # FIXME CoP
 
     @classmethod
     def _prescriptive_template(

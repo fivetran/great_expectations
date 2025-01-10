@@ -50,3 +50,6 @@ d170c89167a96b702edc02b16dbf5984619d0e8f
 # enable TRYceratops linting; add noqa comments
 # https://github.com/great-expectations/great_expectations/pull/9684
 2bbfb50a6458f09ef197ee1174666a4c4726a850
+# Add "FIXME CoP" comments to type ignore and noqa ignore lines
+# https://github.com/great-expectations/great_expectations/pull/10817
+078c1611dd9c70fec6d7b6318f21a063ff6aa9b0

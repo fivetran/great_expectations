@@ -66,13 +66,12 @@ def test_success_for_type__INTEGER(batch_for_datasource: Batch) -> None:
     assert result.success
 
 
-@pytest.mark.xfail
 @parameterize_batch_for_data_sources(
     data_source_configs=[DatabricksDatasourceTestConfig()],
     data=DATA,
 )
 def test_success_for_type__Integer(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="Integer")
+    expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="INT")
     result = batch_for_datasource.validate(expectation)
     assert result.success
 
@@ -87,13 +86,12 @@ def test_success_for_type__IntegerType(batch_for_datasource: Batch) -> None:
     assert result.success
 
 
-@pytest.mark.xfail()
 @parameterize_batch_for_data_sources(
     data_source_configs=[SnowflakeDatasourceTestConfig()],
     data=DATA,
 )
 def test_success_for_type__Number(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="Number")
+    expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="DECIMAL(38, 0)")
     result = batch_for_datasource.validate(expectation)
     assert result.success
 

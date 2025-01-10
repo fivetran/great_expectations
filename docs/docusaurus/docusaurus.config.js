@@ -35,6 +35,10 @@ module.exports = {
       defer: true,
     },
     {
+      src: '/scripts/web-tracking.js',
+      async: true
+    },
+    {
       src: 'https://fast.wistia.net/assets/external/E-v1.js',
       async: true
     }
@@ -44,23 +48,23 @@ module.exports = {
     announcementBar: {
       id: 'cta_bar',
       content:
-          `<a style="font-weight:600" href="https://hubs.li/Q02Zfg_h0">[New webinar] Top data quality tactics to boost trust and improve collaboration. Register today!</a>`,
+          '<a style="font-weight:600" href="https://hubs.li/Q02nK_ZH0">Get started with GX Cloud by joining our bi-weekly hands on workshop.</a>',
       backgroundColor: '#141432',
       textColor: '#fff',
-      isCloseable: true,
+      isCloseable: false,
     },
     gxCard: {
       title: 'What is GX Cloud?',
       description:
-        'GX Cloud is a fully-managed SaaS solution that simplifies deployment, scaling, and collaboration and lets you focus on data validation.',
+        'GX Cloud is a fully-managed SaaS solution that simplifies deployment, scaling, and collaboration—so you can focus on data validation.',
       buttons: {
         primary: {
-          label: 'Try GX Cloud',
-          href: 'https://greatexpectations.io/cloud',
+          label: 'Request a demo',
+          href: 'https://greatexpectations.io/demo',
         },
         secondary: {
-          label: 'GX Cloud overview',
-          href: '/docs/cloud/overview/gx_cloud_overview',
+          label: 'Why GX Cloud?',
+          href: 'https://greatexpectations.io/why-gx-cloud',
         },
       },
     },
@@ -299,7 +303,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.2.4',
+              label: '1.3.1',
             },
             ['0.18']: {
               label: '0.18.21',

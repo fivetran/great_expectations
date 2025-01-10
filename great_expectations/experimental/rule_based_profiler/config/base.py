@@ -19,7 +19,7 @@ from great_expectations.experimental.rule_based_profiler.parameter_container imp
 )
 from great_expectations.types import DictDot, SerializableDictDot
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     deep_filter_properties_iterable,
     filter_properties_dict,
 )
@@ -45,7 +45,7 @@ class NotNullSchema(Schema):
 
     Reference: https://marshmallow.readthedocs.io/en/stable/extending.html
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # noinspection PyUnusedLocal
     @post_load
@@ -62,7 +62,7 @@ class NotNullSchema(Schema):
         Raises:
             NotImplementedError: If the subclass inheriting NotNullSchema fails to define a __config_class__
 
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not hasattr(self, "__config_class__"):
             raise NotImplementedError(
                 "The subclass extending NotNullSchema must define its own custom __config_class__"
@@ -88,7 +88,7 @@ class NotNullSchema(Schema):
 
         Returns:
             A cleaned dictionary that has no null values
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # noinspection PyArgumentList
         for (  # noqa: SIM118  # DictDot does not inherit from dict.
             key
@@ -119,7 +119,7 @@ class DomainBuilderConfig(SerializableDictDot):
         for k, v in kwargs.items():
             setattr(self, k, v)
             logger.debug(
-                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{self.__class__.__name__}".',  # noqa: E501
+                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{self.__class__.__name__}".',  # noqa: E501 # FIXME CoP
             )
 
     @override
@@ -130,7 +130,7 @@ class DomainBuilderConfig(SerializableDictDot):
         reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,
         due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules
         make this refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
         return serializeable_dict
@@ -143,7 +143,7 @@ class DomainBuilderConfig(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -165,7 +165,7 @@ class DomainBuilderConfig(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()
 
 
@@ -205,7 +205,7 @@ class ParameterBuilderConfig(SerializableDictDot):
         for k, v in kwargs.items():
             setattr(self, k, v)
             logger.debug(
-                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{ self.__class__.__name__}".',  # noqa: E501
+                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{ self.__class__.__name__}".',  # noqa: E501 # FIXME CoP
             )
 
     @override
@@ -216,7 +216,7 @@ class ParameterBuilderConfig(SerializableDictDot):
         reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,
         due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules
         make this refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
         return serializeable_dict
@@ -229,7 +229,7 @@ class ParameterBuilderConfig(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -251,7 +251,7 @@ class ParameterBuilderConfig(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()
 
 
@@ -307,7 +307,7 @@ class ExpectationConfigurationBuilderConfig(SerializableDictDot):
         for k, v in kwargs.items():
             setattr(self, k, v)
             logger.debug(
-                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{self.__class__.__name__}".'  # noqa: E501
+                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{self.__class__.__name__}".'  # noqa: E501 # FIXME CoP
             )
 
     @override
@@ -318,7 +318,7 @@ class ExpectationConfigurationBuilderConfig(SerializableDictDot):
         reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,
         due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules
         make this refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
         return serializeable_dict
@@ -331,7 +331,7 @@ class ExpectationConfigurationBuilderConfig(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -353,7 +353,7 @@ class ExpectationConfigurationBuilderConfig(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()
 
 
@@ -420,7 +420,7 @@ class RuleConfig(SerializableDictDot):
         reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,
         due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules
         make this refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
         return serializeable_dict
@@ -433,7 +433,7 @@ class RuleConfig(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -455,7 +455,7 @@ class RuleConfig(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()
 
 
@@ -499,7 +499,7 @@ class RuleConfigSchema(NotNullSchema):
 
 
 class RuleBasedProfilerConfig(AbstractConfig, BaseYamlConfig):
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         config_version: float,
@@ -536,7 +536,7 @@ class RuleBasedProfilerConfig(AbstractConfig, BaseYamlConfig):
 
             return config
         except ValidationError:
-            logger.error(  # noqa: TRY400
+            logger.error(  # noqa: TRY400 # FIXME CoP
                 "Encountered errors during loading config.  See ValidationError for more details."
             )
             raise
@@ -559,7 +559,7 @@ class RuleBasedProfilerConfig(AbstractConfig, BaseYamlConfig):
         reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,
         due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules
         make this refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
         return serializeable_dict
@@ -572,7 +572,7 @@ class RuleBasedProfilerConfig(AbstractConfig, BaseYamlConfig):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -594,7 +594,7 @@ class RuleBasedProfilerConfig(AbstractConfig, BaseYamlConfig):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()
 
     @classmethod
@@ -617,7 +617,7 @@ class RuleBasedProfilerConfig(AbstractConfig, BaseYamlConfig):
 
         Returns:
             An instance of RuleBasedProfilerConfig that represents the reconciled profiler.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         effective_variables: Optional[ParameterContainer] = profiler.reconcile_profiler_variables(
             variables=variables,
         )
@@ -686,7 +686,7 @@ class RuleBasedProfilerConfigSchema(AbstractConfigSchema):
     """
     Schema classes for configurations which extend from BaseYamlConfig must extend top-level Marshmallow Schema class.
     Schema classes for their constituent configurations which extend DictDot leve must extend NotNullSchema class.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     class Meta:
         unknown = INCLUDE
@@ -714,7 +714,7 @@ class RuleBasedProfilerConfigSchema(AbstractConfigSchema):
         allow_none=False,
         validate=lambda x: x == 1.0,
         error_messages={
-            "invalid": "config version is not supported; it must be 1.0 per the current version of Great Expectations"  # noqa: E501
+            "invalid": "config version is not supported; it must be 1.0 per the current version of Great Expectations"  # noqa: E501 # FIXME CoP
         },
     )
     module_name = fields.String(

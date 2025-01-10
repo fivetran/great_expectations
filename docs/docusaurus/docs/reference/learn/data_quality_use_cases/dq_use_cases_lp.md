@@ -13,7 +13,7 @@ import LinkCard from '@site/src/components/LinkCard';
 import OverviewCard from '@site/src/components/OverviewCard';
 
 <OverviewCard title={frontMatter.title}>
-  Learn how to use GX to address key data quality issues.
+  Learn how to use GX to address key data quality scenarios.
 </OverviewCard>
 
 A comprehensive data quality strategy relies on a multidimensional approach to achieving and maintaining high-quality data. GX enables you to define and validate data quality checks across a variety of data quality and observability dimensions.
@@ -21,6 +21,8 @@ A comprehensive data quality strategy relies on a multidimensional approach to a
 <LinkCardGrid>
 
   <LinkCard topIcon label="Distribution" description="Validate that data values adhere to expected ranges." to="/reference/learn/data_quality_use_cases/distribution" icon="/img/actions_icon.svg"/>
+
+  <LinkCard topIcon label="Freshness" description="Verify that data is available within expected timeframes." to="/reference/learn/data_quality_use_cases/freshness" icon="/img/actions_icon.svg"/>
 
   <LinkCard topIcon label="Integrity" description="Validate relationships and dependencies between data." to="/reference/learn/data_quality_use_cases/integrity" icon="/img/actions_icon.svg"/>
 

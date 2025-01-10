@@ -320,11 +320,12 @@ class TestSuiteParameterOptions:
     """Tests around the suite_parameter_options property of Expectations.
 
     Note: evaluation_parameter_options is currently a sorted tuple, but doesn't necessarily have to be
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     SUITE_PARAMETER_MIN = "my_min"
     SUITE_PARAMETER_MAX = "my_max"
     SUITE_PARAMETER_VALUE = "my_value"
+    SUITE_PARAMETER_MOSTLY = "my_mostly"
 
     @pytest.mark.unit
     def test_expectation_without_evaluation_parameter(self):
@@ -339,6 +340,13 @@ class TestSuiteParameterOptions:
             max_value={"$PARAMETER": self.SUITE_PARAMETER_MAX},
         )
         assert expectation.suite_parameter_options == (self.SUITE_PARAMETER_MAX,)
+
+    @pytest.mark.unit
+    def test_column_map_expectation_with_evaluation_parameter(self):
+        expectation = gxe.ExpectColumnValuesToBeNull(
+            column="foo", mostly={"$PARAMETER": self.SUITE_PARAMETER_MOSTLY}
+        )
+        assert expectation.suite_parameter_options == (self.SUITE_PARAMETER_MOSTLY,)
 
     @pytest.mark.unit
     def test_expectation_with_multiple_suite_parameters(self):

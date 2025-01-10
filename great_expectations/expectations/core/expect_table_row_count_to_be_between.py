@@ -6,12 +6,13 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Un
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -53,12 +54,11 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Volume"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VOLUME.value]
 
 
 class ExpectTableRowCountToBeBetween(BatchExpectation):
@@ -102,7 +102,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
     See Also:
         [ExpectTableRowCountToEqual](https://greatexpectations.io/expectations/expect_table_row_count_to_equal)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -113,7 +113,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -163,7 +163,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Union[int, SuiteParameterDict, datetime, None] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -292,7 +292,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
         _ = runtime_configuration.get("include_column_name") is not False
         styling = runtime_configuration.get("styling")
         params = substitute_none_for_missing(
-            configuration.kwargs,  # type: ignore[union-attr]
+            configuration.kwargs,  # type: ignore[union-attr] # FIXME CoP
             [
                 "min_value",
                 "max_value",
@@ -315,7 +315,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
             elif params["max_value"] is None:
                 template_str = f"Must have {at_least_str} $min_value rows."
             else:
-                raise ValueError("unresolvable template_str")  # noqa: TRY003
+                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME CoP
 
         return [
             RenderedStringTemplateContent(

@@ -24,9 +24,9 @@ DATA = pd.DataFrame(
         NUMBERS_COLUMN: [1, 2, 3],
         STRINGS_COLUMN: ["a", "b", "c"],
         DATES_COLUMN: [
-            datetime(2024, 1, 1).date(),  # noqa: DTZ001
-            datetime(2024, 2, 1).date(),  # noqa: DTZ001
-            datetime(2024, 3, 1).date(),  # noqa: DTZ001
+            datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 3, 1).date(),  # noqa: DTZ001 # FIXME CoP
         ],
         NULLS_COLUMN: [1, None, 3],
     },
@@ -76,9 +76,9 @@ def test_success_complete_sql(batch_for_datasource: Batch) -> None:
             gxe.ExpectColumnValuesToBeInSet(
                 column=DATES_COLUMN,
                 value_set=[
-                    datetime(2024, 1, 1).date(),  # noqa: DTZ001
-                    datetime(2024, 2, 1).date(),  # noqa: DTZ001
-                    datetime(2024, 3, 1).date(),  # noqa: DTZ001
+                    datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+                    datetime(2024, 2, 1).date(),  # noqa: DTZ001 # FIXME CoP
+                    datetime(2024, 3, 1).date(),  # noqa: DTZ001 # FIXME CoP
                 ],
             ),
             id="date_set",

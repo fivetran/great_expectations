@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Set, Union
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.domain import Domain  # noqa: TCH001
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001
+    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
@@ -31,7 +31,7 @@ class MetricSingleBatchParameterBuilder(MetricMultiBatchParameterBuilder):
     """
     A Single-Batch-only implementation for obtaining a resolved (evaluated) metric, using domain_kwargs, value_kwargs,
     and metric_name as arguments.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     exclude_field_names: ClassVar[Set[str]] = (
         MetricMultiBatchParameterBuilder.exclude_field_names
@@ -40,7 +40,7 @@ class MetricSingleBatchParameterBuilder(MetricMultiBatchParameterBuilder):
         }
     )
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         metric_name: Optional[str] = None,
@@ -68,7 +68,7 @@ class MetricSingleBatchParameterBuilder(MetricMultiBatchParameterBuilder):
             ParameterBuilder objects' outputs available (as fully-qualified parameter names) is pre-requisite.
             These "ParameterBuilder" configurations help build parameters needed for this "ParameterBuilder".
             data_context: AbstractDataContext associated with this ParameterBuilder
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().__init__(
             name=name,
             metric_name=metric_name,  # type: ignore[arg-type] # could be None
@@ -95,7 +95,7 @@ class MetricSingleBatchParameterBuilder(MetricMultiBatchParameterBuilder):
 
         Returns:
             Attributes object, containing computed parameter values and parameter computation details metadata.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # Compute metric value for one Batch object (expressed as list of Batch objects).
         super().build_parameters(
             domain=domain,

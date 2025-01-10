@@ -1,6 +1,6 @@
 {
     "title": "SparkFilesystemDatasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nSparkFilesystemDatasource is a subclass of SparkDatasource which connects to\nthe filesystem.",
     "type": "object",
     "properties": {
         "type": {

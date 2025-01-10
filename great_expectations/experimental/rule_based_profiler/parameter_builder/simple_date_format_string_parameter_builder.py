@@ -3,15 +3,15 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Union
 
-from great_expectations.core.domain import Domain  # noqa: TCH001
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
 from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.experimental.rule_based_profiler.attributed_resolved_metrics import (
-    AttributedResolvedMetrics,  # noqa: TCH001
+    AttributedResolvedMetrics,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001
+    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
@@ -19,8 +19,8 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-    MetricComputationResult,  # noqa: TCH001
-    MetricValues,  # noqa: TCH001
+    MetricComputationResult,  # noqa: TCH001 # FIXME CoP
+    MetricValues,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import ParameterBuilder
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
@@ -106,9 +106,9 @@ class SimpleDateFormatStringParameterBuilder(ParameterBuilder):
     Detects the domain date format from a set of candidate date format strings by computing the
     column_values.match_strftime_format.unexpected_count metric for each candidate format and returning the format that
     has the lowest unexpected_count ratio.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         metric_domain_kwargs: Optional[Union[str, dict]] = None,
@@ -132,7 +132,7 @@ class SimpleDateFormatStringParameterBuilder(ParameterBuilder):
             ParameterBuilder objects' outputs available (as fully-qualified parameter names) is pre-requisite.
             These "ParameterBuilder" configurations help build parameters needed for this "ParameterBuilder".
             data_context: AbstractDataContext associated with this ParameterBuilder
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().__init__(
             name=name,
             suite_parameter_builder_configs=suite_parameter_builder_configs,
@@ -186,7 +186,7 @@ class SimpleDateFormatStringParameterBuilder(ParameterBuilder):
 
         Returns:
             Attributes object, containing computed parameter values and parameter computation details metadata.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         metric_computation_result: MetricComputationResult
 
         metric_computation_result = self.get_metrics(
@@ -205,7 +205,7 @@ class SimpleDateFormatStringParameterBuilder(ParameterBuilder):
         # This should never happen.
         if len(metric_computation_result.attributed_resolved_metrics) != 1:
             raise ProfilerExecutionError(
-                message=f'Result of metric computations for {self.__class__.__name__} must be a list with exactly 1 element of type "AttributedResolvedMetrics" ({metric_computation_result.attributed_resolved_metrics} found).'  # noqa: E501
+                message=f'Result of metric computations for {self.__class__.__name__} must be a list with exactly 1 element of type "AttributedResolvedMetrics" ({metric_computation_result.attributed_resolved_metrics} found).'  # noqa: E501 # FIXME CoP
             )
 
         attributed_resolved_metrics: AttributedResolvedMetrics
@@ -221,12 +221,12 @@ class SimpleDateFormatStringParameterBuilder(ParameterBuilder):
                 message=f"Result of metric computations for {self.__class__.__name__} is empty."
             )
 
-        # Now obtain 1-dimensional vector of values of computed metric (each element corresponds to a Batch ID).  # noqa: E501
+        # Now obtain 1-dimensional vector of values of computed metric (each element corresponds to a Batch ID).  # noqa: E501 # FIXME CoP
         metric_values = metric_values[:, 0]
 
         nonnull_count: int = sum(metric_values)
 
-        # Obtain candidate_strings from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain candidate_strings from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         candidate_strings: Union[
             List[str],
             Set[str],
@@ -255,7 +255,7 @@ class SimpleDateFormatStringParameterBuilder(ParameterBuilder):
 
             match_strftime_metric_value_kwargs_list.append(match_strftime_metric_value_kwargs)
 
-        # Obtain resolved metrics and metadata for all metric configurations and available Batch objects simultaneously.  # noqa: E501
+        # Obtain resolved metrics and metadata for all metric configurations and available Batch objects simultaneously.  # noqa: E501 # FIXME CoP
         metric_computation_result = self.get_metrics(
             metric_name=f"column_values.match_strftime_format.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
             metric_domain_kwargs=self.metric_domain_kwargs,
@@ -272,7 +272,7 @@ class SimpleDateFormatStringParameterBuilder(ParameterBuilder):
         format_string_success_ratios: dict = {}
 
         for attributed_resolved_metrics in metric_computation_result.attributed_resolved_metrics:
-            # Now obtain 1-dimensional vector of values of computed metric (each element corresponds to a Batch ID).  # noqa: E501
+            # Now obtain 1-dimensional vector of values of computed metric (each element corresponds to a Batch ID).  # noqa: E501 # FIXME CoP
             metric_values = attributed_resolved_metrics.conditioned_metric_values[:, 0]
 
             match_strftime_unexpected_count: int = sum(metric_values)
@@ -283,7 +283,7 @@ class SimpleDateFormatStringParameterBuilder(ParameterBuilder):
                 attributed_resolved_metrics.metric_attributes["strftime_format"]
             ] = success_ratio
 
-        # Obtain threshold from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain threshold from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         threshold: float = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=self.threshold,

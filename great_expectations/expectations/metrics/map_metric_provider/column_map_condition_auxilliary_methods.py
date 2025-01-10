@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501 # FIXME CoP
     _is_sqlalchemy_metric_selectable,
 )
 
@@ -47,7 +47,7 @@ def _pandas_column_map_condition_values(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> list[dict]:
-    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     (
         boolean_mapped_unexpected_values,
         compute_domain_kwargs,
@@ -55,10 +55,10 @@ def _pandas_column_map_condition_values(
     ) = metrics["unexpected_condition"]
 
     if "column" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             """No "column" found in provided metric_domain_kwargs, but it is required for a column map metric
 (_pandas_column_map_condition_values).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -84,7 +84,7 @@ def _pandas_column_map_condition_values(
     domain_values = df[column_name]
 
     domain_values = domain_values[
-        boolean_mapped_unexpected_values == True  # noqa: E712
+        boolean_mapped_unexpected_values == True  # noqa: E712 # FIXME CoP
     ]
 
     result_format = metric_value_kwargs["result_format"]
@@ -112,10 +112,10 @@ def _pandas_column_map_condition_value_counts(
     ) = metrics["unexpected_condition"]
 
     if "column" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             """No "column" found in provided metric_domain_kwargs, but it is required for a column map metric
 (_pandas_column_map_condition_value_counts).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -153,7 +153,7 @@ def _pandas_column_map_condition_value_counts(
             pass
 
     if not value_counts:
-        raise gx_exceptions.MetricComputationError("Unable to compute value counts")  # noqa: TRY003
+        raise gx_exceptions.MetricComputationError("Unable to compute value counts")  # noqa: TRY003 # FIXME CoP
 
     if result_format["result_format"] == "COMPLETE":
         return value_counts
@@ -172,16 +172,16 @@ def _sqlalchemy_column_map_condition_values(
     """
     Particularly for the purpose of finding unexpected values, returns all the metric values which do not meet an
     expected Expectation condition for ColumnMapExpectation Expectations.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     unexpected_condition, compute_domain_kwargs, accessor_domain_kwargs = metrics[
         "unexpected_condition"
     ]
 
     if "column" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             """No "column" found in provided metric_domain_kwargs, but it is required for a column map metric
 (_sqlalchemy_column_map_condition_values).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -193,12 +193,12 @@ def _sqlalchemy_column_map_condition_values(
 
     selectable = execution_engine.get_domain_records(domain_kwargs=compute_domain_kwargs)
 
-    query = sa.select(sa.column(column_name).label("unexpected_values")).where(unexpected_condition)  # type: ignore[var-annotated]
+    query = sa.select(sa.column(column_name).label("unexpected_values")).where(unexpected_condition)  # type: ignore[var-annotated] # FIXME CoP
     if not _is_sqlalchemy_metric_selectable(map_metric_provider=cls):
         if hasattr(selectable, "subquery"):
             query = query.select_from(selectable.subquery())
         else:
-            query = query.select_from(selectable)  # type: ignore[arg-type]
+            query = query.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     result_format = metric_value_kwargs["result_format"]
 
@@ -231,16 +231,16 @@ def _sqlalchemy_column_map_condition_value_counts(
     """
     Returns value counts for all the metric values which do not meet an expected Expectation condition for instances
     of ColumnMapExpectation.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     unexpected_condition, compute_domain_kwargs, accessor_domain_kwargs = metrics[
         "unexpected_condition"
     ]
 
     if "column" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             """No "column" found in provided metric_domain_kwargs, but it is required for a column map metric
 (_sqlalchemy_column_map_condition_value_counts).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -250,13 +250,13 @@ def _sqlalchemy_column_map_condition_value_counts(
 
     column_name: Union[str, sqlalchemy.quoted_name] = accessor_domain_kwargs["column"]
 
-    column: sa.Column = sa.column(column_name)  # type: ignore[assignment]
+    column: sa.Column = sa.column(column_name)  # type: ignore[assignment] # FIXME CoP
 
     selectable = execution_engine.get_domain_records(domain_kwargs=compute_domain_kwargs)
 
     query = sa.select(column, sa.func.count(column)).where(unexpected_condition).group_by(column)
     if not _is_sqlalchemy_metric_selectable(map_metric_provider=cls):
-        query = query.select_from(selectable)  # type: ignore[arg-type]
+        query = query.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     return execution_engine.execute_query(query).fetchall()
 
@@ -269,16 +269,16 @@ def _spark_column_map_condition_values(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> list[dict]:
-    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     unexpected_condition, compute_domain_kwargs, accessor_domain_kwargs = metrics[
         "unexpected_condition"
     ]
 
     if "column" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             """No "column" found in provided metric_domain_kwargs, but it is required for a column map metric
 (_spark_column_map_condition_values).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -292,7 +292,7 @@ def _spark_column_map_condition_values(
 
     # withColumn is required to transform window functions returned by some metrics to boolean mask
     data = df.withColumn("__unexpected", unexpected_condition)
-    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712
+    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712 # FIXME CoP
         F.col("__unexpected")
     )
 
@@ -322,10 +322,10 @@ def _spark_column_map_condition_value_counts(
     ]
 
     if "column" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             """No "column" found in provided metric_domain_kwargs, but it is required for a column map metric
 (_spark_column_map_condition_value_counts).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -339,7 +339,7 @@ def _spark_column_map_condition_value_counts(
 
     # withColumn is required to transform window functions returned by some metrics to boolean mask
     data = df.withColumn("__unexpected", unexpected_condition)
-    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712
+    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712 # FIXME CoP
         F.col("__unexpected")
     )
 

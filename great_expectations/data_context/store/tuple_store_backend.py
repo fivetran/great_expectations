@@ -27,9 +27,9 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
 
     For example, in the following template path: expectations/{0}/{1}/{2}/prefix-{2}.json, keys must have
     three components.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         filepath_template=None,
         filepath_prefix=None,
@@ -54,7 +54,7 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
         self.platform_specific_separator = platform_specific_separator
 
         if filepath_template is not None and filepath_suffix is not None:
-            raise ValueError("filepath_suffix may only be used when filepath_template is None")  # noqa: TRY003
+            raise ValueError("filepath_suffix may only be used when filepath_template is None")  # noqa: TRY003 # FIXME CoP
 
         self.filepath_template = filepath_template
         if filepath_prefix and len(filepath_prefix) > 0:
@@ -89,15 +89,15 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
         for key_element in key:
             for substring in self.forbidden_substrings:
                 if substring in key_element:
-                    raise ValueError(  # noqa: TRY003
-                        f"Keys in {self.__class__.__name__} must not contain substrings in {self.forbidden_substrings} : {key}"  # noqa: E501
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
+                        f"Keys in {self.__class__.__name__} must not contain substrings in {self.forbidden_substrings} : {key}"  # noqa: E501 # FIXME CoP
                     )
 
     @override
     def _validate_value(self, value) -> None:
         if not isinstance(value, str) and not isinstance(value, bytes):
-            raise TypeError(  # noqa: TRY003
-                f"Values in {self.__class__.__name__} must be instances of {str} or {bytes}, not {type(value)}"  # noqa: E501
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
+                f"Values in {self.__class__.__name__} must be instances of {str} or {bytes}, not {type(value)}"  # noqa: E501 # FIXME CoP
             )
 
     def _convert_key_to_filepath(self, key):
@@ -122,7 +122,7 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
 
         return converted_string
 
-    def _convert_filepath_to_key(self, filepath):  # noqa: C901, PLR0912
+    def _convert_filepath_to_key(self, filepath):  # noqa: C901, PLR0912 # FIXME CoP
         if filepath == self.STORE_BACKEND_ID_KEY[0]:
             return self.STORE_BACKEND_ID_KEY
         if self.platform_specific_separator:
@@ -133,9 +133,9 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
                 not filepath.startswith(self.filepath_prefix)
                 and len(filepath) >= len(self.filepath_prefix) + 1
             ):
-                # If filepath_prefix is set, we expect that it is the first component of a valid filepath.  # noqa: E501
-                raise ValueError(  # noqa: TRY003
-                    "filepath must start with the filepath_prefix when one is set by the store_backend"  # noqa: E501
+                # If filepath_prefix is set, we expect that it is the first component of a valid filepath.  # noqa: E501 # FIXME CoP
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
+                    "filepath must start with the filepath_prefix when one is set by the store_backend"  # noqa: E501 # FIXME CoP
                 )
             else:
                 # Remove the prefix before processing
@@ -144,9 +144,9 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
 
         if self.filepath_suffix:
             if not filepath.endswith(self.filepath_suffix):
-                # If filepath_suffix is set, we expect that it is the last component of a valid filepath.  # noqa: E501
-                raise ValueError(  # noqa: TRY003
-                    "filepath must end with the filepath_suffix when one is set by the store_backend"  # noqa: E501
+                # If filepath_suffix is set, we expect that it is the last component of a valid filepath.  # noqa: E501 # FIXME CoP
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
+                    "filepath must end with the filepath_suffix when one is set by the store_backend"  # noqa: E501 # FIXME CoP
                 )
             else:
                 # Remove the suffix before processing
@@ -154,9 +154,9 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
 
         if self.filepath_template:
             # filepath_template is always specified with forward slashes, but it is then
-            # used to (1) dynamically construct and evaluate a regex, and (2) split the provided (observed) filepath  # noqa: E501
+            # used to (1) dynamically construct and evaluate a regex, and (2) split the provided (observed) filepath  # noqa: E501 # FIXME CoP
             if self.platform_specific_separator:
-                filepath_template = os.path.join(  # noqa: PTH118
+                filepath_template = os.path.join(  # noqa: PTH118 # FIXME CoP
                     *self.filepath_template.split("/")
                 )
                 filepath_template = filepath_template.replace("\\", "\\\\")
@@ -203,15 +203,15 @@ class TupleStoreBackend(StoreBackend, metaclass=ABCMeta):
         filepath = self._convert_key_to_filepath(key)
         new_key = self._convert_filepath_to_key(filepath)
         if key != new_key:
-            raise ValueError(  # noqa: TRY003
-                f"filepath template {self.filepath_template} for class {self.__class__.__name__} is not reversible for a tuple of length {self.key_length}. "  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"filepath template {self.filepath_template} for class {self.__class__.__name__} is not reversible for a tuple of length {self.key_length}. "  # noqa: E501 # FIXME CoP
                 "Have you included all elements in the key tuple?"
             )
 
     @property
     @override
     def config(self) -> dict:
-        return self._config  # type: ignore[attr-defined]
+        return self._config  # type: ignore[attr-defined] # FIXME CoP
 
 
 class TupleFilesystemStoreBackend(TupleStoreBackend):
@@ -220,9 +220,9 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
     The key to this StoreBackend must be a tuple with fixed length based on the filepath_template,
     or a variable-length tuple may be used and returned with an optional filepath_suffix (to be) added.
     The filepath_template is a string template used to convert the key to a filepath.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         base_directory,
         filepath_template=None,
@@ -249,32 +249,32 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
             base_public_path=base_public_path,
             store_name=store_name,
         )
-        if os.path.isabs(base_directory):  # noqa: PTH117
+        if os.path.isabs(base_directory):  # noqa: PTH117 # FIXME CoP
             self.full_base_directory = base_directory
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if root_directory is None:
-                raise ValueError(  # noqa: TRY003
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
                     "base_directory must be an absolute path if root_directory is not provided"
                 )
-            elif not os.path.isabs(root_directory):  # noqa: PTH117
-                raise ValueError(  # noqa: TRY003
+            elif not os.path.isabs(root_directory):  # noqa: PTH117 # FIXME CoP
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
                     f"root_directory must be an absolute path. Got {root_directory} instead."
                 )
             else:
-                self.full_base_directory = os.path.join(  # noqa: PTH118
+                self.full_base_directory = os.path.join(  # noqa: PTH118 # FIXME CoP
                     root_directory, base_directory
                 )
 
-        os.makedirs(  # noqa: PTH103
-            str(os.path.dirname(self.full_base_directory)),  # noqa: PTH120
+        os.makedirs(  # noqa: PTH103 # FIXME CoP
+            str(os.path.dirname(self.full_base_directory)),  # noqa: PTH120 # FIXME CoP
             exist_ok=True,
         )
         # Initialize with store_backend_id if not part of an HTMLSiteStore
         if not self._suppress_store_backend_id:
             _ = self.store_backend_id
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "base_directory": base_directory,
             "filepath_template": filepath_template,
@@ -294,15 +294,15 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
         filter_properties_dict(properties=self._config, clean_falsy=True, inplace=True)
 
     def _get(self, key):  # type: ignore[explicit-override] # FIXME
-        filepath: str = os.path.join(  # noqa: PTH118
+        filepath: str = os.path.join(  # noqa: PTH118 # FIXME CoP
             self.full_base_directory, self._convert_key_to_filepath(key)
         )
         try:
             with open(filepath) as infile:
                 contents: str = infile.read().rstrip("\n")
         except FileNotFoundError as e:
-            raise InvalidKeyError(  # noqa: TRY003
-                f"Unable to retrieve object from TupleFilesystemStoreBackend with the following Key: {filepath!s}"  # noqa: E501
+            raise InvalidKeyError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to retrieve object from TupleFilesystemStoreBackend with the following Key: {filepath!s}"  # noqa: E501 # FIXME CoP
             ) from e
 
         return contents
@@ -315,12 +315,12 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
     def _set(self, key, value, **kwargs):  # type: ignore[explicit-override] # FIXME
         if not isinstance(key, tuple):
             key = key.to_tuple()
-        filepath = os.path.join(  # noqa: PTH118
+        filepath = os.path.join(  # noqa: PTH118 # FIXME CoP
             self.full_base_directory, self._convert_key_to_filepath(key)
         )
         path, _filename = os.path.split(filepath)
 
-        os.makedirs(str(path), exist_ok=True)  # noqa: PTH103
+        os.makedirs(str(path), exist_ok=True)  # noqa: PTH103 # FIXME CoP
         with open(filepath, "wb") as outfile:
             if isinstance(value, str):
                 outfile.write(value.encode("utf-8"))
@@ -329,17 +329,17 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
         return filepath
 
     def _move(self, source_key, dest_key, **kwargs):  # type: ignore[explicit-override] # FIXME
-        source_path = os.path.join(  # noqa: PTH118
+        source_path = os.path.join(  # noqa: PTH118 # FIXME CoP
             self.full_base_directory, self._convert_key_to_filepath(source_key)
         )
 
-        dest_path = os.path.join(  # noqa: PTH118
+        dest_path = os.path.join(  # noqa: PTH118 # FIXME CoP
             self.full_base_directory, self._convert_key_to_filepath(dest_key)
         )
         dest_dir, _dest_filename = os.path.split(dest_path)
 
-        if os.path.exists(source_path):  # noqa: PTH110
-            os.makedirs(dest_dir, exist_ok=True)  # noqa: PTH103
+        if os.path.exists(source_path):  # noqa: PTH110 # FIXME CoP
+            os.makedirs(dest_dir, exist_ok=True)  # noqa: PTH103 # FIXME CoP
             shutil.move(source_path, dest_path)
             return dest_key
 
@@ -349,11 +349,11 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
     def list_keys(self, prefix: Tuple = ()) -> List[Tuple]:
         key_list = []
         for root, dirs, files in os.walk(
-            os.path.join(self.full_base_directory, *prefix)  # noqa: PTH118
+            os.path.join(self.full_base_directory, *prefix)  # noqa: PTH118 # FIXME CoP
         ):
             for file_ in files:
                 full_path, file_name = os.path.split(
-                    os.path.join(root, file_)  # noqa: PTH118
+                    os.path.join(root, file_)  # noqa: PTH118 # FIXME CoP
                 )
                 relative_path = os.path.relpath(
                     full_path,
@@ -362,7 +362,7 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
                 if relative_path == ".":
                     filepath = file_name
                 else:
-                    filepath = os.path.join(relative_path, file_name)  # noqa: PTH118
+                    filepath = os.path.join(relative_path, file_name)  # noqa: PTH118 # FIXME CoP
 
                 if self._is_missing_prefix_or_suffix(
                     filepath_prefix=self.filepath_prefix,
@@ -383,11 +383,11 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
         try:
             while (
                 not os.listdir(curpath)
-                and os.path.exists(curpath)  # noqa: PTH110
+                and os.path.exists(curpath)  # noqa: PTH110 # FIXME CoP
                 and mroot != curpath
             ):
-                f2 = os.path.dirname(curpath)  # noqa: PTH120
-                os.rmdir(curpath)  # noqa: PTH106
+                f2 = os.path.dirname(curpath)  # noqa: PTH120 # FIXME CoP
+                os.rmdir(curpath)  # noqa: PTH106 # FIXME CoP
                 curpath = f2
         except (NotADirectoryError, FileNotFoundError):
             pass
@@ -396,13 +396,13 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
         if not isinstance(key, tuple):
             key = key.to_tuple()
 
-        filepath = os.path.join(  # noqa: PTH118
+        filepath = os.path.join(  # noqa: PTH118 # FIXME CoP
             self.full_base_directory, self._convert_key_to_filepath(key)
         )
 
-        if os.path.exists(filepath):  # noqa: PTH110
-            d_path = os.path.dirname(filepath)  # noqa: PTH120
-            os.remove(filepath)  # noqa: PTH107
+        if os.path.exists(filepath):  # noqa: PTH110 # FIXME CoP
+            d_path = os.path.dirname(filepath)  # noqa: PTH120 # FIXME CoP
+            os.remove(filepath)  # noqa: PTH107 # FIXME CoP
             self.rrmdir(self.full_base_directory, d_path)
             return True
         return False
@@ -411,7 +411,7 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
     def get_url_for_key(self, key, protocol=None) -> str:
         path = self._convert_key_to_filepath(key)
         escaped_path = self._url_path_escape_special_characters(path=path)
-        full_path = os.path.join(self.full_base_directory, escaped_path)  # noqa: PTH118
+        full_path = os.path.join(self.full_base_directory, escaped_path)  # noqa: PTH118 # FIXME CoP
 
         if protocol is None:
             protocol = "file:"
@@ -420,18 +420,18 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
 
     def get_public_url_for_key(self, key, protocol=None):
         if not self.base_public_path:
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 """Error: No base_public_path was configured!
                     - A public URL was requested base_public_path was not configured for the TupleFilesystemStoreBackend
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
             )
         path = self._convert_key_to_filepath(key)
         public_url = self.base_public_path + path
         return public_url
 
     def _has_key(self, key):  # type: ignore[explicit-override] # FIXME
-        return os.path.isfile(  # noqa: PTH113
-            os.path.join(  # noqa: PTH118
+        return os.path.isfile(  # noqa: PTH113 # FIXME CoP
+            os.path.join(  # noqa: PTH118 # FIXME CoP
                 self.full_base_directory, self._convert_key_to_filepath(key)
             )
         )
@@ -449,9 +449,9 @@ class TupleS3StoreBackend(TupleStoreBackend):
     The key to this StoreBackend must be a tuple with fixed length based on the filepath_template,
     or a variable-length tuple may be used and returned with an optional filepath_suffix (to be) added.
     The filepath_template is a string template used to convert the key to a filepath.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         bucket,
         prefix="",
@@ -501,8 +501,8 @@ class TupleS3StoreBackend(TupleStoreBackend):
         if not self._suppress_store_backend_id:
             _ = self.store_backend_id
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "bucket": bucket,
             "prefix": prefix,
@@ -527,12 +527,12 @@ class TupleS3StoreBackend(TupleStoreBackend):
     def _build_s3_object_key(self, key):
         if self.platform_specific_separator:
             if self.prefix:
-                s3_object_key = os.path.join(  # noqa: PTH118
+                s3_object_key = os.path.join(  # noqa: PTH118 # FIXME CoP
                     self.prefix, self._convert_key_to_filepath(key)
                 )
             else:
                 s3_object_key = self._convert_key_to_filepath(key)
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if self.prefix:
                 s3_object_key = "/".join((self.prefix, self._convert_key_to_filepath(key)))
             else:
@@ -561,8 +561,8 @@ class TupleS3StoreBackend(TupleStoreBackend):
         try:
             s3_response_object = s3_client.get_object(Bucket=self.bucket, Key=s3_object_key)
         except (s3_client.exceptions.NoSuchKey, s3_client.exceptions.NoSuchBucket) as e:
-            raise InvalidKeyError(  # noqa: TRY003
-                f"Unable to retrieve object from TupleS3StoreBackend with the following Key: {s3_object_key!s}"  # noqa: E501
+            raise InvalidKeyError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to retrieve object from TupleS3StoreBackend with the following Key: {s3_object_key!s}"  # noqa: E501 # FIXME CoP
             ) from e
 
         return (
@@ -596,7 +596,7 @@ class TupleS3StoreBackend(TupleStoreBackend):
                 result_s3.put(Body=value, ContentType=content_type, **self.s3_put_options)
         except s3.meta.client.exceptions.ClientError as e:
             logger.debug(str(e))
-            raise StoreBackendError("Unable to set object in s3.") from e  # noqa: TRY003
+            raise StoreBackendError("Unable to set object in s3.") from e  # noqa: TRY003 # FIXME CoP
 
         return s3_object_key
 
@@ -606,18 +606,18 @@ class TupleS3StoreBackend(TupleStoreBackend):
 
         source_filepath = self._convert_key_to_filepath(source_key)
         if not source_filepath.startswith(self.prefix):
-            source_filepath = os.path.join(self.prefix, source_filepath)  # noqa: PTH118
+            source_filepath = os.path.join(self.prefix, source_filepath)  # noqa: PTH118 # FIXME CoP
         dest_filepath = self._convert_key_to_filepath(dest_key)
         if not dest_filepath.startswith(self.prefix):
-            dest_filepath = os.path.join(self.prefix, dest_filepath)  # noqa: PTH118
+            dest_filepath = os.path.join(self.prefix, dest_filepath)  # noqa: PTH118 # FIXME CoP
 
         s3.Bucket(self.bucket).copy({"Bucket": self.bucket, "Key": source_filepath}, dest_filepath)
 
         s3.Object(self.bucket, source_filepath).delete()
 
     @override
-    def list_keys(self, prefix: Tuple = ()) -> List[Tuple]:  # noqa: C901 - too complex
-        # Note that the prefix arg is only included to maintain consistency with the parent class signature  # noqa: E501
+    def list_keys(self, prefix: Tuple = ()) -> List[Tuple]:  # noqa: C901 #  too complex
+        # Note that the prefix arg is only included to maintain consistency with the parent class signature  # noqa: E501 # FIXME CoP
         s3r = self._create_resource()
         bucket = s3r.Bucket(self.bucket)
         key_list = []
@@ -629,11 +629,11 @@ class TupleS3StoreBackend(TupleStoreBackend):
             s3_object_key = s3_object_info.key
             if self.platform_specific_separator:
                 s3_object_key = os.path.relpath(s3_object_key, self.prefix)
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if self.prefix is None:
                     if s3_object_key.startswith("/"):
                         s3_object_key = s3_object_key[1:]
-                else:  # noqa: PLR5501
+                else:  # noqa: PLR5501 # FIXME CoP
                     if s3_object_key.startswith(f"{self.prefix}/"):
                         s3_object_key = s3_object_key[len(self.prefix) + 1 :]
 
@@ -673,7 +673,7 @@ class TupleS3StoreBackend(TupleStoreBackend):
 
     def get_public_url_for_key(self, key, protocol=None):
         if not self.base_public_path:
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 """Error: No base_public_path was configured!
                     - A public URL was requested base_public_path was not configured for the
                 """
@@ -695,7 +695,7 @@ class TupleS3StoreBackend(TupleStoreBackend):
 
         # Check if the object exists
         if self.has_key(key):
-            # This implementation deletes the object if non-versioned or adds a delete marker if versioned  # noqa: E501
+            # This implementation deletes the object if non-versioned or adds a delete marker if versioned  # noqa: E501 # FIXME CoP
             s3.Object(self.bucket, s3_object_key).delete()
             return True
         else:
@@ -751,9 +751,9 @@ class TupleGCSStoreBackend(TupleStoreBackend):
     or a variable-length tuple may be used and returned with an optional filepath_suffix (to be) added.
 
     The filepath_template is a string template used to convert the key to a filepath.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         bucket,
         project,
@@ -790,8 +790,8 @@ class TupleGCSStoreBackend(TupleStoreBackend):
         if not self._suppress_store_backend_id:
             _ = self.store_backend_id
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "bucket": bucket,
             "project": project,
@@ -815,12 +815,12 @@ class TupleGCSStoreBackend(TupleStoreBackend):
     def _build_gcs_object_key(self, key):
         if self.platform_specific_separator:
             if self.prefix:
-                gcs_object_key = os.path.join(  # noqa: PTH118
+                gcs_object_key = os.path.join(  # noqa: PTH118 # FIXME CoP
                     self.prefix, self._convert_key_to_filepath(key)
                 )
             else:
                 gcs_object_key = self._convert_key_to_filepath(key)
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if self.prefix:
                 gcs_object_key = "/".join((self.prefix, self._convert_key_to_filepath(key)))
             else:
@@ -850,8 +850,8 @@ class TupleGCSStoreBackend(TupleStoreBackend):
         gcs_object_key = self._build_gcs_object_key(key)
         gcs_response_object = bucket.get_blob(gcs_object_key)
         if not gcs_response_object:
-            raise InvalidKeyError(  # noqa: TRY003
-                f"Unable to retrieve object from TupleGCSStoreBackend with the following Key: {key!s}"  # noqa: E501
+            raise InvalidKeyError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to retrieve object from TupleGCSStoreBackend with the following Key: {key!s}"  # noqa: E501 # FIXME CoP
             )
         else:
             return gcs_response_object.download_as_bytes().decode("utf-8")
@@ -888,17 +888,17 @@ class TupleGCSStoreBackend(TupleStoreBackend):
 
         source_filepath = self._convert_key_to_filepath(source_key)
         if not source_filepath.startswith(self.prefix):
-            source_filepath = os.path.join(self.prefix, source_filepath)  # noqa: PTH118
+            source_filepath = os.path.join(self.prefix, source_filepath)  # noqa: PTH118 # FIXME CoP
         dest_filepath = self._convert_key_to_filepath(dest_key)
         if not dest_filepath.startswith(self.prefix):
-            dest_filepath = os.path.join(self.prefix, dest_filepath)  # noqa: PTH118
+            dest_filepath = os.path.join(self.prefix, dest_filepath)  # noqa: PTH118 # FIXME CoP
 
         blob = bucket.blob(source_filepath)
         _ = bucket.rename_blob(blob, dest_filepath)
 
     @override
     def list_keys(self, prefix: Tuple = ()) -> List[Tuple]:
-        # Note that the prefix arg is only included to maintain consistency with the parent class signature  # noqa: E501
+        # Note that the prefix arg is only included to maintain consistency with the parent class signature  # noqa: E501 # FIXME CoP
         key_list = []
 
         from great_expectations.compatibility import google
@@ -937,7 +937,7 @@ class TupleGCSStoreBackend(TupleStoreBackend):
 
     def get_public_url_for_key(self, key, protocol=None):
         if not self.base_public_path:
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 """Error: No base_public_path was configured!
                     - A public URL was requested base_public_path was not configured for the
                 """
@@ -950,7 +950,7 @@ class TupleGCSStoreBackend(TupleStoreBackend):
     def _get_path_url(self, path):
         if self.prefix:
             path_url = "/".join((self.bucket, self.prefix, path))
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if self.base_public_path:
                 if self.base_public_path[-1] != "/":
                     path_url = f"/{path}"
@@ -986,10 +986,10 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
 
     You need to setup the connection string environment variable
     https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # We will use blobclient here
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         container,
         connection_string=None,
@@ -1017,15 +1017,15 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
             manually_initialize_store_backend_id=manually_initialize_store_backend_id,
             store_name=store_name,
         )
-        self.connection_string = connection_string or os.environ.get(  # noqa: TID251
+        self.connection_string = connection_string or os.environ.get(  # noqa: TID251 # FIXME CoP
             "AZURE_STORAGE_CONNECTION_STRING"
         )
-        self.credential = credential or os.environ.get(  # noqa: TID251
+        self.credential = credential or os.environ.get(  # noqa: TID251 # FIXME CoP
             "AZURE_CREDENTIAL"
         )
         self.prefix = prefix or ""
         self.container = container
-        self.account_url = account_url or os.environ.get(  # noqa: TID251
+        self.account_url = account_url or os.environ.get(  # noqa: TID251 # FIXME CoP
             "AZURE_STORAGE_ACCOUNT_URL"
         )
 
@@ -1034,7 +1034,7 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
     def _container_client(self) -> Any:
         from great_expectations.compatibility import azure
 
-        # Validate that "azure" libraries were successfully imported and attempt to create "azure_client" handle.  # noqa: E501
+        # Validate that "azure" libraries were successfully imported and attempt to create "azure_client" handle.  # noqa: E501 # FIXME CoP
         if azure.BlobServiceClient:  # type: ignore[truthy-function] # False if NotImported
             try:
                 if self.connection_string:
@@ -1051,23 +1051,23 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
                         account_url=self.account_url, credential=self.credential
                     )
                 else:
-                    raise StoreBackendError(  # noqa: TRY003, TRY301
-                        "Unable to initialize ServiceClient, AZURE_STORAGE_CONNECTION_STRING should be set"  # noqa: E501
+                    raise StoreBackendError(  # noqa: TRY003, TRY301 # FIXME CoP
+                        "Unable to initialize ServiceClient, AZURE_STORAGE_CONNECTION_STRING should be set"  # noqa: E501 # FIXME CoP
                     )
             except Exception as e:
-                # Failure to create "azure_client" is most likely due invalid "azure_options" dictionary.  # noqa: E501
-                raise StoreBackendError(  # noqa: TRY003
+                # Failure to create "azure_client" is most likely due invalid "azure_options" dictionary.  # noqa: E501 # FIXME CoP
+                raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                     f'Due to exception: "{e!s}", "azure_client" could not be created.'
                 ) from e
         else:
-            raise StoreBackendError(  # noqa: TRY003
-                'Unable to create azure "BlobServiceClient" due to missing azure.storage.blob dependency.'  # noqa: E501
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                'Unable to create azure "BlobServiceClient" due to missing azure.storage.blob dependency.'  # noqa: E501 # FIXME CoP
             )
 
         return blob_service_client.get_container_client(self.container)
 
     def _get(self, key):  # type: ignore[explicit-override] # FIXME
-        az_blob_key = os.path.join(  # noqa: PTH118
+        az_blob_key = os.path.join(  # noqa: PTH118 # FIXME CoP
             self.prefix, self._convert_key_to_filepath(key)
         )
         return self._container_client.download_blob(az_blob_key).readall().decode("utf-8")
@@ -1080,7 +1080,7 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
     def _set(self, key, value, content_encoding="utf-8", **kwargs):  # type: ignore[explicit-override] # FIXME
         from great_expectations.compatibility.azure import ContentSettings
 
-        az_blob_key = os.path.join(  # noqa: PTH118
+        az_blob_key = os.path.join(  # noqa: PTH118 # FIXME CoP
             self.prefix, self._convert_key_to_filepath(key)
         )
 
@@ -1107,7 +1107,7 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
 
     @override
     def list_keys(self, prefix: Tuple = ()) -> List[Tuple]:
-        # Note that the prefix arg is only included to maintain consistency with the parent class signature  # noqa: E501
+        # Note that the prefix arg is only included to maintain consistency with the parent class signature  # noqa: E501 # FIXME CoP
         key_list = []
 
         for obj in self._container_client.list_blobs(name_starts_with=self.prefix):
@@ -1129,7 +1129,7 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
     @override
     def get_url_for_key(self, key, protocol=None) -> str:
         az_blob_key = self._convert_key_to_filepath(key)
-        az_blob_path = os.path.join(  # noqa: PTH118
+        az_blob_path = os.path.join(  # noqa: PTH118 # FIXME CoP
             self.container, self.prefix, az_blob_key
         )
 
@@ -1143,12 +1143,12 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
     def _move(self, source_key, dest_key, **kwargs) -> None:
         source_blob_path = self._convert_key_to_filepath(source_key)
         if not source_blob_path.startswith(self.prefix):
-            source_blob_path = os.path.join(  # noqa: PTH118
+            source_blob_path = os.path.join(  # noqa: PTH118 # FIXME CoP
                 self.prefix, source_blob_path
             )
         dest_blob_path = self._convert_key_to_filepath(dest_key)
         if not dest_blob_path.startswith(self.prefix):
-            dest_blob_path = os.path.join(self.prefix, dest_blob_path)  # noqa: PTH118
+            dest_blob_path = os.path.join(self.prefix, dest_blob_path)  # noqa: PTH118 # FIXME CoP
 
         # azure storage sdk does not have _move method
         source_blob = self._container_client.get_blob_client(source_blob_path)
@@ -1159,7 +1159,7 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
 
         if copy_properties.status != "success":
             dest_blob.abort_copy(copy_properties.id)
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to copy blob {source_blob_path} with status {copy_properties.status}"
             )
         source_blob.delete_blob()
@@ -1170,7 +1170,7 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
 
         az_blob_path = self._convert_key_to_filepath(key)
         if not az_blob_path.startswith(self.prefix):
-            az_blob_path = os.path.join(self.prefix, az_blob_path)  # noqa: PTH118
+            az_blob_path = os.path.join(self.prefix, az_blob_path)  # noqa: PTH118 # FIXME CoP
 
         blob = self._container_client.get_blob_client(az_blob_path)
         blob.delete_blob()
@@ -1179,4 +1179,4 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
     @property
     @override
     def config(self) -> dict:
-        return self._config  # type: ignore[attr-defined]
+        return self._config  # type: ignore[attr-defined] # FIXME CoP

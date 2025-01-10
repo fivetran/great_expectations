@@ -32,7 +32,7 @@ Within the `examples` defined inside your Expectation class, the optional `only_
 ```python title="Python" name="docs/docusaurus/docs/snippets/expect_column_max_to_be_between_custom.py examples"
 ```
 
-:::note
+:::note Note
 The optional `only_for` and `suppress_test_for` keys may be specified at the top-level (next to `data` and `tests`) or within specific tests (next to `title`, etc).
 
 Allowed backends include: "bigquery", "mssql", "mysql", "pandas", "postgresql", "redshift", "snowflake", "spark", "sqlite", "trino"
@@ -136,7 +136,7 @@ This allows us to build and return a query to be executed, providing the result 
 ```python title="Python" name="docs/docusaurus/docs/snippets/expect_column_values_to_equal_three.py spark_query"
 ```
 
-:::note
+:::note Note
 Because in Spark we are implementing the window function directly, we have to return the *unexpected* condition: `False` when `column == 3`, otherwise `True`.
 :::
 
@@ -176,7 +176,7 @@ If you're interested in having your contribution accepted at a Beta level, your 
 For full acceptance into the Great Expectations codebase at a Production level, we require that your Custom Expectation meets our code standards, including test coverage and style. 
 If you believe your Custom Expectation is otherwise ready for contribution at a Production level, please submit a [Pull Request](https://github.com/great-expectations/great_expectations/pulls), and we will work with you to ensure your Custom Expectation meets these standards.
 
-:::note
+:::note Note
 For more information on our code standards and contribution, see our guide on [Levels of Maturity](/oss/contributing/contributing_maturity.md#expectation-contributions) for Expectations.
 
 To view the full scripts used in this page, see them on GitHub:

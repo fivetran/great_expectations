@@ -22,7 +22,7 @@ class MetricFunctionTypes(enum.Enum):
       specified windowing operation over "Domain" values.
     - `AGGREGATE_VALUE` (never used and deprecated) -- metric implementation function returns the result of applying a
       specified aggregation operation to every "Domain" value.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     VALUE = "value"
 
@@ -54,7 +54,7 @@ class MetricPartialFunctionTypes(enum.Enum):
       specified aggregated quantity.
 
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     MAP_FN = "map_fn"  # pertains to "PandasExecutionEngine"
     MAP_SERIES = "map_series"  # pertains to "PandasExecutionEngine"
@@ -63,7 +63,7 @@ class MetricPartialFunctionTypes(enum.Enum):
         "map_condition_fn"  # pertains to "SqlAlchemyExecutionEngine" and "SparkDFExecutionEngine"
     )
     MAP_CONDITION_SERIES = "map_condition_series"  # pertains to "PandasExecutionEngine"
-    WINDOW_CONDITION_FN = "window_condition_fn"  # pertains to "SqlAlchemyExecutionEngine" and "SparkDFExecutionEngine"  # noqa: E501
+    WINDOW_CONDITION_FN = "window_condition_fn"  # pertains to "SqlAlchemyExecutionEngine" and "SparkDFExecutionEngine"  # noqa: E501 # FIXME CoP
     AGGREGATE_FN = (
         "aggregate_fn"  # pertains to "SqlAlchemyExecutionEngine" and "SparkDFExecutionEngine"
     )
@@ -74,7 +74,7 @@ class MetricPartialFunctionTypes(enum.Enum):
 
         Returns:
             (str) designated metric name suffix
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if self.name in [
             "MAP_FN",
             "MAP_SERIES",
@@ -96,7 +96,7 @@ class MetricPartialFunctionTypes(enum.Enum):
 
 
 class MetricPartialFunctionTypeSuffixes(enum.Enum):
-    """Enum type, whose members specify available suffixes for metrics representing partial functions."""  # noqa: E501
+    """Enum type, whose members specify available suffixes for metrics representing partial functions."""  # noqa: E501 # FIXME CoP
 
     MAP = "map"
     CONDITION = "condition"
@@ -104,7 +104,7 @@ class MetricPartialFunctionTypeSuffixes(enum.Enum):
 
 
 class SummarizationMetricNameSuffixes(enum.Enum):
-    """Enum type, whose members specify suffixes for metrics used for summarizing Expectation validation results."""  # noqa: E501
+    """Enum type, whose members specify suffixes for metrics used for summarizing Expectation validation results."""  # noqa: E501 # FIXME CoP
 
     FILTERED_ROW_COUNT = "filtered_row_count"
     UNEXPECTED_COUNT = "unexpected_count"

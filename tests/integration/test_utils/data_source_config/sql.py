@@ -6,6 +6,7 @@ from datetime import date, datetime
 from functools import cached_property
 from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Sequence, Type, Union
 
+import numpy as np
 from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
@@ -35,6 +36,8 @@ class _TableData:
 
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
+    SCHEMA_PREFIX = "test_"
+
     @property
     @abstractmethod
     def connection_string(self) -> str:
@@ -53,12 +56,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types."""
         # implementations of the class can override this if more specific types are required
         return {
-            str: sqltypes.VARCHAR,  # type: ignore[dict-item]
-            int: sqltypes.INTEGER,  # type: ignore[dict-item]
-            float: sqltypes.DECIMAL,  # type: ignore[dict-item]
-            bool: sqltypes.BOOLEAN,  # type: ignore[dict-item]
-            date: sqltypes.DATE,  # type: ignore[dict-item]
-            datetime: sqltypes.DATETIME,  # type: ignore[dict-item]
+            str: sqltypes.VARCHAR,  # type: ignore[dict-item] # FIXME CoP
+            int: sqltypes.INTEGER,  # type: ignore[dict-item] # FIXME CoP
+            float: sqltypes.DECIMAL,  # type: ignore[dict-item] # FIXME CoP
+            bool: sqltypes.BOOLEAN,  # type: ignore[dict-item] # FIXME CoP
+            date: sqltypes.DATE,  # type: ignore[dict-item] # FIXME CoP
+            datetime: sqltypes.DATETIME,  # type: ignore[dict-item] # FIXME CoP
         }
 
     def __init__(
@@ -66,10 +69,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         config: _ConfigT,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        table_name: Optional[str] = None,  # Overrides random table name generation
     ) -> None:
         # self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
+        self._user_specified_table_name = table_name
         super().__init__(config, data)
 
     @override
@@ -84,8 +89,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @cached_property
     def main_table_data(self) -> _TableData:
+        name = self._user_specified_table_name or self._create_table_name()
         return self._create_table_data(
-            name=self._create_table_name(),
+            name=name,
             df=self.data,
             column_types=self.config.column_types or {},
         )
@@ -109,7 +115,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @cached_property
     def schema(self) -> Union[str, None]:
         if self.use_schema:
-            return self._random_resource_name()
+            return f"{self.SCHEMA_PREFIX}{self._random_resource_name()}"
         else:
             return None
 
@@ -133,9 +139,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 # Then we pass that list of dicts in as parameters to our insert statement.
                 #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
                 #   [...] [('1', 'foo'), ('2', 'bar')]
-                conn.execute(
-                    insert(table_data.table), list(table_data.df.to_dict("index").values())
-                )
+                df = table_data.df.replace(np.nan, None)
+                values = list(df.to_dict("index").values())
+                conn.execute(insert(table_data.table), values)
         engine.dispose()
 
     @override
@@ -196,7 +202,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             non_null_value_list = [val for val in value_list if val is not None]
             if not non_null_value_list:
                 # if we have an all null column, just arbitrarily use INTEGER
-                inferred_column_types[str(column)] = sqltypes.INTEGER  # type: ignore[assignment]
+                inferred_column_types[str(column)] = sqltypes.INTEGER  # type: ignore[assignment] # FIXME CoP
             else:
                 python_type = type(non_null_value_list[0])
                 if not all(isinstance(val, python_type) for val in non_null_value_list):

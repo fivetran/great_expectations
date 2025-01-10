@@ -40,7 +40,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
         delimiter (str): Microsoft Azure Blob Storage delimiter
         recursive_file_discovery (bool): Flag to indicate if files should be searched recursively from subfolders
         file_path_template_map_fn: Format function mapping path to fully-qualified resource on ABS
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     asset_level_option_keys: ClassVar[tuple[str, ...]] = (
         "abs_container",
@@ -50,7 +50,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
     )
     asset_options_type: ClassVar[Type[_AzureOptions]] = _AzureOptions
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_asset_name: str,
@@ -81,7 +81,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
         )
 
     @classmethod
-    def build_data_connector(  # noqa: PLR0913
+    def build_data_connector(  # noqa: PLR0913 # FIXME CoP
         cls,
         datasource_name: str,
         data_asset_name: str,
@@ -108,7 +108,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
 
         Returns:
             Instantiated "AzureBlobStorageDataConnector" object
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return AzureBlobStorageDataConnector(
             datasource_name=datasource_name,
             data_asset_name=data_asset_name,
@@ -122,7 +122,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
         )
 
     @classmethod
-    def build_test_connection_error_message(  # noqa: PLR0913
+    def build_test_connection_error_message(  # noqa: PLR0913 # FIXME CoP
         cls,
         data_asset_name: str,
         account_name: str,
@@ -143,8 +143,8 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
 
         Returns:
             Customized error message
-        """  # noqa: E501
-        test_connection_error_message_template: str = 'No file belonging to account "{account_name}" in container "{container}" with prefix "{name_starts_with}" and recursive file discovery set to "{recursive_file_discovery}" found using delimiter "{delimiter}" for DataAsset "{data_asset_name}".'  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
+        test_connection_error_message_template: str = 'No file belonging to account "{account_name}" in container "{container}" with prefix "{name_starts_with}" and recursive file discovery set to "{recursive_file_discovery}" found using delimiter "{delimiter}" for DataAsset "{data_asset_name}".'  # noqa: E501 # FIXME CoP
         return test_connection_error_message_template.format(
             **{
                 "data_asset_name": data_asset_name,
@@ -189,10 +189,10 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
     @override
     def _get_full_file_path(self, path: str) -> str:
         if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
 requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
         template_arguments: dict = {
@@ -214,13 +214,13 @@ def sanitize_prefix(text: str) -> str:
     Takes in a given user-prefix and cleans it to work with file-system traversal methods
     (i.e. add '/' to the end of a string meant to represent a directory)
     """
-    _, ext = os.path.splitext(text)  # noqa: PTH122
+    _, ext = os.path.splitext(text)  # noqa: PTH122 # FIXME CoP
     if ext:
         # Provided prefix is a filename so no adjustment is necessary
         return text
 
     # Provided prefix is a directory (so we want to ensure we append it with '/')
-    return os.path.join(text, "")  # noqa: PTH118
+    return os.path.join(text, "")  # noqa: PTH118 # FIXME CoP
 
 
 def list_azure_keys(
@@ -246,7 +246,7 @@ def list_azure_keys(
 
     Returns:
         List of keys representing Azure file paths (as filtered by the query_options dict)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     container: str = query_options["container"]
     container_client: azure.ContainerClient = azure_client.get_container_client(container=container)
 

@@ -62,7 +62,7 @@ class BatchRequest(pydantic.GenericModel, Generic[PartitionerT]):
 
     Returns:
         BatchRequest
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     datasource_name: StrictStr = Field(
         ...,
@@ -107,11 +107,11 @@ class BatchRequest(pydantic.GenericModel, Generic[PartitionerT]):
 
         Returns:
             None
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         try:
             parse_batch_slice(batch_slice=value)
         except (TypeError, ValueError) as e:
-            raise ValueError(f"Failed to parse BatchSlice to slice: {e}")  # noqa: TRY003
+            raise ValueError(f"Failed to parse BatchSlice to slice: {e}")  # noqa: TRY003 # FIXME CoP
         self._batch_slice_input = value
 
     class Config:
@@ -132,13 +132,13 @@ class BatchRequest(pydantic.GenericModel, Generic[PartitionerT]):
         if options is None:
             return {}
         if not isinstance(options, dict):
-            raise TypeError("BatchParameters must take the form of a dictionary.")  # noqa: TRY003
+            raise TypeError("BatchParameters must take the form of a dictionary.")  # noqa: TRY003 # FIXME CoP
         if any(not isinstance(key, str) for key in options):
-            raise TypeError("BatchParameters keys must all be strings.")  # noqa: TRY003
+            raise TypeError("BatchParameters keys must all be strings.")  # noqa: TRY003 # FIXME CoP
         return options
 
     @override
-    def json(  # noqa: PLR0913
+    def json(  # noqa: PLR0913 # FIXME CoP
         self,
         *,
         include: Optional[Union[AbstractSetIntStr, MappingIntStrAny]] = None,
@@ -170,7 +170,7 @@ class BatchRequest(pydantic.GenericModel, Generic[PartitionerT]):
         )
 
     @override
-    def dict(  # noqa: PLR0913
+    def dict(  # noqa: PLR0913 # FIXME CoP
         self,
         *,
         include: AbstractSetIntStr | MappingIntStrAny | None = None,
@@ -190,14 +190,14 @@ class BatchRequest(pydantic.GenericModel, Generic[PartitionerT]):
         # if we want it to show up in dict() with the _batch_request_input
         self.__fields__["batch_slice"] = pydantic.fields.ModelField(
             name="batch_slice",
-            type_=Optional[BatchSlice],  # type: ignore[arg-type]
+            type_=Optional[BatchSlice],  # type: ignore[arg-type] # FIXME CoP
             required=False,
             default=None,
             model_config=self.__config__,
             class_validators=None,
         )
-        property_set_methods = self.__config__.property_set_methods  # type: ignore[attr-defined]
-        self.__config__.property_set_methods = {}  # type: ignore[attr-defined]
+        property_set_methods = self.__config__.property_set_methods  # type: ignore[attr-defined] # FIXME CoP
+        self.__config__.property_set_methods = {}  # type: ignore[attr-defined] # FIXME CoP
         self.__setattr__("batch_slice", self._batch_slice_input)
         result = super().dict(
             include=include,
@@ -209,7 +209,7 @@ class BatchRequest(pydantic.GenericModel, Generic[PartitionerT]):
             skip_defaults=skip_defaults,
         )
         # revert model changes
-        self.__config__.property_set_methods = property_set_methods  # type: ignore[attr-defined]
+        self.__config__.property_set_methods = property_set_methods  # type: ignore[attr-defined] # FIXME CoP
         self.__fields__.pop("batch_slice")
         return result
 
@@ -226,7 +226,7 @@ class BatchRequest(pydantic.GenericModel, Generic[PartitionerT]):
         # if we want its definition to show up in schema_json()
         cls.__fields__["batch_slice"] = pydantic.fields.ModelField(
             name="batch_slice",
-            type_=Optional[BatchSlice],  # type: ignore[arg-type]
+            type_=Optional[BatchSlice],  # type: ignore[arg-type] # FIXME CoP
             required=False,
             default=None,
             model_config=cls.__config__,

@@ -29,6 +29,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Optional,
     Set,
     SupportsFloat,
@@ -144,7 +145,7 @@ def measure_execution_time(
 
     Returns:
         Callable -- configured "execution_time_decorator" function.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def execution_time_decorator(func: Callable) -> Callable:
         @wraps(func)
@@ -160,7 +161,7 @@ def measure_execution_time(
 
             Returns:
                 Any (output value of original function being decorated).
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
             time_begin: float = (getattr(time, method))()
             try:
                 return func(*args, **kwargs)
@@ -170,7 +171,7 @@ def measure_execution_time(
                 if kwargs is None:
                     kwargs = {}
 
-                execution_time_holder: type = kwargs.get(  # type: ignore[assignment]
+                execution_time_holder: type = kwargs.get(  # type: ignore[assignment] # FIXME CoP
                     execution_time_holder_object_reference_name
                 )
                 if execution_time_holder is not None and hasattr(
@@ -184,11 +185,11 @@ def measure_execution_time(
                         call_args: OrderedDict = bound_args.arguments
                         print(
                             f"""Total execution time of function {func.__name__}({dict(call_args)!s}): {delta_t} \
-seconds."""  # noqa: E501
+seconds."""  # noqa: E501 # FIXME CoP
                         )
                     else:
                         print(
-                            f"Total execution time of function {func.__name__}(): {delta_t} seconds."  # noqa: E501
+                            f"Total execution time of function {func.__name__}(): {delta_t} seconds."  # noqa: E501 # FIXME CoP
                         )
 
         return compute_delta_t
@@ -216,7 +217,7 @@ def verify_dynamic_loading_support(module_name: str, package_name: Optional[str]
         message: str = f"""No module named "{package_name + module_name}" could be found in the repository. Please \
 make sure that the file, corresponding to this package and module, exists and that dynamic loading of code modules, \
 templates, and assets is supported in your execution environment.  This error is unrecoverable.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         raise FileNotFoundError(message)
 
 
@@ -224,7 +225,7 @@ def import_library_module(module_name: str) -> Optional[ModuleType]:
     """
     :param module_name: a fully-qualified name of a module (e.g., "great_expectations.dataset.sqlalchemy_dataset")
     :return: raw source code of the module (if can be retrieved)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     module_obj: Optional[ModuleType]
 
     try:
@@ -242,13 +243,13 @@ def is_library_loadable(library_name: str) -> bool:
 
 def load_class(class_name: str, module_name: str) -> type:
     if class_name is None:
-        raise TypeError("class_name must not be None")  # noqa: TRY003
+        raise TypeError("class_name must not be None")  # noqa: TRY003 # FIXME CoP
     if not isinstance(class_name, str):
-        raise TypeError("class_name must be a string")  # noqa: TRY003
+        raise TypeError("class_name must be a string")  # noqa: TRY003 # FIXME CoP
     if module_name is None:
-        raise TypeError("module_name must not be None")  # noqa: TRY003
+        raise TypeError("module_name must not be None")  # noqa: TRY003 # FIXME CoP
     if not isinstance(module_name, str):
-        raise TypeError("module_name must be a string")  # noqa: TRY003
+        raise TypeError("module_name must be a string")  # noqa: TRY003 # FIXME CoP
     try:
         verify_dynamic_loading_support(module_name=module_name)
     except FileNotFoundError:
@@ -308,7 +309,7 @@ def gen_directory_tree_str(startpath: PathStr):
             bbb.txt
 
     #Note: files and directories are sorted alphabetically, so that this method can be used for testing.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     output_str = ""
 
@@ -318,7 +319,7 @@ def gen_directory_tree_str(startpath: PathStr):
     for root, dirs, files in tuples:
         level = root.replace(str(startpath), "").count(os.sep)
         indent = " " * 4 * level
-        output_str += f"{indent}{os.path.basename(root)}/\n"  # noqa: PTH119
+        output_str += f"{indent}{os.path.basename(root)}/\n"  # noqa: PTH119 # FIXME CoP
         subindent = " " * 4 * (level + 1)
 
         files.sort()
@@ -328,7 +329,7 @@ def gen_directory_tree_str(startpath: PathStr):
     return output_str
 
 
-def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913
+def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
     properties: Optional[dict] = None,
     keep_fields: Optional[Set[str]] = None,
     delete_fields: Optional[Set[str]] = None,
@@ -351,7 +352,7 @@ def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913
 
     Returns:
         The (possibly) filtered properties dictionary (or None if no entries remain after filtering is performed)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if keep_fields is None:
         keep_fields = set()
 
@@ -359,8 +360,8 @@ def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913
         delete_fields = set()
 
     if keep_fields & delete_fields:
-        raise ValueError(  # noqa: TRY003
-            "Common keys between sets of keep_fields and delete_fields filtering directives are illegal."  # noqa: E501
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
+            "Common keys between sets of keep_fields and delete_fields filtering directives are illegal."  # noqa: E501 # FIXME CoP
         )
 
     if clean_falsy:
@@ -370,8 +371,8 @@ def filter_properties_dict(  # noqa: C901, PLR0912, PLR0913
         properties = {}
 
     if not isinstance(properties, dict):
-        raise ValueError(  # noqa: TRY003, TRY004
-            f'Source "properties" must be a dictionary (illegal type "{type(properties)!s}" detected).'  # noqa: E501
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+            f'Source "properties" must be a dictionary (illegal type "{type(properties)!s}" detected).'  # noqa: E501 # FIXME CoP
         )
 
     if not inplace:
@@ -501,7 +502,7 @@ def deep_filter_properties_iterable(
 ) -> None: ...
 
 
-def deep_filter_properties_iterable(  # noqa: C901, PLR0913
+def deep_filter_properties_iterable(  # noqa: C901, PLR0913 # FIXME CoP
     properties: Union[dict, list, set, tuple, None] = None,
     keep_fields: Optional[Set[str]] = None,
     delete_fields: Optional[Set[str]] = None,
@@ -546,7 +547,7 @@ def deep_filter_properties_iterable(  # noqa: C901, PLR0913
         # Upon unwinding the call stack, do a sanity check to ensure cleaned properties.
         keys_to_delete: List[str] = list(
             filter(
-                lambda k: k not in keep_fields  # type: ignore[arg-type]
+                lambda k: k not in keep_fields  # type: ignore[arg-type] # FIXME CoP
                 and _is_to_be_removed_from_deep_filter_properties_iterable(
                     value=properties[k],
                     clean_nulls=clean_nulls,
@@ -682,7 +683,7 @@ def convert_decimal_to_float(d: SupportsFloat) -> float:
 def requires_lossy_conversion(d: decimal.Decimal) -> bool:
     """
     This method determines whether or not conversion from "decimal.Decimal" to standard "float" type cannot be lossless.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     return d - decimal.Context(prec=sys.float_info.dig).create_decimal(d) != 0
 
 
@@ -710,22 +711,22 @@ def isclose(
     of the "atol" value (here, 8 digits as the default).  However, when the "control" value is large in magnitude, the
     relative tolerance ("rtol") parameter carries a greater weight in the comparison assessment, because the acceptable
     deviation between the two quantities can be relatively larger for them to be deemed as "close enough" in this case.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if isinstance(operand_a, str) and isinstance(operand_b, str):
         return operand_a == operand_b
 
     if isinstance(operand_a, datetime.datetime) and isinstance(operand_b, datetime.datetime):
-        operand_a = operand_a.timestamp()  # type: ignore[assignment]
-        operand_b = operand_b.timestamp()  # type: ignore[assignment]
+        operand_a = operand_a.timestamp()  # type: ignore[assignment] # FIXME CoP
+        operand_b = operand_b.timestamp()  # type: ignore[assignment] # FIXME CoP
     elif isinstance(operand_a, datetime.timedelta) and isinstance(operand_b, datetime.timedelta):
-        operand_a = operand_a.total_seconds()  # type: ignore[assignment]
-        operand_b = operand_b.total_seconds()  # type: ignore[assignment]
+        operand_a = operand_a.total_seconds()  # type: ignore[assignment] # FIXME CoP
+        operand_b = operand_b.total_seconds()  # type: ignore[assignment] # FIXME CoP
 
     return cast(
         bool,
         np.isclose(
-            a=np.float64(operand_a),  # type: ignore[arg-type]
-            b=np.float64(operand_b),  # type: ignore[arg-type]
+            a=np.float64(operand_a),  # type: ignore[arg-type] # FIXME CoP
+            b=np.float64(operand_b),  # type: ignore[arg-type] # FIXME CoP
             rtol=rtol,
             atol=atol,
             equal_nan=equal_nan,
@@ -773,7 +774,7 @@ def is_ndarray_datetime_dtype(
 ) -> bool:
     """
     Determine whether or not all elements of 1-D "np.ndarray" argument are "datetime.datetime" type objects.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     value: Any
     result: bool = all(isinstance(value, datetime.datetime) for value in data)
     return result or (
@@ -795,7 +796,7 @@ def convert_ndarray_to_datetime_dtype_best_effort(
         Boolean flag -- True if all elements of original "data" were "datetime.datetime" type objects; False, otherwise.
         Boolean flag -- True, if conversion was performed; False, otherwise.
         Output "np.ndarray" (converted, if necessary).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if is_ndarray_datetime_dtype(data=data, parse_strings_as_datetimes=False, fuzzy=fuzzy):
         return True, False, data
 
@@ -822,7 +823,7 @@ def convert_ndarray_datetime_to_float_dtype_utc_timezone(
     Convert all elements of 1-D "np.ndarray" argument from "datetime.datetime" type to "timestamp" "float" type objects.
 
     Note: Conversion of "datetime.datetime" to "float" uses "UTC" TimeZone to normalize all "datetime.datetime" values.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     value: Any
     return np.asarray([value.replace(tzinfo=datetime.timezone.utc).timestamp() for value in data])
 
@@ -832,10 +833,10 @@ def convert_ndarray_float_to_datetime_dtype(data: np.ndarray) -> np.ndarray:
     Convert all elements of 1-D "np.ndarray" argument from "float" type to "datetime.datetime" type objects.
 
     Note: Converts to "naive" "datetime.datetime" values (assumes "UTC" TimeZone based floating point timestamps).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     value: Any
     return np.asarray(
-        [datetime.datetime.utcfromtimestamp(value) for value in data]  # noqa: DTZ004
+        [datetime.datetime.utcfromtimestamp(value) for value in data]  # noqa: DTZ004 # FIXME CoP
     )
 
 
@@ -846,7 +847,7 @@ def convert_ndarray_float_to_datetime_tuple(
     Convert all elements of 1-D "np.ndarray" argument from "float" type to "datetime.datetime" type tuple elements.
 
     Note: Converts to "naive" "datetime.datetime" values (assumes "UTC" TimeZone based floating point timestamps).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     return tuple(convert_ndarray_float_to_datetime_dtype(data=data).tolist())
 
 
@@ -855,7 +856,7 @@ def does_ndarray_contain_decimal_dtype(
 ) -> TypeGuard[npt.NDArray]:
     """
     Determine whether or not all elements of 1-D "np.ndarray" argument are "decimal.Decimal" type objects.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     value: Any
     result: bool = any(isinstance(value, decimal.Decimal) for value in data)
     return result
@@ -864,7 +865,7 @@ def does_ndarray_contain_decimal_dtype(
 def convert_ndarray_decimal_to_float_dtype(data: np.ndarray) -> np.ndarray:
     """
     Convert all elements of N-D "np.ndarray" argument from "decimal.Decimal" type to "float" type objects.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     convert_decimal_to_float_vectorized: Callable[[np.ndarray], np.ndarray] = np.vectorize(
         pyfunc=convert_decimal_to_float
     )
@@ -876,7 +877,7 @@ def convert_pandas_series_decimal_to_float_dtype(
 ) -> pd.Series | None:
     """
     Convert all elements of "pd.Series" argument from "decimal.Decimal" type to "float" type objects "pd.Series" result.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     series_data: np.ndarray = data.to_numpy()
     series_data_has_decimal: bool = does_ndarray_contain_decimal_dtype(data=series_data)
     if series_data_has_decimal:
@@ -934,12 +935,12 @@ def get_sqlalchemy_selectable(
     also needs to be handled here, using the old equivalent method.
 
     https://docs.sqlalchemy.org/en/14/changelog/migration_14.html#change-4617
-    """  # noqa: E501
-    if sqlalchemy.Select and isinstance(selectable, sqlalchemy.Select):  # type: ignore[truthy-function]
+    """  # noqa: E501 # FIXME CoP
+    if sqlalchemy.Select and isinstance(selectable, sqlalchemy.Select):  # type: ignore[truthy-function] # FIXME CoP
         if version.parse(sa.__version__) >= version.parse("1.4"):
-            selectable = selectable.subquery()  # type: ignore[assignment]
+            selectable = selectable.subquery()  # type: ignore[assignment] # FIXME CoP
         else:
-            selectable = selectable.alias()  # type: ignore[assignment]
+            selectable = selectable.alias()  # type: ignore[assignment] # FIXME CoP
     return selectable
 
 
@@ -949,7 +950,7 @@ def get_sqlalchemy_subquery_type():
     This helper method ensures that the appropriate type is returned.
 
     https://docs.sqlalchemy.org/en/14/changelog/migration_14.html#change-4617
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     try:
         return sa.sql.Subquery
     except AttributeError:
@@ -970,7 +971,7 @@ def import_make_url():
     """
     Beginning from SQLAlchemy 1.4, make_url is accessed from sqlalchemy.engine; earlier versions must
     still be accessed from sqlalchemy.engine.url to avoid import errors.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if version.parse(sa.__version__) < version.parse("1.4"):
         make_url = sqlalchemy.url.make_url
     else:
@@ -1018,13 +1019,26 @@ def get_trino_potential_type(type_module: ModuleType, type_: str) -> object:
     return potential_type
 
 
-def pandas_series_between_inclusive(series: pd.Series, min_value: int, max_value: int) -> pd.Series:
+Inclusive = Literal["left", "right", "neither", "both"]
+
+
+def pandas_series_between(
+    series: pd.Series, min_value: int, max_value: int, inclusive: Inclusive
+) -> pd.Series:
     """
-    As of Pandas 1.3.0, the 'inclusive' arg in between() is an enum: {"left", "right", "neither", "both"}
-    """  # noqa: E501
+    As of Pandas 1.3.0, the 'inclusive' arg in between() is a string literal: {"left", "right", "neither", "both"}
+    """  # noqa: E501 # FIXME CoP
     metric_series: pd.Series
     if version.parse(pd.__version__) >= version.parse("1.3.0"):
-        metric_series = series.between(min_value, max_value, inclusive="both")
+        metric_series = series.between(min_value, max_value, inclusive=inclusive)
+    elif inclusive == "left":
+        metric_series = (series >= min_value) & (series < max_value)
+    elif inclusive == "right":
+        metric_series = (series > min_value) & (series <= max_value)
+    elif inclusive == "neither":
+        metric_series = series.between(min_value, max_value, inclusive=False)  # type: ignore[arg-type]  # valid for pandas < 1.3
+    elif inclusive == "both":
+        metric_series = series.between(min_value, max_value, inclusive=True)  # type: ignore[arg-type]  # valid for pandas < 1.3
     else:
         metric_series = series.between(min_value, max_value)
 
@@ -1049,7 +1063,7 @@ ToDict: TypeAlias = Union[
 ]
 
 JSONConvertable: TypeAlias = Union[
-    ToDict, ToList, ToStr, ToInt, ToFloat, ToBool, ToBool, None  # noqa: PYI016
+    ToDict, ToList, ToStr, ToInt, ToFloat, ToBool, ToBool, None  # noqa: PYI016 # FIXME CoP
 ]
 
 
@@ -1095,7 +1109,7 @@ def convert_to_json_serializable(
 ) -> None: ...
 
 
-def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
+def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     data: JSONConvertable,
 ) -> JSONValues:
     """Converts an object to one that is JSON-serializable.
@@ -1140,7 +1154,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
     if isinstance(data, dict):
         new_dict = {}
         for key in data:
-            # A pandas index can be numeric, and a dict key can be numeric, but a json key must be a string  # noqa: E501
+            # A pandas index can be numeric, and a dict key can be numeric, but a json key must be a string  # noqa: E501 # FIXME CoP
             new_dict[str(key)] = convert_to_json_serializable(data[key])
 
         return new_dict
@@ -1154,8 +1168,8 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
 
     if isinstance(data, (np.ndarray, pd.Index)):
         # test_obj[key] = test_obj[key].tolist()
-        # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501
-        # to the number of digits for which the string representation will equal the float representation  # noqa: E501
+        # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501 # FIXME CoP
+        # to the number of digits for which the string representation will equal the float representation  # noqa: E501 # FIXME CoP
         return [convert_to_json_serializable(x) for x in data.tolist()]
 
     if isinstance(data, np.int64):
@@ -1164,7 +1178,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
     if isinstance(data, np.float64):
         return float(data)
 
-    if isinstance(data, (datetime.datetime, datetime.date)):
+    if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):
         return data.isoformat()
 
     if isinstance(data, (np.datetime64)):
@@ -1199,13 +1213,13 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
         return float(round(data, sys.float_info.dig))  # type: ignore[arg-type] # could be None
 
     # Note: This clause has to come after checking for np.ndarray or we get:
-    #      `ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()`  # noqa: E501
+    #      `ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()`  # noqa: E501 # FIXME CoP
     if data is None:
         # No problem to encode json
         return data
 
     try:
-        if not isinstance(data, list) and pd.isna(data):  # type: ignore[arg-type]
+        if not isinstance(data, list) and pd.isna(data):  # type: ignore[arg-type] # FIXME CoP
             # pd.isna is functionally vectorized, but we only want to apply this to single objects
             # Hence, why we test for `not isinstance(list)`
             return None
@@ -1221,8 +1235,8 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
         value_name = data.name or "value"
         return [
             {
-                index_name: convert_to_json_serializable(idx),  # type: ignore[call-overload]
-                value_name: convert_to_json_serializable(val),  # type: ignore[dict-item]
+                index_name: convert_to_json_serializable(idx),  # type: ignore[call-overload] # FIXME CoP
+                value_name: convert_to_json_serializable(val),  # type: ignore[dict-item] # FIXME CoP
             }
             for idx, val in data.items()
         ]
@@ -1230,7 +1244,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
     if isinstance(data, pd.DataFrame):
         return convert_to_json_serializable(data.to_dict(orient="records"))
 
-    if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):  # type: ignore[truthy-function]
+    if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):  # type: ignore[truthy-function] # FIXME CoP
         # using StackOverflow suggestion for converting pyspark df into dictionary
         # https://stackoverflow.com/questions/43679880/pyspark-dataframe-to-dictionary-columns-as-keys-and-list-of-column-values-ad-di
         return convert_to_json_serializable(dict(zip(data.schema.names, zip(*data.collect()))))
@@ -1240,10 +1254,10 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
         return dict(data)
 
     # sqlalchemy text for SqlAlchemy 2 compatibility
-    if sqlalchemy.TextClause and isinstance(data, sqlalchemy.TextClause):  # type: ignore[truthy-function]
+    if sqlalchemy.TextClause and isinstance(data, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
         return str(data)
 
-    if Row and isinstance(data, Row):  # type: ignore[truthy-function]
+    if Row and isinstance(data, Row):  # type: ignore[truthy-function] # FIXME CoP
         return str(data)
 
     if isinstance(data, decimal.Decimal):
@@ -1258,7 +1272,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
     if pyspark.types and isinstance(data, pyspark.types.StructType):
         return dict(data.jsonValue())
 
-    if sqlalchemy.Connection and isinstance(data, sqlalchemy.Connection):  # type: ignore[truthy-function]
+    if sqlalchemy.Connection and isinstance(data, sqlalchemy.Connection):  # type: ignore[truthy-function] # FIXME CoP
         # Connection is a module, which is non-serializable. Return module name instead.
         return "sqlalchemy.engine.base.Connection"
 
@@ -1269,10 +1283,10 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
         return data.pattern
 
     # Unable to serialize (unrecognized data type).
-    raise TypeError(f"{data!s} is of type {type(data).__name__} which cannot be serialized.")  # noqa: TRY003
+    raise TypeError(f"{data!s} is of type {type(data).__name__} which cannot be serialized.")  # noqa: TRY003 # FIXME CoP
 
 
-def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
+def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     """
     Helper function to convert an object to one that is json serializable
     Args:
@@ -1304,12 +1318,12 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
 
     if isinstance(data, (np.ndarray, pd.Index)):
         # test_obj[key] = test_obj[key].tolist()
-        # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501
-        # to the number of digits for which the string representation will equal the float representation  # noqa: E501
-        _ = [ensure_json_serializable(x) for x in data.tolist()]  # type: ignore[func-returns-value]
+        # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501 # FIXME CoP
+        # to the number of digits for which the string representation will equal the float representation  # noqa: E501 # FIXME CoP
+        _ = [ensure_json_serializable(x) for x in data.tolist()]  # type: ignore[func-returns-value] # FIXME CoP
         return
 
-    if isinstance(data, (datetime.datetime, datetime.date)):
+    if isinstance(data, (datetime.datetime, datetime.date, datetime.time)):
         return
 
     if isinstance(data, pathlib.PurePath):
@@ -1328,7 +1342,7 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
         return
 
     # Note: This clause has to come after checking for np.ndarray or we get:
-    #      `ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()`  # noqa: E501
+    #      `ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()`  # noqa: E501 # FIXME CoP
     if data is None:
         # No problem to encode json
         return
@@ -1350,8 +1364,8 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
         value_name = data.name or "value"
         _ = [
             {
-                index_name: ensure_json_serializable(idx),  # type: ignore[func-returns-value]
-                value_name: ensure_json_serializable(val),  # type: ignore[func-returns-value]
+                index_name: ensure_json_serializable(idx),  # type: ignore[func-returns-value] # FIXME CoP
+                value_name: ensure_json_serializable(val),  # type: ignore[func-returns-value] # FIXME CoP
             }
             for idx, val in data.items()
         ]
@@ -1373,14 +1387,14 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
     if isinstance(data, RunIdentifier):
         return
 
-    if sqlalchemy.TextClause and isinstance(data, sqlalchemy.TextClause):  # type: ignore[truthy-function]
+    if sqlalchemy.TextClause and isinstance(data, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
         # TextClause is handled manually by convert_to_json_serializable()
         return
 
-    if sqlalchemy.Connection and isinstance(data, sqlalchemy.Connection):  # type: ignore[truthy-function]
+    if sqlalchemy.Connection and isinstance(data, sqlalchemy.Connection):  # type: ignore[truthy-function] # FIXME CoP
         # Connection module is handled manually by convert_to_json_serializable()
         return
 
-    raise InvalidExpectationConfigurationError(  # noqa: TRY003
+    raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
         f"{data!s} is of type {type(data).__name__} which cannot be serialized to json"
     )

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 from great_expectations.experimental.rule_based_profiler.expectation_configuration_builder import (
-    ExpectationConfigurationBuilder,  # noqa: TCH001
+    ExpectationConfigurationBuilder,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
     ParameterNode,
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 class RuleOutput:
     """
     RuleOutput provides methods for extracting useful information from RuleState using directives and application logic.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -33,7 +33,7 @@ class RuleOutput:
         """
         Args:
             rule_state: RuleState object represented by "Domain" objects and parameters,.computed for one Rule object.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self._rule_state = rule_state
 
     @property

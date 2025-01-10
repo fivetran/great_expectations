@@ -91,7 +91,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
     }
 
     RESOURCE_PLURALITY_LOOKUP_DICT: bidict = bidict(  # type: ignore[misc] # Keywords must be str
-        **{  # type: ignore[arg-type]
+        **{  # type: ignore[arg-type] # FIXME CoP
             GXCloudRESTResource.CHECKPOINT: "checkpoints",
             GXCloudRESTResource.DATASOURCE: "datasources",
             GXCloudRESTResource.DATA_ASSET: "data_assets",
@@ -119,7 +119,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         # with a fallback default of EndpointVersion.V0.
         _ENDPOINT_VERSION_LOOKUP[value] = _ENDPOINT_VERSION_LOOKUP.get(key, EndpointVersion.V0)
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         ge_cloud_credentials: Dict,
         ge_cloud_base_url: str = CLOUD_DEFAULT_BASE_URL,
@@ -166,8 +166,8 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         # https://docs.python.org/3.11/library/weakref.html#weakref.finalize
         self._finalizer = weakref.finalize(self, close_session, self._session)
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "ge_cloud_base_url": ge_cloud_base_url,
             "ge_cloud_resource_name": ge_cloud_resource_name,
@@ -182,14 +182,14 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         filter_properties_dict(properties=self._config, inplace=True)
 
     @override
-    def _get(  # type: ignore[override]
+    def _get(  # type: ignore[override] # FIXME CoP
         self, key: Tuple[GXCloudRESTResource, str | None, str | None]
     ) -> dict:
         url = self.get_url_for_key(key=key)
 
         # if name is included in the key, add as a param
         params: dict | None
-        if len(key) > 2 and key[2]:  # noqa: PLR2004
+        if len(key) > 2 and key[2]:  # noqa: PLR2004 # FIXME CoP
             params = {"name": key[2]}
             url = url.rstrip("/")
         else:
@@ -201,14 +201,14 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         # We need to validate that even if we have a 200, there are contents to support existence
         response_has_data = bool(payload.get("data"))
         if not response_has_data:
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 "Unable to get object in GX Cloud Store Backend: Object does not exist."
             )
 
         return payload
 
     @override
-    def _get_all(self) -> dict:  # type: ignore[override]
+    def _get_all(self) -> dict:  # type: ignore[override] # FIXME CoP
         url = self.construct_versioned_url(
             base_url=self.ge_cloud_base_url,
             organization_id=self.ge_cloud_credentials["organization_id"],
@@ -228,30 +228,30 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             response_json: dict = response.json()
             return response_json
         except json.JSONDecodeError as jsonError:
-            logger.debug(  # noqa: PLE1205
+            logger.debug(  # noqa: PLE1205 # FIXME CoP
                 "Failed to parse GX Cloud Response into JSON",
                 str(response.text),  # type: ignore[possibly-undefined] # will be present for json error
                 str(jsonError),
             )
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to get object in GX Cloud Store Backend: {jsonError}"
             ) from jsonError
         except requests.HTTPError as http_err:
-            raise StoreBackendError(  # noqa: TRY003
-                f"Unable to get object in GX Cloud Store Backend: {get_user_friendly_error_message(http_err)}"  # noqa: E501
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to get object in GX Cloud Store Backend: {get_user_friendly_error_message(http_err)}"  # noqa: E501 # FIXME CoP
             ) from http_err
         except requests.ConnectionError as conn_err:
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to get object in GX Cloud Store Backend: {conn_err}"
             ) from conn_err
         except requests.Timeout as timeout_exc:
-            logger.exception(timeout_exc)  # noqa: TRY401
-            raise StoreBackendTransientError(  # noqa: TRY003
-                "Unable to get object in GX Cloud Store Backend: This is likely a transient error. Please try again."  # noqa: E501
+            logger.exception(timeout_exc)  # noqa: TRY401 # FIXME CoP
+            raise StoreBackendTransientError(  # noqa: TRY003 # FIXME CoP
+                "Unable to get object in GX Cloud Store Backend: This is likely a transient error. Please try again."  # noqa: E501 # FIXME CoP
             ) from timeout_exc
 
     @override
-    def _move(self) -> None:  # type: ignore[override]
+    def _move(self) -> None:  # type: ignore[override] # FIXME CoP
         pass
 
     def _put(self, id: str, value: Any) -> GXCloudResourceRef | bool:
@@ -289,7 +289,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             # for the ExpectationSuite endpoint. As such, this is a temporary fork to
             # ensure that legacy PATCH behavior is supported.
             if (
-                response_status_code == 405  # noqa: PLR2004
+                response_status_code == 405  # noqa: PLR2004 # FIXME CoP
                 and resource_type is GXCloudRESTResource.EXPECTATION_SUITE
             ):
                 response = self._session.patch(url, json=data)
@@ -312,17 +312,17 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
                 )
 
         except requests.HTTPError as http_exc:
-            raise StoreBackendError(  # noqa: TRY003
-                f"Unable to update object in GX Cloud Store Backend: {get_user_friendly_error_message(http_exc)}"  # noqa: E501
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to update object in GX Cloud Store Backend: {get_user_friendly_error_message(http_exc)}"  # noqa: E501 # FIXME CoP
             ) from http_exc
         except requests.Timeout as timeout_exc:
-            logger.exception(timeout_exc)  # noqa: TRY401
-            raise StoreBackendTransientError(  # noqa: TRY003
-                "Unable to update object in GX Cloud Store Backend: This is likely a transient error. Please try again."  # noqa: E501
+            logger.exception(timeout_exc)  # noqa: TRY401 # FIXME CoP
+            raise StoreBackendTransientError(  # noqa: TRY003 # FIXME CoP
+                "Unable to update object in GX Cloud Store Backend: This is likely a transient error. Please try again."  # noqa: E501 # FIXME CoP
             ) from timeout_exc
         except Exception as e:
             logger.debug(repr(e))
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to update object in GX Cloud Store Backend: {e}"
             ) from e
 
@@ -338,13 +338,13 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             return True
         if not (kwarg_names <= self.allowed_set_kwargs):
             extra_kwargs = kwarg_names - self.allowed_set_kwargs
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f'Invalid kwargs: {(", ").join(extra_kwargs)}'
             )
         return None
 
     @override
-    def _set(  # type: ignore[override]
+    def _set(  # type: ignore[override] # FIXME CoP
         self,
         key: Tuple[GXCloudRESTResource, ...],
         value: Any,
@@ -403,17 +403,17 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
                 response_json=response_json,
             )
         except requests.HTTPError as http_exc:
-            raise StoreBackendError(  # noqa: TRY003
-                f"Unable to set object in GX Cloud Store Backend: {get_user_friendly_error_message(http_exc)}"  # noqa: E501
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to set object in GX Cloud Store Backend: {get_user_friendly_error_message(http_exc)}"  # noqa: E501 # FIXME CoP
             ) from http_exc
         except requests.Timeout as timeout_exc:
-            logger.exception(timeout_exc)  # noqa: TRY401
-            raise StoreBackendTransientError(  # noqa: TRY003
-                "Unable to set object in GX Cloud Store Backend: This is likely a transient error. Please try again."  # noqa: E501
+            logger.exception(timeout_exc)  # noqa: TRY401 # FIXME CoP
+            raise StoreBackendTransientError(  # noqa: TRY003 # FIXME CoP
+                "Unable to set object in GX Cloud Store Backend: This is likely a transient error. Please try again."  # noqa: E501 # FIXME CoP
             ) from timeout_exc
         except Exception as e:
             logger.debug(str(e))
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to set object in GX Cloud Store Backend: {e}"
             ) from e
 
@@ -462,7 +462,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             return keys
         except Exception as e:
             logger.debug(str(e))
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to list keys in GX Cloud Store Backend: {e}"
             ) from e
 
@@ -486,7 +486,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             key = key.to_tuple()
 
         id = key[1]
-        if len(key) == 3:  # noqa: PLR2004
+        if len(key) == 3:  # noqa: PLR2004 # FIXME CoP
             resource_object_name = key[2]
         else:
             resource_object_name = None
@@ -514,18 +514,18 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
                 response.raise_for_status()
                 return True
         except requests.HTTPError as http_exc:
-            logger.exception(http_exc)  # noqa: TRY401
-            raise StoreBackendError(  # noqa: TRY003
-                f"Unable to delete object in GX Cloud Store Backend: {get_user_friendly_error_message(http_exc)}"  # noqa: E501
+            logger.exception(http_exc)  # noqa: TRY401 # FIXME CoP
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to delete object in GX Cloud Store Backend: {get_user_friendly_error_message(http_exc)}"  # noqa: E501 # FIXME CoP
             ) from http_exc
         except requests.Timeout as timeout_exc:
-            logger.exception(timeout_exc)  # noqa: TRY401
-            raise StoreBackendTransientError(  # noqa: TRY003
-                "Unable to delete object in GX Cloud Store Backend: This is likely a transient error. Please try again."  # noqa: E501
+            logger.exception(timeout_exc)  # noqa: TRY401 # FIXME CoP
+            raise StoreBackendTransientError(  # noqa: TRY003 # FIXME CoP
+                "Unable to delete object in GX Cloud Store Backend: This is likely a transient error. Please try again."  # noqa: E501 # FIXME CoP
             ) from timeout_exc
         except Exception as e:
             logger.debug(str(e))
-            raise StoreBackendError(  # noqa: TRY003
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to delete object in GX Cloud Store Backend: {e!r}"
             ) from e
 
@@ -538,14 +538,14 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         GET requests to cloud can either return response data that is a single object (get by id) or a
         list of objects with length >= 0 (get by name). This method takes this response data and returns a single
         object or None.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not isinstance(response_data, list):
             return response_data
         if len(response_data) == 0:
             return None
         if len(response_data) == 1:
             return response_data[0]
-        raise StoreBackendError(  # noqa: TRY003
+        raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
             f"Unable to update object in GX Cloud Store Backend: the provided key ({key}) maps "
             f"to more than one object."
         )
@@ -559,13 +559,13 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
     ) -> GXCloudResourceRef:
         # todo: ID should never be optional for update - remove this additional get
         response_data = self._get(key)["data"]
-        # if the provided key does not contain id (only name), cloud will return a list of resources filtered  # noqa: E501
+        # if the provided key does not contain id (only name), cloud will return a list of resources filtered  # noqa: E501 # FIXME CoP
         # by name, with length >= 0, instead of a single object (or error if not found)
         existing = self._get_one_or_none_from_response_data(response_data=response_data, key=key)
 
         if existing is None:
-            raise StoreBackendError(  # noqa: TRY003
-                f"Unable to update object in GX Cloud Store Backend: could not find object associated with key {key}."  # noqa: E501
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                f"Unable to update object in GX Cloud Store Backend: could not find object associated with key {key}."  # noqa: E501 # FIXME CoP
             )
 
         if key[1] is None:
@@ -580,7 +580,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             logger.info(f"Could not find object associated with key {key}: {e}")
             response_data = None
 
-        # if the provided key does not contain id (only name), cloud will return a list of resources filtered  # noqa: E501
+        # if the provided key does not contain id (only name), cloud will return a list of resources filtered  # noqa: E501 # FIXME CoP
         # by name, with length >= 0, instead of a single object (or error if not found)
         existing = self._get_one_or_none_from_response_data(response_data=response_data, key=key)
 
@@ -612,7 +612,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         id: Optional[str] = None,
         name: Optional[str] = None,
     ) -> GXCloudIdentifier:
-        """Get the store backend specific implementation of the key. ignore resource_type since it is defined when initializing the cloud store backend."""  # noqa: E501
+        """Get the store backend specific implementation of the key. ignore resource_type since it is defined when initializing the cloud store backend."""  # noqa: E501 # FIXME CoP
         return GXCloudIdentifier(
             resource_type=self.ge_cloud_resource_type,
             id=id,
@@ -621,16 +621,16 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
 
     @override
     def _validate_key(self, key) -> None:
-        if not isinstance(key, tuple) or len(key) != 3:  # noqa: PLR2004
-            raise TypeError(  # noqa: TRY003
-                "Key used for GXCloudStoreBackend must contain a resource_type, id, and resource_name; see GXCloudIdentifier for more information."  # noqa: E501
+        if not isinstance(key, tuple) or len(key) != 3:  # noqa: PLR2004 # FIXME CoP
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
+                "Key used for GXCloudStoreBackend must contain a resource_type, id, and resource_name; see GXCloudIdentifier for more information."  # noqa: E501 # FIXME CoP
             )
 
         resource_type, _id, _resource_name = key
         try:
             GXCloudRESTResource(resource_type)
         except ValueError as e:
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"The provided resource_type {resource_type} is not a valid GXCloudRESTResource"
             ) from e
 
@@ -683,7 +683,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             elif attributes_value is None:
                 payload = kwargs
             else:
-                raise TypeError(  # noqa: TRY003
+                raise TypeError(  # noqa: TRY003 # FIXME CoP
                     f"Parameter attributes_value of type {type(attributes_value)}"
                     f" is unsupported in GX V1."
                 )

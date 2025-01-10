@@ -32,7 +32,7 @@ To set up `boto3` with AWS, and use `boto3` within Python, see the [Boto3 docume
    python -m pip install boto3
    ```
 
-   :::tip
+   :::tip Tip
 
    If the `python -m pip install boto3` does not work, try:
 
@@ -56,7 +56,7 @@ To set up `boto3` with AWS, and use `boto3` within Python, see the [Boto3 docume
 
    Run the following terminal command to install the optional dependencies required by GX Core to work with AWS S3:
 
-   :::info
+   :::info Info
    <InfoUsingAVirtualEnvironment/>
    :::
 

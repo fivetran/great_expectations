@@ -31,12 +31,12 @@ class FilesystemDataConnector(FilePathDataConnector):
         glob_directive: glob for selecting files in directory (defaults to `**/*`) or nested directories (e.g. `*/*/*.csv`)
         data_context_root_directory: Optional GreatExpectations root directory (if installed on filesystem)
         whole_directory_path_override: Treat an entire directory as a single Asset
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     asset_level_option_keys: ClassVar[tuple[str, ...]] = ("glob_directive",)
     asset_options_type: ClassVar[Type[FilesystemOptions]] = FilesystemOptions
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_asset_name: str,
@@ -62,14 +62,14 @@ class FilesystemDataConnector(FilePathDataConnector):
         """
         Accessor method for base_directory. If directory is a relative path, interpret it as relative to the
         root directory. If it is absolute, then keep as-is.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return normalize_directory_path(
             dir_path=self._base_directory,
             root_directory_path=self._data_context_root_directory,
         )
 
     @classmethod
-    def build_data_connector(  # noqa: PLR0913
+    def build_data_connector(  # noqa: PLR0913 # FIXME CoP
         cls,
         datasource_name: str,
         data_asset_name: str,
@@ -92,7 +92,7 @@ class FilesystemDataConnector(FilePathDataConnector):
 
         Returns:
             Instantiated "FilesystemDataConnector" object
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return FilesystemDataConnector(
             datasource_name=datasource_name,
             data_asset_name=data_asset_name,
@@ -121,8 +121,8 @@ class FilesystemDataConnector(FilePathDataConnector):
 
         Returns:
             Customized error message
-        """  # noqa: E501
-        test_connection_error_message_template: str = 'No file at base_directory path "{base_directory}" matched glob_directive "{glob_directive}" for DataAsset "{data_asset_name}".'  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
+        test_connection_error_message_template: str = 'No file at base_directory path "{base_directory}" matched glob_directive "{glob_directive}" for DataAsset "{data_asset_name}".'  # noqa: E501 # FIXME CoP
         return test_connection_error_message_template.format(
             **{
                 "data_asset_name": data_asset_name,
@@ -171,7 +171,7 @@ def get_filesystem_one_level_directory_glob_path_list(
     :param base_directory_path -- base directory path, relative to which file paths will be collected
     :param glob_directive -- glob expansion directive
     :returns -- list of relative file paths
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if isinstance(base_directory_path, str):
         base_directory_path = pathlib.Path(base_directory_path)
 

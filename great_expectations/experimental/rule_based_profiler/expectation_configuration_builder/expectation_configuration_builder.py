@@ -4,23 +4,23 @@ import logging
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Set, Union
 
-from great_expectations.core.batch import Batch, BatchRequestBase  # noqa: TCH001
-from great_expectations.core.domain import Domain  # noqa: TCH001
+from great_expectations.core.batch import Batch, BatchRequestBase  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
 from great_expectations.data_context.util import instantiate_class_from_config
 from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,  # noqa: TCH001
+    ExpectationConfiguration,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.registry import get_expectation_impl
 from great_expectations.experimental.rule_based_profiler.builder import Builder
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001
+    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import (
     ParameterBuilder,
     init_rule_parameter_builders,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001
+    ParameterContainer,  # noqa: TCH001 # FIXME CoP
 )
 
 if TYPE_CHECKING:
@@ -54,7 +54,7 @@ class ExpectationConfigurationBuilder(ABC, Builder):
             These "ParameterBuilder" configurations help build kwargs needed for this "ExpectationConfigurationBuilder"
             data_context: AbstractDataContext associated with this ExpectationConfigurationBuilder
             kwargs: additional arguments
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         super().__init__(data_context=data_context)
 
@@ -69,14 +69,14 @@ class ExpectationConfigurationBuilder(ABC, Builder):
         Since ExpectationConfigurationBuilderConfigSchema allows arbitrary fields (as ExpectationConfiguration kwargs)
         to be provided, they must be all converted to public property accessors and/or public fields in order for all
         provisions by Builder, SerializableDictDot, and DictDot to operate properly in compliance with their interfaces.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         for k, v in kwargs.items():
             setattr(self, k, v)
             logger.debug(
-                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{self.__class__.__name__}".'  # noqa: E501
+                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{self.__class__.__name__}".'  # noqa: E501 # FIXME CoP
             )
 
-    def build_expectation_configuration(  # noqa: PLR0913
+    def build_expectation_configuration(  # noqa: PLR0913 # FIXME CoP
         self,
         domain: Domain,
         variables: Optional[ParameterContainer] = None,
@@ -96,7 +96,7 @@ class ExpectationConfigurationBuilder(ABC, Builder):
 
         Returns:
             ExpectationConfiguration object.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self.resolve_validation_dependencies(
             domain=domain,
             variables=variables,
@@ -118,13 +118,13 @@ class ExpectationConfigurationBuilder(ABC, Builder):
     ) -> ExpectationConfiguration:
         """
         Utilize Pydantic validaton and type coercion to ensure the final expectation configuration is valid.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         expectation_cls = get_expectation_impl(config.type)
         kwargs = {**config.kwargs, **domain.domain_kwargs}
         expectation = expectation_cls(**kwargs, meta=config.meta)
         return expectation.configuration
 
-    def resolve_validation_dependencies(  # noqa: PLR0913
+    def resolve_validation_dependencies(  # noqa: PLR0913 # FIXME CoP
         self,
         domain: Domain,
         variables: Optional[ParameterContainer] = None,
@@ -191,12 +191,12 @@ def init_expectation_configuration_builder(
             expectation_configuration_builder_config.to_dict()
         )
 
-    expectation_configuration_builder: ExpectationConfigurationBuilder = instantiate_class_from_config(  # noqa: E501
+    expectation_configuration_builder: ExpectationConfigurationBuilder = instantiate_class_from_config(  # noqa: E501 # FIXME CoP
         config=expectation_configuration_builder_config,
         runtime_environment={"data_context": data_context},
         config_defaults={
             "class_name": "DefaultExpectationConfigurationBuilder",
-            "module_name": "great_expectations.rule_based_profiler.expectation_configuration_builder",  # noqa: E501
+            "module_name": "great_expectations.rule_based_profiler.expectation_configuration_builder",  # noqa: E501 # FIXME CoP
         },
     )
     return expectation_configuration_builder

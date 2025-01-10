@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 class MetricRetriever(abc.ABC):
     """A MetricRetriever is responsible for retrieving metrics for a batch of data. It is an ABC that contains base logic and
     methods share by both the ColumnDescriptiveMetricsMetricReceiver and MetricListMetricRetriver.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(self, context: AbstractDataContext):
         self._context = context
@@ -48,6 +48,11 @@ class MetricRetriever(abc.ABC):
     def get_validator(self, batch_request: BatchRequest) -> Validator:
         if self._validator is None:
             self._validator = self._context.get_validator(batch_request=batch_request)
+
+        if isinstance(self._validator.active_batch, Batch):
+            if self._validator.active_batch.data_asset.name != batch_request.data_asset_name:
+                self._validator = self._context.get_validator(batch_request=batch_request)
+
         return self._validator
 
     @abc.abstractmethod
@@ -128,7 +133,7 @@ class MetricRetriever(abc.ABC):
         )
         assert isinstance(
             validator.active_batch, Batch
-        ), f"validator.active_batch is type {type(validator.active_batch).__name__} instead of type {Batch.__name__}"  # noqa: E501
+        ), f"validator.active_batch is type {type(validator.active_batch).__name__} instead of type {Batch.__name__}"  # noqa: E501 # FIXME CoP
         batch_id = validator.active_batch.id
         return batch_id, computed_metrics, aborted_metrics
 
@@ -183,7 +188,7 @@ class MetricRetriever(abc.ABC):
         )
         assert isinstance(
             validator.active_batch, Batch
-        ), f"validator.active_batch is type {type(validator.active_batch).__name__} instead of type {Batch.__name__}"  # noqa: E501
+        ), f"validator.active_batch is type {type(validator.active_batch).__name__} instead of type {Batch.__name__}"  # noqa: E501 # FIXME CoP
         batch_id = validator.active_batch.id
         column_names = domain_builder.get_effective_column_names(
             validator=validator,
@@ -302,7 +307,7 @@ class MetricRetriever(abc.ABC):
             aborted_metrics=aborted_metrics,
         )
         raw_column_types: list[dict[str, Any]] = value
-        # If type is not found, don't add empty type field. This can happen if our db introspection fails.  # noqa: E501
+        # If type is not found, don't add empty type field. This can happen if our db introspection fails.  # noqa: E501 # FIXME CoP
         column_types_converted_to_str: list[dict[str, str]] = []
         for raw_column_type in raw_column_types:
             if raw_column_type.get("type"):

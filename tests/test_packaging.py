@@ -63,7 +63,7 @@ def parse_requirements_files_to_specs(
         abs_path = req_file.absolute().as_posix()
         key = abs_path.rsplit(os.path.sep, 1)[-1]
         with open(req_file) as f:
-            req_set_dict[key] = {line.name: line.specs for line in rp.parse(f) if line.specs}  # type: ignore[misc]
+            req_set_dict[key] = {line.name: line.specs for line in rp.parse(f) if line.specs}  # type: ignore[misc] # FIXME CoP
 
     return req_set_dict
 
@@ -255,7 +255,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
         ("requirements-dev.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev.txt", "pandas", (("<", "2.2.0"),)),
-        ("requirements-dev.txt", "posthog", (("<", "3"), (">=", "2.1.0"))),
+        ("requirements-dev.txt", "posthog", (("<", "4"), (">", "3"))),
         ("requirements-dev.txt", "pyathena", (("<", "3"), (">=", "2.0.0"))),
         ("requirements-dev.txt", "pypd", (("==", "1.1.0"),)),
         ("requirements-dev.txt", "snowflake-sqlalchemy", (("<", "1.7.0"), (">=", "1.2.3"))),
@@ -266,5 +266,5 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements.txt", "altair", (("<", "5.0.0"), (">=", "4.2.1"))),
         ("requirements.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
         ("requirements.txt", "pandas", (("<", "2.2"),)),
-        ("requirements.txt", "posthog", (("<", "3"), (">=", "2.1.0"))),
+        ("requirements.txt", "posthog", (("<", "4"), (">", "3"))),
     }

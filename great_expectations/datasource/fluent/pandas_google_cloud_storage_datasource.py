@@ -31,6 +31,11 @@ class PandasGoogleCloudStorageDatasourceError(PandasDatasourceError):
 
 @public_api
 class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
+    """
+    PandasGoogleCloudStorageDatasource is a PandasDatasource that uses Google Cloud Storage as a
+    data store.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[GoogleCloudStorageDataConnector]] = (
         GoogleCloudStorageDataConnector
@@ -55,7 +60,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
     def _get_gcs_client(self) -> google.Client:
         gcs_client: Union[google.Client, None] = self._gcs_client
         if not gcs_client:
-            # Validate that "google" libararies were successfully imported and attempt to create "gcs_client" handle.  # noqa: E501
+            # Validate that "google" libararies were successfully imported and attempt to create "gcs_client" handle.  # noqa: E501 # FIXME CoP
             if google.service_account and google.storage:
                 try:
                     credentials: Union[google.Credentials, None] = (
@@ -67,7 +72,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
                         raise_warning_if_provider_not_present=True,
                     )
                     # pull in needed config substitutions using the `_config_provider`
-                    # The `FluentBaseModel.dict()` call will do the config substitution on the serialized dict if a `config_provider` is passed  # noqa: E501
+                    # The `FluentBaseModel.dict()` call will do the config substitution on the serialized dict if a `config_provider` is passed  # noqa: E501 # FIXME CoP
                     gcs_options: dict = self.dict(config_provider=self._config_provider).get(
                         "gcs_options", {}
                     )
@@ -85,13 +90,13 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
 
                     gcs_client = google.storage.Client(credentials=credentials, **gcs_options)
                 except Exception as e:
-                    # Failure to create "gcs_client" is most likely due invalid "gcs_options" dictionary.  # noqa: E501
-                    raise PandasGoogleCloudStorageDatasourceError(  # noqa: TRY003
+                    # Failure to create "gcs_client" is most likely due invalid "gcs_options" dictionary.  # noqa: E501 # FIXME CoP
+                    raise PandasGoogleCloudStorageDatasourceError(  # noqa: TRY003 # FIXME CoP
                         f'Due to exception: "{e!r}", "gcs_client" could not be created.'
                     ) from e
             else:
-                raise PandasGoogleCloudStorageDatasourceError(  # noqa: TRY003
-                    'Unable to create "PandasGoogleCloudStorageDatasource" due to missing google dependency.'  # noqa: E501
+                raise PandasGoogleCloudStorageDatasourceError(  # noqa: TRY003 # FIXME CoP
+                    'Unable to create "PandasGoogleCloudStorageDatasource" due to missing google dependency.'  # noqa: E501 # FIXME CoP
                 )
 
             self._gcs_client = gcs_client
@@ -107,11 +112,11 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
 
         Raises:
             TestConnectionError: If the connection test fails.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         try:
             _ = self._get_gcs_client()
         except Exception as e:
-            raise TestConnectionError(  # noqa: TRY003
+            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 "Attempt to connect to datasource failed with the following error message: "
                 f"{e!s}"
             ) from e
@@ -132,7 +137,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
     ) -> None:
         """Builds and attaches the `GoogleCloudStorageDataConnector` to the asset."""
         if kwargs:
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"_build_data_connector() got unexpected keyword arguments {list(kwargs.keys())}"
             )
         data_asset._data_connector = self.data_connector_type.build_data_connector(

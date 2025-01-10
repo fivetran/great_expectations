@@ -23,10 +23,10 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001
+    ParameterContainer,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.semantic_type_filter import (
-    SemanticTypeFilter,  # noqa: TCH001
+    SemanticTypeFilter,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
@@ -40,14 +40,14 @@ if TYPE_CHECKING:
 class ColumnDomainBuilder(DomainBuilder):
     """
     This DomainBuilder emits "Domain" object for every column in table and can serve as parent of other column-focused DomainBuilder implementations.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     exclude_field_names: ClassVar[Set[str]] = DomainBuilder.exclude_field_names | {
         "table_column_names",
         "semantic_type_filter",
     }
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         include_column_names: Optional[Union[str, Optional[List[str]]]] = None,
         exclude_column_names: Optional[Union[str, Optional[List[str]]]] = None,
@@ -82,7 +82,7 @@ class ColumnDomainBuilder(DomainBuilder):
 
         Inclusion/Exclusion Logic:
         (include_column_names|table_columns - exclude_column_names) + (include_semantic_types - exclude_semantic_types)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().__init__(data_context=data_context)
 
         self._include_column_names = include_column_names
@@ -109,7 +109,7 @@ class ColumnDomainBuilder(DomainBuilder):
     """
     All DomainBuilder classes, whose "domain_type" property equals "MetricDomainTypes.COLUMN", must extend present class
     (ColumnDomainBuilder) in order to provide full getter/setter accessor for relevant properties (as overrides).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     @property
     def include_column_names(self) -> Optional[Union[str, Optional[List[str]]]]:
@@ -197,12 +197,12 @@ class ColumnDomainBuilder(DomainBuilder):
     ) -> List[str]:
         """
         This method returns all column names available (i.e., prior to any inclusions/exclusions filtering is applied).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if self._table_column_names:
             return self._table_column_names
 
         if batch_ids is None:
-            batch_ids: List[str] = self.get_batch_ids(variables=variables)  # type: ignore[no-redef]
+            batch_ids: List[str] = self.get_batch_ids(variables=variables)  # type: ignore[no-redef] # FIXME CoP
 
         if validator is None:
             validator = self.get_validator(variables=variables)
@@ -212,7 +212,7 @@ class ColumnDomainBuilder(DomainBuilder):
                 metric_name="table.columns",
                 metric_domain_kwargs={
                     # active_batch_id
-                    "batch_id": batch_ids[-1],  # type: ignore[index]
+                    "batch_id": batch_ids[-1],  # type: ignore[index] # FIXME CoP
                 },
                 metric_value_kwargs={
                     "include_nested": False,
@@ -223,7 +223,7 @@ class ColumnDomainBuilder(DomainBuilder):
 
         return self._table_column_names
 
-    def get_filtered_column_names(  # noqa: C901
+    def get_filtered_column_names(  # noqa: C901 # FIXME CoP
         self,
         column_names: List[str],
         batch_ids: Optional[List[str]] = None,
@@ -232,7 +232,7 @@ class ColumnDomainBuilder(DomainBuilder):
     ) -> List[str]:
         """
         This method returns list of column names, filtered according to directives supplied via instance attributes.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         include_column_names: List[str] = cast(
             List[str],
             self._resolve_list_type_property(
@@ -303,7 +303,7 @@ class ColumnDomainBuilder(DomainBuilder):
                 )
             )
 
-        # Obtain semantic_type_filter_module_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain semantic_type_filter_module_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         semantic_type_filter_module_name: Optional[str] = (
             get_parameter_value_and_validate_return_type(
                 domain=None,
@@ -314,9 +314,9 @@ class ColumnDomainBuilder(DomainBuilder):
             )
         )
         if semantic_type_filter_module_name is None:
-            semantic_type_filter_module_name = "great_expectations.experimental.rule_based_profiler.helpers.simple_semantic_type_filter"  # noqa: E501
+            semantic_type_filter_module_name = "great_expectations.experimental.rule_based_profiler.helpers.simple_semantic_type_filter"  # noqa: E501 # FIXME CoP
 
-        # Obtain semantic_type_filter_class_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain semantic_type_filter_class_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         semantic_type_filter_class_name: Optional[str] = (
             get_parameter_value_and_validate_return_type(
                 domain=None,
@@ -358,7 +358,7 @@ class ColumnDomainBuilder(DomainBuilder):
         if include_semantic_types:
             filtered_column_names = list(
                 filter(
-                    lambda candidate_column_name: self.semantic_type_filter.table_column_name_to_inferred_semantic_domain_type_map[  # type: ignore[union-attr,arg-type]  # noqa: E501
+                    lambda candidate_column_name: self.semantic_type_filter.table_column_name_to_inferred_semantic_domain_type_map[  # type: ignore[union-attr,arg-type]  # noqa: E501 # FIXME CoP
                         candidate_column_name
                     ]
                     in include_semantic_types,
@@ -381,7 +381,7 @@ class ColumnDomainBuilder(DomainBuilder):
         if exclude_semantic_types:
             filtered_column_names = list(
                 filter(
-                    lambda candidate_column_name: self.semantic_type_filter.table_column_name_to_inferred_semantic_domain_type_map[  # type: ignore[union-attr,arg-type] # lambda missing type details  # noqa: E501
+                    lambda candidate_column_name: self.semantic_type_filter.table_column_name_to_inferred_semantic_domain_type_map[  # type: ignore[union-attr,arg-type] # lambda missing type details  # noqa: E501 # FIXME CoP
                         candidate_column_name
                     ]
                     not in exclude_semantic_types,
@@ -399,9 +399,9 @@ class ColumnDomainBuilder(DomainBuilder):
     ) -> List[str]:
         """
         This method applies multiple directives to obtain columns to be included as part of returned "Domain" objects.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if batch_ids is None:
-            batch_ids: List[str] = self.get_batch_ids(variables=variables)  # type: ignore[no-redef]
+            batch_ids: List[str] = self.get_batch_ids(variables=variables)  # type: ignore[no-redef] # FIXME CoP
 
         if validator is None:
             validator = self.get_validator(variables=variables)
@@ -438,7 +438,7 @@ class ColumnDomainBuilder(DomainBuilder):
 
         Returns:
             List of domains that match the desired columns and filtering criteria.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         batch_ids: List[str] = self.get_batch_ids(variables=variables)  # type: ignore[assignment] # could be None
 
         validator: Validator = self.get_validator(variables=variables)  # type: ignore[assignment] # could be None
@@ -469,15 +469,15 @@ class ColumnDomainBuilder(DomainBuilder):
             property_value = []
         elif isinstance(property_value, str):
             property_value = [property_value]
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if not isinstance(property_value, property_value_type):
-                raise ValueError(  # noqa: TRY003
-                    f'Unrecognized "{property_name}" directive -- must be "{property_value_type}" (or string).'  # noqa: E501
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
+                    f'Unrecognized "{property_name}" directive -- must be "{property_value_type}" (or string).'  # noqa: E501 # FIXME CoP
                 )
 
         property_cursor: type
         property_value = [
-            # Obtain property from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+            # Obtain property from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
             get_parameter_value_and_validate_return_type(
                 domain=None,
                 parameter_reference=property_cursor,

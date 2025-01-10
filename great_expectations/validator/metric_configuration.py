@@ -8,7 +8,7 @@ from great_expectations.core.domain import Domain
 from great_expectations.core.id_dict import IDDict
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.metric_repository.metrics import MetricTypes
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 
 class MetricConfiguration:
@@ -25,7 +25,7 @@ class MetricConfiguration:
         metric_value_kwargs (optional[dict]): Optional kwargs that define values specific to each Metric.  For instance,
             a Metric that partitions a column can define the method of partitioning (`uniform` bins) and the number of
             bins (`n_bins`) as `metric_value_kwargs`.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -135,7 +135,7 @@ class MetricConfiguration:
                 },
             )
 
-        raise ValueError(f"""Domain type "{domain_type}" is not recognized.""")  # noqa: TRY003
+        raise ValueError(f"""Domain type "{domain_type}" is not recognized.""")  # noqa: TRY003 # FIXME CoP
 
     def get_domain_type(self) -> MetricDomainTypes:
         """Return "domain_type" of this "MetricConfiguration" object."""
@@ -148,7 +148,7 @@ class MetricConfiguration:
         if "column_list" in self._metric_domain_kwargs:
             return MetricDomainTypes.MULTICOLUMN
 
-        # TODO: <Alex>Determining "domain_type" of "MetricConfiguration" using heuristics defaults to "TABLE".</Alex>  # noqa: E501
+        # TODO: <Alex>Determining "domain_type" of "MetricConfiguration" using heuristics defaults to "TABLE".</Alex>  # noqa: E501 # FIXME CoP
         return MetricDomainTypes.TABLE
 
     @property

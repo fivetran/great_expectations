@@ -155,7 +155,7 @@ Use the GX Cloud UI to implement the following steps:
    where extract(epoch from (age(received_ts, sent_ts))) > 45
    ```
 
-5. Validate the `integrity_transfers` Data Asset once again, now with two Expectations in the Expectation Suite.
+5. Validate the `integrity_transfers` Data Asset once again, now with two Expectations.
 
 6. Review the Validation Results. The increased specificity of the custom SQL Expectation enables you to see that one of the transfer transaction records has failed to meet the business logic-informed definition of integrity.
 
@@ -227,7 +227,7 @@ Run the following GX Core workflow.
 
 ## Scenarios
 
-The following scenarios provide insight into how Great Expectations can help enforce data integrity across various domains. By combining built-in Expectations with custom SQL checks, organizations can create comprehensive validation frameworks that catch inconsistencies, prevent data quality issues, and ensure compliance with business rules and regulations.
+The following scenarios provide insight into how Great Expectations can help enforce data integrity across various domains. By combining built-in Expectations with custom SQL checks, organizations can create comprehensive validation frameworks that catch inconsistencies, prevent data quality problems, and ensure compliance with business rules and regulations.
 
 ### Cross-system financial reconciliation
 

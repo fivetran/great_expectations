@@ -181,7 +181,7 @@
                     "title": "Data Quality Issues",
                     "type": "array",
                     "const": [
-                        "Distribution"
+                        "Numeric"
                     ]
                 },
                 "library_metadata": {
@@ -217,7 +217,6 @@
                         "PostgreSQL",
                         "MySQL",
                         "MSSQL",
-                        "Redshift",
                         "BigQuery",
                         "Snowflake"
                     ]

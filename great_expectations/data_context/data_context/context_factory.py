@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
     from great_expectations.alias_types import PathStr
     from great_expectations.core.config_provider import _ConfigurationProvider
+    from great_expectations.core.factory.suite_factory import SuiteFactory
     from great_expectations.data_context import (
         AbstractDataContext,
         CloudDataContext,
@@ -59,7 +60,7 @@ class ProjectManager:
     def __init__(self):
         self.__project = None
 
-    def get_project(  # noqa: PLR0913
+    def get_project(  # noqa: PLR0913 # FIXME CoP
         self,
         project_config: DataContextConfig | Mapping | None = None,
         context_root_dir: PathStr | None = None,
@@ -111,6 +112,9 @@ class ProjectManager:
     def get_validator(self, batch_request: BatchRequest) -> Validator:
         return self._project.get_validator(batch_request=batch_request)
 
+    def get_suite_factory(self) -> SuiteFactory:
+        return self._project.suites
+
     def is_using_cloud(self) -> bool:
         from great_expectations.data_context import CloudDataContext
 
@@ -147,7 +151,7 @@ class ProjectManager:
     def get_config_provider(self) -> _ConfigurationProvider:
         return self._project.config_provider
 
-    def _build_context(  # noqa: PLR0913
+    def _build_context(  # noqa: PLR0913 # FIXME CoP
         self,
         project_config: DataContextConfig | Mapping | None = None,
         context_root_dir: PathStr | None = None,
@@ -195,7 +199,7 @@ class ProjectManager:
         try:
             kwargs = param_lookup[mode]
         except KeyError:
-            raise ValueError(f"Unknown mode {mode}. Please choose one of: ephemeral, file, cloud.")  # noqa: TRY003
+            raise ValueError(f"Unknown mode {mode}. Please choose one of: ephemeral, file, cloud.")  # noqa: TRY003 # FIXME CoP
 
         from great_expectations.data_context.data_context import (
             AbstractDataContext,
@@ -214,7 +218,7 @@ class ProjectManager:
             "ephemeral": EphemeralDataContext,
             "file": FileDataContext,
             "cloud": CloudDataContext,
-            None: AbstractDataContext,  # type: ignore[type-abstract]
+            None: AbstractDataContext,  # type: ignore[type-abstract] # FIXME CoP
         }
 
         context_fn_map: dict[ContextModes | None, Callable] = {
@@ -229,15 +233,15 @@ class ProjectManager:
 
         expected_type = expected_ctx_types[mode]
         if not isinstance(context, expected_type):
-            # example I want an ephemeral context but the presence of a GX_CLOUD env var gives me a cloud context  # noqa: E501
+            # example I want an ephemeral context but the presence of a GX_CLOUD env var gives me a cloud context  # noqa: E501 # FIXME CoP
             # this kind of thing should not be possible but there may be some edge cases
-            raise ValueError(  # noqa: TRY003, TRY004
-                f"Provided mode {mode} returned context of type {type(context).__name__} instead of {expected_type.__name__}; please check your input arguments."  # noqa: E501
+            raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+                f"Provided mode {mode} returned context of type {type(context).__name__} instead of {expected_type.__name__}; please check your input arguments."  # noqa: E501 # FIXME CoP
             )
 
         return context
 
-    def _get_default_context(  # noqa: PLR0913
+    def _get_default_context(  # noqa: PLR0913 # FIXME CoP
         self,
         project_config: DataContextConfig | None = None,
         context_root_dir: PathStr | None = None,
@@ -296,7 +300,7 @@ class ProjectManager:
 
         return project_config
 
-    def _get_cloud_context(  # noqa: PLR0913
+    def _get_cloud_context(  # noqa: PLR0913 # FIXME CoP
         self,
         project_config: DataContextConfig | Mapping | None = None,
         context_root_dir: PathStr | None = None,
@@ -328,8 +332,8 @@ class ProjectManager:
             )
 
         if cloud_mode and not config_available:
-            raise GXCloudConfigurationError(  # noqa: TRY003
-                "GX Cloud Mode enabled, but missing env vars: GX_CLOUD_ORGANIZATION_ID, GX_CLOUD_ACCESS_TOKEN"  # noqa: E501
+            raise GXCloudConfigurationError(  # noqa: TRY003 # FIXME CoP
+                "GX Cloud Mode enabled, but missing env vars: GX_CLOUD_ORGANIZATION_ID, GX_CLOUD_ACCESS_TOKEN"  # noqa: E501 # FIXME CoP
             )
 
         return None
@@ -397,7 +401,7 @@ def get_context(
 @overload
 def get_context(
     project_config: DataContextConfig | Mapping | None = ...,
-    context_root_dir: PathStr = ...,  # If context_root_dir is provided, project_root_dir shouldn't be  # noqa: E501
+    context_root_dir: PathStr = ...,  # If context_root_dir is provided, project_root_dir shouldn't be  # noqa: E501 # FIXME CoP
     project_root_dir: None = ...,
     runtime_environment: dict | None = ...,
     cloud_base_url: None = ...,
@@ -411,7 +415,7 @@ def get_context(
 def get_context(
     project_config: DataContextConfig | Mapping | None = ...,
     context_root_dir: None = ...,
-    project_root_dir: PathStr = ...,  # If project_root_dir is provided, context_root_dir shouldn't be  # noqa: E501
+    project_root_dir: PathStr = ...,  # If project_root_dir is provided, context_root_dir shouldn't be  # noqa: E501 # FIXME CoP
     runtime_environment: dict | None = ...,
     cloud_base_url: None = ...,
     cloud_access_token: None = ...,
@@ -450,7 +454,7 @@ def get_context(
 
 
 @public_api
-def get_context(  # noqa: PLR0913
+def get_context(  # noqa: PLR0913 # FIXME CoP
     project_config: DataContextConfig | Mapping | None = None,
     context_root_dir: PathStr | None = None,
     project_root_dir: PathStr | None = None,
@@ -531,7 +535,7 @@ def get_context(  # noqa: PLR0913
 
     Raises:
         GXCloudConfigurationError: Cloud mode enabled, but missing configuration.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     return project_manager.get_project(
         project_config=project_config,
         context_root_dir=context_root_dir,

@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 Data uniqueness is a fundamental aspect of data quality that ensures distinct values are present only once where expected in a dataset. Uniqueness constraints are often applied to columns that serve as primary keys, composite keys, or other unique identifiers. Validating uniqueness is critical for maintaining data integrity, preventing duplication, and enabling accurate analysis.
 
-Failing to validate uniqueness can lead to various data quality issues:
+Failing to validate uniqueness can lead to various data quality problems:
 
 * Duplicates can skew analytics, leading to incorrect conclusions and flawed decision-making. For example, duplicate transactions could overstate revenue.
 * Non-unique identifiers can cause data corruption when merging or joining datasets, resulting in lost data or mismatched records.

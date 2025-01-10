@@ -2,7 +2,7 @@ from typing import Final
 
 import pandas as pd
 import pytest
-from contrib.experimental.great_expectations_experimental.expectations.expect_column_values_to_be_present_in_other_table import (  # noqa: E501
+from contrib.experimental.great_expectations_experimental.expectations.expect_column_values_to_be_present_in_other_table import (  # noqa: E501 # FIXME CoP
     ExpectColumnValuesToBePresentInOtherTable,  # needed for expectation registration
 )
 
@@ -19,7 +19,7 @@ DB_PATH: Final[str] = file_relative_path(
 
 @pytest.fixture
 def referential_integrity_db(sa):
-    """Create a sqlite database with 3 tables: order_table_1, order_table_2, and customer_table. We only run this once to create the database."""  # noqa: E501
+    """Create a sqlite database with 3 tables: order_table_1, order_table_2, and customer_table. We only run this once to create the database."""  # noqa: E501 # FIXME CoP
     sqlite_engine = sa.create_engine(f"sqlite:///{DB_PATH}")
     order_table_1 = pd.DataFrame(
         {
@@ -115,7 +115,7 @@ def test_configuration_invalid_column_name(sqlite_datasource):
 
     This is testing default behavior of `batch.validate()` which catches Exception information
     and places it in `exception_info`. Here we check that the exception message contains the text we expect
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     datasource = sqlite_datasource
     asset_name = "order_table_2"
     asset = datasource.add_table_asset(name=asset_name, table_name="order_table_2")

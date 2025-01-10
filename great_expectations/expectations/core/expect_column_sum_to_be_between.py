@@ -4,12 +4,13 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -45,12 +46,12 @@ SUPPORTED_DATA_SOURCES = [
     "SQLite",
     "PostgreSQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
+    "MySQL",
 ]
-DATA_QUALITY_ISSUES = ["Distribution"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
@@ -98,7 +99,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
         * observed_value field in the result object is customized for this expectation to be a list \
           representing the actual column sum
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -107,8 +108,9 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -162,7 +164,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -185,7 +187,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
 
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.sum",)
     success_keys = (
         "min_value",
@@ -325,7 +327,7 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
             elif params["max_value"] is None:
                 template_str = f"sum must be {at_least_str} $min_value."
             else:
-                raise ValueError("unresolvable template_str")  # noqa: TRY003
+                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME CoP
 
         if renderer_configuration.include_column_name:
             template_str = f"$column {template_str}"

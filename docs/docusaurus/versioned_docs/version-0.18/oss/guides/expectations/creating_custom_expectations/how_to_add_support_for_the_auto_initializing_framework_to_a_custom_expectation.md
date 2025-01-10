@@ -46,7 +46,7 @@ The `DomainBuilder` configuration requries a `class_name` and `module_name`.  In
   - `TableDomainBuilder`: This `DomainBuilder` outputs table `Domains`, which is required by `Expectations` that act on tables, like (`expect_table_row_count_to_equal`, or `expect_table_columns_to_match_set`).
   - `MapMetricColumnDomainBuilder`: This `DomainBuilder` allows you to choose columns based on Map Metrics, which give a yes/no answer for individual values or rows.
   - `CategoricalColumnDomainBuilder`: This `DomainBuilder` allows you to choose columns based on their cardinality (number of unique values).
-  :::note
+  :::note Note
   `CategoricalColumnDomainBuilder` will take in various `cardinality_limit_mode` values for cardinality. For a full listing of valid modes, along with the associated values, please refer to [the `CardinalityLimitMode` enum in the source code on our GitHub](https://github.com/great-expectations/great_expectations/blob/develop/great_expectations/experimental/rule_based_profiler/helpers/cardinality_checker.py).
   :::
 

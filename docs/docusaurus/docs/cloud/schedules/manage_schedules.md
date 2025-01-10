@@ -4,49 +4,12 @@ title: 'Manage schedules'
 description: Create and manage schedules for Validations in GX Cloud.
 ---
 
-Add schedules to your GX Cloud Expectation Suites to take advantage of automated data quality checks. Schedules are automatically enabled when you add your first Expectation to an Expectation Suite in the Cloud UI.
+Use a schedule to automate data quality checks with GX-managed Expectations. When you add your first Expectation in the GX Cloud UI for a Data Asset, including when you choose to auto-generate Expectations to detect schema changes, we enable a default schedule for that Asset's GX-managed Expectations. By default, GX-managed Expectations are scheduled to run every 24 hours. The first run will be at the start of the next hour after you add your first Expectation in the Cloud UI. You can keep the default schedule, edit it, or disable it.
 
-## Create a schedule for an existing Expectation Suite
+:::note Schedules are for GX-managed Expectations only
+To automate data quality checks for [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations), use an [orchestrator](/cloud/connect/connect_airflow.md).
+:::
 
-1. In GX Cloud, click **Data Assets**.
-
-2. In the **Data Assets** list, click the Data Asset name.
-
-3. Click the **Expectations** tab and then select the Expectation Suite you'd like to apply a schedule to.
-
-4. Ensure you have an Expectation in the Expectation Suite. Unpause the schedule for the Expectation Suite using the toggle in the Scheduling component.
-
-5. To edit the default schedule, click the edit icon in the Scheduling component.
-
-    - **Frequency:** Select a frequency between 1 hour and 24 hours.
-
-    - **Start time:** Select a local start time for your schedule. Your selected frequency overrides start time, in the case where start time is later than the next occurence of selected frequency.
-
-6. Click **Save**.
-
-## Create a schedule for a new Expectation Suite
-
-1. In GX Cloud, click **Data Assets**.
-
-2. In the **Data Assets** list, click the Data Asset name.
-
-3. Click the **Expectations** tab.
-
-4. Click **New Suite** in the **Expectation Suites** pane.
-
-5. Enter a name for the Expectation Suite in the **Expectation Suite name** field.
-
-6. Click **Create**.
-
-7. Add an Expectation to the Expectation Suite to unpause the schedule for the Expectation Suite.
-
-8. To edit the default schedule, click the edit icon in the Scheduling component.
-
-    - **Frequency:** Select a frequency between 1 hour and 24 hours.
-
-    - **Start time:** Select a local start time for your schedule. Your selected frequency overrides start time, in the case where start time is later than the next occurence of selected frequency.
-
-9. Click **Save**.
 
 ## Edit a schedule
 
@@ -54,13 +17,9 @@ Add schedules to your GX Cloud Expectation Suites to take advantage of automated
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Click the **Expectations** tab and then select the Expectation Suite you'd like to apply a schedule to.
+3. In the Scheduling component, click the **Edit Schedule** icon.
 
-4. To edit the default schedule, click the edit icon in the Scheduling component.
-
-    - **Frequency:** Select a frequency between 1 hour and 24 hours.
-
-    - **Start time:** Select a local start time for your schedule. Your selected frequency overrides start time, in the case where start time is later than the next occurence of selected frequency.
+4. Change the **Frequency** and/or the **Start time** for the first run of the new schedule.
 
 5. Click **Save**.
 
@@ -70,6 +29,4 @@ Add schedules to your GX Cloud Expectation Suites to take advantage of automated
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Click the **Expectations** tab and then select the Expectation Suite you'd like to change.
-
-4. Pause the schedule for the Expectation Suite using the toggle in the Scheduling component.
+3. Pause the schedule using the toggle in the Scheduling component.
