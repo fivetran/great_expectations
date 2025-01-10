@@ -59,13 +59,11 @@ ExpectPassengerCountToBeLegal = gx.expectations.UnexpectedRowsExpectation(
 )
 # </snippet>
 
-
+# Test the Expectation
 context = gx.get_context()
 # Hide this
 set_up_context_for_example(context)
 
-
-# Test the Expectation
 data_source_name = "my_sql_data_source"
 data_asset_name = "my_data_asset"
 batch_definition_name = "my_batch_definition"
