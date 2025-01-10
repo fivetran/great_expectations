@@ -12,12 +12,12 @@ import Tabs from '@theme/Tabs';
 
 An Expectation is a verifiable assertion about your data. Expectations make implicit assumptions about your data explicit, and they provide a flexible, declarative language for describing expected behavior. They can help you better understand your data and help you improve data quality.
 
-<h2>Prerequisites</h2>
+## Prerequisites {#prerequisites-create-expectation}
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 
-### Procedure
+### Procedure {#procedure-create-expectation}
 
 <Tabs 
    queryString="procedure"

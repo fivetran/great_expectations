@@ -5,11 +5,11 @@ import PreReqDataContext from '../../../_core_components/prerequisites/_preconfi
 
 Batch Definitions for a Directory Data Asset can be configured to return all of the records for the files in the Data Asset, or to subdivide the Data Asset's records on the content of a Datetime field and only return the records that correspond to a specific year, month, or day. 
 
-### Prerequisites
+### Prerequisites {#prerequisites-batch-definition-directory}
 - <PreReqDataContext/>.  The variable `context` is used for your Data Context in the following example code.
 - [A File Data Asset on a Filesystem Data Source](#create-a-data-asset).
 
-### Procedure
+### Procedure {#procedure-batch-definition-directory}
 
 <Tabs 
    queryString="procedure"

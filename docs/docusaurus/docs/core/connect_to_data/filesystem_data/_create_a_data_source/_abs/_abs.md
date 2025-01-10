@@ -5,14 +5,14 @@ import PrereqPythonInstall from '../../../../_core_components/prerequisites/_pyt
 import PrereqGxInstall from '../../../../_core_components/prerequisites/_gx_installation_with_abs_dependencies.md'
 import PrereqDataContext from '../../../../_core_components/prerequisites/_preconfigured_data_context.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-source-abs}
 - <PrereqPythonInstall/>
 - <PrereqGxInstall/>
   - Optional. To create a Spark Filesystem Data Source you will also need to [install the Spark Python dependencies](/core/set_up_a_gx_environment/install_additional_dependencies.md?dependencies=spark).
 - <PrereqDataContext/>
 - Access to data files in Azure Blob Storage.
 
-### Procedure
+### Procedure {#procedure-data-source-abs}
 
 <Tabs 
    queryString="procedure"

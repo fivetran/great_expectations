@@ -9,11 +9,11 @@ import QueryAsset from './_query_asset.md';
 
 Data Assets are collections of records within a Data Source.  With SQL Data Sources, a Data Asset can consist of the records from a specific table or the records from a specified query.
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-asset}
 - <PreReqDataContext/>.  The variable `context` is used for your Data Context in the following example code.
 - <PrereqDataSource/>.
 
-### Procedure
+### Procedure {#procedure-data-asset}
 
 <Tabs 
    queryString="procedure"

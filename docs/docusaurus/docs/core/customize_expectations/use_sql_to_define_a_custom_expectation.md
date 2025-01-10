@@ -17,7 +17,7 @@ Like any other Expectation, you can instantiate the `UnexpectedRowsExpectation` 
 
 <!-- Additionally, the `UnexpectedRowsExpectation`'s use of SQL or Spark-SQL queries makes it uniquely suitable for customized validation logic.  Although the default behavior of an `UnexpectedRowsExpectation` is to treat returned rows as having failed validation, you can override this default by providing a custom `_validate(...)` method for your customized subclass of `UnexpectedRowsExpectation`. -->
 
-<h2>Prerequisites</h2>
+## Prerequisites
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
