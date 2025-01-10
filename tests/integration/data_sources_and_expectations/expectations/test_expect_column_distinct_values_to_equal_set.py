@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 import pandas as pd
 import pytest
@@ -73,9 +72,7 @@ def test_ignores_nulls(batch_for_datasource: Batch) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
 )
-def test_fails_if_data_is_not_equal(
-    batch_for_datasource: Batch, value_set: Optional[list[int]]
-) -> None:
+def test_fails_if_data_is_not_equal(batch_for_datasource: Batch, value_set: list[int]) -> None:
     expectation = gxe.ExpectColumnDistinctValuesToEqualSet(column=COL_NAME, value_set=value_set)
     result = batch_for_datasource.validate(expectation)
     assert not result.success

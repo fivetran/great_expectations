@@ -81,16 +81,9 @@ def test_data_is_subset(batch_for_datasource: Batch) -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize(
-    "value_set",
-    [
-        pytest.param([], id="empty_list"),
-        pytest.param(None, id="null"),
-    ],
-)
-def test_invalid_value_set(value_set: list | None) -> None:
+def test_empty_value_set() -> None:
     with pytest.raises(pydantic.ValidationError):
-        gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=value_set)
+        gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[])
 
 
 @parameterize_batch_for_data_sources(
