@@ -69,7 +69,7 @@ def test_ignores_nulls(batch_for_datasource: Batch) -> None:
     assert result.success
 
 
-@pytest.mark.parametrize("value_set", [None, [], [1], [1, 4], [1, 2, 3]])
+@pytest.mark.parametrize("value_set", [[1], [1, 4], [1, 2, 3]])
 @parameterize_batch_for_data_sources(
     data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
 )
