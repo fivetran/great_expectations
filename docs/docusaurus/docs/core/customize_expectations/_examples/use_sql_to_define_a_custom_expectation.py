@@ -59,7 +59,7 @@ ExpectPassengerCountToBeLegal = gx.expectations.UnexpectedRowsExpectation(
 )
 # </snippet>
 
-# Test the Expectation
+# Test the Expectation.
 context = gx.get_context()
 # Hide this
 set_up_context_for_example(context)

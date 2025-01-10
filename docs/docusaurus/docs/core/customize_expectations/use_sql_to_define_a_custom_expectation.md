@@ -37,7 +37,7 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
 1. Determine your custom SQL query.
 
-   The `UnexpectedRowsExpectation` class takes an `unexpected_rows_query` attribute, which is a SQL or Spark-SQL query that returns a selection of rows from the Batch of data being validated.  By default, rows that are returned have failed the validation check.
+   The `UnexpectedRowsExpectation` class takes an `unexpected_rows_query` attribute, which is a SQL or Spark-SQL query that returns a selection of rows from the Batch of data being validated. By default, rows that are returned have failed the validation check.
 
    The `unexpected_rows_query` should be written in the SQL dialect your database uses, except that it can also contain the special `{batch}` named query.  When the Expectation is evaluated, the `{batch}` keyword will be replaced with the Batch of data that is configured for your Data Asset.
 
