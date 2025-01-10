@@ -35,16 +35,9 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
 <TabItem value="instructions" label="Instructions">
 
-1. Create a new Expectation using the `UnexpectedRowsExpectation` class.
-  
-   The class name `UnexpectedRowsExpectation` describes the functionality of the Expectation: it finds rows with unexpected values.  When you create your Expectation, you can provide use a name that is more indicative of your specific use case.  In this example, the customized Expectation will be used to find invalid passenger counts in taxi trip data:
+1. Determine your custom SQL query.
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define a more descriptive name for an UnexpectedRowsExpectation"
-   ```
-
-2. Set the Expectation's `unexpected_rows_query` attribute.
-
-   The `unexpected_rows_query` attribute is a SQL or Spark-SQL query that returns a selection of rows from the Batch of data being validated.  By default, rows that are returned have failed the validation check.
+   The `UnexpectedRowsExpectation` class takes an `unexpected_rows_query` attribute, which is a SQL or Spark-SQL query that returns a selection of rows from the Batch of data being validated.  By default, rows that are returned have failed the validation check.
 
    The `unexpected_rows_query` should be written in standard SQL or Spark-SQL syntax, except that it can also contain the special `{batch}` named query.  When the Expectation is evaluated, the `{batch}` keyword will be replaced with the Batch of data that is configured for your Data Asset.
 
@@ -53,9 +46,16 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define the query for an UnexpectedRowsExpectation"
    ```
 
-3. Customize the rendering of the new Expectation when displayed in Data Docs.
+2. Customize the rendering of the new Expectation when displayed in Data Docs.
 
-   As with other Expectations, the `description` attribute contains the text describing the Expectation when your results are rendered into Data Docs.  It can be set edited as an attribute of an Expectation instance.  You can format the `description` string with Markdown syntax:
+   As with other Expectations, the `description` attribute contains the text describing the Expectation when your results are rendered into Data Docs. You can format the `description` string with Markdown syntax:
+
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - description"
+   ```
+
+3. Create a new Expectation using the `UnexpectedRowsExpectation` class and your parameters.
+  
+   The class name `UnexpectedRowsExpectation` describes the functionality of the Expectation: it finds rows with unexpected values.  When you create your Expectation, you can use a name that is more indicative of your specific use case.  In this example, the customized Expectation will be used to find invalid passenger counts in taxi trip data:
 
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define a custom UnexpectedRowsExpectation"
    ```
