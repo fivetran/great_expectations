@@ -18,7 +18,7 @@ Azure Blob Storage stores unstructured data on the Microsoft cloud data storage 
 
    Run the following code to install GX Core with the additional Python libraries needed to work with Azure Blob Storage:
 
-   :::info
+   :::info Info
    <InfoUsingAVirtualEnvironment/>
    :::
 
@@ -34,7 +34,7 @@ Azure Blob Storage stores unstructured data on the Microsoft cloud data storage 
    export AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=<YOUR-STORAGE-ACCOUNT-NAME>;AccountKey=<YOUR-STORAGE-ACCOUNT-KEY>"
    ```
 
-   :::info
+   :::info Info
 
    You can manage your credentials for all environments and Data Sources by storing them as environment variables.  To do this, enter `export ENV_VARIABLE_NAME=env_var_value` in the terminal or add the equivalent command to your `~/.bashrc` file.
   

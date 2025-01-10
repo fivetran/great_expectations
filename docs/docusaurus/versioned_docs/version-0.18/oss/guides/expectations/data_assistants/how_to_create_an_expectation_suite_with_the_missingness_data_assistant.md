@@ -5,7 +5,7 @@ title: Create an Expectation Suite with the Missingness Data Assistant
 import Prerequisites from '../../../../components/_prerequisites.jsx'
 import TechnicalTag from '../../../../reference/learn/term_tags/_tag.mdx';
 
-:::caution
+:::caution Caution
 
 Missingness Data Assistant functionality is [Experimental](/oss/contributing/contributing_maturity.md).
 
@@ -39,7 +39,7 @@ This is the `Validator` configuration:
 ```python title="Python" name="docs/docusaurus/docs/oss/guides/expectations/data_assistants/how_to_create_an_expectation_suite_with_the_missingness_data_assistant.py validator"
 ```
 
-:::caution
+:::caution Caution
 The Missingness Data Assistant runs multiple queries against your `Data Source`. Data Assistant performance can vary significantly depending on the number of Batches, the number of records per Batch, and network latency. If Data Assistant runtimes are too long, use a subset of your data when defining your `Data Source` and `Validator`.
 :::
 
@@ -59,7 +59,7 @@ To run a Data Assistant, you can call the `run(...)` method for the assistant. T
 
   In this example, `context` is your Data Context instance.
 
-  :::note
+  :::note Note
   The example code uses the default `estimation` parameter (`"exact"`).
 
   If you consider your data to be valid, and want to produce Expectations with ranges that are identical to the data in the `Validator`, you don't need to alter the example code. 
@@ -67,7 +67,7 @@ To run a Data Assistant, you can call the `run(...)` method for the assistant. T
   To identify potential outliers in your `BatchRequest` data, pass `estimation="flag_outliers"` to the `run(...)` method.
   :::
 
-  :::note
+  :::note Note
   The Missingness Data Assistant `run(...)` method can accept other parameters in addition to `exclude_column_names` such as `include_column_names`, `include_column_name_suffixes`, and `cardinality_limit_mode`. To view the available parameters, see [this information](https://github.com/great-expectations/great_expectations/blob/develop/great_expectations/rule_based_profiler/data_assistant/column_value_missing_data_assistant.py#L44).
   :::
 
@@ -95,7 +95,7 @@ You can check the `"success"` key of the Checkpoint's results to verify that you
 
   ![Plot Metrics](/docs/oss/images/data_assistant_plot_metrics.png)
 
-  :::note
+  :::note Note
   Hover over a data point to view more information about the Batch and its calculated Metric value.
   :::
 

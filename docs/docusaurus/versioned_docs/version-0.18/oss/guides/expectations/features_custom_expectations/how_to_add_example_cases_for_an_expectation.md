@@ -108,7 +108,7 @@ Sometimes you need to specify the precise type of the columns for each backend. 
   },
 ```
 
-:::info
+:::info Info
 While Pandas is fairly flexible in typing, Spark and many SQL dialects are much more strict. 
 
 You may find you wish to use data that is incompatible with a given backend, or write different individual tests for different backends. 
@@ -140,7 +140,7 @@ If you are interested in contributing your Custom Expectation back to Great Expe
 ```python title="Python" name="docs/docusaurus/docs/snippets/expect_column_max_to_be_between_custom.py examples"
 ```
 
-:::note
+:::note Note
 The optional `only_for` and `suppress_test_for` keys can be specified at the top-level (next to `data` and `tests`) or within specific tests (next to `title`, and so on).
 
 Allowed backends include: "bigquery", "mssql", "mysql", "pandas", "postgresql", "redshift", "snowflake", "spark", "sqlite", "trino"
@@ -185,7 +185,7 @@ If you're interested in having your contribution accepted at a Beta level, these
 For full acceptance into the Great Expectations codebase at a Production level, we require a more robust test suite. 
 If you believe your Custom Expectation is otherwise ready for contribution at a Production level, please submit a [Pull Request](https://github.com/great-expectations/great_expectations/pulls), and we will work with you to ensure adequate testing.
 
-:::note
+:::note Note
 For more information on our code standards and contribution, see our guide on [Levels of Maturity](/oss/contributing/contributing_maturity.md#expectation-contributions) for Expectations.
 
 To view the full script used in this page, see it on GitHub:

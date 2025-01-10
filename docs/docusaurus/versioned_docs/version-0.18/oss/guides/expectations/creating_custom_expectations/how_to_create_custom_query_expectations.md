@@ -45,7 +45,7 @@ Your Expectation will have two versions of the same name: a `CamelCaseName` and 
 - `ExpectQueriedTableRowCountToBe`
 - `expect_queried_table_row_count_to_be`
 
-:::info
+:::info Info
 For more on Expectation naming conventions, see the [Expectations section](../../../contributing/style_guides/code_style.md#expectations) of the Code Style Guide.
 :::
 
@@ -193,7 +193,7 @@ Completeness checklist for ExpectQueriedTableRowCountToBe:
 ...
 ```
 
-:::note
+:::note Note
 For more information on tests and example cases, see [how to create example cases for a Custom Expectation](../features_custom_expectations/how_to_add_example_cases_for_an_expectation.md).
 :::
 
@@ -213,7 +213,7 @@ Becomes something like this:
 ```python title="Python" name="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/expect_queried_table_row_count_to_be.py query"
 ```
 
-:::warning
+:::warning Warning
 As noted above, `QueryExpectations` support parameterization of your <TechnicalTag tag="batch" text="Active Batch"/>.
 
 We *strongly* recommend making use of that parameterization as above, by querying against `{active_batch}`.
@@ -225,7 +225,7 @@ Metrics for `QueryExpectations` are a thin wrapper, allowing you to execute that
 Great Expectations provides a small number of simple, ready-to-use `query.*` Metrics that can plug into your Custom Expectation, or serve as a basis for your own custom Metrics.
 
 
-:::note
+:::note Note
 Query Metric functions have the `@metric_value` decorator, with the appropriate `engine`.
 
 The `@metric_value` decorator allows us to explicitly structure queries and directly access our compute domain.
@@ -296,7 +296,7 @@ black <PATH/TO/YOUR/EXPECTATION.py>
 ruff <PATH/TO/YOUR/EXPECTATION.py> --fix
 ```
 
-:::info
+:::info Info
 If desired, you can automate this to happen at commit time. See our [guidance on linting](../../../contributing/style_guides/code_style.md#linting) for more on this process.
 :::
 
@@ -323,7 +323,7 @@ Your Expectation will have two versions of the same name: a `CamelCaseName` and 
 - `ExpectQueriedColumnValueFrequencyToMeetThreshold`
 - `expect_queried_column_value_frequency_to_meet_threshold`
 
-:::info
+:::info Info
 For more on Expectation naming conventions, see the [Expectations section](../../../contributing/style_guides/code_style.md#expectations) of the Code Style Guide.
 :::
 
@@ -470,7 +470,7 @@ Completeness checklist for ExpectQueriedColumnValueFrequencyToMeetThreshold:
 ...
 ```
 
-:::note
+:::note Note
 For more information on tests and example cases, see our guide on [how to create example cases for a Custom Expectation](./how_to_use_custom_expectations.md).
 :::
 
@@ -490,7 +490,7 @@ Becomes something like this:
 ```python title="Python" name="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/expect_queried_column_value_frequency_to_meet_threshold.py query"
 ```
 
-:::warning
+:::warning Warning
 As noted above, `QueryExpectations` support parameterization of your <TechnicalTag tag="batch" text="Active Batch"/>, and can support parameterization of a column name.
 
 While parameterizing a column name with `{col}` is optional and supports flexibility in your Custom Expectations,
@@ -503,7 +503,7 @@ Metrics for `QueryExpectations` are a thin wrapper, allowing you to execute that
 Great Expectations provides a small number of simple, ready-to-use `query.*` Metrics that can plug into your Custom Expectation, or serve as a basis for your own custom Metrics.
 
 
-:::note
+:::note Note
 Query Metric functions have the `@metric_value` decorator, with the appropriate `engine`.
 
 The `@metric_value` decorator allows us to explicitly structure queries and directly access our compute domain.
@@ -576,7 +576,7 @@ black <PATH/TO/YOUR/EXPECTATION.py>
 ruff <PATH/TO/YOUR/EXPECTATION.py> --fix
 ```
 
-:::info
+:::info Info
 If desired, you can automate this to happen at commit time. See our [guidance on linting](../../../contributing/style_guides/code_style.md#linting) for more on this process.
 :::
 
@@ -622,7 +622,7 @@ would become
 
 This is particularly important because ***we*** want to make sure that ***you*** get credit for all your hard work!
 
-:::note
+:::note Note
 For more information on our code standards and contribution, see our guide on [Levels of Maturity](/oss/contributing/contributing_maturity.md#expectation-contributions) for Expectations.
 
 To view the full scripts used in this page, see them on GitHub:

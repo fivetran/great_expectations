@@ -291,7 +291,7 @@ In `0.X`, a Data Source represents where the data lives and the execution engine
 
 **id**: This is a new field and is an arbitrary UUID. If migrating you can pick any unique UUID.
 
-:::note
+:::note Note
 We no longer support arbitrary batching regexes. Batches must be defined by one of our temporal batch definitions which are yearly, monthly, or daily.
 :::
 
