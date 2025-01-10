@@ -53,9 +53,8 @@ my_description = "There should be no more than **6** passengers."
 # Create an Expectation that uses SQL by using the UnexpectedRowsExpectation class
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - Expectation">
 ExpectPassengerCountToBeLegal = gx.expectations.UnexpectedRowsExpectation(
-    unexpected_rows_query = my_query,
-    description = my_description
-    )
+    unexpected_rows_query=my_query, description=my_description
+)
 # </snippet>
 
 
