@@ -75,6 +75,10 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
             {MIN_VALUE_DESCRIPTION}
         max_value (int or None): \
             {MAX_VALUE_DESCRIPTION}
+        strict_min (boolean): \
+            {STRICT_MIN_DESCRIPTION}
+        strict_max (boolean): \
+            {STRICT_MAX_DESCRIPTION}
 
     Other Parameters:
         result_format (str or None): \
@@ -93,7 +97,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
     Notes:
-        * min_value and max_value are both inclusive.
+        * min_value and max_value are both inclusive unless strict_min or strict_max are set to True.
         * If min_value is None, then max_value is treated as an upper bound, and the number of acceptable rows has \
           no minimum.
         * If max_value is None, then min_value is treated as a lower bound, and the number of acceptable rows has \
