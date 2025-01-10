@@ -13,6 +13,9 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.model_field_types import (
+    ConditionParser,  # noqa: TCH001 # FIXME CoP
+)
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -31,9 +34,6 @@ if TYPE_CHECKING:
     from great_expectations.execution_engine import ExecutionEngine
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
-    )
-    from great_expectations.expectations.model_field_types import (
-        ConditionParser,
     )
     from great_expectations.render.renderer_configuration import AddParamArgs
 
