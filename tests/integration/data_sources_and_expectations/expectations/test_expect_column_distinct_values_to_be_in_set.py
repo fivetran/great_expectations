@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 import pandas as pd
@@ -79,19 +81,16 @@ def test_data_is_subset(batch_for_datasource: Batch) -> None:
 
 
 @pytest.mark.unit
-def test_empty_value_set() -> None:
-    with pytest.raises(pydantic.ValidationError):
-        gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=[])
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+@pytest.mark.parametrize(
+    "value_set",
+    [
+        pytest.param([], id="empty_list"),
+        pytest.param(None, id="null"),
+    ],
 )
-def test_value_set_is_none(batch_for_datasource: Batch) -> None:
-    # why do we even allow this?!?
-    expectation = gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=None)
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
+def test_invalid_value_set(value_set: list | None) -> None:
+    with pytest.raises(pydantic.ValidationError):
+        gxe.ExpectColumnDistinctValuesToBeInSet(column=COL_NAME, value_set=value_set)
 
 
 @parameterize_batch_for_data_sources(
