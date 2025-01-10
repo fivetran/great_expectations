@@ -46,7 +46,7 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define query"
    ```
 
-2. Customize the rendering of the new Expectation when displayed in Data Docs.
+2. Customize how the Expectation renders in Data Docs.
 
    As with other Expectations, the `description` attribute contains the text describing the Expectation when your results are rendered into Data Docs. You can format the `description` string with Markdown syntax:
 
