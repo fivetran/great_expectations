@@ -35,25 +35,23 @@ def set_up_context_for_example(context):
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - full code example">
 import great_expectations as gx
 
-
 # Create an Expectation that uses SQL by using the UnexpectedRowsExpectation class
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define a custom UnexpectedRowsExpectation">
 ExpectPassengerCountToBeLegal = gx.expectations.UnexpectedRowsExpectation(
     # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define the query for an UnexpectedRowsExpectation">
-    unexpected_rows_query = """
+    unexpected_rows_query="""
         SELECT
            *
         FROM
            {batch}
         WHERE
            passenger_count > 6 or passenger_count < 0
-     """
-     # </snippet>
-     ,
-    # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - description">
-    description = "There should be no more than **6** passengers."
+     """,
     # </snippet>
-    )
+    # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - description">
+    description="There should be no more than **6** passengers.",
+    # </snippet>
+)
 # </snippet>
 # </snippet>
 
