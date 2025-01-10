@@ -12,7 +12,6 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.model_field_types import ConditionParser  # noqa: TCH001
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -32,11 +31,21 @@ if TYPE_CHECKING:
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
+    from great_expectations.expectations.model_field_types import (
+        ConditionParser,
+    )
     from great_expectations.render.renderer_configuration import AddParamArgs
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the number of rows to be between two values."
 MIN_VALUE_DESCRIPTION = "The minimum number of rows, inclusive."
 MAX_VALUE_DESCRIPTION = "The maximum number of rows, inclusive."
+
+STRICT_MIN_DESCRIPTION = (
+    "If True, the row count must be strictly larger than min_value, default=False"
+)
+STRICT_MAX_DESCRIPTION = (
+    "If True, the row count must be strictly smaller than max_value, default=False"
+)
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",
@@ -162,6 +171,8 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
     max_value: Union[int, SuiteParameterDict, datetime, None] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
+    strict_min: bool = pydantic.Field(default=False, description=STRICT_MAX_DESCRIPTION)
+    strict_max: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
@@ -180,10 +191,14 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
     success_keys = (
         "min_value",
         "max_value",
+        "strict_min",
+        "strict_max",
     )
     args_keys = (
         "min_value",
         "max_value",
+        "strict_min",
+        "strict_max",
     )
 
     class Config:
