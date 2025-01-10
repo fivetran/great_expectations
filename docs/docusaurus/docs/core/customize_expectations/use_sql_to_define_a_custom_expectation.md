@@ -9,7 +9,7 @@ import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installatio
 import PrereqPreconfiguredDataContext from '../_core_components/prerequisites/_preconfigured_data_context.md';
 import PrereqPreconfiguredDataSourceAndAsset from '../_core_components/prerequisites/_data_source_and_asset_connected_to_data.md';
 
-Among the available Expectations, the `UnexpectedRowsExpectation` is designed to facilitate the execution of SQL or Spark-SQL queries as the core logic for an Expectation.  By default, `UnexpectedRowsExpectation` considers validation successful when no rows are returned by the provided SQL query.
+Among the available Expectations, the `UnexpectedRowsExpectation` is designed to facilitate the execution of SQL queries as the core logic for an Expectation.  By default, `UnexpectedRowsExpectation` considers validation successful when no rows are returned by the provided SQL query.
 
 <!-- TODO: Do we want to discuss custom `_validate(...)` logic here, or should that be held for a future topic on building custom Expectation classes from scratch? -->
 
@@ -39,7 +39,7 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
    The `UnexpectedRowsExpectation` class takes an `unexpected_rows_query` attribute, which is a SQL or Spark-SQL query that returns a selection of rows from the Batch of data being validated.  By default, rows that are returned have failed the validation check.
 
-   The `unexpected_rows_query` should be written in standard SQL or Spark-SQL syntax, except that it can also contain the special `{batch}` named query.  When the Expectation is evaluated, the `{batch}` keyword will be replaced with the Batch of data that is configured for your Data Asset.
+   The `unexpected_rows_query` should be written in the SQL dialect your database uses, except that it can also contain the special `{batch}` named query.  When the Expectation is evaluated, the `{batch}` keyword will be replaced with the Batch of data that is configured for your Data Asset.
 
    In this example, `unexpected_rows_query` will select any rows where the passenger count is greater than `6` or less than `0`.  These rows will fail validation for this Expectation:
 
