@@ -47,7 +47,7 @@ my_query = """
     """
 # </snippet>
 
-#Customize the rendering of the Expectation when displayed in Data Docs.
+# Customize how the Expectation renders in Data Docs.
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define description">
 my_description = "There should be no more than **6** passengers."
 # </snippet>
