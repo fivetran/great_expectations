@@ -43,21 +43,21 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
    In this example, `unexpected_rows_query` will select any rows where the passenger count is greater than `6` or less than `0`.  These rows will fail validation for this Expectation:
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define the query for an UnexpectedRowsExpectation"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define query"
    ```
 
 2. Customize the rendering of the new Expectation when displayed in Data Docs.
 
    As with other Expectations, the `description` attribute contains the text describing the Expectation when your results are rendered into Data Docs. You can format the `description` string with Markdown syntax:
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - description"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define description"
    ```
 
 3. Create a new Expectation using the `UnexpectedRowsExpectation` class and your parameters.
   
    The class name `UnexpectedRowsExpectation` describes the functionality of the Expectation: it finds rows with unexpected values.  When you create your Expectation, you can use a name that is more indicative of your specific use case.  In this example, the customized Expectation will be used to find invalid passenger counts in taxi trip data:
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define a custom UnexpectedRowsExpectation"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - create Expectation"
    ```
 
 4. Use your custom SQL Expectation.
