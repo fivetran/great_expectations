@@ -76,13 +76,11 @@ def test_success_complete(batch_for_datasource: Batch) -> None:
     assert result_dict["observed_value"] in type_list
 
 
-@pytest.mark.xfail
 @parameterize_batch_for_data_sources(
     data_source_configs=[DatabricksDatasourceTestConfig()],
     data=DATA,
 )
 def test_success_complete_errors(batch_for_datasource: Batch) -> None:
-    # TODO: get this fixed
     type_list = [
         "INTEGER",
         "Integer",
