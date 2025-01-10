@@ -62,7 +62,7 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
 4. Use your custom SQL Expectation.
 
-   Now that you've created a custom SQL Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) and [validate it](/docs/core/run_validations/run_a_validation_definition.md) just like any other Expectation.
+   Now that you've created a custom SQL Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
 
 </TabItem>
 
