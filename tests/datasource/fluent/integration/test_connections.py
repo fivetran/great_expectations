@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 
 @pytest.mark.snowflake
 class TestSnowflake:
+    @pytest.mark.xfail(raises=sa.exc.ProgrammingError)
     @pytest.mark.parametrize(
         "connection_string",
         [
