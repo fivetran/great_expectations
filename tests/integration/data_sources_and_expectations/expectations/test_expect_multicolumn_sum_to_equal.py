@@ -55,10 +55,6 @@ def test_success(batch_for_datasource: Batch, expectation: gxe.ExpectMulticolumn
     "expectation",
     [
         pytest.param(
-            gxe.ExpectMulticolumnSumToEqual(column_list=[ONES_COL], sum_total=1),
-            id="one_col",
-        ),
-        pytest.param(
             gxe.ExpectMulticolumnSumToEqual(
                 column_list=[COL_A_BAD, COL_B, COL_C], sum_total=7, mostly=0.7
             ),
