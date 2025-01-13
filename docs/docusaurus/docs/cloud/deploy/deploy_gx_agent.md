@@ -1,7 +1,7 @@
 ---
 title: 'Deploy the GX Agent'
 id: deploy_gx_agent
-description: Deploy the GX Agent to  test locally or enhance security.
+description: Deploy the GX Agent to connect to your Data Source within your own environment.
 toc_min_heading_level: 2
 toc_max_heading_level: 2
 ---
