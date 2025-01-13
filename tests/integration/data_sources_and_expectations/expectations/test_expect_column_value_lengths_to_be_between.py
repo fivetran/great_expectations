@@ -37,7 +37,6 @@ def test_success_complete(batch_for_datasource: Batch) -> None:
             gxe.ExpectColumnValueLengthsToBeBetween(
                 column=COL_NAME, min_value=1, max_value=4, strict_min=True, strict_max=True
             ),
-            marks=pytest.mark.xfail(strict=False, reason="fails for python > 3.9"),
             id="strict_bounds",
         ),
     ],

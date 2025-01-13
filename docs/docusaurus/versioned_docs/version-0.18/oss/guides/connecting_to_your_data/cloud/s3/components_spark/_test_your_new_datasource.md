@@ -15,7 +15,7 @@ Verify your new <TechnicalTag tag="datasource" text="Data Source" /> by loading 
 
 Add the S3 path to your CSV in the `path` key under `runtime_parameters` in your `RuntimeBatchRequest`.
 
-:::tip
+:::tip Tip
 The path you will want to use is your S3 URI, not the URL.
 :::
 

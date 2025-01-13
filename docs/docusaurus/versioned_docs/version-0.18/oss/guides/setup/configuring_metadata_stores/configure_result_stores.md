@@ -19,7 +19,7 @@ import Tabs from '@theme/Tabs';
 
 A Validation Results Store is a connector that is used to store and retrieve information about objects generated when data is Validated against an Expectation. By default, Validation Results are stored in JSON format in the ``uncommitted/validations/`` subdirectory of your ``gx/`` folder. Use the information provided here to configure a store for your Validation Results.
 
-:::caution
+:::caution Caution
 
 Validation Results can include sensitive or regulated data that should not be committed to a source control system.
 
@@ -119,7 +119,7 @@ stores:
           connection_string: ${AZURE_STORAGE_CONNECTION_STRING}
 ```
 
-:::note
+:::note Note
 If the container for [hosting and sharing Data Docs on Azure Blob Storage](../../setup/configuring_data_docs/host_and_share_data_docs.md) is named ``$web``, use ``container: \$web`` to allow access to the ``$web``container.
 :::
 
@@ -192,7 +192,7 @@ In the following example, `validations_store_name` is set to ``validations_GCS_s
 ```yaml title="YAML" name="docs/docusaurus/docs/oss/guides/setup/configuring_metadata_stores/how_to_configure_a_validation_result_store_in_gcs.py configured_validations_store_yaml"
 ```
 
-:::warning
+:::warning Warning
 If you are also storing [Expectations in GCS](../configuring_metadata_stores/configure_expectation_stores.md) or [DataDocs in GCS](../configuring_data_docs/host_and_share_data_docs.md), make sure that the ``prefix`` values are disjoint and one is not a substring of the other.
 :::
 

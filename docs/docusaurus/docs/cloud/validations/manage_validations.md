@@ -68,7 +68,7 @@ To run a Validation for a specific Batch, do the following:
     
     - To view the run history of all Validations, select **All Runs** to view a graph showing the Validation run history for all columns.
 
-   :::tip
+   :::tip Tip
 
    Items in run history with a calendar icon are run on a GX-managed schedule.
 
