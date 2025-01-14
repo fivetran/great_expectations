@@ -36,6 +36,7 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
             item.insert(0, "\r\n")
             item.append("\r\n")
 
+
 def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Add h2 title to Methods section
     methods = soup.select(".py.method")

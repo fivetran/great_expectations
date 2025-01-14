@@ -39,7 +39,10 @@ from docs.sphinx_api_docs_source.public_api_report import (
     Definition,
     get_shortest_dotted_path,
 )
-from docs.sphinx_api_docs_source.utils import apply_markdown_adjustments, apply_structure_changes
+from docs.sphinx_api_docs_source.utils import (
+    apply_markdown_adjustments,
+    apply_structure_changes,
+)
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
