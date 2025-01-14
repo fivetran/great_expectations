@@ -39,8 +39,8 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
     # Add h2 title to Methods section
     methods = soup.select(".py.method")
     if methods:
-        wrapper_div = soup.new_tag('div')
-        title_h2 = soup.new_tag('h2')
+        wrapper_div = soup.new_tag("div")
+        title_h2 = soup.new_tag("h2")
         title_h2.string = "Methods"
         parent = methods[0].parent
 
@@ -55,8 +55,8 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
     # Add h2 title to Properties section
     properties = soup.select(".py.property")
     if properties:
-        wrapper_div = soup.new_tag('div')
-        title_h2 = soup.new_tag('h2')
+        wrapper_div = soup.new_tag("div")
+        title_h2 = soup.new_tag("h2")
         title_h2.string = "Properties"
         parent = properties[0].parent
 

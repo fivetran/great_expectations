@@ -2250,7 +2250,7 @@ class AbstractDataContext(ConfigPeer, ABC):
 
         Raises:
             ClassInstantiationError: Site config in your Data Context config is not valid.
-        
+
         """  # noqa: E501 # FIXME CoP
         return self._build_data_docs(
             site_names=site_names,
