@@ -54,7 +54,7 @@
 /en/latest/expectation_glossary.html https://docs.greatexpectations.io/docs/reference/learn/glossary
 /en/latest/reference/supporting_resources.html https://docs.greatexpectations.io/docs/core/introduction/community_resources/
 /en/latest/reference/spare_parts/* https://docs.greatexpectations.io/docs/core/introduction/
-/docs/reference/usage_statistics https://docs.greatexpectations.io/docs/core/configure_project_settings/toggle_analytics_events/
+/docs/reference/usage_statistics /docs/core/configure_project_settings/toggle_analytics_events/
 /en/latest/autoapi/great_expectations/render/renderer/page_renderer/index.html https://docs.greatexpectations.io/docs/reference/api/render/renderer/renderer/Renderer_class
 /en/latest/autoapi/great_expectations/expectations/* https://greatexpectations.io/expectations
 /en/latest/getting_started* https://docs.greatexpectations.io/docs/core/introduction/
