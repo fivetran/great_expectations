@@ -151,8 +151,7 @@ class CheckpointFactory(Factory[Checkpoint]):
         checkpoint.id = existing_checkpoint.id
 
         val_def_ids_by_name = {
-            val_def.name: val_def.id
-            for val_def in existing_checkpoint.validation_definitions
+            val_def.name: val_def.id for val_def in existing_checkpoint.validation_definitions
         }
         val_def_factory = project_manager.get_validation_definitions_factory()
         for val_def in checkpoint.validation_definitions:

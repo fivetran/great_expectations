@@ -13,10 +13,9 @@ from typing import (
     overload,
 )
 
-from great_expectations.core.factory import SuiteFactory, ValidationDefinitionFactory
-
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
+from great_expectations.core.factory import SuiteFactory, ValidationDefinitionFactory
 from great_expectations.exceptions import (
     GXCloudConfigurationError,
 )
