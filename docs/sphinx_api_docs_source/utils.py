@@ -41,31 +41,24 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Add h2 title to Methods section
     methods = soup.select(".py.method")
     if methods:
-        wrapper_div = soup.new_tag("div")
-        title_h2 = soup.new_tag("h2")
-        title_h2.string = "Methods"
-        parent = methods[0].parent
-
-        for method in methods:
-            wrapper_div.append(method.extract())
-
-        wrapper_div.insert(0, "\r\n")
-        wrapper_div.insert(1, title_h2)
-        wrapper_div.insert(2, "\r\n")
-        parent.insert_after(wrapper_div)
+        add_section_title(soup, "Methods", methods)
 
     # Add h2 title to Properties section
     properties = soup.select(".py.property")
     if properties:
-        wrapper_div = soup.new_tag("div")
-        title_h2 = soup.new_tag("h2")
-        title_h2.string = "Properties"
-        parent = properties[0].parent
+        add_section_title(soup, "Properties", properties)
 
-        for property in properties:
-            wrapper_div.append(property.extract())
 
-        wrapper_div.insert(0, "\r\n")
-        wrapper_div.insert(1, title_h2)
-        wrapper_div.insert(2, "\r\n")
-        parent.insert_after(wrapper_div)
+def add_section_title(soup, title, items):
+    wrapper_div = soup.new_tag("div")
+    title_h2 = soup.new_tag("h2")
+    title_h2.string = title
+    parent = items[0].parent
+
+    for item in items:
+        wrapper_div.append(item.extract())
+
+    wrapper_div.insert(0, "\r\n")
+    wrapper_div.insert(1, title_h2)
+    wrapper_div.insert(2, "\r\n")
+    parent.insert_after(wrapper_div)
