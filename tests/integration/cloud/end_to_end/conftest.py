@@ -193,7 +193,7 @@ def construct_spark_df_from_pandas(
 def spark_session() -> pyspark.SparkSession:
     from great_expectations.compatibility import pyspark
 
-    if pyspark.SparkSession:  # type: ignore[truthy-function]
+    if pyspark.SparkSession:  # type: ignore[truthy-function] # FIXME CoP
         return SparkDFExecutionEngine.get_or_create_spark_session()
 
     raise ValueError("spark tests are requested, but pyspark is not installed")

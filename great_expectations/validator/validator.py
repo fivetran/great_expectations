@@ -52,7 +52,7 @@ from great_expectations.expectations.registry import (
     get_expectation_impl,
     list_registered_expectation_implementations,
 )
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metrics_calculator import (
     MetricsCalculator,
@@ -90,7 +90,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class ValidationDependencies:
-    # Note: Dependent "metric_name" (key) is different from "metric_name" in dependency "MetricConfiguration" (value).  # noqa: E501
+    # Note: Dependent "metric_name" (key) is different from "metric_name" in dependency "MetricConfiguration" (value).  # noqa: E501 # FIXME CoP
     metric_configurations: Dict[str, MetricConfiguration] = field(default_factory=dict)
     result_format: Dict[str, Any] = field(default_factory=dict)
 
@@ -99,25 +99,25 @@ class ValidationDependencies:
     ) -> None:
         """
         Sets specified "MetricConfiguration" for "metric_name" to "metric_configurations" dependencies dictionary.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self.metric_configurations[metric_name] = metric_configuration
 
     def get_metric_configuration(self, metric_name: str) -> Optional[MetricConfiguration]:
         """
         Obtains "MetricConfiguration" for specified "metric_name" from "metric_configurations" dependencies dictionary.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.metric_configurations.get(metric_name)
 
     def remove_metric_configuration(self, metric_name: str) -> None:
         """
         Removes "MetricConfiguration" for specified "metric_name" from "metric_configurations" dependencies dictionary.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         del self.metric_configurations[metric_name]
 
     def get_metric_names(self) -> List[str]:
         """
         Returns "metric_name" keys, for which "MetricConfiguration" dependency objects have been specified.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return list(self.metric_configurations.keys())
 
     def get_metric_configurations(self) -> List[MetricConfiguration]:
@@ -139,7 +139,7 @@ class Validator:
         expectation_suite_name: The name of the Expectation Suite to validate.
         data_context: The Data Context associated with this Validator.
         batches: The Batches for which to validate.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     DEFAULT_RUNTIME_CONFIGURATION = {
         "catch_exceptions": False,
@@ -148,7 +148,7 @@ class Validator:
     RUNTIME_KEYS = DEFAULT_RUNTIME_CONFIGURATION.keys()
 
     # noinspection PyUnusedLocal
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         execution_engine: ExecutionEngine,
         interactive_evaluation: bool = True,
@@ -178,10 +178,10 @@ class Validator:
             expectation_suite_name=expectation_suite_name,
         )
         self._default_expectation_args: Dict[str, Union[bool, str]] = copy.deepcopy(
-            Validator.DEFAULT_RUNTIME_CONFIGURATION  # type: ignore[arg-type]
+            Validator.DEFAULT_RUNTIME_CONFIGURATION  # type: ignore[arg-type] # FIXME CoP
         )
 
-        # This special state variable tracks whether a validation run is going on, which will disable  # noqa: E501
+        # This special state variable tracks whether a validation run is going on, which will disable  # noqa: E501 # FIXME CoP
         # saving expectation config objects
         self._active_validation: bool = False
 
@@ -196,7 +196,7 @@ class Validator:
 
     @property
     def metrics_calculator(self) -> MetricsCalculator:
-        """Returns the "MetricsCalculator" object being used by the Validator to handle metrics computations."""  # noqa: E501
+        """Returns the "MetricsCalculator" object being used by the Validator to handle metrics computations."""  # noqa: E501 # FIXME CoP
         return self._metrics_calculator
 
     @property
@@ -221,7 +221,7 @@ class Validator:
 
     @property
     def active_batch_data(self) -> Optional[BatchDataUnion]:
-        """Getter for BatchData object from the currently-active Batch object (convenience property)."""  # noqa: E501
+        """Getter for BatchData object from the currently-active Batch object (convenience property)."""  # noqa: E501 # FIXME CoP
         return self._execution_engine.batch_manager.active_batch_data
 
     @property
@@ -272,12 +272,12 @@ class Validator:
 
     @property
     def expectation_suite_name(self) -> str:
-        """Gets the current expectation_suite name of this data_asset as stored in the expectations configuration."""  # noqa: E501
+        """Gets the current expectation_suite name of this data_asset as stored in the expectations configuration."""  # noqa: E501 # FIXME CoP
         return self._expectation_suite.name
 
     @expectation_suite_name.setter
     def expectation_suite_name(self, name: str) -> None:
-        """Sets the expectation_suite name of this data_asset as stored in the expectations configuration."""  # noqa: E501
+        """Sets the expectation_suite name of this data_asset as stored in the expectations configuration."""  # noqa: E501 # FIXME CoP
         self._expectation_suite.name = name
 
     def load_batch_list(self, batch_list: Sequence[Batch | FluentBatch]) -> None:
@@ -309,7 +309,7 @@ class Validator:
 
         Returns:
             Return Dictionary with requested metrics resolved, with metric_name as key and computed metric as value.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self._metrics_calculator.get_metrics(metrics=metrics)
 
     def compute_metrics(
@@ -331,7 +331,7 @@ class Validator:
             Tuple of two elements, the first is a dictionary with requested metrics resolved,
             with unique metric ID as key and computed metric as value. The second is a dictionary of the
             aborted metrics information, with metric ID as key if any metrics were aborted.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self._metrics_calculator.compute_metrics(
             metric_configurations=metric_configurations,
             runtime_configuration=runtime_configuration,
@@ -412,7 +412,7 @@ class Validator:
 
     def __getattr__(self, name):
         if self.active_batch is None:
-            raise TypeError("active_batch cannot be None")  # noqa: TRY003
+            raise TypeError("active_batch cannot be None")  # noqa: TRY003 # FIXME CoP
         name = name.lower()
         if (
             name.startswith("expect_") or name == "unexpected_rows_expectation"
@@ -425,9 +425,9 @@ class Validator:
         ):
             return getattr(self.active_batch.data.dataframe, name)
         else:
-            raise AttributeError(f"'{type(self).__name__}'  object has no attribute '{name}'")  # noqa: TRY003
+            raise AttributeError(f"'{type(self).__name__}'  object has no attribute '{name}'")  # noqa: TRY003 # FIXME CoP
 
-    def validate_expectation(self, name: str) -> Callable:  # noqa: C901, PLR0915
+    def validate_expectation(self, name: str) -> Callable:  # noqa: C901, PLR0915 # FIXME CoP
         """
         Given the name of an Expectation, obtains the Class-first Expectation implementation and utilizes the
                 expectation's validate method to obtain a validation result. Also adds in the runtime configuration
@@ -437,13 +437,13 @@ class Validator:
 
                         Returns:
                             The Expectation's validation result
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         expectation_impl = get_expectation_impl(name)
 
-        def inst_expectation(*args: dict, **kwargs):  # noqa: C901, PLR0912
-            # this is used so that exceptions are caught appropriately when they occur in expectation config  # noqa: E501
+        def inst_expectation(*args: dict, **kwargs):  # noqa: C901, PLR0912 # FIXME CoP
+            # this is used so that exceptions are caught appropriately when they occur in expectation config  # noqa: E501 # FIXME CoP
 
-            # TODO: JPC - THIS LOGIC DOES NOT RESPECT DEFAULTS SET BY USERS IN THE VALIDATOR VS IN THE EXPECTATION  # noqa: E501
+            # TODO: JPC - THIS LOGIC DOES NOT RESPECT DEFAULTS SET BY USERS IN THE VALIDATOR VS IN THE EXPECTATION  # noqa: E501 # FIXME CoP
             # DEVREL has action to develop a new plan in coordination with MarioPod
 
             expectation_kwargs = recursively_convert_to_json_serializable(kwargs)
@@ -479,7 +479,7 @@ class Validator:
                         )
                         meta = arg
                 except IndexError:
-                    raise InvalidExpectationConfigurationError(  # noqa: TRY003
+                    raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
                         f"Invalid positional argument: {arg}"
                     )
 
@@ -496,7 +496,7 @@ class Validator:
                         self._data_context,
                     )
 
-                """Given an implementation and a configuration for any Expectation, returns its validation result"""  # noqa: E501
+                """Given an implementation and a configuration for any Expectation, returns its validation result"""  # noqa: E501 # FIXME CoP
 
                 if not self.interactive_evaluation and not self._active_validation:
                     validation_result = ExpectationValidationResult(
@@ -510,7 +510,7 @@ class Validator:
                         runtime_configuration=basic_runtime_configuration,
                     )
 
-                # If validate has set active_validation to true, then we do not save the config to avoid  # noqa: E501
+                # If validate has set active_validation to true, then we do not save the config to avoid  # noqa: E501 # FIXME CoP
                 # saving updating expectation configs to the same suite during validation runs
                 if self._active_validation is True:
                     stored_config = configuration.get_raw_configuration()
@@ -545,7 +545,7 @@ class Validator:
                         expectation_config=configuration,
                     )
                 else:
-                    raise err  # noqa: TRY201
+                    raise err  # noqa: TRY201 # FIXME CoP
 
             if self._include_rendered_content:
                 validation_result.render()
@@ -626,8 +626,8 @@ class Validator:
                 show_progress_bars=self._determine_progress_bars(),
             )
         except Exception as err:
-            # If a general Exception occurs during the execution of "ValidationGraph.resolve()", then  # noqa: E501
-            # all expectations in the suite are impacted, because it is impossible to attribute the failure to a metric.  # noqa: E501
+            # If a general Exception occurs during the execution of "ValidationGraph.resolve()", then  # noqa: E501 # FIXME CoP
+            # all expectations in the suite are impacted, because it is impossible to attribute the failure to a metric.  # noqa: E501 # FIXME CoP
             if catch_exceptions:
                 exception_traceback: str = traceback.format_exc()
                 evrs = self._catch_exceptions_in_failing_expectation_validations(
@@ -638,7 +638,7 @@ class Validator:
                 )
                 return evrs
             else:
-                raise err  # noqa: TRY201
+                raise err  # noqa: TRY201 # FIXME CoP
 
         configuration: ExpectationConfiguration
         result: ExpectationValidationResult
@@ -663,7 +663,7 @@ class Validator:
                         evrs=evrs,
                     )
                 else:
-                    raise err  # noqa: TRY201
+                    raise err  # noqa: TRY201 # FIXME CoP
 
         return evrs
 
@@ -678,8 +678,8 @@ class Validator:
         List[ExpectationValidationResult],
         List[ExpectationConfiguration],
     ]:
-        # While evaluating expectation configurations, create sub-graph for every metric dependency and incorporate  # noqa: E501
-        # these sub-graphs under corresponding expectation-level sub-graph (state of ExpectationValidationGraph object).  # noqa: E501
+        # While evaluating expectation configurations, create sub-graph for every metric dependency and incorporate  # noqa: E501 # FIXME CoP
+        # these sub-graphs under corresponding expectation-level sub-graph (state of ExpectationValidationGraph object).  # noqa: E501 # FIXME CoP
         expectation_validation_graphs: List[ExpectationValidationGraph] = []
         evrs: List[ExpectationValidationResult] = []
         configuration: ExpectationConfiguration
@@ -709,7 +709,7 @@ class Validator:
             )
 
             try:
-                expectation_validation_graph: ExpectationValidationGraph = ExpectationValidationGraph(  # noqa: E501
+                expectation_validation_graph: ExpectationValidationGraph = ExpectationValidationGraph(  # noqa: E501 # FIXME CoP
                     configuration=evaluated_config,
                     graph=self._metrics_calculator.build_metric_dependency_graph(
                         metric_configurations=validation_dependencies.get_metric_configurations(),
@@ -733,7 +733,7 @@ class Validator:
                     )
                     evrs.append(result)
                 else:
-                    raise err  # noqa: TRY201
+                    raise err  # noqa: TRY201 # FIXME CoP
 
         return expectation_validation_graphs, evrs, processed_configurations
 
@@ -741,7 +741,7 @@ class Validator:
         self,
         expectation_validation_graphs: List[ExpectationValidationGraph],
     ) -> ValidationGraph:
-        # Collect edges from all expectation-level sub-graphs and incorporate them under common suite-level graph.  # noqa: E501
+        # Collect edges from all expectation-level sub-graphs and incorporate them under common suite-level graph.  # noqa: E501 # FIXME CoP
         expectation_validation_graph: ExpectationValidationGraph
         edges: List[MetricEdge] = list(
             itertools.chain.from_iterable(
@@ -754,7 +754,7 @@ class Validator:
         validation_graph = ValidationGraph(execution_engine=self._execution_engine, edges=edges)
         return validation_graph
 
-    def _resolve_suite_level_graph_and_process_metric_evaluation_errors(  # noqa: PLR0913
+    def _resolve_suite_level_graph_and_process_metric_evaluation_errors(  # noqa: PLR0913 # FIXME CoP
         self,
         graph: ValidationGraph,
         runtime_configuration: dict,
@@ -767,7 +767,7 @@ class Validator:
         List[ExpectationValidationResult],
         List[ExpectationConfiguration],
     ]:
-        # Resolve overall suite-level graph and process any MetricResolutionError type exceptions that might occur.  # noqa: E501
+        # Resolve overall suite-level graph and process any MetricResolutionError type exceptions that might occur.  # noqa: E501 # FIXME CoP
         resolved_metrics: _MetricsDict
         aborted_metrics_info: _AbortedMetricsInfoDict
         (
@@ -779,13 +779,13 @@ class Validator:
             min_graph_edges_pbar_enable=0,
         )
 
-        # Trace MetricResolutionError occurrences to expectations relying on corresponding malfunctioning metrics.  # noqa: E501
+        # Trace MetricResolutionError occurrences to expectations relying on corresponding malfunctioning metrics.  # noqa: E501 # FIXME CoP
         rejected_configurations: List[ExpectationConfiguration] = []
         for expectation_validation_graph in expectation_validation_graphs:
             metric_exception_info: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]] = (
                 expectation_validation_graph.get_exception_info(metric_info=aborted_metrics_info)
             )
-            # Report all MetricResolutionError occurrences impacting expectation and append it to rejected list.  # noqa: E501
+            # Report all MetricResolutionError occurrences impacting expectation and append it to rejected list.  # noqa: E501 # FIXME CoP
             if len(metric_exception_info) > 0:
                 configuration = expectation_validation_graph.configuration
                 result = ExpectationValidationResult(
@@ -821,7 +821,7 @@ class Validator:
 
         Returns:
             List of ExpectationValidationResult objects with unsuccessful ExpectationValidationResult objects appended
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         exception_message: str = str(exception)
         exception_info = ExceptionInfo(
             exception_traceback=exception_traceback,
@@ -864,7 +864,7 @@ class Validator:
         Raises:
             TypeError: Must provide either expectation_configuration or id.
             ValueError: No match or multiple matches found (and remove_multiple_matches=False).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         return self._expectation_suite.remove_expectation(
             expectation_configuration=expectation_configuration,
@@ -880,7 +880,7 @@ class Validator:
             for item in res:
                 config = item.expectation_config
                 if not config:
-                    raise ValueError(  # noqa: TRY003
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
                         "ExpectationValidationResult does not have an expectation_config"
                     )
                 self.remove_expectation(
@@ -945,7 +945,7 @@ class Validator:
 
         self._default_expectation_args[argument] = value
 
-    def get_expectation_suite(  # noqa: C901, PLR0912, PLR0913
+    def get_expectation_suite(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
         self,
         discard_failed_expectations: bool = True,
         discard_result_format_kwargs: bool = True,
@@ -978,9 +978,9 @@ class Validator:
 
             for expectation in expectations:
                 # Note: This is conservative logic.
-                # Instead of retaining expectations IFF success==True, it discard expectations IFF success==False.  # noqa: E501
-                # In cases where expectation.success is missing or None, expectations are *retained*.  # noqa: E501
-                # Such a case could occur if expectations were loaded from a config file and never run.  # noqa: E501
+                # Instead of retaining expectations IFF success==True, it discard expectations IFF success==False.  # noqa: E501 # FIXME CoP
+                # In cases where expectation.success is missing or None, expectations are *retained*.  # noqa: E501 # FIXME CoP
+                # Such a case could occur if expectations were loaded from a config file and never run.  # noqa: E501 # FIXME CoP
                 if expectation.success_on_last_run is False:
                     discards["failed_expectations"] += 1
                 else:
@@ -992,12 +992,12 @@ class Validator:
 
         if discards["failed_expectations"] > 0 and not suppress_warnings:
             message += (
-                f" Omitting {discards['failed_expectations']} expectation(s) that failed when last run; set "  # noqa: E501
+                f" Omitting {discards['failed_expectations']} expectation(s) that failed when last run; set "  # noqa: E501 # FIXME CoP
                 "discard_failed_expectations=False to include them."
             )
 
         for expectation in expectations:
-            # FIXME: Factor this out into a new function. The logic is duplicated in remove_expectation,  # noqa: E501
+            # FIXME: Factor this out into a new function. The logic is duplicated in remove_expectation,  # noqa: E501 # FIXME CoP
             #  which calls _copy_and_clean_up_expectation
             expectation.success_on_last_run = None
 
@@ -1036,7 +1036,7 @@ class Validator:
             logger.info(message + settings_message)
         return expectation_suite
 
-    def save_expectation_suite(  # noqa: PLR0913
+    def save_expectation_suite(  # noqa: PLR0913 # FIXME CoP
         self,
         filepath: Optional[str] = None,
         discard_failed_expectations: bool = True,
@@ -1059,7 +1059,7 @@ class Validator:
 
         Raises:
             ValueError: Must configure a Data Context when instantiating the Validator or pass in `filepath`.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         expectation_suite: ExpectationSuite = self.get_expectation_suite(
             discard_failed_expectations,
             discard_result_format_kwargs,
@@ -1081,14 +1081,14 @@ class Validator:
                     sort_keys=True,
                 )
         else:
-            raise ValueError("Unable to save config: filepath or data_context must be available.")  # noqa: TRY003
+            raise ValueError("Unable to save config: filepath or data_context must be available.")  # noqa: TRY003 # FIXME CoP
 
     @deprecated_argument(
         argument_name="run_id",
-        message="Only the str version of this argument is deprecated. run_id should be a RunIdentifier or dict. Support will be removed in 0.16.0.",  # noqa: E501
+        message="Only the str version of this argument is deprecated. run_id should be a RunIdentifier or dict. Support will be removed in 0.16.0.",  # noqa: E501 # FIXME CoP
         version="0.13.0",
     )
-    def validate(  # noqa: C901, PLR0912, PLR0913
+    def validate(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
         self,
         expectation_suite: str | ExpectationSuite | None = None,
         run_id: str | RunIdentifier | Dict[str, str] | None = None,
@@ -1124,7 +1124,7 @@ class Validator:
             GreatExpectationsError: If `expectation_suite` is a string it must point to an existing and readable file.
             ValidationError: If `expectation_suite` is a string, the file it points to must be valid JSON.
 
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # noinspection PyUnusedLocal
         try:
             validation_time = datetime.datetime.now(datetime.timezone.utc).strftime(
@@ -1162,13 +1162,13 @@ class Validator:
                 except ValidationError:
                     raise
                 except OSError:
-                    raise GreatExpectationsError(  # noqa: TRY003
-                        f"Unable to load expectation suite: IO error while reading {expectation_suite}"  # noqa: E501
+                    raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                        f"Unable to load expectation suite: IO error while reading {expectation_suite}"  # noqa: E501 # FIXME CoP
                     )
 
             if not isinstance(expectation_suite, ExpectationSuite):
                 logger.error(
-                    "Unable to validate using the provided value for expectation suite; does it need to be "  # noqa: E501
+                    "Unable to validate using the provided value for expectation suite; does it need to be "  # noqa: E501 # FIXME CoP
                     "loaded from a dictionary?"
                 )
                 return ExpectationValidationResult(success=False)
@@ -1330,7 +1330,7 @@ class Validator:
 
             Check out :ref:`how_to_guides__creating_and_editing_expectations__how_to_create_custom_expectations` for
             more information.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         # noinspection SpellCheckingInspection
         argspec = inspect.getfullargspec(function)[0][1:]
@@ -1344,7 +1344,7 @@ class Validator:
         metrics: _MetricsDict,
     ) -> Tuple[Set[MetricConfiguration], Set[MetricConfiguration]]:
         """Given validation graph, returns the ready and needed metrics necessary for validation using a traversal of
-        validation graph (a graph structure of metric ids) edges"""  # noqa: E501
+        validation graph (a graph structure of metric ids) edges"""  # noqa: E501 # FIXME CoP
         unmet_dependency_ids = set()
         unmet_dependency = set()
         maybe_ready_ids = set()
@@ -1356,7 +1356,7 @@ class Validator:
                     if edge.left.id not in maybe_ready_ids:
                         maybe_ready_ids.add(edge.left.id)
                         maybe_ready.add(edge.left)
-                else:  # noqa: PLR5501
+                else:  # noqa: PLR5501 # FIXME CoP
                     if edge.left.id not in unmet_dependency_ids:
                         unmet_dependency_ids.add(edge.left.id)
                         unmet_dependency.add(edge.left)
@@ -1389,11 +1389,11 @@ class Validator:
 
         Returns:
             None
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # Checking type of expectation_suite.
         # Check for expectation_suite_name is already done by ExpectationSuiteIdentifier
         if expectation_suite and not isinstance(expectation_suite, ExpectationSuite):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"expectation_suite must be of type ExpectationSuite, not {type(expectation_suite)}"
             )
         if expectation_suite is not None:
@@ -1407,7 +1407,7 @@ class Validator:
             if expectation_suite_name is not None:
                 if self._expectation_suite.name != expectation_suite_name:
                     logger.warning(
-                        f"Overriding existing expectation_suite_name {self._expectation_suite.name} with new name {expectation_suite_name}"  # noqa: E501
+                        f"Overriding existing expectation_suite_name {self._expectation_suite.name} with new name {expectation_suite_name}"  # noqa: E501 # FIXME CoP
                     )
                 self._expectation_suite.name = expectation_suite_name
 
@@ -1434,7 +1434,7 @@ class Validator:
                 runtime_configuration.pop("result_format")
             else:
                 runtime_configuration.update({"result_format": result_format})
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if result_format is not None:
                 runtime_configuration.update({"result_format": result_format})
 

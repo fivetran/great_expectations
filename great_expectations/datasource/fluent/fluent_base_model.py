@@ -105,7 +105,7 @@ class FluentBaseModel(pydantic.BaseModel):
         **yaml_kwargs,
     ) -> pathlib.Path: ...
 
-    def yaml(  # noqa: PLR0913
+    def yaml(  # noqa: PLR0913 # FIXME CoP
         self,
         stream_or_path: Union[StringIO, pathlib.Path, None] = None,
         *,
@@ -147,7 +147,7 @@ class FluentBaseModel(pydantic.BaseModel):
         return stream_or_path.getvalue()
 
     @override
-    def json(  # noqa: PLR0913
+    def json(  # noqa: PLR0913 # FIXME CoP
         self,
         *,
         include: AbstractSetIntStr | MappingIntStrAny | None = None,
@@ -189,7 +189,7 @@ class FluentBaseModel(pydantic.BaseModel):
             **dumps_kwargs,
         )
 
-    def _json_dict(  # noqa: PLR0913
+    def _json_dict(  # noqa: PLR0913 # FIXME CoP
         self,
         *,
         include: Union[AbstractSetIntStr, MappingIntStrAny, None] = None,
@@ -221,7 +221,7 @@ class FluentBaseModel(pydantic.BaseModel):
         )
 
     @override
-    def dict(  # noqa: PLR0913
+    def dict(  # noqa: PLR0913 # FIXME CoP
         self,
         *,
         include: AbstractSetIntStr | MappingIntStrAny | None = None,
@@ -262,7 +262,7 @@ class FluentBaseModel(pydantic.BaseModel):
             logger.debug(f"{class_name}.dict() - substituting config values")
             _recursively_set_config_value(result, config_provider)
         elif raise_on_missing_config_provider:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"{class_name}.dict() -"
                 " `config_provider` must be provided if `raise_on_missing_config_provider` is True."
                 f" {class_name} may be missing a context."
@@ -288,7 +288,7 @@ class FluentBaseModel(pydantic.BaseModel):
             include_exclude: The include or exclude key passed to pydantic model export methods.
 
         Returns: A mutable dictionary that can be used for nested include/exclude.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if isinstance(include_exclude, Mapping):
             include_exclude_dict = dict(include_exclude)
         elif isinstance(include_exclude, AbstractSet):
@@ -305,7 +305,7 @@ class FluentBaseModel(pydantic.BaseModel):
 class GenericBaseModel(FluentBaseModel, pydantic.GenericModel): ...
 
 
-def _recursively_set_config_value(  # noqa: C901 - too complex
+def _recursively_set_config_value(  # noqa: C901 #  too complex
     data: MutableMapping | MutableSequence, config_provider: _ConfigurationProvider
 ) -> None:
     if isinstance(data, MutableMapping):

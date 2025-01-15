@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 import numpy as np
 import scipy
 
-from great_expectations.core.domain import Domain  # noqa: TCH001
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001
+    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
@@ -16,7 +16,7 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-    MetricValues,  # noqa: TCH001
+    MetricValues,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import (
     ParameterBuilder,
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
     """
     Compute specified aggregate of unexpected count fraction (e.g., of a map metric) across every Batch of data given.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     RECOGNIZED_UNEXPECTED_RATIO_AGGREGATION_METHODS: set = {
         "unexpected_count_fraction_values",
@@ -47,7 +47,7 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
         "multi_batch",
     }
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         unexpected_count_parameter_builder_name: str,
@@ -73,7 +73,7 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
             ParameterBuilder objects' outputs available (as fully-qualified parameter names) is pre-requisite.
             These "ParameterBuilder" configurations help build parameters needed for this "ParameterBuilder".
             data_context: AbstractDataContext associated with this ParameterBuilder
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().__init__(
             name=name,
             suite_parameter_builder_configs=suite_parameter_builder_configs,
@@ -123,14 +123,14 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
 
         Returns:
             Attributes object, containing computed parameter values and parameter computation details metadata.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         if domain.domain_type == MetricDomainTypes.COLUMN and "." in domain.domain_kwargs["column"]:
-            raise ProfilerExecutionError(  # noqa: TRY003
-                "Column names cannot contain '.' when computing parameters for unexpected count statistics."  # noqa: E501
+            raise ProfilerExecutionError(  # noqa: TRY003 # FIXME CoP
+                "Column names cannot contain '.' when computing parameters for unexpected count statistics."  # noqa: E501 # FIXME CoP
             )
 
-        # Obtain unexpected_count_parameter_builder_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain unexpected_count_parameter_builder_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         unexpected_count_parameter_builder_name: Optional[str] = (
             get_parameter_value_and_validate_return_type(
                 domain=domain,
@@ -144,7 +144,7 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
         fully_qualified_unexpected_count_parameter_builder_name: str = (
             f"{RAW_PARAMETER_KEY}{unexpected_count_parameter_builder_name}"
         )
-        # Obtain unexpected_count from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain unexpected_count from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         unexpected_count_parameter_node: ParameterNode = (
             get_parameter_value_and_validate_return_type(
                 domain=domain,
@@ -158,7 +158,7 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
             FULLY_QUALIFIED_PARAMETER_NAME_VALUE_KEY
         ]
 
-        # Obtain total_count_parameter_builder_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain total_count_parameter_builder_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         total_count_parameter_builder_name: str = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=self.total_count_parameter_builder_name,
@@ -170,7 +170,7 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
         fully_qualified_total_count_parameter_builder_name: str = (
             f"{RAW_PARAMETER_KEY}{total_count_parameter_builder_name}"
         )
-        # Obtain total_count from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain total_count from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         total_count_parameter_node: ParameterNode = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=fully_qualified_total_count_parameter_builder_name,
@@ -186,7 +186,7 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
             total_count_values + NP_EPSILON
         )
 
-        # Obtain mode from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain mode from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         mode: str = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=self.mode,
@@ -196,12 +196,12 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
         )
         if mode and (
             mode
-            not in UnexpectedCountStatisticsMultiBatchParameterBuilder.RECOGNIZED_UNEXPECTED_RATIO_AGGREGATION_METHODS  # noqa: E501
+            not in UnexpectedCountStatisticsMultiBatchParameterBuilder.RECOGNIZED_UNEXPECTED_RATIO_AGGREGATION_METHODS  # noqa: E501 # FIXME CoP
         ):
             raise ProfilerExecutionError(
                 message=f"""The directive "mode" can only be one of \
 {UnexpectedCountStatisticsMultiBatchParameterBuilder.RECOGNIZED_UNEXPECTED_RATIO_AGGREGATION_METHODS}, or must be omitted (or set to None); however, "{mode}" was detected.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
         result: Union[np.float64, Dict[str, Union[np.float64, np.ndarray]]]
@@ -226,7 +226,7 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
                 )
                 result["error_rate"] = np.float64(0.0)
             elif mode == "multi_batch":
-                # Obtain max_error_rate directive from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+                # Obtain max_error_rate directive from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
                 max_error_rate: float = get_parameter_value_and_validate_return_type(
                     domain=domain,
                     parameter_reference=self.max_error_rate,
@@ -259,7 +259,7 @@ class UnexpectedCountStatisticsMultiBatchParameterBuilder(ParameterBuilder):
         )
 
 
-def _standardize_mostly_for_single_batch(  # noqa: PLR0911
+def _standardize_mostly_for_single_batch(  # noqa: PLR0911 # FIXME CoP
     expectation_type: str, mostly: np.float64
 ) -> np.float64:
     """
@@ -269,10 +269,10 @@ def _standardize_mostly_for_single_batch(  # noqa: PLR0911
         if mostly >= 1.0:
             return np.float64(1.0)
 
-        if mostly >= 0.99:  # noqa: PLR2004
+        if mostly >= 0.99:  # noqa: PLR2004 # FIXME CoP
             return np.float64(0.99)
 
-        if mostly >= 0.975:  # noqa: PLR2004
+        if mostly >= 0.975:  # noqa: PLR2004 # FIXME CoP
             return np.float64(0.975)
 
         return mostly
@@ -281,7 +281,7 @@ def _standardize_mostly_for_single_batch(  # noqa: PLR0911
         if mostly >= 1.0:
             return np.float64(1.0)
 
-        if mostly >= 0.99:  # noqa: PLR2004
+        if mostly >= 0.99:  # noqa: PLR2004 # FIXME CoP
             return np.float64(0.99)
 
         # round down to nearest 0.025
@@ -293,7 +293,7 @@ def _multi_batch_cost_function(x: np.float64, a: np.ndarray) -> np.float64:
     Mean (per-Batch) Hamming distance -- loss only when expectation validation fails; no change otherwise.
     Expectation validation fails when candidate unexpected_count_fraction x is less than observed array element value.
     Once optimal unexpected_count_fraction is computed, mostly becomes its complement (1.0 - unexpected_count_fraction).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     return np.mean(x < a)
 
@@ -304,16 +304,16 @@ def _compute_multi_batch_min_unexpected_count_fraction(
     """
     Use constrained optimization algorithm to compute minimum value of x ("unexpected_count_fraction") under constraint
     that _cost_function() of variable x given array a must be less than or equal to "max_error_rate" constant.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    # Define objective function to be minimized (minimum "unexpected_count_fraction" is desired to maximize "mostly").  # noqa: E501
+    # Define objective function to be minimized (minimum "unexpected_count_fraction" is desired to maximize "mostly").  # noqa: E501 # FIXME CoP
     def _objective_function(x: np.float64) -> np.float64:
         return x[0]
 
     # Sort array in ascending order
     sorted_a: np.ndarray = np.sort(a, axis=None)
 
-    # Define constraint function reflecting penalty incurred by lowering "unexpected_count_fraction" (raising "mostly").  # noqa: E501
+    # Define constraint function reflecting penalty incurred by lowering "unexpected_count_fraction" (raising "mostly").  # noqa: E501 # FIXME CoP
     def _constraint_function(x: np.float64) -> np.float64:
         return np.float64(_multi_batch_cost_function(x=x[0], a=sorted_a) - max_error_rate)
 

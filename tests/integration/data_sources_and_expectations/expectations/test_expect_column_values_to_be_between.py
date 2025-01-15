@@ -21,11 +21,11 @@ DATA = pd.DataFrame(
     {
         NUMERIC_COLUMN: [1, 2, 3, 4, 5, None],
         DATE_COLUMN: [
-            datetime(2023, 1, 1).date(),  # noqa: DTZ001
-            datetime(2023, 6, 15).date(),  # noqa: DTZ001
-            datetime(2023, 12, 31).date(),  # noqa: DTZ001
-            datetime(2024, 1, 1).date(),  # noqa: DTZ001
-            datetime(2024, 6, 15).date(),  # noqa: DTZ001
+            datetime(2023, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2023, 6, 15).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2023, 12, 31).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+            datetime(2024, 6, 15).date(),  # noqa: DTZ001 # FIXME CoP
             None,
         ],
     },
@@ -70,8 +70,8 @@ def test_success_complete_non_sql(batch_for_datasource: Batch) -> None:
         pytest.param(
             gxe.ExpectColumnValuesToBeBetween(
                 column=DATE_COLUMN,
-                min_value=datetime(2023, 1, 1).date(),  # noqa: DTZ001
-                max_value=datetime(2024, 12, 31).date(),  # noqa: DTZ001
+                min_value=datetime(2023, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+                max_value=datetime(2024, 12, 31).date(),  # noqa: DTZ001 # FIXME CoP
             ),
             id="dates",
         ),
@@ -116,8 +116,8 @@ def test_success(
         pytest.param(
             gxe.ExpectColumnValuesToBeBetween(
                 column=DATE_COLUMN,
-                min_value=datetime(2024, 1, 1).date(),  # noqa: DTZ001
-                max_value=datetime(2024, 12, 31).date(),  # noqa: DTZ001
+                min_value=datetime(2024, 1, 1).date(),  # noqa: DTZ001 # FIXME CoP
+                max_value=datetime(2024, 12, 31).date(),  # noqa: DTZ001 # FIXME CoP
             ),
             id="dates_outside_range",
         ),

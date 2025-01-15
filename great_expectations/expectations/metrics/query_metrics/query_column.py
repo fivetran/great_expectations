@@ -42,7 +42,7 @@ class QueryColumn(QueryMetricProvider):
         if column:
             query_parameters = QueryParameters(column=column)
         else:
-            raise ValueError("`column` must be provided.")  # noqa: TRY003
+            raise ValueError("`column` must be provided.")  # noqa: TRY003 # FIXME CoP
         substituted_batch_subquery = (
             cls._get_substituted_batch_subquery_from_query_and_batch_selectable(
                 query=query,

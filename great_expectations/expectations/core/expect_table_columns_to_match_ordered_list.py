@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
@@ -48,7 +48,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -171,7 +170,7 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     column_list: Union[list, set, SuiteParameterDict, None] = pydantic.Field(
         description=COLUMN_LIST_DESCRIPTION
@@ -320,7 +319,7 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
                 "result": {"observed_value": list(actual_column_list)},
             }
         else:
-            # In the case of differing column lengths between the defined expectation and the observed column set, the  # noqa: E501
+            # In the case of differing column lengths between the defined expectation and the observed column set, the  # noqa: E501 # FIXME CoP
             # max is determined to generate the column_index.
             number_of_columns = max(len(expected_column_list), len(actual_column_list))
             column_index = range(number_of_columns)

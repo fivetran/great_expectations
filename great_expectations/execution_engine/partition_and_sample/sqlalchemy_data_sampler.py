@@ -6,7 +6,7 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
-from great_expectations.core.id_dict import BatchSpec  # noqa: TCH001
+from great_expectations.core.id_dict import BatchSpec  # noqa: TCH001 # FIXME CoP
 from great_expectations.execution_engine.partition_and_sample.data_sampler import (
     DataSampler,
 )
@@ -41,14 +41,14 @@ class SqlAlchemyDataSampler(DataSampler):
 
         Returns:
             A query as a string or sqlalchemy object.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         # Partition clause should be permissive of all values if not supplied.
         if where_clause is None:
             if execution_engine.dialect_name == GXSqlDialect.SQLITE:
-                where_clause = sa.text("1 = 1")  # type: ignore[assignment]
+                where_clause = sa.text("1 = 1")  # type: ignore[assignment] # FIXME CoP
             else:
-                where_clause = sa.true()  # type: ignore[assignment]
+                where_clause = sa.true()  # type: ignore[assignment] # FIXME CoP
 
         table_name: str = batch_spec["table_name"]
 
@@ -57,11 +57,11 @@ class SqlAlchemyDataSampler(DataSampler):
         dialect_name: str = execution_engine.dialect_name
         if dialect_name == GXSqlDialect.ORACLE:
             # TODO: AJB 20220429 WARNING THIS oracle dialect METHOD IS NOT COVERED BY TESTS
-            # limit doesn't compile properly for oracle so we will append rownum to query string later  # noqa: E501
+            # limit doesn't compile properly for oracle so we will append rownum to query string later  # noqa: E501 # FIXME CoP
             raw_query: sqlalchemy.Selectable = (
                 sa.select("*")
                 .select_from(sa.table(table_name, schema=batch_spec.get("schema_name", None)))
-                .where(where_clause)  # type: ignore[arg-type]
+                .where(where_clause)  # type: ignore[arg-type] # FIXME CoP
             )
             query: str = str(
                 raw_query.compile(
@@ -69,7 +69,7 @@ class SqlAlchemyDataSampler(DataSampler):
                     compile_kwargs={"literal_binds": True},
                 )
             )
-            query += "\nAND ROWNUM <= %d" % batch_spec["sampling_kwargs"]["n"]  # noqa: UP031
+            query += "\nAND ROWNUM <= %d" % batch_spec["sampling_kwargs"]["n"]  # noqa: UP031 # FIXME CoP
             return query
         elif dialect_name == GXSqlDialect.MSSQL:
             # Note that this code path exists because the limit parameter is not getting rendered
@@ -77,7 +77,7 @@ class SqlAlchemyDataSampler(DataSampler):
             selectable_query: sqlalchemy.Selectable = (
                 sa.select("*")
                 .select_from(sa.table(table_name, schema=batch_spec.get("schema_name", None)))
-                .where(where_clause)  # type: ignore[arg-type]
+                .where(where_clause)  # type: ignore[arg-type] # FIXME CoP
                 .limit(batch_spec["sampling_kwargs"]["n"])
             )
             string_of_query: str = str(
@@ -88,14 +88,14 @@ class SqlAlchemyDataSampler(DataSampler):
             )
             n: Union[str, int] = batch_spec["sampling_kwargs"]["n"]
             self._validate_mssql_limit_param(n)
-            # This string replacement is here because the limit parameter is not substituted during query.compile()  # noqa: E501
+            # This string replacement is here because the limit parameter is not substituted during query.compile()  # noqa: E501 # FIXME CoP
             string_of_query = string_of_query.replace("?", str(n))
             return string_of_query
         else:
             return (
-                sa.select("*")  # type: ignore[return-value]
+                sa.select("*")  # type: ignore[return-value] # FIXME CoP
                 .select_from(sa.table(table_name, schema=batch_spec.get("schema_name", None)))
-                .where(where_clause)  # type: ignore[arg-type]
+                .where(where_clause)  # type: ignore[arg-type] # FIXME CoP
                 .limit(batch_spec["sampling_kwargs"]["n"])
             )
 
@@ -108,13 +108,13 @@ class SqlAlchemyDataSampler(DataSampler):
 
         Returns:
             None
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not isinstance(n, (str, int)):
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 "Please specify your sampling kwargs 'n' parameter as a string or int."
             )
         if isinstance(n, str) and not n.isdigit():
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 "If specifying your sampling kwargs 'n' parameter as a string please ensure it is "
                 "parseable as an integer."
             )
@@ -138,32 +138,32 @@ class SqlAlchemyDataSampler(DataSampler):
 
         Returns:
             Sqlalchemy selectable.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         try:
             table_name: str = batch_spec["table_name"]
         except KeyError as e:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "A table name must be specified when using sample_using_random. "
                 "Please update your configuration"
             ) from e
         try:
             p: float = batch_spec["sampling_kwargs"]["p"] or 1.0
         except (KeyError, TypeError) as e:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "To use sample_using_random you must specify the parameter 'p' in "
                 "the 'sampling_kwargs' configuration."
             ) from e
 
-        num_rows: int = execution_engine.execute_query(  # type: ignore[assignment]
+        num_rows: int = execution_engine.execute_query(  # type: ignore[assignment] # FIXME CoP
             sa.select(sa.func.count())
             .select_from(sa.table(table_name, schema=batch_spec.get("schema_name", None)))
-            .where(where_clause)  # type: ignore[arg-type]
+            .where(where_clause)  # type: ignore[arg-type] # FIXME CoP
         ).scalar()
         sample_size: int = round(p * num_rows)
         return (
             sa.select("*")
             .select_from(sa.table(table_name, schema=batch_spec.get("schema_name", None)))
-            .where(where_clause)  # type: ignore[arg-type]
+            .where(where_clause)  # type: ignore[arg-type] # FIXME CoP
             .order_by(sa.func.random())
             .limit(sample_size)
         )
@@ -191,7 +191,7 @@ class SqlAlchemyDataSampler(DataSampler):
         mod: int = self.get_sampling_kwargs_value_or_default(batch_spec, "mod")
         value: int = self.get_sampling_kwargs_value_or_default(batch_spec, "value")
 
-        return sa.column(column_name) % mod == value  # type: ignore[return-value]
+        return sa.column(column_name) % mod == value  # type: ignore[return-value] # FIXME CoP
 
     def sample_using_a_list(
         self,
@@ -213,7 +213,7 @@ class SqlAlchemyDataSampler(DataSampler):
         self.verify_batch_spec_sampling_kwargs_key_exists("value_list", batch_spec)
         column_name: str = self.get_sampling_kwargs_value_or_default(batch_spec, "column_name")
         value_list: list = self.get_sampling_kwargs_value_or_default(batch_spec, "value_list")
-        return sa.column(column_name).in_(value_list)  # type: ignore[return-value]
+        return sa.column(column_name).in_(value_list)  # type: ignore[return-value] # FIXME CoP
 
     def sample_using_md5(
         self,
@@ -230,7 +230,7 @@ class SqlAlchemyDataSampler(DataSampler):
 
         Raises:
             SamplerError
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self.verify_batch_spec_sampling_kwargs_exists(batch_spec)
         self.verify_batch_spec_sampling_kwargs_key_exists("column_name", batch_spec)
         column_name: str = self.get_sampling_kwargs_value_or_default(batch_spec, "column_name")
@@ -242,6 +242,6 @@ class SqlAlchemyDataSampler(DataSampler):
         )
 
         return (
-            sa.func.right(sa.func.md5(sa.cast(sa.column(column_name), sa.Text)), hash_digits)  # type: ignore[return-value]
+            sa.func.right(sa.func.md5(sa.cast(sa.column(column_name), sa.Text)), hash_digits)  # type: ignore[return-value] # FIXME CoP
             == hash_value
         )

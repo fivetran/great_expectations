@@ -11,7 +11,7 @@ from typing import (
 
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
-from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501 # FIXME CoP
     _is_sqlalchemy_metric_selectable,
 )
 from great_expectations.expectations.metrics.util import (
@@ -42,7 +42,7 @@ def _pandas_column_pair_map_condition_values(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> list[tuple[Any, Any]]:
-    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     (
         boolean_mapped_unexpected_values,
         compute_domain_kwargs,
@@ -57,15 +57,15 @@ def _pandas_column_pair_map_condition_values(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
     if not ("column_A" in domain_kwargs and "column_B" in domain_kwargs):
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             """No "column_A" and "column_B" found in provided metric_domain_kwargs, but it is required for a column pair map metric
 (_pandas_column_pair_map_condition_values).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     # noinspection PyPep8Naming
@@ -81,7 +81,7 @@ def _pandas_column_pair_map_condition_values(
     domain_values = df[column_names]
 
     domain_values = domain_values[
-        boolean_mapped_unexpected_values == True  # noqa: E712
+        boolean_mapped_unexpected_values == True  # noqa: E712 # FIXME CoP
     ]
 
     result_format = metric_value_kwargs["result_format"]
@@ -107,7 +107,7 @@ def _pandas_column_pair_map_condition_filtered_row_count(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> int:
-    """Return record counts from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return record counts from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     _, compute_domain_kwargs, accessor_domain_kwargs = metrics["unexpected_condition"]
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -118,15 +118,15 @@ def _pandas_column_pair_map_condition_filtered_row_count(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
     if not ("column_A" in domain_kwargs and "column_B" in domain_kwargs):
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             """No "column_A" and "column_B" found in provided metric_domain_kwargs, but it is required for a column pair map metric
 (_pandas_column_pair_map_condition_filtered_row_count).
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
         )
 
     return df.shape[0]
@@ -140,7 +140,7 @@ def _sqlalchemy_column_pair_map_condition_values(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> list[tuple[Any, Any]]:
-    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     (
         boolean_mapped_unexpected_values,
         compute_domain_kwargs,
@@ -155,7 +155,7 @@ def _sqlalchemy_column_pair_map_condition_values(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     selectable = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
@@ -164,13 +164,13 @@ def _sqlalchemy_column_pair_map_condition_values(
     # noinspection PyPep8Naming
     column_B_name = accessor_domain_kwargs["column_B"]
 
-    query = sa.select(  # type: ignore[var-annotated]
+    query = sa.select(  # type: ignore[var-annotated] # FIXME CoP
         sa.column(column_A_name).label("unexpected_values_A"),
         sa.column(column_B_name).label("unexpected_values_B"),
     ).where(boolean_mapped_unexpected_values)
     if not _is_sqlalchemy_metric_selectable(map_metric_provider=cls):
-        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type]
-        query = query.select_from(selectable)  # type: ignore[arg-type]
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
+        query = query.select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 
     result_format = metric_value_kwargs["result_format"]
     if result_format["result_format"] != "COMPLETE":
@@ -192,7 +192,7 @@ def _sqlalchemy_column_pair_map_condition_filtered_row_count(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> Any | None:
-    """Return record counts from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return record counts from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     _, compute_domain_kwargs, accessor_domain_kwargs = metrics["unexpected_condition"]
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -203,12 +203,12 @@ def _sqlalchemy_column_pair_map_condition_filtered_row_count(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     selectable = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
     return execution_engine.execute_query(
-        sa.select(sa.func.count()).select_from(selectable)  # type: ignore[arg-type]
+        sa.select(sa.func.count()).select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
     ).scalar()
 
 
@@ -220,7 +220,7 @@ def _spark_column_pair_map_condition_values(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> list[tuple[Any, Any]]:
-    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return values from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     (
         unexpected_condition,
         compute_domain_kwargs,
@@ -235,7 +235,7 @@ def _spark_column_pair_map_condition_values(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
@@ -246,7 +246,7 @@ def _spark_column_pair_map_condition_values(
 
     # withColumn is required to transform window functions returned by some metrics to boolean mask
     data = df.withColumn("__unexpected", unexpected_condition)
-    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712
+    filtered = data.filter(F.col("__unexpected") == True).drop(  # noqa: E712 # FIXME CoP
         F.col("__unexpected")
     )
 
@@ -279,7 +279,7 @@ def _spark_column_pair_map_condition_filtered_row_count(
     metrics: Dict[str, Any],
     **kwargs,
 ) -> int:
-    """Return record counts from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501
+    """Return record counts from the specified domain that match the map-style metric in the metrics dictionary."""  # noqa: E501 # FIXME CoP
     _, compute_domain_kwargs, accessor_domain_kwargs = metrics["unexpected_condition"]
 
     accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
@@ -290,7 +290,7 @@ def _spark_column_pair_map_condition_filtered_row_count(
     """
     In order to invoke the "ignore_row_if" filtering logic, "execution_engine.get_domain_records()" must be supplied
     with all of the available "domain_kwargs" keys.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 

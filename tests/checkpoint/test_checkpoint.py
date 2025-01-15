@@ -258,7 +258,7 @@ class TestCheckpointSerialization:
                         "notify_on": "all",
                         "renderer": {
                             "class_name": "MicrosoftTeamsRenderer",
-                            "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",  # noqa: E501
+                            "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",  # noqa: E501 # FIXME CoP
                         },
                         "teams_webhook": "teams_webhook",
                         "type": "microsoft",
@@ -327,7 +327,7 @@ class TestCheckpointSerialization:
         cp_name = "my_checkpoint"
 
         ds = context.data_sources.add_pandas(ds_name)
-        asset = ds.add_csv_asset(asset_name, "my_file.csv")  # type: ignore[arg-type]
+        asset = ds.add_csv_asset(asset_name, "my_file.csv")  # type: ignore[arg-type] # FIXME CoP
 
         bc1 = asset.add_batch_definition(batch_definition_name_1)
         suite1 = context.suites.add(ExpectationSuite(suite_name_1))
@@ -381,7 +381,7 @@ class TestCheckpointSerialization:
                     "notify_on": "all",
                     "renderer": {
                         "class_name": "MicrosoftTeamsRenderer",
-                        "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",  # noqa: E501
+                        "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",  # noqa: E501 # FIXME CoP
                     },
                     "teams_webhook": "teams_webhook",
                     "type": "microsoft",
@@ -406,7 +406,7 @@ class TestCheckpointSerialization:
         assert cp.validation_definitions[1].batch_definition.name == batch_definition_name_2
         assert cp.validation_definitions[1].suite.name == suite_name_2
 
-        # Check that all validation_definitions and nested suites have been assigned IDs during serialization  # noqa: E501
+        # Check that all validation_definitions and nested suites have been assigned IDs during serialization  # noqa: E501 # FIXME CoP
         self._assert_valid_uuid(id=cp.validation_definitions[0].id)
         self._assert_valid_uuid(id=cp.validation_definitions[1].id)
         self._assert_valid_uuid(id=cp.validation_definitions[0].suite.id)
@@ -761,7 +761,7 @@ class TestCheckpointResult:
                 batch_parameters=batch_parameters, expectation_parameters=expectation_parameters
             )
 
-        validation_definition.run.assert_called_with(  # type: ignore[attr-defined]
+        validation_definition.run.assert_called_with(  # type: ignore[attr-defined] # FIXME CoP
             checkpoint_id=checkpoint_id,
             batch_parameters=batch_parameters,
             expectation_parameters=expectation_parameters,

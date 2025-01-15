@@ -247,7 +247,7 @@ def test_checkpoint_factory_all(context_fixture_name: str, request: pytest.Fixtu
 
     # Arrange
     ds = context.data_sources.add_pandas("my_datasource")
-    asset = ds.add_csv_asset("my_asset", "data.csv")  # type: ignore[arg-type]
+    asset = ds.add_csv_asset("my_asset", "data.csv")  # type: ignore[arg-type] # FIXME CoP
     batch_def = asset.add_batch_definition("my_batch_definition")
 
     suite = context.suites.add(ExpectationSuite(name="my_suite"))
@@ -292,7 +292,7 @@ def test_checkpoint_factory_all_with_bad_config(
     # Arrange
     context: AbstractDataContext = in_memory_runtime_context
     ds = context.data_sources.add_pandas("my_datasource")
-    asset = ds.add_csv_asset("my_asset", "data.csv")  # type: ignore[arg-type]
+    asset = ds.add_csv_asset("my_asset", "data.csv")  # type: ignore[arg-type] # FIXME CoP
     batch_def = asset.add_batch_definition("my_batch_definition")
     suite = context.suites.add(ExpectationSuite(name="my_suite"))
 

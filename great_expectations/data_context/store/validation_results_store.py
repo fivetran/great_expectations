@@ -94,7 +94,7 @@ class ValidationResultsStore(Store):
             bug_risk: Moderate
 
     --ge-feature-maturity-info--
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     _key_class: ClassVar[Type] = ValidationResultIdentifier
 
@@ -133,8 +133,8 @@ class ValidationResultsStore(Store):
             store_name=store_name,
         )
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "store_backend": store_backend,
             "runtime_environment": runtime_environment,
@@ -186,7 +186,7 @@ class ValidationResultsStore(Store):
     ) -> bool | GXCloudResourceRef:
         """Helper function to do the heavy lifting for StoreValidationResultAction and ValidationConfigs.
         This is broken from the ValidationAction (for now) so we don't need to pass the data_context around.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         checkpoint_id = None
         if self.cloud_mode and checkpoint_identifier:
             checkpoint_id = checkpoint_identifier.id

@@ -99,7 +99,7 @@ def test_get_metrics_table_metrics_only(
         ),
     ]
 
-    # Assert each metric so it is easier to see which one fails (instead of assert metrics == expected_metrics):  # noqa: E501
+    # Assert each metric so it is easier to see which one fails (instead of assert metrics == expected_metrics):  # noqa: E501 # FIXME CoP
     assert len(metrics) == len(expected_metrics)
     for metric in metrics:
         assert metric.dict() in [expected_metric.dict() for expected_metric in expected_metrics]

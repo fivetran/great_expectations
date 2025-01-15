@@ -10,7 +10,7 @@ from packaging import version
 from great_expectations.compatibility import pydantic, pyspark
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001, RUF100
+    SuiteParameterDict,  # noqa: TCH001, RUF100 # FIXME CoP
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import (
     GXSqlDialect,
@@ -59,18 +59,7 @@ TYPE_LIST_DESCRIPTION = """
     A list of strings representing the data type that each column should have as entries. \
     Valid types are defined by the current backend implementation and are dynamically loaded.
     """
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MSSQL",
-    "Trino",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-]
+SUPPORTED_DATA_SOURCES = ["Spark", "SQLite", "PostgreSQL", "MSSQL", "BigQuery"]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 
 
@@ -128,10 +117,6 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -202,7 +187,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     type_list: Union[List[str], SuiteParameterDict, None] = pydantic.Field(
         description=TYPE_LIST_DESCRIPTION
@@ -344,7 +329,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
 
             if params["mostly"] is not None and params["mostly"] < 1.0:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 if include_column_name:
                     template_str = (
                         "$column value types must belong to this set: "
@@ -357,12 +342,12 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                         + values_string
                         + ", at least $mostly_pct % of the time."
                     )
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 if include_column_name:
                     template_str = f"$column value types must belong to this set: {values_string}."
                 else:
                     template_str = f"value types must belong to this set: {values_string}."
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if include_column_name:
                 template_str = (
                     "$column value types may be any value, but observed value will be reported"
@@ -389,7 +374,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             )
         ]
 
-    def _validate_pandas(  # noqa: C901, PLR0912
+    def _validate_pandas(  # noqa: C901, PLR0912 # FIXME CoP
         self,
         actual_column_type,
         expected_types_list,
@@ -434,8 +419,8 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                 np.__version__
             ) < version.parse("1.21")
             if _numpy_doesnt_support_extensions_properly and _pandas_supports_extension_dtypes:
-                # This works around a bug where Pandas nullable int types aren't compatible with Numpy dtypes  # noqa: E501
-                # Note: Can't do set difference, the whole bugfix is because numpy types can't be compared to  # noqa: E501
+                # This works around a bug where Pandas nullable int types aren't compatible with Numpy dtypes  # noqa: E501 # FIXME CoP
+                # Note: Can't do set difference, the whole bugfix is because numpy types can't be compared to  # noqa: E501 # FIXME CoP
                 # ExtensionDtypes
                 actual_type_is_ext_dtype = isinstance(
                     actual_column_type, pd.core.dtypes.base.ExtensionDtype
@@ -502,7 +487,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                 except AttributeError:
                     logger.debug(f"Unrecognized type: {type_}")
             if len(types) == 0:
-                raise ValueError("No recognized spark types in expected_types_list")  # noqa: TRY003
+                raise ValueError("No recognized spark types in expected_types_list")  # noqa: TRY003 # FIXME CoP
             success = isinstance(actual_column_type, tuple(types))
         return {
             "success": success,
@@ -520,11 +505,11 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             PandasExecutionEngine,
         )
 
-        # This calls BatchExpectation.get_validation_dependencies to set baseline validation_dependencies for the aggregate version  # noqa: E501
+        # This calls BatchExpectation.get_validation_dependencies to set baseline validation_dependencies for the aggregate version  # noqa: E501 # FIXME CoP
         # of the expectation.
         # We need to keep this as super(ColumnMapExpectation, self), which calls
-        # BatchExpectation.get_validation_dependencies instead of ColumnMapExpectation.get_validation_dependencies.  # noqa: E501
-        # This is because the map version of this expectation is only supported for Pandas, so we want the aggregate  # noqa: E501
+        # BatchExpectation.get_validation_dependencies instead of ColumnMapExpectation.get_validation_dependencies.  # noqa: E501 # FIXME CoP
+        # This is because the map version of this expectation is only supported for Pandas, so we want the aggregate  # noqa: E501 # FIXME CoP
         # version for the other backends.
         validation_dependencies: ValidationDependencies = super(
             ColumnMapExpectation, self
@@ -566,7 +551,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                 and actual_column_type.type.__name__ == "object_"
                 and expected_types_list is not None
             ):
-                # this resets validation_dependencies using  ColumnMapExpectation.get_validation_dependencies  # noqa: E501
+                # this resets validation_dependencies using  ColumnMapExpectation.get_validation_dependencies  # noqa: E501 # FIXME CoP
                 validation_dependencies = super().get_validation_dependencies(
                     execution_engine, runtime_configuration
                 )

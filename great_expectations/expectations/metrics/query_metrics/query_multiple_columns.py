@@ -40,7 +40,7 @@ class QueryMultipleColumns(QueryMetricProvider):
         query = cls._get_query_from_metric_value_kwargs(metric_value_kwargs)
         columns = metric_value_kwargs.get("columns")
         if not isinstance(columns, list):
-            raise TypeError("Columns must be supplied as a list")  # noqa: TRY003
+            raise TypeError("Columns must be supplied as a list")  # noqa: TRY003 # FIXME CoP
 
         substituted_batch_subquery = (
             cls._get_substituted_batch_subquery_from_query_and_batch_selectable(
@@ -67,7 +67,7 @@ class QueryMultipleColumns(QueryMetricProvider):
         query = cls._get_query_from_metric_value_kwargs(metric_value_kwargs)
 
         if not isinstance(query, str):
-            raise TypeError("Query must be supplied as a string")  # noqa: TRY003
+            raise TypeError("Query must be supplied as a string")  # noqa: TRY003 # FIXME CoP
 
         df: pyspark.DataFrame
         df, _, _ = execution_engine.get_compute_domain(
@@ -78,7 +78,7 @@ class QueryMultipleColumns(QueryMetricProvider):
         columns = metric_value_kwargs.get("columns")
 
         if not isinstance(columns, list):
-            raise TypeError("Columns must be supplied as a list")  # noqa: TRY003
+            raise TypeError("Columns must be supplied as a list")  # noqa: TRY003 # FIXME CoP
 
         query = query.format(
             **{f"col_{i}": entry for i, entry in enumerate(columns, 1)},

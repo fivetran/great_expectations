@@ -227,7 +227,7 @@ Run the following GX Core workflow.
 
 ## Scenarios
 
-The following scenarios provide insight into how Great Expectations can help enforce data integrity across various domains. By combining built-in Expectations with custom SQL checks, organizations can create comprehensive validation frameworks that catch inconsistencies, prevent data quality issues, and ensure compliance with business rules and regulations.
+The following scenarios provide insight into how Great Expectations can help enforce data integrity across various domains. By combining built-in Expectations with custom SQL checks, organizations can create comprehensive validation frameworks that catch inconsistencies, prevent data quality problems, and ensure compliance with business rules and regulations.
 
 ### Cross-system financial reconciliation
 

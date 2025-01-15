@@ -266,7 +266,7 @@ def test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than
                         "column": {"schema": {"type": "string"}, "value": "min_event_time"},
                         "threshold": {"schema": {"type": "number"}, "value": 0.1},
                     },
-                    "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold.",  # noqa: E501
+                    "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold.",  # noqa: E501 # FIXME CoP
                 },
             },
             "schema": {"type": "GraphType"},
@@ -279,8 +279,8 @@ def test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than
 def test_atomic_diagnostic_observed_value_expect_column_kl_divergence_to_be_less_than(
     get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_kl_divergence_to_be_less_than",
         "kwargs": {
@@ -365,11 +365,11 @@ def test_atomic_diagnostic_observed_value_expect_column_kl_divergence_to_be_less
 
 
 @pytest.mark.unit
-def test_atomic_diagnostic_observed_value_with_boolean_column_expect_column_kl_divergence_to_be_less_than(  # noqa: E501
+def test_atomic_diagnostic_observed_value_with_boolean_column_expect_column_kl_divergence_to_be_less_than(  # noqa: E501 # FIXME CoP
     get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_kl_divergence_to_be_less_than",
         "kwargs": {
@@ -478,7 +478,7 @@ def test_atomic_prescriptive_summary_expect_column_max_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 1},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column maximum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column maximum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -510,7 +510,7 @@ def test_atomic_prescriptive_summary_expect_column_mean_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 3},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column mean must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column mean must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -542,7 +542,7 @@ def test_atomic_prescriptive_summary_expect_column_median_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 5},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column median must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column median must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -574,7 +574,7 @@ def test_atomic_prescriptive_summary_expect_column_min_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 1},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -608,7 +608,7 @@ def test_atomic_prescriptive_summary_expect_column_most_common_value_to_be_in_se
                 "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column most common value must belong to this set: $v__0 $v__1 $v__2. Values outside this set that are as common (but not more common) are allowed.",  # noqa: E501
+            "template": "$column most common value must belong to this set: $v__0 $v__1 $v__2. Values outside this set that are as common (but not more common) are allowed.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -667,7 +667,7 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_a_to_be_greater_t
                 "or_equal": {"schema": {"type": "boolean"}, "value": True},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -701,7 +701,7 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_to_be_equal(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -716,7 +716,7 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_to_be_in_set(
 
 
 @pytest.mark.unit
-def test_atomic_prescriptive_summary_expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than(  # noqa: E501
+def test_atomic_prescriptive_summary_expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than(  # noqa: E501 # FIXME CoP
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -748,7 +748,7 @@ def test_atomic_prescriptive_summary_expect_column_proportion_of_unique_values_t
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column fraction of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column fraction of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -833,8 +833,8 @@ def test_atomic_prescriptive_summary_expect_column_quantile_values_to_be_between
 def test_atomic_diagnostic_observed_value_expect_column_quantile_values_to_be_between(
     get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_quantile_values_to_be_between",
         "kwargs": {
@@ -931,7 +931,7 @@ def test_atomic_prescriptive_summary_expect_column_stdev_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column standard deviation must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column standard deviation must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -962,7 +962,7 @@ def test_atomic_prescriptive_summary_expect_column_sum_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column sum must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column sum must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1022,7 +1022,7 @@ def test_atomic_prescriptive_summary_expect_column_unique_value_count_to_be_betw
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column must have greater than or equal to $min_value and less than or equal to $max_value unique values.",  # noqa: E501
+            "template": "$column must have greater than or equal to $min_value and less than or equal to $max_value unique values.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1056,7 +1056,7 @@ def test_atomic_prescriptive_summary_expect_column_value_lengths_to_be_between(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value characters long, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value characters long, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1088,7 +1088,7 @@ def test_atomic_prescriptive_summary_expect_column_value_lengths_to_equal(
                 "value": {"schema": {"type": "number"}, "value": 100},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be $value characters long, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be $value characters long, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1130,7 +1130,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_between(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1160,7 +1160,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_dateutil_parseab
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be parseable by dateutil, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be parseable by dateutil, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1193,7 +1193,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_decreasing(
                 "strictly": {"schema": {"type": "boolean"}, "value": True},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be strictly less than previous values, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be strictly less than previous values, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1231,7 +1231,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_in_set(
                 "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3, 4]},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must belong to this set: $v__0 $v__1 $v__2 $v__3, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must belong to this set: $v__0 $v__1 $v__2 $v__3, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1270,7 +1270,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_in_type_list(
                 "v__2": {"schema": {"type": "string"}, "value": "type_c"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column value types must belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column value types must belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1303,7 +1303,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_increasing(
                 "strictly": {"schema": {"type": "boolean"}, "value": True},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be strictly greater than previous values, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be strictly greater than previous values, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1333,7 +1333,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_json_parseable(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be parseable as JSON, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be parseable as JSON, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1424,7 +1424,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_of_type(
                 "type_": {"schema": {"type": "string"}, "value": "my_type"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be of type $type_, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be of type $type_, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1490,7 +1490,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_json_schema(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json",  # noqa: E501
+            "template": "$column values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1538,7 +1538,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_regex(
                 "regex": {"schema": {"type": "string"}, "value": "^superconductive$"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1577,7 +1577,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_regex_list(
                 "v__1": {"schema": {"type": "string"}, "value": "ge|great_expectations"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must match all of the following regular expressions: $v__0 $v__1, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must match all of the following regular expressions: $v__0 $v__1, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1609,7 +1609,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_strftime_form
                 "strftime_format": {"schema": {"type": "string"}, "value": "%Y-%m"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must match the following strftime format: $strftime_format, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must match the following strftime format: $strftime_format, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1645,7 +1645,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_be_in_set(
                 "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must not belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must not belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1723,7 +1723,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_match_regex(
                 "regex": {"schema": {"type": "string"}, "value": "^superconductive$"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1758,7 +1758,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_match_regex_lis
                 "v__2": {"schema": {"type": "string"}, "value": "^c"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must not match any of the following regular expressions: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must not match any of the following regular expressions: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1794,7 +1794,7 @@ def test_atomic_prescriptive_summary_expect_compound_columns_to_be_unique(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values for given compound columns must be unique together, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501
+            "template": "Values for given compound columns must be unique together, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1837,7 +1837,7 @@ def test_atomic_prescriptive_summary_expect_multicolumn_values_to_be_unique(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501
+            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1877,7 +1877,7 @@ def test_atomic_prescriptive_summary_expect_select_column_values_to_be_unique_wi
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1",  # noqa: E501
+            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1956,7 +1956,7 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_ordered_list(
                 "column_list_2": {"schema": {"type": "string"}, "value": "c"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Must have these columns in this order: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501
+            "template": "Must have these columns in this order: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1988,7 +1988,7 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_set(
                 "exact_match": {"schema": {"type": "boolean"}, "value": True},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Must have exactly these columns (in any order): $column_set_0 $column_set_1 $column_set_2",  # noqa: E501
+            "template": "Must have exactly these columns (in any order): $column_set_0 $column_set_1 $column_set_2",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -2078,8 +2078,8 @@ def test_atomic_prescriptive_summary_expect_table_row_count_to_equal_other_table
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2106,8 +2106,8 @@ def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered
 def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
     get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2133,8 +2133,8 @@ def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2160,8 +2160,8 @@ def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2187,8 +2187,8 @@ def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_with_empty_result(get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2995,3 +2995,57 @@ def test_unexpected_rows_expectation_atomic_diagnostic_observed_value(
 
     # assert
     assert res["value"]["template"] == expected_template_string
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_atomic_diagnostic_observed_value_when_description_present(
+    get_diagnostic_rendered_content,
+):
+    """Fixes regression where description overwrote the template"""
+
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"description": "my description", "unexpected_rows_query": "valid query"},
+            description="plz ignore me",
+        ),
+        "result": {"observed_value": 123},
+    }
+
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    assert res["value"]["template"] == "$observed_value unexpected rows"
+
+
+@pytest.mark.unit
+def test_atomic_prescriptive_summary_with_description(
+    get_prescriptive_rendered_content,
+):
+    description = "I should overwite"
+    update_dict = {
+        "type": "expect_column_distinct_values_to_be_in_set",
+        "description": description,
+        "kwargs": {
+            "column": "my_column",
+            "value_set": [1, 2, 3],
+        },
+    }
+    rendered_content = get_prescriptive_rendered_content(update_dict)
+
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "v__0": {"schema": {"type": "number"}, "value": 1},
+                "v__1": {"schema": {"type": "number"}, "value": 2},
+                "v__2": {"schema": {"type": "number"}, "value": 3},
+                "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": description,
+        },
+        "value_type": "StringValueType",
+    }

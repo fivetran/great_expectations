@@ -29,7 +29,7 @@ from great_expectations.render.util import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 from great_expectations.expectations.expectation import (
@@ -55,7 +55,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -185,7 +184,7 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     value_set: ValueSetField
 
@@ -380,7 +379,7 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
 
         classes = ["col-3", "mt-1", "pl-1", "pr-1"]
 
-        if any(len(value) > 80 for value in values):  # noqa: PLR2004
+        if any(len(value) > 80 for value in values):  # noqa: PLR2004 # FIXME CoP
             content_block_type = "bullet_list"
             content_block_class = RenderedBulletListContent
         else:

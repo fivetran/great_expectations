@@ -32,10 +32,10 @@ from great_expectations.compatibility.pydantic import (
 from great_expectations.compatibility.pydantic import generics as pydantic_generics
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
-    ExpectationValidationResult,  # noqa: TCH001
+    ExpectationValidationResult,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,  # noqa: TCH001
+    ExpectationConfiguration,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.render.exceptions import RendererConfigurationError
 from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
@@ -68,14 +68,14 @@ class RendererSchema(TypedDict):
 class _RendererValueBase(BaseModel):
     """
     _RendererValueBase is the base for renderer classes that need to override the default pydantic dict behavior.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     class Config:
         validate_assignment = True
         arbitrary_types_allowed = True
 
     @override
-    def dict(  # noqa: PLR0913
+    def dict(  # noqa: PLR0913 # FIXME CoP
         self,
         include: Optional[Union[AbstractSetIntStr, MappingIntStrAny]] = None,
         exclude: Optional[Union[AbstractSetIntStr, MappingIntStrAny]] = None,
@@ -93,7 +93,7 @@ class _RendererValueBase(BaseModel):
 
         In practice this means the renderer implementer doesn't need to use .dict(by_alias=True, exclude_none=True)
         everywhere.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return super().dict(
             include=include,
             exclude=exclude,
@@ -219,7 +219,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     """
     Configuration object built for each renderer. Operations to be performed strictly on this object at the renderer
         implementation-level.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     configuration: Optional[ExpectationConfiguration] = Field(None, allow_mutation=False)
     result: Optional[ExpectationValidationResult] = Field(None, allow_mutation=False)
@@ -249,7 +249,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         if ("configuration" not in values or values["configuration"] is None) and (
             "result" not in values or values["result"] is None
         ):
-            raise RendererConfigurationError(  # noqa: TRY003
+            raise RendererConfigurationError(  # noqa: TRY003 # FIXME CoP
                 "RendererConfiguration must be passed either configuration or result."
             )
         return values
@@ -259,13 +259,13 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         super().__init__(**values)
 
     class _RequiredRendererParamArgs(TypedDict):
-        """Used for building up a dictionary that is unpacked into RendererParams upon initialization."""  # noqa: E501
+        """Used for building up a dictionary that is unpacked into RendererParams upon initialization."""  # noqa: E501 # FIXME CoP
 
         schema: RendererSchema
         value: Any
 
     class _RendererParamArgs(_RequiredRendererParamArgs, total=False):
-        """Used for building up a dictionary that is unpacked into RendererParams upon initialization."""  # noqa: E501
+        """Used for building up a dictionary that is unpacked into RendererParams upon initialization."""  # noqa: E501 # FIXME CoP
 
         suite_parameter: Dict[str, Any]
 
@@ -273,7 +273,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         """
         _RendererParamBase is the base for a param that is added to RendererParams. It contains the validation logic,
             but it is dynamically renamed in order for the RendererParams attribute to have the same name as the param.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         renderer_schema: RendererSchema = Field(alias="schema", allow_mutation=False)
         value: Any = Field(allow_mutation=False)
@@ -352,9 +352,6 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             ].expectation_config
             values["expectation_type"] = expectation_configuration.type
             values["kwargs"] = expectation_configuration.kwargs
-            # description is the template_str override
-            if expectation_configuration.description:
-                values["template_str"] = expectation_configuration.description
             raw_configuration: ExpectationConfiguration = (
                 expectation_configuration.get_raw_configuration()
             )
@@ -543,13 +540,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
 
     @validator("template_str")
     def _set_template_str(cls, v: str, values: dict) -> str:
-        if values.get("configuration") and values["configuration"].description:
-            # description always overrides other template_strs
-            v = values["configuration"].description
-        elif values.get("result") and values["result"].expectation_config.description:
-            # description always overrides other template_strs
-            v = values["result"].expectation_config.description
-        elif values.get("_row_condition"):
+        if values.get("_row_condition"):
             row_condition_str: str = RendererConfiguration._get_row_condition_string(
                 row_condition_str=values["_row_condition"]
             )
@@ -571,8 +562,8 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             except ValidationError:
                 pass
 
-        raise RendererConfigurationError(  # noqa: TRY003
-            f"None of the param_types: {[param_type.value for param_type in param_types]} match the value: {value}"  # noqa: E501
+        raise RendererConfigurationError(  # noqa: TRY003 # FIXME CoP
+            f"None of the param_types: {[param_type.value for param_type in param_types]} match the value: {value}"  # noqa: E501 # FIXME CoP
         )
 
     def add_param(
@@ -600,7 +591,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
 
         Returns:
             None
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         renderer_param: Type[BaseModel] = RendererConfiguration._get_renderer_value_base_model_type(
             name=name
         )

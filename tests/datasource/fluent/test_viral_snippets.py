@@ -172,7 +172,7 @@ def test_context_add_or_update_datasource(
     assert datasource.connection_string == f"sqlite:///{sqlite_database_path}"
 
     # modify the datasource
-    datasource.connection_string = "sqlite:///"  # type: ignore[assignment]
+    datasource.connection_string = "sqlite:///"  # type: ignore[assignment] # FIXME CoP
     context.data_sources.add_or_update_sqlite(datasource)
 
     updated_datasource = context.data_sources.all()[datasource.name]
@@ -235,7 +235,7 @@ def test_quickstart_workflow(
 
     In particular, this test covers the file-backend and cloud-backed usecases with this script.
     The ephemeral usecase is covered in: tests/integration/docusaurus/tutorials/quickstart/quickstart.py
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     # Slight deviation from the Quickstart here:
     #   1. Using existing contexts instead of `get_context`
     #   2. Using `read_csv` on a local file instead of making a network request

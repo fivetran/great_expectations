@@ -55,14 +55,14 @@ def column_aggregate_value(
 
     Returns:
         An annotated metric_function which will be called with a simplified signature.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_type: MetricDomainTypes = MetricDomainTypes.COLUMN
     if issubclass(engine, PandasExecutionEngine):
 
         def wrapper(metric_fn: Callable):
             @metric_value(engine=PandasExecutionEngine)
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: PandasExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -99,10 +99,10 @@ def column_aggregate_value(
 
         return wrapper
     else:
-        raise ValueError("column_aggregate_value decorator only supports PandasExecutionEngine")  # noqa: TRY003, TRY004
+        raise ValueError("column_aggregate_value decorator only supports PandasExecutionEngine")  # noqa: TRY003, TRY004 # FIXME CoP
 
 
-def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: C901
+def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: C901 # FIXME CoP
     """Provides engine-specific support for authoring a metric_fn with a simplified signature.
 
     A column_aggregate_partial must provide an aggregate function; it will be executed with the specified engine
@@ -119,7 +119,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
 
     Returns:
         An annotated metric_function which will be called with a simplified signature.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     partial_fn_type: MetricPartialFunctionTypes = MetricPartialFunctionTypes.AGGREGATE_FN
     domain_type: MetricDomainTypes = MetricDomainTypes.COLUMN
     if issubclass(engine, SqlAlchemyExecutionEngine):
@@ -131,7 +131,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
                 domain_type=domain_type,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: SqlAlchemyExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -153,7 +153,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
                         metric_domain_kwargs
                     )
                 else:
-                    # We do not copy here because if compute domain is different, it will be copied by get_compute_domain  # noqa: E501
+                    # We do not copy here because if compute domain is different, it will be copied by get_compute_domain  # noqa: E501 # FIXME CoP
                     compute_domain_kwargs = metric_domain_kwargs
                 (
                     selectable,
@@ -193,7 +193,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
                 domain_type=domain_type,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: SparkDFExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -215,7 +215,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
                         metric_domain_kwargs
                     )
                 else:
-                    # We do not copy here because if compute domain is different, it will be copied by get_compute_domain  # noqa: E501
+                    # We do not copy here because if compute domain is different, it will be copied by get_compute_domain  # noqa: E501 # FIXME CoP
                     compute_domain_kwargs = metric_domain_kwargs
 
                 (
@@ -244,7 +244,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
         return wrapper
 
     else:
-        raise ValueError("Unsupported engine for column_aggregate_partial")  # noqa: TRY003, TRY004
+        raise ValueError("Unsupported engine for column_aggregate_partial")  # noqa: TRY003, TRY004 # FIXME CoP
 
 
 class ColumnAggregateMetricProvider(TableMetricProvider):

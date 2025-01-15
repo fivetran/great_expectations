@@ -4,7 +4,7 @@ import uuid
 from copy import copy, deepcopy
 from typing import Dict, Union
 from unittest import mock
-from unittest.mock import MagicMock, Mock  # noqa: TID251
+from unittest.mock import MagicMock, Mock  # noqa: TID251 # FIXME CoP
 from uuid import UUID, uuid4
 
 import pytest
@@ -152,7 +152,7 @@ class TestInit:
         """What does this test and why?
 
         The expectations param of ExpectationSuite takes a list of ExpectationConfiguration or dicts and both can be provided at the same time. We need to make sure they both show up as expectation configurations in the instantiated ExpectationSuite.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         test_expectations_input = [
             expect_column_values_to_be_in_set_col_a_with_meta_dict,
@@ -161,7 +161,7 @@ class TestInit:
 
         suite = ExpectationSuite(
             name=fake_expectation_suite_name,
-            expectations=test_expectations_input,  # type: ignore[arg-type]
+            expectations=test_expectations_input,  # type: ignore[arg-type] # FIXME CoP
         )
         assert suite.name == fake_expectation_suite_name
 
@@ -210,7 +210,7 @@ class TestInit:
         with pytest.raises(InvalidExpectationConfigurationError) as e:
             ExpectationSuite(
                 name=fake_expectation_suite_name,
-                meta=test_meta,  # type: ignore[arg-type]
+                meta=test_meta,  # type: ignore[arg-type] # FIXME CoP
             )
         assert "is of type NotSerializable which cannot be serialized to json" in str(e.value)
 
@@ -247,7 +247,7 @@ class TestCRUDMethods:
         ]
         with pytest.raises(
             ValueError,
-            match="Expectations in parameter `expectations` must not belong to another ExpectationSuite.",  # noqa: E501
+            match="Expectations in parameter `expectations` must not belong to another ExpectationSuite.",  # noqa: E501 # FIXME CoP
         ):
             ExpectationSuite(name=self.expectation_suite_name, expectations=expectations)
 
@@ -661,7 +661,7 @@ class TestCRUDMethods:
         with the remote ExpectationSuite. ExpectationSuite._save_expectation (and the corresponding logic
         the suite uses within the ExpectationsStore) must work equivalently regardless of which Suite instance
         it belongs to.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # Arrange
         context = empty_cloud_context_fluent
         suite_name = "test-suite"
@@ -892,7 +892,7 @@ class TestEqDunder:
         assert different_but_equivalent_suite != suite_with_single_expectation
 
 
-# ### Below this line are mainly existing tests and fixtures that we are in the process of cleaning up  # noqa: E501
+# ### Below this line are mainly existing tests and fixtures that we are in the process of cleaning up  # noqa: E501 # FIXME CoP
 
 
 @pytest.fixture

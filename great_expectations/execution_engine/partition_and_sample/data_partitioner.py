@@ -73,12 +73,12 @@ class PartitionerMethod(enum.Enum):
         return hash(self.value)
 
 
-class DataPartitioner(abc.ABC):  # noqa: B024
+class DataPartitioner(abc.ABC):  # noqa: B024 # FIXME CoP
     """Abstract base class containing methods for partitioning data accessible via Execution Engines.
 
     Note, for convenience, you can also access DatePart via the instance variable
     date_part e.g. DataPartitioner.date_part.MONTH
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     date_part: ClassVar[Type[DatePart]] = DatePart
 
@@ -136,11 +136,11 @@ class DataPartitioner(abc.ABC):  # noqa: B024
             None, this method raises exceptions if the config is invalid.
         """
         if len(date_parts) == 0:
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 "date_parts are required when using partition_on_date_parts."
             )
         if not all(isinstance(dp, (DatePart, str)) for dp in date_parts):
-            raise gx_exceptions.InvalidConfigError("date_parts should be of type DatePart or str.")  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError("date_parts should be of type DatePart or str.")  # noqa: TRY003 # FIXME CoP
 
     @staticmethod
     def _verify_all_strings_are_valid_date_parts(date_part_strings: List[str]) -> None:
@@ -155,8 +155,8 @@ class DataPartitioner(abc.ABC):  # noqa: B024
         try:
             [DatePart(date_part_string) for date_part_string in date_part_strings]
         except ValueError as e:
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
-                f"{e} please only specify strings that are supported in DatePart: {[dp.value for dp in DatePart]}"  # noqa: E501
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
+                f"{e} please only specify strings that are supported in DatePart: {[dp.value for dp in DatePart]}"  # noqa: E501 # FIXME CoP
             )
 
     def _convert_datetime_batch_identifiers_to_date_parts_dict(

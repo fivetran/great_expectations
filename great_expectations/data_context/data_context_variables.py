@@ -74,7 +74,7 @@ class DataContextVariables(ABC):
         config:          A reference to the DataContextConfig to perform CRUD on.
         config_provider: Responsible for determining config values and substituting them in GET calls.
         _store:          An instance of a DataContextStore with the appropriate backend to persist config changes.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     config: DataContextConfig
     config_provider: _ConfigurationProvider
@@ -120,7 +120,7 @@ class DataContextVariables(ABC):
         """
         Persist any changes made to variables utilizing the configured Store.
         """
-        key: ConfigurationIdentifier = self.get_key()  # type: ignore[assignment]
+        key: ConfigurationIdentifier = self.get_key()  # type: ignore[assignment] # FIXME CoP
         return self.store.set(key=key, value=self.config)
 
     @property
@@ -253,14 +253,14 @@ class FileDataContextVariables(DataContextVariables):
 
     def __post_init__(self) -> None:
         # Chetan - 20220607 - Although the above argument is not truly optional, we are
-        # required to use default values because the parent class defines arguments with default values  # noqa: E501
+        # required to use default values because the parent class defines arguments with default values  # noqa: E501 # FIXME CoP
         # ("Fields without default values cannot appear after fields with default values").
         #
         # Python 3.10 resolves this issue around dataclass inheritance using `kw_only=True` (https://docs.python.org/3/library/dataclasses.html)
         # This should be modified once our lowest supported version is 3.10.
 
         if self.data_context is None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"A reference to a data context is required for {self.__class__.__name__}"
             )
 
@@ -274,7 +274,7 @@ class FileDataContextVariables(DataContextVariables):
         )
 
         # Chetan - 20230222 - `instantiate_class_from_config` used in the Store constructor
-        # causes a runtime error with InlineStoreBackend due to attempting to deepcopy a DataContext.  # noqa: E501
+        # causes a runtime error with InlineStoreBackend due to attempting to deepcopy a DataContext.  # noqa: E501 # FIXME CoP
         #
         # This should be resolved by moving the specific logic required from the context to a class
         # and injecting that object instead of the entire context.
@@ -316,7 +316,7 @@ class FileDataContextVariables(DataContextVariables):
         try:
             if config_fluent_datasources_stash:
                 logger.info(
-                    f"Stashing `FluentDatasource` during {type(self).__name__}.save() - {len(config_fluent_datasources_stash)} stashed"  # noqa: E501
+                    f"Stashing `FluentDatasource` during {type(self).__name__}.save() - {len(config_fluent_datasources_stash)} stashed"  # noqa: E501 # FIXME CoP
                 )
                 for fluent_datasource_name in config_fluent_datasources_stash:
                     self.data_context.data_sources.all().pop(fluent_datasource_name)
@@ -342,7 +342,7 @@ class CloudDataContextVariables(DataContextVariables):
 
     def __post_init__(self) -> None:
         # Chetan - 20220607 - Although the above arguments are not truly optional, we are
-        # required to use default values because the parent class defines arguments with default values  # noqa: E501
+        # required to use default values because the parent class defines arguments with default values  # noqa: E501 # FIXME CoP
         # ("Fields without default values cannot appear after fields with default values").
         #
         # Python 3.10 resolves this issue around dataclass inheritance using `kw_only=True` (https://docs.python.org/3/library/dataclasses.html)
@@ -356,8 +356,8 @@ class CloudDataContextVariables(DataContextVariables):
                 self.ge_cloud_access_token,
             )
         ):
-            raise ValueError(  # noqa: TRY003
-                f"All of the following attributes are required for{ self.__class__.__name__}:\n  self.ge_cloud_base_url\n  self.ge_cloud_organization_id\n  self.ge_cloud_access_token"  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"All of the following attributes are required for{ self.__class__.__name__}:\n  self.ge_cloud_base_url\n  self.ge_cloud_organization_id\n  self.ge_cloud_access_token"  # noqa: E501 # FIXME CoP
             )
 
     @override
@@ -391,7 +391,7 @@ class CloudDataContextVariables(DataContextVariables):
     def get_key(self) -> GXCloudIdentifier:
         """
         Generates a GX Cloud-specific key for use with Stores. See parent "DataContextVariables.get_key" for more details.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         from great_expectations.data_context.cloud_constants import GXCloudRESTResource
 
         key = GXCloudIdentifier(resource_type=GXCloudRESTResource.DATA_CONTEXT_VARIABLES)

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
@@ -51,7 +51,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -173,7 +172,7 @@ class ExpectColumnMedianToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -194,7 +193,7 @@ class ExpectColumnMedianToBeBetween(ColumnAggregateExpectation):
     }
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.median",)
     success_keys = (
         "min_value",
@@ -332,7 +331,7 @@ class ExpectColumnMedianToBeBetween(ColumnAggregateExpectation):
             elif params["max_value"] is None:
                 template_str = f"median must be {at_least_str} $min_value."
             else:
-                raise ValueError("unresolvable template_str")  # noqa: TRY003
+                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME CoP
 
         if include_column_name:
             template_str = f"$column {template_str}"

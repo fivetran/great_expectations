@@ -96,7 +96,7 @@ def azure_batch_spec() -> AzureBatchSpec:
         "alpha-2.csv",
     ]
     path = keys[0]
-    full_path = os.path.join(  # noqa: PTH118
+    full_path = os.path.join(  # noqa: PTH118 # FIXME CoP
         "mock_account.blob.core.windows.net", container, path
     )
 
@@ -120,7 +120,7 @@ def gcs_batch_spec() -> GCSBatchSpec:
         "alpha-2.csv",
     ]
     path = keys[0]
-    full_path = os.path.join("gs://", bucket, path)  # noqa: PTH118
+    full_path = os.path.join("gs://", bucket, path)  # noqa: PTH118 # FIXME CoP
 
     batch_spec = GCSBatchSpec(
         path=full_path,
@@ -135,7 +135,7 @@ def test_sparkdf(spark_session) -> pyspark.DataFrame:
     def generate_ascending_list_of_datetimes(
         n, start_date=datetime.date(2020, 1, 1), end_date=datetime.date(2020, 12, 31)
     ) -> List[datetime.datetime]:
-        start_time = datetime.datetime(start_date.year, start_date.month, start_date.day)  # noqa: DTZ001
+        start_time = datetime.datetime(start_date.year, start_date.month, start_date.day)  # noqa: DTZ001 # FIXME CoP
         seconds_between_dates = (end_date - start_date).total_seconds()
         # noinspection PyUnusedLocal
         datetime_list = [
@@ -194,7 +194,7 @@ def test_folder_connection_path_tsv(tmp_path_factory) -> str:
     df1 = pd.DataFrame({"col_1": [1, 2, 3, 4, 5], "col_2": ["a", "b", "c", "d", "e"]})
     path = str(tmp_path_factory.mktemp("test_folder_connection_path_tsv"))
     df1.to_csv(
-        path_or_buf=os.path.join(path, "test.tsv"),  # noqa: PTH118
+        path_or_buf=os.path.join(path, "test.tsv"),  # noqa: PTH118 # FIXME CoP
         sep="\t",
         index=False,
     )
@@ -205,5 +205,5 @@ def test_folder_connection_path_tsv(tmp_path_factory) -> str:
 def test_folder_connection_path_parquet(tmp_path_factory) -> str:
     df1 = pd.DataFrame({"col_1": [1, 2, 3, 4, 5], "col_2": ["a", "b", "c", "d", "e"]})
     path = str(tmp_path_factory.mktemp("test_folder_connection_path_parquet"))
-    df1.to_parquet(path=os.path.join(path, "test.parquet"))  # noqa: PTH118
+    df1.to_parquet(path=os.path.join(path, "test.parquet"))  # noqa: PTH118 # FIXME CoP
     return str(path)

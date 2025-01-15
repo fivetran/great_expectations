@@ -410,7 +410,7 @@ def test_column_quoted_name_type_sa_handles_explicit_string_identifiers(sa):
 
     When explicit quoted identifiers are passed in, we should use them as-is.
     Explicit identifiers are used when the column contains a space or reserved word.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     engine = build_sa_execution_engine(
         pd.DataFrame(
             {
@@ -993,7 +993,7 @@ def test_column_partition_metric_pd():
     For "datetime.datetime" data, test set contains 12 dates, starting with January 1, 2021, separated by 7 days.
 
     Expected partition boundaries are pre-computed algorithmically and asserted to be "close" to actual metric values.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     week_idx: int
     engine = build_pandas_engine(
         pd.DataFrame(
@@ -1013,7 +1013,7 @@ def test_column_partition_metric_pd():
                     11,
                 ],
                 "b": [
-                    datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001
+                    datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME CoP
                     for week_idx in range(12)
                 ],
             },
@@ -1134,14 +1134,14 @@ def test_column_partition_metric_pd():
     assert all(
         isclose(
             operand_a=element.to_pydatetime(),
-            operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001
+            operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001 # FIXME CoP
         )
         for idx, element in enumerate(results[desired_metric.id])
     )
 
 
 @pytest.mark.sqlite
-def test_column_partition_metric_sa(sa):  # noqa: PLR0915
+def test_column_partition_metric_sa(sa):  # noqa: PLR0915 # FIXME CoP
     """
     Test of "column.partition" metric for both, standard numeric column and "datetime.datetime" valued column.
 
@@ -1154,7 +1154,7 @@ def test_column_partition_metric_sa(sa):  # noqa: PLR0915
     For "datetime.datetime" data, test set contains 12 dates, starting with January 1, 2021, separated by 7 days.
 
     Expected partition boundaries are pre-computed algorithmically and asserted to be "close" to actual metric values.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     week_idx: int
     engine = build_sa_execution_engine(
         pd.DataFrame(
@@ -1174,7 +1174,7 @@ def test_column_partition_metric_sa(sa):  # noqa: PLR0915
                     11,
                 ],
                 "b": [
-                    datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001
+                    datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME CoP
                     for week_idx in range(12)
                 ],
             },
@@ -1350,14 +1350,14 @@ def test_column_partition_metric_sa(sa):  # noqa: PLR0915
     assert all(
         isclose(
             operand_a=element,
-            operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001
+            operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001 # FIXME CoP
         )
         for idx, element in enumerate(results[desired_metric.id])
     )
 
 
 @pytest.mark.spark
-def test_column_partition_metric_spark(spark_session):  # noqa: PLR0915
+def test_column_partition_metric_spark(spark_session):  # noqa: PLR0915 # FIXME CoP
     """
     Test of "column.partition" metric for both, standard numeric column and "datetime.datetime" valued column.
 
@@ -1370,7 +1370,7 @@ def test_column_partition_metric_spark(spark_session):  # noqa: PLR0915
     For "datetime.datetime" data, test set contains 12 dates, starting with January 1, 2021, separated by 7 days.
 
     Expected partition boundaries are pre-computed algorithmically and asserted to be "close" to actual metric values.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     week_idx: int
     engine: SparkDFExecutionEngine = build_spark_engine(
         spark=spark_session,
@@ -1391,7 +1391,7 @@ def test_column_partition_metric_spark(spark_session):  # noqa: PLR0915
                     11,
                 ],
                 "b": [
-                    datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001
+                    datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME CoP
                     for week_idx in range(12)
                 ],
             },
@@ -1573,7 +1573,7 @@ def test_column_partition_metric_spark(spark_session):  # noqa: PLR0915
     assert all(
         isclose(
             operand_a=element,
-            operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001
+            operand_b=(datetime.datetime(2021, 1, 1, 0, 0, 0) + (increment * idx)),  # noqa: DTZ001 # FIXME CoP
         )
         for idx, element in enumerate(results[desired_metric.id])
     )
@@ -2739,7 +2739,7 @@ def test_z_score_under_threshold_pd():
         metric_value_kwargs={"double_sided": True, "threshold": 2},
     )
     column_values_z_score_under_threshold_condition_metric.metric_dependencies = {
-        f"column_values.z_score.{MetricPartialFunctionTypeSuffixes.MAP.value}": column_values_z_score_map_metric,  # noqa: E501
+        f"column_values.z_score.{MetricPartialFunctionTypeSuffixes.MAP.value}": column_values_z_score_map_metric,  # noqa: E501 # FIXME CoP
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(
@@ -2846,7 +2846,7 @@ def test_z_score_under_threshold_spark(spark_session):
         metric_value_kwargs={"double_sided": True, "threshold": 2},
     )
     condition_metric.metric_dependencies = {
-        f"column_values.z_score.{MetricPartialFunctionTypeSuffixes.MAP.value}": column_values_z_score_map_metric,  # noqa: E501
+        f"column_values.z_score.{MetricPartialFunctionTypeSuffixes.MAP.value}": column_values_z_score_map_metric,  # noqa: E501 # FIXME CoP
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(metrics_to_resolve=(condition_metric,), metrics=metrics)
@@ -2892,7 +2892,7 @@ def test_table_metric_pd(caplog):
 
 
 @pytest.mark.big
-def test_map_column_pairs_equal_metric_pd():  # noqa: PLR0915
+def test_map_column_pairs_equal_metric_pd():  # noqa: PLR0915 # FIXME CoP
     engine = build_pandas_engine(
         pd.DataFrame(
             data={
@@ -3130,7 +3130,7 @@ def test_table_metric_sa(sa):
 
 
 @pytest.mark.sqlite
-def test_map_column_pairs_equal_metric_sa(sa):  # noqa: PLR0915
+def test_map_column_pairs_equal_metric_sa(sa):  # noqa: PLR0915 # FIXME CoP
     engine = build_sa_execution_engine(
         pd.DataFrame(
             data={
@@ -3337,7 +3337,7 @@ def test_map_column_pairs_equal_metric_sa(sa):  # noqa: PLR0915
 
 
 @pytest.mark.spark
-def test_map_column_pairs_equal_metric_spark(spark_session):  # noqa: PLR0915
+def test_map_column_pairs_equal_metric_spark(spark_session):  # noqa: PLR0915 # FIXME CoP
     engine: SparkDFExecutionEngine = build_spark_engine(
         spark=spark_session,
         df=pd.DataFrame(
@@ -4638,7 +4638,7 @@ def test_batch_aggregate_metrics_pd():
         "table.columns": table_columns_metric,
     }
 
-    start = datetime.datetime.now()  # noqa: DTZ005
+    start = datetime.datetime.now()  # noqa: DTZ005 # FIXME CoP
     results = engine.resolve_metrics(
         metrics_to_resolve=(
             desired_metric_1,
@@ -4649,7 +4649,7 @@ def test_batch_aggregate_metrics_pd():
         metrics=metrics,
     )
     metrics.update(results)
-    end = datetime.datetime.now()  # noqa: DTZ005
+    end = datetime.datetime.now()  # noqa: DTZ005 # FIXME CoP
     print(end - start)
     assert results[desired_metric_1.id] == "2021-06-18"
     assert results[desired_metric_2.id] == "2021-01-01"
@@ -4754,7 +4754,7 @@ def test_batch_aggregate_metrics_sa(caplog, sa):
     }
     caplog.clear()
     caplog.set_level(logging.DEBUG, logger="great_expectations")
-    start = datetime.datetime.now()  # noqa: DTZ005
+    start = datetime.datetime.now()  # noqa: DTZ005 # FIXME CoP
     results = engine.resolve_metrics(
         metrics_to_resolve=(
             desired_metric_1,
@@ -4765,7 +4765,7 @@ def test_batch_aggregate_metrics_sa(caplog, sa):
         metrics=metrics,
     )
     metrics.update(results)
-    end = datetime.datetime.now()  # noqa: DTZ005
+    end = datetime.datetime.now()  # noqa: DTZ005 # FIXME CoP
     print("t1")
     print(end - start)
     assert results[desired_metric_1.id] == 3
@@ -4876,7 +4876,7 @@ def test_batch_aggregate_metrics_spark(caplog, spark_session):
     desired_metric_4.metric_dependencies = {
         "metric_partial_fn": desired_aggregate_fn_metric_4,
     }
-    start = datetime.datetime.now()  # noqa: DTZ005
+    start = datetime.datetime.now()  # noqa: DTZ005 # FIXME CoP
     caplog.clear()
     caplog.set_level(logging.DEBUG, logger="great_expectations")
     results = engine.resolve_metrics(
@@ -4889,7 +4889,7 @@ def test_batch_aggregate_metrics_spark(caplog, spark_session):
         metrics=metrics,
     )
     metrics.update(results)
-    end = datetime.datetime.now()  # noqa: DTZ005
+    end = datetime.datetime.now()  # noqa: DTZ005 # FIXME CoP
     print(end - start)
     assert results[desired_metric_1.id] == 3
     assert results[desired_metric_2.id] == 1
@@ -4905,7 +4905,7 @@ def test_batch_aggregate_metrics_spark(caplog, spark_session):
 
 
 @pytest.mark.big
-def test_map_multicolumn_sum_equal_pd():  # noqa: PLR0915
+def test_map_multicolumn_sum_equal_pd():  # noqa: PLR0915 # FIXME CoP
     engine = build_pandas_engine(
         pd.DataFrame(data={"a": [0, 1, 2], "b": [5, 4, 3], "c": [0, 0, 1], "d": [7, 8, 9]})
     )
@@ -5105,7 +5105,7 @@ def test_map_multicolumn_sum_equal_pd():  # noqa: PLR0915
 
 
 @pytest.mark.sqlite
-def test_map_multicolumn_sum_equal_sa(sa):  # noqa: PLR0915
+def test_map_multicolumn_sum_equal_sa(sa):  # noqa: PLR0915 # FIXME CoP
     engine = build_sa_execution_engine(
         pd.DataFrame(data={"a": [0, 1, 2], "b": [5, 4, 3], "c": [0, 0, 1], "d": [7, 8, 9]}),
         sa,
@@ -5297,7 +5297,7 @@ def test_map_multicolumn_sum_equal_sa(sa):  # noqa: PLR0915
 
 
 @pytest.mark.spark
-def test_map_multicolumn_sum_equal_spark(spark_session):  # noqa: PLR0915
+def test_map_multicolumn_sum_equal_spark(spark_session):  # noqa: PLR0915 # FIXME CoP
     engine: SparkDFExecutionEngine = build_spark_engine(
         spark=spark_session,
         df=pd.DataFrame(data={"a": [0, 1, 2], "b": [5, 4, 3], "c": [0, 0, 1], "d": [7, 8, 9]}),
@@ -5492,7 +5492,7 @@ def test_map_multicolumn_sum_equal_spark(spark_session):  # noqa: PLR0915
 
 
 @pytest.mark.big
-def test_map_compound_columns_unique_pd():  # noqa: PLR0915
+def test_map_compound_columns_unique_pd():  # noqa: PLR0915 # FIXME CoP
     engine = build_pandas_engine(
         pd.DataFrame(data={"a": [0, 1, 1], "b": [1, 2, 3], "c": [0, 2, 2]})
     )
@@ -5688,7 +5688,7 @@ def test_map_compound_columns_unique_pd():  # noqa: PLR0915
 
 
 @pytest.mark.sqlite
-def test_map_compound_columns_unique_sa(sa):  # noqa: PLR0915
+def test_map_compound_columns_unique_sa(sa):  # noqa: PLR0915 # FIXME CoP
     engine = build_sa_execution_engine(
         pd.DataFrame(data={"a": [0, 1, 1], "b": [1, 2, 3], "c": [0, 2, 2]}),
         sa,
@@ -5755,7 +5755,7 @@ def test_map_compound_columns_unique_sa(sa):  # noqa: PLR0915
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
-        f"compound_columns.count.{MetricPartialFunctionTypeSuffixes.MAP.value}": prerequisite_function_metric,  # noqa: E501
+        f"compound_columns.count.{MetricPartialFunctionTypeSuffixes.MAP.value}": prerequisite_function_metric,  # noqa: E501 # FIXME CoP
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(
@@ -5848,7 +5848,7 @@ def test_map_compound_columns_unique_sa(sa):  # noqa: PLR0915
         metric_value_kwargs=None,
     )
     condition_metric.metric_dependencies = {
-        f"compound_columns.count.{MetricPartialFunctionTypeSuffixes.MAP.value}": prerequisite_function_metric,  # noqa: E501
+        f"compound_columns.count.{MetricPartialFunctionTypeSuffixes.MAP.value}": prerequisite_function_metric,  # noqa: E501 # FIXME CoP
         "table.columns": table_columns_metric,
     }
     results = engine.resolve_metrics(
@@ -5915,7 +5915,7 @@ def test_map_compound_columns_unique_sa(sa):  # noqa: PLR0915
 
 
 @pytest.mark.spark
-def test_map_compound_columns_unique_spark(spark_session):  # noqa: PLR0915
+def test_map_compound_columns_unique_spark(spark_session):  # noqa: PLR0915 # FIXME CoP
     engine: SparkDFExecutionEngine = build_spark_engine(
         spark=spark_session,
         df=pd.DataFrame(data={"a": [0, 1, 1], "b": [1, 2, 3], "c": [0, 2, 2]}),
@@ -6106,7 +6106,7 @@ def test_map_compound_columns_unique_spark(spark_session):  # noqa: PLR0915
 
 
 @pytest.mark.big
-def test_map_select_column_values_unique_within_record_pd():  # noqa: PLR0915
+def test_map_select_column_values_unique_within_record_pd():  # noqa: PLR0915 # FIXME CoP
     engine = build_pandas_engine(
         pd.DataFrame(
             data={
@@ -6343,7 +6343,7 @@ def test_map_select_column_values_unique_within_record_pd():  # noqa: PLR0915
 
 
 @pytest.mark.sqlite
-def test_map_select_column_values_unique_within_record_sa(sa):  # noqa: PLR0915
+def test_map_select_column_values_unique_within_record_sa(sa):  # noqa: PLR0915 # FIXME CoP
     engine = build_sa_execution_engine(
         pd.DataFrame(
             data={

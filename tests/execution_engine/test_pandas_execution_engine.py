@@ -403,7 +403,7 @@ def test_resolve_metric_bundle():
     )
 
 
-# Ensuring that we can properly inform user when metric doesn't exist - should get a metric provider error  # noqa: E501
+# Ensuring that we can properly inform user when metric doesn't exist - should get a metric provider error  # noqa: E501 # FIXME CoP
 @pytest.mark.unit
 def test_resolve_metric_bundle_with_nonexistent_metric():
     df = pd.DataFrame({"a": [1, 2, 3, None]})
@@ -463,7 +463,7 @@ def test_get_batch_data(test_df):
 def test_get_batch_s3_compressed_files(test_s3_files_compressed, test_df_small):
     bucket, keys = test_s3_files_compressed
     path = keys[0]
-    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118
+    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118 # FIXME CoP
 
     batch_spec = S3BatchSpec(path=full_path, reader_method="read_csv")
     df = PandasExecutionEngine().get_batch_data(batch_spec=batch_spec)
@@ -482,7 +482,7 @@ def test_get_batch_s3_compressed_files(test_s3_files_compressed, test_df_small):
 def test_get_batch_s3_parquet(test_s3_files_parquet, test_df_small):
     bucket, keys = test_s3_files_parquet
     path = [key for key in keys if key.endswith(".parquet")][0]
-    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118
+    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118 # FIXME CoP
 
     batch_spec = S3BatchSpec(path=full_path, reader_method="read_parquet")
     df = PandasExecutionEngine().get_batch_data(batch_spec=batch_spec)
@@ -653,9 +653,9 @@ def test_get_batch_data_with_gcs_batch_spec(
 )
 @pytest.mark.big
 def test_get_batch_data_with_gcs_batch_spec_no_credentials(gcs_batch_spec, monkeypatch):
-    # If PandasExecutionEngine contains no credentials for GCS, we will still instantiate _gcs engine,  # noqa: E501
-    # but will raise Exception when trying get_batch_data(). The only situation where it would work is if we are running in a Google Cloud container.  # noqa: E501
-    # TODO : Determine how we can test the scenario where we are running PandasExecutionEngine from within Google Cloud env.  # noqa: E501
+    # If PandasExecutionEngine contains no credentials for GCS, we will still instantiate _gcs engine,  # noqa: E501 # FIXME CoP
+    # but will raise Exception when trying get_batch_data(). The only situation where it would work is if we are running in a Google Cloud container.  # noqa: E501 # FIXME CoP
+    # TODO : Determine how we can test the scenario where we are running PandasExecutionEngine from within Google Cloud env.  # noqa: E501 # FIXME CoP
 
     monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
     with pytest.raises(gx_exceptions.ExecutionEngineError):

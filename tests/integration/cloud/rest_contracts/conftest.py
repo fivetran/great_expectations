@@ -78,7 +78,7 @@ def cloud_data_context(
     cloud_base_url: str,
     cloud_access_token: str,
 ) -> CloudDataContext:
-    """This is a real Cloud Data Context that points to the pact mock service instead of the Mercury API."""  # noqa: E501
+    """This is a real Cloud Data Context that points to the pact mock service instead of the Mercury API."""  # noqa: E501 # FIXME CoP
     cloud_data_context = CloudDataContext(
         cloud_base_url=cloud_base_url,
         cloud_organization_id=EXISTING_ORGANIZATION_ID,
@@ -121,7 +121,7 @@ def pact_test(request) -> pact.Pact:
         publish_to_broker = False
     else:
         pytest.skip(
-            "no pact credentials: set PACT_BROKER_READ_ONLY_TOKEN from greatexpectations.pactflow.io"  # noqa: E501
+            "no pact credentials: set PACT_BROKER_READ_ONLY_TOKEN from greatexpectations.pactflow.io"  # noqa: E501 # FIXME CoP
         )
 
     # Adding random id to the commit hash allows us to run the build
@@ -175,7 +175,7 @@ class ContractInteraction(pydantic.BaseModel):
 
     Returns:
         ContractInteraction
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     class Config:
         arbitrary_types_allowed = True
@@ -208,7 +208,7 @@ def run_rest_api_pact_test(
 
         Returns:
             None
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         request: dict[str, str | PactBody] = {
             "method": contract_interaction.method,
@@ -221,7 +221,7 @@ def run_rest_api_pact_test(
 
         request["headers"] = dict(gx_cloud_session.headers)
         if contract_interaction.request_headers is not None:
-            request["headers"].update(contract_interaction.request_headers)  # type: ignore[union-attr]
+            request["headers"].update(contract_interaction.request_headers)  # type: ignore[union-attr] # FIXME CoP
             gx_cloud_session.headers.update(contract_interaction.request_headers)
 
         response: dict[str, int | PactBody] = {

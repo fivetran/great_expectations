@@ -39,7 +39,7 @@ def _is_sequence_of(sequence: Sequence, type_: Type[T]) -> TypeGuard[Sequence[T]
 class SimpleSemanticTypeFilter(SemanticTypeFilter):
     """
     This class provides default implementation methods, any of which can be overwritten with different mechanisms.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -87,11 +87,11 @@ class SimpleSemanticTypeFilter(SemanticTypeFilter):
                     SemanticDomainTypes(semantic_type.lower()) for semantic_type in semantic_types
                 ]
 
-            raise ValueError(  # noqa: TRY003
-                "All elements in semantic_types list must be either of str or SemanticDomainTypes type."  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                "All elements in semantic_types list must be either of str or SemanticDomainTypes type."  # noqa: E501 # FIXME CoP
             )
 
-        raise ValueError("Unrecognized semantic_types directive.")  # noqa: TRY003
+        raise ValueError("Unrecognized semantic_types directive.")  # noqa: TRY003 # FIXME CoP
 
     def _build_table_column_name_to_inferred_semantic_domain_type_map(
         self,
@@ -134,11 +134,11 @@ class SimpleSemanticTypeFilter(SemanticTypeFilter):
         }
 
     @staticmethod
-    def _infer_semantic_domain_type_from_table_column_type(  # noqa: C901
+    def _infer_semantic_domain_type_from_table_column_type(  # noqa: C901 # FIXME CoP
         column_types_dict_list: List[Dict[str, Any]],
         column_name: str,
     ) -> InferredSemanticDomainType:
-        # Note: As of Python 3.8, specifying argument type in Lambda functions is not supported by Lambda syntax.  # noqa: E501
+        # Note: As of Python 3.8, specifying argument type in Lambda functions is not supported by Lambda syntax.  # noqa: E501 # FIXME CoP
         column_types_dict_list = list(
             filter(
                 lambda column_type_dict: column_name == column_type_dict["name"]
@@ -153,7 +153,7 @@ class SimpleSemanticTypeFilter(SemanticTypeFilter):
             raise ProfilerExecutionError(
                 message=f"""Error: {len(column_types_dict_list)} columns were found while obtaining semantic type \
     information.  Please ensure that the specified column name refers to exactly one column.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
             )
 
         column_type: str = str(column_types_dict_list[0]["type"]).upper()

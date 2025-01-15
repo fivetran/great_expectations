@@ -22,7 +22,7 @@ from great_expectations.render.util import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 
@@ -42,10 +42,10 @@ SUPPORTED_DATA_SOURCES = [
     "SQLite",
     "PostgreSQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
+    "MySQL",
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
@@ -97,6 +97,7 @@ class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -164,7 +165,7 @@ class ExpectColumnValuesToBeUnique(ColumnMapExpectation):
                   "meta": {{}},
                   "success": true
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",

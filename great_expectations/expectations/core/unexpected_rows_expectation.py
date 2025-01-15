@@ -41,9 +41,12 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 UNEXPECTED_ROWS_QUERY_DESCRIPTION = "A SQL or Spark-SQL query to be executed for validation."
 SUPPORTED_DATA_SOURCES = [
+    "Spark",
     "PostgreSQL",
+    "BigQuery",
     "Snowflake",
-    "SQLite",
+    "MySQL",
+    "Databricks (SQL)",
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SQL.value]
 
@@ -75,6 +78,9 @@ class UnexpectedRowsExpectation(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -164,7 +170,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
         runtime_configuration = runtime_configuration or {}
         styling = runtime_configuration.get("styling")
         params = substitute_none_for_missing(
-            configuration.kwargs,  # type: ignore[union-attr]
+            configuration.kwargs,  # type: ignore[union-attr] # FIXME CoP
             ["unexpected_rows_query"],
         )
 

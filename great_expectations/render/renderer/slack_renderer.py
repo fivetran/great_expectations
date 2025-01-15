@@ -134,7 +134,7 @@ class SlackRenderer(Renderer):
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": f"Learn how to review validation results in Data Docs: {documentation_url}",  # noqa: E501
+                    "text": f"Learn how to review validation results in Data Docs: {documentation_url}",  # noqa: E501 # FIXME CoP
                 }
             ],
         }
@@ -149,7 +149,7 @@ class SlackRenderer(Renderer):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*DataDocs* can be found here: `{docs_link}` \n (Please copy and paste link into "  # noqa: E501
+                            "text": f"*DataDocs* can be found here: `{docs_link}` \n (Please copy and paste link into "  # noqa: E501 # FIXME CoP
                             f"a browser to view)\n",
                         },
                     }
@@ -165,7 +165,7 @@ class SlackRenderer(Renderer):
                 logger.warning(
                     f"""SlackRenderer had a problem with generating the docs link.
                     link used to generate the docs link is: {docs_link} and is of type: {type(docs_link)}.
-                    Error: {e}"""  # noqa: E501
+                    Error: {e}"""  # noqa: E501 # FIXME CoP
                 )
                 return
         else:
@@ -186,14 +186,14 @@ class SlackRenderer(Renderer):
                 else:
                     logger.critical(
                         f"*ERROR*: Slack is trying to provide a link to the following DataDocs: `"
-                        f"{docs_link_key!s}`, but it is not configured under `data_docs_sites` in the "  # noqa: E501
+                        f"{docs_link_key!s}`, but it is not configured under `data_docs_sites` in the "  # noqa: E501 # FIXME CoP
                         f"`great_expectations.yml`\n"
                     )
                     report_element = {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*ERROR*: Slack is trying to provide a link to the following DataDocs: "  # noqa: E501
+                            "text": f"*ERROR*: Slack is trying to provide a link to the following DataDocs: "  # noqa: E501 # FIXME CoP
                             f"`{docs_link_key!s}`, but it is not configured under "
                             f"`data_docs_sites` in the `great_expectations.yml`\n",
                         },

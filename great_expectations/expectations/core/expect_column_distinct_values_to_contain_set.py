@@ -51,7 +51,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -187,7 +186,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
                 "meta": {{}},
                 "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     value_set: ValueSetField
 
@@ -203,7 +202,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
 
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.value_counts",)
     success_keys = ("value_set",)
 
@@ -299,7 +298,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
             runtime_configuration=runtime_configuration,
         )
         if renderer_configuration.configuration is None:
-            raise ValueError("renderer_configuration.configuration is None.")  # noqa: TRY003
+            raise ValueError("renderer_configuration.configuration is None.")  # noqa: TRY003 # FIXME CoP
         params = substitute_none_for_missing(
             renderer_configuration.configuration.kwargs,
             [
@@ -357,7 +356,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         parsed_value_set = value_set
 
         if observed_value_counts is None:
-            raise ValueError("observed_value_counts None, but is required")  # noqa: TRY003
+            raise ValueError("observed_value_counts None, but is required")  # noqa: TRY003 # FIXME CoP
         observed_value_set = set(observed_value_counts.index)
         expected_value_set = set(parsed_value_set)
 

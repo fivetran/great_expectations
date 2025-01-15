@@ -96,16 +96,16 @@ class ValidationGraph:
 
     @property
     def edges(self) -> List[MetricEdge]:
-        """Returns "MetricEdge" objects, contained within this "ValidationGraph" object (as list)."""  # noqa: E501
+        """Returns "MetricEdge" objects, contained within this "ValidationGraph" object (as list)."""  # noqa: E501 # FIXME CoP
         return self._edges
 
     @property
     def edge_ids(self) -> Set[Tuple[str, str]]:
-        """Returns "MetricEdge" objects, contained within this "ValidationGraph" object (as set of two-tuples)."""  # noqa: E501
+        """Returns "MetricEdge" objects, contained within this "ValidationGraph" object (as set of two-tuples)."""  # noqa: E501 # FIXME CoP
         return {edge.id for edge in self._edges}
 
     def add(self, edge: MetricEdge) -> None:
-        """Adds supplied "MetricEdge" object to this "ValidationGraph" object (if not already present)."""  # noqa: E501
+        """Adds supplied "MetricEdge" object to this "ValidationGraph" object (if not already present)."""  # noqa: E501 # FIXME CoP
         if edge.id not in self._edge_ids:
             self._edges.append(edge)
             self._edge_ids.add(edge.id)
@@ -122,7 +122,7 @@ class ValidationGraph:
         Args:
             metric_configuration: Desired MetricConfiguration object to be resolved.
             runtime_configuration: Additional run-time settings (see "Validator.DEFAULT_RUNTIME_CONFIGURATION").
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         metric_impl_klass: MetricProvider
         metric_provider: Callable
@@ -170,7 +170,7 @@ class ValidationGraph:
     ) -> Tuple[MetricProvider, Callable]:
         """
         Updates "metric_domain_kwargs" and/or "metric_value_kwargs" of "MetricConfiguration" with defualts (if needed).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         metric_impl_klass: MetricProvider
         metric_provider: Callable
         metric_impl_klass, metric_provider = get_metric_provider(
@@ -211,11 +211,11 @@ class ValidationGraph:
 
         return resolved_metrics, aborted_metrics_info
 
-    def _resolve(  # noqa: C901, PLR0912, PLR0915
+    def _resolve(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
         metrics: Dict[_MetricKey, MetricValue],
         runtime_configuration: Optional[dict] = None,
-        min_graph_edges_pbar_enable: int = 0,  # Set to low number (e.g., 3) to suppress progress bar for small graphs.  # noqa: E501
+        min_graph_edges_pbar_enable: int = 0,  # Set to low number (e.g., 3) to suppress progress bar for small graphs.  # noqa: E501 # FIXME CoP
         show_progress_bars: bool = True,
     ) -> _AbortedMetricsInfoDict:
         if metrics is None:
@@ -271,7 +271,7 @@ class ValidationGraph:
                     computable_metrics.add(metric)
 
             try:
-                # Access "ExecutionEngine.resolve_metrics()" method, to resolve missing "MetricConfiguration" objects.  # noqa: E501
+                # Access "ExecutionEngine.resolve_metrics()" method, to resolve missing "MetricConfiguration" objects.  # noqa: E501 # FIXME CoP
                 metrics.update(
                     self._execution_engine.resolve_metrics(
                         metrics_to_resolve=computable_metrics,  # type: ignore[arg-type]  # Metric typing needs further refinement.
@@ -302,15 +302,15 @@ class ValidationGraph:
                             failed_metric_info[failed_metric.id]["exception_info"] = exception_info
 
                 else:
-                    raise err  # noqa: TRY201
+                    raise err  # noqa: TRY201 # FIXME CoP
             except Exception as e:
                 if catch_exceptions:
-                    logger.error(  # noqa: TRY400
-                        f"""Caught exception {e!s} while trying to resolve a set of {len(ready_metrics)} metrics; aborting graph resolution."""  # noqa: E501
+                    logger.error(  # noqa: TRY400 # FIXME CoP
+                        f"""Caught exception {e!s} while trying to resolve a set of {len(ready_metrics)} metrics; aborting graph resolution."""  # noqa: E501 # FIXME CoP
                     )
                     done = True
                 else:
-                    raise e  # noqa: TRY201
+                    raise e  # noqa: TRY201 # FIXME CoP
 
             if (len(ready_metrics) + len(needed_metrics) == 0) or (
                 len(ready_metrics) == len(aborted_metrics_info)
@@ -326,7 +326,7 @@ class ValidationGraph:
         metrics: Dict[_MetricKey, MetricValue],
     ) -> Tuple[Set[MetricConfiguration], Set[MetricConfiguration]]:
         """Given validation graph, returns the ready and needed metrics necessary for validation using a traversal of
-        validation graph (a graph structure of metric ids) edges"""  # noqa: E501
+        validation graph (a graph structure of metric ids) edges"""  # noqa: E501 # FIXME CoP
         unmet_dependency_ids = set()
         unmet_dependency = set()
         maybe_ready_ids = set()
@@ -338,7 +338,7 @@ class ValidationGraph:
                     if edge.left.id not in maybe_ready_ids:
                         maybe_ready_ids.add(edge.left.id)
                         maybe_ready.add(edge.left)
-                else:  # noqa: PLR5501
+                else:  # noqa: PLR5501 # FIXME CoP
                     if edge.left.id not in unmet_dependency_ids:
                         unmet_dependency_ids.add(edge.left.id)
                         unmet_dependency.add(edge.left)
@@ -372,13 +372,13 @@ class ExpectationValidationGraph:
         graph: ValidationGraph,
     ) -> None:
         if configuration is None:
-            raise ValueError(  # noqa: TRY003
-                """Instantiation of "ExpectationValidationGraph" requires valid "ExpectationConfiguration" object."""  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                """Instantiation of "ExpectationValidationGraph" requires valid "ExpectationConfiguration" object."""  # noqa: E501 # FIXME CoP
             )
 
         if graph is None:
-            raise ValueError(  # noqa: TRY003
-                """Instantiation of "ExpectationValidationGraph" requires valid "ValidationGraph" object."""  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                """Instantiation of "ExpectationValidationGraph" requires valid "ValidationGraph" object."""  # noqa: E501 # FIXME CoP
             )
 
         self._configuration = configuration

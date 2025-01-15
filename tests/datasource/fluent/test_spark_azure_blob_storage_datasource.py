@@ -116,7 +116,7 @@ def test_construct_spark_abs_datasource_with_conn_str_and_credential():
     spark_abs_datasource = SparkAzureBlobStorageDatasource(
         name="spark_abs_datasource",
         azure_options={  # Representative of format noted in official docs
-            "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501
+            "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501 # FIXME CoP
             "credential": "my_credential",
         },
     )
@@ -146,7 +146,7 @@ def test_construct_spark_abs_datasource_with_valid_conn_str_assigns_account_name
     spark_abs_datasource = SparkAzureBlobStorageDatasource(
         name="spark_abs_datasource",
         azure_options={  # Representative of format noted in official docs
-            "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501
+            "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501 # FIXME CoP
             "credential": "my_credential",
         },
     )
@@ -158,13 +158,13 @@ def test_construct_spark_abs_datasource_with_valid_conn_str_assigns_account_name
 
 @pytest.mark.unit
 def test_construct_spark_abs_datasource_with_multiple_auth_methods_raises_error():
-    # Raises error in DataContext's schema validation due to having both `account_url` and `conn_str`  # noqa: E501
+    # Raises error in DataContext's schema validation due to having both `account_url` and `conn_str`  # noqa: E501 # FIXME CoP
     with pytest.raises(SparkAzureBlobStorageDatasourceError):
         spark_abs_datasource = SparkAzureBlobStorageDatasource(
             name="spark_abs_datasource",
             azure_options={
                 "account_url": "account.blob.core.windows.net",
-                "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501
+                "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501 # FIXME CoP
                 "credential": "my_credential",
             },
         )

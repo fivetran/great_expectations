@@ -35,6 +35,10 @@ module.exports = {
       defer: true,
     },
     {
+      src: '/scripts/web-tracking.js',
+      async: true
+    },
+    {
       src: 'https://fast.wistia.net/assets/external/E-v1.js',
       async: true
     }
@@ -299,7 +303,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.3.0',
+              label: '1.3.1',
             },
             ['0.18']: {
               label: '0.18.21',

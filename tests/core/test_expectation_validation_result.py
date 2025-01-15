@@ -26,7 +26,7 @@ def test_expectation_validation_result_describe_returns_expected_description():
             column="passenger_count",
             min_value=0,
             max_value=6,
-            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501
+            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
         ).configuration,
         result={
             "element_count": 100000,
@@ -107,7 +107,7 @@ def test_expectation_validation_result_describe_returns_expected_description_wit
             column="passenger_count",
             min_value=0,
             max_value=6,
-            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501
+            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
         ).configuration,
         result={
             "element_count": 100000,
@@ -203,7 +203,7 @@ def test_expectation_suite_validation_result_returns_expected_shape(
                     "expectation_config": ExpectationConfiguration(
                         **{
                             "meta": {},
-                            "notes": "Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501
+                            "notes": "Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
                             "id": "9f76d0b5-9d99-4ed9-a269-339b35e60490",
                             "kwargs": {
                                 "batch_id": "default_pandas_datasource-#ephemeral_pandas_asset",
@@ -403,7 +403,7 @@ def test_render_updates_rendered_content():
             column="passenger_count",
             min_value=0,
             max_value=6,
-            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501
+            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
         ).configuration,
         result={
             "element_count": 100000,

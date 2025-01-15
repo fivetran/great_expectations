@@ -18,7 +18,7 @@ from great_expectations.compatibility.bigquery import (
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine.sqlalchemy_dialect import (
-    GXSqlDialect,  # noqa: TC001, RUF100
+    GXSqlDialect,  # noqa: TC001, RUF100 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -80,7 +80,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -220,7 +219,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     type_: str = pydantic.Field(description=TYPE__DESCRIPTION)
 
@@ -451,7 +450,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             except AttributeError:
                 logger.debug(f"Unrecognized type: {expected_type}")
             if len(types) == 0:
-                raise ValueError("No recognized spark types in expected_types_list")  # noqa: TRY003
+                raise ValueError("No recognized spark types in expected_types_list")  # noqa: TRY003 # FIXME CoP
             types = tuple(types)
             success = isinstance(actual_column_type, types)
         return {
@@ -470,11 +469,11 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             PandasExecutionEngine,
         )
 
-        # This calls BatchExpectation.get_validation_dependencies to set baseline validation_dependencies for the aggregate version  # noqa: E501
+        # This calls BatchExpectation.get_validation_dependencies to set baseline validation_dependencies for the aggregate version  # noqa: E501 # FIXME CoP
         # of the expectation.
         # We need to keep this as super(ColumnMapExpectation, self), which calls
-        # BatchExpectation.get_validation_dependencies instead of ColumnMapExpectation.get_validation_dependencies.  # noqa: E501
-        # This is because the map version of this expectation is only supported for Pandas, so we want the aggregate  # noqa: E501
+        # BatchExpectation.get_validation_dependencies instead of ColumnMapExpectation.get_validation_dependencies.  # noqa: E501 # FIXME CoP
+        # This is because the map version of this expectation is only supported for Pandas, so we want the aggregate  # noqa: E501 # FIXME CoP
         # version for the other backends.
         validation_dependencies: ValidationDependencies = super(
             ColumnMapExpectation, self
@@ -524,7 +523,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                     None,
                 ]
             ):
-                # this resets validation_dependencies using  ColumnMapExpectation.get_validation_dependencies  # noqa: E501
+                # this resets validation_dependencies using  ColumnMapExpectation.get_validation_dependencies  # noqa: E501 # FIXME CoP
                 validation_dependencies = super().get_validation_dependencies(
                     execution_engine, runtime_configuration
                 )
@@ -628,12 +627,12 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
     except AttributeError:
         logger.debug(f"Unrecognized type: {expected_type}")
     if len(types) == 0:
-        logger.warning("No recognized sqlalchemy types in type_list for current dialect.")
+        logger.debug("No recognized sqlalchemy types in type_list for current dialect.")
 
     return types
 
 
-def _get_dialect_type_module(  # noqa: C901, PLR0911
+def _get_dialect_type_module(  # noqa: C901, PLR0911 # FIXME CoP
     execution_engine,
 ):
     if execution_engine.dialect_module is None:
@@ -704,7 +703,7 @@ def _get_dialect_type_module(  # noqa: C901, PLR0911
     return execution_engine.dialect_module
 
 
-def _native_type_type_map(type_):  # noqa: C901, PLR0911
+def _native_type_type_map(type_):  # noqa: C901, PLR0911 # FIXME CoP
     # We allow native python types in cases where the underlying type is "object":
     if type_.lower() == "none":
         return (type(None),)

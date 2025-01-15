@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
 
-def column_condition_partial(  # noqa: C901, PLR0915
+def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
     **kwargs,
@@ -58,7 +58,7 @@ def column_condition_partial(  # noqa: C901, PLR0915
 
     Returns:
         An annotated metric_function which will be called with a simplified signature.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_type = MetricDomainTypes.COLUMN
     if issubclass(engine, PandasExecutionEngine):
         if partial_fn_type is None:
@@ -66,9 +66,9 @@ def column_condition_partial(  # noqa: C901, PLR0915
 
         partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type not in [MetricPartialFunctionTypes.MAP_CONDITION_SERIES]:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""PandasExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_CONDITION_SERIES.value}" for \
-"column_condition_partial" "partial_fn_type" property."""  # noqa: E501
+"column_condition_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
         def wrapper(metric_fn: Callable):
@@ -81,7 +81,7 @@ def column_condition_partial(  # noqa: C901, PLR0915
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: PandasExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -135,9 +135,9 @@ def column_condition_partial(  # noqa: C901, PLR0915
             MetricPartialFunctionTypes.MAP_CONDITION_FN,
             MetricPartialFunctionTypes.WINDOW_CONDITION_FN,
         ]:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""SqlAlchemyExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_CONDITION_FN.value}" and \
-"{MetricPartialFunctionTypes.WINDOW_CONDITION_FN.value}" for "column_condition_partial" "partial_fn_type" property."""  # noqa: E501
+"{MetricPartialFunctionTypes.WINDOW_CONDITION_FN.value}" for "column_condition_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
         def wrapper(metric_fn: Callable):
@@ -150,7 +150,7 @@ def column_condition_partial(  # noqa: C901, PLR0915
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: SqlAlchemyExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -179,7 +179,7 @@ def column_condition_partial(  # noqa: C901, PLR0915
                 if dialect is None:
                     # Trino
                     if hasattr(sqlalchemy_engine, "dialect"):
-                        dialect = sqlalchemy_engine.dialect  # type: ignore[assignment]
+                        dialect = sqlalchemy_engine.dialect  # type: ignore[assignment] # FIXME CoP
 
                 expected_condition = metric_fn(
                     cls,
@@ -196,7 +196,7 @@ def column_condition_partial(  # noqa: C901, PLR0915
                     "filter_column_isnull", getattr(cls, "filter_column_isnull", True)
                 )
                 if filter_column_isnull:
-                    # If we "filter" (ignore) nulls then we allow null as part of our new expected condition  # noqa: E501
+                    # If we "filter" (ignore) nulls then we allow null as part of our new expected condition  # noqa: E501 # FIXME CoP
                     unexpected_condition = sa.and_(
                         sa.not_(sa.column(column_name).is_(None)),
                         sa.not_(expected_condition),
@@ -222,9 +222,9 @@ def column_condition_partial(  # noqa: C901, PLR0915
             MetricPartialFunctionTypes.MAP_CONDITION_FN,
             MetricPartialFunctionTypes.WINDOW_CONDITION_FN,
         ]:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""SparkDFExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_CONDITION_FN.value}" and \
-"{MetricPartialFunctionTypes.WINDOW_CONDITION_FN.value}" for "column_condition_partial" "partial_fn_type" property."""  # noqa: E501
+"{MetricPartialFunctionTypes.WINDOW_CONDITION_FN.value}" for "column_condition_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
         def wrapper(metric_fn: Callable):
@@ -235,7 +235,7 @@ def column_condition_partial(  # noqa: C901, PLR0915
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: SparkDFExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -277,7 +277,7 @@ def column_condition_partial(  # noqa: C901, PLR0915
                             compute_domain_kwargs, column_name=column_name
                         )
                     unexpected_condition = ~expected_condition
-                else:  # noqa: PLR5501
+                else:  # noqa: PLR5501 # FIXME CoP
                     if filter_column_isnull:
                         unexpected_condition = column.isNotNull() & ~expected_condition
                     else:
@@ -293,6 +293,6 @@ def column_condition_partial(  # noqa: C901, PLR0915
 
         return wrapper
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
             'Unsupported engine for "column_condition_partial" metric function decorator.'
         )

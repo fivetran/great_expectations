@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Dict, Optional
 import numpy as np
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.domain import Domain  # noqa: TCH001
-from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501
-    NumericRangeEstimationResult,  # noqa: TCH001
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
+from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501 # FIXME CoP
+    NumericRangeEstimationResult,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimator import (
     NumericRangeEstimator,
@@ -18,7 +18,7 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     datetime_semantic_domain_type,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001
+    ParameterContainer,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.util import convert_ndarray_to_datetime_dtype_best_effort
 

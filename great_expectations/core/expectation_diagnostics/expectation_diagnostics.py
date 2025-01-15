@@ -8,7 +8,7 @@ from typing import List, Sequence, Tuple, Union
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_diagnostics.expectation_test_data_cases import (
-    ExpectationTestDataCases,  # noqa: TCH001
+    ExpectationTestDataCases,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.core.expectation_diagnostics.supporting_types import (
     AugmentedLibraryMetadata,
@@ -28,7 +28,7 @@ from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
 from great_expectations.types import SerializableDictDot
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,7 @@ class ExpectationDiagnostics(SerializableDictDot):
 
     1. `ExpectationDiagnostics.to_dict()` creates the JSON object that populates the Gallery.
     2. `ExpectationDiagnostics.generate_checklist()` creates CLI-type string output to assist with development.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # This object is taken directly from the Expectation class, without modification
     examples: List[ExpectationTestDataCases]
@@ -109,7 +109,7 @@ class ExpectationDiagnostics(SerializableDictDot):
     ) -> ExpectationDiagnosticCheckMessage:
         """Check whether the Expectation has an informative docstring"""
 
-        message = 'Has a docstring, including a one-line short description that begins with "Expect" and ends with a period'  # noqa: E501
+        message = 'Has a docstring, including a one-line short description that begins with "Expect" and ends with a period'  # noqa: E501 # FIXME CoP
         if "short_description" in description:
             short_description = description["short_description"]
         else:
@@ -148,7 +148,7 @@ class ExpectationDiagnostics(SerializableDictDot):
         examples: List[ExpectationTestDataCases],
         tests: List[ExpectationTestDiagnostics],
     ) -> ExpectationDiagnosticCheckMessage:
-        """Check whether this Expectation has at least one positive and negative example case (and all test cases return the expected output)"""  # noqa: E501
+        """Check whether this Expectation has at least one positive and negative example case (and all test cases return the expected output)"""  # noqa: E501 # FIXME CoP
 
         message = "Has at least one positive and negative example case, and all test cases pass"
         (
@@ -169,7 +169,7 @@ class ExpectationDiagnostics(SerializableDictDot):
     def _check_core_logic_for_at_least_one_execution_engine(
         backend_test_result_counts: List[ExpectationBackendTestResultCounts],
     ) -> ExpectationDiagnosticCheckMessage:
-        """Check whether core logic for this Expectation exists and passes tests on at least one Execution Engine"""  # noqa: E501
+        """Check whether core logic for this Expectation exists and passes tests on at least one Execution Engine"""  # noqa: E501 # FIXME CoP
 
         sub_messages: List[ExpectationDiagnosticCheckMessageDict] = []
         passed = False
@@ -185,7 +185,7 @@ class ExpectationDiagnostics(SerializableDictDot):
             for result in all_passing:
                 sub_messages.append(
                     {
-                        "message": f"All {result.num_passed} tests for {result.backend} are passing",  # noqa: E501
+                        "message": f"All {result.num_passed} tests for {result.backend} are passing",  # noqa: E501 # FIXME CoP
                         "passed": True,
                     }
                 )
@@ -233,7 +233,7 @@ class ExpectationDiagnostics(SerializableDictDot):
     def _check_core_logic_for_all_applicable_execution_engines(
         backend_test_result_counts: List[ExpectationBackendTestResultCounts],
     ) -> ExpectationDiagnosticCheckMessage:
-        """Check whether core logic for this Expectation exists and passes tests on all applicable Execution Engines"""  # noqa: E501
+        """Check whether core logic for this Expectation exists and passes tests on all applicable Execution Engines"""  # noqa: E501 # FIXME CoP
 
         sub_messages: list[ExpectationDiagnosticCheckMessageDict] = []
         passed = False
@@ -265,13 +265,13 @@ class ExpectationDiagnostics(SerializableDictDot):
         for result in some_failing:
             sub_messages.append(
                 {
-                    "message": f"Only {result.num_passed} / {result.num_passed + result.num_failed} tests for {result.backend} are passing",  # noqa: E501
+                    "message": f"Only {result.num_passed} / {result.num_passed + result.num_failed} tests for {result.backend} are passing",  # noqa: E501 # FIXME CoP
                     "passed": False,
                 }
             )
             sub_messages.append(
                 {
-                    "message": f"  - Failing: {', '.join(result.failing_names)}",  # type: ignore[arg-type]
+                    "message": f"  - Failing: {', '.join(result.failing_names)}",  # type: ignore[arg-type] # FIXME CoP
                     "passed": False,
                 }
             )
@@ -294,7 +294,7 @@ class ExpectationDiagnostics(SerializableDictDot):
     def _count_positive_and_negative_example_cases(
         examples: List[ExpectationTestDataCases],
     ) -> Tuple[int, int]:
-        """Scans examples and returns a 2-ple with the numbers of cases with success == True and success == False"""  # noqa: E501
+        """Scans examples and returns a 2-ple with the numbers of cases with success == True and success == False"""  # noqa: E501 # FIXME CoP
 
         positive_cases: int = 0
         negative_cases: int = 0
@@ -329,7 +329,7 @@ class ExpectationDiagnostics(SerializableDictDot):
         maturity_level: str,
         maturity_messages: ExpectationDiagnosticMaturityMessages,
     ) -> str:
-        """Converts a list of checks into an output string (potentially nested), with ✔ to indicate checks that passed."""  # noqa: E501
+        """Converts a list of checks into an output string (potentially nested), with ✔ to indicate checks that passed."""  # noqa: E501 # FIXME CoP
 
         output_message = f"Completeness checklist for {class_name} ({maturity_level}):"
 
@@ -433,7 +433,7 @@ class ExpectationDiagnostics(SerializableDictDot):
         if all_renderer_types & renderer_types == all_renderer_types:
             passed = True
         return ExpectationDiagnosticCheckMessage(
-            # message="Has all four statement Renderers: question, descriptive, prescriptive, diagnostic",  # noqa: E501
+            # message="Has all four statement Renderers: question, descriptive, prescriptive, diagnostic",  # noqa: E501 # FIXME CoP
             message="Has both statement Renderers: prescriptive and diagnostic",
             passed=passed,
         )
@@ -454,6 +454,6 @@ class ExpectationDiagnostics(SerializableDictDot):
     ) -> ExpectationDiagnosticCheckMessage:
         """Check library_metadata to see if a manual code review has been performed"""
         return ExpectationDiagnosticCheckMessage(
-            message="Has passed a manual review by a code owner for code standards and style guides",  # noqa: E501
+            message="Has passed a manual review by a code owner for code standards and style guides",  # noqa: E501 # FIXME CoP
             passed=library_metadata.manually_reviewed_code,  # type: ignore[union-attr] # could be ExpectationDescriptionDiagnostics
         )

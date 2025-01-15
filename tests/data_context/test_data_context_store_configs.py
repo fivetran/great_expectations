@@ -14,12 +14,12 @@ yaml = YAMLHandler()
 @pytest.fixture(scope="function")
 def totally_empty_data_context(tmp_path_factory):
     # NOTE: This sets up a DataContext with a real path and a config saved to that path.
-    # Now that BaseDataContext exists, it's possible to test most DataContext methods without touching the file system.  # noqa: E501
+    # Now that BaseDataContext exists, it's possible to test most DataContext methods without touching the file system.  # noqa: E501 # FIXME CoP
     # However, as of 2019/08/22, most tests still use filesystem-based fixtures.
     # TODO: Where appropriate, switch DataContext tests to the new method.
     project_root_dir = str(tmp_path_factory.mktemp("totally_empty_data_context"))
-    os.mkdir(  # noqa: PTH102
-        os.path.join(project_root_dir, FileDataContext.GX_DIR)  # noqa: PTH118
+    os.mkdir(  # noqa: PTH102 # FIXME CoP
+        os.path.join(project_root_dir, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
     )
 
     config = {
@@ -47,13 +47,13 @@ def totally_empty_data_context(tmp_path_factory):
         "data_docs_sites": {},
     }
     with open(
-        os.path.join(project_root_dir, "gx/great_expectations.yml"),  # noqa: PTH118
+        os.path.join(project_root_dir, "gx/great_expectations.yml"),  # noqa: PTH118 # FIXME CoP
         "w",
     ) as config_file:
         yaml.dump(config, config_file)
 
     context = gx.get_context(
-        context_root_dir=os.path.join(  # noqa: PTH118
+        context_root_dir=os.path.join(  # noqa: PTH118 # FIXME CoP
             project_root_dir, FileDataContext.GX_DIR
         )
     )

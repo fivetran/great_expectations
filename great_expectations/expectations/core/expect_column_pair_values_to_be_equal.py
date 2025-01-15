@@ -43,7 +43,6 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
@@ -176,7 +175,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
         pydantic.Field(default="both_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION)
@@ -268,7 +267,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
             renderer_configuration = cls._add_mostly_pct_param(
                 renderer_configuration=renderer_configuration
             )
-            template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501
+            template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
         renderer_configuration.template_str = template_str
 
@@ -312,7 +311,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
         else:
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
             # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")
-            template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501
+            template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
         if params["row_condition"] is not None:
             (

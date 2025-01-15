@@ -4,9 +4,9 @@ import logging
 from typing import TYPE_CHECKING, Dict, Final, Optional
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.domain import Domain  # noqa: TCH001
-from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501
-    NumericRangeEstimationResult,  # noqa: TCH001
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
+from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501 # FIXME CoP
+    NumericRangeEstimationResult,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimator import (
     NumericRangeEstimator,
@@ -18,9 +18,9 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_quantile_statistic_interpolation_method_from_rule_state,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001
+    ParameterContainer,  # noqa: TCH001 # FIXME CoP
 )
-from great_expectations.types.attributes import Attributes  # noqa: TCH001
+from great_expectations.types.attributes import Attributes  # noqa: TCH001 # FIXME CoP
 from great_expectations.util import convert_ndarray_to_datetime_dtype_best_effort
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ class QuantilesNumericRangeEstimator(NumericRangeEstimator):
 
     This nonparameteric estimator calculates quantiles given a MetricValues vector of length N, the q-th quantile of
         the vector is the value q of the way from the minimum to the maximum in a sorted copy of the MetricValues.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -64,7 +64,7 @@ class QuantilesNumericRangeEstimator(NumericRangeEstimator):
             variables=variables,
             parameters=parameters,
         )
-        quantile_statistic_interpolation_method: str = get_quantile_statistic_interpolation_method_from_rule_state(  # noqa: E501
+        quantile_statistic_interpolation_method: str = get_quantile_statistic_interpolation_method_from_rule_state(  # noqa: E501 # FIXME CoP
             quantile_statistic_interpolation_method=self.configuration.quantile_statistic_interpolation_method,  # type: ignore[union-attr] # configuration could be None
             round_decimals=self.configuration.round_decimals,  # type: ignore[union-attr] # configuration could be None
             domain=domain,

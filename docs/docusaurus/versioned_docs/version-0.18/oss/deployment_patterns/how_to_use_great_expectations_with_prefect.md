@@ -9,7 +9,7 @@ sidebar_custom_props: { icon: 'img/integrations/prefect_icon.svg' }
 
 Prefect can be used with Great Expectations validations so that you can be confident about the state of your data. With a [Prefect deployment](https://docs.prefect.io/latest/concepts/deployments/), you can productionize your workflow and run data quality checks in reaction to the arrival of new data or on a schedule.
 
-:::info
+:::info Info
 
 Consult Prefect's [Great Expectations + Prefect](https://prefecthq.github.io/prefect-great-expectations/) documentation for more information on using GX with Prefect.
 

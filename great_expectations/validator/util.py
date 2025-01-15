@@ -32,7 +32,7 @@ def recursively_convert_to_json_serializable(
     return _recursively_convert_to_json_serializable(test_obj)
 
 
-def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
+def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     test_obj: Any,
 ) -> Any:
     # If it's one of our types, we pass
@@ -59,7 +59,7 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
         for key in test_obj:
             if key == "row_condition" and test_obj[key] is not None:
                 ensure_row_condition_is_correct(test_obj[key])
-            # A pandas index can be numeric, and a dict key can be numeric, but a json key must be a string  # noqa: E501
+            # A pandas index can be numeric, and a dict key can be numeric, but a json key must be a string  # noqa: E501 # FIXME CoP
             new_dict[str(key)] = recursively_convert_to_json_serializable(test_obj[key])
 
         return new_dict
@@ -73,12 +73,12 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
 
     elif isinstance(test_obj, (np.ndarray, pd.Index)):
         # test_obj[key] = test_obj[key].tolist()
-        # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501
-        # to the number of digits for which the string representation will equal the float representation  # noqa: E501
+        # If we have an array or index, convert it first to a list--causing coercion to float--and then round  # noqa: E501 # FIXME CoP
+        # to the number of digits for which the string representation will equal the float representation  # noqa: E501 # FIXME CoP
         return [_recursively_convert_to_json_serializable(x) for x in test_obj.tolist()]
 
     # Note: This clause has to come after checking for np.ndarray or we get:
-    #      `ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()`  # noqa: E501
+    #      `ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()`  # noqa: E501 # FIXME CoP
     elif test_obj is None:
         # No problem to encode json
         return test_obj
@@ -125,7 +125,7 @@ def _recursively_convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912
         return float(test_obj)
 
     else:
-        raise TypeError(  # noqa: TRY003
+        raise TypeError(  # noqa: TRY003 # FIXME CoP
             f"{test_obj!s} is of type {type(test_obj).__name__} which cannot be serialized."
         )
 
@@ -143,12 +143,12 @@ def ensure_row_condition_is_correct(row_condition_string) -> None:
         the pandas query string
     """
     if "'" in row_condition_string:
-        raise InvalidExpectationConfigurationError(  # noqa: TRY003
+        raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
             f"{row_condition_string} cannot be serialized to json. "
             "Do not introduce simple quotes in configuration."
             "Use double quotes instead."
         )
     if "\n" in row_condition_string:
-        raise InvalidExpectationConfigurationError(  # noqa: TRY003
-            f"{row_condition_string!r} cannot be serialized to json. Do not introduce \\n in configuration."  # noqa: E501
+        raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
+            f"{row_condition_string!r} cannot be serialized to json. Do not introduce \\n in configuration."  # noqa: E501 # FIXME CoP
         )

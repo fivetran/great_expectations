@@ -5,15 +5,15 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Union
 
 import pandas as pd
 
-from great_expectations.core.domain import Domain  # noqa: TCH001
+from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
 from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.experimental.rule_based_profiler.attributed_resolved_metrics import (
-    AttributedResolvedMetrics,  # noqa: TCH001
+    AttributedResolvedMetrics,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001
+    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
@@ -21,8 +21,8 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-    MetricComputationResult,  # noqa: TCH001
-    MetricValues,  # noqa: TCH001
+    MetricComputationResult,  # noqa: TCH001 # FIXME CoP
+    MetricValues,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import ParameterBuilder
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
@@ -46,7 +46,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
     Detects the domain REGEX from a set of candidate REGEX strings by computing the
     column_values.match_regex_format.unexpected_count metric for each candidate format and returning the format that
     has the lowest unexpected_count ratio.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # list of candidate strings that are most commonly used
     # source: https://regexland.com/most-common-regular-expressions/
@@ -58,13 +58,13 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
         r"[A-Za-z0-9\.,;:!?()\"'%\-]+",  # general text
         r"^\s+",  # leading space
         r"\s+$",  # trailing space
-        r"https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,255}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#()?&//=]*)",  # Matching URL (including http(s) protocol)  # noqa: E501
+        r"https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,255}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#()?&//=]*)",  # Matching URL (including http(s) protocol)  # noqa: E501 # FIXME CoP
         r"<\/?(?:p|a|b|img)(?: \/)?>",  # HTML tags
-        r"(?:25[0-5]|2[0-4]\d|[01]\d{2}|\d{1,2})(?:.(?:25[0-5]|2[0-4]\d|[01]\d{2}|\d{1,2})){3}",  # IPv4 IP address  # noqa: E501
-        r"\b[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-\b[0-9a-fA-F]{12}\b ",  # UUID  # noqa: E501
+        r"(?:25[0-5]|2[0-4]\d|[01]\d{2}|\d{1,2})(?:.(?:25[0-5]|2[0-4]\d|[01]\d{2}|\d{1,2})){3}",  # IPv4 IP address  # noqa: E501 # FIXME CoP
+        r"\b[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089ab][0-9a-fA-F]{3}-\b[0-9a-fA-F]{12}\b ",  # UUID  # noqa: E501 # FIXME CoP
     }
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         name: str,
         metric_domain_kwargs: Optional[Union[str, dict]] = None,
@@ -86,7 +86,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
             ParameterBuilder objects' outputs available (as fully-qualified parameter names) is pre-requisite.
             These "ParameterBuilder" configurations help build parameters needed for this "ParameterBuilder".
             data_context: AbstractDataContext associated with this ParameterBuilder
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().__init__(
             name=name,
             suite_parameter_builder_configs=suite_parameter_builder_configs,
@@ -122,7 +122,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
     ) -> Union[str, Union[List[str], Set[str]]]:
         return self._candidate_regexes
 
-    def _build_parameters(  # noqa: C901
+    def _build_parameters(  # noqa: C901 # FIXME CoP
         self,
         domain: Domain,
         variables: Optional[ParameterContainer] = None,
@@ -136,7 +136,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
         the configured threshold.
 
         Builds ParameterContainer object that holds ParameterNode objects with attribute name-value pairs and details.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         metric_computation_result: MetricComputationResult
 
         metric_computation_result = self.get_metrics(
@@ -155,7 +155,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
         # This should never happen.
         if len(metric_computation_result.attributed_resolved_metrics) != 1:
             raise ProfilerExecutionError(
-                message=f'Result of metric computations for {self.__class__.__name__} must be a list with exactly 1 element of type "AttributedResolvedMetrics" ({metric_computation_result.attributed_resolved_metrics} found).'  # noqa: E501
+                message=f'Result of metric computations for {self.__class__.__name__} must be a list with exactly 1 element of type "AttributedResolvedMetrics" ({metric_computation_result.attributed_resolved_metrics} found).'  # noqa: E501 # FIXME CoP
             )
 
         attributed_resolved_metrics: AttributedResolvedMetrics
@@ -171,7 +171,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
                 message=f"Result of metric computations for {self.__class__.__name__} is empty."
             )
 
-        # Now obtain 1-dimensional vector of values of computed metric (each element corresponds to a Batch ID).  # noqa: E501
+        # Now obtain 1-dimensional vector of values of computed metric (each element corresponds to a Batch ID).  # noqa: E501 # FIXME CoP
         metric_values = metric_values[:, 0]
 
         nonnull_count: int
@@ -180,7 +180,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
         else:
             nonnull_count = sum(metric_values)
 
-        # Obtain candidate_regexes from "rule state" (i.e, variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain candidate_regexes from "rule state" (i.e, variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         candidate_regexes: Union[
             List[str],
             Set[str],
@@ -213,7 +213,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
 
             match_regex_metric_value_kwargs_list.append(match_regex_metric_value_kwargs)
 
-        # Obtain resolved metrics and metadata for all metric configurations and available Batch objects simultaneously.  # noqa: E501
+        # Obtain resolved metrics and metadata for all metric configurations and available Batch objects simultaneously.  # noqa: E501 # FIXME CoP
         metric_computation_result = self.get_metrics(
             metric_name=f"column_values.match_regex.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
             metric_domain_kwargs=self.metric_domain_kwargs,
@@ -230,7 +230,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
         regex_string_success_ratios: dict = {}
 
         for attributed_resolved_metrics in metric_computation_result.attributed_resolved_metrics:
-            # Now obtain 1-dimensional vector of values of computed metric (each element corresponds to a Batch ID).  # noqa: E501
+            # Now obtain 1-dimensional vector of values of computed metric (each element corresponds to a Batch ID).  # noqa: E501 # FIXME CoP
             metric_values = attributed_resolved_metrics.conditioned_metric_values[:, 0]
 
             match_regex_unexpected_count: int
@@ -246,7 +246,7 @@ class RegexPatternStringParameterBuilder(ParameterBuilder):
                 success_ratio
             )
 
-        # Obtain threshold from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain threshold from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         threshold: float = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=self._threshold,

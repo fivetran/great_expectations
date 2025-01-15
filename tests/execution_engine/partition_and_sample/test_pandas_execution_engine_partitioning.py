@@ -86,7 +86,7 @@ def test_s3_files(s3, s3_bucket, test_df_small_csv):
 def batch_with_partition_on_whole_table_s3(test_s3_files) -> S3BatchSpec:
     bucket, keys = test_s3_files
     path = keys[0]
-    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118
+    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118 # FIXME CoP
 
     batch_spec = S3BatchSpec(
         path=full_path,
@@ -179,7 +179,7 @@ def test_partition_on_date_parts_single_date_parts(
      date_parts that is a string, DatePart enum objects, mixed case string.
      To match our interface it should accept a dateutil parseable string as the batch identifier
      or a datetime and also fail when parameters are invalid.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     data_partitioner: PandasDataPartitioner = PandasDataPartitioner()
     column_name: str = "timestamp"
     result: pd.DataFrame = data_partitioner.partition_on_date_parts(
@@ -209,7 +209,7 @@ def test_partition_on_date_parts_multiple_date_parts(
      date parts that are strings, DatePart enum objects, a mixture and mixed case.
      To match our interface it should accept a dateutil parseable string as the batch identifier
      or a datetime and also fail when parameters are invalid.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     data_partitioner: PandasDataPartitioner = PandasDataPartitioner()
     column_name: str = "timestamp"
     result: pd.DataFrame = data_partitioner.partition_on_date_parts(
@@ -237,14 +237,14 @@ def test_partition_on_date_parts_multiple_date_parts(
     ],
 )
 def test_named_date_part_methods(
-    mock_partition_on_date_parts: mock.MagicMock,  # noqa: TID251
+    mock_partition_on_date_parts: mock.MagicMock,  # noqa: TID251 # FIXME CoP
     partitioner_method_name: str,
     called_with_date_parts: List[DatePart],
     simple_multi_year_pandas_df: pd.DataFrame,
 ):
     """Test that a partially pre-filled version of partition_on_date_parts() was called with the appropriate params.
     For example, partition_on_year.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     data_partitioner: PandasDataPartitioner = PandasDataPartitioner()
     column_name: str = "column_name"
     batch_identifiers: dict = {column_name: {"year": 2018, "month": 10, "day": 31}}
@@ -314,7 +314,7 @@ def test_get_batch_with_partition_on_whole_table_filesystem(
 ):
     test_df = PandasExecutionEngine().get_batch_data(
         PathBatchSpec(
-            path=os.path.join(  # noqa: PTH118
+            path=os.path.join(  # noqa: PTH118 # FIXME CoP
                 test_folder_connection_path_csv, "test.csv"
             ),
             reader_method="read_csv",

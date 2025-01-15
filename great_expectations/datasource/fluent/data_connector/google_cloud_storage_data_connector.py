@@ -43,7 +43,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
         max_results (int): max blob filepaths to return
         recursive_file_discovery (bool): Flag to indicate if files should be searched recursively from subfolders
         file_path_template_map_fn: Format function mapping path to fully-qualified resource on GCS
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     asset_level_option_keys: ClassVar[tuple[str, ...]] = (
         "gcs_prefix",
@@ -53,7 +53,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
     )
     asset_options_type: ClassVar[Type[_GCSOptions]] = _GCSOptions
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_asset_name: str,
@@ -84,7 +84,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
         )
 
     @classmethod
-    def build_data_connector(  # noqa: PLR0913
+    def build_data_connector(  # noqa: PLR0913 # FIXME CoP
         cls,
         datasource_name: str,
         data_asset_name: str,
@@ -111,7 +111,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
 
         Returns:
             Instantiated "GoogleCloudStorageDataConnector" object
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return GoogleCloudStorageDataConnector(
             datasource_name=datasource_name,
             data_asset_name=data_asset_name,
@@ -144,8 +144,8 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
 
         Returns:
             Customized error message
-        """  # noqa: E501
-        test_connection_error_message_template: str = 'No file in bucket "{bucket_or_name}" with prefix "{prefix}" and recursive file discovery set to "{recursive_file_discovery}" found using delimiter "{delimiter}" for DataAsset "{data_asset_name}".'  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
+        test_connection_error_message_template: str = 'No file in bucket "{bucket_or_name}" with prefix "{prefix}" and recursive file discovery set to "{recursive_file_discovery}" found using delimiter "{delimiter}" for DataAsset "{data_asset_name}".'  # noqa: E501 # FIXME CoP
         return test_connection_error_message_template.format(
             **{
                 "data_asset_name": data_asset_name,
@@ -190,10 +190,10 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
     @override
     def _get_full_file_path(self, path: str) -> str:
         if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
 requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
         template_arguments: dict = {
@@ -241,7 +241,7 @@ def list_gcs_keys(
 
     Returns:
         List of keys representing GCS file paths (as filtered by the `query_options` dict)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     # Delimiter determines whether or not traversal of bucket is recursive
     # Manually set to appropriate default if not already set by user
     delimiter = query_options["delimiter"]
@@ -250,7 +250,7 @@ def list_gcs_keys(
             'In order to access blobs with a ConfiguredAssetGCSDataConnector, \
             or with a Fluent datasource without enabling recursive file discovery, \
             the delimiter that has been passed to gcs_options in your config cannot be empty; \
-            please note that the value is being set to the default "/" in order to work with the Google SDK.'  # noqa: E501
+            please note that the value is being set to the default "/" in order to work with the Google SDK.'  # noqa: E501 # FIXME CoP
         )
         query_options["delimiter"] = "/"
     elif delimiter is not None and recursive:

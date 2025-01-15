@@ -202,7 +202,7 @@ expect_column_median_to_be_between: True
 
 - **Assuming static distributions**: Data distributions often evolve over time due to seasonality, trends, or changes in data collection. It is crucial to regularly update reference distributions and Expectations to reflect the current state of the data.
 
-- **Overlooking data quality issues**: Data entry errors, missing values, or outliers can significantly distort the distribution. Comprehensive data quality checks, including handling missing data and outliers, is an essential complement to distribution analysis and validation.
+- **Overlooking data quality problems**: Data entry errors, missing values, or outliers can significantly distort the distribution. Comprehensive data quality checks, including handling missing data and outliers, is an essential complement to distribution analysis and validation.
 
 - **Not accounting for multimodal distributions**: Some datasets may have multiple peaks, requiring appropriate methods and Expectations that can handle multimodal distributions. Ignoring multimodality can lead to inaccurate interpretations of the data.
 

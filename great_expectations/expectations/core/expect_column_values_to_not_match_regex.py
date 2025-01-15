@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from great_expectations.render.renderer_configuration import AddParamArgs
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 
@@ -50,7 +50,14 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 REGEX_DESCRIPTION = "The regular expression the column entries should NOT match."
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
-SUPPORTED_DATA_SOURCES = ["Pandas", "Spark", "PostgreSQL", "MySQL", "Redshift", "Databricks (SQL)"]
+SUPPORTED_DATA_SOURCES = [
+    "Pandas",
+    "Spark",
+    "PostgreSQL",
+    "MySQL",
+    "Databricks (SQL)",
+    "SQLite",
+]
 
 
 class ExpectColumnValuesToNotMatchRegex(ColumnMapExpectation):
@@ -107,6 +114,7 @@ class ExpectColumnValuesToNotMatchRegex(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -180,7 +188,7 @@ class ExpectColumnValuesToNotMatchRegex(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     regex: Union[str, SuiteParameterDict] = pydantic.Field(description=REGEX_DESCRIPTION)
 
@@ -294,15 +302,15 @@ class ExpectColumnValuesToNotMatchRegex(ColumnMapExpectation):
 
         if not params.get("regex"):
             template_str = "values must not match a regular expression but none was specified."
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if params["mostly"] is not None and params["mostly"] < 1.0:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 if include_column_name:
-                    template_str = "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time."  # noqa: E501
+                    template_str = "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
                 else:
-                    template_str = "values must not match this regular expression: $regex, at least $mostly_pct % of the time."  # noqa: E501
-            else:  # noqa: PLR5501
+                    template_str = "values must not match this regular expression: $regex, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
+            else:  # noqa: PLR5501 # FIXME CoP
                 if include_column_name:
                     template_str = "$column values must not match this regular expression: $regex."
                 else:

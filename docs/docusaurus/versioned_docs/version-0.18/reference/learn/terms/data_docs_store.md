@@ -30,7 +30,7 @@ Your Data Context and other objects that interact with Data Docs will access you
 
 In the Validate Data step, including `UpdateDataDocsAction` in the `action_list` of a Checkpoint will cause your Data Docs to be updated with the Checkpoint's Validation Results; this process will use your Data Docs Stores behind the scenes.
 
-:::note
+:::note Note
 - To ensure that the Validation Results are included in the updated Data Docs, `UpdateDataDocsAction` should be present *after* `StoreValidationResultAction` in the Checkpoint's `action_list`.
 :::
 

@@ -29,7 +29,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
     )
 
     @column_condition_partial(engine=PandasExecutionEngine)
-    def _pandas(  # noqa: C901
+    def _pandas(  # noqa: C901 # FIXME CoP
         cls,
         column,
         min_value=None,
@@ -39,12 +39,12 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         **kwargs,
     ):
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         temp_column = column
 
         if min_value is not None and max_value is not None and min_value > max_value:
-            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003
+            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
 
         # Use a vectorized approach for native numpy dtypes
         if column.dtype in [int, float]:
@@ -60,22 +60,22 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
 
             return cls._pandas_vectorized(temp_column, min_value, max_value, strict_min, strict_max)
 
-        def is_between(val):  # noqa: C901, PLR0911, PLR0912
-            # TODO Might be worth explicitly defining comparisons between types (for example, between strings and ints).  # noqa: E501
-            # Ensure types can be compared since some types in Python 3 cannot be logically compared.  # noqa: E501
+        def is_between(val):  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
+            # TODO Might be worth explicitly defining comparisons between types (for example, between strings and ints).  # noqa: E501 # FIXME CoP
+            # Ensure types can be compared since some types in Python 3 cannot be logically compared.  # noqa: E501 # FIXME CoP
             # print type(val), type(min_value), type(max_value), val, min_value, max_value
 
             if type(val) is None:
                 return False
 
             if min_value is not None and max_value is not None:
-                # Type of column values is either string or specific rich type (or "None").  In all cases, type of  # noqa: E501
-                # column must match type of constant being compared to column value (otherwise, error is raised).  # noqa: E501
+                # Type of column values is either string or specific rich type (or "None").  In all cases, type of  # noqa: E501 # FIXME CoP
+                # column must match type of constant being compared to column value (otherwise, error is raised).  # noqa: E501 # FIXME CoP
                 if (isinstance(val, str) != isinstance(min_value, str)) or (
                     isinstance(val, str) != isinstance(max_value, str)
                 ):
-                    raise TypeError(  # noqa: TRY003
-                        "Column values, min_value, and max_value must either be None or of the same type."  # noqa: E501
+                    raise TypeError(  # noqa: TRY003 # FIXME CoP
+                        "Column values, min_value, and max_value must either be None or of the same type."  # noqa: E501 # FIXME CoP
                     )
 
                 if strict_min and strict_max:
@@ -90,11 +90,11 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
                 return (val >= min_value) and (val <= max_value)
 
             elif min_value is None and max_value is not None:
-                # Type of column values is either string or specific rich type (or "None").  In all cases, type of  # noqa: E501
-                # column must match type of constant being compared to column value (otherwise, error is raised).  # noqa: E501
+                # Type of column values is either string or specific rich type (or "None").  In all cases, type of  # noqa: E501 # FIXME CoP
+                # column must match type of constant being compared to column value (otherwise, error is raised).  # noqa: E501 # FIXME CoP
                 if isinstance(val, str) != isinstance(max_value, str):
-                    raise TypeError(  # noqa: TRY003
-                        "Column values, min_value, and max_value must either be None or of the same type."  # noqa: E501
+                    raise TypeError(  # noqa: TRY003 # FIXME CoP
+                        "Column values, min_value, and max_value must either be None or of the same type."  # noqa: E501 # FIXME CoP
                     )
 
                 if strict_max:
@@ -103,11 +103,11 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
                 return val <= max_value
 
             elif min_value is not None and max_value is None:
-                # Type of column values is either string or specific rich type (or "None").  In all cases, type of  # noqa: E501
-                # column must match type of constant being compared to column value (otherwise, error is raised).  # noqa: E501
+                # Type of column values is either string or specific rich type (or "None").  In all cases, type of  # noqa: E501 # FIXME CoP
+                # column must match type of constant being compared to column value (otherwise, error is raised).  # noqa: E501 # FIXME CoP
                 if isinstance(val, str) != isinstance(min_value, str):
-                    raise TypeError(  # noqa: TRY003
-                        "Column values, min_value, and max_value must either be None or of the same type."  # noqa: E501
+                    raise TypeError(  # noqa: TRY003 # FIXME CoP
+                        "Column values, min_value, and max_value must either be None or of the same type."  # noqa: E501 # FIXME CoP
                     )
 
                 if strict_min:
@@ -121,7 +121,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         return temp_column.map(is_between)
 
     @classmethod
-    def _pandas_vectorized(  # noqa: C901, PLR0911
+    def _pandas_vectorized(  # noqa: C901, PLR0911 # FIXME CoP
         cls,
         column: pd.Series,
         min_value: Optional[Union[int, float, datetime.datetime]],
@@ -130,7 +130,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         strict_max: bool,
     ):
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None:
             if strict_max:
@@ -154,7 +154,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
             return (min_value <= column) & (column <= max_value)
 
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
-    def _sqlalchemy(  # noqa: C901, PLR0911
+    def _sqlalchemy(  # noqa: C901, PLR0911 # FIXME CoP
         cls,
         column,
         min_value=None,
@@ -164,10 +164,10 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         **kwargs,
     ):
         if min_value is not None and max_value is not None and min_value > max_value:
-            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003
+            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None:
             if strict_max:
@@ -206,7 +206,7 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
             )
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
-    def _spark(  # noqa: C901, PLR0911
+    def _spark(  # noqa: C901, PLR0911 # FIXME CoP
         cls,
         column,
         min_value=None,
@@ -216,10 +216,10 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         **kwargs,
     ):
         if min_value is not None and max_value is not None and min_value > max_value:
-            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003
+            raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None and max_value is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         if min_value is None:
             if strict_max:
