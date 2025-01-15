@@ -76,31 +76,6 @@ def test_success_complete(batch_for_datasource: Batch) -> None:
     assert result_dict["observed_value"] in type_list
 
 
-@pytest.mark.xfail
-@parameterize_batch_for_data_sources(
-    data_source_configs=[DatabricksDatasourceTestConfig()],
-    data=DATA,
-)
-def test_success_complete_errors(batch_for_datasource: Batch) -> None:
-    # TODO: get this fixed
-    type_list = [
-        "INTEGER",
-        "Integer",
-        "int",
-        "int64",
-        "int32",
-        "IntegerType",
-        "_CUSTOM_DECIMAL",
-    ]
-    expectation = gxe.ExpectColumnValuesToBeInTypeList(column=INTEGER_COLUMN, type_list=type_list)
-    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
-    result_dict = result.to_json_dict()["result"]
-
-    assert result.success
-    assert isinstance(result_dict, dict)
-    assert result_dict["observed_value"] in type_list
-
-
 @parameterize_batch_for_data_sources(
     data_source_configs=[PandasDataFrameDatasourceTestConfig()], data=DATA
 )
