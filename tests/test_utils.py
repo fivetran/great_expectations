@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Union, cast
 
 import pandas as pd
+from sqlalchemy.exc import ProgrammingError
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.alias_types import PathStr
@@ -730,7 +731,12 @@ def introspect_db(  # noqa: C901, PLR0912 # FIXME CoP
         if selected_schema_name is not None and schema_name != selected_schema_name:
             continue
 
-        table_names: List[str] = inspector.get_table_names(schema=schema)
+        try:
+            table_names: List[str] = inspector.get_table_names(schema=schema)
+        except ProgrammingError:
+            # Likely another test already cleaned up this schema.
+            # TODO: Make tests only clean up after themselves
+            continue
         for table_name in table_names:
             if ignore_information_schemas_and_system_tables and (table_name in system_tables):
                 continue
