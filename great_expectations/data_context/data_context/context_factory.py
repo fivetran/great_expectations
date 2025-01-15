@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
     from great_expectations.alias_types import PathStr
     from great_expectations.core.config_provider import _ConfigurationProvider
+    from great_expectations.core.factory import ValidationDefinitionFactory
     from great_expectations.core.factory.suite_factory import SuiteFactory
     from great_expectations.data_context import (
         AbstractDataContext,
@@ -98,9 +99,6 @@ class ProjectManager:
     def get_expectations_store(self) -> ExpectationsStore:
         return self._project.expectations_store
 
-    def get_suites_factory(self) -> SuiteFactory:
-        return self.__project.suites
-
     def get_checkpoints_store(self) -> CheckpointStore:
         return self._project.checkpoint_store
 
@@ -111,7 +109,7 @@ class ProjectManager:
         return self._project.validation_definition_store
 
     def get_validation_definitions_factory(self) -> ValidationDefinitionFactory:
-        return self.__project.validation_definitions
+        return self._project.validation_definitions
 
     def get_datasources(self) -> DatasourceDict:
         return self._project.data_sources.all()
