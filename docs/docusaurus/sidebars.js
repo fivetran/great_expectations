@@ -430,7 +430,6 @@ module.exports = {
         'reference/learn/integrations/dbt_tutorial',
       ]
     },
-    'reference/learn/usage_statistics',
     'reference/learn/glossary'
   ],
 }
