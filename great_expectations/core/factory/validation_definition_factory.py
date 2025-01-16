@@ -117,6 +117,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         """
         # Always add or update underlying suite to avoid freshness issues
         from great_expectations.data_context.data_context.context_factory import project_manager
+
         suite_factory = project_manager.get_suite_factory()
         validation.suite = suite_factory.add_or_update(suite=validation.suite)
 
