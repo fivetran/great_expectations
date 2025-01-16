@@ -97,9 +97,8 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
         self.config = config
         self.data = data
 
-    @property
     @abstractmethod
-    def asset(self) -> _AssetT: ...
+    def make_asset(self) -> _AssetT: ...
 
     @abstractmethod
     def make_batch(self) -> Batch: ...
@@ -124,7 +123,7 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
         """Receive an Asset and ensure proper setup and teardown regardless of errors."""
         try:
             self.setup()
-            yield self.asset
+            yield self.make_asset()
         finally:
             self.teardown()
 

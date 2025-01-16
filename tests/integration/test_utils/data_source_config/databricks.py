@@ -69,9 +69,8 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     def _databrics_connection_config(self) -> DatabricksConnectionConfig:
         return DatabricksConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
 
-    @cached_property
     @override
-    def asset(self) -> TableAsset:
+    def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_databricks_sql(
             name=self._random_resource_name(),
             connection_string=self.connection_string,
