@@ -42,7 +42,6 @@ from great_expectations.compatibility.pydantic import (
 from great_expectations.compatibility.pypd import pypd
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
-from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.data_context.types.resource_identifiers import (
     ExpectationSuiteIdentifier,
     GXCloudIdentifier,
@@ -210,6 +209,8 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
 
     @property
     def _using_cloud_context(self) -> bool:
+        from great_expectations.data_context.data_context.context_factory import project_manager
+
         return project_manager.is_using_cloud()
 
     @public_api
@@ -267,6 +268,8 @@ class DataDocsAction(ValidationAction):
         site_names: list[str] | None = None,
         resource_identifiers: list | None = None,
     ) -> dict:
+        from great_expectations.data_context.data_context.context_factory import project_manager
+
         return project_manager.build_data_docs(
             site_names=site_names, resource_identifiers=resource_identifiers
         )
@@ -276,6 +279,8 @@ class DataDocsAction(ValidationAction):
         site_names: list[str] | None = None,
         resource_identifier: Any | None = None,
     ):
+        from great_expectations.data_context.data_context.context_factory import project_manager
+
         return project_manager.get_docs_sites_urls(
             site_names=site_names, resource_identifier=resource_identifier
         )
