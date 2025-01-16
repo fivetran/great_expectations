@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 import logging
 from copy import deepcopy
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
+import pandas as pd
 from marshmallow import Schema, fields, post_dump, post_load, pre_dump
 from typing_extensions import TypedDict
 
@@ -342,7 +343,7 @@ class ExpectationValidationResult(SerializableDictDot):
         }
         if self.exception_info.get("raised_exception"):
             describe_dict["exception_info"] = self.exception_info
-        return describe_dict
+        return _make_serializable(describe_dict)
 
     @public_api
     def describe(self) -> str:
@@ -604,12 +605,14 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         )
 
     def describe_dict(self) -> dict:
-        return {
-            "success": self.success,
-            "statistics": self.statistics,
-            "expectations": [expectation.describe_dict() for expectation in self.results],
-            "result_url": self.result_url,
-        }
+        return _make_serializable(
+            {
+                "success": self.success,
+                "statistics": self.statistics,
+                "expectations": [expectation.describe_dict() for expectation in self.results],
+                "result_url": self.result_url,
+            }
+        )
 
     @public_api
     def describe(self) -> str:
@@ -657,3 +660,13 @@ class ExpectationSuiteValidationResultSchema(Schema):
 
 expectationSuiteValidationResultSchema = ExpectationSuiteValidationResultSchema()
 expectationValidationResultSchema = ExpectationValidationResultSchema()
+
+
+def _make_serializable(data: Any) -> Any:
+    """Convert data to a json serializable shape."""
+    if isinstance(data, dict):
+        return {k: _make_serializable(v) for k, v in data.items()}
+    elif isinstance(data, pd.Series):
+        return data.to_dict()
+    else:
+        return data
