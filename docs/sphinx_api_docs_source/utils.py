@@ -41,15 +41,15 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Add h2 title to Methods section
     methods = soup.select(".py.method")
     if methods:
-        add_section_title(soup, "Methods", methods)
+        add_section_title(soup, methods, "Methods")
 
     # Add h2 title to Properties section
     properties = soup.select(".py.property")
     if properties:
-        add_section_title(soup, "Properties", properties)
+        add_section_title(soup, properties, "Properties")
 
 
-def add_section_title(soup, title, items):
+def add_section_title(soup, items, title):
     wrapper_div = soup.new_tag("div")
     title_h2 = soup.new_tag("h2")
     title_h2.string = title
