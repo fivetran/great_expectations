@@ -576,7 +576,8 @@ class TupleS3StoreBackend(TupleStoreBackend):
         # will read the entire stream.
         content_encoding: str = s3_response_object.get("ContentEncoding", "utf-8")
         encodings: list[str] = content_encoding.split(",")
-        encodings.remove("aws-chunked")
+        if "aws-chunked" in encodings:
+            encodings.remove("aws-chunked")
         data = s3_response_object["Body"].read()
         for encoding in encodings:
             data = data.decode(encoding)
