@@ -136,8 +136,8 @@ class CheckpointFactory(Factory[Checkpoint]):
     def add_or_update(self, checkpoint: Checkpoint) -> Checkpoint:
         """Add or update a Checkpoint by name.
 
-        If an Checkpoint with the same name exists, overwrite it, otherwise
-        create a new Checkpoint. Calls add_or_update
+        If a Checkpoint with the same name exists, overwrite it, otherwise
+        create a new Checkpoint.
 
         Args:
             checkpoint: Checkpoint to add or update
