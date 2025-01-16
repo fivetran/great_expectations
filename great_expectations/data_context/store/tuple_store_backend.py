@@ -567,14 +567,14 @@ class TupleS3StoreBackend(TupleStoreBackend):
 
         # ContentEncoding is an unknown string per
         # https://botocore.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_object.html#get-object
+        content_encoding: str = s3_response_object.get("ContentEncoding", "utf-8")
         # We found the string could take the form of an array, e.g. `utf-8,aws-chunked`.
         # As of boto3 1.36.0, we aren't aware of any time when the string-list can have more
-        # than 1 item except when `aws-chunked` is included. In order to handle unknown
+        # than 1 item except when `aws-chunked` is included. In order to preserve unknown
         # encodings included with `aws-chunked` we will remove the `aws-chunked` string from
         # the list. We do not intend to add support for reading in chunks at this time.
-        # Calling botocore.response.StreamingBodyStreamingBody.read() without arguments
+        # Calling botocore.response.StreamingBody.read() without arguments
         # will read the entire stream.
-        content_encoding: str = s3_response_object.get("ContentEncoding", "utf-8")
         encodings: list[str] = content_encoding.split(",")
         if "aws-chunked" in encodings:
             encodings.remove("aws-chunked")
