@@ -43,7 +43,7 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
     @property
     @override
     def connection_string(self) -> str:
-        return "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # it's okay
+        return "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci?driver=ODBC Driver 18 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # it's okay
 
     @property
     @override

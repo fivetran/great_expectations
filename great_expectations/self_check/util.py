@@ -801,7 +801,7 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "mssql":
         db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "127.0.0.1")
-        connection_string = f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
+        connection_string = f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?driver=ODBC Driver 18 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
         engine = sa.create_engine(
             connection_string,
             # echo=True,
@@ -1390,7 +1390,7 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
             try:
                 engine = sa.create_engine(
                     f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                    "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true",
+                    "driver=ODBC Driver 18 for SQL Server&charset=utf8&autocommit=true",
                     # echo=True,
                 )
                 conn = engine.connect()
@@ -1400,13 +1400,13 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
                     raise ImportError(  # noqa: TRY003 # FIXME CoP
                         "mssql tests are requested, but unable to connect to the mssql database at "
                         f"'mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                        "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true'",
+                        "driver=ODBC Driver 18 for SQL Server&charset=utf8&autocommit=true'",
                     )
                 else:
                     logger.warning(
                         "mssql tests are requested, but unable to connect to the mssql database at "
                         f"'mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                        "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true'",
+                        "driver=ODBC Driver 18 for SQL Server&charset=utf8&autocommit=true'",
                     )
             else:
                 test_backends += ["mssql"]
