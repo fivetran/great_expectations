@@ -11,7 +11,6 @@ from great_expectations.analytics.events import (
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.factory.factory import Factory
 from great_expectations.core.validation_definition import ValidationDefinition
-from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.exceptions.exceptions import DataContextError
 
 if TYPE_CHECKING:
@@ -117,6 +116,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             validation: ValidationDefinition to add or update
         """
         # Always add or update underlying suite to avoid freshness issues
+        from great_expectations.data_context.data_context.context_factory import project_manager
         suite_factory = project_manager.get_suite_factory()
         validation.suite = suite_factory.add_or_update(suite=validation.suite)
 
