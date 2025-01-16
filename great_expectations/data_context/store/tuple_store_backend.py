@@ -557,7 +557,7 @@ class TupleS3StoreBackend(TupleStoreBackend):
         s3_object_keys = [self._build_s3_object_key(key) for key in keys]
         return [self._get_by_s3_object_key(client, key) for key in s3_object_keys]
 
-    def _get_by_s3_object_key(self, s3_client, s3_object_key):
+    def _get_by_s3_object_key(self, s3_client, s3_object_key) -> Any:
         try:
             s3_response_object = s3_client.get_object(Bucket=self.bucket, Key=s3_object_key)
         except (s3_client.exceptions.NoSuchKey, s3_client.exceptions.NoSuchBucket) as e:
@@ -565,12 +565,21 @@ class TupleS3StoreBackend(TupleStoreBackend):
                 f"Unable to retrieve object from TupleS3StoreBackend with the following Key: {s3_object_key!s}"  # noqa: E501 # FIXME CoP
             ) from e
 
-        content_encoding = s3_response_object.get("ContentEncoding", "utf-8")
-
-        assert isinstance(content_encoding, str)
-        assert content_encoding == "utf-8"
-
-        return s3_response_object["Body"].read().decode(content_encoding)
+        # ContentEncoding is a string per
+        # https://botocore.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_object.html#get-object
+        # but the string could take the form of an array e.g. `utf-8,aws-chunked`.
+        # As of boto3 1.36.0 we aren't aware of any time when the string-list can have more
+        # than 1 item except when `aws-chunked` is included. In order to handle unknown
+        # encodings included with `aws-chunked` we will remove the `aws-chunked` string from
+        # the list. We do not intend to add support for reading in chunks at this time.
+        # Calling botocore.response.StreamingBodyStreamingBody.read() without arguments
+        # will read the entire stream.
+        content_encoding: str = s3_response_object.get("ContentEncoding", "utf-8")
+        encodings: list[str] = content_encoding.split(",").remove("aws-chunked")
+        data = s3_response_object["Body"].read()
+        for encoding in encodings:
+            data = data.decode(encoding)
+        return data
 
     def _set(  # type: ignore[explicit-override] # FIXME
         self,
