@@ -800,6 +800,7 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         connection_string = f"mysql+pymysql://root@{db_hostname}/test_ci"
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "mssql":
+        db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "127.0.0.1")
         connection_string = f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
         engine = sa.create_engine(
             connection_string,
