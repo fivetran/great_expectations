@@ -162,10 +162,10 @@ jobs:
 
       - name: Install mssql odbc driver
         run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | tee /etc/apt/trusted.gpg.d/microsoft.asc
-          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | tee /etc/apt/sources.list.d/mssql-release.list
-          apt-get update
-          apt-get install msodbcsql17
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo apt-get install msodbcsql17
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -548,10 +548,10 @@ jobs:
 
       - name: Install mssql odbc driver
         run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | tee /etc/apt/trusted.gpg.d/microsoft.asc
-          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | tee /etc/apt/sources.list.d/mssql-release.list
-          apt-get update
-          apt-get install msodbcsql17
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo apt-get install msodbcsql17
 
       - name: Configure ECR AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
