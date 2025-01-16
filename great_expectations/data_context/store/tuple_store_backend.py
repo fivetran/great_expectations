@@ -565,17 +565,18 @@ class TupleS3StoreBackend(TupleStoreBackend):
                 f"Unable to retrieve object from TupleS3StoreBackend with the following Key: {s3_object_key!s}"  # noqa: E501 # FIXME CoP
             ) from e
 
-        # ContentEncoding is a string per
+        # ContentEncoding is an unknown string per
         # https://botocore.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/get_object.html#get-object
-        # but the string could take the form of an array e.g. `utf-8,aws-chunked`.
-        # As of boto3 1.36.0 we aren't aware of any time when the string-list can have more
+        # We found the string could take the form of an array, e.g. `utf-8,aws-chunked`.
+        # As of boto3 1.36.0, we aren't aware of any time when the string-list can have more
         # than 1 item except when `aws-chunked` is included. In order to handle unknown
         # encodings included with `aws-chunked` we will remove the `aws-chunked` string from
         # the list. We do not intend to add support for reading in chunks at this time.
         # Calling botocore.response.StreamingBodyStreamingBody.read() without arguments
         # will read the entire stream.
         content_encoding: str = s3_response_object.get("ContentEncoding", "utf-8")
-        encodings: list[str] = content_encoding.split(",").remove("aws-chunked")
+        encodings: list[str] = content_encoding.split(",")
+        encodings.remove("aws-chunked")
         data = s3_response_object["Body"].read()
         for encoding in encodings:
             data = data.decode(encoding)
