@@ -878,7 +878,7 @@ def get_default_mssql_url() -> str:
     Returns:
         String of default connection to Docker container
     """
-    db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "0.0.0.0")
+    db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "127.0.0.1")
     connection_string = f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
     return connection_string
 

@@ -1384,7 +1384,7 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
                 test_backends += ["mysql"]
 
         if include_mssql:
-            db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "0.0.0.0")
+            db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "127.0.0.1")
             # noinspection PyUnresolvedReferences
             try:
                 engine = sa.create_engine(
