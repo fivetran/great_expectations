@@ -1214,7 +1214,7 @@ class TestGetConnection:
 @pytest.mark.unit
 class TestDialectRequiresPersistedConnection:
     def test__dialect_requires_persisted_connection_mssql(self):
-        connection_string = "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@db_hostname:1433/test_ci?driver=ODBC Driver 18 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
+        connection_string = "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@db_hostname:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
         assert _dialect_requires_persisted_connection(connection_string=connection_string)
 
     def test__dialect_requires_persisted_connection_sqlite(self):
