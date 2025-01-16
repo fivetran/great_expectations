@@ -160,6 +160,13 @@ jobs:
           # Authorize access to Google Cloud with a service account
           ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
 
+      - name: Install mssql odbc driver
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | tee /etc/apt/trusted.gpg.d/microsoft.asc
+          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | tee /etc/apt/sources.list.d/mssql-release.list
+          apt-get update
+          apt-get install msodbcsql17
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -538,6 +545,13 @@ jobs:
         run: |
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
+
+      - name: Install mssql odbc driver
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | tee /etc/apt/trusted.gpg.d/microsoft.asc
+          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | tee /etc/apt/sources.list.d/mssql-release.list
+          apt-get update
+          apt-get install msodbcsql17
 
       - name: Configure ECR AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
