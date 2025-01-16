@@ -190,18 +190,24 @@ class AbstractDataContext(ConfigPeer, ABC):
     # instance attribute type annotations
     fluent_config: GxConfig
 
-    def __init__(self, runtime_environment: Optional[dict] = None) -> None:
+    def __init__(
+        self,
+        runtime_environment: Optional[dict] = None,
+        user_agent_str: Optional[str] = None,
+    ) -> None:
         """
         Constructor for AbstractDataContext. Will handle instantiation logic that is common to all DataContext objects
 
         Args:
             runtime_environment (dict): a dictionary of config variables that
                 override those set in config_variables.yml and the environment
+            user_agent_str (str | None): UserAgent string to be used in analytics events
         """  # noqa: E501 # FIXME CoP
 
         if runtime_environment is None:
             runtime_environment = {}
         self.runtime_environment = runtime_environment
+        self._user_agent_str = user_agent_str
 
         self._config_provider = self._init_config_provider()
         self._config_variables = self._load_config_variables()
@@ -270,6 +276,7 @@ class AbstractDataContext(ConfigPeer, ABC):
             data_context_id=self._data_context_id,
             organization_id=None,
             oss_id=self._get_oss_id(),
+            user_agent_str=self._user_agent_str,
         )
 
     def _determine_analytics_enabled(self) -> bool:

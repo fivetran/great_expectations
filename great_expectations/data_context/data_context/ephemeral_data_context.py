@@ -33,6 +33,7 @@ class EphemeralDataContext(AbstractDataContext):
         self,
         project_config: Union[DataContextConfig, Mapping],
         runtime_environment: Optional[dict] = None,
+        user_agent_str: str | None = None,
     ) -> None:
         """EphemeralDataContext constructor
 
@@ -42,7 +43,7 @@ class EphemeralDataContext(AbstractDataContext):
 
         """
         self._project_config = self._init_project_config(project_config)
-        super().__init__(runtime_environment=runtime_environment)
+        super().__init__(runtime_environment=runtime_environment, user_agent_str=user_agent_str)
 
     @override
     def _init_project_config(
