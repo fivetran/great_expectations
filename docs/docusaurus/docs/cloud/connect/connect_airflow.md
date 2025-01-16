@@ -77,7 +77,7 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
             GX_CLOUD_ACCESS_TOKEN = "<YOUR_ACCESS_TOKEN>"
             GX_CLOUD_ORGANIZATION_ID = "<YOUR_CLOUD_ORGANIZATION_ID>"
             # Find the Checkpoint name in the GX Cloud UI. 
-            # - Go to the "Expectations" tab.
+            # - Go to the "Validations" tab.
             # - Next to the "Validate" button, click the code snippet icon.
             # - Click "Generate snippet". 
             # - Copy the Checkpoint name from the code snippet and use it below.
