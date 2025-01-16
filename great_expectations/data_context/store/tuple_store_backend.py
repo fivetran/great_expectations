@@ -565,11 +565,12 @@ class TupleS3StoreBackend(TupleStoreBackend):
                 f"Unable to retrieve object from TupleS3StoreBackend with the following Key: {s3_object_key!s}"  # noqa: E501 # FIXME CoP
             ) from e
 
-        return (
-            s3_response_object["Body"]
-            .read()
-            .decode(s3_response_object.get("ContentEncoding", "utf-8"))
-        )
+        content_encoding = s3_response_object.get("ContentEncoding", "utf-8")
+
+        assert isinstance(content_encoding, str)
+        assert content_encoding == "utf-8"
+
+        return s3_response_object["Body"].read().decode(content_encoding)
 
     def _set(  # type: ignore[explicit-override] # FIXME
         self,
