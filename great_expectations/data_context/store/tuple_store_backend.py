@@ -579,6 +579,9 @@ class TupleS3StoreBackend(TupleStoreBackend):
         if "aws-chunked" in encodings:
             encodings.remove("aws-chunked")
         data = s3_response_object["Body"].read()
+        # Maybe it's theoretically possible to encode an entire file with multiple encodings.
+        # It's an odd choice of format for ContentEncoding to allow multiple encoding strings.
+        # As far as we know, this list will always end up with length=1 though.
         for encoding in encodings:
             data = data.decode(encoding)
         return data
