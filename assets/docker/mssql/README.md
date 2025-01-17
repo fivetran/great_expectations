@@ -17,7 +17,7 @@ You should now be able to run the tests via `pytest --mssql`
 
     See: https://github.com/microsoft/mssql-docker/issues/668#issuecomment-1420259510
 
-3. Install the ODBC 17 driver:
+3. Install the ODBC 18 driver:
 
     https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/install-microsoft-odbc-driver-sql-server-macos?view=sql-server-ver15
 
