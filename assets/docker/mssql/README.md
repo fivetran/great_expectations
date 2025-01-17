@@ -17,7 +17,7 @@ You should now be able to run the tests via `pytest --mssql`
 
     See: https://github.com/microsoft/mssql-docker/issues/668#issuecomment-1420259510
 
-3. Install the ODSBC 17 driver:
+3. Install the ODBC 18 driver:
 
     https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/install-microsoft-odbc-driver-sql-server-macos?view=sql-server-ver15
 
@@ -34,10 +34,4 @@ You should now be able to run the tests via `pytest --mssql`
     ```sh
     python -m pip install --force-reinstall --no-binary :all: pyodbc
     python -c "import pyodbc; print(pyodbc.version)"
-    ```
-
-2. If you are getting `Login timeout expired` when using localhost, try setting:
-
-    ```sh
-    export GE_TEST_LOCAL_DB_HOSTNAME=127.0.0.1
     ```
