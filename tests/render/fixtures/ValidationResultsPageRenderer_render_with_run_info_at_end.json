@@ -651,14 +651,17 @@
                 {
                   "content_block_type": "string_template",
                   "string_template": {
-                    "template": "values must belong to this set: [ ].",
+                    "template": "values must belong to this set: $v__0 $v__1 $v__2.",
                     "params": {
                       "column": "Unnamed: 0",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
-                      "condition_parser": null
+                      "condition_parser": null,
+                      "v__0": "a",
+                      "v__1": "b",
+                      "v__2": "c"
                     },
                     "styling": {
                       "default": {
@@ -1155,14 +1158,17 @@
                 {
                   "content_block_type": "string_template",
                   "string_template": {
-                    "template": "values must belong to this set: [ ].",
+                    "template": "values must belong to this set: $v__0 $v__1 $v__2.",
                     "params": {
                       "column": "Name",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
-                      "condition_parser": null
+                      "condition_parser": null,
+                      "v__0": "a",
+                      "v__1": "b",
+                      "v__2": "c"
                     },
                     "styling": {
                       "default": {
@@ -1742,14 +1748,17 @@
                 {
                   "content_block_type": "string_template",
                   "string_template": {
-                    "template": "values must belong to this set: [ ].",
+                    "template": "values must belong to this set: $v__0 $v__1 $v__2.",
                     "params": {
                       "column": "PClass",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
-                      "condition_parser": null
+                      "condition_parser": null,
+                      "v__0": "a",
+                      "v__1": "b",
+                      "v__2": "c"
                     },
                     "styling": {
                       "default": {
@@ -1918,13 +1927,16 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "distinct values must belong to a set, but that set is not specified.",
+                  "template": "distinct values must belong to this set: $v__0 $v__1 $v__2.", 
                   "params": {
                     "column": "PClass",
-                    "value_set": null,
+                      "value_set": ["a", "b", "c"],
                     "result_format": "SUMMARY",
                     "row_condition": null,
-                    "condition_parser": null
+                    "condition_parser": null,
+                    "v__0": "a",
+                    "v__1": "b",
+                    "v__2": "c"
                   },
                   "styling": {
                     "default": {
@@ -2307,14 +2319,17 @@
                 {
                   "content_block_type": "string_template",
                   "string_template": {
-                    "template": "values must belong to this set: [ ].",
+                    "template": "values must belong to this set: $v__0 $v__1 $v__2.",
                     "params": {
                       "column": "Age",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
-                      "condition_parser": null
+                      "condition_parser": null,
+                      "v__0": "a",
+                      "v__1": "b",
+                      "v__2": "c"
                     },
                     "styling": {
                       "default": {
@@ -3389,14 +3404,17 @@
                 {
                   "content_block_type": "string_template",
                   "string_template": {
-                    "template": "values must belong to this set: [ ].",
+                    "template": "values must belong to this set: $v__0 $v__1 $v__2.",
                     "params": {
                       "column": "Sex",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
-                      "condition_parser": null
+                      "condition_parser": null,
+                      "v__0": "a",
+                      "v__1": "b",
+                      "v__2": "c"
                     },
                     "styling": {
                       "default": {
@@ -3557,13 +3575,16 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "distinct values must belong to a set, but that set is not specified.",
+                  "template": "distinct values must belong to this set: $v__0 $v__1 $v__2.", 
                   "params": {
                     "column": "Sex",
-                    "value_set": null,
+                    "value_set": ["a", "b", "c"],
                     "result_format": "SUMMARY",
                     "row_condition": null,
-                    "condition_parser": null
+                    "condition_parser": null,
+                    "v__0": "a",
+                    "v__1": "b",
+                    "v__2": "c"
                   },
                   "styling": {
                     "default": {
@@ -3948,14 +3969,17 @@
                 {
                   "content_block_type": "string_template",
                   "string_template": {
-                    "template": "values must belong to this set: [ ].",
+                    "template": "values must belong to this set: $v__0 $v__1 $v__2.",
                     "params": {
                       "column": "Survived",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
-                      "condition_parser": null
+                      "condition_parser": null,
+                      "v__0": "a",
+                      "v__1": "b",
+                      "v__2": "c"
                     },
                     "styling": {
                       "default": {
@@ -4054,13 +4078,16 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "distinct values must belong to a set, but that set is not specified.",
+                  "template": "distinct values must belong to this set: $v__0 $v__1 $v__2.", 
                   "params": {
                     "column": "Survived",
-                    "value_set": null,
+                    "value_set": ["a", "b", "c"],
                     "result_format": "SUMMARY",
                     "row_condition": null,
-                    "condition_parser": null
+                    "condition_parser": null,
+                    "v__0": "a",
+                    "v__1": "b",
+                    "v__2": "c"
                   },
                   "styling": {
                     "default": {
@@ -4445,14 +4472,17 @@
                 {
                   "content_block_type": "string_template",
                   "string_template": {
-                    "template": "values must belong to this set: [ ].",
+                    "template": "values must belong to this set: $v__0 $v__1 $v__2.",
                     "params": {
                       "column": "SexCode",
-                      "value_set": [],
+                      "value_set": ["a", "b", "c"],
                       "result_format": "SUMMARY",
                       "mostly": null,
                       "row_condition": null,
-                      "condition_parser": null
+                      "condition_parser": null,
+                      "v__0": "a",
+                      "v__1": "b",
+                      "v__2": "c"
                     },
                     "styling": {
                       "default": {
@@ -4551,13 +4581,16 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "distinct values must belong to a set, but that set is not specified.",
+                  "template": "distinct values must belong to this set: $v__0 $v__1 $v__2.", 
                   "params": {
                     "column": "SexCode",
-                    "value_set": null,
+                    "value_set": ["a", "b", "c"],
                     "result_format": "SUMMARY",
                     "row_condition": null,
-                    "condition_parser": null
+                    "condition_parser": null,
+                    "v__0": "a",
+                    "v__1": "b",
+                    "v__2": "c"
                   },
                   "styling": {
                     "default": {

@@ -74,7 +74,7 @@ This Expectation validates that the combination of values across multiple column
 
 This Expectation validates that the proportion of unique values in a column is between a specified minimum and maximum value. It is useful for ensuring a certain level of uniqueness in a column without requiring full uniqueness.
 
-**Example**: Validate that least 90% of all customer `email_address` values are unique.
+**Example**: Validate that at least 90% of all customer `email_address` values are unique.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnProportionOfUniqueValuesToBeBetween"
 ```
@@ -154,7 +154,7 @@ Use the GX Cloud UI to walk through the following steps:
       * Column List: `last_name`, `phone_number`
       * Ignore Row If: Any value is missing
 
-4. Validate the `uniqueness_customers` Data Asset with the newly create Expectations.
+4. Validate the `uniqueness_customers` Data Asset with the newly created Expectations.
 
 5. Review the Validation Results. Under **Batches & run history**, select the individual Validation run (not **All Runs**) to view the sample unexpected values that were identified for failing Expectations.
 

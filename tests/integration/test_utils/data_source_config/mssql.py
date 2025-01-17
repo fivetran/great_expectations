@@ -11,6 +11,7 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.test_utils import get_default_mssql_url
 
 
 class MSSQLDatasourceTestConfig(DataSourceTestConfig):
@@ -43,7 +44,7 @@ class MSSQLBatchTestSetup(SQLBatchTestSetup[MSSQLDatasourceTestConfig]):
     @property
     @override
     def connection_string(self) -> str:
-        return "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@localhost:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # it's okay
+        return get_default_mssql_url()
 
     @property
     @override

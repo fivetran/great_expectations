@@ -1,5 +1,6 @@
 import re
 from unittest import mock
+from unittest.mock import ANY
 from unittest.mock import ANY as ANY_TEST_ARG
 
 import pytest
@@ -415,3 +416,316 @@ class TestCheckpointFactoryAnalytics:
         mock_submit.assert_called_once_with(
             event=CheckpointDeletedEvent(checkpoint_id=checkpoint.id)
         )
+
+
+class TestCheckpointFactoryAddOrUpdate:
+    CHECKPOINT_NAME = "checkpoint A"
+
+    @pytest.mark.filesystem
+    def test_add_empty_new_checkpoint__filesystem(self, empty_data_context):
+        return self._test_add_empty_new_checkpoint(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_add_empty_new_checkpoint__cloud(self, empty_cloud_context_fluent):
+        return self._test_add_empty_new_checkpoint(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_add_empty_new_checkpoint__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_add_empty_new_checkpoint(ephemeral_context_with_defaults)
+
+    def _test_add_empty_new_checkpoint(self, context: AbstractDataContext):
+        # arrange
+        checkpoint = Checkpoint(name=self.CHECKPOINT_NAME, validation_definitions=[])
+
+        # act
+        created_checkpoint = context.checkpoints.add_or_update(checkpoint=checkpoint)
+
+        # assert
+        assert created_checkpoint.id
+        context.checkpoints.get(self.CHECKPOINT_NAME)
+
+    @pytest.mark.filesystem
+    def test_add_new_checkpoint_with_validations__filesystem(self, empty_data_context):
+        return self._test_add_new_checkpoint_with_validations(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_add_new_checkpoint_with_validations__cloud(self, empty_cloud_context_fluent):
+        return self._test_add_new_checkpoint_with_validations(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_add_new_checkpoint_with_validations__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_add_new_checkpoint_with_validations(ephemeral_context_with_defaults)
+
+    def _test_add_new_checkpoint_with_validations(self, context: AbstractDataContext):
+        # arrange
+        batch_def = (
+            context.data_sources.add_pandas("data source A")
+            .add_dataframe_asset("asset A")
+            .add_batch_definition_whole_dataframe("batch def A")
+        )
+
+        validation_definitions = [
+            ValidationDefinition(
+                name="val def A",
+                data=batch_def,
+                suite=ExpectationSuite(name="suite A"),
+            ),
+            ValidationDefinition(
+                name="val def B",
+                data=batch_def,
+                suite=ExpectationSuite(name="suite B"),
+            ),
+        ]
+        checkpoint = Checkpoint(
+            name=self.CHECKPOINT_NAME, validation_definitions=validation_definitions
+        )
+
+        # act
+        created_checkpoint = context.checkpoints.add_or_update(checkpoint=checkpoint)
+
+        # assert
+        assert created_checkpoint.id
+        assert len(created_checkpoint.validation_definitions) == len(validation_definitions)
+        for val_def, created_val_def in zip(
+            validation_definitions, created_checkpoint.validation_definitions
+        ):
+            assert created_val_def.id
+            val_def_dict = val_def.dict()
+            val_def_dict["id"] = ANY
+            assert val_def_dict == created_val_def.dict()
+
+    @pytest.mark.filesystem
+    def test_update_existing_checkpoint_adds_validations__filesystem(self, empty_data_context):
+        return self._test_update_existing_checkpoint_adds_validations(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_update_existing_checkpoint_adds_validations__cloud(self, empty_cloud_context_fluent):
+        return self._test_update_existing_checkpoint_adds_validations(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_update_existing_checkpoint_adds_validations__ephemeral(
+        self, ephemeral_context_with_defaults
+    ):
+        return self._test_update_existing_checkpoint_adds_validations(
+            ephemeral_context_with_defaults
+        )
+
+    def _test_update_existing_checkpoint_adds_validations(self, context: AbstractDataContext):
+        # arrange
+        context.checkpoints.add(
+            checkpoint=Checkpoint(name=self.CHECKPOINT_NAME, validation_definitions=[])
+        )
+
+        batch_def = (
+            context.data_sources.add_pandas("data source A")
+            .add_dataframe_asset("asset A")
+            .add_batch_definition_whole_dataframe("batch def A")
+        )
+        validation_definitions = [
+            ValidationDefinition(
+                name="val def A",
+                data=batch_def,
+                suite=ExpectationSuite(name="suite A"),
+            ),
+            ValidationDefinition(
+                name="val def B",
+                data=batch_def,
+                suite=ExpectationSuite(name="suite B"),
+            ),
+        ]
+        checkpoint = Checkpoint(
+            name=self.CHECKPOINT_NAME, validation_definitions=validation_definitions
+        )
+
+        # act
+        created_checkpoint = context.checkpoints.add_or_update(checkpoint=checkpoint)
+
+        # assert
+        assert created_checkpoint.id
+        assert len(checkpoint.validation_definitions) == len(validation_definitions)
+        for val_def, created_val_def in zip(
+            validation_definitions, created_checkpoint.validation_definitions
+        ):
+            assert created_val_def.id
+            val_def_dict = val_def.dict()
+            val_def_dict["id"] = ANY
+            assert val_def_dict == created_val_def.dict()
+
+    @pytest.mark.filesystem
+    def test_update_existing_checkpoint_updates_validations__filesystem(self, empty_data_context):
+        return self._test_update_existing_checkpoint_updates_validations(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_update_existing_checkpoint_updates_validations__cloud(
+        self, empty_cloud_context_fluent
+    ):
+        return self._test_update_existing_checkpoint_updates_validations(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_update_existing_checkpoint_updates_validations__ephemeral(
+        self, ephemeral_context_with_defaults
+    ):
+        return self._test_update_existing_checkpoint_updates_validations(
+            ephemeral_context_with_defaults
+        )
+
+    def _test_update_existing_checkpoint_updates_validations(self, context: AbstractDataContext):
+        # arrange
+        batch_def = (
+            context.data_sources.add_pandas("data source A")
+            .add_dataframe_asset("asset A")
+            .add_batch_definition_whole_dataframe("batch def A")
+        )
+        existing_suite = context.suites.add(ExpectationSuite(name="suite A"))
+        existing_val_def = context.validation_definitions.add(
+            ValidationDefinition(
+                name="val def A",
+                data=batch_def,
+                suite=existing_suite,
+            )
+        )
+
+        context.checkpoints.add(
+            checkpoint=Checkpoint(
+                name=self.CHECKPOINT_NAME, validation_definitions=[existing_val_def]
+            )
+        )
+        new_suite_name = "suite C"
+
+        # act
+        created_checkpoint = context.checkpoints.add_or_update(
+            checkpoint=Checkpoint(
+                name=self.CHECKPOINT_NAME,
+                validation_definitions=[
+                    ValidationDefinition(
+                        name="val def A",
+                        data=batch_def,
+                        suite=ExpectationSuite(name=new_suite_name),
+                    ),
+                ],
+            )
+        )
+        # assert
+        for val_def in created_checkpoint.validation_definitions:
+            assert val_def.suite.name == new_suite_name
+
+    @pytest.mark.filesystem
+    def test_update_existing_checkpoint_deletes_validations__filesystem(self, empty_data_context):
+        return self._test_update_existing_checkpoint_deletes_validations(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_update_existing_checkpoint_deletes_validations__cloud(
+        self, empty_cloud_context_fluent
+    ):
+        return self._test_update_existing_checkpoint_deletes_validations(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_update_existing_checkpoint_deletes_validations__ephemeral(
+        self, ephemeral_context_with_defaults
+    ):
+        return self._test_update_existing_checkpoint_deletes_validations(
+            ephemeral_context_with_defaults
+        )
+
+    def _test_update_existing_checkpoint_deletes_validations(self, context: AbstractDataContext):
+        # arrange
+        batch_def = (
+            context.data_sources.add_pandas("data source A")
+            .add_dataframe_asset("asset A")
+            .add_batch_definition_whole_dataframe("batch def A")
+        )
+        SUITE_NAME = "suite A"
+        VALIDATION_DEFINITION_NAME = "val def A"
+        existing_suite_1 = context.suites.add(ExpectationSuite(name=SUITE_NAME))
+        existing_suite_2 = context.suites.add(ExpectationSuite(name="suite B"))
+        existing_val_def_1 = context.validation_definitions.add(
+            ValidationDefinition(
+                name=VALIDATION_DEFINITION_NAME,
+                data=batch_def,
+                suite=existing_suite_1,
+            ),
+        )
+        existing_val_def_2 = context.validation_definitions.add(
+            ValidationDefinition(
+                name="val def B",
+                data=batch_def,
+                suite=existing_suite_2,
+            )
+        )
+
+        context.checkpoints.add(
+            checkpoint=Checkpoint(
+                name=self.CHECKPOINT_NAME,
+                validation_definitions=[existing_val_def_1, existing_val_def_2],
+            )
+        )
+
+        # act
+        created_checkpoint = context.checkpoints.add_or_update(
+            checkpoint=Checkpoint(
+                name=self.CHECKPOINT_NAME,
+                validation_definitions=[
+                    ValidationDefinition(
+                        name="val def A",
+                        data=batch_def,
+                        suite=ExpectationSuite(name=SUITE_NAME),
+                    ),
+                ],
+            )
+        )
+
+        # assert
+        assert len(created_checkpoint.validation_definitions) == 1
+        assert created_checkpoint.validation_definitions[0].name == VALIDATION_DEFINITION_NAME
+        assert created_checkpoint.validation_definitions[0].suite.name == SUITE_NAME
+
+    @pytest.mark.filesystem
+    def test_add_or_update_is_idempotent__filesystem(self, empty_data_context):
+        return self._test_add_or_update_is_idempotent(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_add_or_update_is_idempotent__cloud(self, empty_cloud_context_fluent):
+        return self._test_add_or_update_is_idempotent(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_add_or_update_is_idempotent__ephemeral(self, ephemeral_context_with_defaults):
+        return self._test_add_or_update_is_idempotent(ephemeral_context_with_defaults)
+
+    def _test_add_or_update_is_idempotent(self, context: AbstractDataContext):
+        # arrange
+        batch_def = (
+            context.data_sources.add_pandas("data source A")
+            .add_dataframe_asset("asset A")
+            .add_batch_definition_whole_dataframe("batch def A")
+        )
+        SUITE_NAME = "suite A"
+        VALIDATION_DEFINITION_NAME = "val def A"
+
+        # act
+        created_checkpoint_1 = context.checkpoints.add_or_update(
+            checkpoint=Checkpoint(
+                name=self.CHECKPOINT_NAME,
+                validation_definitions=[
+                    ValidationDefinition(
+                        name=VALIDATION_DEFINITION_NAME,
+                        data=batch_def,
+                        suite=ExpectationSuite(name=SUITE_NAME),
+                    ),
+                ],
+            )
+        )
+        created_checkpoint_2 = context.checkpoints.add_or_update(
+            checkpoint=Checkpoint(
+                name=self.CHECKPOINT_NAME,
+                validation_definitions=[
+                    ValidationDefinition(
+                        name=VALIDATION_DEFINITION_NAME,
+                        data=batch_def,
+                        suite=ExpectationSuite(name=SUITE_NAME),
+                    ),
+                ],
+            )
+        )
+
+        # assert
+        assert created_checkpoint_1 == created_checkpoint_2

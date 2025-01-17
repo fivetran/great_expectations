@@ -8,14 +8,14 @@ import PrereqDataSourceAndAssetConnectedToData from '../../_core_components/prer
 
 Batch Definitions both organize a Data Asset's records into Batches and provide a method for retrieving those records.  Any Batch Definition can be used to retrieve a Batch of records for use in testing Expectations or data exploration.
 
-## Prerequisites
+## Prerequisites {#prerequisites-batch-definition}
 
 - <PrereqPython/>.
 - <PrereqGxInstallation/>.
 - <PrereqDataContext/>.  These examples assume the variable `context` contains your Data Context.
 - <PrereqDataSourceAndAssetConnectedToData/>.
 
-### Procedure
+### Procedure {#procedure-batch-definition}
 
 <Tabs 
    queryString="procedure"

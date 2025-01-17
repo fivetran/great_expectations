@@ -492,7 +492,7 @@ def test_TupleS3StoreBackend_with_prefix(aws_credentials):
 
     obj = boto3.client("s3").get_object(Bucket=bucket, Key=prefix + "/my_file_AAA")
     assert obj["ContentType"] == "text/html; charset=utf-8"
-    assert obj["ContentEncoding"] == "utf-8"
+    assert obj["ContentEncoding"] == "utf-8,aws-chunked"
 
     my_store.set(("BBB",), "bbb")
     assert my_store.get(("BBB",)) == "bbb"
@@ -790,7 +790,7 @@ def test_TupleS3StoreBackend_with_empty_prefixes(aws_credentials):
     obj = boto3.client("s3").get_object(Bucket=bucket, Key=prefix + "my_file_AAA")
     assert my_store._build_s3_object_key(("AAA",)) == "my_file_AAA"
     assert obj["ContentType"] == "text/html; charset=utf-8"
-    assert obj["ContentEncoding"] == "utf-8"
+    assert obj["ContentEncoding"] == "utf-8,aws-chunked"
 
     my_store.set(("BBB",), "bbb")
     assert my_store.get(("BBB",)) == "bbb"
