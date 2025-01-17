@@ -63,7 +63,9 @@ batch_parameters_yearly = {"year": 2024}
 
 # Run the Validation Definition
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - run a Validation Definition">
-validation_results = validation_definition.run(batch_parameters=batch_parameters_dataframe)
+validation_results = validation_definition.run(
+    batch_parameters=batch_parameters_dataframe
+)
 # </snippet>
 
 # Review the Validation Results
