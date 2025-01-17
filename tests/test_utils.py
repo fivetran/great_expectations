@@ -878,9 +878,11 @@ def get_default_mssql_url() -> str:
     Returns:
         String of default connection to Docker container
     """
-    db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "localhost")
-    connection_string = f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
-    return connection_string
+    return (
+        "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
+        "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+        "&autocommit=true&TrustServerCertificate=yes"
+    )
 
 
 def get_awsathena_db_name(db_name_env_var: str = "ATHENA_DB_NAME") -> str:
