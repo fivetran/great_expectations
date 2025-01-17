@@ -223,6 +223,32 @@ def test_analytics_enabled_on_load(
     )
 
 
+@pytest.mark.unit
+@pytest.mark.parametrize("user_agent_str", [None, "some user agent string"])
+def test_analytics_enabled_on_load__filesystem(
+    user_agent_str: Optional[str],
+    monkeypatch,
+):
+    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)
+
+    with mock.patch(
+        "great_expectations.data_context.data_context.abstract_data_context.init_analytics"
+    ) as mock_init:
+        gx.get_context(
+            mode="file",
+            user_agent_str=user_agent_str,
+        )
+
+    mock_init.assert_called_with(
+        enable=True,
+        data_context_id=mock.ANY,
+        organization_id=mock.ANY,
+        oss_id=mock.ANY,
+        user_id=mock.ANY,
+        user_agent_str=user_agent_str,
+    )
+
+
 @pytest.mark.parametrize("environment_variable", [None, False, True])
 @pytest.mark.parametrize("constructor_variable", [None, False, True])
 @pytest.mark.parametrize("enable_analytics", [False, True])
