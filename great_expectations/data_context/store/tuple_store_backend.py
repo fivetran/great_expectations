@@ -581,7 +581,7 @@ class TupleS3StoreBackend(TupleStoreBackend):
         data = s3_response_object["Body"].read()
         # Maybe it's theoretically possible to encode an entire file with multiple encodings.
         # It's an odd choice of format for ContentEncoding to allow multiple encoding strings.
-        # As far as we know, this list will always end up with length=1 after the possible
+        # As far as we know, this list will never end up with length>1 after the possible
         # encoding `aws-chunked` is removed.
         for encoding in encodings:
             data = data.decode(encoding)
