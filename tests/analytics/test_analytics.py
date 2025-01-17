@@ -270,7 +270,10 @@ def test_analytics_enabled_after_setting_explicitly(
     with mock.patch(
         "great_expectations.data_context.data_context.abstract_data_context.init_analytics"
     ) as mock_init:
-        context = gx.get_context(mode="ephemeral", project_config=project_config)
+        context = gx.get_context(
+            mode="ephemeral",
+            project_config=project_config,
+        )
 
         context.enable_analytics(enable_analytics)
 
