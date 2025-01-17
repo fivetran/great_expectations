@@ -6,13 +6,13 @@ import PrereqGxInstall from '../../../../_core_components/prerequisites/_gx_inst
 import PrereqDataContext from '../../../../_core_components/prerequisites/_preconfigured_data_context.md'
 import PrereqSparkFilesystemDataSource from '../../../../_core_components/prerequisites/_data_source_spark_filesystem.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-asset-directory-s3}
 - <PrereqPythonInstall/>.
 - <PrereqGxInstall/> and [Spark dependencies](/core/set_up_a_gx_environment/install_additional_dependencies.md?dependencies=spark).
 - <PrereqDataContext/>.
 - [A Filesystem Data Source configured to access data files in S3](/core/connect_to_data/filesystem_data/filesystem_data.md?data_source_type=spark&environment=s3#create-a-data-source).
 
-### Procedure
+### Procedure {#procedure-data-asset-directory-s3}
 
 <Tabs 
    queryString="procedure"

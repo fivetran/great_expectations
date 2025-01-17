@@ -13,7 +13,8 @@ Running a Checkpoint will cause it to validate all of its Validation Definitions
 
 At runtime, a Checkpoint can take in a `batch_parameters` dictionary that selects the Batch to validate from each Validation Definition.  A Checkpoint will also accept an `expectation_parameters` dictionary that provides values for the parameters of the any Expectations that have been configured to accept parameters at runtime.
 
-<h2>Prerequisites</h2>
+## Prerequisites
+
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - <PrereqPreconfiguredDataContext/>.
@@ -22,7 +23,7 @@ At runtime, a Checkpoint can take in a `batch_parameters` dictionary that select
 ### Procedure
 
 :::tip Generate a code snippet to validate GX-managed Expectations
-If you want to use the API to run a validation for [GX-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations) in a GX Cloud deployment, you can use the GX Cloud UI to generate the necessary code. For the Data Asset of interest, go to the **Expectations** tab and click **Use code snippet** near the **Validate** button.
+If you want to use the API to run a validation for [GX-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations) in a GX Cloud deployment, you can use the GX Cloud UI to generate the necessary code. For the Data Asset of interest, go to the **Validations** tab, click the code snippet icon next to the **Validate** button, and then click **Generate snippet**.
 :::
 
 <Tabs 

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
     from great_expectations.alias_types import PathStr
     from great_expectations.core.config_provider import _ConfigurationProvider
+    from great_expectations.core.factory import ValidationDefinitionFactory
     from great_expectations.core.factory.suite_factory import SuiteFactory
     from great_expectations.data_context import (
         AbstractDataContext,
@@ -105,6 +106,9 @@ class ProjectManager:
 
     def get_validation_definition_store(self) -> ValidationDefinitionStore:
         return self._project.validation_definition_store
+
+    def get_validation_definitions_factory(self) -> ValidationDefinitionFactory:
+        return self._project.validation_definitions
 
     def get_datasources(self) -> DatasourceDict:
         return self._project.data_sources.all()

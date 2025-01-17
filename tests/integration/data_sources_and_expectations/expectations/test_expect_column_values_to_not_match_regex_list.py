@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility import pydantic
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
@@ -126,12 +127,7 @@ class TestNormalSql:
         assert not result.success
 
 
-@pytest.mark.xfail(
-    strict=True, reason="This should either pass or fail instantiating the expectation"
-)
-@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
-def invalid_config(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectColumnValuesToNotMatchRegexList(column=COL_A, regex_list=[])
-    result = batch_for_datasource.validate(expectation)
-    assert not result.success
-    assert not result.exception_info["raised_exception"]
+@pytest.mark.unit
+def test_invalid_config() -> None:
+    with pytest.raises(pydantic.ValidationError):
+        gxe.ExpectColumnValuesToNotMatchRegexList(column=COL_A, regex_list=[])
