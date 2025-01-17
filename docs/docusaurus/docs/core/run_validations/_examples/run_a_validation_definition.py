@@ -13,8 +13,8 @@ def set_up_context_for_example(context):
             name="my_data_source", base_directory="./data/folder_with_data"
         )
         .add_csv_asset(name="my_data_asset")
-        .add_batch_definition_path(
-            name="my_batch_definition", path="yellow_tripdata_sample_2019-01.csv"
+        .add_batch_definition_yearly(
+            name="my_batch_definition", regex=r"yellow_tripdata_sample_(?P<year>\d{4})-01.csv"
         )
     )
 
@@ -57,13 +57,13 @@ validation_definition = context.validation_definitions.get(validation_definition
 # Accepted keys are determined by the BatchDefinition used to instantiate this ValidationDefinition.
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - define batch parameters">
 batch_parameters_dataframe = {"dataframe": df}
-batch_parameters_daily = {"year": 2024, "month": 1, "day": 17}
-batch_parameters_yearly = {"year": 2024}
+batch_parameters_daily = {"year": 2020, "month": 1, "day": 17}
+batch_parameters_yearly = {"year": 2019}
 # </snippet>
 
 # Run the Validation Definition
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - run a Validation Definition">
-validation_results = validation_definition.run(batch_parameters=batch_parameters_dataframe)
+validation_results = validation_definition.run(batch_parameters=batch_parameters_yearly)
 # </snippet>
 
 # Review the Validation Results
