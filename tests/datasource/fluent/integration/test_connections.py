@@ -21,6 +21,9 @@ if TYPE_CHECKING:
 
 @pytest.mark.snowflake
 class TestSnowflake:
+    @pytest.mark.xfail(
+        raises=sa.exc.ProgrammingError
+    )  # inspector.get_table_names() fails with this role
     @pytest.mark.parametrize(
         "connection_string",
         [
@@ -43,7 +46,7 @@ class TestSnowflake:
         )
 
         inspector: Inspector = sa.inspection.inspect(snowflake_ds.get_engine())
-        inspector_tables: list[str] = inspector.get_table_names()
+        inspector_tables: list[str] = list(inspector.get_table_names(schema="public"))
         print(f"tables: {len(inspector_tables)}\n{inspector_tables}")
         random.shuffle(inspector_tables)
 
@@ -86,7 +89,7 @@ class TestSnowflake:
         )
 
         inspector: Inspector = sa.inspection.inspect(snowflake_ds.get_engine())
-        inspector_tables = inspector.get_table_names()
+        inspector_tables = list(inspector.get_table_names())
         print(f"tables: {len(inspector_tables)}\n{inspector_tables}")
 
         table_name = random.choice(inspector_tables)

@@ -464,7 +464,7 @@ def test_expectation_equality_ignores_rendered_content():
             gxe.ExpectColumnValuesToBeBetween(column="foo"), {}, False, id="different_objects"
         ),
         pytest.param(
-            gxe.ExpectColumnDistinctValuesToBeInSet(column="bar"),
+            gxe.ExpectColumnDistinctValuesToBeInSet(column="bar", value_set=[1, 2, 3]),
             gxe.ExpectColumnValuesToBeBetween(column="foo"),
             True,
             id="different_expectation_types",
@@ -569,7 +569,6 @@ class TestCustomAnnotatedFields:
             {1},
             [1, 2, 3],
             ["a", "b", "c"],
-            None,
             {"$PARAMETER": "my_param"},
         ],
     )

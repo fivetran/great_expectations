@@ -22,7 +22,7 @@ MostlyField = Annotated[
 ]
 
 ValueSetField = Annotated[
-    Union[Sequence, set, SuiteParameterDict, None],
+    Union[Sequence, set, SuiteParameterDict],
     pydantic.Field(
         title="Value Set",
         description=VALUE_SET_DESCRIPTION,

@@ -230,7 +230,8 @@
         }
     },
     "required": [
-        "column"
+        "column",
+        "value_set"
     ],
     "additionalProperties": false,
     "definitions": {

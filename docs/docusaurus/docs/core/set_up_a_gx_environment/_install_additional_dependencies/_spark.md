@@ -5,12 +5,12 @@ import InfoUsingAVirtualEnvironment from '../../_core_components/admonitions/_if
 
 To validate data while using Spark to read from dataframes or file formats such as `.csv` and `.parquet` with GX Core, you create your GX Python environment, install GX Core locally, and then configure the necessary dependencies.
 
-## Prerequisites
+## Prerequisites {#prerequisites-spark}
 
 - <PrereqPythonInstalled/>
 - <RecommendedVirtualEnvironment/>
 
-## Installation
+## Installation {#installation-spark}
 
 1. Optional. Activate your virtual environment.
 

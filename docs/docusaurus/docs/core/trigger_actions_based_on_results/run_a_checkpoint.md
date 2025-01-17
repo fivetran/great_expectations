@@ -13,7 +13,8 @@ Running a Checkpoint will cause it to validate all of its Validation Definitions
 
 At runtime, a Checkpoint can take in a `batch_parameters` dictionary that selects the Batch to validate from each Validation Definition.  A Checkpoint will also accept an `expectation_parameters` dictionary that provides values for the parameters of the any Expectations that have been configured to accept parameters at runtime.
 
-<h2>Prerequisites</h2>
+## Prerequisites
+
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - <PrereqPreconfiguredDataContext/>.

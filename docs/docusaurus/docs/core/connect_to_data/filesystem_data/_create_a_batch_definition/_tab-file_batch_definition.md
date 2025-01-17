@@ -5,7 +5,7 @@ import PreReqDataContext from '../../../_core_components/prerequisites/_preconfi
 
 Batch Definitions for File Data Assets can be configured to return the content of a specific file based on either a file path or a regex match for dates in the name of the file.
 
-### Prerequisites
+### Prerequisites {#prerequisites-batch-definition-file}
 - <PreReqDataContext/>.  The variable `context` is used for your Data Context in the following example code.
 - [A File Data Asset on a Filesystem Data Source](#create-a-data-asset).
 

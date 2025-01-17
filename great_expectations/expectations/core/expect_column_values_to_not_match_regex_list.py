@@ -234,6 +234,14 @@ class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
                 }
             )
 
+    @pydantic.validator("regex_list")
+    def _validate_regex_list(
+        cls, regex_list: list[str] | SuiteParameterDict
+    ) -> list[str] | SuiteParameterDict:
+        if not regex_list:
+            raise ValueError("regex_list must not be empty")  # noqa: TRY003 # Error message gets swallowed by Pydantic
+        return regex_list
+
     @classmethod
     def _prescriptive_template(
         cls,
