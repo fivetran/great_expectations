@@ -238,6 +238,18 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
                 }
             )
 
+    @pydantic.root_validator
+    def _root_validate(cls, values: dict) -> dict:
+        min_value = values.get("min_value")
+        max_value = values.get("max_value")
+
+        if min_value is not None and max_value is not None and min_value > max_value:
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                f"min_value ({min_value}) must be less than or equal to max_value ({max_value})"
+            )
+
+        return values
+
     @classmethod
     @override
     def _prescriptive_template(

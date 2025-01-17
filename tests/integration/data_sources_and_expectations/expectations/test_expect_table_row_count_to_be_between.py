@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility import pydantic
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
@@ -123,8 +124,7 @@ def test_failure(
     assert not result.success
 
 
-@pytest.mark.xfail(reason="Fails at validation, but should fail when instantiating")
 @pytest.mark.unit
 def test_valid_range() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(pydantic.ValidationError):
         gxe.ExpectTableRowCountToBeBetween(min_value=5, max_value=4)
