@@ -43,6 +43,30 @@ def test_golden_path(batch_for_datasource: Batch) -> None:
             gxe.ExpectTableRowCountToBeBetween(min_value=3, max_value=5),
             id="inclusivity",
         ),
+        pytest.param(
+            gxe.ExpectTableRowCountToBeBetween(
+                min_value=None, max_value=None, strict_min=True, strict_max=True
+            ),
+            id="strict_min_max_vacuously_true",
+        ),
+        pytest.param(
+            gxe.ExpectTableRowCountToBeBetween(
+                min_value=2, max_value=None, strict_min=True, strict_max=True
+            ),
+            id="strict_min_max_just_min",
+        ),
+        pytest.param(
+            gxe.ExpectTableRowCountToBeBetween(
+                min_value=None, max_value=4, strict_min=True, strict_max=True
+            ),
+            id="strict_min_max_just_max",
+        ),
+        pytest.param(
+            gxe.ExpectTableRowCountToBeBetween(
+                min_value=2, max_value=4, strict_min=True, strict_max=True
+            ),
+            id="strict_min_max_inclusive",
+        ),
     ],
 )
 @parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
@@ -74,6 +98,20 @@ def test_empty_data(batch_for_datasource: Batch) -> None:
         pytest.param(
             gxe.ExpectTableRowCountToBeBetween(min_value=4, max_value=4),
             id="bad_range",
+        ),
+        pytest.param(
+            gxe.ExpectTableRowCountToBeBetween(min_value=3, max_value=4, strict_min=True),
+            id="strict_min_max_observed_same_as_min",
+        ),
+        pytest.param(
+            gxe.ExpectTableRowCountToBeBetween(min_value=2, max_value=3, strict_max=True),
+            id="strict_min_max_observed_same_as_max",
+        ),
+        pytest.param(
+            gxe.ExpectTableRowCountToBeBetween(
+                min_value=3, max_value=3, strict_min=True, strict_max=True
+            ),
+            id="strict_min_max_observed_same_as_min_and_max",
         ),
     ],
 )

@@ -5,14 +5,14 @@ import PrereqPythonInstall from '../../../../_core_components/prerequisites/_pyt
 import PrereqGxInstall from '../../../../_core_components/prerequisites/_gx_installation_with_abs_dependencies.md'
 import PrereqDataContext from '../../../../_core_components/prerequisites/_preconfigured_data_context.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-asset-file-abs}
 - <PrereqPythonInstall/>.
 - <PrereqGxInstall/>.
 - <PrereqDataContext/>.
 - Access to data files in Azure Blob Storage.
 - A pandas or Spark [Filesystem Data Source configured for Azure Blob Storage data files](/core/connect_to_data/filesystem_data/filesystem_data.md?data_source_type=spark&environment=abs#create-a-data-source).
 
-### Procedure
+### Procedure {#procedure-data-asset-file-abs}
 
 <Tabs 
    queryString="procedure"

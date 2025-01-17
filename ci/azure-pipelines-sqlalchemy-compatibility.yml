@@ -191,8 +191,12 @@ stages:
           - bash: python -m pip install --upgrade pip
             displayName: "Update pip"
 
+          - script: ./scripts/install_mssql_odbc_driver.sh
+            displayName: "Install mssql odbc driver"
+
           - script: |
               sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;" -o create_db_output.txt
+            displayName: "Create mssql database"
 
           - script: |
               cp constraints-dev.txt constraints-dev-temp.txt

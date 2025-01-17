@@ -193,7 +193,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
     )
 
     # Polish and ratchet this number down as low as possible
-    assert len(sorted_packages_with_pins_or_upper_bounds) == 44
+    assert len(sorted_packages_with_pins_or_upper_bounds) == 40
     assert set(sorted_packages_with_pins_or_upper_bounds) == {
         (
             "requirements-dev-api-docs-test.txt",
@@ -208,11 +208,6 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev-lite.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-pagerduty.txt", "pypd", (("==", "1.1.0"),)),
         ("requirements-dev-snowflake.txt", "pandas", (("<", "2.2.0"),)),
-        (
-            "requirements-dev-snowflake.txt",
-            "snowflake-sqlalchemy",
-            (("<", "1.7.0"), (">=", "1.2.3")),
-        ),
         ("requirements-dev-sqlalchemy.txt", "boto3", (("<", "1.36.0"), (">=", "1.17.106"))),
         ("requirements-dev-sqlalchemy.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-sqlalchemy.txt", "pandas", (("<", "2.2.0"),)),
@@ -220,11 +215,6 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
             "requirements-dev-sqlalchemy.txt",
             "pyathena",
             (("<", "3"), (">=", "2.0.0")),
-        ),
-        (
-            "requirements-dev-sqlalchemy.txt",
-            "snowflake-sqlalchemy",
-            (("<", "1.7.0"), (">=", "1.2.3")),
         ),
         ("requirements-dev-sqlalchemy.txt", "sqlalchemy", (("<", "2.0.0"),)),
         (
@@ -238,11 +228,6 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
             (("==", "17.0.0.5"),),
         ),
         ("requirements-dev-sqlalchemy1.txt", "sqlalchemy", (("<", "2.0.0"),)),
-        (
-            "requirements-dev-sqlalchemy2.txt",
-            "snowflake-sqlalchemy",
-            (("<", "1.7.0"), (">=", "1.6")),
-        ),
         (
             "requirements-dev-teradata.txt",
             "teradatasqlalchemy",
@@ -262,7 +247,6 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev.txt", "posthog", (("<", "4"), (">", "3"))),
         ("requirements-dev.txt", "pyathena", (("<", "3"), (">=", "2.0.0"))),
         ("requirements-dev.txt", "pypd", (("==", "1.1.0"),)),
-        ("requirements-dev.txt", "snowflake-sqlalchemy", (("<", "1.7.0"), (">=", "1.2.3"))),
         ("requirements-dev.txt", "sqlalchemy", (("<", "2.0.0"),)),
         ("requirements-dev.txt", "sqlalchemy-dremio", (("==", "1.2.1"),)),
         ("requirements-dev.txt", "teradatasqlalchemy", (("==", "17.0.0.5"),)),

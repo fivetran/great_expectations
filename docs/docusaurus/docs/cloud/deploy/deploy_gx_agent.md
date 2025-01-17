@@ -1,7 +1,7 @@
 ---
 title: 'Deploy the GX Agent'
 id: deploy_gx_agent
-description: Deploy the GX Agent to use GX Cloud features and functionality.
+description: Deploy the GX Agent to connect to your Data Source within your own environment.
 toc_min_heading_level: 2
 toc_max_heading_level: 2
 ---
@@ -12,12 +12,6 @@ import Tabs from '@theme/Tabs';
 
 The GX Agent is used to run an [agent-enabled deployment](/cloud/deploy/deployment_patterns.md#agent-enabled-deployment) of GX Cloud. If you are running a fully-hosted or read-only deployment, you do not need to deploy the GX Agent.
 
-:::info Enable the GX Agent
-
-The GX Agent, and agent-enabled deployments, are not available by default in GX Cloud. To enable the GX Agent for your GX Cloud organization, reach out to GX Support at support@greatexpectations.io.
-
-:::
-
 The GX Agent serves as an intermediary between GX Cloud and your organization's data stores. GX Cloud does not connect directly to your data in an agent-enabled deployment, and all data access occurs within the GX Agent. GX Cloud sends jobs to the GX Agent, the GX Agent executes these jobs against your data, and then sends the job results to GX Cloud.
 
 A local deployment of the GX Agent will allow you to test GX Cloud setup or processes from a single machine before moving to a shared production deployment. Alternatively, you can run the GX Agent in your deployment environment and leverage GX Cloud while connecting to Data Sources using your organization's environment and infrastructure, for enhanced control and security.
@@ -26,36 +20,42 @@ A local deployment of the GX Agent will allow you to test GX Cloud setup or proc
 ## Prerequisites
 
 - You have a [GX Cloud account](https://greatexpectations.io/cloud).
-- You have reached out to GX Support at support@greatexpectations.io to request a GX Agent deployment.
 - You have a [Docker instance](https://docs.docker.com/get-docker/) or [kubectl](https://kubernetes.io/docs/tasks/tools/).
+
+## Enable the GX Agent
+
+The GX Agent is not enabled by default in GX Cloud. To enable the GX Agent for your GX Cloud organization, request the Agent when adding a Data Source. The workflow depends on whether or not your organization has any Data Sources yet.
+
+<Tabs
+  groupId="request-agent"
+  defaultValue='none'
+  values={[
+  {label: 'No Data Sources yet', value:'none'},
+  {label: 'Existing Data Sources', value:'some'},
+  ]}>
+<TabItem value="none">
+
+1. Go to **Data Assets**.
+2. Select a Data Source type.
+3. Click **Request Agent**.
+
+</TabItem>
+<TabItem value="some">
+
+1. Go to **Data Assets**.
+2. Select **New Data Asset**.
+3. Select **New Data Source**.
+4. Select a Data Source type.
+5. Click **Request Agent**.
+
+</TabItem>
+</Tabs>
+
+We will send you a confirmation email when we fulfill your request. You can continue following the steps below to deploy the GX Agent while we work on enabling it for your organization.
 
 ## Get your access token and organization ID
 
 You need your access token and organization ID to deploy the GX Agent. Access tokens shouldn't be committed to version control software. 
-
-If you've used GX Cloud previously, you have your access token and organization ID, and you need to restart the GX Agent, see [Deploy the GX Agent](#deploy-the-gx-agent).
-
-<Tabs
-  groupId="copy-token"
-  defaultValue='new'
-  values={[
-  {label: 'New GX Cloud account', value:'new'},
-  {label: 'Existing GX Cloud account', value:'existing'},
-  ]}>
-<TabItem value="new">
-
-1. Sign in to GX Cloud.
-
-2. Complete the survey and then click **Continue to GX Cloud**.
-
-3. Copy and then paste the **Access token** and **Organization ID** values into a temporary file. You'll need them to deploy the GX Agent.
-
-4. Click **Deploy the GX Agent** and [deploy the GX Agent](#deploy-the-gx-agent).
-
-</TabItem>
-<TabItem value="existing">
-
-Use the information provided here to view your organization ID or create a new access token. This can be helpful if you've forgotten your organization ID or access token, and you need to restart the GX Agent.
 
 1. In GX Cloud, click **Settings** > **Tokens**.
 
@@ -75,8 +75,6 @@ Use the information provided here to view your organization ID or create a new a
 
 8. [Deploy the GX Agent](#deploy-the-gx-agent).
 
-</TabItem>
-</Tabs>
 
 ## Deploy the GX Agent
 

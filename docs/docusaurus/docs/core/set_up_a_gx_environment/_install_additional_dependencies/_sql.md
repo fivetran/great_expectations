@@ -6,12 +6,12 @@ import SqlDialectInstallationCommands from './_sql_dialect_installation_commands
 
 To validate data stored on SQL databases with GX Core, you create your GX Python environment, install GX Core locally, and then configure the necessary dependencies.
 
-## Prerequisites
+## Prerequisites {#prerequisites-sql}
 
 - <PrereqPythonInstalled/>
 - <RecommendedVirtualEnvironment/>
 
-## Installation
+## Installation {#installation-sql}
 
 1. Run the pip command to install the dependencies for your data's SQL dialect.
 
