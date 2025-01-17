@@ -35,9 +35,3 @@ You should now be able to run the tests via `pytest --mssql`
     python -m pip install --force-reinstall --no-binary :all: pyodbc
     python -c "import pyodbc; print(pyodbc.version)"
     ```
-
-2. If you are getting `Login timeout expired` when using localhost, try setting:
-
-    ```sh
-    export GE_TEST_LOCAL_DB_HOSTNAME=127.0.0.1
-    ```
