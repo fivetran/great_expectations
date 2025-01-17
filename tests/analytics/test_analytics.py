@@ -97,6 +97,7 @@ def test_ephemeral_context_init(monkeypatch):
         organization_id=None,
         oss_id=mock.ANY,
         user_id=None,
+        user_agent_str=None,
     )
     mock_submit.assert_called_once_with(
         mock.ANY,
@@ -106,6 +107,29 @@ def test_ephemeral_context_init(monkeypatch):
             "oss_id": mock.ANY,
             "service": "gx-core",
             "gx_version": mock.ANY,
+            "user_agent_str": None,
+        },
+        groups={"data_context": mock.ANY},
+    )
+
+
+@pytest.mark.unit
+def test_ephemeral_context_init_with_optional_fields(monkeypatch):
+    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
+
+    with mock.patch("posthog.capture") as mock_submit:
+        user_agent_str = "test / x.x.x"
+        _ = gx.get_context(mode="ephemeral", user_agent_str=user_agent_str)
+
+    mock_submit.assert_called_once_with(
+        mock.ANY,
+        "data_context.initialized",
+        {
+            "data_context_id": mock.ANY,
+            "oss_id": mock.ANY,
+            "service": "gx-core",
+            "gx_version": mock.ANY,
+            "user_agent_str": user_agent_str,
         },
         groups={"data_context": mock.ANY},
     )
@@ -150,14 +174,15 @@ def test_cloud_context_init(cloud_api_fake, cloud_details, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    ("environment_variable", "constructor_variable", "expected_value"),
+    ("environment_variable", "constructor_variable", "expected_value", "user_agent_str"),
     [
-        (False, None, False),
-        (False, False, False),
-        (False, True, True),  # enabling in config overrides environment variable
-        (True, None, True),
-        (True, False, False),
-        (True, True, True),
+        (False, None, False, None),
+        (False, False, False, None),
+        (False, True, True, None),  # enabling in config overrides environment variable
+        (True, None, True, None),
+        (True, False, False, None),
+        (True, True, True, None),
+        (True, True, True, "some user agent string"),
     ],
 )
 @pytest.mark.unit
@@ -165,6 +190,7 @@ def test_analytics_enabled_on_load(
     environment_variable: bool,
     constructor_variable: Optional[bool],
     expected_value: bool,
+    user_agent_str: Optional[str],
     monkeypatch,
 ):
     monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", environment_variable)
@@ -179,6 +205,7 @@ def test_analytics_enabled_on_load(
         gx.get_context(
             mode="ephemeral",
             project_config=project_config,
+            user_agent_str=user_agent_str,
         )
 
     mock_init.assert_called_with(
@@ -187,6 +214,7 @@ def test_analytics_enabled_on_load(
         organization_id=mock.ANY,
         oss_id=mock.ANY,
         user_id=mock.ANY,
+        user_agent_str=user_agent_str,
     )
 
 
@@ -209,10 +237,7 @@ def test_analytics_enabled_after_setting_explicitly(
     with mock.patch(
         "great_expectations.data_context.data_context.abstract_data_context.init_analytics"
     ) as mock_init:
-        context = gx.get_context(
-            mode="ephemeral",
-            project_config=project_config,
-        )
+        context = gx.get_context(mode="ephemeral", project_config=project_config)
 
         context.enable_analytics(enable_analytics)
 
@@ -223,4 +248,5 @@ def test_analytics_enabled_after_setting_explicitly(
         organization_id=mock.ANY,
         oss_id=mock.ANY,
         user_id=mock.ANY,
+        user_agent_str=mock.ANY,
     )
