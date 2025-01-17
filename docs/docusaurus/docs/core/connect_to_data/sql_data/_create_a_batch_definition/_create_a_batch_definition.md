@@ -3,11 +3,11 @@ import Tabs from '@theme/Tabs';
 import GxData from '../../../_core_components/_data.jsx'
 import PreReqDataContext from '../../../_core_components/prerequisites/_preconfigured_data_context.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-batch-definition}
 - <PreReqDataContext/>.  The variable `context` is used for your Data Context in the following example code.
 - [A Data Asset on a SQL Data Source](#create-a-data-asset).
 
-### Procedure
+### Procedure {#procedure-batch-definition}
 
 <Tabs 
    queryString="procedure"

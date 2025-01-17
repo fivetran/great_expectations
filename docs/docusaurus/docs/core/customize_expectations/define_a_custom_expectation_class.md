@@ -17,7 +17,7 @@ Advantages of subclassing an Expectation and providing customized attributes rat
    - More descriptive Expectation names can be provided that indicate the business logic behind the Expectation.
    - Customized text can be provided to describe the Expectation when Data Docs are generated from Validation Results.
 
-<h2>Prerequisites</h2>
+## Prerequisites
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.

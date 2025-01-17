@@ -24,3 +24,7 @@ class Factory(ABC, Generic[T]):
     @abstractmethod
     def all(self) -> Iterable[T]:
         pass
+
+    @abstractmethod
+    def add_or_update(self, obj: T) -> T:
+        pass

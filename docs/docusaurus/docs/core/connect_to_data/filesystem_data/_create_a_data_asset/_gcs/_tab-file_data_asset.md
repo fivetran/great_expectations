@@ -5,14 +5,14 @@ import PrereqPythonInstall from '../../../../_core_components/prerequisites/_pyt
 import PrereqGxInstall from '../../../../_core_components/prerequisites/_gx_installation_with_gcs_dependencies.md'
 import PrereqDataContext from '../../../../_core_components/prerequisites/_preconfigured_data_context.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-asset-file-gcs} 
 - <PrereqPythonInstall/>.
 - <PrereqGxInstall/>.
 - <PrereqDataContext/>.
 - Access to data files in Google Cloud Storage.
 - [A pandas](/core/connect_to_data/filesystem_data/filesystem_data.md?data_source_type=pandas&environment=gcs#create-a-data-source) or [Spark Filesystem Data Source configured for Google Cloud Storage data files](/core/connect_to_data/filesystem_data/filesystem_data.md?data_source_type=spark&environment=gcs#create-a-data-source).
 
-### Procedure
+### Procedure {#procedure-data-asset-file-gcs}
 
 <Tabs 
    queryString="procedure"

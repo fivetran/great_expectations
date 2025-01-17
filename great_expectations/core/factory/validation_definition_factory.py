@@ -106,6 +106,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         return self._store.get_all()
 
     @public_api
+    @override
     def add_or_update(self, validation: ValidationDefinition) -> ValidationDefinition:
         """Add or update an ValidationDefinition by name.
 
