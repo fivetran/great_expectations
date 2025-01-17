@@ -81,6 +81,7 @@ from great_expectations.util import (
     import_library_module,
 )
 from great_expectations.validator.validator import Validator
+from tests.test_utils import get_default_mssql_url
 
 SQLAlchemyError = sqlalchemy.SQLAlchemyError
 
@@ -1385,29 +1386,21 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
                 test_backends += ["mysql"]
 
         if include_mssql:
-            db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "127.0.0.1")
+            connection_string = get_default_mssql_url()
             try:
-                engine = sa.create_engine(
-                    f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                    "driver=ODBC Driver 18 for SQL Server"
-                    "&charset=utf8&autocommit=true&TrustServerCertificate=yes",
-                )
+                engine = sa.create_engine(connection_string)
                 conn = engine.connect()
                 conn.close()
             except (ImportError, sa.exc.SQLAlchemyError):
                 if raise_exceptions_for_backends is True:
                     raise ImportError(  # noqa: TRY003 # FIXME CoP
                         "mssql tests are requested, but unable to connect to the mssql database at "
-                        f"'mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                        "driver=ODBC Driver 18 for SQL Server"
-                        "&charset=utf8&autocommit=true&TrustServerCertificate=yes'",
+                        f"{connection_string}",
                     )
                 else:
                     logger.warning(
                         "mssql tests are requested, but unable to connect to the mssql database at "
-                        f"'mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                        "driver=ODBC Driver 18 for SQL Server"
-                        "&charset=utf8&autocommit=true&TrustServerCertificate=yes'",
+                        f"{connection_string}",
                     )
             else:
                 test_backends += ["mssql"]
