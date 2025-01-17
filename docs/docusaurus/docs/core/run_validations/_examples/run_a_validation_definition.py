@@ -54,7 +54,7 @@ validation_definition = context.validation_definitions.get(validation_definition
 # </snippet>
 
 # Define batch parameters
-# 
+# Accepted keys are determined by the BatchDefinition used to instantiate this ValidationDefinition.
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - define batch parameters">
 batch_parameters_dataframe = {"dataframe": df}
 batch_parameters_daily = {"year": 2024, "month": 1, "day": 17}
