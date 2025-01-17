@@ -53,9 +53,17 @@ validation_definition_name = "my_validation_definition"
 validation_definition = context.validation_definitions.get(validation_definition_name)
 # </snippet>
 
+# Define batch parameters
+# 
+# <snippet name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - define batch parameters">
+batch_parameters_dataframe = {"dataframe": df}
+batch_parameters_daily = {"year": 2024, "month": 1, "day": 17}
+batch_parameters_yearly = {"year": 2024}
+# </snippet>
+
 # Run the Validation Definition
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - run a Validation Definition">
-validation_results = validation_definition.run()
+validation_results = validation_definition.run(batch_parameters=batch_parameters_dataframe)
 # </snippet>
 
 # Review the Validation Results
