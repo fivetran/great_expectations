@@ -59,16 +59,16 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         head_row = soup.new_tag("tr")
 
         head_column = soup.new_tag("th")
-        head_column_link = soup.new_tag("th")
         head_column_desc = soup.new_tag("th")
+        head_column_reference = soup.new_tag("th")
 
-        head_column.append("Setting")
-        head_column_link.append("Link")
+        head_column.append("Name")
         head_column_desc.append("Description")
+        head_column_reference.append("Reference")
 
         head_row.append(head_column)
-        head_row.append(head_column_link)
         head_row.append(head_column_desc)
+        head_row.append(head_column_reference)
         head.append(head_row)
         table.append(head)
         table.append("\r\n")
@@ -78,24 +78,24 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
             new_row = soup.new_tag("tr")
 
             new_column = soup.new_tag("td")
-            new_column_link = soup.new_tag("td")
             new_column_desc = soup.new_tag("td")
+            new_column_reference = soup.new_tag("td")
 
             new_column.append("\r\n")
-            new_column_link.append("\r\n")
             new_column_desc.append("\r\n")
+            new_column_reference.append("\r\n")
 
             new_column.append("`" + prop.select(".descname")[0].get_text() + "`")
-            new_column_link.append(prop.select("a")[0])
             new_column_desc.append(prop.select("dd")[0].get_text())
+            new_column_reference.append(prop.select("a")[0])
 
             new_column.append("\r\n")
-            new_column_link.append("\r\n")
             new_column_desc.append("\r\n")
+            new_column_reference.append("\r\n")
 
             new_row.append(new_column)
-            new_row.append(new_column_link)
             new_row.append(new_column_desc)
+            new_row.append(new_column_reference)
 
             body.append(new_row)
             prop.extract()

@@ -4,6 +4,10 @@
  * We apply that class to generated API docs during the build process.
  */
 
+:root {
+  --turquoise: #4DC0B4;
+}
+
 .sphinx-api-doc {
 
     @import "pygments.scss";
@@ -32,6 +36,10 @@
     // This does not change for light or dark mode
     pre.prism-code {
       background-color: #1e1e1e;
+    }
+
+    a {
+      color: var(--ifm-color-primary);
     }
 
     [data-theme='dark'] & {
@@ -66,7 +74,7 @@
       background-color: white;
 
       th {
-        border-bottom: 2px solid #4DC0B4;
+        border-bottom: 2px solid var(--turquoise);
         border-left: 1px solid transparent;
         border-right: 1px solid transparent;
         border-top: 1px solid transparent;
@@ -74,20 +82,32 @@
       }
 
       th, th p {
-        color: #4DC0B4;
+        color: var(--turquoise);
         font-size: 20px;
         font-weight: 600;
       }
     }
 
+  table tr {
+    border: none;
+  }
+
     table td {
-      border-left: 1px solid transparent;
-      border-right: 1px solid transparent;
+      border: none;
+      border-left: 1px solid rgba(112, 112, 112, 0.4);
+
+      &:first-of-type {
+        border-left: 1px solid transparent;
+      }
     }
 
     div pre {
       border-top: none;
       margin: 0;
       padding-top: 0;
+    }
+
+    code {
+      color: var(--ifm-font-color-base);
     }
 }
