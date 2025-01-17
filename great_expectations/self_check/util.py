@@ -81,6 +81,7 @@ from great_expectations.util import (
     import_library_module,
 )
 from great_expectations.validator.validator import Validator
+from tests.test_utils import get_default_mssql_url
 
 SQLAlchemyError = sqlalchemy.SQLAlchemyError
 
@@ -800,11 +801,8 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         connection_string = f"mysql+pymysql://root@{db_hostname}/test_ci"
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "mssql":
-        connection_string = f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
-        engine = sa.create_engine(
-            connection_string,
-            # echo=True,
-        )
+        connection_string = get_default_mssql_url()
+        engine = sa.create_engine(connection_string)
     elif sa_engine_name == "bigquery":
         connection_string = _get_bigquery_connection_string()
         engine = sa.create_engine(connection_string)
@@ -1384,27 +1382,21 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
                 test_backends += ["mysql"]
 
         if include_mssql:
-            # noinspection PyUnresolvedReferences
+            connection_string = get_default_mssql_url()
             try:
-                engine = sa.create_engine(
-                    f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                    "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true",
-                    # echo=True,
-                )
+                engine = sa.create_engine(connection_string)
                 conn = engine.connect()
                 conn.close()
             except (ImportError, sa.exc.SQLAlchemyError):
                 if raise_exceptions_for_backends is True:
                     raise ImportError(  # noqa: TRY003 # FIXME CoP
                         "mssql tests are requested, but unable to connect to the mssql database at "
-                        f"'mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                        "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true'",
+                        f"{connection_string}",
                     )
                 else:
                     logger.warning(
                         "mssql tests are requested, but unable to connect to the mssql database at "
-                        f"'mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                        "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true'",
+                        f"{connection_string}",
                     )
             else:
                 test_backends += ["mssql"]
