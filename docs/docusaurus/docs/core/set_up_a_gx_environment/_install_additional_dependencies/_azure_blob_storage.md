@@ -5,14 +5,14 @@ import InfoUsingAVirtualEnvironment from '../../_core_components/admonitions/_if
 
 Azure Blob Storage stores unstructured data on the Microsoft cloud data storage platform. To validate Azure Blob Storage data with GX Core you install additional Python libraries and define a connection string.
 
-## Prerequisites
+## Prerequisites {#prerequisites-azure}
 
 - An [Azure Storage account](https://docs.microsoft.com/en-us/azure/storage). 
 - [Azure storage account access keys](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal).
 - <PrereqPythonInstalled/>
 - <RecommendedVirtualEnvironment/>
 
-## Installation
+## Installation {#installation-azure}
   
 1. Install the Python dependencies for Azure Blob Storage support.
 

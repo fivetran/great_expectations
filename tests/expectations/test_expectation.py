@@ -91,7 +91,9 @@ def fake_expectation_config(
     [
         (
             FakeMulticolumnExpectation,
-            fake_expectation_config("fake_multicolumn_expectation", {"column_list": ["column_2"]}),
+            fake_expectation_config(
+                "fake_multicolumn_expectation", {"column_list": ["column_1", "column_2"]}
+            ),
         ),
         (
             FakeColumnMapExpectation,
@@ -125,7 +127,8 @@ def test_multicolumn_expectation_has_default_mostly(fake_expectation_cls, config
                 (
                     FakeMulticolumnExpectation,
                     fake_expectation_config(
-                        "fake_multicolumn_expectation", {"column_list": ["column_2"], "mostly": x}
+                        "fake_multicolumn_expectation",
+                        {"column_list": ["column_1", "column_2"], "mostly": x},
                     ),
                 )
                 for x in [0, 0.5, 1]
@@ -166,7 +169,8 @@ def test_expectation_succeeds_with_valid_mostly(fake_expectation_cls, config):
         (
             FakeMulticolumnExpectation,
             fake_expectation_config(
-                "fake_multicolumn_expectation", {"column_list": [], "mostly": -0.5}
+                "fake_multicolumn_expectation",
+                {"column_list": ["column_1", "column_2"], "mostly": -0.5},
             ),
         ),
         (
@@ -464,7 +468,7 @@ def test_expectation_equality_ignores_rendered_content():
             gxe.ExpectColumnValuesToBeBetween(column="foo"), {}, False, id="different_objects"
         ),
         pytest.param(
-            gxe.ExpectColumnDistinctValuesToBeInSet(column="bar"),
+            gxe.ExpectColumnDistinctValuesToBeInSet(column="bar", value_set=[1, 2, 3]),
             gxe.ExpectColumnValuesToBeBetween(column="foo"),
             True,
             id="different_expectation_types",
@@ -569,7 +573,6 @@ class TestCustomAnnotatedFields:
             {1},
             [1, 2, 3],
             ["a", "b", "c"],
-            None,
             {"$PARAMETER": "my_param"},
         ],
     )

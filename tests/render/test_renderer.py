@@ -46,7 +46,7 @@ def test__find_evr_by_type(titanic_profiled_evrs_1):
         },
         expectation_config=ExpectationConfiguration(
             type="expect_column_distinct_values_to_be_in_set",
-            kwargs={"column": "PClass", "value_set": None, "result_format": "SUMMARY"},
+            kwargs={"column": "PClass", "value_set": ["a", "b", "c"], "result_format": "SUMMARY"},
         ),
     )
 

@@ -10,8 +10,7 @@ import PrereqPreconfiguredDataContext from '../_core_components/prerequisites/_p
 import PrereqValidationDefinition from '../_core_components/prerequisites/_validation_definition.md';
 
 
-
-<h2>Prerequisites</h2>
+## Prerequisites
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.

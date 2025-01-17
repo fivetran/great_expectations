@@ -13,7 +13,7 @@ import PrereqExpectation from '../_core_components/prerequisites/_expectation.md
 
 Data can be validated against individual Expectations.  This workflow is generally used when engaging in exploration of new data, or when building out a set of Expectations to comprehensively describe the state that your data should conform to.
 
-<h2>Prerequisites</h2>
+## Prerequisites {#prerequisites-test-expectation}
 
 - <PrereqPython/>.
 - <PrereqGxInstallation/>.
@@ -21,7 +21,7 @@ Data can be validated against individual Expectations.  This workflow is general
 - [A Batch of sample data](/core/define_expectations/retrieve_a_batch_of_test_data.md).  This guide assumes the variable `batch` contains your sample data.
 - <PrereqExpectation/>.  This guide assumes the variable `expectation` contains the Expectation to be tested.
 
-### Procedure
+### Procedure {#procedure-test-expectation}
 
 <Tabs 
    queryString="procedure"

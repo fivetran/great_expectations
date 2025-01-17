@@ -131,6 +131,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
         return deserializable_suites
 
     @public_api
+    @override
     def add_or_update(self, suite: ExpectationSuite) -> ExpectationSuite:
         """Add or update an ExpectationSuite by name.
 
