@@ -14,7 +14,8 @@ def set_up_context_for_example(context):
         )
         .add_csv_asset(name="my_data_asset")
         .add_batch_definition_yearly(
-            name="my_batch_definition", regex=r"yellow_tripdata_sample_(?P<year>\d{4})-01.csv"
+            name="my_batch_definition",
+            regex=r"yellow_tripdata_sample_(?P<year>\d{4})-01.csv",
         )
     )
 
