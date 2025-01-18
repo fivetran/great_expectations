@@ -39,6 +39,7 @@ def set_up_context_for_example(context):
         )
     )
 
+
 df = "fake_data_frame"
 
 # EXAMPLE SCRIPT STARTS HERE:
