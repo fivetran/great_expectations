@@ -38,6 +38,7 @@ def set_up_context_for_example(context):
         )
     )
 
+df = "fake_data_frame"
 
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - full code example">
