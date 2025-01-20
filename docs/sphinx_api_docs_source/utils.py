@@ -47,65 +47,6 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
     if properties:
         # Add h2 title to Properties section
         add_section_title(soup, properties, "Properties")
-        # add_section_title(soup, "Properties", properties)
-        wrapper_div = soup.new_tag("div")
-        title_h2 = soup.new_tag("h2")
-        title_h2.string = "Properties"
-        parent = properties[0].parent
-
-        table = soup.new_tag("table")
-        body = soup.new_tag("tbody")
-        head = soup.new_tag("thead")
-        head_row = soup.new_tag("tr")
-
-        head_column = soup.new_tag("th")
-        head_column_desc = soup.new_tag("th")
-        head_column_reference = soup.new_tag("th")
-
-        head_column.append("Name")
-        head_column_desc.append("Description")
-        head_column_reference.append("Reference")
-
-        head_row.append(head_column)
-        head_row.append(head_column_desc)
-        head_row.append(head_column_reference)
-        head.append(head_row)
-        table.append(head)
-        table.append("\r\n")
-        table.insert(0, "\r\n")
-
-        for prop in properties:
-            new_row = soup.new_tag("tr")
-
-            new_column = soup.new_tag("td")
-            new_column_desc = soup.new_tag("td")
-            new_column_reference = soup.new_tag("td")
-
-            new_column.append("\r\n")
-            new_column_desc.append("\r\n")
-            new_column_reference.append("\r\n")
-
-            new_column.append("`" + prop.select(".descname")[0].get_text() + "`")
-            new_column_desc.append(prop.select("dd")[0].get_text())
-            new_column_reference.append(prop.select("a")[0])
-
-            new_column.append("\r\n")
-            new_column_desc.append("\r\n")
-            new_column_reference.append("\r\n")
-
-            new_row.append(new_column)
-            new_row.append(new_column_desc)
-            new_row.append(new_column_reference)
-
-            body.append(new_row)
-            prop.extract()
-
-        wrapper_div.insert(0, "\r\n")
-        wrapper_div.insert(1, title_h2)
-        wrapper_div.insert(2, "\r\n")
-        table.append(body)
-        wrapper_div.append(table)
-        parent.insert_after(wrapper_div)
 
         # Display properties as table
         table = soup.new_tag("table")
@@ -136,7 +77,6 @@ def add_section_title(soup, items, title):
     wrapper_div.insert(2, "\r\n")
     parent.insert_after(wrapper_div)
 
-
 def create_header_row(soup, table):
     thead = soup.new_tag("thead")
     thead_row = soup.new_tag("tr")
@@ -154,7 +94,6 @@ def create_header_row(soup, table):
     table.append("\r\n")
     table.insert(0, "\r\n")
 
-
 def create_row(soup, tbody, prop):
     new_row = soup.new_tag("tr")
     reference_link = prop.select("a")[0]
@@ -163,7 +102,7 @@ def create_row(soup, tbody, prop):
     columns = [
         "`" + prop.select(".descname")[0].get_text() + "`",
         prop.select("dd")[0].get_text(),
-        reference_link,
+        reference_link
     ]
 
     for column in columns:
