@@ -37,7 +37,8 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
             item.append("\r\n")
 
     for item in soup.find_all("cite"):
-        item.string.replaceWith(item.get_text().replace("<", "\<"))
+        item.string.replaceWith(item.get_text().replace("<", r"\<"))
+
 
 def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Add h2 title to Methods section
@@ -69,6 +70,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         code_block = soup.new_tag("CodeBlock", language="python", title="Signature")
         code_block.append("{`" + item.get_text() + "`}")
         item.replace_with(code_block)
+
 
 def add_section_title(soup, items, title):
     wrapper_div = soup.new_tag("div")
