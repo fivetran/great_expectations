@@ -70,6 +70,10 @@
       font-weight: var(--ifm-font-weight-bold);
     }
 
+    #properties {
+      overflow-x: auto;
+    }
+
     table thead {
       background-color: white;
 
