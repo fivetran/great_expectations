@@ -70,8 +70,8 @@
       font-weight: var(--ifm-font-weight-bold);
     }
 
-    #properties {
-      overflow-x: auto;
+    #properties, dd {
+      overflow: auto hidden;
     }
 
     table thead {
