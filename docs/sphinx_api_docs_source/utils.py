@@ -36,6 +36,7 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
             item.insert(0, "\r\n")
             item.append("\r\n")
 
+
 def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Add h2 title to Methods section
     methods = soup.select(".py.method")
@@ -76,6 +77,7 @@ def add_section_title(soup, items, title):
     wrapper_div.insert(2, "\r\n")
     parent.insert_after(wrapper_div)
 
+
 def create_header_row(soup, table):
     thead = soup.new_tag("thead")
     thead_row = soup.new_tag("tr")
@@ -93,10 +95,15 @@ def create_header_row(soup, table):
     table.append("\r\n")
     table.insert(0, "\r\n")
 
+
 def create_row(soup, tbody, prop):
     new_row = soup.new_tag("tr")
 
-    columns = ["`" + prop.select(".descname")[0].get_text() + "`", prop.select("dd")[0].get_text(), prop.select("a")[0]]
+    columns = [
+        "`" + prop.select(".descname")[0].get_text() + "`",
+        prop.select("dd")[0].get_text(),
+        prop.select("a")[0],
+    ]
 
     for column in columns:
         new_cell = soup.new_tag("td")
