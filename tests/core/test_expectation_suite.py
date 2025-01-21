@@ -915,6 +915,52 @@ class TestEqDunder:
         assert different_but_equivalent_suite != suite_with_single_expectation
 
 
+class TestExpectationsAreEqualish:
+    @pytest.fixture
+    def expectation_3(self) -> gxe.ExpectColumnValuesToNotBeNull:
+        return gxe.ExpectColumnValuesToNotBeNull(column="a")
+
+    @pytest.fixture
+    def expectation_4(self) -> gxe.ExpectColumnValuesToBeUnique:
+        return gxe.ExpectColumnValuesToBeUnique(column="a")
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "expectation_a,expectation_b",
+        [
+            pytest.param(
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="a",
+                    value_set=[1, 2, 3],
+                    result_format="BASIC",
+                ),
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="a",
+                    value_set=[1, 2, 3],
+                    result_format="BASIC",
+                ),
+                id="same expectation, same args passed in",
+            ),
+        ],
+    )
+    def test_equalish(self, expectation_a, expectation_b):
+        assert ExpectationSuite._expectations_are_equalish(expectation_a, expectation_b)
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "expectation_a,expectation_b",
+        [
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a"),
+                gxe.ExpectColumnValuesToBeUnique(column="a"),
+                id="different expectation, same args passed in",
+            ),
+        ],
+    )
+    def test_not_equalish(self, expectation_a, expectation_b):
+        assert not ExpectationSuite._expectations_are_equalish(expectation_a, expectation_b)
+
+
 # ### Below this line are mainly existing tests and fixtures that we are in the process of cleaning up  # noqa: E501 # FIXME CoP
 
 
