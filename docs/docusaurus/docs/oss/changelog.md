@@ -14,6 +14,31 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.2
+* [FEATURE] CheckpointFactory.add_or_update ([#10856](https://github.com/great-expectations/great_expectations/pull/10856))
+* [FEATURE] Enable strict_min/max for ExpectTableRowCountToBeBetween ([#10845](https://github.com/great-expectations/great_expectations/pull/10845))
+* [BUGFIX] `ExpectColumnUniqueValueCountToBeBetween` `strict_min` and `strict_max` not getting set ([#10835](https://github.com/great-expectations/great_expectations/pull/10835))
+* [BUGFIX] Extend existing version logic for pandas `series.between()` `inclusive` to missing conditions ([#10837](https://github.com/great-expectations/great_expectations/pull/10837))
+* [BUGFIX] Add input args validators to various Expectations ([#10833](https://github.com/great-expectations/great_expectations/pull/10833))
+* [DOCS] Expectation selection, group by data quality issue ([#10806](https://github.com/great-expectations/great_expectations/pull/10806))
+* [DOCS] Editing Admonition titles ([#10813](https://github.com/great-expectations/great_expectations/pull/10813))
+* [DOCS] consolidate info about analytics / usage stats ([#10853](https://github.com/great-expectations/great_expectations/pull/10853))
+* [DOCS] update checkpoint snippet location ([#10854](https://github.com/great-expectations/great_expectations/pull/10854))
+* [DOCS] In-app agent request ([#10836](https://github.com/great-expectations/great_expectations/pull/10836))
+* [DOCS] small fixes for newer DQ use case articles ([#10847](https://github.com/great-expectations/great_expectations/pull/10847))
+* [DOCS] Adding keys to duplicated headers ([#10846](https://github.com/great-expectations/great_expectations/pull/10846))
+* [DOCS] fix custom SQL Expectation approach for cloud ([#10844](https://github.com/great-expectations/great_expectations/pull/10844))
+* [DOCS] update screenshot of observed value ([#10867](https://github.com/great-expectations/great_expectations/pull/10867))
+* [MAINTENANCE] Add `--force-reinstall` flag to `invoke deps` and update help text ([#10834](https://github.com/great-expectations/great_expectations/pull/10834))
+* [MAINTENANCE] Update `responses` pin due to mypy error with latest release ([#10842](https://github.com/great-expectations/great_expectations/pull/10842))
+* [MAINTENANCE] Remove xfailed test ([#10843](https://github.com/great-expectations/great_expectations/pull/10843))
+* [MAINTENANCE] Pin `boto3` due to breaking change ([#10862](https://github.com/great-expectations/great_expectations/pull/10862))
+* [MAINTENANCE] Change mssql tests to use version 18 driver ([#10868](https://github.com/great-expectations/great_expectations/pull/10868))
+* [MAINTENANCE] Temporary fix to move past failing schema cleanup ([#10860](https://github.com/great-expectations/great_expectations/pull/10860))
+* [MAINTENANCE] Unpin `snowflake-sqlalchemy` ([#10838](https://github.com/great-expectations/great_expectations/pull/10838))
+* [MAINTENANCE] CI skips xfailed quoted identifier tests ([#10857](https://github.com/great-expectations/great_expectations/pull/10857))
+* [MAINTENANCE] Enforce a minimum length of 2 for MulticolumnMapExpectation `column_list` ([#10850](https://github.com/great-expectations/great_expectations/pull/10850))
+
 ### 1.3.1
 * [BUGFIX] Ensure datetime.time can be serialized to JSON ([#10795](https://github.com/great-expectations/great_expectations/pull/10795))
 * [BUGFIX] Stop overwriting template with description ([#10826](https://github.com/great-expectations/great_expectations/pull/10826))
