@@ -449,11 +449,11 @@ class TestSerialization:
         from_describe = evr.describe()
 
         assert from_describe_dict == from_describe
-        assert as_dict["result"]["details"]["observed_value"] == {
-            "a": 1,
-            "b": 2,
-            "c": 4,
-        }
+        assert as_dict["result"]["details"]["observed_value"] == [
+            {"index": "a", "value": 1},
+            {"index": "b", "value": 2},
+            {"index": "c", "value": 4},
+        ]
 
     @pytest.mark.unit
     def test_expectation_suite_validation_results_serializes(self) -> None:
@@ -488,8 +488,8 @@ class TestSerialization:
         from_describe = svr.describe()
 
         assert from_describe_dict == from_describe
-        assert as_dict["expectations"][0]["result"]["details"]["observed_value"] == {
-            "a": 1,
-            "b": 2,
-            "c": 4,
-        }
+        assert as_dict["expectations"][0]["result"]["details"]["observed_value"] == [
+            {"index": "a", "value": 1},
+            {"index": "b", "value": 2},
+            {"index": "c", "value": 4},
+        ]

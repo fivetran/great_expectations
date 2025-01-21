@@ -3,9 +3,8 @@ from __future__ import annotations
 import json
 import logging
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
-import pandas as pd
 from marshmallow import Schema, fields, post_dump, post_load, pre_dump
 from typing_extensions import TypedDict
 
@@ -343,7 +342,7 @@ class ExpectationValidationResult(SerializableDictDot):
         }
         if self.exception_info.get("raised_exception"):
             describe_dict["exception_info"] = self.exception_info
-        return _make_serializable(describe_dict)
+        return convert_to_json_serializable(describe_dict)
 
     @public_api
     def describe(self) -> str:
@@ -605,7 +604,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         )
 
     def describe_dict(self) -> dict:
-        return _make_serializable(
+        return convert_to_json_serializable(
             {
                 "success": self.success,
                 "statistics": self.statistics,
@@ -660,18 +659,3 @@ class ExpectationSuiteValidationResultSchema(Schema):
 
 expectationSuiteValidationResultSchema = ExpectationSuiteValidationResultSchema()
 expectationValidationResultSchema = ExpectationValidationResultSchema()
-
-
-def _make_serializable(data: Any) -> Any:
-    """Convert data to a json serializable shape.
-
-    TODO: Fix convert_to_json_serializable to not render dictionaries as
-          lists of {"index": <KEY>, "value": <VALUE>} pairs, and replace use
-          of this function with convert_to_json_serializable.
-    """
-    if isinstance(data, dict):
-        return {k: _make_serializable(v) for k, v in data.items()}
-    elif isinstance(data, pd.Series):
-        return data.to_dict()
-    else:
-        return data
