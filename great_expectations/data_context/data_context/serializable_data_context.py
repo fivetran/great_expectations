@@ -58,12 +58,16 @@ class SerializableDataContext(AbstractDataContext):
         self,
         context_root_dir: PathStr,
         runtime_environment: Optional[dict] = None,
+        user_agent_str: Optional[str] = None,
     ) -> None:
         if isinstance(context_root_dir, pathlib.Path):
             # TODO: (kilo59) 122022 should be saving and passing around `pathlib.Path` not str
             context_root_dir = str(context_root_dir)
         self._context_root_directory = context_root_dir
-        super().__init__(runtime_environment=runtime_environment)
+        super().__init__(
+            runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
+        )
 
     def _init_datasource_store(self):  # type: ignore[explicit-override] # FIXME
         raise NotImplementedError  # Required by parent ABC but this class is never instantiated

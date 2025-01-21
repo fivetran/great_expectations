@@ -2409,6 +2409,13 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
                 }
             )
 
+    @pydantic.validator("column_list")
+    def _validate_column_list(cls, v: List[str]) -> List[str]:
+        min_length = 2
+        if len(v) < min_length:
+            raise ValueError("column_list must contain at least two columns.")  # noqa: TRY003 # Error message swallowed by Pydantic
+        return v
+
     @classmethod
     @override
     def is_abstract(cls) -> bool:
