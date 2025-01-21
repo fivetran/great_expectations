@@ -80,6 +80,9 @@ In this procedure your Data Context is assumed to be stored in the variable `con
    
    After the Checkpoint runs it will pass the Validation Results that are generated to its Actions and execute them.  Finally, the Validation Results will be returned by the `run(...)` method. 
 
+   For more information about Validation Results, what they contain, and how to adjust their verbosity see [Choose result format](../trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format.md).
+
+
 </TabItem>
 
 <TabItem value="sample_code" label="Sample code">
