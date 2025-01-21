@@ -533,11 +533,7 @@
     }
   ],
   "learn": [
-    {
-      "type": "link",
-      "label": "GX V0 to V1 Migration Guide",
-      "href": "reference/learn/migration_guide"
-    },
+    "reference/learn/migration_guide",
     "reference/learn/conceptual_guides/expectation_classes",
     "reference/learn/conceptual_guides/metricproviders",
     "reference/learn/usage_statistics",
