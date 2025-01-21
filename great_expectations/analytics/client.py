@@ -45,6 +45,7 @@ def init(  # noqa: PLR0913 # FIXME CoP
     organization_id: Optional[UUID] = None,
     oss_id: Optional[UUID] = None,
     cloud_mode: bool = False,
+    user_agent_str: Optional[str] = None,
 ):
     """Initializes the analytics platform client."""
     conf = {}
@@ -56,7 +57,13 @@ def init(  # noqa: PLR0913 # FIXME CoP
         conf["organization_id"] = organization_id
     if oss_id:
         conf["oss_id"] = oss_id
-    update_config(config=Config(cloud_mode=cloud_mode, **conf))
+    update_config(
+        config=Config(
+            cloud_mode=cloud_mode,
+            user_agent_str=user_agent_str,
+            **conf,
+        )
+    )
 
     enable = enable and not _in_gx_ci()
     posthog.disabled = not enable
