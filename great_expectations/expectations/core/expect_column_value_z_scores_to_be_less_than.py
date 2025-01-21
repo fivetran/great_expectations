@@ -5,11 +5,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -34,7 +35,7 @@ DOUBLE_SIDED_DESCRIPTION = (
     "(double_sided = True, threshold = 2) -> Z scores in non-inclusive interval(-2,2) | "
     "(double_sided = False, threshold = 2) -> Z scores in non-inclusive interval (-infinity,2)"
 )
-DATA_QUALITY_ISSUES = ["Distribution"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",
@@ -42,9 +43,9 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
+    "Databricks (SQL)",
 ]
 
 
@@ -88,7 +89,7 @@ class ExpectColumnValueZScoresToBeLessThan(ColumnMapExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -99,7 +100,7 @@ class ExpectColumnValueZScoresToBeLessThan(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -170,7 +171,7 @@ class ExpectColumnValueZScoresToBeLessThan(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     threshold: Union[float, SuiteParameterDict] = pydantic.Field(description=THRESHOLD_DESCRIPTION)
     double_sided: Union[bool, SuiteParameterDict] = pydantic.Field(
@@ -193,7 +194,7 @@ class ExpectColumnValueZScoresToBeLessThan(ColumnMapExpectation):
     }
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     map_metric = "column_values.z_score.under_threshold"
     success_keys = ("threshold", "double_sided", "mostly")
     args_keys = ("column", "threshold")
@@ -240,7 +241,6 @@ class ExpectColumnValueZScoresToBeLessThan(ColumnMapExpectation):
         add_param_args: AddParamArgs = (
             ("column", RendererValueType.STRING),
             ("threshold", RendererValueType.NUMBER),
-            ("double_sided", RendererValueType.BOOLEAN),
             ("mostly", RendererValueType.NUMBER),
         )
         for name, param_type in add_param_args:
@@ -253,10 +253,12 @@ class ExpectColumnValueZScoresToBeLessThan(ColumnMapExpectation):
         else:
             template_str = "Value z-scores must be "
 
-        if params.double_sided.value is True:
+        if renderer_configuration.kwargs.get("double_sided") is True:
             inverse_threshold = params.threshold.value * -1
             renderer_configuration.add_param(
-                name="inverse_threshold", param_type=RendererValueType.NUMBER
+                name="inverse_threshold",
+                param_type=RendererValueType.NUMBER,
+                value=inverse_threshold,
             )
             if inverse_threshold < params.threshold.value:
                 template_str += "greater than $inverse_threshold and less than $threshold"

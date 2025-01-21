@@ -33,16 +33,16 @@ pytestmark = pytest.mark.all_backends
 try:
     sqliteDialect = sqlalchemy.sqlite.dialect
 except (ImportError, AttributeError):
-    sqliteDialect = SQLALCHEMY_NOT_IMPORTED  # type: ignore[assignment]
+    sqliteDialect = SQLALCHEMY_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
 
 
 def pytest_generate_tests(metafunc):  # noqa C901 - 35
     # Load all the JSON files in the directory
-    dir_path = os.path.dirname(os.path.realpath(__file__))  # noqa: PTH120
+    dir_path = os.path.dirname(os.path.realpath(__file__))  # noqa: PTH120 # FIXME CoP
     expectation_dirs = [
         dir_
         for dir_ in os.listdir(dir_path)
-        if os.path.isdir(os.path.join(dir_path, dir_))  # noqa: PTH118, PTH112
+        if os.path.isdir(os.path.join(dir_path, dir_))  # noqa: PTH118, PTH112 # FIXME CoP
     ]
     parametrized_tests = []
     ids = []
@@ -50,7 +50,7 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
     validator_with_data = None
 
     for expectation_category in expectation_dirs:
-        test_configuration_files = glob.glob(  # noqa: PTH207
+        test_configuration_files = glob.glob(  # noqa: PTH207 # FIXME CoP
             dir_path + "/" + expectation_category + "/*.json"
         )
         for backend in backends:
@@ -61,8 +61,8 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                     expectation_type = filename.split(".json")[0].split("/")[-1]
                     for index, test_config in enumerate(test_configuration["datasets"], 1):
                         datasets = []
-                        # optional only_for and suppress_test flag at the datasets-level that can prevent data being  # noqa: E501
-                        # added to incompatible backends. Currently only used by expect_column_values_to_be_unique  # noqa: E501
+                        # optional only_for and suppress_test flag at the datasets-level that can prevent data being  # noqa: E501 # FIXME CoP
+                        # added to incompatible backends. Currently only used by expect_column_values_to_be_unique  # noqa: E501 # FIXME CoP
                         only_for = test_config.get("only_for")
                         if only_for and not isinstance(only_for, list):
                             # coerce into list if passed in as string
@@ -137,7 +137,7 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                             skip_test = False
                             only_for = test.get("only_for")
                             if only_for:
-                                # if we're not on the "only_for" list, then never even generate the test  # noqa: E501
+                                # if we're not on the "only_for" list, then never even generate the test  # noqa: E501 # FIXME CoP
                                 generate_test = False
                                 if not isinstance(only_for, list):
                                     # coerce into list if passed in as string
@@ -199,7 +199,7 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                                                     validator_with_data.active_batch_data.sql_engine_dialect,
                                                     "name",
                                                 )
-                                                and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501
+                                                and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501 # FIXME CoP
                                                 == "bigquery"
                                             )
                                         )
@@ -212,12 +212,12 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                                             validator_with_data.active_batch_data.sql_engine_dialect,
                                             "name",
                                         )
-                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501
+                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501 # FIXME CoP
                                         == "bigquery"
                                     ):
                                         # <WILL> : Marker to get the test to only run for CFE
-                                        # expect_column_values_to_be_unique:negative_case_all_null_values_bigquery_nones  # noqa: E501
-                                        # works in different ways between CFE (V3) and V2 Expectations. This flag allows for  # noqa: E501
+                                        # expect_column_values_to_be_unique:negative_case_all_null_values_bigquery_nones  # noqa: E501 # FIXME CoP
+                                        # works in different ways between CFE (V3) and V2 Expectations. This flag allows for  # noqa: E501 # FIXME CoP
                                         # the test to only be run in the CFE case
                                         generate_test = True
                                     elif (
@@ -228,7 +228,7 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                                             validator_with_data.active_batch_data.sql_engine_dialect,
                                             "name",
                                         )
-                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501
+                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501 # FIXME CoP
                                         == "trino"
                                     ):
                                         generate_test = True
@@ -354,7 +354,7 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                                             validator_with_data.active_batch_data.sql_engine_dialect,
                                             "name",
                                         )
-                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501
+                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501 # FIXME CoP
                                         == "bigquery"
                                     )
                                     or (
@@ -369,7 +369,7 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                                             validator_with_data.active_batch_data.sql_engine_dialect,
                                             "name",
                                         )
-                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501
+                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501 # FIXME CoP
                                         == "bigquery"
                                     )
                                     or (
@@ -385,7 +385,7 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                                             validator_with_data.active_batch_data.sql_engine_dialect,
                                             "name",
                                         )
-                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501
+                                        and validator_with_data.active_batch_data.sql_engine_dialect.name  # noqa: E501 # FIXME CoP
                                         == "trino"
                                     )
                                     or (

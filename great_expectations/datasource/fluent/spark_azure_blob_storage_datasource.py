@@ -37,6 +37,11 @@ class SparkAzureBlobStorageDatasourceError(SparkDatasourceError):
 
 @public_api
 class SparkAzureBlobStorageDatasource(_SparkFilePathDatasource):
+    """
+    SparkAzureBlobStorageDatasource is a subclass of SparkDatasource which connects to
+    Azure Blob Storage.
+    """
+
     # class attributes
     data_connector_type: ClassVar[Type[AzureBlobStorageDataConnector]] = (
         AzureBlobStorageDataConnector
@@ -59,22 +64,22 @@ class SparkAzureBlobStorageDatasource(_SparkFilePathDatasource):
                 self, self.azure_options, raise_warning_if_provider_not_present=True
             )
             # pull in needed config substitutions using the `_config_provider`
-            # The `FluentBaseModel.dict()` call will do the config substitution on the serialized dict if a `config_provider` is passed.  # noqa: E501
+            # The `FluentBaseModel.dict()` call will do the config substitution on the serialized dict if a `config_provider` is passed.  # noqa: E501 # FIXME CoP
             azure_options: dict = self.dict(config_provider=self._config_provider).get(
                 "azure_options", {}
             )
 
-            # Thanks to schema validation, we are guaranteed to have one of `conn_str` or `account_url` to  # noqa: E501
-            # use in authentication (but not both). If the format or content of the provided keys is invalid,  # noqa: E501
-            # the assignment of `self._account_name` and `self._azure_client` will fail and an error will be raised.  # noqa: E501
+            # Thanks to schema validation, we are guaranteed to have one of `conn_str` or `account_url` to  # noqa: E501 # FIXME CoP
+            # use in authentication (but not both). If the format or content of the provided keys is invalid,  # noqa: E501 # FIXME CoP
+            # the assignment of `self._account_name` and `self._azure_client` will fail and an error will be raised.  # noqa: E501 # FIXME CoP
             conn_str: str | None = azure_options.get("conn_str")
             account_url: str | None = azure_options.get("account_url")
             if not bool(conn_str) ^ bool(account_url):
-                raise SparkAzureBlobStorageDatasourceError(  # noqa: TRY003
-                    "You must provide one of `conn_str` or `account_url` to the `azure_options` key in your config (but not both)"  # noqa: E501
+                raise SparkAzureBlobStorageDatasourceError(  # noqa: TRY003 # FIXME CoP
+                    "You must provide one of `conn_str` or `account_url` to the `azure_options` key in your config (but not both)"  # noqa: E501 # FIXME CoP
                 )
 
-            # Validate that "azure" libararies were successfully imported and attempt to create "azure_client" handle.  # noqa: E501
+            # Validate that "azure" libararies were successfully imported and attempt to create "azure_client" handle.  # noqa: E501 # FIXME CoP
             if azure.BlobServiceClient:  # type: ignore[truthy-function] # False if NotImported
                 try:
                     if conn_str is not None:
@@ -91,19 +96,19 @@ class SparkAzureBlobStorageDatasource(_SparkFilePathDatasource):
                         ).group(1)
                         azure_client = azure.BlobServiceClient(**azure_options)
                 except Exception as e:
-                    # Failure to create "azure_client" is most likely due invalid "azure_options" dictionary.  # noqa: E501
-                    raise SparkAzureBlobStorageDatasourceError(  # noqa: TRY003
+                    # Failure to create "azure_client" is most likely due invalid "azure_options" dictionary.  # noqa: E501 # FIXME CoP
+                    raise SparkAzureBlobStorageDatasourceError(  # noqa: TRY003 # FIXME CoP
                         f'Due to exception: "{e!s}", "azure_client" could not be created.'
                     ) from e
             else:
-                raise SparkAzureBlobStorageDatasourceError(  # noqa: TRY003
-                    'Unable to create "SparkAzureBlobStorageDatasource" due to missing azure.storage.blob dependency.'  # noqa: E501
+                raise SparkAzureBlobStorageDatasourceError(  # noqa: TRY003 # FIXME CoP
+                    'Unable to create "SparkAzureBlobStorageDatasource" due to missing azure.storage.blob dependency.'  # noqa: E501 # FIXME CoP
                 )
 
             self._azure_client = azure_client
 
         if not azure_client:
-            raise SparkAzureBlobStorageDatasourceError("Failed to return `azure_client`")  # noqa: TRY003
+            raise SparkAzureBlobStorageDatasourceError("Failed to return `azure_client`")  # noqa: TRY003 # FIXME CoP
 
         return azure_client
 
@@ -116,12 +121,12 @@ class SparkAzureBlobStorageDatasource(_SparkFilePathDatasource):
 
         Raises:
             TestConnectionError: If the connection test fails.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         try:
             # tests Azure connection
             _ = self._get_azure_client()
         except Exception as e:
-            raise TestConnectionError(  # noqa: TRY003
+            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 "Attempt to connect to datasource failed with the following error message: "
                 f"{e!s}"
             ) from e
@@ -145,11 +150,11 @@ class SparkAzureBlobStorageDatasource(_SparkFilePathDatasource):
     ) -> None:
         """Builds and attaches the `AzureBlobStorageDataConnector` to the asset."""
         if kwargs:
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"_build_data_connector() got unexpected keyword arguments {list(kwargs.keys())}"
             )
         if abs_container is _MISSING:
-            raise TypeError(f"'{data_asset.name}' is missing required argument 'abs_container'")  # noqa: TRY003
+            raise TypeError(f"'{data_asset.name}' is missing required argument 'abs_container'")  # noqa: TRY003 # FIXME CoP
 
         data_asset._data_connector = self.data_connector_type.build_data_connector(
             datasource_name=self.name,

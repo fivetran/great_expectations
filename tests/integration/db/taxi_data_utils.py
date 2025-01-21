@@ -12,7 +12,7 @@ from great_expectations.datasource.fluent import GxDatasourceWarning
 from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
-from tests.integration.fixtures.partition_and_sample_data.partitioner_test_cases_and_fixtures import (  # noqa: E501
+from tests.integration.fixtures.partition_and_sample_data.partitioner_test_cases_and_fixtures import (  # noqa: E501 # FIXME CoP
     TaxiPartitioningTestCase,
     TaxiPartitioningTestCasesBase,
 )

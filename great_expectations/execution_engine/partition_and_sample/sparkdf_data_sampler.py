@@ -156,9 +156,9 @@ class SparkDataSampler(DataSampler):
             getattr(hashlib, str(hash_function_name))
         except (TypeError, AttributeError):
             raise (
-                gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     f"""The sampling method used with SparkDFExecutionEngine has a reference to an invalid hash_function_name.
-                    Reference to {hash_function_name} cannot be found."""  # noqa: E501
+                    Reference to {hash_function_name} cannot be found."""  # noqa: E501 # FIXME CoP
                 )
             )
 

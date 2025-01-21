@@ -79,6 +79,8 @@ services:
     depends_on:
       db-provisioner:
         condition: service_completed_successfully
+      localstack:
+        condition: service_healthy
   mercury-service-api-v1:
     image: 258143015559.dkr.ecr.us-east-1.amazonaws.com/mercury/api:v1api-latest
     platform: linux/amd64
@@ -100,19 +102,26 @@ services:
       AUTH0_MERCURY_API_CLIENT_SECRET: ${AUTH0_MERCURY_API_CLIENT_SECRET}
       SENDGRID_API_KEY: fake_key
       LD_SDK_KEY: ${LD_SDK_KEY}
+      GX_SCHEDULER_LAMBDA_ARN: ${GX_SCHEDULER_LAMBDA_ARN}
+      GX_SCHEDULER_EXECUTION_ROLE_ARN: ${GX_SCHEDULER_EXECUTION_ROLE_ARN}
+      GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}
+      GX_SCHEDULER_EVENTBRIDGE_REGION: ${GX_SCHEDULER_EVENTBRIDGE_REGION}
+      AWS_ENDPOINT_URL: ${LOCALSTACK_AWS_ENDPOINT_URL}
+      AWS_SECRET_ACCESS_KEY: ${LOCALSTACK_AWS_SECRET_ACCESS_KEY}
+      AWS_ACCESS_KEY_ID: ${LOCALSTACK_AWS_ACCESS_KEY_ID}
     depends_on:
       mercury-service-api:
         condition: service_started
       db-provisioner:
         condition: service_completed_successfully
+      localstack:
+        condition: service_healthy
     entrypoint:
       - /bin/bash
       - -c
       - |
-        sed -i 's/localhost/db/g' /app/services/ge_cloud/mercury/alembic.ini
-        cd /app/services/ge_cloud/mercury
-        alembic upgrade head
         cd /app/services/ge_cloud
+        ./scripts/localstack_init.sh
         gunicorn "mercury.api_v1:get_app()" -c ./fastapi-gunicorn.conf.py
   nginx:
     image: ${ECR_PULL_THROUGH_REPOSITORY_URL}library/nginx:latest
@@ -124,3 +133,16 @@ services:
     depends_on:
       - mercury-service-api
       - mercury-service-api-v1
+  localstack:
+    container_name: localstack
+    image: localstack/localstack
+    ports:
+      - "127.0.0.1:4566:4566" # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559" # external services port range
+    environment:
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      DEBUG: ${DEBUG:-0}
+      SERVICES: scheduler,lambda,sts,iam,ssm,events
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"

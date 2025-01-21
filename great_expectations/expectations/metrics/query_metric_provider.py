@@ -69,46 +69,9 @@ class QueryMetricProvider(MetricProvider):
             query_param
         )
         if not query:
-            raise ValueError(f"Must provide `{query_param}` to `{cls.__name__}` metric.")  # noqa: TRY003
+            raise ValueError(f"Must provide `{query_param}` to `{cls.__name__}` metric.")  # noqa: TRY003 # FIXME CoP
         if not isinstance(query, str):
-            raise TypeError(f"`{query_param}` must be provided as a string.")  # noqa: TRY003
-
-        return query
-
-    @classmethod
-    def _get_query_string_with_substituted_batch_parameters(
-        cls, query: str, batch_subquery: sa.sql.Subquery | sa.sql.Alias
-    ) -> str:
-        """Specifying a runtime query string returns the active batch as a Subquery or Alias type
-        There is no object-based way to apply the subquery alias to columns in the SELECT and
-        WHERE clauses. Instead, we extract the subquery parameters from the batch selectable
-        and inject them into the SQL string.
-
-        Raises:
-            MissingElementError if the batch_subquery.selectable does not have an element
-            for which to extract query parameters.
-        """
-
-        try:
-            froms = batch_subquery.selectable.element.get_final_froms()  # type: ignore[attr-defined]  # possible AttributeError handled
-            try:
-                batch_table = froms[0].name
-            except AttributeError:
-                batch_table = str(froms[0])
-            batch_filter = str(batch_subquery.selectable.element.whereclause)  # type: ignore[attr-defined]  # possible AttributeError handled
-        except (AttributeError, IndexError) as e:
-            raise MissingElementError() from e
-
-        unfiltered_query = query.format(batch=batch_table)
-
-        if "WHERE" in query.upper():
-            query = unfiltered_query.replace("WHERE", f"WHERE {batch_filter} AND")
-        elif "GROUP BY" in query.upper():
-            query = unfiltered_query.replace("GROUP BY", f"WHERE {batch_filter} GROUP BY")
-        elif "ORDER BY" in query.upper():
-            query = unfiltered_query.replace("ORDER BY", f"WHERE {batch_filter} ORDER BY")
-        else:
-            query = unfiltered_query + f" WHERE {batch_filter}"
+            raise TypeError(f"`{query_param}` must be provided as a string.")  # noqa: TRY003 # FIXME CoP
 
         return query
 
@@ -126,46 +89,41 @@ class QueryMetricProvider(MetricProvider):
             return {**query_parameters}
 
     @classmethod
-    def _get_sqlalchemy_records_from_query_and_batch_selectable(
+    def _get_substituted_batch_subquery_from_query_and_batch_selectable(
         cls,
         query: str,
         batch_selectable: sa.Selectable,
         execution_engine: SqlAlchemyExecutionEngine,
         query_parameters: Optional[QueryParameters] = None,
-    ) -> list[dict]:
+    ) -> str:
         parameters = cls._get_parameters_dict_from_query_parameters(query_parameters)
 
         if isinstance(batch_selectable, sa.Table):
             query = query.format(batch=batch_selectable, **parameters)
-        elif isinstance(batch_selectable, get_sqlalchemy_subquery_type()):
-            if (
-                not parameters
-                and execution_engine.dialect_name in cls.dialect_columns_require_subquery_aliases
-            ):
-                try:
-                    query = cls._get_query_string_with_substituted_batch_parameters(
-                        query=query,
-                        batch_subquery=batch_selectable,
-                    )
-                except MissingElementError:
-                    # if we are unable to extract the subquery parameters,
-                    # we fall back to the default behavior for all dialects
-                    batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
-                    query = query.format(batch=f"({batch})", **parameters)
-            else:
-                batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
-                query = query.format(batch=f"({batch})", **parameters)
         elif isinstance(
-            batch_selectable, sa.sql.Select
-        ):  # Specifying a row_condition returns the active batch as a Select object
-            # requiring compilation & aliasing when formatting the parameterized query
+            batch_selectable, (sa.sql.Select, get_sqlalchemy_subquery_type())
+        ):  # specifying a row_condition returns the active batch as a Select
+            # specifying an unexpected_rows_query returns the active batch as a Subquery or Alias
+            # this requires compilation & aliasing when formatting the parameterized query
             batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
-            query = query.format(batch=f"({batch}) AS subselect", **parameters)
+            # all join queries require the user to have taken care of aliasing themselves
+            if "JOIN" in query.upper():
+                query = query.format(batch=f"({batch})", **parameters)
+            else:
+                query = query.format(batch=f"({batch}) AS subselect", **parameters)
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
 
+        return query
+
+    @classmethod
+    def _get_sqlalchemy_records_from_substituted_batch_subquery(
+        cls,
+        substituted_batch_subquery: str,
+        execution_engine: SqlAlchemyExecutionEngine,
+    ) -> list[dict]:
         result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
-            sa.text(query)  # type: ignore[arg-type]
+            sa.text(substituted_batch_subquery)
         ).fetchmany(MAX_RESULT_RECORDS)
 
         if isinstance(result, Sequence):

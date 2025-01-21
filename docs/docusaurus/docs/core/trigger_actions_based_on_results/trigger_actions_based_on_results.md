@@ -23,6 +23,14 @@ import OverviewCard from '@site/src/components/OverviewCard';
     to="/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions" 
     icon="/img/expectation_icon.svg" 
   />
+
+  <LinkCard 
+    topIcon 
+    label="Create a custom Action"
+    description="Define custom logic to run based on Validation Results."
+    to="/core/trigger_actions_based_on_results/create_a_custom_action" 
+    icon="/img/expectation_icon.svg" 
+  />
   
   <LinkCard 
     topIcon 

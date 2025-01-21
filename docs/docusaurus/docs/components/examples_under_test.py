@@ -439,6 +439,16 @@ docs_examples_trigger_actions_based_on_validation_results = [
         # data_context_dir="",
         backend_dependencies=[],
     ),
+    # Create a custom Action
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "docs_example_create_a_custom_action" tests/integration/test_script_runner.py
+        name="docs_example_create_a_custom_action",
+        user_flow_script="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
+        # data_context_dir="",
+        backend_dependencies=[],
+    ),
     # Run a Checkpoint
     IntegrationTestFixture(
         # To test, run:
@@ -473,9 +483,9 @@ docs_examples_customize_expectations = [
     ),
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests -k "docs_example_expectation_row_conditions" tests/integration/test_script_runner.py
-        name="docs_example_expectation_row_conditions",
-        user_flow_script="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_row_conditions.py",
+        # pytest --docs-tests -k "docs_example_expectation_conditions" tests/integration/test_script_runner.py
+        name="docs_example_expectation_conditions",
+        user_flow_script="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py",
         data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/titantic_test_file",
         # data_context_dir="",
         backend_dependencies=[],
@@ -527,6 +537,59 @@ docs_examples_configure_data_docs = [
 ]
 
 learn_data_quality_use_cases = [
+    # Distribution.
+    IntegrationTestFixture(
+        name="data_quality_use_case_distribution_expectations",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/distribution_resources/distribution_expectations.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    IntegrationTestFixture(
+        name="data_quality_use_case_distribution_workflow",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/distribution_resources/distribution_workflow.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    # Freshness.
+    IntegrationTestFixture(
+        name="data_quality_use_case_freshness_expectations",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/freshness_resources/freshness_expectations.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    IntegrationTestFixture(
+        name="data_quality_use_case_freshness_workflow",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/freshness_resources/freshness_workflow.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    # Integrity.
+    IntegrationTestFixture(
+        name="data_quality_use_case_integrity_expectations",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_expectations.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    IntegrationTestFixture(
+        name="data_quality_use_case_integrity_workflow",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_workflow.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    # Missingness.
+    IntegrationTestFixture(
+        name="data_quality_use_case_missingness_expectations",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
     # Schema.
     IntegrationTestFixture(
         name="data_quality_use_case_schema_expectations",
@@ -549,10 +612,17 @@ learn_data_quality_use_cases = [
         util_script="tests/test_utils.py",
         backend_dependencies=[BackendDependencies.POSTGRESQL],
     ),
-    # Missingness.
+    # Uniqueness.
     IntegrationTestFixture(
-        name="data_quality_use_case_missingness_expectations",
-        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py",
+        name="data_quality_use_case_uniqueness_expectations",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    IntegrationTestFixture(
+        name="data_quality_use_case_uniqueness_workflow",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py",
         data_dir="tests/test_sets/learn_data_quality_use_cases/",
         util_script="tests/test_utils.py",
         backend_dependencies=[BackendDependencies.POSTGRESQL],
@@ -568,21 +638,6 @@ learn_data_quality_use_cases = [
     IntegrationTestFixture(
         name="data_quality_use_case_volume_workflow",
         user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_workflow.py",
-        data_dir="tests/test_sets/learn_data_quality_use_cases/",
-        util_script="tests/test_utils.py",
-        backend_dependencies=[BackendDependencies.POSTGRESQL],
-    ),
-    # Distribution.
-    IntegrationTestFixture(
-        name="data_quality_use_case_distribution_expectations",
-        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/distribution_resources/distribution_expectations.py",
-        data_dir="tests/test_sets/learn_data_quality_use_cases/",
-        util_script="tests/test_utils.py",
-        backend_dependencies=[BackendDependencies.POSTGRESQL],
-    ),
-    IntegrationTestFixture(
-        name="data_quality_use_case_distribution_workflow",
-        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/distribution_resources/distribution_workflow.py",
         data_dir="tests/test_sets/learn_data_quality_use_cases/",
         util_script="tests/test_utils.py",
         backend_dependencies=[BackendDependencies.POSTGRESQL],

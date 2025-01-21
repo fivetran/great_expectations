@@ -6,7 +6,7 @@ from unittest import mock
 
 import pytest
 
-from great_expectations.checkpoint.actions import SlackNotificationAction
+from great_expectations.checkpoint import SlackNotificationAction
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.data_context_key import StringKey
@@ -188,8 +188,8 @@ def test_get_key(request, store_fixture: str):
 @pytest.mark.cloud
 def test_get_key_cloud(cloud_backed_store: CheckpointStore):
     key = cloud_backed_store.get_key(name="my_checkpoint")
-    assert key.resource_type == GXCloudRESTResource.CHECKPOINT  # type: ignore[union-attr]
-    assert key.resource_name == "my_checkpoint"  # type: ignore[union-attr]
+    assert key.resource_type == GXCloudRESTResource.CHECKPOINT  # type: ignore[union-attr] # FIXME CoP
+    assert key.resource_name == "my_checkpoint"  # type: ignore[union-attr] # FIXME CoP
 
 
 def _create_checkpoint_config(name: str, id: str) -> dict[str, Any]:

@@ -78,6 +78,8 @@ jobs:
           invoke type-check --ci --pretty  --check-stub-sources
       - name: Marker-coverage-check
         run: invoke marker-coverage
+      - name: Check for linter ignores without comments
+        run: ./scripts/check_linter_ignores.sh
 
   docs-snippets:
     needs: [unit-tests, doc-checks, ci-is-on-main-repo]
@@ -157,6 +159,9 @@ jobs:
           ./google-cloud-sdk/bin/gcloud config set pass_credentials_to_gsutil True
           # Authorize access to Google Cloud with a service account
           ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+
+      - name: Install mssql odbc driver
+        run: ./scripts/install_mssql_odbc_driver.sh
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -274,8 +279,6 @@ jobs:
         run: python ci/checks/check_name_tag_snippets_referenced.py
       - name: public_api_report
         run: invoke public-api
-      - name: link_checker
-        run: python docs/checks/docs_link_checker.py -p docs/docusaurus/docs -r docs/docusaurus/docs -sr docs/docusaurus/static -s docs -sp static --skip-external
 
   docs-build:
     needs: [doc-checks]
@@ -301,6 +304,14 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=4096
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && bash ../build_docs
+
+      - name: Run broken link checker
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
+          # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
+          # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
+          args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' 'docs/docusaurus/build/**/*.html'"
 
   docs-tests:
     runs-on: ubuntu-latest
@@ -330,6 +341,13 @@ jobs:
       GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
       GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
       LD_SDK_KEY: ${{secrets.LD_SDK_KEY}}
+      GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
+      GX_SCHEDULER_EXECUTION_ROLE_ARN: ${{secrets.GX_SCHEDULER_EXECUTION_ROLE_ARN}}
+      GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}}
+      GX_SCHEDULER_EVENTBRIDGE_REGION: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_REGION}}
+      LOCALSTACK_AWS_ENDPOINT_URL: ${{secrets.LOCALSTACK_AWS_ENDPOINT_URL}}
+      LOCALSTACK_AWS_SECRET_ACCESS_KEY: ${{secrets.LOCALSTACK_AWS_SECRET_ACCESS_KEY}}
+      LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
       PACT_DO_NOT_TRACK: true
       SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
       SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
@@ -393,11 +411,64 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: cloud
 
+  integration-tests:
+    needs: [unit-tests, static-analysis, ci-is-on-main-repo]
+    if: github.event.pull_request.draft == false
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    env:
+      GX_MS_TEAMS_WEBHOOK: ${{ secrets.GX_MS_TEAMS_WEBHOOK }}
+      OUTDATED_MS_TEAMS_WEBHOOK: ${{ secrets.OUTDATED_MS_TEAMS_WEBHOOK }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -r test
+
+      - name: Run the tests
+        run:
+          invoke ci-tests 'integration' --verbose
+
+          # upload coverage report to codecov
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.1.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: great-expectations/great_expectations
+          flags: integration
+
+      # upload test results to codecov
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: integration
+
   marker-tests:
     needs: [unit-tests, static-analysis]
     if: github.event.pull_request.draft == false
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      # google
+      GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
+      GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
+      GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
+      GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
       # aws
       AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
       AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION}}
@@ -425,6 +496,7 @@ jobs:
           - athena or openpyxl or pyarrow or project or sqlite or aws_creds
           - aws_deps
           - big
+          - bigquery
           - databricks
           - filesystem
           - mssql
@@ -461,10 +533,17 @@ jobs:
             reqs/requirements-dev-test.txt
             setup.py
 
+      - name: Copy GCP credentials to file
+        run: |
+          echo "$GE_TEST_GCP_CREDENTIALS" > gcp-credentials.json
+
       - name: Install dependencies
         run: |
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
+
+      - name: Install mssql odbc driver
+        run: ./scripts/install_mssql_odbc_driver.sh
 
       - name: Configure ECR AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -638,6 +717,7 @@ jobs:
         docs-snippets,
         unit-tests,
         cloud-tests,
+        integration-tests,
         marker-tests,
         py39-min-versions,
         py310-min-versions,
@@ -686,6 +766,7 @@ jobs:
         docs-snippets,
         unit-tests,
         cloud-tests,
+        integration-tests,
         marker-tests,
         py39-min-versions,
         py310-min-versions,

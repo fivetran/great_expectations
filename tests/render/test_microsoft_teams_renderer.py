@@ -48,5 +48,6 @@ def test_MicrosoftTeamsRender_render_with_data_docs_pages(
     )
 
     assert (
-        rendered_output["attachments"][0]["content"]["body"][-1]["actions"][0]["url"] == local_path
+        rendered_output["attachments"][0]["content"]["actions"][0]["card"]["body"][0]["text"]
+        == local_path
     )

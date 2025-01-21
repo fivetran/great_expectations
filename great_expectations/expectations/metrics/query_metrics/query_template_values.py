@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numbers
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Sequence, Union
 
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -18,7 +18,7 @@ from great_expectations.expectations.metrics.query_metric_provider import (
 from great_expectations.util import get_sqlalchemy_subquery_type
 
 if TYPE_CHECKING:
-    from great_expectations.compatibility import pyspark, sqlalchemy
+    from great_expectations.compatibility import pyspark
 
 
 class QueryTemplateValues(QueryMetricProvider):
@@ -55,26 +55,23 @@ class QueryTemplateValues(QueryMetricProvider):
             metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
         )
 
-        if not isinstance(query, str):
-            raise TypeError("Query must be supplied as a string")  # noqa: TRY003
-
         template_dict = metric_value_kwargs.get("template_dict")
 
         if not isinstance(template_dict, dict):
-            raise TypeError("template_dict supplied by the expectation must be a dict")  # noqa: TRY003
+            raise TypeError("template_dict supplied by the expectation must be a dict")  # noqa: TRY003 # FIXME CoP
 
         if isinstance(selectable, sa.Table):
             query = cls.get_query(query, template_dict, selectable)
 
         elif isinstance(
             selectable, get_sqlalchemy_subquery_type()
-        ):  # Specifying a runtime query in a RuntimeBatchRequest returns the active batch as a Subquery; sectioning  # noqa: E501
+        ):  # Specifying a runtime query in a RuntimeBatchRequest returns the active batch as a Subquery; sectioning  # noqa: E501 # FIXME CoP
             # the active batch off w/ parentheses ensures flow of operations doesn't break
             query = cls.get_query(query, template_dict, f"({selectable})")
 
         elif isinstance(
             selectable, sa.sql.Select
-        ):  # Specifying a row_condition returns the active batch as a Select object, requiring compilation &  # noqa: E501
+        ):  # Specifying a row_condition returns the active batch as a Select object, requiring compilation &  # noqa: E501 # FIXME CoP
             # aliasing when formatting the parameterized query
             query = cls.get_query(
                 query,
@@ -86,14 +83,19 @@ class QueryTemplateValues(QueryMetricProvider):
             query = cls.get_query(query, template_dict, f"({selectable})")
 
         try:
-            result: List[sqlalchemy.Row] = execution_engine.execute_query(sa.text(query)).fetchall()  # type: ignore[assignment,arg-type]
+            result: Union[Sequence[sa.Row[Any]], Any] = execution_engine.execute_query(
+                sa.text(query)
+            ).fetchall()
         except Exception as e:
             if hasattr(e, "_query_id"):
                 # query_id removed because it duplicates the validation_results
                 e._query_id = None
-            raise e  # noqa: TRY201
+            raise e  # noqa: TRY201 # FIXME CoP
 
-        return [element._asdict() for element in result]
+        if isinstance(result, Sequence):
+            return [element._asdict() for element in result]
+        else:
+            return [result]
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
@@ -114,9 +116,9 @@ class QueryTemplateValues(QueryMetricProvider):
         df.createOrReplaceTempView("tmp_view")
         template_dict = metric_value_kwargs.get("template_dict")
         if not isinstance(query, str):
-            raise TypeError("template_dict supplied by the expectation must be a dict")  # noqa: TRY003
+            raise TypeError("template_dict supplied by the expectation must be a dict")  # noqa: TRY003 # FIXME CoP
         if not isinstance(template_dict, dict):
-            raise TypeError("template_dict supplied by the expectation must be a dict")  # noqa: TRY003
+            raise TypeError("template_dict supplied by the expectation must be a dict")  # noqa: TRY003 # FIXME CoP
 
         query = query.format(**template_dict, batch="tmp_view")
 

@@ -75,7 +75,7 @@ class TableHead(TableMetricProvider):
         if metric_value_kwargs["fetch_all"]:
             limit = None
 
-        selectable = sa.select("*").select_from(selectable).limit(limit).selectable  # type: ignore[assignment,arg-type]
+        selectable = sa.select("*").select_from(selectable).limit(limit).selectable  # type: ignore[assignment,arg-type] # FIXME CoP
 
         try:
             with execution_engine.get_connection() as con:
@@ -90,7 +90,7 @@ class TableHead(TableMetricProvider):
                 MetricConfiguration("table.columns", metric_domain_kwargs)
             )
             df = pd.DataFrame(columns=columns)
-        return df  # type: ignore[return-value]
+        return df  # type: ignore[return-value] # FIXME CoP
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
@@ -119,6 +119,6 @@ class TableHead(TableMetricProvider):
                 rows = df.head(n=df.count() + n_rows)
 
         rows = [element.asDict() for element in rows]
-        df = pd.DataFrame(data=rows)  # type: ignore[assignment]
+        df = pd.DataFrame(data=rows)  # type: ignore[assignment] # FIXME CoP
 
-        return df  # type: ignore[return-value]
+        return df  # type: ignore[return-value] # FIXME CoP

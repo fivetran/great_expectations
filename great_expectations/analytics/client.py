@@ -38,7 +38,7 @@ def submit(event: Event) -> None:
         pass
 
 
-def init(  # noqa: PLR0913
+def init(  # noqa: PLR0913 # FIXME CoP
     enable: bool,
     user_id: Optional[UUID] = None,
     data_context_id: Optional[UUID] = None,

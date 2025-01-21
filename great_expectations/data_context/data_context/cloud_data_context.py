@@ -84,9 +84,9 @@ class OrganizationIdNotSpecifiedError(Exception):
 
 @public_api
 class CloudDataContext(SerializableDataContext):
-    """Subclass of AbstractDataContext that contains functionality necessary to work in a GX Cloud-backed environment."""  # noqa: E501
+    """Subclass of AbstractDataContext that contains functionality necessary to work in a GX Cloud-backed environment."""  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         project_config: Optional[Union[DataContextConfig, Mapping]] = None,
         context_root_dir: Optional[PathStr] = None,
@@ -104,7 +104,7 @@ class CloudDataContext(SerializableDataContext):
             runtime_environment (dict):  a dictionary of config variables that override both those set in
                 config_variables.yml and the environment
             cloud_config (GXCloudConfig): GXCloudConfig corresponding to current CloudDataContext
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self._check_if_latest_version()
         self._cloud_config = self.get_cloud_config(
             cloud_base_url=cloud_base_url,
@@ -117,7 +117,7 @@ class CloudDataContext(SerializableDataContext):
         )
         self._project_config = self._init_project_config(project_config)
 
-        # The DataAssetStore is relevant only for CloudDataContexts and is not an explicit part of the project config.  # noqa: E501
+        # The DataAssetStore is relevant only for CloudDataContexts and is not an explicit part of the project config.  # noqa: E501 # FIXME CoP
         # As such, it must be instantiated separately.
         self._data_asset_store = self._init_data_asset_store()
 
@@ -203,7 +203,7 @@ class CloudDataContext(SerializableDataContext):
 
         Returns:
             bool: Is all the information needed to build a cloud_config is available?
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         cloud_config_dict = cls._get_cloud_config_dict(
             cloud_base_url=cloud_base_url,
             cloud_access_token=cloud_access_token,
@@ -221,13 +221,13 @@ class CloudDataContext(SerializableDataContext):
             context_root_dir=context_root_dir, project_root_dir=project_root_dir
         )
         if context_root_dir is None:
-            context_root_dir = os.getcwd()  # noqa: PTH109
+            context_root_dir = os.getcwd()  # noqa: PTH109 # FIXME CoP
             logger.debug(
                 f'context_root_dir was not provided - defaulting to current working directory "'
                 f'{context_root_dir}".'
             )
-        return os.path.abspath(  # noqa: PTH100
-            os.path.expanduser(context_root_dir)  # noqa: PTH111
+        return os.path.abspath(  # noqa: PTH100 # FIXME CoP
+            os.path.expanduser(context_root_dir)  # noqa: PTH111 # FIXME CoP
         )
 
     @classmethod
@@ -243,7 +243,7 @@ class CloudDataContext(SerializableDataContext):
         over the wire.
 
         :return: the configuration object retrieved from the Cloud API
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         response = cls._request_cloud_backend(
             cloud_config=cloud_config, resource="data_context_configuration"
         )
@@ -344,7 +344,7 @@ class CloudDataContext(SerializableDataContext):
         try:
             response.raise_for_status()
         except HTTPError:
-            raise gx_exceptions.GXCloudError(  # noqa: TRY003
+            raise gx_exceptions.GXCloudError(  # noqa: TRY003 # FIXME CoP
                 f"Bad request made to GX Cloud; {response.text}", response=response
             )
 
@@ -377,7 +377,7 @@ class CloudDataContext(SerializableDataContext):
 
         Raises:
             GXCloudError if a GX Cloud variable is missing
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         cloud_config_dict = cls._get_cloud_config_dict(
             cloud_base_url=cloud_base_url,
             cloud_access_token=cloud_access_token,
@@ -391,8 +391,8 @@ class CloudDataContext(SerializableDataContext):
         if len(missing_keys) > 0:
             missing_keys_str = [f'"{key}"' for key in missing_keys]
             global_config_path_str = [f'"{path}"' for path in super().GLOBAL_CONFIG_PATHS]
-            raise DataContextError(  # noqa: TRY003
-                f"{(', ').join(missing_keys_str)} arg(s) required for ge_cloud_mode but neither provided nor found in "  # noqa: E501
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
+                f"{(', ').join(missing_keys_str)} arg(s) required for ge_cloud_mode but neither provided nor found in "  # noqa: E501 # FIXME CoP
                 f"environment or in global configs ({(', ').join(global_config_path_str)})."
             )
 
@@ -442,7 +442,7 @@ class CloudDataContext(SerializableDataContext):
     @override
     def _init_datasources(self) -> None:
         # Note that Cloud does NOT populate self._datasources with existing objects on init.
-        # Objects are retrieved only when requested and are NOT cached (this differs in ephemeral/file-backed contexts).  # noqa: E501
+        # Objects are retrieved only when requested and are NOT cached (this differs in ephemeral/file-backed contexts).  # noqa: E501 # FIXME CoP
         self._datasources = DatasourceDict(
             context=self,
             datasource_store=self._datasource_store,
@@ -510,7 +510,7 @@ class CloudDataContext(SerializableDataContext):
     @override
     def _init_variables(self) -> CloudDataContextVariables:
         ge_cloud_base_url: str = self.ge_cloud_config.base_url
-        ge_cloud_organization_id: str = self.ge_cloud_config.organization_id  # type: ignore[assignment]
+        ge_cloud_organization_id: str = self.ge_cloud_config.organization_id  # type: ignore[assignment] # FIXME CoP
         ge_cloud_access_token: str = self.ge_cloud_config.access_token
 
         variables = CloudDataContextVariables(
@@ -529,7 +529,7 @@ class CloudDataContext(SerializableDataContext):
         If not, it should choose the id stored in DataContextConfig.
         Returns:
             UUID to use as the data_context_id
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         org_id = self.ge_cloud_config.organization_id
         if org_id:
             return uuid.UUID(org_id)
@@ -544,7 +544,7 @@ class CloudDataContext(SerializableDataContext):
         in order of precedence: cloud_config (for Data Contexts in GX Cloud mode), runtime_environment,
         environment variables, config_variables, or ge_cloud_config_variable_defaults (allows certain variables to
         be optional in GX Cloud mode).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not config:
             config = self.config
 
@@ -567,10 +567,10 @@ class CloudDataContext(SerializableDataContext):
             )
             logger.info(
                 "Config variables were not found in environment or global config ("
-                f"{self.GLOBAL_CONFIG_PATHS}). Using default values instead. {missing_config_var_repr} ;"  # noqa: E501
+                f"{self.GLOBAL_CONFIG_PATHS}). Using default values instead. {missing_config_var_repr} ;"  # noqa: E501 # FIXME CoP
                 " If you would like to "
                 "use a different value, please specify it in an environment variable or in a "
-                "great_expectations.conf file located at one of the above paths, in a section named "  # noqa: E501
+                "great_expectations.conf file located at one of the above paths, in a section named "  # noqa: E501 # FIXME CoP
                 '"ge_cloud_config".'
             )
 
@@ -619,7 +619,7 @@ class CloudDataContext(SerializableDataContext):
         Explicitly override base class implementation to retain legacy behavior.
         """
         logger.debug(
-            "CloudDataContext._save_project_config() was called. Base class impl was override to be no-op to retain "  # noqa: E501
+            "CloudDataContext._save_project_config() was called. Base class impl was override to be no-op to retain "  # noqa: E501 # FIXME CoP
             "legacy behavior."
         )
 

@@ -77,7 +77,14 @@
             "type": "string"
         },
         "condition_parser": {
-            "$ref": "#/definitions/ConditionParser"
+            "title": "Condition Parser",
+            "enum": [
+                "great_expectations",
+                "great_expectations__experimental__",
+                "pandas",
+                "spark"
+            ],
+            "type": "string"
         },
         "partition_object": {
             "title": "Partition Object",
@@ -174,7 +181,7 @@
                     "title": "Data Quality Issues",
                     "type": "array",
                     "const": [
-                        "Distribution"
+                        "Numeric"
                     ]
                 },
                 "library_metadata": {
@@ -210,7 +217,6 @@
                         "PostgreSQL",
                         "MySQL",
                         "MSSQL",
-                        "Redshift",
                         "BigQuery",
                         "Snowflake"
                     ]
@@ -282,17 +288,6 @@
                 "offset"
             ],
             "additionalProperties": false
-        },
-        "ConditionParser": {
-            "title": "ConditionParser",
-            "description": "Type of parser to be used to interpret a Row Condition.",
-            "enum": [
-                "great_expectations",
-                "great_expectations__experimental__",
-                "pandas",
-                "spark"
-            ],
-            "type": "string"
         }
     }
 }

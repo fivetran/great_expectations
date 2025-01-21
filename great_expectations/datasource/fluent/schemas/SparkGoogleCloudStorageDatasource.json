@@ -1,6 +1,6 @@
 {
     "title": "SparkGoogleCloudStorageDatasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nSparkGoogleCloudStorageDatasource is a subclass of SparkDatasource which connects to\nGoogle Cloud Storage.",
     "type": "object",
     "properties": {
         "type": {

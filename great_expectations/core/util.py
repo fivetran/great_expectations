@@ -32,8 +32,8 @@ except ImportError:
 if not LegacyRow:
     LegacyRow = SQLALCHEMY_NOT_IMPORTED
 
-if not Row:  # type: ignore[truthy-function]
-    Row = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc]
+if not Row:  # type: ignore[truthy-function] # FIXME CoP
+    Row = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc] # FIXME CoP
 
 SCHEMAS = {
     "api_np": {
@@ -99,7 +99,7 @@ def nested_update(
 
 def in_jupyter_notebook():
     try:
-        from IPython import get_ipython  # type: ignore[import-not-found]
+        from IPython import get_ipython  # type: ignore[import-not-found] # FIXME CoP
 
         shell = get_ipython().__class__.__name__
         if shell == "ZMQInteractiveShell":
@@ -137,9 +137,9 @@ def substitute_all_strftime_format_strings(
     """
     This utility function will iterate over input data and for all strings, replace any strftime format
     elements using either the provided datetime_obj or the current datetime
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    datetime_obj = datetime_obj or datetime.datetime.now()  # noqa: DTZ005
+    datetime_obj = datetime_obj or datetime.datetime.now()  # noqa: DTZ005 # FIXME CoP
     if isinstance(data, (dict, OrderedDict)):
         return {
             k: substitute_all_strftime_format_strings(v, datetime_obj=datetime_obj)
@@ -159,22 +159,22 @@ def parse_string_to_datetime(
     datetime_string: str, datetime_format_string: Optional[str] = None
 ) -> datetime.datetime:
     if not isinstance(datetime_string, str):
-        raise gx_exceptions.SorterError(  # noqa: TRY003
+        raise gx_exceptions.SorterError(  # noqa: TRY003 # FIXME CoP
             f"""Source "datetime_string" must have string type (actual type is "{type(datetime_string)!s}").
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
         )
 
     if not datetime_format_string:
         return dateutil.parser.parse(timestr=datetime_string)
 
     if datetime_format_string and not isinstance(datetime_format_string, str):
-        raise gx_exceptions.SorterError(  # noqa: TRY003
+        raise gx_exceptions.SorterError(  # noqa: TRY003 # FIXME CoP
             f"""DateTime parsing formatter "datetime_format_string" must have string type (actual type is
 "{type(datetime_format_string)!s}").
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
         )
 
-    return datetime.datetime.strptime(  # noqa: DTZ007
+    return datetime.datetime.strptime(  # noqa: DTZ007 # FIXME CoP
         datetime_string, datetime_format_string
     )
 
@@ -218,7 +218,7 @@ class AzureUrl:
             search = re.search(AzureUrl.AZURE_BLOB_STORAGE_HTTPS_URL_REGEX_PATTERN, url)
             assert (
                 search is not None
-            ), "The provided URL does not adhere to the format specified by the Azure SDK (<ACCOUNT_NAME>.blob.core.windows.net/<CONTAINER>/<BLOB>)"  # noqa: E501
+            ), "The provided URL does not adhere to the format specified by the Azure SDK (<ACCOUNT_NAME>.blob.core.windows.net/<CONTAINER>/<BLOB>)"  # noqa: E501 # FIXME CoP
             self._protocol = search.group(1)
             self._account_name = search.group(2)
             self._container = search.group(3)
@@ -353,7 +353,7 @@ class DBFSPath:
         if re.search("^/dbfs", path):
             return path
 
-        raise ValueError("Path should start with either /dbfs or dbfs:")  # noqa: TRY003
+        raise ValueError("Path should start with either /dbfs or dbfs:")  # noqa: TRY003 # FIXME CoP
 
     @staticmethod
     def convert_to_protocol_version(path: str) -> str:
@@ -372,7 +372,7 @@ class DBFSPath:
 
             return path
 
-        raise ValueError("Path should start with either /dbfs or dbfs:")  # noqa: TRY003
+        raise ValueError("Path should start with either /dbfs or dbfs:")  # noqa: TRY003 # FIXME CoP
 
 
 def sniff_s3_compression(s3_url: S3Url) -> Union[str, None]:
@@ -388,8 +388,8 @@ def get_or_create_spark_application(
 
     # deprecated-v1.0.0
     warnings.warn(
-        "Utility method get_or_create_spark_application() is deprecated and will be removed in v1.0.0. "  # noqa: E501
-        "Please pass your spark_config to the relevant Spark Datasource, or create your Spark Session outside of GX.",  # noqa: E501
+        "Utility method get_or_create_spark_application() is deprecated and will be removed in v1.0.0. "  # noqa: E501 # FIXME CoP
+        "Please pass your spark_config to the relevant Spark Datasource, or create your Spark Session outside of GX.",  # noqa: E501 # FIXME CoP
         category=DeprecationWarning,
     )
     if force_reuse_spark_context is not None:
@@ -397,8 +397,8 @@ def get_or_create_spark_application(
         warnings.warn(
             "force_reuse_spark_context is deprecated and will be removed in version 1.0. "
             "In environments that allow it, the existing Spark context will be reused, adding the "
-            "spark_config options that have been passed. If the Spark context cannot be updated with "  # noqa: E501
-            "the spark_config, the context will be stopped and restarted with the new spark_config.",  # noqa: E501
+            "spark_config options that have been passed. If the Spark context cannot be updated with "  # noqa: E501 # FIXME CoP
+            "the spark_config, the context will be stopped and restarted with the new spark_config.",  # noqa: E501 # FIXME CoP
             category=DeprecationWarning,
         )
     return SparkDFExecutionEngine.get_or_create_spark_session(
@@ -416,18 +416,18 @@ def get_or_create_spark_session(
 
     Returns:
         SparkSession
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     from great_expectations.execution_engine import SparkDFExecutionEngine
 
     # deprecated-v1.0.0
     warnings.warn(
         "Utility method get_or_create_spark_session() is deprecated and will be removed in v1.0.0. "
-        "Please pass your spark_config to the relevant Spark Datasource, or create your Spark Session outside of GX.",  # noqa: E501
+        "Please pass your spark_config to the relevant Spark Datasource, or create your Spark Session outside of GX.",  # noqa: E501 # FIXME CoP
         category=DeprecationWarning,
     )
 
     return SparkDFExecutionEngine.get_or_create_spark_session(
-        spark_config=spark_config or {},  # type: ignore[arg-type]
+        spark_config=spark_config or {},  # type: ignore[arg-type] # FIXME CoP
     )
 
 
@@ -438,7 +438,7 @@ def get_sql_dialect_floating_point_infinity_value(schema: str, negative: bool = 
             return -np.inf
         else:
             return np.inf
-    else:  # noqa: PLR5501
+    else:  # noqa: PLR5501 # FIXME CoP
         if negative:
             return res["NegativeInfinity"]
         else:

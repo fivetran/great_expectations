@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
-from great_expectations.core.domain import Domain, SemanticDomainTypes  # noqa: TCH001
+from great_expectations.core.domain import Domain, SemanticDomainTypes  # noqa: TCH001 # FIXME CoP
 from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
@@ -14,9 +14,9 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_resolved_metrics_by_key,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001
+    ParameterContainer,  # noqa: TCH001 # FIXME CoP
 )
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
     This DomainBuilder uses relative tolerance of specified map metric to identify domains.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         map_metric_name: str,
         include_column_names: Optional[Union[str, Optional[List[str]]]] = None,
@@ -98,7 +98,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
 
         However, if "max_unexpected_ratio" is eased to above 0.2, then the tolerances will be met and Domain emitted.
         Alternatively, if "min_max_unexpected_values_proportion" is lowered to 0.66, Domain will also be emitted.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         super().__init__(
             include_column_names=include_column_names,
             exclude_column_names=exclude_column_names,
@@ -147,8 +147,8 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
 
         Returns:
             List of domains that match the desired tolerance limits.
-        """  # noqa: E501
-        # Obtain map_metric_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
+        # Obtain map_metric_name from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         map_metric_name: str = get_parameter_value_and_validate_return_type(
             domain=None,
             parameter_reference=self.map_metric_name,
@@ -157,7 +157,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
             parameters=None,
         )
 
-        # Obtain max_unexpected_values from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain max_unexpected_values from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         max_unexpected_values: int = get_parameter_value_and_validate_return_type(
             domain=None,
             parameter_reference=self.max_unexpected_values,
@@ -166,7 +166,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
             parameters=None,
         )
 
-        # Obtain max_unexpected_ratio from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain max_unexpected_ratio from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         max_unexpected_ratio: Optional[float] = get_parameter_value_and_validate_return_type(
             domain=None,
             parameter_reference=self.max_unexpected_ratio,
@@ -175,7 +175,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
             parameters=None,
         )
 
-        # Obtain min_max_unexpected_values_proportion from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain min_max_unexpected_values_proportion from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         min_max_unexpected_values_proportion: float = get_parameter_value_and_validate_return_type(
             domain=None,
             parameter_reference=self.min_max_unexpected_values_proportion,
@@ -205,7 +205,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
             1.0 * sum(table_row_counts.values()) / num_batch_ids
         ) + NP_EPSILON
 
-        # If no "max_unexpected_ratio" is given, compute it based on average number of records across all Batch objects.  # noqa: E501
+        # If no "max_unexpected_ratio" is given, compute it based on average number of records across all Batch objects.  # noqa: E501 # FIXME CoP
         if max_unexpected_ratio is None:
             max_unexpected_ratio = max_unexpected_values / mean_table_row_count_as_float
 
@@ -255,7 +255,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
             Dictionary of the form {
                 column_name: List[MetricConfiguration],
             }
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         column_name: str
         batch_id: str
         metric_configurations: Dict[str, List[MetricConfiguration]] = {
@@ -276,7 +276,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
         return metric_configurations
 
     @staticmethod
-    def _get_column_names_satisfying_tolerance_limits(  # noqa: PLR0913
+    def _get_column_names_satisfying_tolerance_limits(  # noqa: PLR0913 # FIXME CoP
         validator: Validator,
         num_batch_ids: int,
         metric_configurations_by_column_name: Dict[str, List[MetricConfiguration]],
@@ -298,7 +298,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
 
         Returns:
             List of column names satisfying tolerance limits.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         column_name: str
         resolved_metrics: Dict[Tuple[str, str, str], MetricValue]
 
@@ -326,7 +326,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
                 metric_value_ratio <= max_unexpected_ratio
                 for metric_value_ratio in metric_value_ratios
             ]
-            for column_name, metric_value_ratios in intra_batch_unexpected_ratios_by_column_name.items()  # noqa: E501
+            for column_name, metric_value_ratios in intra_batch_unexpected_ratios_by_column_name.items()  # noqa: E501 # FIXME CoP
         }
 
         inter_batch_adherence_by_column_name: Dict[str, float] = {
@@ -339,7 +339,7 @@ class MapMetricColumnDomainBuilder(ColumnDomainBuilder):
         inter_batch_unexpected_values_proportion: float
         candidate_column_names: List[str] = [
             column_name
-            for column_name, inter_batch_unexpected_values_proportion in inter_batch_adherence_by_column_name.items()  # noqa: E501
+            for column_name, inter_batch_unexpected_values_proportion in inter_batch_adherence_by_column_name.items()  # noqa: E501 # FIXME CoP
             if inter_batch_unexpected_values_proportion >= min_max_unexpected_values_proportion
         ]
 

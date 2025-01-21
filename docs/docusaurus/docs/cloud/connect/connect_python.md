@@ -14,7 +14,7 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 
 ## Prepare your environment
 
-1. Download and install Python. See [Active Python Releases](https://www.python.org/downloads/).
+1. Download and install [Python](https://www.python.org/downloads/). GX supports Python versions 3.9 to 3.12.
 
 2. Download and install pip. See the [pip documentation](https://pip.pypa.io/en/stable/cli/pip/).
 
@@ -60,7 +60,7 @@ Environment variables securely store your GX Cloud access credentials.
     export GX_CLOUD_ORGANIZATION_ID=<organization_id>
     ```
 
-    :::note
+    :::note Note
    After you save your **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZTION_ID**, you can use Python scripts to access GX Cloud and complete other tasks. See the [GX Core guides](/core/introduction/introduction.mdx).
     :::
 
@@ -89,10 +89,10 @@ Environment variables securely store your GX Cloud access credentials.
 
     Alternatively, if you have already configured your data in GX Cloud you can use it instead.  To see your available Data Sources, run:
 
-    ```title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - list data sources"
+    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - list data sources"
     ```
   
-    Using the printed information you can get the name of one of your existing Data Sources, one of its Data Assets, and the name of a Batch Definition on the Data Asset.  Then, you can retrieve a Batch of data by updating the values for `data_source_name`, `data_asset_name`, and `batch_definition_name` in the following code and executing it:
+    Using the printed information, you can get the name of one of your existing Data Sources, one of its Data Assets, and the name of a Batch Definition on the Data Asset.  Then, you can retrieve a Batch of data by updating the values for `data_source_name`, `asset_name`, and `batch_definition_name` in the following code and executing it:
 
     ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - retrieve a data asset"
     ```
@@ -110,17 +110,12 @@ Environment variables securely store your GX Cloud access credentials.
 
 ## Validate data
 
-1. Run the following Python code to define a Checkpoint and examine the data to determine if it matches the defined Expectations:
-
-    ```python title="Python" name="tutorials/quickstart/quickstart.py create_checkpoint"
-    ```
-
-2. Use the following command to return the Validation Results:
+1. Run the following Python code to examine the data and determine if it matches the defined Expectations. This will return Validation Results:
 
     ```python title="Python" name="tutorials/quickstart/quickstart.py run_checkpoint"
     ```
 
-3. Run the following Python code to view an HTML representation of the Validation Results in the generated Data Docs:
+2. Run the following Python code to view a JSON representation of the Validation Results in the generated Data Docs:
 
     ```python title="Python" name="tutorials/quickstart/quickstart.py view_results"
     ```

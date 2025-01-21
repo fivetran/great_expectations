@@ -20,7 +20,7 @@ from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
-from great_expectations.expectations.metrics.map_metric_provider.column_map_condition_auxilliary_methods import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.column_map_condition_auxilliary_methods import (  # noqa: E501 # FIXME CoP
     _pandas_column_map_condition_value_counts,
     _pandas_column_map_condition_values,
     _spark_column_map_condition_value_counts,
@@ -28,7 +28,7 @@ from great_expectations.expectations.metrics.map_metric_provider.column_map_cond
     _sqlalchemy_column_map_condition_value_counts,
     _sqlalchemy_column_map_condition_values,
 )
-from great_expectations.expectations.metrics.map_metric_provider.column_pair_map_condition_auxilliary_methods import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.column_pair_map_condition_auxilliary_methods import (  # noqa: E501 # FIXME CoP
     _pandas_column_pair_map_condition_filtered_row_count,
     _pandas_column_pair_map_condition_values,
     _spark_column_pair_map_condition_filtered_row_count,
@@ -36,10 +36,10 @@ from great_expectations.expectations.metrics.map_metric_provider.column_pair_map
     _sqlalchemy_column_pair_map_condition_filtered_row_count,
     _sqlalchemy_column_pair_map_condition_values,
 )
-from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable import (  # noqa: E501 # FIXME CoP
     _is_sqlalchemy_metric_selectable,
 )
-from great_expectations.expectations.metrics.map_metric_provider.map_condition_auxilliary_methods import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.map_condition_auxilliary_methods import (  # noqa: E501 # FIXME CoP
     _pandas_map_condition_index,
     _pandas_map_condition_query,
     _pandas_map_condition_rows,
@@ -55,7 +55,7 @@ from great_expectations.expectations.metrics.map_metric_provider.map_condition_a
     _sqlalchemy_map_condition_unexpected_count_aggregate_fn,
     _sqlalchemy_map_condition_unexpected_count_value,
 )
-from great_expectations.expectations.metrics.map_metric_provider.multicolumn_map_condition_auxilliary_methods import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.multicolumn_map_condition_auxilliary_methods import (  # noqa: E501 # FIXME CoP
     _pandas_multicolumn_map_condition_filtered_row_count,
     _pandas_multicolumn_map_condition_values,
     _spark_multicolumn_map_condition_filtered_row_count,
@@ -84,7 +84,7 @@ logger = logging.getLogger(__name__)
 class MapMetricProvider(MetricProvider):
     """The base class for defining metrics that are evaluated for every row. An example of a map metric is
     `column_values.null` (which is implemented as a `ColumnMapMetricProvider`, a subclass of `MapMetricProvider`).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     condition_domain_keys: tuple[str, ...] = (
         "batch_id",
@@ -103,7 +103,7 @@ class MapMetricProvider(MetricProvider):
     filter_column_isnull = True
 
     @classmethod
-    def _register_metric_functions(cls):  # noqa: C901, PLR0912, PLR0915
+    def _register_metric_functions(cls):  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         if not (hasattr(cls, "function_metric_name") or hasattr(cls, "condition_metric_name")):
             return
 
@@ -119,8 +119,8 @@ class MapMetricProvider(MetricProvider):
 
             engine = candidate_metric_fn.metric_engine
             if not issubclass(engine, ExecutionEngine):
-                raise ValueError(  # noqa: TRY003, TRY004
-                    "Metric functions must be defined with an ExecutionEngine as part of registration."  # noqa: E501
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+                    "Metric functions must be defined with an ExecutionEngine as part of registration."  # noqa: E501 # FIXME CoP
                 )
 
             if metric_fn_type in [
@@ -129,9 +129,9 @@ class MapMetricProvider(MetricProvider):
                 MetricPartialFunctionTypes.WINDOW_CONDITION_FN,
             ]:
                 if not hasattr(cls, "condition_metric_name"):
-                    raise ValueError(  # noqa: TRY003
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
                         """A "MapMetricProvider" must have a "condition_metric_name" to have a decorated \
-"column_condition_partial" method."""  # noqa: E501
+"column_condition_partial" method."""  # noqa: E501 # FIXME CoP
                     )
 
                 condition_provider = candidate_metric_fn
@@ -288,7 +288,7 @@ class MapMetricProvider(MetricProvider):
                         metric_fn_type=MetricFunctionTypes.VALUE,
                     )
                     if metric_fn_type == MetricPartialFunctionTypes.MAP_CONDITION_FN:
-                        # Documentation in "MetricProvider._register_metric_functions()" explains registration protocol.  # noqa: E501
+                        # Documentation in "MetricProvider._register_metric_functions()" explains registration protocol.  # noqa: E501 # FIXME CoP
                         if domain_type == MetricDomainTypes.COLUMN:
                             register_metric(
                                 metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
@@ -423,7 +423,7 @@ class MapMetricProvider(MetricProvider):
                         metric_fn_type=MetricFunctionTypes.VALUE,
                     )
                     if metric_fn_type == MetricPartialFunctionTypes.MAP_CONDITION_FN:
-                        # Documentation in "MetricProvider._register_metric_functions()" explains registration protocol.  # noqa: E501
+                        # Documentation in "MetricProvider._register_metric_functions()" explains registration protocol.  # noqa: E501 # FIXME CoP
                         if domain_type == MetricDomainTypes.COLUMN:
                             register_metric(
                                 metric_name=f"{metric_name}.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}",
@@ -526,9 +526,9 @@ class MapMetricProvider(MetricProvider):
                 MetricPartialFunctionTypes.WINDOW_FN,
             ]:
                 if not hasattr(cls, "function_metric_name"):
-                    raise ValueError(  # noqa: TRY003
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
                         """A "MapMetricProvider" must have a "function_metric_name" to have a decorated \
-"column_function_partial" method."""  # noqa: E501
+"column_function_partial" method."""  # noqa: E501 # FIXME CoP
                     )
 
                 map_function_provider = candidate_metric_fn
@@ -565,7 +565,7 @@ class MapMetricProvider(MetricProvider):
 
         metric_suffix: str = f".{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
 
-        # Documentation in "MetricProvider._register_metric_functions()" explains registration/dependency protocol.  # noqa: E501
+        # Documentation in "MetricProvider._register_metric_functions()" explains registration/dependency protocol.  # noqa: E501 # FIXME CoP
         if metric_name.endswith(metric_suffix):
             has_aggregate_fn: bool = False
 
@@ -592,7 +592,7 @@ class MapMetricProvider(MetricProvider):
                     metric_value_kwargs=base_metric_value_kwargs,
                 )
 
-        # MapMetric uses "condition" metric to build "unexpected_count.aggregate_fn" and other listed metrics as well.  # noqa: E501
+        # MapMetric uses "condition" metric to build "unexpected_count.aggregate_fn" and other listed metrics as well.  # noqa: E501 # FIXME CoP
         unexpected_condition_dependent_metric_name_suffixes: list[str] = list(
             filter(
                 lambda element: metric_name.endswith(element),
@@ -625,7 +625,7 @@ class MapMetricProvider(MetricProvider):
         # deprecated-v0.16.1
         warnings.warn(
             "MapMetricProvider.is_sqlalchemy_metric_selectable is deprecated."
-            "You can use the great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable._is_sqlalchemy_metric_selectable function, but please note that it is not considered part of the public API, and could change in the future.",  # noqa: E501
+            "You can use the great_expectations.expectations.metrics.map_metric_provider.is_sqlalchemy_metric_selectable._is_sqlalchemy_metric_selectable function, but please note that it is not considered part of the public API, and could change in the future.",  # noqa: E501 # FIXME CoP
             DeprecationWarning,
         )
 

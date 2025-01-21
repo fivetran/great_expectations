@@ -21,7 +21,7 @@ def regex_for_deprecation_comments() -> Pattern:
 
 @pytest.fixture
 def files_with_deprecation_warnings() -> List[str]:
-    files: List[str] = glob.glob(  # noqa: PTH207
+    files: List[str] = glob.glob(  # noqa: PTH207 # FIXME CoP
         "great_expectations/**/*.py", recursive=True
     )
     files_to_exclude = [
@@ -30,7 +30,6 @@ def files_with_deprecation_warnings() -> List[str]:
         "great_expectations/compatibility/pyspark.py",
         "great_expectations/compatibility/sqlalchemy_and_pandas.py",
         "great_expectations/compatibility/sqlalchemy_compatibility_wrappers.py",
-        "great_expectations/rule_based_profiler/altair/encodings.py",  # ignoring because of imprecise matching logic  # noqa: E501
     ]
     for file_to_exclude in files_to_exclude:
         if file_to_exclude in files:
@@ -108,5 +107,5 @@ def test_deprecation_warnings_have_been_removed_after_two_minor_versions(
     # Chetan - 20220316 - Once v0.16.0 lands, this should be cleaned up and made 0.
     if len(unneeded_deprecation_warnings) > UNNEEDED_DEPRECATION_WARNINGS_THRESHOLD:
         raise ValueError(
-            f"Found {len(unneeded_deprecation_warnings)} warnings but threshold is {UNNEEDED_DEPRECATION_WARNINGS_THRESHOLD}; please adjust accordingly"  # noqa: E501
+            f"Found {len(unneeded_deprecation_warnings)} warnings but threshold is {UNNEEDED_DEPRECATION_WARNINGS_THRESHOLD}; please adjust accordingly"  # noqa: E501 # FIXME CoP
         )

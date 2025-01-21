@@ -50,11 +50,18 @@ def test_load_class_raises_error_when_module_name_is_not_string():
             load_class(bad_input, "great_expectations.datasource")
 
 
+@pytest.mark.unit
+def test_mask_db_url__does_not_mask_config_strings():
+    config_str = "${MY_DB_URL}"
+    output = PasswordMasker.mask_db_url(config_str)
+    assert output == config_str
+
+
 @pytest.mark.filesystem
 @pytest.mark.filterwarnings(
     "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
 )
-def test_password_masker_mask_db_url(  # noqa: PLR0915, C901- 11
+def test_password_masker_mask_db_url(  # noqa: PLR0915, C901- 11 # FIXME CoP
     monkeypatch, tmp_path
 ):
     """
@@ -62,7 +69,7 @@ def test_password_masker_mask_db_url(  # noqa: PLR0915, C901- 11
     The PasswordMasker.mask_db_url() should mask passwords consistently inruff  database urls. The output of mask_db_url should be the same whether user_urlparse is set to True or False.
     This test uses database url examples from
     https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     # PostgreSQL (if installed in test environment)
     # default
     db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "localhost")
@@ -277,13 +284,13 @@ def test_password_masker_mask_db_url(  # noqa: PLR0915, C901- 11
 
 @pytest.mark.unit
 def test_sanitize_config_azure_blob_store():
-    azure_url: str = "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;EndpointSuffix=core.windows.net"  # noqa: E501
+    azure_url: str = "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=i_am_account_key;EndpointSuffix=core.windows.net"  # noqa: E501 # FIXME CoP
     assert (
         PasswordMasker.mask_db_url(azure_url)
-        == "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***;EndpointSuffix=core.windows.net"  # noqa: E501
+        == "DefaultEndpointsProtocol=https;AccountName=iamname;AccountKey=***;EndpointSuffix=core.windows.net"  # noqa: E501 # FIXME CoP
     )
 
-    azure_wrong_url: str = "DefaultEndpointsProtocol=i_dont_work;AccountName=iamname;AccountKey=i_am_account_key;EndpointSuffix=core.windows.net"  # noqa: E501
+    azure_wrong_url: str = "DefaultEndpointsProtocol=i_dont_work;AccountName=iamname;AccountKey=i_am_account_key;EndpointSuffix=core.windows.net"  # noqa: E501 # FIXME CoP
     with pytest.raises(StoreConfigurationError):
         PasswordMasker.mask_db_url(azure_wrong_url)
 
@@ -379,17 +386,20 @@ def test_sanitize_config_with_url_field(conn_string_with_embedded_password, conn
     assert PasswordMasker.MASKED_PASSWORD_STRING in res["credentials"]["url"]
 
 
+@pytest.mark.parametrize("key", ["connection_string", "conn_str"])
 @pytest.mark.unit
 def test_sanitize_config_with_nested_url_field(
-    conn_string_password, conn_string_with_embedded_password
+    conn_string_password,
+    conn_string_with_embedded_password,
+    key: str,
 ):
     # this case has a connection string in an execution_engine dict
-    config = {"execution_engine": {"connection_string": conn_string_with_embedded_password}}
+    config = {"execution_engine": {key: conn_string_with_embedded_password}}
     config_copy = safe_deep_copy(config)
     res = PasswordMasker.sanitize_config(config_copy)
     assert res != config
-    assert conn_string_password not in res["execution_engine"]["connection_string"]
-    assert PasswordMasker.MASKED_PASSWORD_STRING in res["execution_engine"]["connection_string"]
+    assert conn_string_password not in res["execution_engine"][key]
+    assert PasswordMasker.MASKED_PASSWORD_STRING in res["execution_engine"][key]
 
 
 @pytest.mark.unit

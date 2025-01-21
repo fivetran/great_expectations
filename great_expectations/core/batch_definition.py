@@ -51,6 +51,9 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
     @property
     @public_api
     def data_asset(self) -> DataAsset[Any, PartitionerT]:
+        """
+        The parent DataAsset for this Batch Definition.
+        """
         return self._data_asset
 
     def set_data_asset(self, data_asset: DataAsset[Any, PartitionerT]) -> None:
@@ -65,6 +68,15 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
             options=batch_parameters,
             partitioner=self.partitioner,
         )
+
+    @public_api
+    def save(self) -> None:
+        """
+        Save the batch definition to the underlying data context.
+        """
+        project_datasources = project_manager.get_datasources()
+        data_source = self.data_asset.datasource
+        project_datasources.set_datasource(name=data_source.name, ds=data_source)
 
     @public_api
     def get_batch(self, batch_parameters: Optional[BatchParameters] = None) -> Batch:

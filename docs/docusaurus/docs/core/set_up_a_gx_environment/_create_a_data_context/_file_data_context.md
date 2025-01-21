@@ -4,7 +4,7 @@ import TabItem from '@theme/TabItem'
 import PrereqPythonInstallation from '../../_core_components/prerequisites/_python_installation.md'
 import PrereqGxInstallation from '../../_core_components/prerequisites/_gx_installation.md'
 
-## Prerequisites
+## Prerequisites {#prerequisites-file-data-context}
 
 - <PrereqPythonInstallation/>
 - <PrereqGxInstallation/>

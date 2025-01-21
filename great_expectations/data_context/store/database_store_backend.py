@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseStoreBackend(StoreBackend):
-    def __init__(  # noqa: C901, PLR0912, PLR0913
+    def __init__(  # noqa: C901, PLR0912, PLR0913 # FIXME CoP
         self,
         table_name,
         key_columns,
@@ -48,12 +48,12 @@ class DatabaseStoreBackend(StoreBackend):
             store_name=store_name,
         )
         if not sa:
-            raise gx_exceptions.DataContextError(  # noqa: TRY003
+            raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
                 "ModuleNotFoundError: No module named 'sqlalchemy'"
             )
 
         if not self.fixed_length_key:
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 "DatabaseStoreBackend requires use of a fixed-length-key"
             )
 
@@ -65,7 +65,7 @@ class DatabaseStoreBackend(StoreBackend):
         if engine is not None:
             if credentials is not None:
                 logger.warning(
-                    "Both credentials and engine were provided during initialization of SqlAlchemyExecutionEngine. "  # noqa: E501
+                    "Both credentials and engine were provided during initialization of SqlAlchemyExecutionEngine. "  # noqa: E501 # FIXME CoP
                     "Ignoring credentials."
                 )
             self.engine = engine
@@ -78,8 +78,8 @@ class DatabaseStoreBackend(StoreBackend):
             self.drivername = parsed_url.drivername
             self.engine = sa.create_engine(url, **kwargs)
         else:
-            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
-                "Credentials, url, connection_string, or an engine are required for a DatabaseStoreBackend."  # noqa: E501
+            raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
+                "Credentials, url, connection_string, or an engine are required for a DatabaseStoreBackend."  # noqa: E501 # FIXME CoP
             )
 
         meta = sa.MetaData(schema=self._schema_name)
@@ -88,17 +88,17 @@ class DatabaseStoreBackend(StoreBackend):
         cols = []
         for column_ in key_columns:
             if column_ == "value":
-                raise gx_exceptions.InvalidConfigError(  # noqa: TRY003
+                raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                     "'value' cannot be used as a key_element name"
                 )
             cols.append(sa.Column(column_, sa.String, primary_key=True))
         cols.append(sa.Column("value", sa.String))
         try:
             table = sa.Table(table_name, meta, autoload_with=self.engine)
-            # We do a "light" check: if the columns' names match, we will proceed, otherwise, create the table  # noqa: E501
+            # We do a "light" check: if the columns' names match, we will proceed, otherwise, create the table  # noqa: E501 # FIXME CoP
             if {str(col.name).lower() for col in table.columns} != (set(key_columns) | {"value"}):
-                raise gx_exceptions.StoreBackendError(  # noqa: TRY003
-                    f"Unable to use table {table_name}: it exists, but does not have the expected schema."  # noqa: E501
+                raise gx_exceptions.StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                    f"Unable to use table {table_name}: it exists, but does not have the expected schema."  # noqa: E501 # FIXME CoP
                 )
         except sqlalchemy.NoSuchTableError:
             table = sa.Table(table_name, meta, *cols)
@@ -110,16 +110,16 @@ class DatabaseStoreBackend(StoreBackend):
                         )
                 meta.create_all(self.engine)
             except SQLAlchemyError as e:
-                raise gx_exceptions.StoreBackendError(  # noqa: TRY003
-                    f"Unable to connect to table {table_name} because of an error. It is possible your table needs to be migrated to a new schema.  SqlAlchemyError: {e!s}"  # noqa: E501
+                raise gx_exceptions.StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                    f"Unable to connect to table {table_name} because of an error. It is possible your table needs to be migrated to a new schema.  SqlAlchemyError: {e!s}"  # noqa: E501 # FIXME CoP
                 )
         self._table = table
         # Initialize with store_backend_id
         self._store_backend_id = None
         self._store_backend_id = self.store_backend_id
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "table_name": table_name,
             "key_columns": key_columns,
@@ -145,7 +145,7 @@ class DatabaseStoreBackend(StoreBackend):
         Ephemeral store_backend_id for database_store_backend until there is a place to store metadata
         Returns:
             store_backend_id which is a UUID(version=4)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         if not self._store_backend_id:
             store_id = (
@@ -156,11 +156,11 @@ class DatabaseStoreBackend(StoreBackend):
             self._store_backend_id = f"{self.STORE_BACKEND_ID_PREFIX}{store_id}"
         return self._store_backend_id.replace(self.STORE_BACKEND_ID_PREFIX, "")
 
-    def _build_engine(self, credentials, **kwargs) -> "sa.engine.Engine":  # noqa: UP037
+    def _build_engine(self, credentials, **kwargs) -> "sa.engine.Engine":  # noqa: UP037 # FIXME CoP
         """
         Using a set of given credentials, constructs an Execution Engine , connecting to a database using a URL or a
         private key path.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # Update credentials with anything passed during connection time
         drivername = credentials.pop("drivername")
         create_engine_kwargs = kwargs
@@ -193,7 +193,7 @@ class DatabaseStoreBackend(StoreBackend):
 
         Returns:
             a tuple consisting of a url with the serialized key-pair authentication, and a dictionary of engine kwargs.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         from cryptography.hazmat.backends import default_backend
         from cryptography.hazmat.primitives import serialization
 
@@ -214,7 +214,7 @@ class DatabaseStoreBackend(StoreBackend):
                         message="Decryption of key failed, was the passphrase incorrect?",
                     ) from e
                 else:
-                    raise e  # noqa: TRY201
+                    raise e  # noqa: TRY201 # FIXME CoP
         pkb = p_key.private_bytes(
             encoding=serialization.Encoding.DER,
             format=serialization.PrivateFormat.PKCS8,
@@ -247,7 +247,7 @@ class DatabaseStoreBackend(StoreBackend):
             return row
         except (IndexError, SQLAlchemyError) as e:
             logger.debug(f"Error fetching value: {e!s}")
-            raise gx_exceptions.StoreError(f"Unable to fetch value for key: {key!s}")  # noqa: TRY003
+            raise gx_exceptions.StoreError(f"Unable to fetch value for key: {key!s}")  # noqa: TRY003 # FIXME CoP
 
     @override
     def _get_all(self) -> list[Any]:
@@ -266,9 +266,9 @@ class DatabaseStoreBackend(StoreBackend):
                     .values(**cols)
                 )
             else:
-                ins = self._table.insert().values(**cols)  # type: ignore[assignment]
+                ins = self._table.insert().values(**cols)  # type: ignore[assignment] # FIXME CoP
         else:
-            ins = self._table.insert().values(**cols)  # type: ignore[assignment]
+            ins = self._table.insert().values(**cols)  # type: ignore[assignment] # FIXME CoP
 
         try:
             with self.engine.begin() as connection:
@@ -277,12 +277,12 @@ class DatabaseStoreBackend(StoreBackend):
             if self._get(key) == value:
                 logger.info(f"Key {key!s} already exists with the same value.")
             else:
-                raise gx_exceptions.StoreBackendError(  # noqa: TRY003
+                raise gx_exceptions.StoreBackendError(  # noqa: TRY003 # FIXME CoP
                     f"Integrity error {e!s} while trying to store key"
                 )
 
     @override
-    def _move(self) -> None:  # type: ignore[override]
+    def _move(self) -> None:  # type: ignore[override] # FIXME CoP
         raise NotImplementedError
 
     @override
@@ -356,7 +356,7 @@ class DatabaseStoreBackend(StoreBackend):
             with self.engine.begin() as connection:
                 return connection.execute(delete_statement)
         except SQLAlchemyError as e:
-            raise gx_exceptions.StoreBackendError(  # noqa: TRY003
+            raise gx_exceptions.StoreBackendError(  # noqa: TRY003 # FIXME CoP
                 f"Unable to delete key: got sqlalchemy error {e!s}"
             )
 

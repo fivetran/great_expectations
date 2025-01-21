@@ -7,6 +7,7 @@ from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -42,11 +43,11 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
+    "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Data integrity"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
 
 
 class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
@@ -66,7 +67,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
     Other Parameters:
         ignore_row_if (str): \
             "both_values_are_missing", "either_value_is_missing", "neither" \
-            {IGNORE_ROW_IF_DESCRIPTION} Default "neither".
+            {IGNORE_ROW_IF_DESCRIPTION} Default "both_values_are_missing".
         mostly (None or a float between 0 and 1): \
             {MOSTLY_DESCRIPTION} \
             For more detail, see [mostly](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#mostly). Default 1.
@@ -85,7 +86,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -96,8 +97,9 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
+        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2
@@ -173,7 +175,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
         pydantic.Field(default="both_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION)
@@ -265,7 +267,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
             renderer_configuration = cls._add_mostly_pct_param(
                 renderer_configuration=renderer_configuration
             )
-            template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501
+            template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
         renderer_configuration.template_str = template_str
 
@@ -309,7 +311,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
         else:
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
             # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")
-            template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501
+            template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
         if params["row_condition"] is not None:
             (

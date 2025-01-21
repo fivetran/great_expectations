@@ -84,7 +84,7 @@ def test_iddict_is_hashable():
     # noinspection PyBroadException,PyUnusedLocal
     try:
         # noinspection PyUnusedLocal
-        dictionaries_as_set: set = {  # noqa: F841
+        dictionaries_as_set: set = {  # noqa: F841 # FIXME CoP
             deep_convert_properties_iterable_to_id_dict(source=data_0),
             deep_convert_properties_iterable_to_id_dict(source=data_1),
             deep_convert_properties_iterable_to_id_dict(source=data_2),

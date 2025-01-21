@@ -5,15 +5,15 @@ from typing import Any, Dict, List
 
 
 class MockSaInspector:
-    def get_columns(self) -> List[Dict[str, Any]]:  # type: ignore[empty-body]
+    def get_columns(self) -> List[Dict[str, Any]]:  # type: ignore[empty-body] # FIXME CoP
         ...
 
-    def get_schema_names(self) -> List[str]:  # type: ignore[empty-body]
+    def get_schema_names(self) -> List[str]:  # type: ignore[empty-body] # FIXME CoP
         ...
 
     def get_table_names(self, schema: str | None): ...
 
-    def has_table(self, table_name: str, schema: str | None) -> bool:  # type: ignore[empty-body]
+    def has_table(self, table_name: str, schema: str | None) -> bool:  # type: ignore[empty-body] # FIXME CoP
         ...
 
 

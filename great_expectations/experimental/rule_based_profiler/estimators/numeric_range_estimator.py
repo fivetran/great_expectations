@@ -6,13 +6,13 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.types import SerializableDictDot
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     import numpy as np
 
     from great_expectations.core.domain import Domain
-    from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501
+    from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501 # FIXME CoP
         NumericRangeEstimationResult,
     )
     from great_expectations.experimental.rule_based_profiler.parameter_container import (
@@ -28,7 +28,7 @@ class NumericRangeEstimator(ABC, SerializableDictDot):
     """
     Parent class that incorporates the "get_numeric_range_estimate()" interface method, requiring all subclasses to
     implement the "_get_numeric_range_estimate()" method (for encapsulation reasons, the former calls the latter).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -41,7 +41,7 @@ class NumericRangeEstimator(ABC, SerializableDictDot):
             "bootstrap", "exact" (default - deterministic, incorporating entire observed value range), or "kde"
             (kernel density estimation).
             configuration: attributes needed for the estimation algorithm (subject of the inherited class) to operate.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self._name = name
         self._configuration = configuration
 
@@ -74,7 +74,7 @@ class NumericRangeEstimator(ABC, SerializableDictDot):
 
         Returns:
             "NumericRangeEstimationResult" object, containing computed "value_range" and "estimation_histogram" details.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self._get_numeric_range_estimate(
             metric_values=metric_values,
             domain=domain,

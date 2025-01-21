@@ -50,7 +50,7 @@ def test_load_incorrect_input(yaml_handler: YAMLHandler) -> None:
 @pytest.mark.filesystem
 def test_file_output(tmp_path: Path, yaml_handler: YAMLHandler) -> None:
     simplest_yaml: str = "abc: 1"
-    test_file: str = os.path.join(tmp_path, "out.yaml")  # noqa: PTH118
+    test_file: str = os.path.join(tmp_path, "out.yaml")  # noqa: PTH118 # FIXME CoP
     out: Path = Path(test_file)
 
     data: dict = yaml_handler.load(simplest_yaml)
@@ -76,7 +76,7 @@ def test_dump_default_behavior_with_no_stream_specified(
 
 @pytest.mark.unit
 def test_dump_stdout_specified(capsys, yaml_handler: YAMLHandler) -> None:
-    # ruamel documentation recommends that we specify the stream as stdout when we are using YAML to return a string.  # noqa: E501
+    # ruamel documentation recommends that we specify the stream as stdout when we are using YAML to return a string.  # noqa: E501 # FIXME CoP
     simplest_dict: dict = dict(abc=1)
     yaml_handler.dump(simplest_dict, stream=sys.stdout)
     captured: Any = capsys.readouterr()

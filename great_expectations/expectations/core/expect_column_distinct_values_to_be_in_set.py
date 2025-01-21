@@ -5,10 +5,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 import altair as alt
 import pandas as pd
 
+from great_expectations.compatibility import pydantic
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     VALUE_SET_DESCRIPTION,
@@ -17,10 +19,16 @@ from great_expectations.expectations.model_field_types import (
     ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
 )
 from great_expectations.render import (
+    AtomicDiagnosticRendererType,
     LegacyDescriptiveRendererType,
     LegacyRendererType,
+    RenderedAtomicContent,
     RenderedGraphContent,
     RenderedStringTemplateContent,
+    renderedAtomicValueSchema,
+)
+from great_expectations.render.renderer.observed_value_renderer import (
+    ObservedValueRenderState,
 )
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -52,11 +60,11 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
+    "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Sets"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
 
 class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
@@ -99,7 +107,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         [ExpectColumnDistinctValuesToContainSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_contain_set)
         [ExpectColumnDistinctValuesToEqualSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_equal_set)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -108,9 +116,8 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -191,7 +198,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     value_set: ValueSetField
 
@@ -205,7 +212,7 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
     }
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.value_counts",)
     success_keys = ("value_set",)
 
@@ -246,6 +253,12 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                     },
                 }
             )
+
+    @pydantic.validator("value_set")
+    def _validate_value_set(cls, value_set: ValueSetField) -> ValueSetField:
+        if not value_set:
+            raise ValueError("value_set must be a non-empty set-like object.")  # noqa: TRY003 # Error messaged gets swallowed by Pydantic
+        return value_set
 
     @classmethod
     def _prescriptive_template(
@@ -375,17 +388,17 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
             }
         )
 
-        if len(values) > 60:  # noqa: PLR2004
+        if len(values) > 60:  # noqa: PLR2004 # FIXME CoP
             return None
         else:
             chart_pixel_width = (len(values) / 60.0) * 500
             chart_pixel_width = max(chart_pixel_width, 250)
             chart_container_col_width = round((len(values) / 60.0) * 6)
-            if chart_container_col_width < 4:  # noqa: PLR2004
+            if chart_container_col_width < 4:  # noqa: PLR2004 # FIXME CoP
                 chart_container_col_width = 4
-            elif chart_container_col_width >= 5:  # noqa: PLR2004
+            elif chart_container_col_width >= 5:  # noqa: PLR2004 # FIXME CoP
                 chart_container_col_width = 6
-            elif chart_container_col_width >= 4:  # noqa: PLR2004
+            elif chart_container_col_width >= 4:  # noqa: PLR2004 # FIXME CoP
                 chart_container_col_width = 5
 
         mark_bar_args = {}
@@ -449,3 +462,60 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                 "details": {"value_counts": observed_value_counts},
             },
         }
+
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        renderer_configuration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        ov_param_prefix = "ov__"
+        ov_param_name = "observed_value"
+
+        value_set = set(renderer_configuration.kwargs.get("value_set", []))
+
+        renderer_configuration.add_param(
+            name=ov_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=result.get("result", {}).get("observed_value"),
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=ov_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        template_str_list = []
+        for name, schema in renderer_configuration.params:
+            if not name.startswith(ov_param_prefix):
+                continue
+            render_state = (
+                ObservedValueRenderState.EXPECTED.value
+                if schema.value in value_set
+                else ObservedValueRenderState.UNEXPECTED.value
+            )
+            renderer_configuration.params.__dict__[name].render_state = render_state
+            template_str_list.append(f"${name}")
+
+        renderer_configuration.template_str = " ".join(template_str_list)
+
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )

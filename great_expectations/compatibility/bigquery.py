@@ -39,6 +39,8 @@ BIGQUERY_TYPES: Dict[str, Any] = (
 
 try:
     from sqlalchemy_bigquery import GEOGRAPHY
+
+    BIGQUERY_GEO_SUPPORT = True
 except (ImportError, AttributeError):
     GEOGRAPHY = SQLALCHEMY_BIGQUERY_NOT_IMPORTED
 

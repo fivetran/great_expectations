@@ -9,7 +9,6 @@ keywords: [Great Expectations, Data Asset, Batch Request, fluent configuration m
 
 import Prerequisites from '../../../../../components/_prerequisites.jsx'
 import ImportGxAndInstantiateADataContext from '../../../../../components/setup/data_context/_import_gx_and_instantiate_a_data_context.md'
-import SetupAndInstallForSqlData from '../../../../../components/setup/link_lists/_setup_and_install_for_sql_data.md'
 import ConnectingToSqlDatasourcesFluently from '../../../../../components/connect_to_data/link_lists/_connecting_to_sql_datasources_fluently.md'
 import AfterRequestDataFromADataAsset from '../../../../../components/connect_to_data/next_steps/_after_request_data_from_a_data_asset.md'
 import AfterCreateAndConfigureDataAsset from '../../../../../components/connect_to_data/next_steps/_after_create_and_configure_data_asset.md'
@@ -76,7 +75,6 @@ To connect to additional tables in the same SQL Database, repeat the previous st
 
 ### Related documentation
 
-- [How to organize Batches in a SQL based Data Asset](/oss/guides/connecting_to_your_data/fluent/data_assets/how_to_organize_batches_in_a_sql_based_data_asset.md)
 - [How to request data from a Data Asset](/oss/guides/connecting_to_your_data/fluent/batch_requests/how_to_request_data_from_a_data_asset.md)
 - [Use a Data Asset to create Expectations while interactively evaluating a set of data](/oss/guides/expectations/how_to_create_and_edit_expectations_with_instant_feedback_from_a_sample_batch_of_data.md)
 
@@ -122,7 +120,6 @@ To connect to the contents of additional queries in the same SQL Database, repea
 
 ### Related documentation
 
-- [How to organize Batches in a SQL based Data Asset](/oss/guides/connecting_to_your_data/fluent/data_assets/how_to_organize_batches_in_a_sql_based_data_asset.md)
 - [How to request data from a Data Asset](/oss/guides/connecting_to_your_data/fluent/batch_requests/how_to_request_data_from_a_data_asset.md)
 - [Use a Data Asset to create Expectations while interactively evaluating a set of data](/oss/guides/expectations/how_to_create_and_edit_expectations_with_instant_feedback_from_a_sample_batch_of_data.md)
 
@@ -194,7 +191,7 @@ A Batch List can contain a lot of metadata. To verify which files were included 
 
 ## Related documentation
 
-- [How to set up GX to work with SQL databases](/oss/guides/setup/optional_dependencies/sql_databases/how_to_setup_gx_to_work_with_sql_databases.md)
+- [How to set up GX to work with SQL databases](/oss/guides/setup/installation/install_gx.md)
 - [How to connect to SQL data](/oss/guides/connecting_to_your_data/fluent/database/connect_sql_source_data.md)
 - [How to connect to PostgreSQL data](/oss/guides/connecting_to_your_data/fluent/database/connect_sql_source_data.md)
 - [How to connect to SQLite data](/oss/guides/connecting_to_your_data/fluent/database/connect_sql_source_data.md)

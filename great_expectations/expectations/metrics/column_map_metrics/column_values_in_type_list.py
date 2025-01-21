@@ -18,7 +18,7 @@ class ColumnValuesInTypeList(ColumnMapMetricProvider):
     condition_value_keys = ("type_list",)
 
     @column_condition_partial(engine=PandasExecutionEngine)
-    def _pandas(cls, column, type_list, **kwargs):  # noqa: C901 - too complex
+    def _pandas(cls, column, type_list, **kwargs):  # noqa: C901 #  too complex
         comp_types = []
         for type_ in type_list:
             try:
@@ -43,6 +43,6 @@ class ColumnValuesInTypeList(ColumnMapMetricProvider):
                 comp_types.extend(native_type)
 
         if len(comp_types) < 1:
-            raise ValueError(f"No recognized numpy/python type in list: {type_list}")  # noqa: TRY003
+            raise ValueError(f"No recognized numpy/python type in list: {type_list}")  # noqa: TRY003 # FIXME CoP
 
         return column.map(lambda x: isinstance(x, tuple(comp_types)))

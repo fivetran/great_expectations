@@ -28,9 +28,7 @@ This dataset represents daily financial transactions. In a real-world scenario, 
 
 ## Key volume Expectations
 
-GX provides several Expectations specifically designed for managing data volume. These can be added to an Expectation Suite via the GX Cloud UI or using the GX Core Python library.
-
-![Add a volume Expectation in GX Cloud](./volume_resources/gx_cloud_volume_expectations_add.gif)
+GX provides several Expectations specifically designed for managing data volume. These can be added via the GX Cloud UI or using the GX Core Python library.
 
 ### Expect Table Row Count To Be Between
 
@@ -114,21 +112,23 @@ Run the following GX Core workflow.
 Use the GX Cloud UI to walk through the following steps.
 
 1. Create a Postgres Data Asset for the `volume_financial_transfers` table, using the connection string:
-   ```
+   ```python title="Connection string"
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
    ```
 
 2. Profile the Data Asset.
 3. Add an **Expect table row count to be between** Expectation to the freshly created Data Asset.
-4. Populate the Expectation:
-   * Define a **Daily** batch interval for the Expectation, using `transfer_ts` as the **Batch column**.
-   * Provide a **Min Value** of `1` and a **Max Value** of `5`.
+4. Populate the Expectation with a **Min Value** of `1` and a **Max Value** of `5`.
 5. Save the Expectation.
-6. Click the **Validate** button and define which batch to validate.
-   * **Latest Batch** validates data for the most recent batch found in the Data Asset.
-   * **Custom Batch** validates data for the batch provided.
-7. Click **Validate**.
-8. Review Validation Results.
+6. Click **Define batch**.
+7. For **Validate by**, select **Day**.
+8. Set the **Batch column** to `transfer_ts`.
+9. Click **Save**.
+10. Click the **Validate** button and define which batch to validate.
+   * **Latest** validates data for the most recent batch found in the Data Asset.
+   * **Custom** validates data for the batch provided.
+11. Click **Validate**.
+12. Review Validation Results.
 
 </TabItem>
 </Tabs>

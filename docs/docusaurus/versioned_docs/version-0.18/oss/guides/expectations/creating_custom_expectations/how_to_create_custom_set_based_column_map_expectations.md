@@ -160,7 +160,7 @@ Completeness checklist for ExpectColumnValuesToBeInSolfegeScaleSet:
 	Passes all linting checks
 ```
 
-:::note
+:::note Note
 For more information on tests and example cases, <br/>
 see our guide on [how to create example cases for a Custom Expectation](../features_custom_expectations/how_to_add_example_cases_for_an_expectation.md).
 :::
@@ -227,7 +227,7 @@ black <PATH/TO/YOUR/EXPECTATION.py>
 ruff <PATH/TO/YOUR/EXPECTATION.py> --fix
 ```
 
-:::info
+:::info Info
 If desired, you can automate this to happen at commit time. See our [guidance on linting](../../../contributing/style_guides/code_style.md#linting) for more on this process.
 :::
 
@@ -245,7 +245,7 @@ Completeness checklist for ExpectColumnValuesToBeInSolfegeScaleSet:
 ...
 ```
 
-:::note
+:::note Note
 If you've already built a [Custom Expectation](../custom_expectations_lp.md) of a different type,
 you may notice that we didn't explicitly implement a `_validate` method or Metric class here. While we have to explicitly create these for other types of Custom Expectations,
 the `SetBasedColumnMapExpectation` class handles Metric creation and result validation implicitly; no extra work needed!
@@ -267,7 +267,7 @@ would become
 
 This is particularly important because ***we*** want to make sure that ***you*** get credit for all your hard work!
 
-:::note
+:::note Note
 For more information on our code standards and contribution, see our guide on [Levels of Maturity](/oss/contributing/contributing_maturity.md#expectation-contributions) for Expectations.
 
 To view the full script used in this page, see it on GitHub:

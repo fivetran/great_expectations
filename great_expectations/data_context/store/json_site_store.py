@@ -17,7 +17,7 @@ class JsonSiteStore(Store):
     """
     A JsonSiteStore manages the JSON artifacts of our renderers, which allows us to render them into final views in HTML by GX Cloud.
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(self, store_backend=None, runtime_environment=None, store_name=None) -> None:
         if store_backend is not None:
@@ -35,8 +35,8 @@ class JsonSiteStore(Store):
             store_name=store_name,
         )
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "store_backend": store_backend,
             "runtime_environment": runtime_environment,

@@ -108,6 +108,7 @@ module.exports = {
       link: { type: 'doc', id: 'core/trigger_actions_based_on_results/trigger_actions_based_on_results' },
       items: [
         { type: 'doc', id: 'core/trigger_actions_based_on_results/create_a_checkpoint_with_actions' },
+        { type: 'doc', id: 'core/trigger_actions_based_on_results/create_a_custom_action' },
         { type: 'doc', id: 'core/trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format' },
         { type: 'doc', id: 'core/trigger_actions_based_on_results/run_a_checkpoint' },
       ]
@@ -117,7 +118,7 @@ module.exports = {
       label: 'Customize Expectations',
       link: { type: 'doc', id: 'core/customize_expectations/customize_expectations' },
       items: [
-        { type: 'doc', id: 'core/customize_expectations/expectation_row_conditions' },
+        { type: 'doc', id: 'core/customize_expectations/expectation_conditions' },
         { type: 'doc', id: 'core/customize_expectations/define_a_custom_expectation_class' },
         { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' },
       ]
@@ -196,8 +197,13 @@ module.exports = {
       items: [
         {
           type: 'link',
-          label: 'Create a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#create-a-data-asset',
+          label: 'Add a Data Asset from a new Data Source',
+          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-a-new-data-source',
+        },
+        {
+          type: 'link',
+          label: 'Add a Data Asset from an existing Data Source',
+          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-an-existing-data-source',
         },
         {
           type: 'link',
@@ -206,13 +212,13 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Add an Expectation to a Data Asset column',
-          href: '/docs/cloud/data_assets/manage_data_assets#add-an-expectation-to-a-data-asset-column',
+          label: 'Edit a Data Asset',
+          href: '/docs/cloud/data_assets/manage_data_assets#edit-a-data-asset',
         },
         {
           type: 'link',
-          label: 'Add a Data Asset to an Existing Data Source',
-          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-to-an-existing-data-source',
+          label: 'Delete a Data Asset',
+          href: '/docs/cloud/data_assets/manage_data_assets#delete-a-data-asset',
         },
         {
           type: 'link',
@@ -221,18 +227,8 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Edit a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#edit-a-data-asset',
-        },
-        {
-          type: 'link',
           label: 'Data Source credential management',
           href: '/docs/cloud/data_assets/manage_data_assets#data-source-credential-management',
-        },
-        {
-          type: 'link',
-          label: 'Delete a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#delete-a-data-asset',
         },
       ]
     },
@@ -253,8 +249,23 @@ module.exports = {
         },
         {
           type: 'link',
+          label: 'Dynamic Parameters',
+          href: '/docs/cloud/expectations/manage_expectations#dynamic-parameters',
+        },
+        {
+          type: 'link',
+          label: 'Expectation condition',
+          href: '/docs/cloud/expectations/manage_expectations#expectation-condition',
+        },
+        {
+          type: 'link',
           label: 'Add an Expectation',
           href: '/docs/cloud/expectations/manage_expectations#add-an-expectation',
+        },
+        {
+          type: 'link',
+          label: 'Optional. Define a Batch',
+          href: '/docs/cloud/expectations/manage_expectations#optional-define-a-batch',
         },
         {
           type: 'link',
@@ -263,35 +274,13 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'View Expectation history',
-          href: '/docs/cloud/expectations/manage_expectations#view-expectation-history',
-        },
-        {
-          type: 'link',
           label: 'Delete an Expectation',
           href: '/docs/cloud/expectations/manage_expectations#delete-an-expectation',
         },
-      ]
-    },
-    {
-      type: 'category',
-      label: 'Manage Expectation Suites',
-      link: { type: 'doc', id: 'cloud/expectation_suites/manage_expectation_suites' },
-      items: [
         {
           type: 'link',
-          label: 'Create an Expectation Suite ',
-          href: '/docs/cloud/expectation_suites/manage_expectation_suites#create-an-expectation-suite',
-        },
-        {
-          type: 'link',
-          label: 'Edit an Expectation Suite name',
-          href: '/docs/cloud/expectation_suites/manage_expectation_suites#edit-an-expectation-suite-name',
-        },
-        {
-          type: 'link',
-          label: 'Delete an Expectation Suite',
-          href: '/docs/cloud/expectation_suites/manage_expectation_suites#delete-an-expectation-suite',
+          label: 'GX-managed vs. API-managed Expectations',
+          href: '/docs/cloud/expectations/manage_expectations#gx-managed-vs-api-managed-expectations',
         },
       ]
     },
@@ -307,8 +296,8 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Run a Validation on a Data Asset containing partitions',
-          href: '/docs/cloud/validations/manage_validations#run-a-validation-on-a-data-asset-containing-partitions',
+          label: 'Run a Validation on a subset of a Data Asset',
+          href: '/docs/cloud/validations/manage_validations#run-a-validation-on-a-subset-of-a-data-asset',
         },
         {
           type: 'link',
@@ -322,11 +311,6 @@ module.exports = {
       label: 'Manage schedules',
       link: { type: 'doc', id: 'cloud/schedules/manage_schedules' },
       items: [
-        {
-          type: 'link',
-          label: 'Add a schedule',
-          href: '/docs/cloud/schedules/manage_schedules#create-a-schedule-for-an-existing-expectation-suite',
-        },
         {
           type: 'link',
           label: 'Edit a schedule',
@@ -429,8 +413,11 @@ module.exports = {
       link: { type: 'doc', id: 'reference/learn/data_quality_use_cases/dq_use_cases_lp' },
       items: [
         'reference/learn/data_quality_use_cases/distribution',
+        'reference/learn/data_quality_use_cases/freshness',
+        'reference/learn/data_quality_use_cases/integrity',
         'reference/learn/data_quality_use_cases/missingness',
         'reference/learn/data_quality_use_cases/schema',
+        'reference/learn/data_quality_use_cases/uniqueness',
         'reference/learn/data_quality_use_cases/volume'
       ]
     },
@@ -439,11 +426,10 @@ module.exports = {
       label: 'Integration tutorials',
       link: { type: 'doc', id: 'reference/learn/integrations/integrations_lp' },
       items: [
-        'reference/learn/integrations/airflow_pipeline_tutorial',
+        'reference/learn/integrations/data_pipeline_tutorial',
         'reference/learn/integrations/dbt_tutorial',
       ]
     },
-    'reference/learn/usage_statistics',
     'reference/learn/glossary'
   ],
 }

@@ -5,13 +5,23 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
+from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.render import (
+    AtomicDiagnosticRendererType,
+    LegacyRendererType,
+    RenderedAtomicContent,
+    RenderedStringTemplateContent,
+    renderedAtomicValueSchema,
+)
+from great_expectations.render.renderer.observed_value_renderer import (
+    _prepare_params_for_list_comparison,
+)
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     RendererConfiguration,
@@ -38,11 +48,11 @@ SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "MySQL",
     "MSSQL",
-    "Redshift",
     "BigQuery",
     "Snowflake",
+    "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = ["Schema"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 
 
 class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
@@ -74,7 +84,7 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -85,7 +95,7 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -160,7 +170,7 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     column_list: Union[list, set, SuiteParameterDict, None] = pydantic.Field(
         description=COLUMN_LIST_DESCRIPTION
@@ -309,7 +319,7 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
                 "result": {"observed_value": list(actual_column_list)},
             }
         else:
-            # In the case of differing column lengths between the defined expectation and the observed column set, the  # noqa: E501
+            # In the case of differing column lengths between the defined expectation and the observed column set, the  # noqa: E501 # FIXME CoP
             # max is determined to generate the column_index.
             number_of_columns = max(len(expected_column_list), len(actual_column_list))
             column_index = range(number_of_columns)
@@ -330,3 +340,63 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
                     "details": {"mismatched": mismatched},
                 },
             }
+
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        renderer_configuration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        expected_param_prefix = "exp__"
+        expected_param_name = "expected_value"
+        ov_param_prefix = "ov__"
+        ov_param_name = "observed_value"
+
+        renderer_configuration.add_param(
+            name=expected_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=renderer_configuration.result.expectation_config.kwargs.get("column_list", []),
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=expected_param_name,
+            param_prefix=expected_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        renderer_configuration.add_param(
+            name=ov_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=result.result.get("observed_value"),
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=ov_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        renderer_configuration.template_str = _prepare_params_for_list_comparison(
+            params=renderer_configuration.params,
+            expected_prefix=expected_param_prefix,
+            observed_prefix=ov_param_prefix,
+        )
+
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )

@@ -98,9 +98,9 @@ def _create_sqlite_source(
     # These type ignores when dealing with the execution_engine_override are because
     # it is a generic. We don't care about the exact type since we swap it out with our
     # mock for the purpose of this test and then replace it with the original.
-    original_override = SqliteDatasource.execution_engine_override  # type: ignore[misc]
+    original_override = SqliteDatasource.execution_engine_override  # type: ignore[misc] # FIXME CoP
     try:
-        SqliteDatasource.execution_engine_override = execution_eng_cls  # type: ignore[misc]
+        SqliteDatasource.execution_engine_override = execution_eng_cls  # type: ignore[misc] # FIXME CoP
         sqlite_datasource = SqliteDatasource(
             name="sqlite_datasource",
             connection_string="sqlite://",
@@ -110,7 +110,7 @@ def _create_sqlite_source(
             sqlite_datasource._data_context = data_context
         yield sqlite_datasource
     finally:
-        SqliteDatasource.execution_engine_override = original_override  # type: ignore[misc]
+        SqliteDatasource.execution_engine_override = original_override  # type: ignore[misc] # FIXME CoP
 
 
 @pytest.fixture

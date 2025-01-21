@@ -11,7 +11,7 @@ from great_expectations.validator.metric_configuration import MetricConfiguratio
 logger = logging.getLogger(__name__)
 
 try:
-    import sqlalchemy  # noqa: F401, TID251
+    import sqlalchemy  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     logger.debug("Unable to load SqlAlchemy or one of its subclasses.")
 
@@ -49,7 +49,7 @@ def is_valid_continuous_partition_object(partition_object):
 
     :param partition_object: The partition_object to evaluate
     :return: Boolean
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if (
         (partition_object is None)
         or ("weights" not in partition_object)
@@ -58,7 +58,7 @@ def is_valid_continuous_partition_object(partition_object):
         return False
 
     if "tail_weights" in partition_object:
-        if len(partition_object["tail_weights"]) != 2:  # noqa: PLR2004
+        if len(partition_object["tail_weights"]) != 2:  # noqa: PLR2004 # FIXME CoP
             return False
         comb_weights = partition_object["tail_weights"] + partition_object["weights"]
     else:
@@ -68,7 +68,7 @@ def is_valid_continuous_partition_object(partition_object):
     # if (partition_object['bins'][0] == -np.inf) or (partition_object['bins'][-1] == np.inf):
     #     return False
 
-    # Expect one more bin edge than weight; all bin edges should be monotonically increasing; weights should sum to one  # noqa: E501
+    # Expect one more bin edge than weight; all bin edges should be monotonically increasing; weights should sum to one  # noqa: E501 # FIXME CoP
     return (
         (len(partition_object["bins"]) == (len(partition_object["weights"]) + 1))
         and np.all(np.diff(partition_object["bins"]) > 0)
@@ -102,7 +102,7 @@ def build_continuous_partition_object(
             }
 
             See :ref:`partition_object`.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     partition_metric_configuration = MetricConfiguration(
         "column.partition",
         metric_domain_kwargs=domain_kwargs,
@@ -164,7 +164,7 @@ def build_categorical_partition_object(execution_engine, domain_kwargs, sort="va
             "weights": (list) The densities of the values implied by the partition.
         }
         See :ref:`partition_object`.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     counts_configuration = MetricConfiguration(
         "column.partition",
         metric_domain_kwargs=domain_kwargs,
@@ -187,7 +187,7 @@ def build_categorical_partition_object(execution_engine, domain_kwargs, sort="va
     }
 
 
-def infer_distribution_parameters(  # noqa: C901, PLR0912
+def infer_distribution_parameters(  # noqa: C901, PLR0912 # FIXME CoP
     data, distribution, params=None
 ):
     """Convenience method for determining the shape parameters of a given distribution
@@ -219,7 +219,7 @@ def infer_distribution_parameters(  # noqa: C901, PLR0912
     if params is None:
         params = {}
     elif not isinstance(params, dict):
-        raise TypeError("params must be a dictionary object, see great_expectations documentation")  # noqa: TRY003
+        raise TypeError("params must be a dictionary object, see great_expectations documentation")  # noqa: TRY003 # FIXME CoP
 
     if "mean" not in params:
         params["mean"] = data.mean()
@@ -273,7 +273,7 @@ def infer_distribution_parameters(  # noqa: C901, PLR0912
     # Lambda is optional
     #        params['scale'] = 1 / params['lambda']
     elif distribution != "norm":
-        raise AttributeError(  # noqa: TRY003
+        raise AttributeError(  # noqa: TRY003 # FIXME CoP
             "Unsupported distribution type. Please refer to Great Expectations Documentation"
         )
 
@@ -299,7 +299,7 @@ def _scipy_distribution_positional_args_from_dict(distribution, params):
        Raises:
            AttributeError: \
                If an unsupported distribution is provided.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     params["loc"] = params.get("loc", 0)
     if "scale" not in params:
@@ -321,7 +321,7 @@ def _scipy_distribution_positional_args_from_dict(distribution, params):
         return params["loc"], params["scale"]
 
 
-def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
+def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     distribution, params
 ):
     """Ensures that necessary parameters for a distribution are present and that all parameters are sensical.
@@ -343,14 +343,14 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
            ValueError: \
                With an informative description, usually when necessary parameters are omitted or are invalid.
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     norm_msg = "norm distributions require 0 parameters and optionally 'mean', 'std_dev'."
-    beta_msg = "beta distributions require 2 positive parameters 'alpha', 'beta' and optionally 'loc', 'scale'."  # noqa: E501
+    beta_msg = "beta distributions require 2 positive parameters 'alpha', 'beta' and optionally 'loc', 'scale'."  # noqa: E501 # FIXME CoP
     gamma_msg = (
         "gamma distributions require 1 positive parameter 'alpha' and optionally 'loc','scale'."
     )
-    # poisson_msg = "poisson distributions require 1 positive parameter 'lambda' and optionally 'loc'."  # noqa: E501
+    # poisson_msg = "poisson distributions require 1 positive parameter 'lambda' and optionally 'loc'."  # noqa: E501 # FIXME CoP
     uniform_msg = "uniform distributions require 0 parameters and optionally 'loc', 'scale'."
     chi2_msg = "chi2 distributions require 1 positive parameter 'df' and optionally 'loc', 'scale'."
     expon_msg = "expon distributions require 0 parameters and optionally 'loc', 'scale'."
@@ -364,20 +364,20 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
         "chi2",
         "expon",
     ]:
-        raise AttributeError(f"Unsupported  distribution provided: {distribution}")  # noqa: TRY003
+        raise AttributeError(f"Unsupported  distribution provided: {distribution}")  # noqa: TRY003 # FIXME CoP
 
     if isinstance(params, dict):
         # `params` is a dictionary
         if params.get("std_dev", 1) <= 0 or params.get("scale", 1) <= 0:
-            raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003
+            raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003 # FIXME CoP
 
         # alpha and beta are required and positive
         if distribution == "beta" and (params.get("alpha", -1) <= 0 or params.get("beta", -1) <= 0):
-            raise ValueError(f"Invalid parameters: {beta_msg}")  # noqa: TRY003
+            raise ValueError(f"Invalid parameters: {beta_msg}")  # noqa: TRY003 # FIXME CoP
 
         # alpha is required and positive
         elif distribution == "gamma" and params.get("alpha", -1) <= 0:
-            raise ValueError(f"Invalid parameters: {gamma_msg}")  # noqa: TRY003
+            raise ValueError(f"Invalid parameters: {gamma_msg}")  # noqa: TRY003 # FIXME CoP
 
         # lambda is a required and positive
         # elif distribution == 'poisson' and params.get('lambda', -1) <= 0:
@@ -385,37 +385,37 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
 
         # df is necessary and required to be positive
         elif distribution == "chi2" and params.get("df", -1) <= 0:
-            raise ValueError(f"Invalid parameters: {chi2_msg}:")  # noqa: TRY003
+            raise ValueError(f"Invalid parameters: {chi2_msg}:")  # noqa: TRY003 # FIXME CoP
 
     elif isinstance(params, (tuple, list)):
         scale = None
 
         # `params` is a tuple or a list
         if distribution == "beta":
-            if len(params) < 2:  # noqa: PLR2004
-                raise ValueError(f"Missing required parameters: {beta_msg}")  # noqa: TRY003
+            if len(params) < 2:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Missing required parameters: {beta_msg}")  # noqa: TRY003 # FIXME CoP
             if params[0] <= 0 or params[1] <= 0:
-                raise ValueError(f"Invalid parameters: {beta_msg}")  # noqa: TRY003
-            if len(params) == 4:  # noqa: PLR2004
+                raise ValueError(f"Invalid parameters: {beta_msg}")  # noqa: TRY003 # FIXME CoP
+            if len(params) == 4:  # noqa: PLR2004 # FIXME CoP
                 scale = params[3]
-            elif len(params) > 4:  # noqa: PLR2004
-                raise ValueError(f"Too many parameters provided: {beta_msg}")  # noqa: TRY003
+            elif len(params) > 4:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many parameters provided: {beta_msg}")  # noqa: TRY003 # FIXME CoP
 
         elif distribution == "norm":
-            if len(params) > 2:  # noqa: PLR2004
-                raise ValueError(f"Too many parameters provided: {norm_msg}")  # noqa: TRY003
-            if len(params) == 2:  # noqa: PLR2004
+            if len(params) > 2:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many parameters provided: {norm_msg}")  # noqa: TRY003 # FIXME CoP
+            if len(params) == 2:  # noqa: PLR2004 # FIXME CoP
                 scale = params[1]
 
         elif distribution == "gamma":
             if len(params) < 1:
-                raise ValueError(f"Missing required parameters: {gamma_msg}")  # noqa: TRY003
-            if len(params) == 3:  # noqa: PLR2004
+                raise ValueError(f"Missing required parameters: {gamma_msg}")  # noqa: TRY003 # FIXME CoP
+            if len(params) == 3:  # noqa: PLR2004 # FIXME CoP
                 scale = params[2]
-            if len(params) > 3:  # noqa: PLR2004
-                raise ValueError(f"Too many parameters provided: {gamma_msg}")  # noqa: TRY003
+            if len(params) > 3:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many parameters provided: {gamma_msg}")  # noqa: TRY003 # FIXME CoP
             elif params[0] <= 0:
-                raise ValueError(f"Invalid parameters: {gamma_msg}")  # noqa: TRY003
+                raise ValueError(f"Invalid parameters: {gamma_msg}")  # noqa: TRY003 # FIXME CoP
 
         # elif distribution == 'poisson':
         #    if len(params) < 1:
@@ -426,33 +426,33 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
         #        raise ValueError("Invalid parameters: %s" %poisson_msg)
 
         elif distribution == "uniform":
-            if len(params) == 2:  # noqa: PLR2004
+            if len(params) == 2:  # noqa: PLR2004 # FIXME CoP
                 scale = params[1]
-            if len(params) > 2:  # noqa: PLR2004
-                raise ValueError(f"Too many arguments provided: {uniform_msg}")  # noqa: TRY003
+            if len(params) > 2:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many arguments provided: {uniform_msg}")  # noqa: TRY003 # FIXME CoP
 
         elif distribution == "chi2":
             if len(params) < 1:
-                raise ValueError(f"Missing required parameters: {chi2_msg}")  # noqa: TRY003
-            elif len(params) == 3:  # noqa: PLR2004
+                raise ValueError(f"Missing required parameters: {chi2_msg}")  # noqa: TRY003 # FIXME CoP
+            elif len(params) == 3:  # noqa: PLR2004 # FIXME CoP
                 scale = params[2]
-            elif len(params) > 3:  # noqa: PLR2004
-                raise ValueError(f"Too many arguments provided: {chi2_msg}")  # noqa: TRY003
+            elif len(params) > 3:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many arguments provided: {chi2_msg}")  # noqa: TRY003 # FIXME CoP
             if params[0] <= 0:
-                raise ValueError(f"Invalid parameters: {chi2_msg}")  # noqa: TRY003
+                raise ValueError(f"Invalid parameters: {chi2_msg}")  # noqa: TRY003 # FIXME CoP
 
         elif distribution == "expon":
-            if len(params) == 2:  # noqa: PLR2004
+            if len(params) == 2:  # noqa: PLR2004 # FIXME CoP
                 scale = params[1]
-            if len(params) > 2:  # noqa: PLR2004
-                raise ValueError(f"Too many arguments provided: {expon_msg}")  # noqa: TRY003
+            if len(params) > 2:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many arguments provided: {expon_msg}")  # noqa: TRY003 # FIXME CoP
 
         if scale is not None and scale <= 0:
-            raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003
+            raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003 # FIXME CoP
 
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
-            "params must be a dict or list, or use great_expectations.dataset.util.infer_distribution_parameters(data, distribution)"  # noqa: E501
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+            "params must be a dict or list, or use great_expectations.dataset.util.infer_distribution_parameters(data, distribution)"  # noqa: E501 # FIXME CoP
         )
 
 
@@ -472,7 +472,7 @@ def create_multiple_expectations(df, columns, expectation_type, *args, **kwargs)
         A list of expectation results.
 
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     expectation = getattr(df, expectation_type)
     results = list()
 

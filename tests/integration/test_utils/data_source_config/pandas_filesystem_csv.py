@@ -1,9 +1,12 @@
 import pathlib
+from functools import cached_property
+from typing import Mapping
 
 import pandas as pd
 import pytest
 
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.datasource.fluent.data_asset.path.pandas.generated_assets import CSVAsset
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -24,8 +27,13 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
 
     @override
     def create_batch_setup(
-        self, data: pd.DataFrame, request: pytest.FixtureRequest
+        self,
+        request: pytest.FixtureRequest,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
     ) -> BatchTestSetup:
+        assert not extra_data, "extra_data is not supported for this data source."
+
         tmp_path = request.getfixturevalue("tmp_path")
         assert isinstance(tmp_path, pathlib.Path)
 
@@ -36,7 +44,9 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         )
 
 
-class PandasFilesystemCsvBatchTestSetup(BatchTestSetup[PandasFilesystemCsvDatasourceTestConfig]):
+class PandasFilesystemCsvBatchTestSetup(
+    BatchTestSetup[PandasFilesystemCsvDatasourceTestConfig, CSVAsset]
+):
     def __init__(
         self,
         config: PandasFilesystemCsvDatasourceTestConfig,
@@ -46,17 +56,18 @@ class PandasFilesystemCsvBatchTestSetup(BatchTestSetup[PandasFilesystemCsvDataso
         super().__init__(config=config, data=data)
         self._base_dir = base_dir
 
+    @cached_property
+    @override
+    def asset(self) -> CSVAsset:
+        return self.context.data_sources.add_pandas_filesystem(
+            name=self._random_resource_name(), base_directory=self._base_dir
+        ).add_csv_asset(name=self._random_resource_name())
+
     @override
     def make_batch(self) -> Batch:
-        name = self._random_resource_name()
-        path = self._base_dir
-
-        return (
-            self._context.data_sources.add_pandas_filesystem(name=name, base_directory=path)
-            .add_csv_asset(name=name)
-            .add_batch_definition_path(name=name, path=self.csv_path)
-            .get_batch()
-        )
+        return self.asset.add_batch_definition_path(
+            name=self._random_resource_name(), path=self.csv_path
+        ).get_batch()
 
     @override
     def setup(self) -> None:
