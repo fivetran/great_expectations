@@ -35,6 +35,7 @@ from great_expectations.expectations.expectation import Expectation
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
+from great_expectations.render import RenderedAtomicContent, RenderedAtomicValue
 
 
 @pytest.fixture
@@ -931,7 +932,36 @@ class TestExpectationsAreEqualish:
                     value_set=[1, 2, 3],
                     result_format="BASIC",
                 ),
-                id="same expectation, same args passed in",
+                id="same args passed in",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a", id=str(uuid4())),
+                gxe.ExpectColumnValuesToNotBeNull(column="a", id=str(uuid4())),
+                id="different ids",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a", rendered_content=[]),
+                gxe.ExpectColumnValuesToNotBeNull(
+                    column="a",
+                    rendered_content=[
+                        RenderedAtomicContent(
+                            name="atomic.prescriptive.summary",
+                            value=RenderedAtomicValue(template="Render this string!"),
+                            value_type="StringValueType",
+                        )
+                    ],
+                ),
+                id="different rendered_content",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a", notes="Note ABC"),
+                gxe.ExpectColumnValuesToNotBeNull(column="a", notes="Note 123"),
+                id="different notes",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a", meta={"warehouse": "theirs"}),
+                gxe.ExpectColumnValuesToNotBeNull(column="a", meta={"warehouse": "ours"}),
+                id="different meta",
             ),
         ],
     )
@@ -944,8 +974,18 @@ class TestExpectationsAreEqualish:
         [
             pytest.param(
                 gxe.ExpectColumnValuesToNotBeNull(column="a"),
+                gxe.ExpectColumnValuesToBeUnique(column="b"),
+                id="different expectation, different args passed in",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a"),
                 gxe.ExpectColumnValuesToBeUnique(column="a"),
                 id="different expectation, same args passed in",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a"),
+                gxe.ExpectColumnValuesToNotBeNull(column="b"),
+                id="same expectation, different args passed in",
             ),
         ],
     )
