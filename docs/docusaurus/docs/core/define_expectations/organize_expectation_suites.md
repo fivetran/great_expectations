@@ -16,14 +16,14 @@ An Expectation Suite contains a group of Expectations that describe the same set
 If you use GX Cloud and GX Core together, note that only [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations) can be grouped into custom Expectation Suites.
 :::
 
-<h2>Prerequisites</h2>
+## Prerequisites {#prerequisites-expectation-suites}
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - Recommended. <PrereqPreconfiguredDataContext/>.
 - Recommended. <PrereqPreconfiguredDataSourceAndAsset/>.
 
-### Procedure
+### Procedure {#procedure-expectation-suites}
 
 <Tabs 
    queryString="procedure"

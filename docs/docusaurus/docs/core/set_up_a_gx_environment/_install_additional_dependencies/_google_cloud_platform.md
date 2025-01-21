@@ -5,7 +5,7 @@ import InfoUsingAVirtualEnvironment from '../../_core_components/admonitions/_if
 
 To validate Google Cloud Platform (GCP) data with GX Core, you create your GX Python environment, configure your GCP credentials, and install GX Core locally with the additional dependencies to support GCP.
 
-## Prerequisites
+## Prerequisites {#prerequisites-cloud}
 
 - A [GCP service account](https://cloud.google.com/iam/docs/service-account-overview) with permissions to access GCP resources and storage Objects.
 - The `GOOGLE_APPLICATION_CREDENTIALS` environment variable is set. See the Google documentation [Set up Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc). 
@@ -13,7 +13,7 @@ To validate Google Cloud Platform (GCP) data with GX Core, you create your GX Py
 - <PrereqPythonInstalled/>
 - <RecommendedVirtualEnvironment/>
 
-## Installation
+## Installation {#installation-cloud}
 
 1. Ensure your GCP credentials are correctly configured. This process includes:
 

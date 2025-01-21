@@ -628,7 +628,8 @@ def get_checkpoint_by_id_cb(request: PreparedRequest) -> CallbackResult:
     checkpoint_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment] # FIXME CoP
 
     if checkpoint := _CLOUD_API_FAKE_DB["checkpoints"].get(checkpoint_id):
-        result = CallbackResult(200, headers=DEFAULT_HEADERS, body=json.dumps(checkpoint))
+        resp_body = json.dumps({"data": checkpoint})
+        result = CallbackResult(200, headers=DEFAULT_HEADERS, body=resp_body)
     else:
         result = CallbackResult(
             404,
@@ -681,6 +682,37 @@ def post_checkpoints_cb(request: PreparedRequest) -> CallbackResult:
         result = CallbackResult(201, headers=DEFAULT_HEADERS, body=json.dumps(payload))
 
     LOGGER.debug(f"Response {result.status}")
+    return result
+
+
+def put_checkpoint_cb(request: PreparedRequest) -> CallbackResult:
+    if not request.body:
+        raise NotImplementedError("Handling missing body")
+
+    payload: dict = json.loads(request.body)
+    name = payload["data"]["name"]
+
+    checkpoints: dict[str, dict] = _CLOUD_API_FAKE_DB["checkpoints"]
+    checkpoint_names: set[str] = _CLOUD_API_FAKE_DB["CHECKPOINT_NAMES"]
+
+    if name not in checkpoint_names:
+        result = CallbackResult(
+            404,
+            headers=DEFAULT_HEADERS,
+            body=ErrorPayloadSchema(
+                errors=[
+                    {
+                        "code": "404",
+                        "detail": f"Checkpoint '{name}' not found",
+                        "source": None,
+                    }
+                ]
+            ).json(),
+        )
+    else:
+        checkpoint_id = payload["data"]["id"]
+        checkpoints[checkpoint_id] = payload["data"]
+        result = CallbackResult(200, headers=DEFAULT_HEADERS, body=json.dumps(payload))
     return result
 
 
@@ -951,6 +983,11 @@ def gx_cloud_api_fake_ctx(
             responses.GET,
             re.compile(urllib.parse.urljoin(org_url_base_V1, f"checkpoints/{UUID_REGEX}")),
             get_checkpoint_by_id_cb,
+        )
+        resp_mocker.add_callback(
+            responses.PUT,
+            re.compile(urllib.parse.urljoin(org_url_base_V1, f"checkpoints/{UUID_REGEX}")),
+            put_checkpoint_cb,
         )
         resp_mocker.add_callback(
             responses.POST,

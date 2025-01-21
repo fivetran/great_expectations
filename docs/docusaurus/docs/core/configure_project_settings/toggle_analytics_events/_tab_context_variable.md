@@ -8,13 +8,13 @@ import PrereqFileDataContext from '../../_core_components/prerequisites/_file_da
 The Data Context variable `analytics_enabled` can be used to toggle the collection of analytics information.  Because the analytics configuration is loaded when a Data Context is initialized this method is only suitable when working with a File Data Context.  For other types of Data Context, use the [Environment Variable](/core/configure_project_settings/toggle_analytics_events/toggle_analytics_events.md?config_method=environment_variable#methods-for-toggling-analytics-collection) method for toggling analytics collection.
 
 
-### Prerequisites
+### Prerequisites {#prerequisites-context-variable}
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - <PrereqFileDataContext/>.
 
-### Procedure
+### Procedure {#procedure-context-variable}
 
 <Tabs>
 
