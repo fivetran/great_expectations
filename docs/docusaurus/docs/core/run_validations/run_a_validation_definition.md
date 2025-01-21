@@ -39,7 +39,7 @@ import PrereqValidationDefinition from '../_core_components/prerequisites/_valid
 
 2. Define a Batch of data to validate
 
-   The [Batch parameters accepted by a Validation Definition](/docs/reference/api/ValidationDefinition_class#great_expectations.ValidationDefinition.run) are determined by the BatchDefinition used to instantiate it. 
+   The [Batch parameters accepted by a Validation Definition](/docs/reference/api/ValidationDefinition_class#great_expectations.ValidationDefinition.run) are determined by the Batch Definition used to instantiate it. 
 
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - define batch parameters"
    ```
