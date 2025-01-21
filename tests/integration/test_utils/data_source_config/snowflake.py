@@ -1,4 +1,3 @@
-from functools import cached_property
 from typing import Mapping, Optional
 
 import pandas as pd
@@ -85,9 +84,8 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         self.snowflake_connection_config = SnowflakeConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
         super().__init__(config=config, data=data, extra_data=extra_data, table_name=table_name)
 
-    @cached_property
     @override
-    def asset(self) -> TableAsset:
+    def make_asset(self) -> TableAsset:
         schema = self.schema
         assert schema
         return self.context.data_sources.add_snowflake(
