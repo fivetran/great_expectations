@@ -916,14 +916,6 @@ class TestEqDunder:
 
 
 class TestExpectationsAreEqualish:
-    @pytest.fixture
-    def expectation_3(self) -> gxe.ExpectColumnValuesToNotBeNull:
-        return gxe.ExpectColumnValuesToNotBeNull(column="a")
-
-    @pytest.fixture
-    def expectation_4(self) -> gxe.ExpectColumnValuesToBeUnique:
-        return gxe.ExpectColumnValuesToBeUnique(column="a")
-
     @pytest.mark.unit
     @pytest.mark.parametrize(
         "expectation_a,expectation_b",
