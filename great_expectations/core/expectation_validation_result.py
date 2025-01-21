@@ -663,7 +663,12 @@ expectationValidationResultSchema = ExpectationValidationResultSchema()
 
 
 def _make_serializable(data: Any) -> Any:
-    """Convert data to a json serializable shape."""
+    """Convert data to a json serializable shape.
+
+    TODO: Fix convert_to_json_serializable to not render dictionaries as
+          lists of {"index": <KEY>, "value": <VALUE>} pairs, and replace use
+          of this function with convert_to_json_serializable.
+    """
     if isinstance(data, dict):
         return {k: _make_serializable(v) for k, v in data.items()}
     elif isinstance(data, pd.Series):
