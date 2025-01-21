@@ -27,6 +27,10 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.data_context.store.expectations_store import ExpectationsStore
 from great_expectations.exceptions import InvalidExpectationConfigurationError
+from great_expectations.expectations import (
+    ExpectColumnValuesToBeUnique,
+    ExpectColumnValuesToNotBeNull,
+)
 from great_expectations.expectations.expectation import Expectation
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -393,6 +397,25 @@ class TestCRUDMethods:
             suite.add_expectation(expectation=expectation)
 
         assert len(suite.expectations) == 0, "Expectation must not be added to Suite."
+
+    @pytest.mark.unit
+    def test_add_success_when_attributes_are_identical(self):
+        context = Mock(spec=AbstractDataContext)
+        set_context(project=context)
+
+        parameters = {"column": "passenger_count"}
+        expectation_a = ExpectColumnValuesToBeUnique(**parameters)
+        expectation_b = ExpectColumnValuesToNotBeNull(**parameters)
+
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation_a],
+        )
+
+        with mock.patch.object(ExpectationSuite, "_submit_expectation_created_event"):
+            suite.add_expectation(expectation=expectation_b)
+
+        assert len(suite.expectations) == 2
 
     @pytest.mark.unit
     def test_delete_success_with_saved_suite(self, expectation):
