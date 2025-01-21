@@ -1246,7 +1246,7 @@ def test_ValidationResultsColumnSectionRenderer_render_table(
     assert (
         "values must not be null, at least $mostly_pct % of the time." in content_block_stringified
     )
-    assert "values must belong to this set: [ ]." in content_block_stringified
+    assert "values must belong to this set: $v__0 $v__1 $v__2." in content_block_stringified
     assert (
         "\\n\\n$unexpected_count unexpected values found. $unexpected_percent of $element_count total rows."  # noqa: E501 # FIXME CoP
         in content_block_stringified

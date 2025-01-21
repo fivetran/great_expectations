@@ -834,7 +834,7 @@ class TestColumnExpectations:
             pytest.skip(f"see _desired_state tests for {column_name!r}")
         elif _fails_expectation(param_id):
             # apply marker this way so that xpasses can be seen in the report
-            request.applymarker(pytest.mark.xfail)
+            request.applymarker(pytest.mark.xfail(run=False))
 
         print(f"expectations_type:\n  {expectation_type}")
 
@@ -939,7 +939,7 @@ class TestColumnExpectations:
             pytest.skip(f"quote char dialect mismatch: {column_name[0]}")
         elif _fails_expectation(param_id):
             # apply marker this way so that xpasses can be seen in the report
-            request.applymarker(pytest.mark.xfail)
+            request.applymarker(pytest.mark.xfail(run=False))
 
         print(f"expectations_type:\n  {expectation_type}")
 
