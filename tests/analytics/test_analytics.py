@@ -287,3 +287,33 @@ def test_analytics_enabled_after_setting_explicitly(
         user_id=mock.ANY,
         user_agent_str=mock.ANY,
     )
+
+
+@pytest.mark.parametrize("initial_user_agent_str", [None, "old user agent string"])
+@pytest.mark.parametrize("new_user_agent_str", [None, "new user agent string"])
+@pytest.mark.unit
+def test_user_agent_str_after_setting_explicitly(
+    initial_user_agent_str: Optional[str],
+    new_user_agent_str: Optional[str],
+    monkeypatch,
+):
+    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)
+
+    with mock.patch(
+        "great_expectations.data_context.data_context.abstract_data_context.init_analytics"
+    ) as mock_init:
+        context = gx.get_context(
+            mode="ephemeral",
+            user_agent_str=initial_user_agent_str,
+        )
+
+        context.set_user_agent_str(new_user_agent_str)
+
+    mock_init.assert_called_with(
+        enable=True,
+        data_context_id=mock.ANY,
+        organization_id=mock.ANY,
+        oss_id=mock.ANY,
+        user_id=mock.ANY,
+        user_agent_str=new_user_agent_str,
+    )

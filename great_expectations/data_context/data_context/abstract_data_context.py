@@ -354,6 +354,15 @@ class AbstractDataContext(ConfigPeer, ABC):
         self._init_analytics()
         self.variables.save()
 
+    def set_user_agent_str(self, user_agent_str: Optional[str]) -> None:
+        """
+        Set the user agent string for this DataContext.
+
+        This method is used by GX internally for analytics tracking.
+        """
+        self._user_agent_str = user_agent_str
+        self._init_analytics()
+
     @public_api
     def update_project_config(
         self, project_config: DataContextConfig | Mapping
