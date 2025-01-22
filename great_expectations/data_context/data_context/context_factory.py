@@ -71,6 +71,7 @@ class ProjectManager:
         cloud_access_token: str | None = None,
         cloud_organization_id: str | None = None,
         cloud_mode: bool | None = None,
+        user_agent_str: str | None = None,
         mode: ContextModes | None = None,
     ) -> AbstractDataContext:
         self.__project = self._build_context(
@@ -82,6 +83,7 @@ class ProjectManager:
             cloud_access_token=cloud_access_token,
             cloud_organization_id=cloud_organization_id,
             cloud_mode=cloud_mode,
+            user_agent_str=user_agent_str,
             mode=mode,
         )
         return self.__project
@@ -165,6 +167,7 @@ class ProjectManager:
         cloud_access_token: str | None = None,
         cloud_organization_id: str | None = None,
         cloud_mode: bool | None = None,
+        user_agent_str: str | None = None,
         mode: ContextModes | None = None,
     ) -> AbstractDataContext:
         project_config = self._prepare_project_config(project_config)
@@ -173,12 +176,14 @@ class ProjectManager:
             "ephemeral": dict(
                 project_config=project_config,
                 runtime_environment=runtime_environment,
+                user_agent_str=user_agent_str,
             ),
             "file": dict(
                 project_config=project_config,
                 context_root_dir=context_root_dir,
                 project_root_dir=project_root_dir or Path.cwd(),
                 runtime_environment=runtime_environment,
+                user_agent_str=user_agent_str,
             ),
             "cloud": dict(
                 project_config=project_config,
@@ -188,6 +193,7 @@ class ProjectManager:
                 cloud_base_url=cloud_base_url,
                 cloud_access_token=cloud_access_token,
                 cloud_organization_id=cloud_organization_id,
+                user_agent_str=user_agent_str,
             ),
             None: dict(
                 project_config=project_config,
@@ -197,6 +203,7 @@ class ProjectManager:
                 cloud_base_url=cloud_base_url,
                 cloud_access_token=cloud_access_token,
                 cloud_organization_id=cloud_organization_id,
+                user_agent_str=user_agent_str,
                 cloud_mode=cloud_mode,
             ),
         }
@@ -254,6 +261,7 @@ class ProjectManager:
         cloud_base_url: str | None = None,
         cloud_access_token: str | None = None,
         cloud_organization_id: str | None = None,
+        user_agent_str: str | None = None,
         cloud_mode: bool | None = None,
     ) -> AbstractDataContext:
         """Infer which type of DataContext a user wants based on available parameters."""
@@ -267,6 +275,7 @@ class ProjectManager:
             cloud_base_url=cloud_base_url,
             cloud_access_token=cloud_access_token,
             cloud_organization_id=cloud_organization_id,
+            user_agent_str=user_agent_str,
         )
 
         if cloud_context:
@@ -278,6 +287,7 @@ class ProjectManager:
             context_root_dir=context_root_dir,
             project_root_dir=project_root_dir,
             runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
         )
         if file_context:
             return file_context
@@ -286,6 +296,7 @@ class ProjectManager:
         return self._get_ephemeral_context(
             project_config=project_config,
             runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
         )
 
     def _prepare_project_config(
@@ -313,6 +324,7 @@ class ProjectManager:
         cloud_base_url: str | None = None,
         cloud_access_token: str | None = None,
         cloud_organization_id: str | None = None,
+        user_agent_str: str | None = None,
         cloud_mode: bool | None = None,
     ) -> CloudDataContext | None:
         from great_expectations.data_context.data_context import CloudDataContext
@@ -333,6 +345,7 @@ class ProjectManager:
                 cloud_base_url=cloud_base_url,
                 cloud_access_token=cloud_access_token,
                 cloud_organization_id=cloud_organization_id,
+                user_agent_str=user_agent_str,
             )
 
         if cloud_mode and not config_available:
@@ -348,6 +361,7 @@ class ProjectManager:
         context_root_dir: PathStr | None = None,
         project_root_dir: PathStr | None = None,
         runtime_environment: dict | None = None,
+        user_agent_str: str | None = None,
     ) -> FileDataContext | None:
         from great_expectations.data_context.data_context import FileDataContext
 
@@ -357,6 +371,7 @@ class ProjectManager:
                 context_root_dir=context_root_dir,
                 project_root_dir=project_root_dir,
                 runtime_environment=runtime_environment,
+                user_agent_str=user_agent_str,
             )
         except gx_exceptions.ConfigNotFoundError:
             logger.info("Could not find local file-backed GX project")
@@ -366,6 +381,7 @@ class ProjectManager:
         self,
         project_config: DataContextConfig | None = None,
         runtime_environment: dict | None = None,
+        user_agent_str: str | None = None,
     ) -> EphemeralDataContext:
         from great_expectations.data_context.data_context import EphemeralDataContext
         from great_expectations.data_context.types.base import (
@@ -381,6 +397,7 @@ class ProjectManager:
         return EphemeralDataContext(
             project_config=project_config,
             runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
         )
 
 
@@ -398,6 +415,7 @@ def get_context(
     cloud_access_token: None = ...,
     cloud_organization_id: None = ...,
     cloud_mode: Literal[False] | None = ...,
+    user_agent_str: str | None = ...,
     mode: Literal["ephemeral"] = ...,
 ) -> EphemeralDataContext: ...
 
@@ -412,6 +430,7 @@ def get_context(
     cloud_access_token: None = ...,
     cloud_organization_id: None = ...,
     cloud_mode: Literal[False] | None = ...,
+    user_agent_str: str | None = ...,
 ) -> FileDataContext: ...
 
 
@@ -425,6 +444,7 @@ def get_context(
     cloud_access_token: None = ...,
     cloud_organization_id: None = ...,
     cloud_mode: Literal[False] | None = ...,
+    user_agent_str: str | None = ...,
     mode: Literal["file"] | None = ...,
 ) -> FileDataContext: ...
 
@@ -439,6 +459,7 @@ def get_context(
     cloud_access_token: str | None = ...,
     cloud_organization_id: str | None = ...,
     cloud_mode: Literal[True] = ...,
+    user_agent_str: str | None = ...,
     mode: Literal["cloud"] | None = ...,
 ) -> CloudDataContext: ...
 
@@ -453,6 +474,7 @@ def get_context(
     cloud_access_token: str | None = ...,
     cloud_organization_id: str | None = ...,
     cloud_mode: bool | None = ...,
+    user_agent_str: str | None = ...,
     mode: None = ...,
 ) -> EphemeralDataContext | FileDataContext | CloudDataContext: ...
 
@@ -467,6 +489,7 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
     cloud_access_token: str | None = None,
     cloud_organization_id: str | None = None,
     cloud_mode: bool | None = None,
+    user_agent_str: str | None = None,
     mode: ContextModes | None = None,
 ) -> AbstractDataContext:
     """Method to return the appropriate Data Context depending on parameters and environment.
@@ -529,6 +552,7 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
         cloud_organization_id: org_id for GX Cloud account.
         cloud_mode: whether to run GX in Cloud mode (default is None).
             If None, cloud mode is assumed if cloud credentials are set up. Set to False to override.
+        user_agent_str: Optional string, should be of format <PRODUCT> / <VERSION> <COMMENT>
         mode: which mode to use. One of: ephemeral, file, cloud.
             Note: if mode is specified, cloud_mode is ignored.
 
@@ -549,6 +573,7 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
         cloud_access_token=cloud_access_token,
         cloud_organization_id=cloud_organization_id,
         cloud_mode=cloud_mode,
+        user_agent_str=user_agent_str,
         mode=mode,
     )
 

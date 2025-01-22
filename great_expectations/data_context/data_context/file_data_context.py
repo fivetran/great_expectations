@@ -43,6 +43,7 @@ class FileDataContext(SerializableDataContext):
         context_root_dir: Optional[PathStr] = None,
         project_root_dir: Optional[PathStr] = None,
         runtime_environment: Optional[dict] = None,
+        user_agent_str: Optional[str] = None,
     ) -> None:
         """FileDataContext constructor
 
@@ -63,6 +64,7 @@ class FileDataContext(SerializableDataContext):
         super().__init__(
             context_root_dir=self._context_root_directory,
             runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
         )
 
     def _init_context_root_directory(

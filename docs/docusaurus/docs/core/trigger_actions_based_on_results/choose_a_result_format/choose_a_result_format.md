@@ -27,7 +27,7 @@ import AdditionalSettingsComplete from './_additional_settings/_COMPLETE.md';
 
 When you validate data with GX Core you can set the level of detail returned in your Validation Results by specifying a value for the optional `result_format` parameter.  These settings will be applied to the results returned by each validated Expectation.
 
-Typical use cases customizing Result Format settings include summarizing values that cause Expectations to fail durring data exploration, retrieving failed rows to facilitate cleaning data, or excluding excess Validation Result data in published Data Docs.
+Typical use cases for customizing Result Format settings include summarizing values that cause Expectations to fail during data exploration, retrieving failed rows to facilitate cleaning data, or excluding excess Validation Result data in published Data Docs.
 
 ## Define a Result Format configuration
 
@@ -92,11 +92,11 @@ The `result_format` parameter takes in a dictionary of configuration settings.
 
    </Tabs>
 
-3. Apply the Result Format to a Checkpoint or Validation Definition.
+3. Apply the Result Format to a Checkpoint, Validation Definition, or Batch.
 
    You can define a persisting Result Format configuration by passing it in as the `result_format` parameter when a Checkpoint is created.  The Result Format will be applied every time the Checkpoint is run.  For more information on creating a Checkpoint see [Create a Checkpoint with Actions](/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions.md).
 
-   You can also pass a `result_format` configuration in to a Validation Definition's `.run(...)` method to apply the Result Format configuration to the Validation Results that are returned.  This `result_format` configuration does not persist with the Validation Definition and will only apply to the current execution of the `.run(...)` method.  For more information on running a Validation Definition outside of a Checkpoint see [Run a Validation Definition](/core/run_validations/run_a_validation_definition.md).
+   You can also pass a `result_format` configuration at runtime to the `.run(...)` method of a Validation Definition or to the `.validate(...)` method of a Batch.  This `result_format` configuration does not persist with the Validation Definition or Batch and will apply to only the current execution of the `.run(...)` or `.validate(...)` method.  For more information see [Run a Validation Definition](/core/run_validations/run_a_validation_definition.md) or [Test an Expectation](/docs/core/define_expectations/test_an_expectation.md).
 
 ## Validation Results reference tables
 

@@ -174,7 +174,7 @@ def asset_for_datasource(
     This must be used in conjunction with `indirect=True` to defer execution
     """
     set_context(_batch_setup_for_datasource.context)
-    yield _batch_setup_for_datasource.asset
+    yield _batch_setup_for_datasource.make_asset()
 
 
 @pytest.fixture

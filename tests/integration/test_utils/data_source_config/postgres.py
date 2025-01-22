@@ -9,7 +9,6 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.databricks import cached_property
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 
@@ -50,9 +49,8 @@ class PostgresBatchTestSetup(SQLBatchTestSetup[PostgreSQLDatasourceTestConfig]):
     def use_schema(self) -> bool:
         return False
 
-    @cached_property
     @override
-    def asset(self) -> TableAsset:
+    def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_postgres(
             name=self._random_resource_name(), connection_string=self.connection_string
         ).add_table_asset(
