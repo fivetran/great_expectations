@@ -98,11 +98,13 @@ def create_header_row(soup, table):
 
 def create_row(soup, tbody, prop):
     new_row = soup.new_tag("tr")
+    reference_link = prop.select("a")[0]
+    reference_link.string = reference_link.text.split(".")[-1]
 
     columns = [
         "`" + prop.select(".descname")[0].get_text() + "`",
         prop.select("dd")[0].get_text(),
-        prop.select("a")[0],
+        reference_link,
     ]
 
     for column in columns:
