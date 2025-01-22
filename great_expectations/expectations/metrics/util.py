@@ -70,7 +70,7 @@ except ImportError:
 try:
     import databricks.sqlalchemy as sqla_databricks
 except (ImportError, AttributeError):
-    sqla_databricks = None  # type: ignore[assignment] # FIXME CoP
+    sqla_databricks = None
 
 _BIGQUERY_MODULE_NAME = "sqlalchemy_bigquery"
 
