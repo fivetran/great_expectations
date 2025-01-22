@@ -305,7 +305,7 @@ jobs:
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && bash ../build_docs
 
-      - # name: Run broken link checker
+      # - name: Run broken link checker
         # uses: lycheeverse/lychee-action@v2
         # with:
           # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
