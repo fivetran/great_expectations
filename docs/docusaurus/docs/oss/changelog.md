@@ -15,16 +15,16 @@ When we deprecate our public APIs, we will
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
 ### 1.3.3
-* [BUGFIX] Make validation results' describe_dict return a serializable dict ([#10863](GxURL.PULL_REQUESTS/10863))
-* [BUGFIX] Allow adding Expectations with identical attributes to Suites ([#10884](GxURL.PULL_REQUESTS/10884))
-* [DOCS] Add titles to properties and methods sections in API Reference ([#10821](GxURL.PULL_REQUESTS/10821))
-* [DOCS] Update documentation around batch_parameters and link to updated API docs. ([#10877](GxURL.PULL_REQUESTS/10877))
-* [DOCS] Corrections and clarifications for result_format ([#10875](GxURL.PULL_REQUESTS/10875))
-* [MAINTENANCE] Handle `aws-chunked` encoding type data in `TupleS3StoreBackend` ([#10861](GxURL.PULL_REQUESTS/10861))
-* [MAINTENANCE] Add user-agent-str to analytics events ([#10869](GxURL.PULL_REQUESTS/10869))
-* [MAINTENANCE] Add method to set analytics user_agent_str ([#10883](GxURL.PULL_REQUESTS/10883))
-* [MAINTENANCE] Convert BatchTestSetup.asset property to BatchTestSetup… ([#10864](GxURL.PULL_REQUESTS/10864))
-* [MAINTENANCE] Migrate from `databricks-sql-connector` to `databricks-sqlalchemy` in tests ([#10886](GxURL.PULL_REQUESTS/10886))
+* [BUGFIX] Make validation results' describe_dict return a serializable dict ([#10863](https://github.com/great-expectations/great_expectations/pull/10863))
+* [BUGFIX] Allow adding Expectations with identical attributes to Suites ([#10884](https://github.com/great-expectations/great_expectations/pull/10884))
+* [DOCS] Add titles to properties and methods sections in API Reference ([#10821](https://github.com/great-expectations/great_expectations/pull/10821))
+* [DOCS] Update documentation around batch_parameters and link to updated API docs. ([#10877](https://github.com/great-expectations/great_expectations/pull/10877))
+* [DOCS] Corrections and clarifications for result_format ([#10875](https://github.com/great-expectations/great_expectations/pull/10875))
+* [MAINTENANCE] Handle `aws-chunked` encoding type data in `TupleS3StoreBackend` ([#10861](https://github.com/great-expectations/great_expectations/pull/10861))
+* [MAINTENANCE] Add user-agent-str to analytics events ([#10869](https://github.com/great-expectations/great_expectations/pull/10869))
+* [MAINTENANCE] Add method to set analytics user_agent_str ([#10883](https://github.com/great-expectations/great_expectations/pull/10883))
+* [MAINTENANCE] Convert BatchTestSetup.asset property to BatchTestSetup… ([#10864](https://github.com/great-expectations/great_expectations/pull/10864))
+* [MAINTENANCE] Migrate from `databricks-sql-connector` to `databricks-sqlalchemy` in tests ([#10886](https://github.com/great-expectations/great_expectations/pull/10886))
 
 ### 1.3.2
 * [FEATURE] CheckpointFactory.add_or_update ([#10856](https://github.com/great-expectations/great_expectations/pull/10856))
