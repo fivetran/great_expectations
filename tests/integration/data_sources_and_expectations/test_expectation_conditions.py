@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
@@ -40,7 +41,6 @@ data = pd.DataFrame(
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
-        PandasFilesystemCsvDatasourceTestConfig(),
     ],
     data=data,
 )
@@ -60,16 +60,71 @@ data = pd.DataFrame(
             id="number - eq",
         ),
         pytest.param(
-            'updated_at=="2023-01-30"',
-            id="date - eq",
+            "updated_at==datetime.date(2021,1,31)",
+            id="date (string) - eq",
         ),
         pytest.param(
-            'created_at=="2023-01-30"',
+            'created_at=="2021-01-30 00:00:00+0000"',
             id="datetime - eq",
         ),
     ],
 )
-def test_expect_column_min_to_be_between__pandas_row_condition(
+def test_expect_column_min_to_be_between__pandas_dataframe_row_condition(
+    batch_for_datasource: Batch, row_condition: str
+) -> None:
+    expectation = gxe.ExpectColumnMinToBeBetween(
+        column="amount",
+        min_value=0.5,
+        max_value=1.5,
+        row_condition=row_condition,
+        condition_parser="pandas",
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        PandasFilesystemCsvDatasourceTestConfig(
+            column_types={"created_at": pd.Timestamp, "updated_at": datetime.date}
+        ),
+    ],
+    data=data,
+)
+@pytest.mark.parametrize(
+    "row_condition",
+    [
+        pytest.param(
+            'name=="albert"',
+            id="text - eq",
+        ),
+        pytest.param(
+            "quantity<3",
+            id="number - lt",
+        ),
+        pytest.param(
+            "quantity==1",
+            id="number - eq",
+        ),
+        pytest.param(
+            "updated_at==datetime.date(2021,1,31)",
+            id="date (string) - eq",
+            marks=pytest.mark.xfail(
+                strict=True,
+                reason="Issue with PandasFilesystemDatasource converting date types into strings",
+            ),
+        ),
+        pytest.param(
+            'created_at=="2021-01-30 00:00:00+0000"',
+            id="datetime - eq",
+            marks=pytest.mark.xfail(
+                strict=True,
+                reason="Issue with PandasFilesystemDatasource converting date types into strings",
+            ),
+        ),
+    ],
+)
+def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
@@ -89,7 +144,12 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
         DatabricksDatasourceTestConfig(),
         MSSQLDatasourceTestConfig(),
         MySQLDatasourceTestConfig(),
-        PostgreSQLDatasourceTestConfig(),
+        PostgreSQLDatasourceTestConfig(
+            column_types={
+                "created_at": sqltypes.TIMESTAMP(timezone=True),
+                "updated_at": sqltypes.DATE,
+            }
+        ),
         SnowflakeDatasourceTestConfig(),
         SqliteDatasourceTestConfig(),
     ],
@@ -109,6 +169,14 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
         pytest.param(
             'col("quantity")==1',
             id="number - eq",
+        ),
+        pytest.param(
+            'col("updated_at")==date("2023-01-30"))',
+            id="date - eq",
+        ),
+        pytest.param(
+            'col("created_at")==date("2023-01-30"))',
+            id="datetime - eq",
         ),
     ],
 )
