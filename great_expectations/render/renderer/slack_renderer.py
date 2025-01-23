@@ -69,26 +69,22 @@ class SlackRenderer(Renderer):
                 # )
                 summary_text += f"""{title_hlink}
                 """
-        # Add back summary statistics n/total checks
+
         n_checks_succeeded = validation_result.statistics["successful_expectations"]
         n_checks = validation_result.statistics["evaluated_expectations"]
-        check_details_text = (
-            f"*{n_checks_succeeded}* of *{n_checks}* expectations were met"
-        )
+        check_details_text = f"*{n_checks_succeeded}* of *{n_checks}* expectations were met"
+
         expectation_suite_name = validation_result.suite_name
         data_asset_name = validation_result.asset_name or "__no_data_asset_name__"
 
-        # Add next line to Asset line
         summary_text += f"\n*Asset*: `{data_asset_name}`  "
         # Slack does not allow links to local files due to security risks
         # DataDocs links will be added in a block after this summary text when applicable
         if validation_link and "file://" not in validation_link:
-            # Add next line to Expectation Suite line
             summary_text += f"\n*Expectation Suite*: {expectation_suite_name}  <{validation_link}|View Results>"
         else:
             summary_text += f"\n*Expectation Suite*: `{expectation_suite_name}`"
 
-        # Add back summary statistics n/total checks
         summary_text += f"\n*Summary*: {check_details_text}"
 
         return {
@@ -108,9 +104,7 @@ class SlackRenderer(Renderer):
         run_id: RunIdentifier,
     ) -> dict:
         all_blocks = [
-            self._build_header(
-                name=action_name, success=success, checkpoint_name=checkpoint_name
-            )
+            self._build_header(name=action_name, success=success, checkpoint_name=checkpoint_name)
         ]
         all_blocks.append(self._build_run_time_block(run_id=run_id))
         for block in text_blocks:
@@ -183,9 +177,7 @@ class SlackRenderer(Renderer):
                 )
                 return
         else:
-            logger.warning(
-                "No docs link found. Skipping data docs link in Slack message."
-            )
+            logger.warning("No docs link found. Skipping data docs link in Slack message.")
         return report_element
 
     def _build_report_element_block(
