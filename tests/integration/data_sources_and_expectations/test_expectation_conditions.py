@@ -30,6 +30,7 @@ data = pd.DataFrame(
             datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date(),
             datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date(),
         ],
+        "amount": [1.00, 2.00, 3.00],
         "quantity": [1, 2, 3],
         "name": ["albert", "issac", "galileo"],
     }
@@ -64,9 +65,9 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
-        column="updated_at",
-        min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc).date(),
-        max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc).date(),
+        column="amount",
+        min_value=0.5,
+        max_value=1.5,
         row_condition=row_condition,
         condition_parser="pandas",
     )
@@ -107,9 +108,9 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
-        column="updated_at",
-        min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc).date(),
-        max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc).date(),
+        column="amount",
+        min_value=0.5,
+        max_value=1.5,
         row_condition=row_condition,
         condition_parser="great_expectations",
     )
