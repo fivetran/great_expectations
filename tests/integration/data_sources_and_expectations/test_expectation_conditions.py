@@ -20,7 +20,12 @@ from tests.integration.test_utils.data_source_config import (
 
 data = pd.DataFrame(
     {
-        "date": [
+        "created_at": [
+            datetime(year=2021, month=1, day=30, tzinfo=timezone.utc).date(),
+            datetime(year=2022, month=1, day=30, tzinfo=timezone.utc).date(),
+            datetime(year=2023, month=1, day=30, tzinfo=timezone.utc).date(),
+        ],
+        "updated_at": [
             datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date(),
             datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date(),
             datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date(),
@@ -59,7 +64,7 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
-        column="date",
+        column="updated_at",
         min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc).date(),
         max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc).date(),
         row_condition=row_condition,
@@ -102,7 +107,7 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
-        column="date",
+        column="updated_at",
         min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc).date(),
         max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc).date(),
         row_condition=row_condition,
