@@ -171,12 +171,7 @@ def parse_condition_to_sqlalchemy(
 ) -> sqlalchemy.ColumnElement:
     parsed = _parse_great_expectations_condition(row_condition)
     column = parsed["column"]
-    if "date" in parsed:
-        date_value: str = parsed["condition_value"]
-        cast_as_date = f"date({date_value})"
-        return generate_condition_by_operator(sa.column(column), parsed["op"], cast_as_date)
-
-    elif "condition_value" in parsed:
+    if "condition_value" in parsed:
         return generate_condition_by_operator(
             sa.column(column), parsed["op"], parsed["condition_value"]
         )

@@ -8,6 +8,7 @@ from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
+    BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
@@ -60,12 +61,12 @@ data = pd.DataFrame(
             id="number - eq",
         ),
         pytest.param(
-            "updated_at==datetime.date(2021,1,31)",
-            id="date (string) - eq",
+            'created_at=="2021-01-30 00:00:00+0000"',
+            id="pd.Timestamp - eq",
         ),
         pytest.param(
-            'created_at=="2021-01-30 00:00:00+0000"',
-            id="datetime - eq",
+            "updated_at==datetime.date(2021,1,31)",
+            id="datetime.date - eq",
         ),
     ],
 )
@@ -107,16 +108,16 @@ def test_expect_column_min_to_be_between__pandas_dataframe_row_condition(
             id="number - eq",
         ),
         pytest.param(
-            "updated_at==datetime.date(2021,1,31)",
-            id="date (string) - eq",
+            'created_at=="2021-01-30 00:00:00+0000"',
+            id="pd.Timestamp - eq",
             marks=pytest.mark.xfail(
                 strict=True,
                 reason="Issue with PandasFilesystemDatasource converting date types into strings",
             ),
         ),
         pytest.param(
-            'created_at=="2021-01-30 00:00:00+0000"',
-            id="datetime - eq",
+            "updated_at==datetime.date(2021,1,31)",
+            id="datetime.date - eq",
             marks=pytest.mark.xfail(
                 strict=True,
                 reason="Issue with PandasFilesystemDatasource converting date types into strings",
@@ -140,6 +141,7 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        BigQueryDatasourceTestConfig(),
         SparkFilesystemCsvDatasourceTestConfig(),
         DatabricksDatasourceTestConfig(),
         MSSQLDatasourceTestConfig(),
@@ -171,12 +173,12 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
             id="number - eq",
         ),
         pytest.param(
-            'col("updated_at")==date("2023-01-30"))',
-            id="date - eq",
+            'col("created_at")==date("2021-01-30"))',
+            id="datetime - eq",
         ),
         pytest.param(
-            'col("created_at")==date("2023-01-30"))',
-            id="datetime - eq",
+            'col("updated_at")==date("2021-01-31"))',
+            id="date - eq",
         ),
     ],
 )
@@ -190,5 +192,5 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
         row_condition=row_condition,
         condition_parser="great_expectations",
     )
-    result = batch_for_datasource.validate(expectation)
+    result = batch_for_datasource.validate(expectation, result_format="COMPLETE")
     assert result.success
