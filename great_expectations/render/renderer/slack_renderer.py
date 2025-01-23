@@ -51,24 +51,13 @@ class SlackRenderer(Renderer):
         validation_result: ExpectationSuiteValidationResult,
         validation_result_urls: list[str],
     ) -> dict:
-        status = "Failed :x:"
-        if validation_result.success:
-            status = "Success :tada:"
 
         validation_link = None
         summary_text = ""
         if validation_result_urls:
             if len(validation_result_urls) == 1:
                 validation_link = validation_result_urls[0]
-            else:
-                title_hlink = "*Validation Results*"
-                # Remove duplicate links
-                # batch_validation_status_hlinks = "".join({status}
-                # f"*<{validation_result_url} | {status}>*"
-                # for validation_result_url in validation_result_urls
-                # )
-                summary_text += f"""{title_hlink}
-                """
+
 
         n_checks_succeeded = validation_result.statistics["successful_expectations"]
         n_checks = validation_result.statistics["evaluated_expectations"]
