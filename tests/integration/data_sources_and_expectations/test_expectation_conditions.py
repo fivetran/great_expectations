@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
-from great_expectations.compatibility.bigquery import sqlalchemy_bigquery
+from great_expectations.compatibility.bigquery import BIGQUERY_TYPES
 from great_expectations.compatibility.databricks import DATABRICKS_TYPES
 from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
@@ -150,8 +150,8 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
         SparkFilesystemCsvDatasourceTestConfig(),
         BigQueryDatasourceTestConfig(
             column_types={
-                "created_at": sqlalchemy_bigquery.DATETIME,
-                "updated_at": sqlalchemy_bigquery.DATE,
+                "created_at": BIGQUERY_TYPES.DATETIME,
+                "updated_at": BIGQUERY_TYPES.DATE,
             }
         ),
         DatabricksDatasourceTestConfig(
