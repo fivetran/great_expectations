@@ -79,21 +79,17 @@ class SlackRenderer(Renderer):
         data_asset_name = validation_result.asset_name or "__no_data_asset_name__"
 
         # Add next line to Asset line
-        summary_text += "\n"
-        summary_text += f"*Asset*: `{data_asset_name}`  "
+        summary_text += f"\n*Asset*: `{data_asset_name}`  "
         # Slack does not allow links to local files due to security risks
         # DataDocs links will be added in a block after this summary text when applicable
         if validation_link and "file://" not in validation_link:
             # Add next line to Expectation Suite line
-            summary_text += "\n"
-            summary_text += f"*Expectation Suite*: {expectation_suite_name}  <{validation_link}|View Results>"
+            summary_text += f"\n*Expectation Suite*: {expectation_suite_name}  <{validation_link}|View Results>"
         else:
-            summary_text += "\n"
-            summary_text += f"*Expectation Suite*: `{expectation_suite_name}`"
+            summary_text += f"\n*Expectation Suite*: `{expectation_suite_name}`"
 
         # Add back summary statistics n/total checks
-        summary_text += "\n"
-        summary_text += f"*Summary*: {check_details_text}"
+        summary_text += f"\n*Summary*: {check_details_text}"
 
         return {
             "type": "section",
