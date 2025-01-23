@@ -154,7 +154,7 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
         ),
         DatabricksDatasourceTestConfig(
             column_types={
-                "created_at": sqltypes.TIMESTAMP(timezone=True),
+                "created_at": sqltypes.DATETIME,
                 "updated_at": sqltypes.DATE,
             }
         ),
@@ -178,13 +178,13 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
         ),
         SnowflakeDatasourceTestConfig(
             column_types={
-                "created_at": sqltypes.TIMESTAMP(timezone=True),
+                "created_at": sqltypes.DATETIME,
                 "updated_at": sqltypes.DATE,
             }
         ),
         SqliteDatasourceTestConfig(
             column_types={
-                "created_at": sqltypes.DATETIME,
+                "created_at": sqltypes.VARCHAR,
                 "updated_at": sqltypes.DATE,
             }
         ),
