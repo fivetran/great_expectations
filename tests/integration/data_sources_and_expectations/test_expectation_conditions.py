@@ -38,10 +38,17 @@ data = pd.DataFrame(
     }
 )
 
+pandas_column_types = {"created_at": pd.Timestamp, "updated_at": datetime.date}
+
+sql_column_types = {
+    "created_at": sqltypes.TIMESTAMP(timezone=True),
+    "updated_at": sqltypes.DATE,
+}
+
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
-        PandasDataFrameDatasourceTestConfig(),
+        PandasDataFrameDatasourceTestConfig(column_types=pandas_column_types),
     ],
     data=data,
 )
@@ -87,7 +94,7 @@ def test_expect_column_min_to_be_between__pandas_dataframe_row_condition(
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         PandasFilesystemCsvDatasourceTestConfig(
-            column_types={"created_at": pd.Timestamp, "updated_at": datetime.date}
+            column_types=pandas_column_types,
         ),
     ],
     data=data,
@@ -141,19 +148,14 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
-        BigQueryDatasourceTestConfig(),
-        SparkFilesystemCsvDatasourceTestConfig(),
-        DatabricksDatasourceTestConfig(),
-        MSSQLDatasourceTestConfig(),
-        MySQLDatasourceTestConfig(),
-        PostgreSQLDatasourceTestConfig(
-            column_types={
-                "created_at": sqltypes.TIMESTAMP(timezone=True),
-                "updated_at": sqltypes.DATE,
-            }
-        ),
-        SnowflakeDatasourceTestConfig(),
-        SqliteDatasourceTestConfig(),
+        BigQueryDatasourceTestConfig(column_types=sql_column_types),
+        SparkFilesystemCsvDatasourceTestConfig(column_types=sql_column_types),
+        DatabricksDatasourceTestConfig(column_types=sql_column_types),
+        MSSQLDatasourceTestConfig(column_types=sql_column_types),
+        MySQLDatasourceTestConfig(column_types=sql_column_types),
+        PostgreSQLDatasourceTestConfig(column_types=sql_column_types),
+        SnowflakeDatasourceTestConfig(column_types=sql_column_types),
+        SqliteDatasourceTestConfig(column_types=sql_column_types),
     ],
     data=data,
 )
