@@ -5,9 +5,7 @@ import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.bigquery import BIGQUERY_TYPES
-from great_expectations.compatibility.databricks import DATABRICKS_TYPES
 from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
-from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -156,13 +154,13 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
         ),
         DatabricksDatasourceTestConfig(
             column_types={
-                "created_at": DATABRICKS_TYPES.TIMESTAMP,
+                "created_at": sqltypes.TIMESTAMP(timezone=True),
                 "updated_at": sqltypes.DATE,
             }
         ),
         MSSQLDatasourceTestConfig(
             column_types={
-                "created_at": sqltypes.TIMESTAMP(timezone=True),
+                "created_at": sqltypes.DATETIME,
                 "updated_at": sqltypes.DATE,
             }
         ),
@@ -180,13 +178,13 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
         ),
         SnowflakeDatasourceTestConfig(
             column_types={
-                "created_at": SNOWFLAKE_TYPES.TIMESTAMP_TZ,
+                "created_at": sqltypes.TIMESTAMP(timezone=True),
                 "updated_at": sqltypes.DATE,
             }
         ),
         SqliteDatasourceTestConfig(
             column_types={
-                "created_at": sqltypes.TIMESTAMP(timezone=True),
+                "created_at": sqltypes.DATETIME,
                 "updated_at": sqltypes.DATE,
             }
         ),

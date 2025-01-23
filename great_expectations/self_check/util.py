@@ -149,7 +149,7 @@ try:
     if GEOGRAPHY:
         BIGQUERY_TYPES["GEOGRAPHY"] = GEOGRAPHY
 
-except (ImportError, KeyError):
+except (ImportError, AttributeError):
     BIGQUERY_TYPES = {}
 
 try:
