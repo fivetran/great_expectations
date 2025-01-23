@@ -21,9 +21,9 @@ from tests.integration.test_utils.data_source_config import (
 data = pd.DataFrame(
     {
         "created_at": [
-            datetime(year=2021, month=1, day=30, tzinfo=timezone.utc).date(),
-            datetime(year=2022, month=1, day=30, tzinfo=timezone.utc).date(),
-            datetime(year=2023, month=1, day=30, tzinfo=timezone.utc).date(),
+            datetime(year=2021, month=1, day=30, tzinfo=timezone.utc),
+            datetime(year=2022, month=1, day=30, tzinfo=timezone.utc),
+            datetime(year=2023, month=1, day=30, tzinfo=timezone.utc),
         ],
         "updated_at": [
             datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date(),
@@ -58,6 +58,14 @@ data = pd.DataFrame(
         pytest.param(
             "quantity==1",
             id="number - eq",
+        ),
+        pytest.param(
+            'updated_at=="2023-01-30"',
+            id="date - eq",
+        ),
+        pytest.param(
+            'created_at=="2023-01-30"',
+            id="datetime - eq",
         ),
     ],
 )
