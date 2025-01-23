@@ -58,7 +58,6 @@ class SlackRenderer(Renderer):
             if len(validation_result_urls) == 1:
                 validation_link = validation_result_urls[0]
 
-
         n_checks_succeeded = validation_result.statistics["successful_expectations"]
         n_checks = validation_result.statistics["evaluated_expectations"]
         check_details_text = f"*{n_checks_succeeded}* of *{n_checks}* expectations were met"
