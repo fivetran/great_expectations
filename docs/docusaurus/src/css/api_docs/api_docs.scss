@@ -42,6 +42,12 @@
       color: var(--ifm-color-primary);
     }
 
+    table code {
+      color: var(--ifm-font-color-base);
+      padding-left: .25em;
+      padding-right: .25em;
+    }
+
     [data-theme='dark'] & {
         p {
           color: var(--ifm-font-color-base);
