@@ -62,25 +62,40 @@ class SlackRenderer(Renderer):
                 validation_link = validation_result_urls[0]
             else:
                 title_hlink = "*Validation Results*"
-                batch_validation_status_hlinks = "".join(
-                    f"*<{validation_result_url} | {status}>*"
-                    for validation_result_url in validation_result_urls
-                )
+                # Remove duplicate links
+                # batch_validation_status_hlinks = "".join({status}
+                    # f"*<{validation_result_url} | {status}>*"
+                    # for validation_result_url in validation_result_urls
+                # )
                 summary_text += f"""{title_hlink}
-    {batch_validation_status_hlinks}
                 """
-
+        # Add back summary statistics n/total checks
+        n_checks_succeeded = validation_result.statistics["successful_expectations"]
+        n_checks = validation_result.statistics["evaluated_expectations"]
+        check_details_text = (
+                f"*{n_checks_succeeded}* of *{n_checks}* expectations were met"
+            )
         expectation_suite_name = validation_result.suite_name
         data_asset_name = validation_result.asset_name or "__no_data_asset_name__"
-        summary_text += f"*Asset*: {data_asset_name}  "
+
+        # Add next line to Asset line
+        summary_text += "\n"
+        summary_text += f"*Asset*: `{data_asset_name}`  "
         # Slack does not allow links to local files due to security risks
         # DataDocs links will be added in a block after this summary text when applicable
         if validation_link and "file://" not in validation_link:
+            # Add next line to Expectation Suite line
+            summary_text += "\n"
             summary_text += (
                 f"*Expectation Suite*: {expectation_suite_name}  <{validation_link}|View Results>"
             )
         else:
-            summary_text += f"*Expectation Suite*: {expectation_suite_name}"
+            summary_text += "\n"
+            summary_text += f"*Expectation Suite*: `{expectation_suite_name}`"
+
+        # Add back summary statistics n/total checks
+        summary_text += "\n"
+        summary_text += f"*Summary*: {check_details_text}"
 
         return {
             "type": "section",
