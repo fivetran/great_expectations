@@ -65,9 +65,7 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
         # databricks requires a length for VARCHAR
         overrides: InferrableTypesLookup = {
-            str: type(
-                sqltypes.VARCHAR(255)
-            ),  # once you make a function call, must wrap the type in type() for mypy
+            str: sqltypes.VARCHAR(255),  # type: ignore[dict-item]  # instantiation makes this an instance, but it behaves as a type all the same
         }
         return super().inferrable_types_lookup | overrides
 
