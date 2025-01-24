@@ -76,12 +76,12 @@ PANDAS_TEST_CASES = [
         id="number-eq",
     ),
     pytest.param(
-        'created_at=="2021-01-30 00:00:00+0000"',
-        id="pd.Timestamp-eq",
-    ),
-    pytest.param(
         "updated_at==datetime.date(2021,1,31)",
         id="datetime.date-eq",
+    ),
+    pytest.param(
+        'created_at=="2021-01-30 00:00:00+0000"',
+        id="pd.Timestamp-eq",
     ),
 ]
 
@@ -100,12 +100,20 @@ SPARK_AND_SQL_TEST_CASES = [
         id="number-eq",
     ),
     pytest.param(
+        'col("updated_at")==date("2021-01-31"))',
+        id="date-eq",
+    ),
+    pytest.param(
         'col("created_at")==date("2021-01-30"))',
         id="datetime-eq",
     ),
+]
+
+
+SQLITE_TEST_CASES = SPARK_AND_SQL_TEST_CASES[:4] + [
     pytest.param(
-        'col("updated_at")==date("2021-01-31"))',
-        id="date-eq",
+        'col("created_at")==date("2021-01-30 00:00:00.000000"))',
+        id="datetime-eq",
     ),
 ]
 
@@ -202,12 +210,6 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
                 "updated_at": POSTGRESQL_TYPES.DATE,
             }
         ),
-        SqliteDatasourceTestConfig(
-            column_types={
-                "created_at": sqltypes.DATE,
-                "updated_at": sqltypes.DATE,
-            }
-        ),
     ],
     data=DATA,
 )
@@ -231,13 +233,18 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
+        DatabricksDatasourceTestConfig(
+            column_types={
+                "created_at": sqltypes.DATETIME,
+                "updated_at": sqltypes.DATE,
+            }
+        ),
         SnowflakeDatasourceTestConfig(
             column_types={
                 "created_at": SNOWFLAKE_TYPES.TIMESTAMP_TZ,
                 "updated_at": sqltypes.DATE,  # snowflake.sqlalchemy missing snowflake DATE type
             }
         ),
-        DatabricksDatasourceTestConfig(),
     ],
     data=DATA_WITH_STRING_DATETIMES,
 )
@@ -246,6 +253,30 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
     SPARK_AND_SQL_TEST_CASES,
 )
 def test_expect_column_min_to_be_between__snowflake_databricks_row_condition(
+    batch_for_datasource: Batch, row_condition: str
+) -> None:
+    expectation = gxe.ExpectColumnMinToBeBetween(
+        column="amount",
+        min_value=0.5,
+        max_value=1.5,
+        row_condition=row_condition,
+        condition_parser="great_expectations",
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SqliteDatasourceTestConfig(),
+    ],
+    data=DATA,
+)
+@pytest.mark.parametrize(
+    "row_condition",
+    SQLITE_TEST_CASES,
+)
+def test_expect_column_min_to_be_between__sqlite_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
