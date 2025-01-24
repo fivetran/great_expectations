@@ -190,12 +190,7 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
-        DatabricksDatasourceTestConfig(
-            column_types={
-                "created_at": sqltypes.DATETIME,
-                "updated_at": sqltypes.DATE,
-            }
-        ),
+        DatabricksDatasourceTestConfig(),
         SnowflakeDatasourceTestConfig(
             column_types={
                 "created_at": SNOWFLAKE_TYPES.TIMESTAMP_TZ,
@@ -207,7 +202,7 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
 )
 @pytest.mark.parametrize(
     "row_condition",
-    SPARK_AND_SQL_TEST_CASES,
+    SQLITE_TEST_CASES,
 )
 def test_expect_column_min_to_be_between__snowflake_databricks_row_condition(
     batch_for_datasource: Batch, row_condition: str
