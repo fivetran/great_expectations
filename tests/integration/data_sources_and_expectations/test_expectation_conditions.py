@@ -42,7 +42,7 @@ DATA = pd.DataFrame(
 )
 
 
-# some backends fail to load datetimes into the database
+# some backends fail to load datetimes into the database unless they are strings
 DATA_WITH_STRING_DATETIMES = pd.DataFrame(
     {
         "created_at": [
@@ -146,8 +146,8 @@ def test_expect_column_min_to_be_between__pandas_dataframe_row_condition(
 )
 @pytest.mark.parametrize(
     "row_condition",
-    [
-        PANDAS_TEST_CASES[:3],
+    PANDAS_TEST_CASES[:3]
+    + [
         pytest.param(
             'created_at=="2021-01-30 00:00:00+0000"',
             id="pd.Timestamp-eq",
