@@ -1,6 +1,6 @@
 import pathlib
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 import pandas as pd
 import pytest
@@ -17,9 +17,9 @@ from tests.integration.test_utils.data_source_config.base import (
 @dataclass(frozen=True)
 class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
     # see https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html for options
-    pandas_input_kwargs: Optional[dict[str, Any]] = field(default_factory=dict)
+    pandas_input_kwargs: dict[str, Any] = field(default_factory=dict)
     # see https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html for options
-    pandas_output_kwargs: Optional[dict[str, Any]] = field(default_factory=dict)
+    pandas_output_kwargs: dict[str, Any] = field(default_factory=dict)
 
     @property
     @override
