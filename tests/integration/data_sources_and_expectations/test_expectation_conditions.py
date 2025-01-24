@@ -42,6 +42,7 @@ DATA = pd.DataFrame(
 )
 
 
+# some backends fail to load datetimes into the database
 DATA_WITH_STRING_DATETIMES = pd.DataFrame(
     {
         "created_at": [
@@ -50,9 +51,9 @@ DATA_WITH_STRING_DATETIMES = pd.DataFrame(
             str(datetime(year=2023, month=1, day=30, tzinfo=timezone.utc)),
         ],
         "updated_at": [
-            str(datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date()),
-            str(datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date()),
-            str(datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date()),
+            datetime(year=2021, month=1, day=31, tzinfo=timezone.utc).date(),
+            datetime(year=2022, month=1, day=31, tzinfo=timezone.utc).date(),
+            datetime(year=2023, month=1, day=31, tzinfo=timezone.utc).date(),
         ],
         "amount": [1.00, 2.00, 3.00],
         "quantity": [1, 2, 3],
@@ -188,12 +189,6 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
                 "updated_at": BIGQUERY_TYPES.DATE,
             }
         ),
-        DatabricksDatasourceTestConfig(
-            column_types={
-                "created_at": sqltypes.DATE,
-                "updated_at": sqltypes.DATE,
-            }
-        ),
         MSSQLDatasourceTestConfig(),
         MySQLDatasourceTestConfig(
             column_types={
@@ -242,6 +237,7 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
                 "updated_at": sqltypes.DATE,  # snowflake.sqlalchemy missing snowflake DATE type
             }
         ),
+        DatabricksDatasourceTestConfig(),
     ],
     data=DATA_WITH_STRING_DATETIMES,
 )
@@ -249,7 +245,7 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
     "row_condition",
     SPARK_AND_SQL_TEST_CASES,
 )
-def test_expect_column_min_to_be_between__snowflake_row_condition(
+def test_expect_column_min_to_be_between__snowflake_databricks_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
