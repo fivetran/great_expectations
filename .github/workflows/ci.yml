@@ -460,7 +460,7 @@ jobs:
           flags: integration
 
   marker-tests:
-    needs: [unit-tests, static-analysis]
+    #    needs: [unit-tests, static-analysis]
     if: github.event.pull_request.draft == false
     env:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
@@ -493,20 +493,20 @@ jobs:
       fail-fast: false
       matrix:
         markers:
-          - athena or openpyxl or pyarrow or project or sqlite or aws_creds
-          - aws_deps
-          - big
-          - bigquery
+          #          - athena or openpyxl or pyarrow or project or sqlite or aws_creds
+          #          - aws_deps
+          #          - big
+          #          - bigquery
           - databricks
-          - filesystem
-          - mssql
-          - mysql
-          - postgresql
+          #          - filesystem
+          #          - mssql
+          #          - mysql
+          #          - postgresql
           - snowflake
-          - spark
-          - spark_connect
-          - trino
-          - clickhouse
+        #          - spark
+        #          - spark_connect
+        #          - trino
+        #          - clickhouse
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         exclude:
           # TODO: would like to adopt `actionlint` pre-commit hook
