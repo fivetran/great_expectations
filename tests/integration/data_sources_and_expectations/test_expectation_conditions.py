@@ -131,7 +131,7 @@ SPARK_AND_SQL_TEST_CASES = [
         id="date-eq",
     ),
     pytest.param(
-        'col("created_at")==date("2021-01-30"))',
+        'col("created_at")==date("2021-01-30 00:00:00"))',
         id="datetime-eq",
     ),
 ]
@@ -202,7 +202,7 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
 )
 @pytest.mark.parametrize(
     "row_condition",
-    SQLITE_TEST_CASES,
+    SPARK_AND_SQL_TEST_CASES,
 )
 def test_expect_column_min_to_be_between__snowflake_databricks_row_condition(
     batch_for_datasource: Batch, row_condition: str
