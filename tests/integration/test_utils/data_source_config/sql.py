@@ -205,7 +205,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             non_null_value_list = [val for val in value_list if val is not None]
             if not non_null_value_list:
                 # if we have an all null column, just arbitrarily use INTEGER
-                inferred_column_types[str(column)] = sqltypes.INTEGER  # type: ignore[assignment] # FIXME CoP
+                inferred_column_types[str(column)] = sqltypes.INTEGER
             else:
                 python_type = type(non_null_value_list[0])
                 if not all(isinstance(val, python_type) for val in non_null_value_list):
