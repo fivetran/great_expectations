@@ -62,28 +62,55 @@ DATA_WITH_STRING_DATETIMES = pd.DataFrame(
 )
 
 
-PANDAS_TEST_CASES = [
-    pytest.param(
-        'name=="albert"',
-        id="text-eq",
-    ),
-    pytest.param(
-        "quantity<3",
-        id="number-lt",
-    ),
-    pytest.param(
-        "quantity==1",
-        id="number-eq",
-    ),
-    pytest.param(
-        "updated_at==datetime.date(2021,1,31)",
-        id="datetime.date-eq",
-    ),
-    pytest.param(
-        'created_at=="2021-01-30 00:00:00+0000"',
-        id="pd.Timestamp-eq",
-    ),
-]
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        PandasDataFrameDatasourceTestConfig(),
+        PandasFilesystemCsvDatasourceTestConfig(
+            pandas_input_kwargs={
+                "parse_dates": ["created_at", "updated_at"],
+                "date_format": "mixed",
+            },
+        ),
+    ],
+    data=DATA,
+)
+@pytest.mark.parametrize(
+    "row_condition",
+    [
+        pytest.param(
+            'name=="albert"',
+            id="text-eq",
+        ),
+        pytest.param(
+            "quantity<3",
+            id="number-lt",
+        ),
+        pytest.param(
+            "quantity==1",
+            id="number-eq",
+        ),
+        pytest.param(
+            "updated_at==datetime.date(2021,1,31)",
+            id="datetime.date-eq",
+        ),
+        pytest.param(
+            "created_at==datetime.datetime(2021,1,30,0,0,0,tzinfo=datetime.timezone.utc)",
+            id="datetime.datetime-eq",
+        ),
+    ],
+)
+def test_expect_column_min_to_be_between__pandas_row_condition(
+    batch_for_datasource: Batch, row_condition: str
+) -> None:
+    expectation = gxe.ExpectColumnMinToBeBetween(
+        column="amount",
+        min_value=0.5,
+        max_value=1.5,
+        row_condition=row_condition,
+        condition_parser="pandas",
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
 
 
 SPARK_AND_SQL_TEST_CASES = [
@@ -116,76 +143,6 @@ SQLITE_TEST_CASES = SPARK_AND_SQL_TEST_CASES[:4] + [
         id="datetime-eq",
     ),
 ]
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=[
-        PandasDataFrameDatasourceTestConfig(
-            column_types={"created_at": pd.Timestamp, "updated_at": datetime.date}
-        ),
-    ],
-    data=DATA,
-)
-@pytest.mark.parametrize(
-    "row_condition",
-    PANDAS_TEST_CASES,
-)
-def test_expect_column_min_to_be_between__pandas_dataframe_row_condition(
-    batch_for_datasource: Batch, row_condition: str
-) -> None:
-    expectation = gxe.ExpectColumnMinToBeBetween(
-        column="amount",
-        min_value=0.5,
-        max_value=1.5,
-        row_condition=row_condition,
-        condition_parser="pandas",
-    )
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=[
-        PandasFilesystemCsvDatasourceTestConfig(
-            column_types={"created_at": pd.Timestamp, "updated_at": datetime.date},
-        ),
-    ],
-    data=DATA,
-)
-@pytest.mark.parametrize(
-    "row_condition",
-    PANDAS_TEST_CASES[:3]
-    + [
-        pytest.param(
-            'created_at=="2021-01-30 00:00:00+0000"',
-            id="pd.Timestamp-eq",
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason="Issue with PandasFilesystemDatasource converting date types into strings",
-            ),
-        ),
-        pytest.param(
-            "updated_at==datetime.date(2021,1,31)",
-            id="datetime.date-eq",
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason="Issue with PandasFilesystemDatasource converting date types into strings",
-            ),
-        ),
-    ],
-)
-def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
-    batch_for_datasource: Batch, row_condition: str
-) -> None:
-    expectation = gxe.ExpectColumnMinToBeBetween(
-        column="amount",
-        min_value=0.5,
-        max_value=1.5,
-        row_condition=row_condition,
-        condition_parser="pandas",
-    )
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
 
 
 @parameterize_batch_for_data_sources(
