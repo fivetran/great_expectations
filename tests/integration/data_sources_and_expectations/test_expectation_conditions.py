@@ -158,12 +158,7 @@ def test_expect_column_min_to_be_between__pandas_filesystem_row_condition(
                 "updated_at": sqltypes.DATE,
             }
         ),
-        MSSQLDatasourceTestConfig(
-            column_types={
-                "created_at": sqltypes.DATETIME,
-                "updated_at": sqltypes.DATE,
-            }
-        ),
+        MSSQLDatasourceTestConfig(),
         MySQLDatasourceTestConfig(
             column_types={
                 "created_at": sqltypes.TIMESTAMP(timezone=True),

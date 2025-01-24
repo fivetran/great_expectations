@@ -62,7 +62,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             bool: sqltypes.BOOLEAN,
             date: sqltypes.DATE,
             datetime: sqltypes.DATETIME,
-            pd.Timestamp: sqltypes.TIMESTAMP,
+            pd.Timestamp: sqltypes.DATETIME,
         }
 
     def __init__(
