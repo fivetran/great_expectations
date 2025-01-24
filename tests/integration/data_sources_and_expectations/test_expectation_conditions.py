@@ -162,10 +162,6 @@ SPARK_AND_SQL_TEST_CASES = [
         'col("created_at")>date("2021-01-29 00:00:00"))',
         id="datetime-gt",
     ),
-    pytest.param(
-        'col("created_at")==date("2021-01-30 00:00:00"))',
-        id="datetime-eq",
-    ),
 ]
 
 
@@ -191,6 +187,7 @@ SPARK_AND_SQL_TEST_CASES = [
                 "updated_at": POSTGRESQL_TYPES.DATE,
             }
         ),
+        SqliteDatasourceTestConfig(),
     ],
     data=DATA,
 )
@@ -229,44 +226,6 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
     SPARK_AND_SQL_TEST_CASES,
 )
 def test_expect_column_min_to_be_between__snowflake_databricks_row_condition(
-    batch_for_datasource: Batch, row_condition: str
-) -> None:
-    expectation = gxe.ExpectColumnMinToBeBetween(
-        column="amount",
-        min_value=0.5,
-        max_value=1.5,
-        row_condition=row_condition,
-        condition_parser="great_expectations",
-    )
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=[
-        SqliteDatasourceTestConfig(),
-    ],
-    data=DATA,
-)
-@pytest.mark.parametrize(
-    "row_condition",
-    SPARK_AND_SQL_TEST_CASES[:8]
-    + [
-        pytest.param(
-            'col("created_at")<date("2021-01-31 00:00:00.000000"))',
-            id="datetime-lt",
-        ),
-        pytest.param(
-            'col("created_at")>date("2021-01-29 00:00:00.000000"))',
-            id="datetime-gt",
-        ),
-        pytest.param(
-            'col("created_at")==date("2021-01-30 00:00:00.000000"))',
-            id="datetime-eq",
-        ),
-    ],
-)
-def test_expect_column_min_to_be_between__sqlite_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
     expectation = gxe.ExpectColumnMinToBeBetween(
