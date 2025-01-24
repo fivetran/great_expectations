@@ -17,9 +17,9 @@ from tests.integration.test_utils.data_source_config.base import (
 @dataclass(frozen=True)
 class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
     # see https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html for options
-    pandas_input_kwargs: dict[str, Any] = field(default_factory=dict)
+    pandas_read_options: dict[str, Any] = field(default_factory=dict)
     # see https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html for options
-    pandas_output_kwargs: dict[str, Any] = field(default_factory=dict)
+    pandas_write_options: dict[str, Any] = field(default_factory=dict)
 
     @property
     @override
@@ -66,7 +66,10 @@ class PandasFilesystemCsvBatchTestSetup(
     def make_asset(self) -> CSVAsset:
         return self.context.data_sources.add_pandas_filesystem(
             name=self._random_resource_name(), base_directory=self._base_dir
-        ).add_csv_asset(name=self._random_resource_name(), **self.config.pandas_input_kwargs)
+        ).add_csv_asset(
+            name=self._random_resource_name(),
+            **self.config.pandas_read_options,
+        )
 
     @override
     def make_batch(self) -> Batch:
@@ -79,7 +82,7 @@ class PandasFilesystemCsvBatchTestSetup(
     @override
     def setup(self) -> None:
         file_path = self._base_dir / self.csv_path
-        self.data.to_csv(file_path, index=False, **self.config.pandas_output_kwargs)
+        self.data.to_csv(file_path, index=False, **self.config.pandas_write_options)
 
     @override
     def teardown(self) -> None: ...

@@ -66,7 +66,7 @@ DATA_WITH_STRING_DATETIMES = pd.DataFrame(
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(
-            pandas_input_kwargs={
+            pandas_read_options={
                 "parse_dates": ["created_at", "updated_at"],
                 "date_format": "mixed",
             },
@@ -167,7 +167,12 @@ SPARK_AND_SQL_TEST_CASES = [
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
-        SparkFilesystemCsvDatasourceTestConfig(),
+        SparkFilesystemCsvDatasourceTestConfig(
+            spark_read_options={
+                "date_format": "yyyy-MM-dd",
+                "timestamp_format": "yyyy-MM-dd HH:mm:ss",
+            },
+        ),
         BigQueryDatasourceTestConfig(
             column_types={
                 "created_at": BIGQUERY_TYPES.DATETIME,
