@@ -90,8 +90,24 @@ DATA_WITH_STRING_DATETIMES = pd.DataFrame(
             id="number-eq",
         ),
         pytest.param(
+            "updated_at<datetime.date(2021,2,1)",
+            id="datetime.date-lt",
+        ),
+        pytest.param(
+            "updated_at>datetime.date(2021,1,30)",
+            id="datetime.date-gt",
+        ),
+        pytest.param(
             "updated_at==datetime.date(2021,1,31)",
             id="datetime.date-eq",
+        ),
+        pytest.param(
+            "created_at<datetime.datetime(2021,1,31,0,0,0,tzinfo=datetime.timezone.utc)",
+            id="datetime.datetime-lt",
+        ),
+        pytest.param(
+            "created_at>datetime.datetime(2021,1,29,0,0,0,tzinfo=datetime.timezone.utc)",
+            id="datetime.datetime-gt",
         ),
         pytest.param(
             "created_at==datetime.datetime(2021,1,30,0,0,0,tzinfo=datetime.timezone.utc)",
@@ -127,19 +143,27 @@ SPARK_AND_SQL_TEST_CASES = [
         id="number-eq",
     ),
     pytest.param(
+        'col("updated_at")<date("2021-02-01"))',
+        id="date-lt",
+    ),
+    pytest.param(
+        'col("updated_at")>date("2021-01-30"))',
+        id="date-gt",
+    ),
+    pytest.param(
         'col("updated_at")==date("2021-01-31"))',
         id="date-eq",
     ),
     pytest.param(
-        'col("created_at")==date("2021-01-30 00:00:00"))',
-        id="datetime-eq",
+        'col("created_at")<date("2021-01-31 00:00:00"))',
+        id="datetime-lt",
     ),
-]
-
-
-SQLITE_TEST_CASES = SPARK_AND_SQL_TEST_CASES[:4] + [
     pytest.param(
-        'col("created_at")==date("2021-01-30 00:00:00.000000"))',
+        'col("created_at")>date("2021-01-29 00:00:00"))',
+        id="datetime-gt",
+    ),
+    pytest.param(
+        'col("created_at")==date("2021-01-30 00:00:00"))',
         id="datetime-eq",
     ),
 ]
@@ -226,7 +250,21 @@ def test_expect_column_min_to_be_between__snowflake_databricks_row_condition(
 )
 @pytest.mark.parametrize(
     "row_condition",
-    SQLITE_TEST_CASES,
+    SPARK_AND_SQL_TEST_CASES[:8]
+    + [
+        pytest.param(
+            'col("created_at")<date("2021-01-31 00:00:00.000000"))',
+            id="datetime-lt",
+        ),
+        pytest.param(
+            'col("created_at")>date("2021-01-29 00:00:00.000000"))',
+            id="datetime-gt",
+        ),
+        pytest.param(
+            'col("created_at")==date("2021-01-30 00:00:00.000000"))',
+            id="datetime-eq",
+        ),
+    ],
 )
 def test_expect_column_min_to_be_between__sqlite_row_condition(
     batch_for_datasource: Batch, row_condition: str
