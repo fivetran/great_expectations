@@ -5,9 +5,11 @@ from typing import Any, Mapping
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import CSVAsset
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.execution_engine import SparkDFExecutionEngine
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
@@ -18,8 +20,8 @@ from tests.integration.test_utils.data_source_config.base import (
 class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
     # see "read" options at https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
     spark_read_options: dict[str, Any] = field(default_factory=dict)
-    # see https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html for options
-    pandas_write_options: dict[str, Any] = field(default_factory=dict)
+    # see "write" options at https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
+    spark_write_options: dict[str, Any] = field(default_factory=dict)
 
     @property
     @override
@@ -62,6 +64,10 @@ class SparkFilesystemCsvBatchTestSetup(
         super().__init__(config=config, data=data)
         self._base_dir = base_dir
 
+    @property
+    def spark_session(self) -> pyspark.SparkSession:
+        return SparkDFExecutionEngine.get_or_create_spark_session()
+
     @override
     def make_asset(self) -> CSVAsset:
         return self.context.data_sources.add_spark_filesystem(
@@ -84,7 +90,9 @@ class SparkFilesystemCsvBatchTestSetup(
     @override
     def setup(self) -> None:
         file_path = self._base_dir / self.csv_path
-        self.data.to_csv(file_path, index=False, **self.config.pandas_write_options)
+        self.spark_session.createDataFrame(self.data).write.format("csv").options(
+            **self.config.spark_write_options
+        ).save(str(file_path))
 
     @override
     def teardown(self) -> None: ...

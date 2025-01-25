@@ -172,7 +172,10 @@ SPARK_AND_SQL_TEST_CASES = [
                 "date_format": "yyyy-MM-dd",
                 "timestamp_format": "yyyy-MM-dd HH:mm:ss",
             },
-            pandas_write_options={"date_format": "%Y-%m-%d %H:%M:%S"},
+            spark_write_options={
+                "date_format": "yyyy-MM-dd",
+                "timestamp_format": "yyyy-MM-dd HH:mm:ss",
+            },
         ),
         BigQueryDatasourceTestConfig(
             column_types={
