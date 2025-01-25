@@ -99,4 +99,4 @@ class SparkFilesystemCsvBatchTestSetup(
 
     @property
     def csv_path(self) -> pathlib.Path:
-        return pathlib.Path("data.csv")
+        return pathlib.Path(f"{self._random_resource_name()}.csv")
