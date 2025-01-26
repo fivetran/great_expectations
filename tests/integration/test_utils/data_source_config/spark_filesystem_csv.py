@@ -70,7 +70,7 @@ class SparkFilesystemCsvBatchTestSetup(
         return SparkDFExecutionEngine.get_or_create_spark_session()
 
     @property
-    def _spark_schema(self) -> Union[pyspark_types.StructType, None]:
+    def _spark_schema(self) -> Union[pyspark.types.StructType, None]:
         column_types = self.config.column_types or {}
         struct_fields = [
             pyspark_types.StructField(column_name, column_type())
