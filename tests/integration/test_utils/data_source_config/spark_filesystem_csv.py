@@ -1,12 +1,10 @@
 import pathlib
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Union
+from typing import TYPE_CHECKING, Any, Mapping, Union
 
 import pandas as pd
 import pytest
 
-from great_expectations.compatibility import pyspark
-from great_expectations.compatibility.pyspark import types as pyspark_types
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import CSVAsset
 from great_expectations.datasource.fluent.interfaces import Batch
@@ -15,6 +13,10 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.compatibility import pyspark
+    from great_expectations.compatibility.pyspark import types as pyspark_types
 
 
 @dataclass(frozen=True)
@@ -70,7 +72,9 @@ class SparkFilesystemCsvBatchTestSetup(
         return SparkDFExecutionEngine.get_or_create_spark_session()
 
     @property
-    def _spark_schema(self) -> Union[pyspark.types.StructType, None]:
+    def _spark_schema(self) -> Union[pyspark_types.StructType, None]:
+        from great_expectations.compatibility.pyspark import types as pyspark_types
+
         column_types = self.config.column_types or {}
         struct_fields = [
             pyspark_types.StructField(column_name, column_type())
