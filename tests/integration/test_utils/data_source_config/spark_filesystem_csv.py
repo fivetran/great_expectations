@@ -1,6 +1,6 @@
 import pathlib
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any, Mapping, Union
 
 import pandas as pd
 import pytest
@@ -70,16 +70,20 @@ class SparkFilesystemCsvBatchTestSetup(
         return SparkDFExecutionEngine.get_or_create_spark_session()
 
     @property
-    def _spark_schema(self) -> pyspark_types.StructType | None:
+    def _spark_schema(self) -> Union[pyspark_types.StructType, None]:
+        column_types = self.config.column_types or {}
         struct_fields = [
             pyspark_types.StructField(column_name, column_type())
-            for column_name, column_type in self.config.column_types.items()
+            for column_name, column_type in column_types.items()
         ]
         return pyspark_types.StructType(struct_fields) if struct_fields else None
 
     @property
     def _spark_data(self) -> pyspark.DataFrame:
-        return self._spark_session.createDataFrame(self.data, schema=self._spark_schema)
+        if self._spark_schema:
+            return self._spark_session.createDataFrame(self.data, schema=self._spark_schema)
+        else:
+            return self._spark_session.createDataFrame(self.data)
 
     @override
     def make_asset(self) -> CSVAsset:
