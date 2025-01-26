@@ -68,11 +68,11 @@ class SparkFilesystemCsvBatchTestSetup(
         self._base_dir = base_dir
 
     @property
-    def _spark_session(self) -> pyspark.SparkSession:
+    def _spark_session(self) -> "pyspark.SparkSession":
         return SparkDFExecutionEngine.get_or_create_spark_session()
 
     @property
-    def _spark_schema(self) -> Union[pyspark_types.StructType, None]:
+    def _spark_schema(self) -> Union["pyspark_types.StructType", None]:
         from great_expectations.compatibility.pyspark import types as pyspark_types
 
         column_types = self.config.column_types or {}
@@ -83,7 +83,7 @@ class SparkFilesystemCsvBatchTestSetup(
         return pyspark_types.StructType(struct_fields) if struct_fields else None
 
     @property
-    def _spark_data(self) -> pyspark.DataFrame:
+    def _spark_data(self) -> "pyspark.DataFrame":
         if self._spark_schema:
             return self._spark_session.createDataFrame(self.data, schema=self._spark_schema)
         else:
