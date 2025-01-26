@@ -6,6 +6,7 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.compatibility.bigquery import BIGQUERY_TYPES
 from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
+from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.datasource.fluent.interfaces import Batch
@@ -66,7 +67,7 @@ DATA_WITH_STRING_DATETIMES = pd.DataFrame(
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
         PandasFilesystemCsvDatasourceTestConfig(
-            pandas_read_options={
+            read_options={
                 "parse_dates": ["created_at", "updated_at"],
                 "date_format": "mixed",
             },
@@ -168,13 +169,12 @@ SPARK_AND_SQL_TEST_CASES = [
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         SparkFilesystemCsvDatasourceTestConfig(
-            spark_read_options={
-                "date_format": "yyyy-MM-dd",
-                "timestamp_format": "yyyy-MM-dd HH:mm:ss",
-            },
-            spark_write_options={
-                "date_format": "yyyy-MM-dd",
-                "timestamp_format": "yyyy-MM-dd HH:mm:ss",
+            column_types={
+                "created_at": PYSPARK_TYPES.TimestampType,
+                "updated_at": PYSPARK_TYPES.DateType,
+                "amount": PYSPARK_TYPES.FloatType,
+                "quantity": PYSPARK_TYPES.IntegerType,
+                "name": PYSPARK_TYPES.StringType,
             },
         ),
         BigQueryDatasourceTestConfig(

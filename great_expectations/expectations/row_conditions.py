@@ -119,35 +119,21 @@ def _parse_great_expectations_condition(row_condition: str):
         raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 
 
-# noinspection PyUnresolvedReferences
-def parse_condition_to_spark(  # type: ignore[return] # return or raise exists for all branches  # noqa: C901, PLR0911 # FIXME CoP
+def parse_condition_to_spark(
     row_condition: str,
 ) -> pyspark.Column:
     parsed = _parse_great_expectations_condition(row_condition)
     column = parsed["column"]
     if "condition_value" in parsed:
-        if parsed["op"] == "==":
-            return F.col(column) == parsed["condition_value"]
-        else:
-            raise ConditionParserError(  # noqa: TRY003 # FIXME CoP
-                f"Invalid operator: {parsed['op']} for string literal spark condition."
-            )
+        return generate_condition_by_operator(
+            F.col(column), parsed["op"], F.lit(parsed["condition_value"])
+        )
     elif "fnumber" in parsed:
         try:
             num: int | float = int(parsed["fnumber"])
         except ValueError:
             num = float(parsed["fnumber"])
-        op = parsed["op"]
-        if op == ">":
-            return F.col(column) > num
-        elif op == "<":
-            return F.col(column) < num
-        elif op == ">=":
-            return F.col(column) >= num
-        elif op == "<=":
-            return F.col(column) <= num
-        elif op == "==":
-            return F.col(column) == num
+        return generate_condition_by_operator(F.col(column), parsed["op"], F.lit(num))
     elif "notnull" in parsed and parsed["notnull"] is True:
         return F.col(column).isNotNull()
     else:

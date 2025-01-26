@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from great_expectations.compatibility import pyspark
+from great_expectations.compatibility.pyspark import types as pyspark_types
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import CSVAsset
 from great_expectations.datasource.fluent.interfaces import Batch
@@ -19,9 +20,9 @@ from tests.integration.test_utils.data_source_config.base import (
 @dataclass(frozen=True)
 class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
     # see "read" options at https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
-    spark_read_options: dict[str, Any] = field(default_factory=dict)
+    read_options: dict[str, Any] = field(default_factory=dict)
     # see "write" options at https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
-    spark_write_options: dict[str, Any] = field(default_factory=dict)
+    write_options: dict[str, Any] = field(default_factory=dict)
 
     @property
     @override
@@ -65,18 +66,32 @@ class SparkFilesystemCsvBatchTestSetup(
         self._base_dir = base_dir
 
     @property
-    def spark_session(self) -> pyspark.SparkSession:
+    def _spark_session(self) -> pyspark.SparkSession:
         return SparkDFExecutionEngine.get_or_create_spark_session()
+
+    @property
+    def _spark_schema(self) -> pyspark_types.StructType | None:
+        struct_fields = [
+            pyspark_types.StructField(column_name, column_type())
+            for column_name, column_type in self.config.column_types.items()
+        ]
+        return pyspark_types.StructType(struct_fields) if struct_fields else None
+
+    @property
+    def _spark_data(self) -> pyspark.DataFrame:
+        return self._spark_session.createDataFrame(self.data, schema=self._spark_schema)
 
     @override
     def make_asset(self) -> CSVAsset:
+        infer_schema = self._spark_schema is None
         return self.context.data_sources.add_spark_filesystem(
             name=self._random_resource_name(), base_directory=self._base_dir
         ).add_csv_asset(
             name=self._random_resource_name(),
+            spark_schema=self._spark_schema,
             header=True,
-            infer_schema=True,
-            **self.config.spark_read_options,
+            infer_schema=infer_schema,
+            **self.config.read_options,
         )
 
     @override
@@ -90,8 +105,8 @@ class SparkFilesystemCsvBatchTestSetup(
     @override
     def setup(self) -> None:
         file_path = self._base_dir / self.csv_path
-        self.spark_session.createDataFrame(self.data).write.format("csv").options(
-            **self.config.spark_write_options
+        self._spark_data.write.format("csv").option("header", True).options(
+            **self.config.write_options
         ).save(str(file_path))
 
     @override
@@ -99,4 +114,4 @@ class SparkFilesystemCsvBatchTestSetup(
 
     @property
     def csv_path(self) -> pathlib.Path:
-        return pathlib.Path(f"{self._random_resource_name()}.csv")
+        return pathlib.Path("data.csv")
