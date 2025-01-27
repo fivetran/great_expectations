@@ -15,6 +15,18 @@ INT_COL = "int_col"
 INT_COL_2 = "int_col_2"
 DUPLICATES = "duplicates"
 
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    SPARK_COLUMN_TYPES = {
+        STRING_COL: PYSPARK_TYPES.StringType,
+        INT_COL: PYSPARK_TYPES.IntegerType,
+        INT_COL_2: PYSPARK_TYPES.IntegerType,
+        DUPLICATES: PYSPARK_TYPES.IntegerType,
+    }
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
+
 
 DATA = pd.DataFrame(
     {
