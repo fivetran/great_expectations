@@ -18,11 +18,20 @@ from tests.integration.test_utils.data_source_config import (
     SqliteDatasourceTestConfig,
 )
 
-# need to do this to use the import in pytest parametrization
 try:
     from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    spark_filesystem_csv_datasource_test_config = SparkFilesystemCsvDatasourceTestConfig(
+        column_types={
+            "created_at": PYSPARK_TYPES.TimestampType,
+            "updated_at": PYSPARK_TYPES.DateType,
+            "amount": PYSPARK_TYPES.FloatType,
+            "quantity": PYSPARK_TYPES.IntegerType,
+            "name": PYSPARK_TYPES.StringType,
+        },
+    )
 except ModuleNotFoundError:
-    pass
+    spark_filesystem_csv_datasource_test_config = SparkFilesystemCsvDatasourceTestConfig()
 
 DATA = pd.DataFrame(
     {
@@ -204,17 +213,7 @@ SPARK_TEST_CASES = [
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[
-        SparkFilesystemCsvDatasourceTestConfig(
-            column_types={
-                "created_at": PYSPARK_TYPES.TimestampType,  # type: ignore[possibly-undefined]
-                "updated_at": PYSPARK_TYPES.DateType,
-                "amount": PYSPARK_TYPES.FloatType,
-                "quantity": PYSPARK_TYPES.IntegerType,
-                "name": PYSPARK_TYPES.StringType,
-            },
-        ),
-    ],
+    data_source_configs=[spark_filesystem_csv_datasource_test_config],
     data=DATA,
 )
 @pytest.mark.parametrize(
