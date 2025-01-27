@@ -18,7 +18,7 @@ from tests.integration.test_utils.data_source_config import (
     SqliteDatasourceTestConfig,
 )
 
-# need to do this to use the import in parametrization
+# need to do this to use the import in pytest parametrization
 try:
     from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 except ModuleNotFoundError:
