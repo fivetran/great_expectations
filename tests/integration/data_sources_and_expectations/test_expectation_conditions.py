@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
-from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
@@ -18,6 +17,12 @@ from tests.integration.test_utils.data_source_config import (
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
+
+# need to do this to use the import in parametrization
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+except ModuleNotFoundError:
+    pass
 
 DATA = pd.DataFrame(
     {
@@ -216,7 +221,6 @@ SPARK_TEST_CASES = [
     "row_condition",
     SPARK_TEST_CASES,
 )
-@pytest.mark.spark  # need this to avoid import error with PYSPARK_TYPES
 def test_expect_column_min_to_be_between__spark_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
