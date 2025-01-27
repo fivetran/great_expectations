@@ -32,7 +32,7 @@ class _TableData:
     table: Table
 
 
-InferrableTypesLookup = dict[type[Any], type[TypeEngine]]
+InferrableTypesLookup = dict[type[Any], Union[type[TypeEngine], TypeEngine]]
 
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):

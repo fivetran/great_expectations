@@ -58,7 +58,7 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
     def inferrable_types_lookup(self) -> InferrableTypesLookup:
         # mysql requires a length for VARCHAR
         overrides: InferrableTypesLookup = {
-            str: sqltypes.VARCHAR(255),  # type: ignore[dict-item]  # instantiation makes this an instance, but it behaves like a type
+            str: sqltypes.VARCHAR(255),
         }
         return super().inferrable_types_lookup | overrides
 
