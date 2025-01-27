@@ -52,7 +52,12 @@ COLUMN_TYPES = {NO_UNIQUE_COL: sqlatypes.INTEGER}
 try:
     from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 
-    SPARK_COLUMN_TYPES = {NO_UNIQUE_COL: PYSPARK_TYPES.IntegerType}
+    SPARK_COLUMN_TYPES = {
+        ALL_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
+        NO_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
+        SOME_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
+        STRING_COL: PYSPARK_TYPES.VarcharType,
+    }
 except ModuleNotFoundError:
     SPARK_COLUMN_TYPES = {}
 

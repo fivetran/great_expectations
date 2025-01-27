@@ -40,7 +40,12 @@ DATA = pd.DataFrame(
 try:
     from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 
-    SPARK_COLUMN_TYPES = {NULL_COLUMN: PYSPARK_TYPES.IntegerType}
+    SPARK_COLUMN_TYPES = {
+        INTEGER_COLUMN: PYSPARK_TYPES.IntegerType,
+        INTEGER_AND_NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+        STRING_COLUMN: PYSPARK_TYPES.StringType,
+        NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+    }
 except ModuleNotFoundError:
     SPARK_COLUMN_TYPES = {}
 
