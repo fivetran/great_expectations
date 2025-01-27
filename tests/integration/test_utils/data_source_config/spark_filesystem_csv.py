@@ -77,9 +77,7 @@ class SparkFilesystemCsvBatchTestSetup(
 
         column_types = self.config.column_types or {}
         struct_fields = [
-            pyspark_types.StructField(column_name, pyspark_types.VarcharType(255))
-            if column_type is pyspark_types.VarcharType
-            else pyspark_types.StructField(column_name, column_type())
+            pyspark_types.StructField(column_name, column_type())
             for column_name, column_type in column_types.items()
         ]
         return pyspark_types.StructType(struct_fields) if struct_fields else None
