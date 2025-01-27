@@ -1,16 +1,19 @@
-from typing import Dict, Mapping, Type
+from typing import Mapping
 
 import pandas as pd
 import pytest
 
-from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
+from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql import (
+    InferrableTypesLookup,
+    SQLBatchTestSetup,
+)
 
 
 class MySQLDatasourceTestConfig(DataSourceTestConfig):
@@ -52,9 +55,10 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
 
     @property
     @override
-    def inferrable_types_lookup(self) -> Dict[Type, TypeEngine]:
-        overrides = {
-            str: sqltypes.VARCHAR(255),  # mysql requires a length for VARCHAR
+    def inferrable_types_lookup(self) -> InferrableTypesLookup:
+        # mysql requires a length for VARCHAR
+        overrides: InferrableTypesLookup = {
+            str: sqltypes.VARCHAR(255),
         }
         return super().inferrable_types_lookup | overrides
 
