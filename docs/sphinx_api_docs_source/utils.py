@@ -36,10 +36,6 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
             item.insert(0, "\r\n")
             item.append("\r\n")
 
-    for item in soup.find_all(text=True):
-        if item.string and ("CodeBlock" not in item.string):
-            item.string.replaceWith(item.get_text().replace("<", r"\<"))
-
 
 def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Add h2 title to Methods section
@@ -71,6 +67,11 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         code_block = soup.new_tag("CodeBlock", language="python", title="Signature")
         code_block.append("{`" + item.get_text().replace("#", "") + "`}")
         item.replace_with(code_block)
+
+    # Prevent build from failing when there's code-like text outside code blocks
+    for item in soup.find_all(text=True):
+        if item.string and ("CodeBlock" not in item.string):
+            item.string.replaceWith(item.get_text().replace("<", r"\<"))
 
 
 def add_section_title(soup, items, title):
