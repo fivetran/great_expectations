@@ -40,7 +40,7 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
     #     item.string.replaceWith(item.get_text().replace("<", r"\<"))
 
     for item in soup.find_all(text=True):
-        if item.string and (not "CodeBlock" in item.string):
+        if item.string and ("CodeBlock" not in item.string):
             item.string.replaceWith(item.get_text().replace("<", r"\<"))
 
 
