@@ -121,7 +121,6 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
-        SparkFilesystemCsvDatasourceTestConfig(),
         DatabricksDatasourceTestConfig(),
         MSSQLDatasourceTestConfig(),
         MySQLDatasourceTestConfig(),
@@ -155,6 +154,66 @@ def test_expect_column_min_to_be_between__spark_and_sql_row_condition(
         column="date",
         min_value=datetime(year=2021, month=1, day=1, tzinfo=timezone.utc).date(),
         max_value=datetime(year=2022, month=1, day=1, tzinfo=timezone.utc).date(),
+        row_condition=row_condition,
+        condition_parser="great_expectations",
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+SPARK_TEST_CASES = [
+    pytest.param(
+        'col("name")=="albert"',
+        id="text-eq",
+    ),
+    pytest.param(
+        'col("quantity")<3',
+        id="number-lt",
+    ),
+    pytest.param(
+        'col("quantity")==1',
+        id="number-eq",
+    ),
+    pytest.param(
+        'col("updated_at")<date("2021-02-01"))',
+        id="date-lt",
+    ),
+    pytest.param(
+        'col("updated_at")>date("2021-01-30"))',
+        id="date-gt",
+    ),
+    pytest.param(
+        'col("updated_at")==date("2021-01-31"))',
+        id="date-eq",
+    ),
+    pytest.param(
+        'col("created_at")<date("2021-01-31 00:00:00"))',
+        id="datetime-lt",
+    ),
+    pytest.param(
+        'col("created_at")>date("2021-01-29 00:00:00"))',
+        id="datetime-gt",
+    ),
+]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SparkFilesystemCsvDatasourceTestConfig(),
+    ],
+    data=DATA,
+)
+@pytest.mark.parametrize(
+    "row_condition",
+    SPARK_TEST_CASES,
+)
+def test_expect_column_min_to_be_between__spark_row_condition(
+    batch_for_datasource: Batch, row_condition: str
+) -> None:
+    expectation = gxe.ExpectColumnMinToBeBetween(
+        column="amount",
+        min_value=0.5,
+        max_value=1.5,
         row_condition=row_condition,
         condition_parser="great_expectations",
     )
