@@ -34,6 +34,8 @@ class _TableData:
 
 InferrableTypesLookup = dict[type[Any], Union[type[TypeEngine], TypeEngine]]
 
+InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
+
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
     SCHEMA_PREFIX = "test_"
@@ -175,7 +177,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             table=table,
         )
 
-    def _create_table(self, name: str, columns: Mapping[str, type[TypeEngine]]) -> Table:
+    def _create_table(self, name: str, columns: InferredColumnTypes) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
         return Table(name, self.metadata, *column_list, schema=self.schema)
 
@@ -183,7 +185,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         self,
         df: pd.DataFrame,
         column_types: Mapping[str, type[TypeEngine]],
-    ) -> Mapping[str, type[TypeEngine]]:
+    ) -> InferredColumnTypes:
         all_column_types = self._infer_column_types(df)
         # prefer explicit types if they're provided
         all_column_types.update(column_types)
@@ -199,8 +201,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             raise RuntimeError(message)
         return all_column_types
 
-    def _infer_column_types(self, data: pd.DataFrame) -> dict[str, type[TypeEngine]]:
-        inferred_column_types: dict[str, type[TypeEngine]] = {}
+    def _infer_column_types(self, data: pd.DataFrame) -> InferredColumnTypes:
+        inferred_column_types: InferredColumnTypes = {}
         for column, value_list in data.to_dict("list").items():
             non_null_value_list = [val for val in value_list if val is not None]
             if not non_null_value_list:
