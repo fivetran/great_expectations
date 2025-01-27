@@ -191,13 +191,13 @@ module.exports = {
             {
               type: 'doc',
               label: 'Get support',
-              docId: 'get_support',
+              docId: 'docs/resources/get_support',
               className: 'non-versioned-section',
             },
             {
               type: 'doc',
               label: 'Integration support policy',
-              docId: 'application_integration_support',
+              docId: 'docs/resources/application_integration_support',
               className: 'non-versioned-section',
             },
             {
