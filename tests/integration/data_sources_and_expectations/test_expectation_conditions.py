@@ -216,6 +216,7 @@ SPARK_TEST_CASES = [
     "row_condition",
     SPARK_TEST_CASES,
 )
+@pytest.mark.spark  # need this to avoid import error with PYSPARK_TYPES
 def test_expect_column_min_to_be_between__spark_row_condition(
     batch_for_datasource: Batch, row_condition: str
 ) -> None:
