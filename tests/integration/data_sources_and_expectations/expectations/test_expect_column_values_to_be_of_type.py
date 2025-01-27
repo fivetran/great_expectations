@@ -40,7 +40,7 @@ DATA = pd.DataFrame(
 try:
     from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 
-    SPARK_COLUMN_TYPES = {NULL_COLUMN: PYSPARK_TYPES.FloatType}
+    SPARK_COLUMN_TYPES = {NULL_COLUMN: PYSPARK_TYPES.IntegerType}
 except ModuleNotFoundError:
     SPARK_COLUMN_TYPES = {}
 
