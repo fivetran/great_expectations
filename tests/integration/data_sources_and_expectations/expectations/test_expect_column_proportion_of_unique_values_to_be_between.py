@@ -56,7 +56,7 @@ try:
         ALL_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
         NO_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
         SOME_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
-        STRING_COL: PYSPARK_TYPES.VarcharType(20),
+        STRING_COL: PYSPARK_TYPES.VarcharType,
     }
 except ModuleNotFoundError:
     SPARK_COLUMN_TYPES = {}
