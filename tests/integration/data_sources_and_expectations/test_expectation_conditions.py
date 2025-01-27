@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
@@ -199,7 +200,15 @@ SPARK_TEST_CASES = [
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[
-        SparkFilesystemCsvDatasourceTestConfig(),
+        SparkFilesystemCsvDatasourceTestConfig(
+            column_types={
+                "created_at": PYSPARK_TYPES.TimestampType,
+                "updated_at": PYSPARK_TYPES.DateType,
+                "amount": PYSPARK_TYPES.FloatType,
+                "quantity": PYSPARK_TYPES.IntegerType,
+                "name": PYSPARK_TYPES.StringType,
+            },
+        ),
     ],
     data=DATA,
 )
