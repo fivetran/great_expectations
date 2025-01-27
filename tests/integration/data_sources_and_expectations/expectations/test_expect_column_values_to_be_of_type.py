@@ -37,6 +37,14 @@ DATA = pd.DataFrame(
 )
 
 
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    SPARK_COLUMN_TYPES = {NULL_COLUMN: PYSPARK_TYPES.FloatType}
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
+
+
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
@@ -77,7 +85,11 @@ def test_success_for_type__Integer(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
+    data_source_configs=[
+        SparkFilesystemCsvDatasourceTestConfig(
+            column_types=SPARK_COLUMN_TYPES,
+        )
+    ],
     data=DATA,
 )
 def test_success_for_type__IntegerType(batch_for_datasource: Batch) -> None:

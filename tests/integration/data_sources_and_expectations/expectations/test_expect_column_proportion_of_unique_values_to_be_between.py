@@ -49,6 +49,12 @@ DATA = pd.DataFrame(
 )
 
 COLUMN_TYPES = {NO_UNIQUE_COL: sqlatypes.INTEGER}
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    SPARK_COLUMN_TYPES = {NO_UNIQUE_COL: PYSPARK_TYPES.IntegerType}
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
 
 ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(column_types=COLUMN_TYPES),
@@ -59,7 +65,7 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasFilesystemCsvDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(column_types=COLUMN_TYPES),
     SnowflakeDatasourceTestConfig(column_types=COLUMN_TYPES),
-    SparkFilesystemCsvDatasourceTestConfig(),
+    SparkFilesystemCsvDatasourceTestConfig(column_types=SPARK_COLUMN_TYPES),
     SqliteDatasourceTestConfig(column_types=COLUMN_TYPES),
 ]
 
