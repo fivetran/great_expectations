@@ -36,9 +36,6 @@ def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noq
             item.insert(0, "\r\n")
             item.append("\r\n")
 
-    # for item in soup.find_all("cite"):
-    #     item.string.replaceWith(item.get_text().replace("<", r"\<"))
-
     for item in soup.find_all(text=True):
         if item.string and ("CodeBlock" not in item.string):
             item.string.replaceWith(item.get_text().replace("<", r"\<"))
