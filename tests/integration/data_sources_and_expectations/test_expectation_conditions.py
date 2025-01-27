@@ -208,10 +208,10 @@ SPARK_TEST_CASES = [
         SparkFilesystemCsvDatasourceTestConfig(
             column_types={
                 "created_at": PYSPARK_TYPES.TimestampType,  # type: ignore[possibly-undefined]
-                "updated_at": PYSPARK_TYPES.DateType,  # type: ignore[possibly-undefined]
-                "amount": PYSPARK_TYPES.FloatType,  # type: ignore[possibly-undefined]
-                "quantity": PYSPARK_TYPES.IntegerType,  # type: ignore[possibly-undefined]
-                "name": PYSPARK_TYPES.StringType,  # type: ignore[possibly-undefined]
+                "updated_at": PYSPARK_TYPES.DateType,
+                "amount": PYSPARK_TYPES.FloatType,
+                "quantity": PYSPARK_TYPES.IntegerType,
+                "name": PYSPARK_TYPES.StringType,
             },
         ),
     ],
