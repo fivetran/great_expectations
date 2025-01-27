@@ -191,7 +191,7 @@ module.exports = {
             {
               type: 'doc',
               label: 'Get support',
-              docId: 'get_support',
+              docId: 'resources/get_support',
               className: 'non-versioned-section',
             },
             {

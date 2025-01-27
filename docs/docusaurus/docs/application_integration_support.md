@@ -1,6 +1,5 @@
 ---
 title: Integration support policy
-id: application_integration_support
 ---
 
 For production environments, GX recommends using GX Cloud integrations.
