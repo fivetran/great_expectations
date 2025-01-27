@@ -236,7 +236,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_path_succes
 ):
     # arrange
     name = "batch_def_name"
-    expected_regex = re.compile(str(path))
+    expected_regex = re.compile(f"{path}$")
     expected_batch_definition = BatchDefinition(
         name=name, partitioner=FileNamePartitionerPath(regex=expected_regex)
     )
@@ -269,7 +269,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_path_fails_
 ):
     # arrange
     name = "batch_def_name"
-    expected_regex = re.compile(str(path))
+    expected_regex = re.compile(f"{path}$")
 
     file_path_data_connector.get_matched_data_references.return_value = []
 
@@ -302,7 +302,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_path_fails_
     instead a regex with multiple matches."""
     # arrange
     name = "batch_def_name"
-    expected_regex = re.compile(str(path))
+    expected_regex = re.compile(f"{path}$")
     file_path_data_connector.get_matched_data_references.return_value = [
         "data_reference_one",
         "data_reference_two",
