@@ -92,15 +92,24 @@ class SparkFilesystemCsvBatchTestSetup(
     @override
     def make_asset(self) -> CSVAsset:
         infer_schema = self._spark_schema is None
-        return self.context.data_sources.add_spark_filesystem(
+        data_source = self.context.data_sources.add_spark_filesystem(
             name=self._random_resource_name(), base_directory=self._base_dir
-        ).add_csv_asset(
-            name=self._random_resource_name(),
-            spark_schema=self._spark_schema,
-            header=True,
-            infer_schema=infer_schema,
-            **self.config.read_options,
         )
+        if self._spark_schema:
+            return data_source.add_csv_asset(
+                name=self._random_resource_name(),
+                spark_schema=self._spark_schema,
+                header=True,
+                infer_schema=infer_schema,
+                **self.config.read_options,
+            )
+        else:
+            return data_source.add_csv_asset(
+                name=self._random_resource_name(),
+                header=True,
+                infer_schema=infer_schema,
+                **self.config.read_options,
+            )
 
     @override
     def make_batch(self) -> Batch:
