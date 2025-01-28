@@ -111,8 +111,8 @@
       }
     }
 
-    div pre {
-      border-top: none;
+    .theme-code-block pre {
+      border: 1px solid transparent;
       margin: 0;
       padding-top: 0;
     }
