@@ -126,12 +126,31 @@ else:
 
 
 from great_expectations.compatibility.bigquery import (
-    BIGQUERY_TYPES,
     GEOGRAPHY,
+    sqlalchemy_bigquery,
 )
 
-if GEOGRAPHY:
-    BIGQUERY_TYPES["GEOGRAPHY"] = GEOGRAPHY
+try:
+    BIGQUERY_TYPES = {
+        "INTEGER": sqlalchemy_bigquery.INTEGER,
+        "NUMERIC": sqlalchemy_bigquery.NUMERIC,
+        "STRING": sqlalchemy_bigquery.STRING,
+        "BIGNUMERIC": sqlalchemy_bigquery.BIGNUMERIC,
+        "BYTES": sqlalchemy_bigquery.BYTES,
+        "BOOL": sqlalchemy_bigquery.BOOL,
+        "BOOLEAN": sqlalchemy_bigquery.BOOLEAN,
+        "TIMESTAMP": sqlalchemy_bigquery.TIMESTAMP,
+        "TIME": sqlalchemy_bigquery.TIME,
+        "FLOAT": sqlalchemy_bigquery.FLOAT,
+        "DATE": sqlalchemy_bigquery.DATE,
+        "DATETIME": sqlalchemy_bigquery.DATETIME,
+    }
+
+    if GEOGRAPHY:
+        BIGQUERY_TYPES["GEOGRAPHY"] = GEOGRAPHY
+
+except (ImportError, AttributeError):
+    BIGQUERY_TYPES = {}
 
 try:
     import sqlalchemy.dialects.postgresql as postgresqltypes  # noqa: TID251 # FIXME CoP

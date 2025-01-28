@@ -4,9 +4,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import cached_property
-from typing import TYPE_CHECKING, Dict, Generic, Mapping, Optional, Sequence, Type, Union
+from typing import Any, Generic, Mapping, Optional, Sequence, Union
 
 import numpy as np
+import pandas as pd
 from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
@@ -14,6 +15,7 @@ from great_expectations.compatibility.sqlalchemy import (
     MetaData,
     Table,
     TextClause,
+    TypeEngine,
     create_engine,
     insert,
     sqltypes,
@@ -22,17 +24,17 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
 
-if TYPE_CHECKING:
-    import pandas as pd
-
-    from great_expectations.compatibility.sqlalchemy import TypeEngine
-
 
 @dataclass(frozen=True)
 class _TableData:
     name: str
     df: pd.DataFrame
     table: Table
+
+
+InferrableTypesLookup = dict[type[Any], Union[type[TypeEngine], TypeEngine]]
+
+InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
 
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
@@ -52,16 +54,17 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         """
 
     @property
-    def inferrable_types_lookup(self) -> Dict[Type, TypeEngine]:
+    def inferrable_types_lookup(self) -> InferrableTypesLookup:
         """Dict of Python type keys mapped to SQL dialect-specific SqlAlchemy types."""
         # implementations of the class can override this if more specific types are required
         return {
-            str: sqltypes.VARCHAR,  # type: ignore[dict-item] # FIXME CoP
-            int: sqltypes.INTEGER,  # type: ignore[dict-item] # FIXME CoP
-            float: sqltypes.DECIMAL,  # type: ignore[dict-item] # FIXME CoP
-            bool: sqltypes.BOOLEAN,  # type: ignore[dict-item] # FIXME CoP
-            date: sqltypes.DATE,  # type: ignore[dict-item] # FIXME CoP
-            datetime: sqltypes.DATETIME,  # type: ignore[dict-item] # FIXME CoP
+            str: sqltypes.VARCHAR,
+            int: sqltypes.INTEGER,
+            float: sqltypes.DECIMAL,
+            bool: sqltypes.BOOLEAN,
+            date: sqltypes.DATE,
+            datetime: sqltypes.DATETIME,
+            pd.Timestamp: sqltypes.DATETIME,
         }
 
     def __init__(
@@ -164,7 +167,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         return [self.main_table_data, *self.extra_table_data.values()]
 
     def _create_table_data(
-        self, name: str, df: pd.DataFrame, column_types: Mapping[str, TypeEngine]
+        self, name: str, df: pd.DataFrame, column_types: Mapping[str, type[TypeEngine]]
     ) -> _TableData:
         columns = self._get_column_types(df=df, column_types=column_types)
         table = self._create_table(name, columns=columns)
@@ -174,15 +177,15 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             table=table,
         )
 
-    def _create_table(self, name: str, columns: Mapping[str, TypeEngine]) -> Table:
+    def _create_table(self, name: str, columns: InferredColumnTypes) -> Table:
         column_list = [Column(col_name, col_type) for col_name, col_type in columns.items()]
         return Table(name, self.metadata, *column_list, schema=self.schema)
 
     def _get_column_types(
         self,
         df: pd.DataFrame,
-        column_types: Mapping[str, TypeEngine],
-    ) -> Mapping[str, TypeEngine]:
+        column_types: Mapping[str, type[TypeEngine]],
+    ) -> InferredColumnTypes:
         all_column_types = self._infer_column_types(df)
         # prefer explicit types if they're provided
         all_column_types.update(column_types)
@@ -198,13 +201,13 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             raise RuntimeError(message)
         return all_column_types
 
-    def _infer_column_types(self, data: pd.DataFrame) -> Dict[str, TypeEngine]:
-        inferred_column_types: Dict[str, TypeEngine] = {}
+    def _infer_column_types(self, data: pd.DataFrame) -> InferredColumnTypes:
+        inferred_column_types: InferredColumnTypes = {}
         for column, value_list in data.to_dict("list").items():
             non_null_value_list = [val for val in value_list if val is not None]
             if not non_null_value_list:
                 # if we have an all null column, just arbitrarily use INTEGER
-                inferred_column_types[str(column)] = sqltypes.INTEGER  # type: ignore[assignment] # FIXME CoP
+                inferred_column_types[str(column)] = sqltypes.INTEGER
             else:
                 python_type = type(non_null_value_list[0])
                 if not all(isinstance(val, python_type) for val in non_null_value_list):
