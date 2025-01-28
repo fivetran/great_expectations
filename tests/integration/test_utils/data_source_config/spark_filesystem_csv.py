@@ -19,12 +19,12 @@ if TYPE_CHECKING:
     from great_expectations.compatibility.pyspark import types as pyspark_types
 
 
-@dataclass(frozen=True, unsafe_hash=True)
+@dataclass(frozen=True)
 class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
     # see "read" options at https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
-    read_options: dict[str, Any] = field(default_factory=dict, hash=False)
+    read_options: dict[str, Any] = field(default_factory=dict)
     # see "write" options at https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
-    write_options: dict[str, Any] = field(default_factory=dict, hash=False)
+    write_options: dict[str, Any] = field(default_factory=dict)
 
     @property
     @override
