@@ -42,7 +42,7 @@ DATA = pd.DataFrame(
 def test_golden_path(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectCompoundColumnsToBeUnique(
         column_list=[STRING_COL, INT_COL, INT_COL_2],
-        ignore_row_if="all_values_are_missing",
+        ignore_row_if="any_value_is_missing",
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success
