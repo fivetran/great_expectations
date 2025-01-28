@@ -21,9 +21,9 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
-    # see "read" options at https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
+    # see "read" options: https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
     read_options: dict[str, Any] = field(default_factory=dict)
-    # see "write" options at https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
+    # see "write" options: https://spark.apache.org/docs/3.5.3/sql-data-sources-csv.html#data-source-option
     write_options: dict[str, Any] = field(default_factory=dict)
 
     @property

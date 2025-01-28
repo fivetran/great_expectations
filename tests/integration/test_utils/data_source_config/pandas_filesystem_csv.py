@@ -16,9 +16,9 @@ from tests.integration.test_utils.data_source_config.base import (
 
 @dataclass(frozen=True)
 class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
-    # see https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html for options
+    # see options: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
     read_options: dict[str, Any] = field(default_factory=dict)
-    # see https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html for options
+    # see options: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html
     write_options: dict[str, Any] = field(default_factory=dict)
 
     @property
