@@ -50,7 +50,7 @@ When using the taxi data, you can make certain assumptions. For example:
 ## Validate data in a DataFrame
 This example workflow walks you through connecting to data in a Pandas DataFrame and validating the data using a single Expectation.
 
-:::info Pandas install
+:::tip Pandas install
 This example requires that [Pandas](https://pandas.pydata.org/) is installed in the same Python environment where you are running GX Core.
 :::
 

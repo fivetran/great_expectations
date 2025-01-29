@@ -2,6 +2,7 @@ import React from 'react';
 import Admonition from '@theme-original/Admonition';
 import AlertInfo from "../../../static/img/alert-info.svg";
 import AlertWarning from "../../../static/img/alert-warning.svg";
+import CautionIcon from "../../../static/img/admonition-caution-icon.svg"
 import AlertBell from "../../../static/img/alert-bell.svg";
 import AlertPin from "../../../static/img/alert-pin.svg";
 import DangerIcon from "../../../static/img/admonition-danger-icon.svg"
@@ -17,7 +18,7 @@ export default function AdmonitionWrapper(props) {
     case 'tip':
       return <Admonition {...props} icon={<AlertInfo/>} />;
     case 'caution':
-      return <Admonition {...props} icon={<AlertInfo/>} />;
+      return <Admonition {...props} icon={<CautionIcon/>} />;
     case 'warning':
       return <Admonition {...props} icon={<AlertWarning/>} />;
     case 'danger':
