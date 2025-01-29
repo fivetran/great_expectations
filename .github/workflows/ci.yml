@@ -89,7 +89,7 @@ jobs:
             Our GitHub actions pipelines require a user with write permissions to retry the failed jobs. We've sent a message to a maintainer to review your PR. Please be patient and we'll get back to you as soon as possible.
 
       - name: Fail if No Write Permission
-        if: steps.check-user-permission.outputs.require-result == 'false' && steps.check-user-permission.outputs.check-result == 'false'
+        if: steps.check-user-permission.outputs.require-result == 'false'
         run: exit 1
 
   ci-does-not-run-on-draft-pull-requests:

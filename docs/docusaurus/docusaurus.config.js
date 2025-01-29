@@ -189,12 +189,16 @@ module.exports = {
           label: 'Resources',
           items: [
             {
+              type: 'doc',
               label: 'Get support',
-              to: '/docs/resources/get_support',
+              docId: 'resources/get_support',
+              className: 'non-versioned-section',
             },
             {
+              type: 'doc',
               label: 'Integration support policy',
-              to: '/docs/application_integration_support',
+              docId: 'application_integration_support',
+              className: 'non-versioned-section',
             },
             {
               label: 'Community',
