@@ -39,7 +39,10 @@ from docs.sphinx_api_docs_source.public_api_report import (
     Definition,
     get_shortest_dotted_path,
 )
-from docs.sphinx_api_docs_source.utils import apply_markdown_adjustments
+from docs.sphinx_api_docs_source.utils import (
+    apply_markdown_adjustments,
+    apply_structure_changes,
+)
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -220,6 +223,7 @@ class SphinxInvokeDocsBuilder:
         title_str = title_str.replace("#", "")
 
         apply_markdown_adjustments(soup, html_file_path, html_file_contents)
+        apply_structure_changes(soup, html_file_path, html_file_contents)
 
         sidebar_entry = self._get_sidebar_entry(html_file_path=html_file_path)
 
@@ -517,7 +521,7 @@ class SphinxInvokeDocsBuilder:
 .. autoclass:: {dotted_import}
    :members:
    :inherited-members:
-
+   :member-order: groupwise
 ```
 """
 

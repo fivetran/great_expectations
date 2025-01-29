@@ -27,10 +27,15 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.data_context.store.expectations_store import ExpectationsStore
 from great_expectations.exceptions import InvalidExpectationConfigurationError
+from great_expectations.expectations import (
+    ExpectColumnValuesToBeUnique,
+    ExpectColumnValuesToNotBeNull,
+)
 from great_expectations.expectations.expectation import Expectation
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
+from great_expectations.render import RenderedAtomicContent, RenderedAtomicValue
 
 
 @pytest.fixture
@@ -393,6 +398,25 @@ class TestCRUDMethods:
             suite.add_expectation(expectation=expectation)
 
         assert len(suite.expectations) == 0, "Expectation must not be added to Suite."
+
+    @pytest.mark.unit
+    def test_add_success_when_attributes_are_identical(self):
+        context = Mock(spec=AbstractDataContext)
+        set_context(project=context)
+
+        parameters = {"column": "passenger_count"}
+        expectation_a = ExpectColumnValuesToBeUnique(**parameters)
+        expectation_b = ExpectColumnValuesToNotBeNull(**parameters)
+
+        suite = ExpectationSuite(
+            name=self.expectation_suite_name,
+            expectations=[expectation_a],
+        )
+
+        with mock.patch.object(ExpectationSuite, "_submit_expectation_created_event"):
+            suite.add_expectation(expectation=expectation_b)
+
+        assert len(suite.expectations) == 2
 
     @pytest.mark.unit
     def test_delete_success_with_saved_suite(self, expectation):
@@ -890,6 +914,83 @@ class TestEqDunder:
         assert different_but_equivalent_suite != suite_with_single_expectation
         assert suite_with_single_expectation != different_but_equivalent_suite
         assert different_but_equivalent_suite != suite_with_single_expectation
+
+
+class TestExpectationsAreEqualish:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "expectation_a,expectation_b",
+        [
+            pytest.param(
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="a",
+                    value_set=[1, 2, 3],
+                    result_format="BASIC",
+                ),
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="a",
+                    value_set=[1, 2, 3],
+                    result_format="BASIC",
+                ),
+                id="same args passed in",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a", id=str(uuid4())),
+                gxe.ExpectColumnValuesToNotBeNull(column="a", id=str(uuid4())),
+                id="different ids",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a", rendered_content=[]),
+                gxe.ExpectColumnValuesToNotBeNull(
+                    column="a",
+                    rendered_content=[
+                        RenderedAtomicContent(
+                            name="atomic.prescriptive.summary",
+                            value=RenderedAtomicValue(template="Render this string!"),
+                            value_type="StringValueType",
+                        )
+                    ],
+                ),
+                id="different rendered_content",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a", notes="Note ABC"),
+                gxe.ExpectColumnValuesToNotBeNull(column="a", notes="Note 123"),
+                id="different notes",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a", meta={"warehouse": "theirs"}),
+                gxe.ExpectColumnValuesToNotBeNull(column="a", meta={"warehouse": "ours"}),
+                id="different meta",
+            ),
+        ],
+    )
+    def test_equalish(self, expectation_a, expectation_b):
+        assert ExpectationSuite._expectations_are_equalish(expectation_a, expectation_b)
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "expectation_a,expectation_b",
+        [
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a"),
+                gxe.ExpectColumnValuesToBeUnique(column="b"),
+                id="different expectation, different args passed in",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a"),
+                gxe.ExpectColumnValuesToBeUnique(column="a"),
+                id="different expectation, same args passed in",
+            ),
+            pytest.param(
+                gxe.ExpectColumnValuesToNotBeNull(column="a"),
+                gxe.ExpectColumnValuesToNotBeNull(column="b"),
+                id="same expectation, different args passed in",
+            ),
+        ],
+    )
+    def test_not_equalish(self, expectation_a, expectation_b):
+        assert not ExpectationSuite._expectations_are_equalish(expectation_a, expectation_b)
 
 
 # ### Below this line are mainly existing tests and fixtures that we are in the process of cleaning up  # noqa: E501 # FIXME CoP

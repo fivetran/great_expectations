@@ -34,10 +34,17 @@ import PrereqValidationDefinition from '../_core_components/prerequisites/_valid
 
    If you have created a new Validation Definition you can use the object returned by your Data Context's `.validation_definitions.add(...)` method.  Alternatively, you can retrieve a previously configured Validation Definition by updating the variable `validation_definition_name` in the following code and executing it:
 
-   ```python title="Python name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - retrieve a Validation Definition"
+   ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - retrieve a Validation Definition"
    ```
 
-2. Execute the Validation Definition's `run()` method:
+2. Define a Batch of data to validate
+
+   The [Batch parameters accepted by a Validation Definition](/docs/reference/api/ValidationDefinition_class#great_expectations.ValidationDefinition.run) are determined by the Batch Definition used to instantiate it. 
+
+   ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - define batch parameters"
+   ```
+
+3. Execute the Validation Definition's `run()` method:
 
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - run a Validation Definition"
    ```
@@ -50,7 +57,7 @@ import PrereqValidationDefinition from '../_core_components/prerequisites/_valid
 
    :::
 
-3. Review the Validation Results:
+4. Review the Validation Results:
  
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - review Validation Results"
    ```

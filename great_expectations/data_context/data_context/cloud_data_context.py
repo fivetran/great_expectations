@@ -95,6 +95,7 @@ class CloudDataContext(SerializableDataContext):
         cloud_base_url: Optional[str] = None,
         cloud_access_token: Optional[str] = None,
         cloud_organization_id: Optional[str] = None,
+        user_agent_str: Optional[str] = None,
     ) -> None:
         """
         CloudDataContext constructor
@@ -124,6 +125,7 @@ class CloudDataContext(SerializableDataContext):
         super().__init__(
             context_root_dir=self._context_root_directory,
             runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
         )
 
     def _check_if_latest_version(self) -> None:
@@ -140,6 +142,7 @@ class CloudDataContext(SerializableDataContext):
             organization_id=uuid.UUID(organization_id) if organization_id else None,
             oss_id=self._get_oss_id(),
             cloud_mode=True,
+            user_agent_str=self._user_agent_str,
         )
 
     def _get_cloud_user_id(self) -> uuid.UUID | None:

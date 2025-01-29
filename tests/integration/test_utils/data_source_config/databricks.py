@@ -6,14 +6,17 @@ from typing import TYPE_CHECKING, Mapping
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.sqlalchemy import TypeEngine, sqltypes
+from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql import (
+    InferrableTypesLookup,
+    SQLBatchTestSetup,
+)
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -59,9 +62,10 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
 
     @property
     @override
-    def inferrable_types_lookup(self) -> dict[type, TypeEngine]:
-        overrides = {
-            str: sqltypes.VARCHAR(255),  # databricks requires a length for VARCHAR
+    def inferrable_types_lookup(self) -> InferrableTypesLookup:
+        # databricks requires a length for VARCHAR
+        overrides: InferrableTypesLookup = {
+            str: sqltypes.VARCHAR(255),
         }
         return super().inferrable_types_lookup | overrides
 
@@ -69,9 +73,8 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     def _databrics_connection_config(self) -> DatabricksConnectionConfig:
         return DatabricksConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
 
-    @cached_property
     @override
-    def asset(self) -> TableAsset:
+    def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_databricks_sql(
             name=self._random_resource_name(),
             connection_string=self.connection_string,
