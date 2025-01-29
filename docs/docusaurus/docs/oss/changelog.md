@@ -14,6 +14,16 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.4
+* [BUGFIX] `row_condition` datetimes getting tuncated to dates ([#10891](https://github.com/great-expectations/great_expectations/pull/10891))
+* [DOCS] restore lychee ([#10889](https://github.com/great-expectations/great_expectations/pull/10889))
+* [DOCS] DOC-966: display properties in api reference as tables ([#10880](https://github.com/great-expectations/great_expectations/pull/10880))
+* [DOCS] DOC-966: display api reference methods signatures as code blocks ([#10882](https://github.com/great-expectations/great_expectations/pull/10882))
+* [DOCS] Dynamic Parameters for Completeness Expectations ([#10873](https://github.com/great-expectations/great_expectations/pull/10873))
+* [DOCS] Deleting versioned pages of 0.18 that should not be versioned ([#10893](https://github.com/great-expectations/great_expectations/pull/10893))
+* [MAINTENANCE] Allow forked PRs to run CI ([#10894](https://github.com/great-expectations/great_expectations/pull/10894))
+* [MAINTENANCE] Remove bot check on permissions checker action ([#10895](https://github.com/great-expectations/great_expectations/pull/10895))
+
 ### 1.3.3
 * [BUGFIX] Make validation results' describe_dict return a serializable dict ([#10863](https://github.com/great-expectations/great_expectations/pull/10863))
 * [BUGFIX] Allow adding Expectations with identical attributes to Suites ([#10884](https://github.com/great-expectations/great_expectations/pull/10884))
