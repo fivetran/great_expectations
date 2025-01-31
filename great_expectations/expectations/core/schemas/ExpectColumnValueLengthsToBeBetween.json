@@ -267,13 +267,18 @@
                 },
                 "offset": {
                     "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "type": "boolean"
                 }
             },
             "required": [
                 "constraint_fn",
                 "parameter_name",
                 "range",
-                "offset"
+                "offset",
+                "strict"
             ],
             "additionalProperties": false
         }
