@@ -23,7 +23,7 @@ class Window(pydantic.BaseModel):
     parameter_name: str
     range: int
     offset: Offset
-    strict: bool
+    strict: bool = False
 
     class Config:
         extra = Extra.forbid

@@ -245,6 +245,7 @@
                 },
                 "strict": {
                     "title": "Strict",
+                    "default": false,
                     "type": "boolean"
                 }
             },
@@ -252,8 +253,7 @@
                 "constraint_fn",
                 "parameter_name",
                 "range",
-                "offset",
-                "strict"
+                "offset"
             ],
             "additionalProperties": false
         }
