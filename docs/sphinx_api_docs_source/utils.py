@@ -49,7 +49,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         add_section_title(soup, properties, "Properties")
 
         # Display properties as table
-        table = soup.new_tag("table", attrs={ "class": "table" })
+        table = soup.new_tag("table", attrs={"class": "table"})
         tbody = soup.new_tag("tbody")
 
         create_header_row(soup, table)

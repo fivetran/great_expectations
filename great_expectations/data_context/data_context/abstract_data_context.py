@@ -2278,7 +2278,7 @@ class AbstractDataContext(ConfigPeer, ABC):
 
         --Documentation--
             - https://docs.greatexpectations.io/docs/terms/data_docs/
-        
+
         .. list-table:: Parameters
            :widths: 1 2
            :header-rows: 1
