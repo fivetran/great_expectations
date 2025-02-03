@@ -49,7 +49,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         add_section_title(soup, properties, "Properties")
 
         # Display properties as table
-        table = soup.new_tag("table")
+        table = soup.new_tag("table", attrs={ "class": "table" })
         tbody = soup.new_tag("tbody")
 
         create_header_row(soup, table)
@@ -72,6 +72,16 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
     for item in soup.find_all(text=True):
         if item.string and ("CodeBlock" not in item.string):
             item.string.replaceWith(item.get_text().replace("<", r"\<"))
+
+    # Add h4 titles to parameters, returns and raises tables
+    for item in soup.find_all("table"):
+        caption = item.find("caption")
+        if caption and caption.get_text() in ["Parameters#", "Returns#", "Raises#"]:
+            title_h4 = soup.new_tag("h4")
+            title_h4.string = caption.get_text().replace("#", "")
+            item.insert_before(title_h4)
+            item.insert_before("\r\n")
+            caption.extract()
 
 
 def add_section_title(soup, items, title):

@@ -369,11 +369,23 @@ class AbstractDataContext(ConfigPeer, ABC):
     ) -> DataContextConfig:
         """Update the context's config with the values from another config object.
 
-        Args:
-            project_config: The config to use to update the context's internal state.
+        .. list-table:: Parameters
+            :widths: 1 2
+            :header-rows: 1
 
-        Returns:
-            The updated project config.
+            * - Name
+              - Description
+            * - project_config
+              - The config to use to update the context's internal state.
+
+        .. list-table:: Returns
+            :widths: 1 2
+            :header-rows: 1
+
+            * - Type
+              - Description
+            * - type
+              - The updated project config.
         """
         self.config.update(project_config)
         return self.config
@@ -938,9 +950,16 @@ class AbstractDataContext(ConfigPeer, ABC):
 
         Example site config dicts can be found in our "Host and share Data Docs" guides.
 
-        Args:
-            site_name: New site name to add.
-            site_config: Config dict for the new site.
+        .. list-table:: Parameters
+            :widths: 1 2
+            :header-rows: 1
+
+            * - Name
+              - Description
+            * - site_name
+              - New site name to add.
+            * - site_config
+              - Config dict for the new site.
         """
         if self.config.data_docs_sites is not None:
             if site_name in self.config.data_docs_sites:
@@ -974,9 +993,16 @@ class AbstractDataContext(ConfigPeer, ABC):
 
         Example site config dicts can be found in our "Host and share Data Docs" guides.
 
-        Args:
-            site_name: Site name to update.
-            site_config: Config dict that replaces the existing.
+        .. list-table:: Parameters
+            :widths: 1 2
+            :header-rows: 1
+
+            * - Name
+              - Description
+            * - site_name
+              - Site name to update.
+            * - site_config
+              - Config dict that replaces the existing.
         """
         if self.config.data_docs_sites is not None:
             if site_name not in self.config.data_docs_sites:
@@ -994,8 +1020,14 @@ class AbstractDataContext(ConfigPeer, ABC):
     def delete_data_docs_site(self, site_name: str):
         """Delete an existing Data Docs Site.
 
-        Args:
-            site_name: Site name to delete.
+        .. list-table:: Parameters
+            :widths: 1 2
+            :header-rows: 1
+
+            * - Name
+              - Description
+            * - site_name
+              - Site name to delete.
         """
         if self.config.data_docs_sites is not None:
             if site_name not in self.config.data_docs_sites:
@@ -2246,27 +2278,46 @@ class AbstractDataContext(ConfigPeer, ABC):
 
         --Documentation--
             - https://docs.greatexpectations.io/docs/terms/data_docs/
+        
+        .. list-table:: Parameters
+           :widths: 1 2
+           :header-rows: 1
 
-        Args:
-            site_names: if specified, build data docs only for these sites, otherwise,
-                build all the sites specified in the context's config
-            resource_identifiers: a list of resource identifiers (ExpectationSuiteIdentifier,
-                ValidationResultIdentifier). If specified, rebuild HTML
-                (or other views the data docs sites are rendering) only for
-                the resources in this list. This supports incremental build
-                of data docs sites (e.g., when a new validation result is created)
-                and avoids full rebuild.
-            dry_run: a flag, if True, the method returns a structure containing the
-                URLs of the sites that *would* be built, but it does not build
-                these sites.
-            build_index: a flag if False, skips building the index page
-        Returns:
-            A dictionary with the names of the updated data documentation sites as keys and the location info
-            of their index.html files as values
+           * - Name
+             - Description
+           * - site_names
+             - if specified, build data docs only for these sites, otherwise, build all the sites specified in the context's config.
+           * - resource_identifiers
+             - a list of resource identifiers (ExpectationSuiteIdentifier,
+               ValidationResultIdentifier). If specified, rebuild HTML
+               (or other views the data docs sites are rendering) only for
+               the resources in this list. This supports incremental build
+               of data docs sites (e.g., when a new validation result is created)
+               and avoids full rebuild.
+           * - dry_run
+             - a flag, if True, the method returns a structure containing the
+               URLs of the sites that *would* be built, but it does not build
+               these sites.
+           * - build_index
+             - a flag, if False, skips building the index page.
 
-        Raises:
-            ClassInstantiationError: Site config in your Data Context config is not valid.
+        .. list-table:: Returns
+            :widths: 1 2
+            :header-rows: 1
 
+            * - Type
+              - Description
+            * - dictionary
+              - A dictionary with the names of the updated data documentation sites as keys and the location info of their index.html files as values.
+
+        .. list-table:: Raises
+            :widths: 1 2
+            :header-rows: 1
+
+            * - Type
+              - Description
+            * - ClassInstantiationError
+              - Site config in your Data Context config is not valid.
         """  # noqa: E501 # FIXME CoP
         return self._build_data_docs(
             site_names=site_names,
@@ -2352,8 +2403,14 @@ class AbstractDataContext(ConfigPeer, ABC):
         """
         Opens a validation result in a browser.
 
-        Args:
-            result: The result of a Checkpoint run.
+        .. list-table:: Parameters
+            :widths: 1 2
+            :header-rows: 1
+
+            * - Name
+              - Description
+            * - result
+              - The result of a Checkpoint run.
         """
         self._view_validation_result(result)
 
