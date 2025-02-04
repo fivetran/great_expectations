@@ -52,10 +52,10 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         table = soup.new_tag("table", attrs={"class": "table"})
         tbody = soup.new_tag("tbody")
 
-        create_header_row(soup, table)
+        create_header_row(soup, table, ["Name", "Description", "Reference"])
 
         for prop in properties:
-            create_row(soup, tbody, prop)
+            create_properties_row(soup, tbody, prop)
 
         table.append(tbody)
         parent_div = soup.select("#properties")[0]
@@ -73,15 +73,79 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         if item.string and ("CodeBlock" not in item.string):
             item.string.replaceWith(item.get_text().replace("<", r"\<"))
 
-    # Add h4 titles to parameters, returns and raises tables
-    for item in soup.find_all("table"):
-        caption = item.find("caption")
-        if caption and caption.get_text() in ["Parameters#", "Returns#", "Raises#"]:
-            title_h4 = soup.new_tag("h4")
-            title_h4.string = caption.get_text().replace("#", "")
-            item.insert_before(title_h4)
-            item.insert_before("\r\n")
-            caption.extract()
+    for item in soup.select(".field-list"):
+        for dd in item.select("dd"):
+            match dd.find_previous_sibling("dt").get_text():
+                case "Parameters":
+                    table = soup.new_tag("table", attrs={ "class": "table" })
+                    tbody = soup.new_tag("tbody")
+
+                    create_header_row(soup, table, ["Name", "Description"])
+
+                    for p in dd.select("p"):
+                        texts = p.get_text().split(" – ")
+                        if len(texts) == 2:
+                            [name, description] = texts
+                            columns = [ name, description ]
+                            create_row(soup, tbody, columns)
+
+                    table.append(tbody)
+                    parent_div = item.parent
+                    parent_div.append(table)
+                    add_table_title(soup, table, "Parameters")
+                    dd.find_previous_sibling("dt").extract()
+                    dd.extract()
+                case "Returns":
+                    table = soup.new_tag("table", attrs={ "class": "table" })
+                    tbody = soup.new_tag("tbody")
+
+                    create_header_row(soup, table, ["Type", "Description"])
+
+                    for p in dd.select("p"):
+                        texts = p.get_text().split(" – ")
+                        if len(texts) == 2:
+                            [type, description] = texts
+                            columns = [ type, description ]
+                            create_row(soup, tbody, columns)
+
+                    table.append(tbody)
+                    parent_div = item.parent
+                    parent_div.append(table)
+                    add_table_title(soup, table, "Returns")
+                    dd.find_previous_sibling("dt").extract()
+                    dd.extract()
+                case "Raises":
+                    table = soup.new_tag("table", attrs={ "class": "table" })
+                    tbody = soup.new_tag("tbody")
+
+                    create_header_row(soup, table, ["Type", "Description"])
+
+                    for p in dd.select("p"):
+                        texts = p.get_text().split(" – ")
+                        if len(texts) == 2:
+                            [type, description] = texts
+                            columns = [ type, description ]
+                            create_row(soup, tbody, columns)
+
+                    table.append(tbody)
+                    parent_div = item.parent
+                    parent_div.append(table)
+                    add_table_title(soup, table, "Raises")
+                    dd.find_previous_sibling("dt").extract()
+                    dd.extract()
+                case _:
+                    lala = 2
+
+
+# Add h4 titles to parameters, returns and raises tables
+    # for item in soup.find_all("table"):
+    #     caption = item.find("caption")
+    #     if caption and caption.get_text() in ["Parameters#", "Returns#", "Raises#"]:
+    #         title_h4 = soup.new_tag("h4")
+    #         title_h4.string = caption.get_text().replace("#", "")
+    #         item.insert_before(title_h4)
+    #         item.insert_before("\r\n")
+    #         caption.extract()
 
 
 def add_section_title(soup, items, title):
@@ -100,11 +164,9 @@ def add_section_title(soup, items, title):
     parent.insert_after(wrapper_div)
 
 
-def create_header_row(soup, table):
+def create_header_row(soup, table, column_names):
     thead = soup.new_tag("thead")
     thead_row = soup.new_tag("tr")
-
-    column_names = ["Name", "Description", "Reference"]
 
     for column_name in column_names:
         new_cell = soup.new_tag("th")
@@ -118,8 +180,7 @@ def create_header_row(soup, table):
     table.insert(0, "\r\n")
 
 
-def create_row(soup, tbody, prop):
-    new_row = soup.new_tag("tr")
+def create_properties_row(soup, tbody, prop):
     reference_link = prop.select("a")[0]
     reference_link.string = reference_link.text.split(".")[-1]
 
@@ -129,6 +190,12 @@ def create_row(soup, tbody, prop):
         reference_link,
     ]
 
+    create_row(soup, tbody, columns)
+    prop.extract()
+
+def create_row(soup, tbody, columns):
+    new_row = soup.new_tag("tr")
+
     for column in columns:
         new_cell = soup.new_tag("td")
         new_cell.append("\r\n")
@@ -137,4 +204,10 @@ def create_row(soup, tbody, prop):
         new_row.append(new_cell)
 
     tbody.append(new_row)
-    prop.extract()
+
+def add_table_title(soup, table, title):
+    title_h4 = soup.new_tag("h4")
+    title_h4.string = title
+    table.insert_before("\r\n")
+    table.insert_before(title_h4)
+    table.insert_before("\r\n")

@@ -92,7 +92,7 @@ class RunIdentifier(DataContextKey):
         """Returns a JSON-serializable dict representation of this RunIdentifier.
 
         Returns:
-            A JSON-serializable dict representation of this RunIdentifier.
+            Dictionary – A JSON-serializable dict representation of this RunIdentifier.
         """
         myself = runIdentifierSchema.dump(self)
         return myself

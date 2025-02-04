@@ -89,13 +89,13 @@
       overflow: auto hidden;
     }
 
-    div:not(#properties) .table tr td:first-of-type {
+    div:not(#properties) .table tr td:first-of-type,
+    dd .table tr td:first-of-type {
       font-weight: var(--ifm-font-weight-semibold);
+      width: 20%;
     }
 
     .table {
-      table-layout: fixed;
-
       thead {
         background-color: var(--ifm-table-background);
 
@@ -114,14 +114,14 @@
         }
       }
 
-      tr {
+      tbody tr {
         border: none;
 
-        &.row-odd {
+        &:nth-child(2n) {
           background-color: var(--ifm-table-background);
         }
 
-        &.row-even {
+        &:nth-child(2n + 1) {
           background-color: var(--ifm-table-stripe-background);
         }
       }
