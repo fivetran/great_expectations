@@ -18,7 +18,7 @@ A local deployment of the GX Agent will allow you to test GX Cloud setup or proc
 
 ## Limitations
 
-Agent-enabled deployments do not support [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-ai-recommended-expectations-beta)). To be able to generate AI-recommended Expectations, use a [fully-hosted deployment](s/cloud/deploy/deployment_patterns.md).
+Agent-enabled deployments do not support [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-ai-recommended-expectations-beta)). To be able to generate AI-recommended Expectations, use a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 
 ## Prerequisites
 
