@@ -2246,7 +2246,7 @@ class AbstractDataContext(ConfigPeer, ABC):
 
         --Documentation--
             - https://docs.greatexpectations.io/docs/terms/data_docs/
-        
+
         Args:
             site_names: if specified, build data docs only for these sites, otherwise,
                 build all the sites specified in the context's config

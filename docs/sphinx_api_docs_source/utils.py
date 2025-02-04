@@ -77,7 +77,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         for dd in item.select("dd"):
             match dd.find_previous_sibling("dt").get_text():
                 case "Parameters":
-                    table = soup.new_tag("table", attrs={ "class": "table" })
+                    table = soup.new_tag("table", attrs={"class": "table"})
                     tbody = soup.new_tag("tbody")
 
                     create_header_row(soup, table, ["Name", "Description"])
@@ -86,7 +86,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
                         texts = p.get_text().split(" – ")
                         if len(texts) == 2:
                             [name, description] = texts
-                            columns = [ name, description ]
+                            columns = [name, description]
                             create_row(soup, tbody, columns)
 
                     table.append(tbody)
@@ -96,7 +96,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
                     dd.find_previous_sibling("dt").extract()
                     dd.extract()
                 case "Returns":
-                    table = soup.new_tag("table", attrs={ "class": "table" })
+                    table = soup.new_tag("table", attrs={"class": "table"})
                     tbody = soup.new_tag("tbody")
 
                     create_header_row(soup, table, ["Type", "Description"])
@@ -105,7 +105,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
                         texts = p.get_text().split(" – ")
                         if len(texts) == 2:
                             [type, description] = texts
-                            columns = [ type, description ]
+                            columns = [type, description]
                             create_row(soup, tbody, columns)
 
                     table.append(tbody)
@@ -115,7 +115,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
                     dd.find_previous_sibling("dt").extract()
                     dd.extract()
                 case "Raises":
-                    table = soup.new_tag("table", attrs={ "class": "table" })
+                    table = soup.new_tag("table", attrs={"class": "table"})
                     tbody = soup.new_tag("tbody")
 
                     create_header_row(soup, table, ["Type", "Description"])
@@ -124,7 +124,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
                         texts = p.get_text().split(" – ")
                         if len(texts) == 2:
                             [type, description] = texts
-                            columns = [ type, description ]
+                            columns = [type, description]
                             create_row(soup, tbody, columns)
 
                     table.append(tbody)
@@ -138,14 +138,14 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
 
 
 # Add h4 titles to parameters, returns and raises tables
-    # for item in soup.find_all("table"):
-    #     caption = item.find("caption")
-    #     if caption and caption.get_text() in ["Parameters#", "Returns#", "Raises#"]:
-    #         title_h4 = soup.new_tag("h4")
-    #         title_h4.string = caption.get_text().replace("#", "")
-    #         item.insert_before(title_h4)
-    #         item.insert_before("\r\n")
-    #         caption.extract()
+# for item in soup.find_all("table"):
+#     caption = item.find("caption")
+#     if caption and caption.get_text() in ["Parameters#", "Returns#", "Raises#"]:
+#         title_h4 = soup.new_tag("h4")
+#         title_h4.string = caption.get_text().replace("#", "")
+#         item.insert_before(title_h4)
+#         item.insert_before("\r\n")
+#         caption.extract()
 
 
 def add_section_title(soup, items, title):
@@ -193,6 +193,7 @@ def create_properties_row(soup, tbody, prop):
     create_row(soup, tbody, columns)
     prop.extract()
 
+
 def create_row(soup, tbody, columns):
     new_row = soup.new_tag("tr")
 
@@ -204,6 +205,7 @@ def create_row(soup, tbody, columns):
         new_row.append(new_cell)
 
     tbody.append(new_row)
+
 
 def add_table_title(soup, table, title):
     title_h4 = soup.new_tag("h4")
