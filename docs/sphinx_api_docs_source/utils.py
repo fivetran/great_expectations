@@ -85,8 +85,9 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
                 case _:
                     return
 
+
 def create_table(soup, item, dd, title, columns):
-    table = soup.new_tag("table", attrs={ "class": "table" })
+    table = soup.new_tag("table", attrs={"class": "table"})
     tbody = soup.new_tag("tbody")
 
     create_header_row(soup, table, columns)
@@ -102,6 +103,7 @@ def create_table(soup, item, dd, title, columns):
     add_table_title(soup, table, title)
     dd.find_previous_sibling("dt").extract()
     dd.extract()
+
 
 def add_section_title(soup, items, title):
     wrapper_div = soup.new_tag("div")
@@ -148,6 +150,7 @@ def create_properties_row(soup, tbody, prop):
     create_row(soup, tbody, columns)
     prop.extract()
 
+
 def create_row(soup, tbody, columns):
     new_row = soup.new_tag("tr")
 
@@ -159,6 +162,7 @@ def create_row(soup, tbody, columns):
         new_row.append(new_cell)
 
     tbody.append(new_row)
+
 
 def add_table_title(soup, table, title):
     title_h4 = soup.new_tag("h4")
