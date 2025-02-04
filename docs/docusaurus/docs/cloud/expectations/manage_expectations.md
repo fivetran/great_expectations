@@ -148,7 +148,7 @@ Keep the following requirements and limitations in mind when working with AI-rec
 - The analytical AI assesses only a sample of your data.
 - AI-recommended Expectations won’t include [dynamic parameters](#dynamic-parameters) or [Expectation conditions](#expectation-condition). But, you can edit the generated Expectations to make them use these.
 
-:::Warning Avoid sensitive personal data
+:::caution Avoid sensitive personal data
 This feature sends small data samples and/or aggregate statistics to an AI model for analysis. Avoid using it with sensitve personal data. 
 :::
 
