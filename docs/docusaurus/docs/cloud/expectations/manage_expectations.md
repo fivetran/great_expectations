@@ -138,6 +138,27 @@ To clear the Expectation condition, click the clear button located on the right-
 When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes in that Data Asset.
 :::
 
+## Generate AI-recommended Expectations (BETA)
+
+To accelerate test coverage, you can generate AI-recommended Expectations for a Data Asset. These will be personalized based on an analysis of a sample of your data.
+
+Keep the following requirements and limitations in mind when working with AI-recommended Expectations:
+- Only [Snowflake Data Sources](/cloud/connect/connect_snowflake.md) are supported at this time.
+- Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- The analytical AI assesses only a sample of your data.
+- AI-recommended Expectations won’t include [dynamic parameters](#dynamic-parameters) or [Expectation conditions](#expectation-condition). But, you can edit the generated Expectations to make them use these.
+
+:::Warning Avoid sensitive personal data
+This feature sends small data samples and/or aggregate statistics to an AI model for analysis. Avoid using it with sensitve personal data. 
+:::
+
+To add AI-recommended Expectations:
+1. In GX Cloud, click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. Click **Generate Expectations**.
+4. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
+5. Optional. [Edit](#edit-an-expectation) or [delete](#delete-an-expectation) AI-generated Expectations based on the insights you get from running a Validation and your data quality needs.
+
 
 ## Optional. Define a Batch
 
