@@ -265,7 +265,7 @@ module.exports = {
         {
           type: 'link',
           label: 'Generate Expectations with ExpectAI (BETA)',
-          href: '/docs/cloud/expectations/manage_expectations#add-an-expectation',
+          href: '/docs/cloud/expectations/manage_expectations#generate-expectations-with-expectai-beta',
         },
         {
           type: 'link',
