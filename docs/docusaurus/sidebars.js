@@ -264,6 +264,11 @@ module.exports = {
         },
         {
           type: 'link',
+          label: 'Generate Expectations with ExpectAI (BETA)',
+          href: '/docs/cloud/expectations/manage_expectations#add-an-expectation',
+        },
+        {
+          type: 'link',
           label: 'Optional. Define a Batch',
           href: '/docs/cloud/expectations/manage_expectations#optional-define-a-batch',
         },
