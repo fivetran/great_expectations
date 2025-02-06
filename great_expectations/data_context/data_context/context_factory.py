@@ -206,6 +206,7 @@ class ProjectManager:
                 cloud_organization_id=cloud_organization_id,
                 user_agent_str=user_agent_str,
                 cloud_mode=cloud_mode,
+                mode=mode,
             ),
         }
         try:
@@ -263,6 +264,7 @@ class ProjectManager:
         cloud_organization_id: str | None = None,
         user_agent_str: str | None = None,
         cloud_mode: bool | None = None,
+        mode: ContextModes | None = None,
     ) -> AbstractDataContext:
         """Infer which type of DataContext a user wants based on available parameters."""
         # First, check for GX Cloud conditions
@@ -276,6 +278,7 @@ class ProjectManager:
             cloud_access_token=cloud_access_token,
             cloud_organization_id=cloud_organization_id,
             user_agent_str=user_agent_str,
+            mode=mode,
         )
 
         if cloud_context:
@@ -326,6 +329,7 @@ class ProjectManager:
         cloud_organization_id: str | None = None,
         user_agent_str: str | None = None,
         cloud_mode: bool | None = None,
+        mode: ContextModes | None = None,
     ) -> CloudDataContext | None:
         if cloud_mode is False:
             return None  # user has specifically disabled cloud mode, so we don't check for env vars
@@ -349,13 +353,13 @@ class ProjectManager:
                 cloud_organization_id=cloud_organization_id,
                 user_agent_str=user_agent_str,
             )
+        elif mode != "cloud":  # cloud mode not specified, and env vars not available
+            return None
         else:
             raise GXCloudConfigurationError(  # noqa: TRY003 # one time exception
-                "Unable to create a CloudDataContext due to one or more missing environment variables: "
-                "GX_CLOUD_ORGANIZATION_ID, GX_CLOUD_ACCESS_TOKEN"
+                "Unable to create a CloudDataContext due to one or more missing environment "
+                "variables: GX_CLOUD_ORGANIZATION_ID, GX_CLOUD_ACCESS_TOKEN"
             )
-
-        return None
 
     def _get_file_context(
         self,
