@@ -194,6 +194,7 @@ class ProjectManager:
                 cloud_access_token=cloud_access_token,
                 cloud_organization_id=cloud_organization_id,
                 user_agent_str=user_agent_str,
+                cloud_mode=True,
             ),
             None: dict(
                 project_config=project_config,
@@ -245,7 +246,6 @@ class ProjectManager:
         expected_type = expected_ctx_types[mode]
         if not isinstance(context, expected_type):
             # example I want an ephemeral context but the presence of a GX_CLOUD env var gives me a cloud context  # noqa: E501 # FIXME CoP
-            # this kind of thing should not be possible but there may be some edge cases
             raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                 f"Provided mode {mode} returned context of type {type(context).__name__} instead of {expected_type.__name__}; please check your input arguments."  # noqa: E501 # FIXME CoP
             )
@@ -327,6 +327,9 @@ class ProjectManager:
         user_agent_str: str | None = None,
         cloud_mode: bool | None = None,
     ) -> CloudDataContext | None:
+        if cloud_mode is False:
+            return None  # user has specifically disabled cloud mode, so we don't check for env vars
+
         from great_expectations.data_context.data_context import CloudDataContext
 
         config_available = CloudDataContext.is_cloud_config_available(
@@ -335,8 +338,7 @@ class ProjectManager:
             cloud_organization_id=cloud_organization_id,
         )
 
-        # If config available and not explicitly disabled
-        if config_available and cloud_mode is not False:
+        if config_available:
             return CloudDataContext(
                 project_config=project_config,
                 runtime_environment=runtime_environment,
@@ -347,10 +349,10 @@ class ProjectManager:
                 cloud_organization_id=cloud_organization_id,
                 user_agent_str=user_agent_str,
             )
-
-        if cloud_mode and not config_available:
-            raise GXCloudConfigurationError(  # noqa: TRY003 # FIXME CoP
-                "GX Cloud Mode enabled, but missing env vars: GX_CLOUD_ORGANIZATION_ID, GX_CLOUD_ACCESS_TOKEN"  # noqa: E501 # FIXME CoP
+        else:
+            raise GXCloudConfigurationError(  # noqa: TRY003 # one time exception
+                "Unable to create a CloudDataContext due to one or more missing environment variables: " 
+                "GX_CLOUD_ORGANIZATION_ID, GX_CLOUD_ACCESS_TOKEN"
             )
 
         return None
