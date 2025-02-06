@@ -351,7 +351,7 @@ class ProjectManager:
             )
         else:
             raise GXCloudConfigurationError(  # noqa: TRY003 # one time exception
-                "Unable to create a CloudDataContext due to one or more missing environment variables: " 
+                "Unable to create a CloudDataContext due to one or more missing environment variables: "
                 "GX_CLOUD_ORGANIZATION_ID, GX_CLOUD_ACCESS_TOKEN"
             )
 
