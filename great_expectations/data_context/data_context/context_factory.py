@@ -353,7 +353,9 @@ class ProjectManager:
                 cloud_organization_id=cloud_organization_id,
                 user_agent_str=user_agent_str,
             )
-        elif mode != "cloud":  # cloud mode not specified, and env vars not available
+        elif (
+            mode != "cloud" and not cloud_mode
+        ):  # cloud mode not specified, and env vars not available
             return None
         else:
             raise GXCloudConfigurationError(  # noqa: TRY003 # one time exception
