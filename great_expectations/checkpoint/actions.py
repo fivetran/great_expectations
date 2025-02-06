@@ -314,7 +314,7 @@ class SlackNotificationAction(DataDocsAction):
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
         notify_with: List of DataDocs site names to display  in Slack messages. Defaults to all.
         show_failed_expectations: Shows a list of failed expectation types.
-        
+
     Examples:
         renderer:
             ```python
@@ -752,7 +752,7 @@ class EmailAction(ValidationAction):
         use_ssl: Optional. Use of SSL to send the email (using either TLS or SSL is highly recommended).
         notify_on: "Specifies validation status that triggers notification. One of "all", "failure", "success".
         notify_with: Optional list of DataDocs site names to display  in Slack messages. Defaults to all.
-        
+
     Examples:
         renderer:
         ```python
