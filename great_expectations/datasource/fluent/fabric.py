@@ -327,7 +327,7 @@ class FabricPowerBIDatasource(Datasource):
             batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches derived from it.
 
         Returns:
-            The asset that is added to the datasource.
+            PowerBITable – The asset that is added to the datasource.
         """  # noqa: E501 # FIXME CoP
         asset = PowerBIDax(
             name=name,

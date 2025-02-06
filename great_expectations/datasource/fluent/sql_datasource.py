@@ -1298,7 +1298,7 @@ class SQLDatasource(Datasource):
             batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches derived from it.
 
         Returns:
-            The table asset that is added to the datasource.
+            TableAsset – The table asset that is added to the datasource.
             The type of this object will match the necessary type for this datasource.
             eg, it could be a TableAsset or a SqliteTableAsset.
         """  # noqa: E501 # FIXME CoP
@@ -1327,7 +1327,7 @@ class SQLDatasource(Datasource):
             batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches derived from it.
 
         Returns:
-            The query asset that is added to the datasource.
+            QueryAsset – The query asset that is added to the datasource.
             The type of this object will match the necessary type for this datasource.
             eg, it could be a QueryAsset or a SqliteQueryAsset.
         """  # noqa: E501 # FIXME CoP

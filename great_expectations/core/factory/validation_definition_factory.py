@@ -38,7 +38,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             validation: ValidationDefinition to add
 
         Raises:
-            DataContextError if ValidationDefinition already exists
+            DataContextError: if ValidationDefinition already exists
         """
         key = self._store.get_key(name=validation.name, id=None)
         if self._store.has_key(key=key):
@@ -64,7 +64,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             name: The name of the ValidationDefinition to delete
 
         Raises:
-            DataContextError if ValidationDefinition doesn't exist
+            DataContextError: if ValidationDefinition doesn't exist
         """
         try:
             validation_definition = self.get(name=name)
@@ -91,7 +91,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             name: Name of ValidationDefinition to get
 
         Raises:
-            DataContextError when ValidationDefinition is not found.
+            DataContextError: when ValidationDefinition is not found.
         """
         key = self._store.get_key(name=name, id=None)
         if not self._store.has_key(key=key):
