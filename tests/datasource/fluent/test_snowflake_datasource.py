@@ -895,6 +895,7 @@ def test_create_engine_is_called_with_expected_kwargs(
     create_engine_spy.assert_called_once_with(**expected_called_with)
 
 
+@pytest.mark.snowflake
 @pytest.mark.parametrize(
     ("password", "encoded_password"),
     [
