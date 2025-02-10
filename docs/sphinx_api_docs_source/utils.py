@@ -75,6 +75,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
 
     display_methods_details_as_tables(soup)
 
+
 def display_methods_details_as_tables(soup):
     for item in soup.select(".field-list"):
         for dd in item.select("dd"):
@@ -85,6 +86,7 @@ def display_methods_details_as_tables(soup):
                 create_table(soup, item, dd, "Returns", ["Type", "Description"])
             if previous_sibling_text == "Raises":
                 create_table(soup, item, dd, "Raises", ["Type", "Description"])
+
 
 def create_table(soup, item, dd, title, columns):
     table = soup.new_tag("table", attrs={"class": "table"})
