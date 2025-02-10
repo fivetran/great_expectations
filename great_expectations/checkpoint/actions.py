@@ -316,7 +316,8 @@ class SlackNotificationAction(DataDocsAction):
         show_failed_expectations: Shows a list of failed expectation types.
 
     Examples:
-        renderer:
+        **renderer:**
+
             ```python
             {
                "module_name": "great_expectations.render.renderer.slack_renderer",
@@ -754,7 +755,8 @@ class EmailAction(ValidationAction):
         notify_with: Optional list of DataDocs site names to display  in Slack messages. Defaults to all.
 
     Examples:
-        renderer:
+        **renderer:**
+
         ```python
         {
            "module_name": "great_expectations.render.renderer.email_renderer",
