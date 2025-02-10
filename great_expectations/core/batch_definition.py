@@ -106,7 +106,7 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
             list.
 
         Returns:
-            List – A list of batch identifiers.
+            List[Dict] – A list of batch identifiers.
         """
         batch_request = self.build_batch_request(batch_parameters=batch_parameters)
         return self.data_asset.get_batch_identifiers_list(batch_request)

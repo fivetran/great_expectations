@@ -114,7 +114,7 @@ class ActionContext:
             class_: The class to filter by.
 
         Returns:
-            List – A list of action results.
+            list[dict] – A list of action results.
         """
         return [action_result for action, action_result in self._data if isinstance(action, class_)]
 
@@ -224,7 +224,7 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
             action_context: The context in which the action is run.
 
         Returns:
-            Dictionary – A dictionary containing the result of the action.
+            dict – A dictionary containing the result of the action.
         """
         raise NotImplementedError
 

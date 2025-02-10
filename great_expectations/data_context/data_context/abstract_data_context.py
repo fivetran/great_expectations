@@ -2262,7 +2262,7 @@ class AbstractDataContext(ConfigPeer, ABC):
             build_index: a flag if False, skips building the index page
 
         Returns:
-            Dictionary – A dictionary with the names of the updated data documentation sites as keys and the location info
+            dict – A dictionary with the names of the updated data documentation sites as keys and the location info
             of their index.html files as values
 
         Raises:
