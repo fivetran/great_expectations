@@ -5,7 +5,7 @@ With GX Cloud, you can automatically generate data quality rules to more quickly
 - You can generate basic rules as part of adding a new Data Asset.
 - You can generate personalized AI-recommened rules for an existing Data Asset.
 
-## Monitor common issues
+## Monitoring common issues
 
 When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-a-new-data-source), GX Cloud by default automatically generates Expectations to test the following common data quality issues.
 - [Schema](#schema)
@@ -22,7 +22,7 @@ To detect schema changes, we automatically generate a rule to **expect table col
 
 To detect non-increasing volume, we automatically generate a rule to **expect table row count to be between** with dynamic parameters that test that the current validation run has more rows than the previous run. If the row count shrinks or stays the same between runs, this Expectation will fail.
 
-## Personalize recommendations with ExpectAI (BETA)
+## Personalizing recommendations with ExpectAI (BETA)
 
 [ExpectAI (BETA)](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) performs deep analysis on a given Data Asset to set Expectations based on patterns in the data. These AI-recommended data quality rules are sometimes based on anomalies detected in the data, so they may fail on the first validation to bring your attention to potential problems.  
 
