@@ -24,7 +24,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import num_to_str, substitute_none_for_missing
-from great_expectations.validator.metric_configuration import (  # noqa: TCH001 # FIXME CoP
+from great_expectations.validator.metric_configuration import (  # FIXME CoP
     MetricConfiguration,
 )
 
@@ -296,23 +296,27 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         kwargs = configuration.kwargs if configuration else {}
         other_table_name = kwargs.get("other_table_name")
 
-        # create copy of table.row_count metric and modify "table" metric domain kwarg to be other table name  # noqa: E501 # FIXME CoP
-        table_row_count_metric_config_other: Optional[MetricConfiguration] = deepcopy(
+        # At this time, this is the only Expectation that
+        # computes the same metric over more than one domain
+        # ValidationDependencies does not allow duplicate metric names
+        # and checks the registry to ensure the metric name is registered before this step
+        # As a work-around, after the regsitry check
+        # we create a second table.row_count metric for the other table manually
+        table_row_count_metric_config_self: Optional[MetricConfiguration] = (
             validation_dependencies.get_metric_configuration(metric_name="table.row_count")
         )
-        assert (
-            table_row_count_metric_config_other
-        ), "table_row_count_metric_config_other should not be None"
-
-        table_row_count_metric_config_other.metric_domain_kwargs["table"] = other_table_name
-        # rename original "table.row_count" metric to "table.row_count.self"
-        table_row_count_metric = validation_dependencies.get_metric_configuration(
-            metric_name="table.row_count"
+        assert table_row_count_metric_config_self, "table_row_count_metric should not be None"
+        copy_table_row_count_metric_config_self = deepcopy(table_row_count_metric_config_self)
+        copy_table_row_count_metric_config_self.metric_domain_kwargs["table"] = other_table_name
+        table_row_count_metric_config_other = MetricConfiguration(
+            metric_name="table.row_count",
+            metric_domain_kwargs=copy_table_row_count_metric_config_self.metric_domain_kwargs,
+            metric_value_kwargs=copy_table_row_count_metric_config_self.metric_value_kwargs,
         )
-        assert table_row_count_metric, "table_row_count_metric should not be None"
+        # rename original "table.row_count" metric to "table.row_count.self"
         validation_dependencies.set_metric_configuration(
             metric_name="table.row_count.self",
-            metric_configuration=table_row_count_metric,
+            metric_configuration=table_row_count_metric_config_self,
         )
         validation_dependencies.remove_metric_configuration(metric_name="table.row_count")
         # add a new metric dependency named "table.row_count.other" with modified metric config
