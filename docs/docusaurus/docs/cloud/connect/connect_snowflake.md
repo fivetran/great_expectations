@@ -107,10 +107,17 @@ Then, you can use GX Cloud to [add a Data Asset](/cloud/data_assets/manage_data_
 
 6. Select one or more tables to import as Data Assets.
 
-7. Decide if you want to **Generate Expectations that detect column changes in selected Data Assets**.
+7. Click **Add x Asset(s)**. 
 
-8. Click **Add x Asset(s)**. 
+8. Decide which common data quality issues you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema** and **Volume** issues. You can de-select recommendations you’d like to opt out of.
 
-9. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+9. Select **Start monitoring** or **Finish**. 
+
+
+## Next steps
+
+- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+- [Run a Validation](/cloud/validations/manage_validations.md).
+
 
 
