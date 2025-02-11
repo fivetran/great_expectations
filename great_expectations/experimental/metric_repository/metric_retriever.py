@@ -293,7 +293,7 @@ class MetricRetriever(abc.ABC):
     def _get_table_column_types(self, batch_request: BatchRequest) -> Metric:
         metric_name = MetricTypes.TABLE_COLUMN_TYPES
 
-        metric_lookup_key: _MetricKey = (metric_name, tuple(), "include_nested=True")
+        metric_lookup_key: _MetricKey = (metric_name, tuple(), tuple())
         table_metric_configs = self._generate_table_metric_configurations(
             table_metric_names=[metric_name]
         )
