@@ -111,7 +111,7 @@ def test_unexpected_rows_expectation_validate(
 
 @pytest.mark.unit
 def test_unexpected_rows_expectation_correctly_interprets_query(
-        sqlite_batch: Batch,
+    sqlite_batch: Batch,
 ):
     query = "SELECT * FROM {batch}\r\n\t  ;\v\r ;"
 
