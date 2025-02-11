@@ -255,13 +255,13 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
             )
 
         if isinstance(min_value, dict) and "$PARAMETER" not in min_value:
-            raise ValueError(
-                "min_value must contain key $PARAMETER specifying a parameter name in the runtime dictionary"
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                "min_value dict must contain key $PARAMETER"
             )
 
         if isinstance(max_value, dict) and "$PARAMETER" not in max_value:
-            raise ValueError(
-                "max_value must contain key $PARAMETER specifying a parameter name in the runtime dictionary"
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                "max_value dict must contain key $PARAMETER"
             )
 
         return values
