@@ -150,7 +150,7 @@ module.exports = {
     {
       type: 'category',
       label: 'GX Cloud overview',
-      link: { type: 'doc', id: 'cloud/overview/gx_cloud_lp' },
+      link: { type: 'doc', id: 'cloud/gx_cloud_lp' },
       items: [
         'cloud/overview/gx_cloud_overview',
         'cloud/overview/automating_rules',
