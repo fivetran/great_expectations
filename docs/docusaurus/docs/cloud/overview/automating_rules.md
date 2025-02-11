@@ -1,8 +1,6 @@
 ---
 title: 'Automating data quality rules'
 description: Generate data quality rules to more quickly achieve test coverage for your data.
-toc_min_heading_level: 2
-toc_max_heading_level: 2
 ---
 
 With GX Cloud, you can automatically generate data quality rules to more quickly achieve test coverage for your data. This page provides an overview of options for automating data quality rules.
