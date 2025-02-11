@@ -299,15 +299,17 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         # At this time, this is the only Expectation that
         # computes the same metric over more than one domain
         # ValidationDependencies does not allow duplicate metric names
-        # and checks the registry to ensure the metric name is registered before this step
+        # and the registry is checked to ensure the metric name is registered
         # As a work-around, after the regsitry check
         # we create a second table.row_count metric for the other table manually
+        # and rename the metrics defined in ValidationDependencies
         table_row_count_metric_config_self: Optional[MetricConfiguration] = (
             validation_dependencies.get_metric_configuration(metric_name="table.row_count")
         )
         assert table_row_count_metric_config_self, "table_row_count_metric should not be None"
         copy_table_row_count_metric_config_self = deepcopy(table_row_count_metric_config_self)
         copy_table_row_count_metric_config_self.metric_domain_kwargs["table"] = other_table_name
+        # instantiating a new MetricConfiguration gives us a new id
         table_row_count_metric_config_other = MetricConfiguration(
             metric_name="table.row_count",
             metric_domain_kwargs=copy_table_row_count_metric_config_self.metric_domain_kwargs,
