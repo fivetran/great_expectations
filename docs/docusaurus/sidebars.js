@@ -149,7 +149,7 @@ module.exports = {
   gx_cloud: [
     {
       type: 'category',
-      label: 'GX Cloud overview',
+      label: 'Introduction',
       link: { type: 'doc', id: 'cloud/gx_cloud_lp' },
       items: [
         'cloud/overview/gx_cloud_overview',

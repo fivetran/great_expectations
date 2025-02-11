@@ -54,15 +54,15 @@ import Tabs from '@theme/Tabs';
    
    If you created a separate PostgreSQL user for your GX Cloud connection as recommended above, use those credentials in the connection string.
 
-4. Click **Connect**. 
+4. Click **Connect**.
 
 5. Select one or more tables to import as Data Assets.
 
-6. Click **Add x Asset(s)**. 
+6. Click **Add x Asset(s)**.
 
 7. Decide which common data quality issues you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema** and **Volume** issues. You can de-select recommendations you’d like to opt out of.
 
-8. Select **Start monitoring** or **Finish**. 
+8. Click **Start monitoring** or **Finish**.
 
 
 ## Next steps

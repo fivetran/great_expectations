@@ -22,11 +22,11 @@ To add a Data Asset from an existing Data Source, complete the following steps:
 
 3. Select one or more tables to import as Data Assets.
 
-4. Click **Add x Asset(s)**. 
+4. Click **Add x Asset(s)**.
 
 5. Decide which common data quality issues you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema** and **Volume** issues. You can de-select recommendations you’d like to opt out of.
 
-6. Select **Start monitoring** or **Finish**. 
+6. Click **Start monitoring** or **Finish**.
 
 Then you can [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) for your new Data Asset.
 

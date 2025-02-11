@@ -103,15 +103,15 @@ Then, you can use GX Cloud to [add a Data Asset](/cloud/data_assets/manage_data_
       snowflake://<USER>:<PASSWORD>@<ACCOUNT_IDENTIFIER>/<DATABASE>/<SCHEMA>?warehouse=<WAREHOUSE>&role=<ROLE>
       ```
    
-5. Click **Connect**. 
+5. Click **Connect**.
 
 6. Select one or more tables to import as Data Assets.
 
-7. Click **Add x Asset(s)**. 
+7. Click **Add x Asset(s)**.
 
 8. Decide which common data quality issues you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema** and **Volume** issues. You can de-select recommendations you’d like to opt out of.
 
-9. Select **Start monitoring** or **Finish**. 
+9. Click **Start monitoring** or **Finish**.
 
 
 ## Next steps
