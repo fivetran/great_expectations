@@ -150,23 +150,10 @@ module.exports = {
     {
       type: 'category',
       label: 'GX Cloud overview',
-      link: { type: 'doc', id: 'cloud/overview/gx_cloud_overview' },
+      link: { type: 'doc', id: 'cloud/overview/gx_cloud_lp' },
       items: [
-        {
-          type: 'link',
-          label: 'GX Cloud concepts',
-          href: '/docs/cloud/overview/gx_cloud_overview#gx-cloud-concepts',
-        },
-        {
-          type: 'link',
-          label: 'GX Cloud workflow',
-          href: '/docs/cloud/overview/gx_cloud_overview#gx-cloud-workflow',
-        },
-        {
-          type: 'link',
-          label: 'GX Cloud architecture',
-          href: '/docs/cloud/overview/gx_cloud_overview#gx-cloud-architecture',
-        },
+        'cloud/overview/gx_cloud_overview',
+        'cloud/overview/automating_rules',
       ]
     },
     {
