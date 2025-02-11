@@ -24,7 +24,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import num_to_str, substitute_none_for_missing
-from great_expectations.validator.metric_configuration import (  # FIXME CoP
+from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
 )
 
