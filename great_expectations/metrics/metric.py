@@ -42,7 +42,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
     Examples:
         A metric for column nullity values computed on each row:
 
-        >>> class Null(Metric, ColumnMap):
+        >>> class Null(Metric, ColumnValues):
         ...     ...
 
         A metric for a single table row count value:
