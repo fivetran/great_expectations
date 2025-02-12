@@ -299,7 +299,7 @@ table.borderless tr:nth-child(2n) {
   line-height: var(--p-line-height)
 }
 
-.theme-doc-toc-mobile {
+.theme-doc-toc-mobile[class^="tocMobile"]{
   display: block;
 }
 
