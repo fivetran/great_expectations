@@ -40,7 +40,7 @@ Ensures that the number of rows in a dataset falls within a specified range.
 ```
 
 :::tip Automate this rule
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate this Expectation to detect non-increasing volume over time.
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate an instance of this Expectation that detects non-increasing volume over time.
 :::
 
 <small>View `ExpectTableRowCountToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between).</small>

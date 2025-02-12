@@ -22,7 +22,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
 
 <LinkCardGrid>
   <LinkCard topIcon label="GX Cloud overview" description="Learn more about GX Cloud features and functionality." to="/cloud/overview/gx_cloud_overview" icon="/img/small_gx_logo.png" />
-  <LinkCard topIcon label="Automating data quality rules" description="Explore options for more quickly achieving test coverage" to="/cloud/overview/automating_rules" icon="/img/small_gx_logo.png" />
+  <LinkCard topIcon label="Automating data quality rules" description="Explore options for more quickly achieving test coverage." to="/cloud/overview/automating_rules" icon="/img/small_gx_logo.png" />
 </LinkCardGrid>
 
 ### Get started
