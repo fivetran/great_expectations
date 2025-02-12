@@ -276,8 +276,8 @@ class ValidationGraph:
                 # Access "ExecutionEngine.resolve_metrics()" method, to resolve missing "MetricConfiguration" objects.  # noqa: E501 # FIXME CoP
                 metrics.update(
                     self._execution_engine.resolve_metrics(
-                        metrics_to_resolve=computable_metrics,  # type: ignore[arg-type]  # Metric typing needs further refinement.
-                        metrics=metrics,  # type: ignore[arg-type]  # Metric typing needs further refinement.
+                        metrics_to_resolve=computable_metrics,
+                        metrics=metrics,
                         runtime_configuration=runtime_configuration,
                     )
                 )
