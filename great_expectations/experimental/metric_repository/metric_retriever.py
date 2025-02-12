@@ -83,8 +83,8 @@ class MetricRetriever(abc.ABC):
         if metric_lookup_key is None:
             metric_lookup_key = MetricConfigurationID(
                 metric_name,
-                tuple(),
-                tuple(),
+                (),
+                (),
             )
         value = None
         metric_exception = None
@@ -237,7 +237,7 @@ class MetricRetriever(abc.ABC):
 
         for metric_name in column_metric_names:
             for column in column_list:
-                metric_lookup_key = MetricConfigurationID(metric_name, f"column={column}", tuple())
+                metric_lookup_key = MetricConfigurationID(metric_name, f"column={column}", ())
                 value, exception = self._get_metric_from_computed_metrics(
                     metric_name=metric_name,
                     metric_lookup_key=metric_lookup_key,
@@ -294,7 +294,7 @@ class MetricRetriever(abc.ABC):
     def _get_table_column_types(self, batch_request: BatchRequest) -> Metric:
         metric_name = MetricTypes.TABLE_COLUMN_TYPES
 
-        metric_lookup_key = MetricConfigurationID(metric_name, tuple(), tuple())
+        metric_lookup_key = MetricConfigurationID(metric_name, (), ())
         table_metric_configs = self._generate_table_metric_configurations(
             table_metric_names=[metric_name]
         )
