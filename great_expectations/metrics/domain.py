@@ -48,7 +48,7 @@ class ColumnValues(Values):
                                        See: https://docs.greatexpectations.io/docs/core/customize_expectations/expectation_conditions/#create-an-expectation-condition
 
     Examples:
-        A metric with a ColumnMap domain for column nullity values computed on each row:
+        A metric with a ColumnValues domain for column nullity values computed on each row:
 
         >>> class Null(Metric, ColumnValues):
         ...     ...
