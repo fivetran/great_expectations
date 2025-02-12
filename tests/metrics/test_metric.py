@@ -1,5 +1,4 @@
 from unittest import mock
-from uuid import uuid4
 
 import pytest
 
@@ -13,7 +12,7 @@ from great_expectations.validator.metric_configuration import (
     MetricConfigurationID,
 )
 
-BATCH_ID = str(uuid4())
+BATCH_ID = "my_data_source-my_data_asset-year_2025"
 TABLE = "my_table"
 COLUMN = "my_column"
 
@@ -133,13 +132,14 @@ class TestMetricToConfig:
             },
         )
 
-        metric = self.Above(
-            batch_id=BATCH_ID,
-            table=TABLE,
-            column=COLUMN,
-            min_value=42,
-        )
-        actual_config = metric.to_config()
+        model_fields = {
+            "name": FULLY_QUALIFIED_METRIC_NAME,
+            "batch_id": BATCH_ID,
+            "table": TABLE,
+            "column": COLUMN,
+            "min_value": 42,
+        }
+        actual_config = self.Above._to_config(model_fields)
 
         assert actual_config.metric_name == expected_config.metric_name
         assert actual_config.metric_domain_kwargs == expected_config.metric_domain_kwargs

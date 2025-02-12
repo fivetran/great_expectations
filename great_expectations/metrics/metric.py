@@ -1,8 +1,8 @@
-from typing import Final
+from typing import ClassVar, Final
 
 from typing_extensions import dataclass_transform
 
-from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass
+from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass, root_validator
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
 from great_expectations.metrics.registry import DOMAIN_NAMES, METRIC_REGISTRY
 from great_expectations.validator.metric_configuration import (
@@ -78,21 +78,36 @@ class Metric(BaseModel, metaclass=MetaMetric):
         MetricConfiguration: Configuration class for metric computation
     """
 
+    name: ClassVar[str]
+    config: MetricConfiguration
+
+    class Config:
+        arbitrary_types_allowed = True
+
     def __new__(cls, *args, **kwargs):
         if cls is Metric:
             raise AbstractClassInstantiationError(cls.__name__)
         return super().__new__(cls)
 
-    @property
-    def id(self) -> MetricConfigurationID:
-        return self.to_config().id
+    @root_validator(pre=True)
+    @classmethod
+    def _set_computed_fields(cls, values) -> dict:
+        if "name" not in values or not values["name"]:
+            values["name"] = cls._get_metric_name()
+        if "config" not in values or values["config"] is None:
+            values["config"] = cls._to_config(values)
+        return values
 
     @property
-    def name(self) -> str:
+    def id(self) -> MetricConfigurationID:
+        return self.config.id
+
+    @classmethod
+    def _get_metric_name(cls) -> str:
         """The name of the metric as it exists in the registry."""
-        for base_type in self.__class__.__bases__:
+        for base_type in cls.__bases__:
             if issubclass(base_type, Domain):
-                metric_class_name = str(self.__class__.__name__)
+                metric_class_name = str(cls.__name__)
                 try:
                     domain_name = DOMAIN_NAMES[base_type]
                 except KeyError:
@@ -103,19 +118,33 @@ class Metric(BaseModel, metaclass=MetaMetric):
 
         # this should never be reached
         # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
-        raise MixinTypeError(self.__class__.__name__, "Domain")
+        raise MixinTypeError(cls.__name__, "Domain")
 
-    def to_config(self) -> MetricConfiguration:
+    @classmethod
+    def _to_config(cls, model_values: dict) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
-        for base_type in self.__class__.__bases__:
+        metric_domain_kwargs = {}
+        metric_value_kwargs = {}
+        for base_type in cls.__bases__:
             if issubclass(base_type, Domain):
-                domain_keys = set(base_type.__fields__.keys())
-                return MetricConfiguration(
-                    metric_name=self.name,
-                    metric_domain_kwargs=self.dict(include=domain_keys),
-                    metric_value_kwargs=self.dict(exclude=domain_keys),
-                )
+                domain_fields = base_type.__fields__
+                metric_fields = Metric.__fields__
+                value_fields = {
+                    field_name: field_info
+                    for field_name, field_info in cls.__fields__.items()
+                    if field_name not in domain_fields and field_name not in metric_fields
+                }
+                for field_name, field_info in domain_fields.items():
+                    metric_domain_kwargs[field_name] = model_values.get(
+                        field_name, field_info.default
+                    )
+                for field_name, field_info in value_fields.items():
+                    metric_value_kwargs[field_name] = model_values.get(
+                        field_name, field_info.default
+                    )
 
-        # this should never be reached
-        # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
-        raise MixinTypeError(self.__class__.__name__, "Domain")
+        return MetricConfiguration(
+            metric_name=model_values["name"],
+            metric_domain_kwargs=metric_domain_kwargs,
+            metric_value_kwargs=metric_value_kwargs,
+        )

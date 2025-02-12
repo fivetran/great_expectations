@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 import pytest
 
 from great_expectations.compatibility.pydantic import ValidationError, errors
@@ -10,7 +8,7 @@ from great_expectations.metrics.domain import (
     Map,
 )
 
-BATCH_ID = str(uuid4())
+BATCH_ID = "my_data_source-my_data_asset-year_2025"
 TABLE = "my_table"
 COLUMN = "my_column"
 
