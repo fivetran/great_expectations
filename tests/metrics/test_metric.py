@@ -8,7 +8,10 @@ from great_expectations.core.types import Comparable
 from great_expectations.metrics import Metric
 from great_expectations.metrics.domain import AbstractClassInstantiationError, ColumnMap, Domain
 from great_expectations.metrics.metric import MixinTypeError, UnregisteredMetricTypeError
-from great_expectations.validator.metric_configuration import MetricConfiguration
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 
 BATCH_ID = str(uuid4())
 TABLE = "my_table"
@@ -141,3 +144,4 @@ class TestMetricToConfig:
         assert actual_config.metric_name == expected_config.metric_name
         assert actual_config.metric_domain_kwargs == expected_config.metric_domain_kwargs
         assert actual_config.metric_value_kwargs == expected_config.metric_value_kwargs
+        assert isinstance(actual_config.id, MetricConfigurationID)

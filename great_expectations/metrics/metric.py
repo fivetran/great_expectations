@@ -5,7 +5,10 @@ from typing_extensions import dataclass_transform
 from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
 from great_expectations.metrics.registry import DOMAIN_NAMES, METRIC_REGISTRY
-from great_expectations.validator.metric_configuration import MetricConfiguration
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 
 ALLOWABLE_METRIC_MIXINS: Final[int] = 1
 
@@ -81,7 +84,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
         return super().__new__(cls)
 
     @property
-    def id(self) -> tuple[str, str, str]:
+    def id(self) -> MetricConfigurationID:
         return self.to_config().id
 
     @property
