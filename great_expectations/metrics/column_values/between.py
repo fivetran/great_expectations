@@ -1,8 +1,8 @@
 from typing import Optional
 
 from great_expectations.core.types import Comparable
-from great_expectations.metrics import Metric
 from great_expectations.metrics.domain import ColumnValues
+from great_expectations.metrics.metric import Metric
 
 
 class ColumnValuesBetween(Metric, ColumnValues):
