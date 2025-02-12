@@ -5,7 +5,7 @@ from typing import NamedTuple, Optional, Union
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.domain import Domain
-from great_expectations.core.id_dict import IDDict
+from great_expectations.core.id_dict import IDDict, IDDictID
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.metric_repository.metrics import MetricTypes
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
@@ -13,8 +13,8 @@ from great_expectations.util import convert_to_json_serializable  # noqa: TID251
 
 class MetricConfigurationID(NamedTuple):
     metric_name: str
-    metric_domain_kwargs_id: str
-    metric_value_kwargs_id: str
+    metric_domain_kwargs_id: IDDictID
+    metric_value_kwargs_id: IDDictID
 
 
 class MetricConfiguration:
@@ -82,11 +82,11 @@ class MetricConfiguration:
         return self._metric_value_kwargs
 
     @property
-    def metric_domain_kwargs_id(self) -> str:
+    def metric_domain_kwargs_id(self) -> IDDictID:
         return self.id.metric_domain_kwargs_id
 
     @property
-    def metric_value_kwargs_id(self) -> str:
+    def metric_value_kwargs_id(self) -> IDDictID:
         return self.id.metric_value_kwargs_id
 
     @property

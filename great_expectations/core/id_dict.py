@@ -4,16 +4,21 @@ import hashlib
 import json
 from typing import Any, Set, TypeVar, Union
 
+from typing_extensions import Never
+
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 T = TypeVar("T")
 
 
+IDDictID = Union[str, tuple[Never, ...]]
+
+
 class IDDict(dict):
     _id_ignore_keys: Set[str] = set()
 
-    def to_id(self, id_keys=None, id_ignore_keys=None):
+    def to_id(self, id_keys=None, id_ignore_keys=None) -> IDDictID:
         if id_keys is None:
             id_keys = self.keys()
         if id_ignore_keys is None:
