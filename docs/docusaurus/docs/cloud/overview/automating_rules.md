@@ -10,7 +10,7 @@ With GX Cloud, you can automatically generate data quality rules to more quickly
 
 ## Monitoring common issues
 
-When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-a-new-data-source), GX Cloud by default automatically generates Expectations to test the following common data quality issues.
+When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cloud by default automatically generates Expectations to test the following common data quality issues.
 - [Schema](#schema)
 - [Volume](#volume)
 - Completeness (coming soon)
