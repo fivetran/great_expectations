@@ -300,6 +300,7 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         # computes the same metric over more than one domain
         # ValidationDependencies does not allow duplicate metric names
         # and the registry is checked to ensure the metric name is registered
+        # as a side effect of the super().get_validation_dependencies() call above
         # As a work-around, after the registry check
         # we create a second table.row_count metric for the other table manually
         # and rename the metrics defined in ValidationDependencies
