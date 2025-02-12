@@ -1,6 +1,6 @@
-from typing import Literal, NamedTuple, Union
+from typing import Any, Literal, NamedTuple, Union
 
-from great_expectations.compatibility.pydantic import BaseModel
+from great_expectations.compatibility.pydantic import BaseModel, validator
 
 IDDictID = Union[str, tuple[()]]
 
@@ -12,7 +12,7 @@ class MetricConfigurationID(NamedTuple):
 
 
 class _MetricResult(BaseModel):
-    name: str
+    id: MetricConfigurationID
     error: bool
 
 
@@ -20,33 +20,20 @@ class _SuccessfulMetricResult(_MetricResult):
     error: Literal[False] = False
 
 
-# base types
+class InvalidMetricError(TypeError):
+    def __init__(self, expected_metric: str, actual_metric: str):
+        super().__init__(
+            f"Invalid metric: expected {expected_metric} but received {actual_metric}."
+        )
 
 
-class _IntegerMetricResult(_SuccessfulMetricResult):
-    value: int
+class TableColumns(_SuccessfulMetricResult):
+    @validator("id")
+    def validate_id(cls, v):
+        if v[0] != "table.columns":
+            raise InvalidMetricError(expected_metric="table.columns", actual_metric=v[0])
 
-
-class _FloatMetricResult(_SuccessfulMetricResult):
-    value: float
-
-
-class _StringMetricResult(_SuccessfulMetricResult):
-    value: str
-
-
-class _BooleanMetricResult(_SuccessfulMetricResult):
-    value: bool
-
-
-class _StringListMetricResult(_SuccessfulMetricResult):
     value: list[str]
-
-
-# metric implementations
-
-class TableColumns(_StringListMetricResult):
-    name: Literal["table.columns"] = "table.columns"
 
 
 class _ColumnType(BaseModel):
@@ -55,28 +42,41 @@ class _ColumnType(BaseModel):
 
 
 class TableColumnTypes(_SuccessfulMetricResult):
-    name: Literal["table.columns"] = "table.column_types"
+    @validator("id")
+    def validate_id(cls, v):
+        if v[0] != "table.column_types":
+            raise InvalidMetricError(expected_metric="table.column_types", actual_metric=v[0])
+
     value: list[_ColumnType]
 
 
-class ColumnValuesNullUnexpectedCount(_IntegerMetricResult):
-    name: Literal["column_values.null.unexpected_count"] = "column_values.null.unexpected_count"
+class UnexpectedCount(_SuccessfulMetricResult):
+    @validator("id")
+    def validate_id(cls, v):
+        metric_name = v[0]
+        if metric_name.split(".")[-1] != "unexpected_count":
+            raise InvalidMetricError(expected_metric="unexpected_count", actual_metric=metric_name)
+
+    value: int
 
 
-class ColumnValuesNonnullUnexpectedCount(_IntegerMetricResult):
-    name: Literal["column_values.nonnull.unexpected_count"] = "column_values.nonnull.unexpected_count"
+class UnexpectedValues(_SuccessfulMetricResult):
+    @validator("id")
+    def validate_id(cls, v):
+        metric_name = v[0]
+        if metric_name.split(".")[-1] != "unexpected_values":
+            raise InvalidMetricError(expected_metric="unexpected_values", actual_metric=metric_name)
+
+    value: list[Any]  # unknowable type, since this is a sample of user data
 
 
-class ColumnValuesValueLengthBetweenUnexpectedCount(_IntegerMetricResult):
-    name: Literal["column_values.value_length.between.unexpected_count"] = "column_values.value_length.between.unexpected_count""
+class TableRowCount(_SuccessfulMetricResult):
+    @validator("id")
+    def validate_id(cls, v):
+        if v[0] != "table.row_count":
+            raise InvalidMetricError(expected_metric="table.row_count", actual_metric=v[0])
 
-
-class TableRowCount(_IntegerMetricResult):
-    name: Literal["table.row_count"] = "table.row_count"
-
-
-class ColumnValuesInSetUnexpectedCount(_IntegerMetricResult):
-    name: Literal["column_values.in_set.unexpected_count"] = "column_values.in_set.unexpected_count"
+    value: int
 
 
 class ErrorMetricResult(_MetricResult):
@@ -87,8 +87,8 @@ class ErrorMetricResult(_MetricResult):
 MetricResult = Union[
     TableColumns,
     TableColumnTypes,
-    ColumnValuesNullUnexpectedCount,
-ColumnValuesNonnullUnexpectedCount,
-ColumnValuesValueLengthBetweenUnexpectedCount,
+    UnexpectedCount,
+    UnexpectedValues,
+    TableRowCount,
     ErrorMetricResult,
 ]
