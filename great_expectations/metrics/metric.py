@@ -87,13 +87,15 @@ class Metric(BaseModel, metaclass=MetaMetric):
 
     @staticmethod
     def _pascal_to_snake(class_name: str) -> str:
-        # Add an underscore before each uppercase letter that is followed by a lowercase letter
+        # Adds an underscore between a sequence of uppercase letters and an uppercase-lowercase pair
+        # APIFunctionMetric -> API_FunctionMetric
         class_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", class_name)
-        # Add an underscore before each lowercase letter that is preceded by an uppercase letter
+        # Adds an underscore between a lowercase letter/digit and an uppercase letter
+        # APIFunctionMetric -> API_Function_Metric
         class_name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", class_name)
         # Convert the entire string to lowercase
-        class_name = class_name.lower()
-        return class_name
+        # API_Function_Metric -> api_function_metric
+        return class_name.lower()
 
     @classmethod
     def _get_metric_name(cls) -> str:
