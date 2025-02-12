@@ -81,7 +81,6 @@ from great_expectations.util import (
     import_library_module,
 )
 from great_expectations.validator.validator import Validator
-from tests.test_utils import get_default_mssql_url
 
 SQLAlchemyError = sqlalchemy.SQLAlchemyError
 
@@ -820,7 +819,11 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         connection_string = f"mysql+pymysql://root@{db_hostname}/test_ci"
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "mssql":
-        connection_string = get_default_mssql_url()
+        connection_string = (
+            "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
+            "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+            "&autocommit=true&TrustServerCertificate=yes"
+        )
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "bigquery":
         connection_string = _get_bigquery_connection_string()
@@ -1398,7 +1401,11 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
                 test_backends += ["mysql"]
 
         if include_mssql:
-            connection_string = get_default_mssql_url()
+            connection_string = (
+                "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
+                "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+                "&autocommit=true&TrustServerCertificate=yes"
+            )
             try:
                 engine = sa.create_engine(connection_string)
                 conn = engine.connect()
