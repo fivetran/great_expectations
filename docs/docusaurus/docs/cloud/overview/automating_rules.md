@@ -6,7 +6,7 @@ description: Generate data quality rules to more quickly achieve test coverage f
 With GX Cloud, you can automatically generate data quality rules to more quickly achieve test coverage for your data. This page provides an overview of options for automating data quality rules.
 
 - You can generate basic rules as part of adding a new Data Asset.
-- You can generate personalized AI-recommened rules for an existing Data Asset.
+- You can generate personalized AI-recommended rules for an existing Data Asset.
 
 ## Monitoring common issues
 
