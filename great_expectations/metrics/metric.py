@@ -52,9 +52,8 @@ class Metric(BaseModel, metaclass=MetaMetric):
 
     Notes:
         - The Metric class cannot be instantiated directly - it must be subclassed.
-        - Subclasses must specify a Domain type as a mixin.
-        - The subclass name and specified Domain type must be registered in the METRIC_REGISTRY.
-        - The MetaMetric metaclass enforces these constraints at class creation time.
+        - Subclasses must specify a single Domain type as a mixin.
+        - Once Metrics are instantiated, they are immutable.
 
     See Also:
         Domain: The base class for all domain types
