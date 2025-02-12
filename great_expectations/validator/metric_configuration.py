@@ -51,12 +51,6 @@ class MetricConfiguration:
 
         self._metric_dependencies: IDDict = IDDict({})
 
-        self._id = (
-            self.metric_name,
-            self.metric_domain_kwargs_id,
-            self.metric_value_kwargs_id,
-        )
-
     def __repr__(self):  # type: ignore[explicit-override] # FIXME
         return json.dumps(self.to_json_dict(), indent=2)
 
@@ -159,7 +153,11 @@ class MetricConfiguration:
 
     @property
     def id(self) -> Tuple[str, str, str]:
-        return self._id
+        return (
+            self.metric_name,
+            self.metric_domain_kwargs_id,
+            self.metric_value_kwargs_id,
+        )
 
     def to_json_dict(self) -> dict:
         """Returns a JSON-serializable dict representation of this MetricConfiguration.
