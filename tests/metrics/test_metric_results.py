@@ -1,15 +1,17 @@
-import pandas as pd
-
-from great_expectations.metrics.metric_results import ColumnTypeMetricResult, _ColumnType, StringListMetricResult, \
-    BooleanListMetricResult, IntegerMetricResult
+from great_expectations.metrics.metric_results import (
+    TableColumns,
+    TableColumnTypes,
+    UnexpectedCount,
+    _ColumnType,
+)
 
 
 class TestMetricResultInstantiation:
-    def test_integer_metric_result(self):
-        metric_id = ('column_values.null.unexpected_count', '73d1f59d321e58e8e8a0cfc2d22cca1f', ())
+    def test_unexpected_count(self):
+        metric_id = ("column_values.null.unexpected_count", "73d1f59d321e58e8e8a0cfc2d22cca1f", ())
         metric_value = 0
 
-        metric_result = IntegerMetricResult(
+        metric_result = UnexpectedCount(
             id=metric_id,
             value=metric_value,
         )
@@ -21,7 +23,7 @@ class TestMetricResultInstantiation:
             "existing_column",
             "another_existing_column",
         ]
-        metric_result = StringListMetricResult(
+        metric_result = TableColumns(
             id=metric_id,
             value=metric_value,
         )
@@ -39,11 +41,10 @@ class TestMetricResultInstantiation:
             {"name": "another_existing_column", "type": "object"},
         ]
 
-        metric_result = ColumnTypeMetricResult(
+        metric_result = TableColumnTypes(
             id=metric_id,
             value=metric_value,
         )
 
         assert not metric_result.error
         assert all(isinstance(val, _ColumnType) for val in metric_result.value)
-
