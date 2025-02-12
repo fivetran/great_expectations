@@ -38,7 +38,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
   <LinkCard topIcon label="Manage Data Assets" description="Create, edit, or delete a Data Asset." to="/cloud/data_assets/manage_data_assets" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Manage Expectations" description="Create, edit, or delete an Expectation." to="/cloud/expectations/manage_expectations" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Manage Validations" description="Run a Validation, or view the Validation run history." to="/cloud/validations/manage_validations" icon="/img/small_gx_logo.png" />
-  <LinkCard topIcon label="Manage schedules" description="Use a schedule to automate data quality checks." to="/cloud/alerts/manage_alerts" icon="/img/small_gx_logo.png" />
+  <LinkCard topIcon label="Manage schedules" description="Use a schedule to automate data quality checks." to="/cloud/schedules/manage_schedules" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Manage alerts" description="Add, edit, or delete alerts." to="/cloud/alerts/manage_alerts" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Manage users and access tokens" description="Manage GX Cloud users and access tokens." to="/cloud/users/manage_users" icon="/img/small_gx_logo.png" />
 </LinkCardGrid>
