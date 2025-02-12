@@ -83,6 +83,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
 
     class Config:
         arbitrary_types_allowed = True
+        frozen = True
 
     def __new__(cls, *args, **kwargs):
         if cls is Metric:

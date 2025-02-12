@@ -145,3 +145,23 @@ class TestMetricToConfig:
         assert actual_config.metric_domain_kwargs == expected_config.metric_domain_kwargs
         assert actual_config.metric_value_kwargs == expected_config.metric_value_kwargs
         assert isinstance(actual_config.id, MetricConfigurationID)
+
+
+class TestMetricImmutability:
+    with mock.patch("great_expectations.metrics.metric.METRIC_REGISTRY", MOCK_METRIC_REGISTRY):
+
+        class Above(Metric, ColumnMap):
+            min_value: Comparable
+            strict_min: bool = False
+
+    @pytest.mark.unit
+    def test_immutability_success(self):
+        above = self.Above(
+            batch_id=BATCH_ID,
+            table=TABLE,
+            column=COLUMN,
+            min_value=42,
+        )
+
+        with pytest.raises(TypeError):
+            above.min_value = 42
