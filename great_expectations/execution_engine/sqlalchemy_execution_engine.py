@@ -17,7 +17,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Iterable,
     List,
     MutableMapping,
@@ -64,12 +63,12 @@ from great_expectations.validator.computed_metric import MetricValue  # noqa: TC
 del get_versions  # isort:skip
 
 
-from great_expectations.core import IDDict
 from great_expectations.core.batch import BatchMarkers, BatchSpec
 from great_expectations.core.batch_spec import (
     RuntimeQueryBatchSpec,
     SqlAlchemyDatasourceBatchSpec,
 )
+from great_expectations.core.id_dict import IDDict, IDDictID
 from great_expectations.exceptions import (
     DatasourceKeyPairAuthBadPassphraseError,
     ExecutionEngineError,
@@ -95,9 +94,12 @@ from great_expectations.util import (
     import_library_module,
     import_make_url,
 )
-from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001 # FIXME CoP
-)
+
+if TYPE_CHECKING:
+    from great_expectations.validator.metric_configuration import (
+        MetricConfiguration,
+        MetricConfigurationID,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -898,7 +900,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
     def resolve_metric_bundle(  # noqa: C901 #  too complex
         self,
         metric_fn_bundle: Iterable[MetricComputationConfiguration],
-    ) -> Dict[Tuple[str, str, str], MetricValue]:
+    ) -> dict[MetricConfigurationID, MetricValue]:
         """For every metric in a set of Metrics to resolve, obtains necessary metric keyword arguments and builds
         bundles of the metrics into one large query dictionary so that they are all executed simultaneously. Will fail
         if bundling the metrics together is not possible.
@@ -912,16 +914,16 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             Returns:
                 A dictionary of "MetricConfiguration" IDs and their corresponding now-queried (fully resolved) values.
         """  # noqa: E501 # FIXME CoP
-        resolved_metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+        resolved_metrics: dict[MetricConfigurationID, MetricValue] = {}
 
         res: List[sqlalchemy.Row]
 
         # We need a different query for each Domain (where clause).
-        queries: Dict[Tuple[str, str, str], dict] = {}
+        queries: dict[IDDictID, dict] = {}
 
         query: dict
 
-        domain_id: Tuple[str, str, str]
+        domain_id: IDDictID
 
         bundled_metric_configuration: MetricComputationConfiguration
         for bundled_metric_configuration in metric_fn_bundle:
@@ -997,7 +999,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             assert len(query["metric_ids"]) == len(res[0]), "unexpected number of metrics returned"
 
             idx: int
-            metric_id: Tuple[str, str, str]
+            metric_id: MetricConfigurationID
             for idx, metric_id in enumerate(query["metric_ids"]):
                 # Converting SQL query execution results into JSON-serializable format produces simple data types,  # noqa: E501 # FIXME CoP
                 # amenable for subsequent post-processing by higher-level "Metric" and "Expectation" layers.  # noqa: E501 # FIXME CoP
