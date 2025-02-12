@@ -1,10 +1,10 @@
+import re
 from typing import ClassVar, Final
 
 from typing_extensions import dataclass_transform
 
 from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass, root_validator
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
-from great_expectations.metrics.registry import DOMAIN_NAMES, METRIC_REGISTRY
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -20,14 +20,6 @@ class MixinTypeError(TypeError):
         )
 
 
-class UnregisteredMetricTypeError(TypeError):
-    def __init__(self, class_name: str, domain_class: type[Domain]) -> None:
-        super().__init__(
-            f"Metric `{class_name.lower()}` was not mapped to "
-            f"domain `{domain_class}`, in the metric registry."
-        )
-
-
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
     def __new__(cls, name, bases, attrs):
@@ -37,15 +29,6 @@ class MetaMetric(ModelMetaclass):
             or not any(issubclass(base_type, Domain) for base_type in bases)
         ):
             raise MixinTypeError(name, "Domain")
-        # ensure metric is registered
-        for base_type in bases:
-            if issubclass(base_type, Domain):
-                try:
-                    registered_metrics_for_domain = METRIC_REGISTRY[DOMAIN_NAMES[base_type]]
-                except KeyError:
-                    raise UnregisteredMetricTypeError(name, base_type)
-                if name.lower() not in registered_metrics_for_domain:
-                    raise UnregisteredMetricTypeError(name, base_type)
         return super().__new__(cls, name, bases, attrs)
 
 
@@ -88,13 +71,12 @@ class Metric(BaseModel, metaclass=MetaMetric):
     def __new__(cls, *args, **kwargs):
         if cls is Metric:
             raise AbstractClassInstantiationError(cls.__name__)
+        cls.name = cls._get_metric_name()
         return super().__new__(cls)
 
     @root_validator(pre=True)
     @classmethod
-    def _set_computed_fields(cls, values) -> dict:
-        if "name" not in values or not values["name"]:
-            values["name"] = cls._get_metric_name()
+    def _set_config(cls, values) -> dict:
         if "config" not in values or values["config"] is None:
             values["config"] = cls._to_config(values)
         return values
@@ -103,19 +85,33 @@ class Metric(BaseModel, metaclass=MetaMetric):
     def id(self) -> MetricConfigurationID:
         return self.config.id
 
+    @staticmethod
+    def _pascal_to_snake(class_name: str) -> str:
+        # Add an underscore before each uppercase letter that is followed by a lowercase letter
+        class_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", class_name)
+        # Add an underscore before each lowercase letter that is preceded by an uppercase letter
+        class_name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", class_name)
+        # Convert the entire string to lowercase
+        class_name = class_name.lower()
+        return class_name
+
     @classmethod
     def _get_metric_name(cls) -> str:
         """The name of the metric as it exists in the registry."""
         for base_type in cls.__bases__:
             if issubclass(base_type, Domain):
+                domain_class_name = str(base_type.__name__)
                 metric_class_name = str(cls.__name__)
-                try:
-                    domain_name = DOMAIN_NAMES[base_type]
-                except KeyError:
-                    # this should never be reached
-                    # that the metric is registered should have been confirmed in MetaMetric.__new__
-                    raise UnregisteredMetricTypeError(metric_class_name, base_type)
-                return ".".join([domain_name, metric_class_name.lower()])
+                domain_class_snake_case = Metric._pascal_to_snake(domain_class_name)
+                metric_class_snake_case = Metric._pascal_to_snake(metric_class_name)
+                # the convention is that the metric class name includes the domain class name
+                # but the metric names don't repeat the domain name, so we remove it
+                return ".".join(
+                    [
+                        domain_class_snake_case,
+                        metric_class_snake_case.replace(domain_class_snake_case, "").strip("_"),
+                    ]
+                )
 
         # this should never be reached
         # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
@@ -145,7 +141,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
                     )
 
         return MetricConfiguration(
-            metric_name=model_values["name"],
+            metric_name=cls.name,
             metric_domain_kwargs=metric_domain_kwargs,
             metric_value_kwargs=metric_value_kwargs,
         )

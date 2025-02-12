@@ -21,22 +21,22 @@ class Domain(BaseModel):
         return super().__new__(cls)
 
 
-class Map(Domain):
+class Values(Domain):
     """The abstract base class for metric domain types that compute row-level calculations."""
 
     table: NonEmptyString
     row_condition: Optional[StrictStr] = None
 
     def __new__(cls, *args, **kwargs):
-        if cls is Map:
+        if cls is Values:
             raise AbstractClassInstantiationError(cls.__name__)
         return super().__new__(cls)
 
 
-class ColumnMap(Map):
+class ColumnValues(Values):
     """A domain type for metrics that compute row-level calculations on a single column.
 
-    The ColumnMap domain type is used to define metrics that evaluate conditions or compute
+    The ColumnValues domain type is used to define metrics that evaluate conditions or compute
     values for each row in a single column. This class is intended to be used as a mixin
     with the Metric class when defining a new Metric.
 
@@ -50,7 +50,7 @@ class ColumnMap(Map):
     Examples:
         A metric with a ColumnMap domain for column nullity values computed on each row:
 
-        >>> class Null(Metric, ColumnMap):
+        >>> class Null(Metric, ColumnValues):
         ...     ...
 
     See Also:

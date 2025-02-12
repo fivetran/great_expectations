@@ -3,9 +3,9 @@ import pytest
 from great_expectations.compatibility.pydantic import ValidationError, errors
 from great_expectations.metrics.domain import (
     AbstractClassInstantiationError,
-    ColumnMap,
+    ColumnValues,
     Domain,
-    Map,
+    Values,
 )
 
 BATCH_ID = "my_data_source-my_data_asset-year_2025"
@@ -20,15 +20,15 @@ class TestAbstractClasses:
             Domain(batch_id=BATCH_ID)
 
     @pytest.mark.unit
-    def test_map_instantiation_raises(self):
+    def test_values_instantiation_raises(self):
         with pytest.raises(AbstractClassInstantiationError):
-            Map(batch_id=BATCH_ID, table=TABLE)
+            Values(batch_id=BATCH_ID, table=TABLE)
 
 
 class TestColumnMap:
     @pytest.mark.unit
     def test_column_map_instantiation_success(self):
-        ColumnMap(batch_id=BATCH_ID, table=TABLE, column=COLUMN)
+        ColumnValues(batch_id=BATCH_ID, table=TABLE, column=COLUMN)
 
     @pytest.mark.unit
     @pytest.mark.parametrize(
@@ -41,7 +41,7 @@ class TestColumnMap:
     )
     def test_column_map_arguments_empty_string_raises(self, kwargs: dict):
         with pytest.raises(ValidationError) as e:
-            ColumnMap(**kwargs)
+            ColumnValues(**kwargs)
         all_errors = e.value.raw_errors
         assert any(
             True
