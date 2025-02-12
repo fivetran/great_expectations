@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Optional, Tuple, Union
+from typing import NamedTuple, Optional, Union
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.domain import Domain
@@ -9,6 +9,12 @@ from great_expectations.core.id_dict import IDDict
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.metric_repository.metrics import MetricTypes
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
+
+
+class MetricConfigurationID(NamedTuple):
+    metric_name: str
+    metric_domain_kwargs_id: str
+    metric_value_kwargs_id: str
 
 
 class MetricConfiguration:
@@ -35,7 +41,6 @@ class MetricConfiguration:
     ) -> None:
         if isinstance(metric_name, MetricTypes):
             metric_name = metric_name.value
-        self._metric_name = metric_name
 
         if not isinstance(metric_domain_kwargs, IDDict):
             metric_domain_kwargs = IDDict(metric_domain_kwargs)
@@ -51,10 +56,10 @@ class MetricConfiguration:
 
         self._metric_dependencies: IDDict = IDDict({})
 
-        self._id = (
-            self.metric_name,
-            self.metric_domain_kwargs_id,
-            self.metric_value_kwargs_id,
+        self._id = MetricConfigurationID(
+            metric_name,
+            metric_domain_kwargs.to_id(),
+            metric_value_kwargs.to_id(),
         )
 
     def __repr__(self):  # type: ignore[explicit-override] # FIXME
@@ -66,7 +71,7 @@ class MetricConfiguration:
 
     @property
     def metric_name(self) -> str:
-        return self._metric_name
+        return self.id.metric_name
 
     @property
     def metric_domain_kwargs(self) -> IDDict:
@@ -78,11 +83,11 @@ class MetricConfiguration:
 
     @property
     def metric_domain_kwargs_id(self) -> str:
-        return self.metric_domain_kwargs.to_id()
+        return self.id.metric_domain_kwargs_id
 
     @property
     def metric_value_kwargs_id(self) -> str:
-        return self.metric_value_kwargs.to_id()
+        return self.id.metric_value_kwargs_id
 
     @property
     def metric_dependencies(self) -> IDDict:
@@ -158,7 +163,7 @@ class MetricConfiguration:
         return MetricDomainTypes.TABLE
 
     @property
-    def id(self) -> Tuple[str, str, str]:
+    def id(self) -> MetricConfigurationID:
         return self._id
 
     def to_json_dict(self) -> dict:
