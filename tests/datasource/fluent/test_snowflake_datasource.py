@@ -12,6 +12,7 @@ import sqlalchemy as sa
 from pytest import param
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.snowflake import URL as SnowflakeURL
 from great_expectations.compatibility.snowflake import snowflake
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent import (
@@ -892,6 +893,54 @@ def test_create_engine_is_called_with_expected_kwargs(
     print(engine)
 
     create_engine_spy.assert_called_once_with(**expected_called_with)
+
+
+@pytest.mark.snowflake
+@pytest.mark.parametrize(
+    ("password", "encoded_password"),
+    [
+        pytest.param("abc", "abc", id="no need to encode"),
+        pytest.param("a@b", "a%40b", id="encode it"),
+    ],
+)
+def test_test_connection_encoding(
+    mocker: MockerFixture,
+    ephemeral_context_with_defaults: AbstractDataContext,
+    password: str,
+    encoded_password: str,
+):
+    account = "account"
+    user = "foo"
+    role = "role"
+    warehouse = "warehouse"
+    db = "db"
+    schema = "schema"
+    create_engine_spy = mocker.patch.object(sa, "create_engine")
+
+    datasource = ephemeral_context_with_defaults.data_sources.add_snowflake(
+        name="foo",
+        account=account,
+        user=user,
+        password=password,
+        database=db,
+        schema=schema,
+        role=role,
+        warehouse=warehouse,
+    )
+    datasource.get_engine()
+
+    create_engine_spy.assert_called_with(
+        url=SnowflakeURL(
+            account=account,
+            user=user,
+            password=encoded_password,
+            database=db,
+            schema=schema,
+            role=role,
+            warehouse=warehouse,
+            application="great_expectations_core",
+        )
+    )
 
 
 @pytest.mark.unit

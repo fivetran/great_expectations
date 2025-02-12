@@ -16,6 +16,9 @@ The GX Agent serves as an intermediary between GX Cloud and your organization's 
 
 A local deployment of the GX Agent will allow you to test GX Cloud setup or processes from a single machine before moving to a shared production deployment. Alternatively, you can run the GX Agent in your deployment environment and leverage GX Cloud while connecting to Data Sources using your organization's environment and infrastructure, for enhanced control and security.
 
+## Limitations
+
+Agent-enabled deployments do not support [ExpectAI](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta). To be able to generate AI-recommended Expectations, use a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 
 ## Prerequisites
 

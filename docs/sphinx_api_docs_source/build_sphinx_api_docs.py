@@ -601,7 +601,7 @@ class SphinxInvokeDocsBuilder:
         Also quotes use a different quote character. This method cleans up
         these items so that the code block is rendered appropriately.
         """
-        doc = doc.replace("&lt;", "<").replace("&gt;", ">")
+        doc = doc.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;42;", "*")
         doc = (
             doc.replace("“", '"')
             .replace("”", '"')
