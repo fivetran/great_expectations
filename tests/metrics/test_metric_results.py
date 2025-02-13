@@ -1,3 +1,5 @@
+import pytest
+
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
     TableColumnsResult,
@@ -10,6 +12,7 @@ from great_expectations.validator.metric_configuration import MetricConfiguratio
 
 
 class TestMetricResultInstantiation:
+    @pytest.mark.unit
     def test_unexpected_count_result(self):
         metric_id = MetricConfigurationID(
             metric_name="column_values.null.unexpected_count",
@@ -24,6 +27,7 @@ class TestMetricResultInstantiation:
         )
         assert metric_result.dict() == {"id": metric_id, "value": metric_value}
 
+    @pytest.mark.unit
     def test_unexpected_values_result(self):
         metric_id = MetricConfigurationID(
             metric_name="column_values.null.unexpected_values",
@@ -43,6 +47,7 @@ class TestMetricResultInstantiation:
         )
         assert metric_result.dict() == {"id": metric_id, "value": metric_value}
 
+    @pytest.mark.unit
     def test_table_columns_metric_result(self):
         metric_id = MetricConfigurationID(
             metric_name="table.columns",
@@ -59,6 +64,7 @@ class TestMetricResultInstantiation:
         )
         assert metric_result.dict() == {"id": metric_id, "value": metric_value}
 
+    @pytest.mark.unit
     def test_table_column_types_result(self):
         metric_id = MetricConfigurationID(
             metric_name="table.column_types",
@@ -78,6 +84,7 @@ class TestMetricResultInstantiation:
         assert all(isinstance(val, _ColumnType) for val in metric_result.value)
         assert metric_result.dict() == {"id": metric_id, "value": metric_value}
 
+    @pytest.mark.unit
     def test_metric_error_result(self):
         metric_id = MetricConfigurationID(
             metric_name="column.mean",
