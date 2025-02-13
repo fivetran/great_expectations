@@ -80,7 +80,8 @@ class Metric(BaseModel, metaclass=MetaMetric):
     @property
     def config(self) -> MetricConfiguration:
         return Metric._metric_to_config(
-            instance_class=self.__class__, metric_value_set=frozenset(self.dict().items())
+            instance_class=self.__class__,
+            metric_value_set=frozenset(self.dict().items()),
         )
 
     @staticmethod
