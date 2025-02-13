@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Tuple
 
 import pytest
 
@@ -19,7 +18,10 @@ from great_expectations.datasource.fluent.interfaces import (
 from great_expectations.exceptions.exceptions import DataContextError
 from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.validator.computed_metric import MetricValue
-from great_expectations.validator.metric_configuration import MetricConfiguration
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 from great_expectations.validator.metrics_calculator import MetricsCalculator
 from tests.expectations.test_util import get_table_columns_metric
 
@@ -135,10 +137,10 @@ def run_batch_head(  # noqa: C901 # FIXME CoP
         execution_engine: ExecutionEngine = batch.data.execution_engine
         execution_engine.batch_manager.load_batch_list(batch_list=[batch])
 
-        metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+        metrics: dict[MetricConfigurationID, MetricValue] = {}
 
         table_columns_metric: MetricConfiguration
-        results: Dict[Tuple[str, str, str], MetricValue]
+        results: dict[MetricConfigurationID, MetricValue]
 
         table_columns_metric, results = get_table_columns_metric(execution_engine=execution_engine)
         metrics.update(results)

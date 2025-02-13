@@ -76,7 +76,7 @@ module.exports = {
     algolia: {
       // See: https://docusaurus.io/docs/search#connecting-algolia
       appId: 'PFK639M3JK',
-      apiKey: 'fc3e3b1588b46d8d476aca9c1cadd53f',
+      apiKey: '0d1a1d5150b166e798933d41988094c9',
       indexName: 'greatexpectations',
       searchPagePath: 'search',
       contextualSearch: true,
@@ -307,7 +307,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.3.4',
+              label: '1.3.5',
             },
             ['0.18']: {
               label: '0.18.21',

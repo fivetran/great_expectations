@@ -14,6 +14,14 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.5
+* [DOCS] New icons for admonitions ([#10899](https://github.com/great-expectations/great_expectations/pull/10899))
+* [DOCS] Algolia fix ([#10907](https://github.com/great-expectations/great_expectations/pull/10907))
+* [MAINTENANCE] Add `row_condition` datetime testing for Pandas and Spark ([#10892](https://github.com/great-expectations/great_expectations/pull/10892))
+* [MAINTENANCE] Cleanup bigquery every 3 hours ([#10900](https://github.com/great-expectations/great_expectations/pull/10900))
+* [MAINTENANCE] Add `strict` to Window type ([#10906](https://github.com/great-expectations/great_expectations/pull/10906))
+* [MAINTENANCE] ensure run_id on ValidationDefinition.run ([#10909](https://github.com/great-expectations/great_expectations/pull/10909))
+
 ### 1.3.4
 * [BUGFIX] `row_condition` datetimes getting tuncated to dates ([#10891](https://github.com/great-expectations/great_expectations/pull/10891))
 * [DOCS] restore lychee ([#10889](https://github.com/great-expectations/great_expectations/pull/10889))

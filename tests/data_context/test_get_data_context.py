@@ -21,7 +21,7 @@ from great_expectations.exceptions.exceptions import (
 from tests.test_utils import working_directory
 
 GX_CLOUD_PARAMS_ALL = {
-    "cloud_base_url": "http://hello.com",
+    "cloud_base_url": "localhost:7000",
     "cloud_organization_id": "bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
     "cloud_access_token": "i_am_a_token",
 }
@@ -33,7 +33,7 @@ GX_CLOUD_PARAMS_REQUIRED = {
 
 @pytest.fixture()
 def set_up_cloud_envs(monkeypatch):
-    monkeypatch.setenv("GX_CLOUD_BASE_URL", "http://hello.com")
+    monkeypatch.setenv("GX_CLOUD_BASE_URL", "localhost:7000")
     monkeypatch.setenv("GX_CLOUD_ORGANIZATION_ID", "bd20fead-2c31-4392-bcd1-f1e87ad5a79c")
     monkeypatch.setenv("GX_CLOUD_ACCESS_TOKEN", "i_am_a_token")
 
@@ -170,7 +170,7 @@ def test_cloud_context_with_in_memory_config_overrides(
         return_value=empty_ge_cloud_data_context_config,
     ):
         context = gx.get_context(
-            cloud_base_url="http://hello.com",
+            cloud_base_url="localhost:7000",
             cloud_organization_id="bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
             cloud_access_token="i_am_a_token",
         )
@@ -192,7 +192,7 @@ def test_cloud_context_with_in_memory_config_overrides(
         )
         context = gx.get_context(
             project_config=config,
-            cloud_base_url="http://hello.com",
+            cloud_base_url="localhost:7000",
             cloud_organization_id="bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
             cloud_access_token="i_am_a_token",
         )

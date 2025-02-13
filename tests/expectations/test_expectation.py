@@ -250,6 +250,7 @@ def test_expectation_configuration_window():
                 parameter_name="b",
                 range=5,
                 offset=Offset(positive=0.2, negative=0.2),
+                strict=True,
             )
         ],
     )
@@ -266,6 +267,7 @@ def test_expectation_configuration_window():
                     "parameter_name": "b",
                     "range": 5,
                     "offset": {"positive": 0.2, "negative": 0.2},
+                    "strict": True,
                 }
             ],
         },

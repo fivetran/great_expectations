@@ -1068,9 +1068,6 @@ def build_spark_engine(
     ):
         raise ValueError("Exactly one of batch_id or batch_definition must be specified.")  # noqa: TRY003 # FIXME CoP
 
-    if batch_id is None:
-        batch_id = cast(LegacyBatchDefinition, batch_definition).id
-
     if isinstance(df, pd.DataFrame):
         if schema is None:
             data: Union[pd.DataFrame, List[tuple]] = [
@@ -1091,7 +1088,7 @@ def build_spark_engine(
     execution_engine = SparkDFExecutionEngine(
         spark_config=spark_config,
         batch_data_dict={
-            batch_id: df,
+            batch_id or cast(LegacyBatchDefinition, batch_definition).id: df,
         },
     )
     return execution_engine
