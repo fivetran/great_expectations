@@ -25,8 +25,10 @@ import subprocess
 import sys
 from typing import List
 
-# TODO: address ignored snippets by deleting snippet or test file, or adding documentation that references them  # noqa: E501
-IGNORED_VIOLATIONS: list[str] = []
+UNREFERENCED_SNIPPETS: list[str] = [
+    # Snippets can be added here if we want them but they are not yet referenced in docs.
+    # We should work to keep this as empty as we can.
+]
 
 
 def check_dependencies(*deps: str) -> None:
@@ -107,7 +109,7 @@ def main() -> None:
     new_violations = sorted(
         set(get_snippet_definitions(tests_dir))
         .difference(set(get_snippets_used(docs_dir)))
-        .difference(set(IGNORED_VIOLATIONS))
+        .difference(set(UNREFERENCED_SNIPPETS))
     )
     if new_violations:
         print(f"[ERROR] Found {len(new_violations)} snippets which are not used within a doc file.")
