@@ -565,7 +565,7 @@ def get_context(  # noqa: PLR0913 # FIXME CoP
             Note: if mode is specified, cloud_mode is ignored.
 
     Returns:
-        DataContext – A Data Context. Either a FileDataContext, EphemeralDataContext, or
+        DataContext: A Data Context. Either a FileDataContext, EphemeralDataContext, or
         CloudDataContext depending on environment and/or
         parameters.
 

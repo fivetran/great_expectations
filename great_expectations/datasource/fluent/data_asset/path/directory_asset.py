@@ -53,7 +53,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
             column: Column to partition on.
 
         Returns:
-            A BatchDefinition that is partitioned daily.
+            BatchDefinition: A BatchDefinition that is partitioned daily.
         """
         # todo: test column
         return self.add_batch_definition(
@@ -73,7 +73,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
             column: Column to partition on.
 
         Returns:
-            A BatchDefinition that is partitioned monthly.
+            BatchDefinition: A BatchDefinition that is partitioned monthly.
         """
         # todo: test column
         return self.add_batch_definition(
@@ -93,7 +93,7 @@ class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[
             column: Column to partition on.
 
         Returns:
-            A BatchDefinition that is partitioned yearly.
+            BatchDefinition: A BatchDefinition that is partitioned yearly.
         """
         # todo: test column
         return self.add_batch_definition(

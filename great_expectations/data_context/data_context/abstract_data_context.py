@@ -373,7 +373,7 @@ class AbstractDataContext(ConfigPeer, ABC):
             project_config: The config to use to update the context's internal state.
 
         Returns:
-            DataContextConfig – The updated project config.
+            DataContextConfig: The updated project config.
         """
         self.config.update(project_config)
         return self.config

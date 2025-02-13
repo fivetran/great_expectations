@@ -1397,7 +1397,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             context (optional[AbstractDataContext]): Instance of any child of "AbstractDataContext" class.
 
         Returns:
-            An Expectation Diagnostics report object
+            ExpectationDiagnostics: An Expectation Diagnostics report object.
         """  # noqa: E501 # FIXME CoP
         from great_expectations.core.expectation_diagnostics.expectation_doctor import (
             ExpectationDoctor,

@@ -133,7 +133,7 @@ class SerializableDataContext(AbstractDataContext):
                 config_variables.yml and the environment
 
         Returns:
-            DataContext
+            SerializableDataContext: DataContext
         """  # noqa: E501 # FIXME CoP
         gx_dir = cls._scaffold(
             project_root_dir=project_root_dir,

@@ -624,7 +624,7 @@ class DataSourceManager:
             name: Name of Datasource to get
 
         Raises:
-            KeyError when Datasource is not found.
+            KeyError: when Datasource is not found.
         """
         return self.all()[name]
 
