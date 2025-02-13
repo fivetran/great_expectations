@@ -1,78 +1,37 @@
-from typing import Any, Literal, Union
+from typing import Any, Generic, TypeVar, Union
 
-from great_expectations.compatibility.pydantic import BaseModel, validator
+from great_expectations.compatibility.pydantic import BaseModel, GenericModel
 from great_expectations.validator.metric_configuration import MetricConfigurationID
 
+_MetricResultValue = TypeVar("_MetricResultValue")
 
-class _MetricResult(BaseModel):
+
+class MetricResult(GenericModel, Generic[_MetricResultValue]):
     id: MetricConfigurationID
-    value: Any
-    success: bool
+    value: _MetricResultValue
 
 
-class _SuccessfulMetricResult(_MetricResult):
-    success: Literal[True] = True
+class MetricErrorResult(MetricResult[dict[str, Union[int, dict, str]]]): ...
 
 
-class InvalidMetricError(TypeError):
-    def __init__(self, expected_metric: str, actual_metric: str):
-        super().__init__(
-            f"Invalid metric: expected {expected_metric} but received {actual_metric}."
-        )
-
-
-class TableColumns(_SuccessfulMetricResult):
-    @validator("id")
-    def validate_id(cls, v):
-        if v[0] != "table.columns":
-            raise InvalidMetricError(expected_metric="table.columns", actual_metric=v[0])
-
-    value: list[str]
+class TableColumnsResult(MetricResult[list[str]]): ...
 
 
 class _ColumnType(BaseModel):
+    class Config:
+        extra = "allow"  # some backends return extra values
+
     name: str
     type: str
 
 
-class TableColumnTypes(_SuccessfulMetricResult):
-    @validator("id")
-    def validate_id(cls, v):
-        if v[0] != "table.column_types":
-            raise InvalidMetricError(expected_metric="table.column_types", actual_metric=v[0])
-
-    value: list[_ColumnType]
+class TableColumnTypesResult(MetricResult[list[_ColumnType]]): ...
 
 
-class UnexpectedCount(_SuccessfulMetricResult):
-    @validator("id")
-    def validate_id(cls, v):
-        metric_name = v[0]
-        if metric_name.split(".")[-1] != "unexpected_count":
-            raise InvalidMetricError(expected_metric="unexpected_count", actual_metric=metric_name)
-
-    value: int
+class UnexpectedCountResult(MetricResult[int]): ...
 
 
-class UnexpectedValues(_SuccessfulMetricResult):
-    @validator("id")
-    def validate_id(cls, v):
-        metric_name = v[0]
-        if metric_name.split(".")[-1] != "unexpected_values":
-            raise InvalidMetricError(expected_metric="unexpected_values", actual_metric=metric_name)
-
-    value: list[Any]  # unknowable type, since this is a sample of user data
+class UnexpectedValuesResult(MetricResult[list[Any]]): ...
 
 
-class TableRowCount(_SuccessfulMetricResult):
-    @validator("id")
-    def validate_id(cls, v):
-        if v[0] != "table.row_count":
-            raise InvalidMetricError(expected_metric="table.row_count", actual_metric=v[0])
-
-    value: int
-
-
-class ErrorMetricResult(_MetricResult):
-    value: dict[str, Union[int, dict, str]]
-    success: Literal[False] = False
+class TableRowCountResult(MetricResult[int]): ...
