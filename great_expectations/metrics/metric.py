@@ -1,4 +1,5 @@
 import re
+from functools import cache
 from typing import ClassVar, Final
 
 from typing_extensions import dataclass_transform
@@ -78,7 +79,9 @@ class Metric(BaseModel, metaclass=MetaMetric):
 
     @property
     def config(self) -> MetricConfiguration:
-        return self._to_config()
+        return Metric._metric_to_config(
+            instance_class=self.__class__, metric_value_set=frozenset(self.dict().items())
+        )
 
     @staticmethod
     def _pascal_to_snake(class_name: str) -> str:
@@ -114,11 +117,15 @@ class Metric(BaseModel, metaclass=MetaMetric):
         # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
         raise MixinTypeError(cls.__name__, "Domain")
 
-    def _to_config(self) -> MetricConfiguration:
+    @staticmethod
+    @cache
+    def _metric_to_config(
+        instance_class: type["Metric"], metric_value_set: frozenset
+    ) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
-        instance_class = self.__class__
         metric_domain_kwargs = {}
         metric_value_kwargs = {}
+        metric_values = dict(metric_value_set)
         for base_type in instance_class.__bases__:
             if issubclass(base_type, Domain):
                 domain_fields = base_type.__fields__
@@ -129,11 +136,11 @@ class Metric(BaseModel, metaclass=MetaMetric):
                     if field_name not in domain_fields and field_name not in metric_fields
                 }
                 for field_name, field_info in domain_fields.items():
-                    metric_domain_kwargs[field_name] = self.dict().get(
+                    metric_domain_kwargs[field_name] = metric_values.get(
                         field_name, field_info.default
                     )
                 for field_name, field_info in value_fields.items():
-                    metric_value_kwargs[field_name] = self.dict().get(
+                    metric_value_kwargs[field_name] = metric_values.get(
                         field_name, field_info.default
                     )
 
