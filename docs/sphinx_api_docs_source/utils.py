@@ -85,6 +85,7 @@ def display_methods_details_as_tables(soup):
                 if previous_sibling_text in ["Parameters", "Returns", "Raises"]:
                     create_table(soup, item, dd, previous_sibling_text)
 
+
 def create_table(soup, item, dd, title):
     table = soup.new_tag("table", attrs={"class": "table"})
     tbody = soup.new_tag("tbody")
@@ -96,7 +97,7 @@ def create_table(soup, item, dd, title):
 
     if title in ("Parameters", "Raises"):
         for p in dd.select("p"):
-            columns = p.get_text().split(" – ") # noqa: RUF001
+            columns = p.get_text().split(" – ")  # noqa: RUF001
             if len(columns) == 2:
                 create_row(soup, tbody, columns)
         dd.find_previous_sibling("dt").extract()
@@ -109,6 +110,7 @@ def create_table(soup, item, dd, title):
     parent_div = item.parent
     parent_div.append(table)
     add_table_title(soup, table, title)
+
 
 def populate_return_table_body(soup, dd, tbody):
     return_type_dt = dd.find_next_sibling("dt")
@@ -123,6 +125,7 @@ def populate_return_table_body(soup, dd, tbody):
         return_type_dt.extract()
         dd.find_previous_sibling("dt").extract()
         dd.extract()
+
 
 def add_section_title(soup, items, title):
     wrapper_div = soup.new_tag("div")
