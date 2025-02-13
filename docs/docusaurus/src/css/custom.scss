@@ -300,7 +300,11 @@ table.borderless tr:nth-child(2n) {
 }
 
 div.theme-doc-toc-mobile {
-  display: block;
+  display: none;
+  
+  @media (max-width: $mobile-breakpoint) {
+    display: block;
+  }
 }
 
 .request-a-demo {
