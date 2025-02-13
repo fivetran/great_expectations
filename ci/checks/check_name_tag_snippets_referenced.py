@@ -114,6 +114,8 @@ def main() -> None:
         for line in new_violations:
             print(line)
         sys.exit(1)
+    else:
+        print("No unexpected unused snippets found")
 
 
 if __name__ == "__main__":
