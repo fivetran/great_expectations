@@ -3,7 +3,7 @@ from typing import ClassVar, Final
 
 from typing_extensions import dataclass_transform
 
-from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass, root_validator
+from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
@@ -61,7 +61,6 @@ class Metric(BaseModel, metaclass=MetaMetric):
     """
 
     name: ClassVar[str]
-    config: MetricConfiguration
 
     class Config:
         arbitrary_types_allowed = True
@@ -73,16 +72,13 @@ class Metric(BaseModel, metaclass=MetaMetric):
         cls.name = cls._get_metric_name()
         return super().__new__(cls)
 
-    @root_validator(pre=True)
-    @classmethod
-    def _set_config(cls, values) -> dict:
-        if "config" not in values or values["config"] is None:
-            values["config"] = cls._to_config(values)
-        return values
-
     @property
     def id(self) -> MetricConfigurationID:
         return self.config.id
+
+    @property
+    def config(self) -> MetricConfiguration:
+        return self._to_config()
 
     @staticmethod
     def _pascal_to_snake(class_name: str) -> str:
@@ -118,31 +114,31 @@ class Metric(BaseModel, metaclass=MetaMetric):
         # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
         raise MixinTypeError(cls.__name__, "Domain")
 
-    @classmethod
-    def _to_config(cls, model_values: dict) -> MetricConfiguration:
+    def _to_config(self) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
+        instance_class = self.__class__
         metric_domain_kwargs = {}
         metric_value_kwargs = {}
-        for base_type in cls.__bases__:
+        for base_type in instance_class.__bases__:
             if issubclass(base_type, Domain):
                 domain_fields = base_type.__fields__
                 metric_fields = Metric.__fields__
                 value_fields = {
                     field_name: field_info
-                    for field_name, field_info in cls.__fields__.items()
+                    for field_name, field_info in instance_class.__fields__.items()
                     if field_name not in domain_fields and field_name not in metric_fields
                 }
                 for field_name, field_info in domain_fields.items():
-                    metric_domain_kwargs[field_name] = model_values.get(
+                    metric_domain_kwargs[field_name] = self.dict().get(
                         field_name, field_info.default
                     )
                 for field_name, field_info in value_fields.items():
-                    metric_value_kwargs[field_name] = model_values.get(
+                    metric_value_kwargs[field_name] = self.dict().get(
                         field_name, field_info.default
                     )
 
         return MetricConfiguration(
-            metric_name=cls.name,
+            metric_name=instance_class.name,
             metric_domain_kwargs=metric_domain_kwargs,
             metric_value_kwargs=metric_value_kwargs,
         )
