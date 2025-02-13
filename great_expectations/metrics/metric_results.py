@@ -7,11 +7,11 @@ from great_expectations.validator.metric_configuration import MetricConfiguratio
 class _MetricResult(BaseModel):
     id: MetricConfigurationID
     value: Any
-    error: bool
+    success: bool
 
 
 class _SuccessfulMetricResult(_MetricResult):
-    error: Literal[False] = False
+    success: Literal[True] = True
 
 
 class InvalidMetricError(TypeError):
@@ -75,4 +75,4 @@ class TableRowCount(_SuccessfulMetricResult):
 
 class ErrorMetricResult(_MetricResult):
     value: dict[str, Union[int, dict, str]]
-    error: Literal[True] = True
+    success: Literal[False] = False
