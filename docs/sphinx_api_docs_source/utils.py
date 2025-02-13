@@ -85,9 +85,12 @@ def display_methods_details_as_tables(soup):
                 if previous_sibling_text == "Parameters":
                     create_table(soup, item, dd, "Parameters", ["Name", "Description"])
                 if previous_sibling_text == "Returns":
-                    create_return_table(soup, item, dd, "Returns", ["Type", "Description"])
+                    create_return_table(
+                        soup, item, dd, "Returns", ["Type", "Description"]
+                    )
                 if previous_sibling_text == "Raises":
                     create_table(soup, item, dd, "Raises", ["Type", "Description"])
+
 
 def create_return_table(soup, item, dd, title, columns):
     table = soup.new_tag("table", attrs={"class": "table"})
