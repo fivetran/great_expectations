@@ -85,7 +85,6 @@ def display_methods_details_as_tables(soup):
                 if previous_sibling_text in ["Parameters", "Returns", "Raises"]:
                     create_table(soup, item, dd, previous_sibling_text)
 
-
 def create_table(soup, item, dd, title):
     table = soup.new_tag("table", attrs={"class": "table"})
     tbody = soup.new_tag("tbody")
@@ -95,33 +94,35 @@ def create_table(soup, item, dd, title):
     else:
         create_header_row(soup, table, ["Type", "Description"])
 
-    if title == "Parameters" or title == "Raises":
+    if title in ("Parameters", "Raises"):
         for p in dd.select("p"):
-            columns = p.get_text().split(" – ")
+            columns = p.get_text().split(" – ") # noqa: RUF001
             if len(columns) == 2:
                 create_row(soup, tbody, columns)
         dd.find_previous_sibling("dt").extract()
         dd.extract()
 
     if title == "Returns":
-        return_type_dt = dd.find_next_sibling("dt")
-        if return_type_dt is not None and return_type_dt.get_text() == "Return type":
-            type_text = return_type_dt.find_next_sibling("dd")
-            if type_text is not None:
-                for p in dd.select("p"):
-                    columns = [type_text.get_text(), p.get_text()]
-                    if len(columns) == 2:
-                        create_row(soup, tbody, columns)
-            type_text.extract()
-            return_type_dt.extract()
-            dd.find_previous_sibling("dt").extract()
-            dd.extract()
+        populate_return_table_body(soup, dd, tbody)
 
     table.append(tbody)
     parent_div = item.parent
     parent_div.append(table)
     add_table_title(soup, table, title)
 
+def populate_return_table_body(soup, dd, tbody):
+    return_type_dt = dd.find_next_sibling("dt")
+    if return_type_dt is not None and return_type_dt.get_text() == "Return type":
+        type_text = return_type_dt.find_next_sibling("dd")
+        if type_text is not None:
+            for p in dd.select("p"):
+                columns = [type_text.get_text(), p.get_text()]
+                if len(columns) == 2:
+                    create_row(soup, tbody, columns)
+        type_text.extract()
+        return_type_dt.extract()
+        dd.find_previous_sibling("dt").extract()
+        dd.extract()
 
 def add_section_title(soup, items, title):
     wrapper_div = soup.new_tag("div")
