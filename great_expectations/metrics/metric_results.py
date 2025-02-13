@@ -1,18 +1,12 @@
-from typing import Any, Literal, NamedTuple, Union
+from typing import Any, Literal, Union
 
 from great_expectations.compatibility.pydantic import BaseModel, validator
-
-IDDictID = Union[str, tuple[()]]
-
-
-class MetricConfigurationID(NamedTuple):
-    metric_name: str
-    metric_domain_kwargs_id: IDDictID
-    metric_value_kwargs_id: IDDictID
+from great_expectations.validator.metric_configuration import MetricConfigurationID
 
 
 class _MetricResult(BaseModel):
     id: MetricConfigurationID
+    value: Any
     error: bool
 
 
@@ -82,13 +76,3 @@ class TableRowCount(_SuccessfulMetricResult):
 class ErrorMetricResult(_MetricResult):
     value: dict[str, Union[int, dict, str]]
     error: Literal[True] = True
-
-
-MetricResult = Union[
-    TableColumns,
-    TableColumnTypes,
-    UnexpectedCount,
-    UnexpectedValues,
-    TableRowCount,
-    ErrorMetricResult,
-]
