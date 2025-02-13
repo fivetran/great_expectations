@@ -85,6 +85,7 @@ def display_methods_details_as_tables(soup):
                 if previous_sibling_text in ["Parameters", "Returns", "Raises"]:
                     create_table(soup, item, dd, previous_sibling_text)
 
+
 def create_table(soup, item, dd, title):
     table = soup.new_tag("table", attrs={"class": "table"})
     tbody = soup.new_tag("tbody")
@@ -120,6 +121,7 @@ def create_table(soup, item, dd, title):
     parent_div = item.parent
     parent_div.append(table)
     add_table_title(soup, table, title)
+
 
 def add_section_title(soup, items, title):
     wrapper_div = soup.new_tag("div")
