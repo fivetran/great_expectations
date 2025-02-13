@@ -265,7 +265,7 @@ class ExpectationValidationResult(SerializableDictDot):
         """Returns a JSON-serializable dict representation of this ExpectationValidationResult.
 
         Returns:
-            dict – A JSON-serializable dict representation of this ExpectationValidationResult.
+            dict: A JSON-serializable dict representation of this ExpectationValidationResult.
         """
         myself = expectationValidationResultSchema.dump(self)
         # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501 # FIXME CoP
@@ -528,7 +528,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         """Returns a JSON-serializable dict representation of this ExpectationSuiteValidationResult.
 
         Returns:
-            dict – A JSON-serializable dict representation of this ExpectationSuiteValidationResult.
+            dict: A JSON-serializable dict representation of this ExpectationSuiteValidationResult.
         """
         myself = deepcopy(self)
         # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501 # FIXME CoP

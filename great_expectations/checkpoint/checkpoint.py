@@ -304,7 +304,7 @@ class Checkpoint(BaseModel):
             run_id: An optional unique identifier for the run.
 
         Returns:
-            CheckpointResult – A CheckpointResult object containing the results of the run.
+            CheckpointResult: A CheckpointResult object containing the results of the run.
 
         Raises:
             CheckpointRunWithoutValidationDefinitionError: If the Checkpoint is run without any

@@ -79,13 +79,39 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
 def display_methods_details_as_tables(soup):
     for item in soup.select(".field-list"):
         for dd in item.select("dd"):
-            previous_sibling_text = dd.find_previous_sibling("dt").get_text()
-            if previous_sibling_text == "Parameters":
-                create_table(soup, item, dd, "Parameters", ["Name", "Description"])
-            if previous_sibling_text == "Returns":
-                create_table(soup, item, dd, "Returns", ["Type", "Description"])
-            if previous_sibling_text == "Raises":
-                create_table(soup, item, dd, "Raises", ["Type", "Description"])
+            previous_sibling = dd.find_previous_sibling("dt")
+            if previous_sibling is not None:
+                previous_sibling_text = previous_sibling.get_text()
+                if previous_sibling_text == "Parameters":
+                    create_table(soup, item, dd, "Parameters", ["Name", "Description"])
+                if previous_sibling_text == "Returns":
+                    create_return_table(soup, item, dd, "Returns", ["Type", "Description"])
+                if previous_sibling_text == "Raises":
+                    create_table(soup, item, dd, "Raises", ["Type", "Description"])
+
+def create_return_table(soup, item, dd, title, columns):
+    table = soup.new_tag("table", attrs={"class": "table"})
+    tbody = soup.new_tag("tbody")
+
+    create_header_row(soup, table, columns)
+
+    return_type_dt = dd.find_next_sibling("dt")
+    if return_type_dt is not None and return_type_dt.get_text() == "Return type":
+        type_text = return_type_dt.find_next_sibling("dd")
+        if type_text is not None:
+            for p in dd.select("p"):
+                columns = [type_text.get_text(), p.get_text()]
+                if len(columns) == 2:
+                    create_row(soup, tbody, columns)
+
+        table.append(tbody)
+        parent_div = item.parent
+        parent_div.append(table)
+        add_table_title(soup, table, title)
+        type_text.extract()
+        return_type_dt.extract()
+        dd.find_previous_sibling("dt").extract()
+        dd.extract()
 
 
 def create_table(soup, item, dd, title, columns):

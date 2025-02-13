@@ -243,7 +243,6 @@ warn_untyped_fields = true
 [tool.ruff]
 target-version = "py39"
 line-length = 100
-allowed-confusables = ["–"]
 lint.preview = true  # This enables preview rules for specified rules e.g. NPY201
 lint.explicit-preview-rules = true  # https://docs.astral.sh/ruff/preview/#selecting-single-preview-rules
 lint.select = [
