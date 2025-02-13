@@ -79,7 +79,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
 
     @property
     def config(self) -> MetricConfiguration:
-        return Metric._metric_to_config(
+        return Metric._to_config(
             instance_class=self.__class__,
             metric_value_set=frozenset(self.dict().items()),
         )
@@ -120,7 +120,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
 
     @staticmethod
     @cache
-    def _metric_to_config(
+    def _to_config(
         instance_class: type["Metric"], metric_value_set: frozenset
     ) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
