@@ -75,6 +75,7 @@ module.exports = {
     },
     algolia: {
       // See: https://docusaurus.io/docs/search#connecting-algolia
+      // For local development testing algolia search for the keys on Netlify's ENV variables
       appId: config.parsed.ALGOLIA_ID || 'PFK639M3JK',
       apiKey: config.parsed.ALGOLIA_API_KEY || '0d1a1d5150b166e798933d41988094c9',
       indexName: 'greatexpectations',
