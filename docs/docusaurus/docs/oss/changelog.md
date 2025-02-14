@@ -14,6 +14,15 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.6
+* [MAINTENANCE] Improved cloud mode error message ([#10916](https://github.com/great-expectations/great_expectations/pull/10916))
+* [BUGFIX] Fix Snowflake URL password encoding ([#10919](https://github.com/great-expectations/great_expectations/pull/10919))
+* [DOCS] AI-recommended Expectations ([#10913](https://github.com/great-expectations/great_expectations/pull/10913))
+* [FEATURE] Trim the unexpected rows query ([#10923](https://github.com/great-expectations/great_expectations/pull/10923))
+* [BUGFIX] Make `MetricConfiguration.id` immutable ([#10929](https://github.com/great-expectations/great_expectations/pull/10929))
+* [MAINTENANCE] Add `Metric` and `Domain` base classes ([#10920](https://github.com/great-expectations/great_expectations/pull/10920))
+* [BUGFIX] Fix `test_diagnostic_checklist` import error ([#10934](https://github.com/great-expectations/great_expectations/pull/10934))
+
 ### 1.3.5
 * [DOCS] New icons for admonitions ([#10899](https://github.com/great-expectations/great_expectations/pull/10899))
 * [DOCS] Algolia fix ([#10907](https://github.com/great-expectations/great_expectations/pull/10907))
