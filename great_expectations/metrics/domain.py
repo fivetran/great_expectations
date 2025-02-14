@@ -92,4 +92,3 @@ class Batch(Domain):
     @override
     def internal_name(cls):
         return "table"
-
