@@ -17,7 +17,7 @@ class MetricErrorResult(MetricResult[dict[str, Union[int, dict, str]]]): ...
 class TableColumnsResult(MetricResult[list[str]]): ...
 
 
-class _ColumnType(BaseModel):
+class ColumnType(BaseModel):
     class Config:
         extra = "allow"  # some backends return extra values
 
@@ -25,7 +25,7 @@ class _ColumnType(BaseModel):
     type: str
 
 
-class TableColumnTypesResult(MetricResult[list[_ColumnType]]): ...
+class TableColumnTypesResult(MetricResult[list[ColumnType]]): ...
 
 
 class UnexpectedCountResult(MetricResult[int]): ...

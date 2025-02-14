@@ -1,12 +1,12 @@
 import pytest
 
 from great_expectations.metrics.metric_results import (
+    ColumnType,
     MetricErrorResult,
     TableColumnsResult,
     TableColumnTypesResult,
     UnexpectedCountResult,
     UnexpectedValuesResult,
-    _ColumnType,
 )
 from great_expectations.validator.metric_configuration import MetricConfigurationID
 
@@ -81,7 +81,7 @@ class TestMetricResultInstantiation:
             value=metric_value,
         )
 
-        assert all(isinstance(val, _ColumnType) for val in metric_result.value)
+        assert all(isinstance(val, ColumnType) for val in metric_result.value)
         assert metric_result.dict() == {"id": metric_id, "value": metric_value}
 
     @pytest.mark.unit
