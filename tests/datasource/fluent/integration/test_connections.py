@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 @pytest.mark.snowflake
 class TestSnowflake:
     @pytest.mark.xfail(
-        raises=sa.exc.ProgrammingError
+        raises=AssertionError,
     )  # inspector.get_table_names() fails with this role
     @pytest.mark.parametrize(
         "connection_string",

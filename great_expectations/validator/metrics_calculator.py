@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Hashable
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.exception_info import ExceptionInfo
-from great_expectations.validator.metric_configuration import MetricConfiguration
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 from great_expectations.validator.validation_graph import ValidationGraph
 
 if TYPE_CHECKING:
@@ -19,10 +21,9 @@ logger = logging.getLogger(__name__)
 logging.captureWarnings(True)
 
 
-_MetricKey: TypeAlias = Union[Tuple[str, Hashable, Hashable], Tuple[str, str, str]]
-_MetricsDict: TypeAlias = Dict[_MetricKey, MetricValue]
+_MetricsDict: TypeAlias = Dict[MetricConfigurationID, MetricValue]
 _AbortedMetricsInfoDict: TypeAlias = Dict[
-    _MetricKey,
+    MetricConfigurationID,
     Dict[str, Union[MetricConfiguration, ExceptionInfo, int]],
 ]
 

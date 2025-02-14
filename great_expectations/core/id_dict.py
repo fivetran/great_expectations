@@ -10,17 +10,20 @@ from great_expectations.util import convert_to_json_serializable  # noqa: TID251
 T = TypeVar("T")
 
 
+IDDictID = Union[str, tuple[()]]
+
+
 class IDDict(dict):
     _id_ignore_keys: Set[str] = set()
 
-    def to_id(self, id_keys=None, id_ignore_keys=None):
+    def to_id(self, id_keys=None, id_ignore_keys=None) -> IDDictID:
         if id_keys is None:
             id_keys = self.keys()
         if id_ignore_keys is None:
             id_ignore_keys = self._id_ignore_keys
         id_keys = set(id_keys) - set(id_ignore_keys)
         if len(id_keys) == 0:
-            return tuple()
+            return ()
         elif len(id_keys) == 1:
             key = list(id_keys)[0]
             return f"{key}={self[key]!s}"
