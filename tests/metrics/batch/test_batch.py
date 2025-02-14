@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pandas
+import pytest
 
 from great_expectations.metrics.batch.batch import BatchRowCount, BatchRowCountResult
 from great_expectations.validator.metrics_calculator import MetricsCalculator
@@ -27,6 +28,7 @@ class TestBatchRowCount:
     )
     ROW_COUNT = 4
 
+    @pytest.mark.unit
     def test_success_pandas(self) -> None:
         batch_setup = PandasDataFrameBatchTestSetup(
             config=PandasDataFrameDatasourceTestConfig(),
@@ -47,6 +49,7 @@ class TestBatchRowCount:
             )
             assert result.value == self.ROW_COUNT
 
+    @pytest.mark.spark
     def test_success_spark(self, tmp_path: Path) -> None:
         batch_setup = SparkFilesystemCsvBatchTestSetup(
             config=SparkFilesystemCsvDatasourceTestConfig(),
@@ -68,6 +71,7 @@ class TestBatchRowCount:
             )
             assert result.value == self.ROW_COUNT
 
+    @pytest.mark.postgresql
     def test_success_postgres(self) -> None:
         batch_setup = PostgresBatchTestSetup(
             config=PostgreSQLDatasourceTestConfig(), data=self.DATA_FRAME, extra_data={}
