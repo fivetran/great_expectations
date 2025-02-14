@@ -1,6 +1,7 @@
-from typing import Annotated, Optional, override
+from typing import Annotated, Optional
 
 from great_expectations.compatibility.pydantic import BaseModel, Field, StrictStr
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.model_field_types import ConditionParser
 
 NonEmptyString = Annotated[StrictStr, Field(min_length=1)]
