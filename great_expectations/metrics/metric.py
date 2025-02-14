@@ -121,7 +121,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
     @staticmethod
     @cache
     def _to_config(
-        instance_class: type["Metric"], metric_value_set: frozenset
+        instance_class: type["Metric"], metric_value_set: frozenset[tuple]
     ) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
         metric_domain_kwargs = {}
