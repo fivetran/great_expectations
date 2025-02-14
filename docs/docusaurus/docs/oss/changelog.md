@@ -14,6 +14,25 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.6
+* [BUGFIX] Quote password before passing to SnowflakeURL ([#10919](https://github.com/great-expectations/great_expectations/pull/10919))
+* [BUGFIX] Trim the unexpected rows query ([#10923](https://github.com/great-expectations/great_expectations/pull/10923))
+* [BUGFIX] Make `MetricConfiguration.id` immutable ([#10929](https://github.com/great-expectations/great_expectations/pull/10929))
+* [BUGFIX] `test_diagnostic_checklist` import error ([#10934](https://github.com/great-expectations/great_expectations/pull/10934))
+* [BUGFIX] ExpectTableRowCountToBeBetween fails validation with Runtime Parameters ([#10925](https://github.com/great-expectations/great_expectations/pull/10925)) (thanks @eric-brady)
+* [DOCS] Fix HTML entity character in API reference code blocks ([#10915](https://github.com/great-expectations/great_expectations/pull/10915))
+* [DOCS] AI-recommended Expectations ([#10913](https://github.com/great-expectations/great_expectations/pull/10913))
+* [DOCS] Fix lack of formatting in actions.py ([#10918](https://github.com/great-expectations/great_expectations/pull/10918))
+* [DOCS] Feedback form issues should have status "intake" ([#10933](https://github.com/great-expectations/great_expectations/pull/10933))
+* [DOCS] Fix sidebar highlight by deleting subpages from the sidebar ([#10903](https://github.com/great-expectations/great_expectations/pull/10903))
+* [DOCS] Added useLocation mock ([#10939](https://github.com/great-expectations/great_expectations/pull/10939))
+* [MAINTENANCE] Ensure clear error if cloud mode requested and env vars aren't found ([#10916](https://github.com/great-expectations/great_expectations/pull/10916))
+* [MAINTENANCE] Remove concurrency block from GitHub CI workflow ([#10930](https://github.com/great-expectations/great_expectations/pull/10930))
+* [MAINTENANCE] Add `Metric` and `Domain` base classes ([#10920](https://github.com/great-expectations/great_expectations/pull/10920))
+* [MAINTENANCE] Remove unreferenced docs snippets ([#10937](https://github.com/great-expectations/great_expectations/pull/10937))
+* [MAINTENANCE] Metric Result types ([#10932](https://github.com/great-expectations/great_expectations/pull/10932))
+* [MAINTENANCE] Make `Metric.config` un-instantiable and excluded from auto-complete ([#10938](https://github.com/great-expectations/great_expectations/pull/10938))
+
 ### 1.3.5
 * [DOCS] New icons for admonitions ([#10899](https://github.com/great-expectations/great_expectations/pull/10899))
 * [DOCS] Algolia fix ([#10907](https://github.com/great-expectations/great_expectations/pull/10907))
