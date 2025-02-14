@@ -3,9 +3,9 @@ import pytest
 from great_expectations.compatibility.pydantic import ValidationError, errors
 from great_expectations.metrics.domain import (
     AbstractClassInstantiationError,
+    Batch,
     ColumnValues,
     Domain,
-    Table,
     Values,
 )
 
@@ -52,9 +52,9 @@ class TestColumnValues:
         )
 
 
-class TestTable:
+class TestBatch:
     @pytest.mark.unit
     def test_instantiation(self):
-        Table(
+        Batch(
             batch_id=BATCH_ID, table=TABLE, row_condition='PClass=="1st"', condition_parser="pandas"
         )

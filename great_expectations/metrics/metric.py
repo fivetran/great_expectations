@@ -102,17 +102,13 @@ class Metric(BaseModel, metaclass=MetaMetric):
         for base_type in cls.__bases__:
             if issubclass(base_type, Domain):
                 domain_class_name = str(base_type.__name__)
-                metric_class_name = str(cls.__name__)
-                domain_class_snake_case = Metric._pascal_to_snake(domain_class_name)
-                metric_class_snake_case = Metric._pascal_to_snake(metric_class_name)
+                metric_and_domain_class_name = str(cls.__name__)
                 # the convention is that the metric class name includes the domain class name
                 # but the metric names don't repeat the domain name, so we remove it
-                return ".".join(
-                    [
-                        domain_class_snake_case,
-                        metric_class_snake_case.replace(domain_class_snake_case, "").strip("_"),
-                    ]
-                )
+                metric_class_name = metric_and_domain_class_name.replace(domain_class_name, "")
+                metric_identifier = Metric._pascal_to_snake(metric_class_name)
+                domain_identifier = base_type.internal_name()
+                return f"{domain_identifier}.{metric_identifier}"
 
         # this should never be reached
         # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__

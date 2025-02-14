@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Optional, override
 
 from great_expectations.compatibility.pydantic import BaseModel, Field, StrictStr
 from great_expectations.expectations.model_field_types import ConditionParser
@@ -21,6 +21,11 @@ class Domain(BaseModel):
             raise AbstractClassInstantiationError(cls.__name__)
         return super().__new__(cls)
 
+    @classmethod
+    def internal_name(cls):
+        """Get the string used to identify this domain internally."""
+        raise NotImplementedError()
+
 
 class Values(Domain):
     """The abstract base class for metric domain types that compute row-level calculations."""
@@ -32,6 +37,11 @@ class Values(Domain):
         if cls is Values:
             raise AbstractClassInstantiationError(cls.__name__)
         return super().__new__(cls)
+
+    @classmethod
+    @override
+    def internal_name(cls):
+        return "map"
 
 
 class ColumnValues(Values):
@@ -60,15 +70,26 @@ class ColumnValues(Values):
 
     column: NonEmptyString
 
+    @classmethod
+    @override
+    def internal_name(cls):
+        return "column_map"
 
-class Table(Domain):
-    """A domain type for metrics that compute table-level calculations.
 
-    The Table domain type is used to define metrics that evaluate conditions or compute
+class Batch(Domain):
+    """A domain type for metrics that compute over an entire batch.
+
+    The Batch domain type is used to define metrics that evaluate conditions or compute
     values for an entire table. This class is intended to be used as a mixin
     with the Metric class when defining a new Metric.
     """
 
-    table: Optional[NonEmptyString]
+    table: Optional[NonEmptyString] = None
     row_condition: Optional[StrictStr] = None
     condition_parser: Optional[ConditionParser] = None
+
+    @classmethod
+    @override
+    def internal_name(cls):
+        return "table"
+
