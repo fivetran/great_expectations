@@ -243,9 +243,25 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
         min_value = values.get("min_value")
         max_value = values.get("max_value")
 
-        if min_value is not None and max_value is not None and min_value > max_value:
+        if (
+            min_value is not None
+            and max_value is not None
+            and not isinstance(min_value, dict)
+            and not isinstance(max_value, dict)
+            and min_value > max_value
+        ):
             raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
                 f"min_value ({min_value}) must be less than or equal to max_value ({max_value})"
+            )
+
+        if isinstance(min_value, dict) and "$PARAMETER" not in min_value:
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                "min_value dict must contain key $PARAMETER"
+            )
+
+        if isinstance(max_value, dict) and "$PARAMETER" not in max_value:
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                "max_value dict must contain key $PARAMETER"
             )
 
         return values
