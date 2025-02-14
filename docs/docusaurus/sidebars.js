@@ -148,26 +148,9 @@ module.exports = {
   ],
   gx_cloud: [
     {
-      type: 'category',
+      type: 'doc',
       label: 'GX Cloud overview',
-      link: { type: 'doc', id: 'cloud/overview/gx_cloud_overview' },
-      items: [
-        {
-          type: 'link',
-          label: 'GX Cloud concepts',
-          href: '/docs/cloud/overview/gx_cloud_overview#gx-cloud-concepts',
-        },
-        {
-          type: 'link',
-          label: 'GX Cloud workflow',
-          href: '/docs/cloud/overview/gx_cloud_overview#gx-cloud-workflow',
-        },
-        {
-          type: 'link',
-          label: 'GX Cloud architecture',
-          href: '/docs/cloud/overview/gx_cloud_overview#gx-cloud-architecture',
-        },
-      ]
+      id: 'cloud/overview/gx_cloud_overview'
     },
     {
       type: 'category',
@@ -191,201 +174,34 @@ module.exports = {
       ]
     },
     {
-      type: 'category',
+      type: 'doc',
       label: 'Manage Data Assets',
-      link: { type: 'doc', id: 'cloud/data_assets/manage_data_assets' },
-      items: [
-        {
-          type: 'link',
-          label: 'Add a Data Asset from a new Data Source',
-          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-a-new-data-source',
-        },
-        {
-          type: 'link',
-          label: 'Add a Data Asset from an existing Data Source',
-          href: '/docs/cloud/data_assets/manage_data_assets#add-a-data-asset-from-an-existing-data-source',
-        },
-        {
-          type: 'link',
-          label: 'View Data Asset metrics',
-          href: '/docs/cloud/data_assets/manage_data_assets#view-data-asset-metrics',
-        },
-        {
-          type: 'link',
-          label: 'Edit a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#edit-a-data-asset',
-        },
-        {
-          type: 'link',
-          label: 'Delete a Data Asset',
-          href: '/docs/cloud/data_assets/manage_data_assets#delete-a-data-asset',
-        },
-        {
-          type: 'link',
-          label: 'Edit Data Source settings',
-          href: '/docs/cloud/data_assets/manage_data_assets#edit-data-source-settings',
-        },
-        {
-          type: 'link',
-          label: 'Data Source credential management',
-          href: '/docs/cloud/data_assets/manage_data_assets#data-source-credential-management',
-        },
-      ]
+      id: 'cloud/data_assets/manage_data_assets'
     },
     {
-      type: 'category',
+      type: 'doc',
       label: 'Manage Expectations',
-      link: { type: 'doc', id: 'cloud/expectations/manage_expectations' },
-      items: [
-        {
-          type: 'link',
-          label: 'Available Expectations',
-          href: '/docs/cloud/expectations/manage_expectations#available-expectations',
-        },
-        {
-          type: 'link',
-          label: 'Custom SQL Expectations',
-          href: '/docs/cloud/expectations/manage_expectations#custom-sql-expectations',
-        },
-        {
-          type: 'link',
-          label: 'Dynamic Parameters',
-          href: '/docs/cloud/expectations/manage_expectations#dynamic-parameters',
-        },
-        {
-          type: 'link',
-          label: 'Expectation condition',
-          href: '/docs/cloud/expectations/manage_expectations#expectation-condition',
-        },
-        {
-          type: 'link',
-          label: 'Add an Expectation',
-          href: '/docs/cloud/expectations/manage_expectations#add-an-expectation',
-        },
-        {
-          type: 'link',
-          label: 'Generate Expectations with ExpectAI (BETA)',
-          href: '/docs/cloud/expectations/manage_expectations#generate-expectations-with-expectai-beta',
-        },
-        {
-          type: 'link',
-          label: 'Optional. Define a Batch',
-          href: '/docs/cloud/expectations/manage_expectations#optional-define-a-batch',
-        },
-        {
-          type: 'link',
-          label: 'Edit an Expectation',
-          href: '/docs/cloud/expectations/manage_expectations#edit-an-expectation',
-        },
-        {
-          type: 'link',
-          label: 'Delete an Expectation',
-          href: '/docs/cloud/expectations/manage_expectations#delete-an-expectation',
-        },
-        {
-          type: 'link',
-          label: 'GX-managed vs. API-managed Expectations',
-          href: '/docs/cloud/expectations/manage_expectations#gx-managed-vs-api-managed-expectations',
-        },
-      ]
+      id: 'cloud/expectations/manage_expectations'
     },
     {
-      type: 'category',
+      type: 'doc',
       label: 'Manage Validations',
-      link: { type: 'doc', id: 'cloud/validations/manage_validations' },
-      items: [
-        {
-          type: 'link',
-          label: 'Run a Validation',
-          href: '/docs/cloud/validations/manage_validations#run-a-validation',
-        },
-        {
-          type: 'link',
-          label: 'Run a Validation on a subset of a Data Asset',
-          href: '/docs/cloud/validations/manage_validations#run-a-validation-on-a-subset-of-a-data-asset',
-        },
-        {
-          type: 'link',
-          label: 'View Validation run history',
-          href: '/docs/cloud/validations/manage_validations#view-validation-run-history',
-        },
-      ]
+      id: 'cloud/validations/manage_validations'
     },
     {
-      type: 'category',
+      type: 'doc',
       label: 'Manage schedules',
-      link: { type: 'doc', id: 'cloud/schedules/manage_schedules' },
-      items: [
-        {
-          type: 'link',
-          label: 'Edit a schedule',
-          href: '/docs/cloud/schedules/manage_schedules#edit-a-schedule',
-        },
-        {
-          type: 'link',
-          label: 'Disable a schedule',
-          href: '/docs/cloud/schedules/manage_schedules#disable-a-schedule',
-        },
-      ]
+      id: 'cloud/schedules/manage_schedules'
     },
     {
-      type: 'category',
+      type: 'doc',
       label: 'Manage alerts',
-      link: { type: 'doc', id: 'cloud/alerts/manage_alerts' },
-      items: [
-        {
-          type: "link",
-          label: "Email alert default settings",
-          href: "/docs/cloud/alerts/manage_alerts#email-alert-default-settings"
-        },
-        {
-          type: "link",
-          label: "Update an email alert",
-          href: "/docs/cloud/alerts/manage_alerts#update-an-email-alert"
-        },
-      ]
+      id: 'cloud/alerts/manage_alerts'
     },
     {
-      type: 'category',
+      type: 'doc',
       label: 'Manage users and access tokens',
-      link: { type: 'doc', id: 'cloud/users/manage_users' },
-      items: [
-        {
-          type: 'link',
-          label: 'Roles and responsibilities',
-          href: '/docs/cloud/users/manage_users#roles-and-responsibilities',
-        },
-        {
-          type: 'link',
-          label: 'Invite a user',
-          href: '/docs/cloud/users/manage_users#invite-a-user',
-        },
-        {
-          type: 'link',
-          label: 'Edit a user role',
-          href: '/docs/cloud/users/manage_users#edit-a-user-role',
-        },
-        {
-          type: 'link',
-          label: 'Delete a user',
-          href: '/docs/cloud/users/manage_users#delete-a-user',
-        },
-        {
-          type: 'link',
-          label: 'Create a user access token',
-          href: '/docs/cloud/users/manage_users#create-a-user-access-token',
-        },
-        {
-          type: 'link',
-          label: 'Create an organization access token',
-          href: '/docs/cloud/users/manage_users#create-an-organization-access-token',
-        },
-        {
-          type: 'link',
-          label: 'Delete a user or organization access token',
-          href: '/docs/cloud/users/manage_users#delete-a-user-or-organization-access-token',
-        },
-      ]
+      id: 'cloud/users/manage_users'
     },
     {
       type: 'link',
