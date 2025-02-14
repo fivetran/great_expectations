@@ -42,7 +42,7 @@ class Values(Domain):
     @classmethod
     @override
     def internal_name(cls):
-        return "map"
+        return "values"
 
 
 class ColumnValues(Values):
@@ -74,7 +74,7 @@ class ColumnValues(Values):
     @classmethod
     @override
     def internal_name(cls):
-        return "column_map"
+        return "column_values"
 
 
 class Batch(Domain):

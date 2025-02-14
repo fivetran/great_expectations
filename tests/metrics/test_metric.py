@@ -13,7 +13,7 @@ BATCH_ID = "my_data_source-my_data_asset-year_2025"
 TABLE = "my_table"
 COLUMN = "my_column"
 
-FULLY_QUALIFIED_METRIC_NAME = "column_map.above"
+FULLY_QUALIFIED_METRIC_NAME = "column_values.above"
 
 
 class MockDomain(Domain):
