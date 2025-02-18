@@ -75,8 +75,9 @@ module.exports = {
     },
     algolia: {
       // See: https://docusaurus.io/docs/search#connecting-algolia
-      appId: 'PFK639M3JK',
-      apiKey: '0d1a1d5150b166e798933d41988094c9',
+      // Algolia apiKey is stored on Netlify's ENV variables
+      appId: config.parsed.ALGOLIA_ID || 'PFK639M3JK',
+      apiKey: config.parsed.ALGOLIA_API_KEY || '0d1a1d5150b166e798933d41988094c9',
       indexName: 'greatexpectations',
       searchPagePath: 'search',
       contextualSearch: true,
@@ -307,7 +308,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.3.5',
+              label: '1.3.6',
             },
             ['0.18']: {
               label: '0.18.21',
