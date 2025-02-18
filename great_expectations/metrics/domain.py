@@ -1,7 +1,6 @@
 from typing import Annotated, Optional
 
 from great_expectations.compatibility.pydantic import BaseModel, Field, StrictStr
-from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.model_field_types import ConditionParser
 
 NonEmptyString = Annotated[StrictStr, Field(min_length=1)]
@@ -22,11 +21,6 @@ class Domain(BaseModel):
             raise AbstractClassInstantiationError(cls.__name__)
         return super().__new__(cls)
 
-    @classmethod
-    def internal_name(cls):
-        """Get the string used to identify this domain internally."""
-        raise NotImplementedError()
-
 
 class Values(Domain):
     """The abstract base class for metric domain types that compute row-level calculations."""
@@ -38,11 +32,6 @@ class Values(Domain):
         if cls is Values:
             raise AbstractClassInstantiationError(cls.__name__)
         return super().__new__(cls)
-
-    @classmethod
-    @override
-    def internal_name(cls):
-        return "values"
 
 
 class ColumnValues(Values):
@@ -71,11 +60,6 @@ class ColumnValues(Values):
 
     column: NonEmptyString
 
-    @classmethod
-    @override
-    def internal_name(cls):
-        return "column_values"
-
 
 class Batch(Domain):
     """A domain type for metrics that compute over an entire batch.
@@ -88,8 +72,3 @@ class Batch(Domain):
     table: Optional[NonEmptyString] = None
     row_condition: Optional[StrictStr] = None
     condition_parser: Optional[ConditionParser] = None
-
-    @classmethod
-    @override
-    def internal_name(cls):
-        return "table"
