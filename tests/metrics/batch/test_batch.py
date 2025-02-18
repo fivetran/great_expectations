@@ -41,7 +41,7 @@ class TestBatchRowCount:
                 show_progress_bars=False,
             )
             batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
-            metric = BatchRowCount(  # type: ignore[call-arg]  # fixed in a followup PR
+            metric = BatchRowCount(
                 batch_id=batch.id,
             )
             result = BatchRowCountResult(
@@ -63,7 +63,7 @@ class TestBatchRowCount:
                 show_progress_bars=False,
             )
             batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
-            metric = BatchRowCount(  # type: ignore[call-arg]  # fixed in a followup PR
+            metric = BatchRowCount(
                 batch_id=batch.id,
             )
             result = BatchRowCountResult(
@@ -83,7 +83,7 @@ class TestBatchRowCount:
                 show_progress_bars=False,
             )
             batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
-            metric = BatchRowCount(  # type: ignore[call-arg]  # fixed in a followup PR
+            metric = BatchRowCount(
                 batch_id=batch.id,
                 table=batch_setup.table_name,
             )
