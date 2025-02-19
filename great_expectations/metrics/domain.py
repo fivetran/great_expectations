@@ -42,7 +42,6 @@ class ColumnValues(Values):
 
     Attributes:
         batch_id (str): Unique identifier for the batch being processed.
-        table (str): Name of the table containing the column.
         column (str): Name of the column to compute metrics on.
         row_condition (Optional[str]): A condition that can be used to filter rows.
                                        See: https://docs.greatexpectations.io/docs/core/customize_expectations/expectation_conditions/#create-an-expectation-condition
@@ -50,7 +49,7 @@ class ColumnValues(Values):
     Examples:
         A metric with a ColumnValues domain for column nullity values computed on each row:
 
-        >>> class Null(Metric, ColumnValues):
+        >>> class ColumnValuesNull(Metric[ColumnValuesNullResult], ColumnValues):
         ...     ...
 
     See Also:
