@@ -25,7 +25,6 @@ class Domain(BaseModel):
 class Values(Domain):
     """The abstract base class for metric domain types that compute row-level calculations."""
 
-    table: NonEmptyString
     row_condition: Optional[StrictStr] = None
 
     def __new__(cls, *args, **kwargs):
@@ -43,7 +42,6 @@ class ColumnValues(Values):
 
     Attributes:
         batch_id (str): Unique identifier for the batch being processed.
-        table (str): Name of the table containing the column.
         column (str): Name of the column to compute metrics on.
         row_condition (Optional[str]): A condition that can be used to filter rows.
                                        See: https://docs.greatexpectations.io/docs/core/customize_expectations/expectation_conditions/#create-an-expectation-condition
@@ -69,6 +67,5 @@ class Batch(Domain):
     with the Metric class when defining a new Metric.
     """
 
-    table: Optional[NonEmptyString] = None
     row_condition: Optional[StrictStr] = None
     condition_parser: Optional[ConditionParser] = None
