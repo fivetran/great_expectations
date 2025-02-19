@@ -1274,27 +1274,30 @@ class Batch:
         requested_metric_names: list[str],
         metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict],
     ) -> MetricResult | list[MetricResult]:
-        raw_metrics = metrics_calculator_result[0]
-        raw_metrics_errors = metrics_calculator_result[1]
+        # add another level of nesting to these metric dicts
+        # since the key we care about is nested inside the current key
+        # enables us to iterate through these dicts only once
+        raw_metrics = {k.metric_name: (k, v) for k, v in metrics_calculator_result[0].items()}
+        raw_metrics_errors = {
+            k.metric_name: (k, v) for k, v in metrics_calculator_result[1].items()
+        }
         metric_results = []
         for metric_name in requested_metric_names:
             MetricResultType = cls.get_metric_result_type_from_metric_name(metric_name)
-            for metric_configuration_id, value in raw_metrics.items():
-                if metric_configuration_id.metric_name == metric_name:
-                    metric_results.append(
-                        MetricResultType(
-                            id=metric_configuration_id,
-                            value=value,
-                        )
+            if metric_name in raw_metrics:
+                metric_results.append(
+                    MetricResultType(
+                        id=raw_metrics[metric_name][0],
+                        value=raw_metrics[metric_name][1],
                     )
-            for metric_configuration_id, value in raw_metrics_errors.items():
-                if metric_configuration_id.metric_name == metric_name:
-                    metric_results.append(
-                        MetricErrorResult(
-                            id=metric_configuration_id,
-                            value=value,
-                        )
+                )
+            if metric_name in raw_metrics_errors:
+                metric_results.append(
+                    MetricErrorResult(
+                        id=raw_metrics_errors[metric_name][0],
+                        value=raw_metrics_errors[metric_name][1],
                     )
+                )
 
         if len(metric_results) == 1:
             return metric_results[0]
