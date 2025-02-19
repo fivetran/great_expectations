@@ -14,6 +14,15 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.7
+* [FEATURE] BatchRowCount Metric ([#10944](GxURL.PULL_REQUESTS/10944))
+* [BUGFIX] remove unused domain key ([#10951](GxURL.PULL_REQUESTS/10951))
+* [DOCS] Replacing search keys with env variables ([#10940](GxURL.PULL_REQUESTS/10940))
+* [DOCS] SSO cta ([#10872](GxURL.PULL_REQUESTS/10872))
+* [MAINTENANCE] Make `Metric.config` un-instantiable and excluded from auto-complete ([#10938](GxURL.PULL_REQUESTS/10938))
+* [MAINTENANCE] Drop jinja2 v2 support ([#10941](GxURL.PULL_REQUESTS/10941))
+* [MAINTENANCE] Require `Metric.name` instead of using `name` inference ([#10953](GxURL.PULL_REQUESTS/10953))
+
 ### 1.3.6
 * [BUGFIX] Quote password before passing to SnowflakeURL ([#10919](https://github.com/great-expectations/great_expectations/pull/10919))
 * [BUGFIX] Trim the unexpected rows query ([#10923](https://github.com/great-expectations/great_expectations/pull/10923))
