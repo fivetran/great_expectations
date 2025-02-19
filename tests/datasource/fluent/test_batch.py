@@ -321,7 +321,10 @@ def test_batch_compute_metrics_multiple_metrics_success(
         min_value=0,
     )
     metric_2 = BatchRowCount(batch_id=batch.id)
-    metric_results: list[MetricResult] | MetricResult = batch.compute_metrics([metric_1, metric_2])
+    metrics = [metric_1, metric_2]
+    requested_metric_count = len(metrics)
+    metric_results: list[MetricResult] | MetricResult = batch.compute_metrics(metrics)
     assert isinstance(metric_results, list)
+    assert len(metric_results) == requested_metric_count
     assert isinstance(metric_results[0], ColumnValuesBetweenResult)
     assert isinstance(metric_results[1], MetricResult)
