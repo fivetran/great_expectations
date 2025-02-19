@@ -547,7 +547,7 @@ class SnowflakeDatasource(SQLDatasource):
                 derived from it.
 
         Returns:
-            TableAsset: The table asset that is added to the datasource.
+            The table asset that is added to the datasource.
             The type of this object will match the necessary type for this datasource.
         """
         if schema_name is MISSING:

@@ -1096,7 +1096,7 @@ class Batch:
         """Return column names of this Batch.
 
         Returns:
-            List[str]: List of column names.
+            list of column names.
         """
         self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
         metrics_calculator = MetricsCalculator(
@@ -1125,7 +1125,7 @@ class Batch:
             fetch_all: If True, ignore n_rows and return the entire Batch.
 
         Returns:
-            HeadData: HeadData.
+            HeadData
         """
         self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
         metrics_calculator = MetricsCalculator(

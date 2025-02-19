@@ -694,7 +694,7 @@ class PandasDatasource(_PandasDatasource):
                             batches created from the asset.
 
         Returns:
-            DataFrameAsset: The DataFrameAsset that has been added to this datasource.
+            The DataFrameAsset that has been added to this datasource.
         """  # noqa: E501 # FIXME CoP
         asset: DataFrameAsset = DataFrameAsset(
             name=name,
@@ -718,7 +718,7 @@ class PandasDatasource(_PandasDatasource):
                             batches created from the asset.
 
         Returns:
-            Batch: A Batch using an ephemeral DataFrameAsset.
+            A Batch using an ephemeral DataFrameAsset.
         """  # noqa: E501 # FIXME CoP
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: DataFrameAsset = self.add_dataframe_asset(
@@ -741,7 +741,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_clipboard().
 
         Returns:
-            ClipboardAsset: The ClipboardAsset that has been added to this datasource.
+            The ClipboardAsset that has been added to this datasource.
         """
         asset = ClipboardAsset(
             name=name,
@@ -763,7 +763,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_clipboard().
 
         Returns:
-            Batch: A Batch using an ephemeral ClipboardAsset.
+            A Batch using an ephemeral ClipboardAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: ClipboardAsset = self.add_clipboard_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -788,7 +788,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_csv().
 
         Returns:
-            CSVAsset: The CSVAsset that has been added to this datasource.
+            The CSVAsset that has been added to this datasource.
         """
         asset = CSVAsset(
             name=name,
@@ -813,7 +813,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_csv().
 
         Returns:
-            Batch: A Batch using an ephemeral CSVAsset.
+            A Batch using an ephemeral CSVAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: CSVAsset = self.add_csv_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -839,7 +839,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_excel().
 
         Returns:
-            ExcelAsset: The ExcelAsset that has been added to this datasource.
+            The ExcelAsset that has been added to this datasource.
         """
         asset = ExcelAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -864,7 +864,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_excel().
 
         Returns:
-            Batch: A Batch using an ephemeral ExcelAsset.
+            A Batch using an ephemeral ExcelAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: ExcelAsset = self.add_excel_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -890,7 +890,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_feather().
 
         Returns:
-            FeatherAsset: The FeatherAsset that has been added to this datasource.
+            The FeatherAsset that has been added to this datasource.
         """
         asset = FeatherAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -915,7 +915,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_feather().
 
         Returns:
-            Batch: A Batch using an ephemeral FeatherAsset.
+            A Batch using an ephemeral FeatherAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: FeatherAsset = self.add_feather_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -941,7 +941,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_fwf().
 
         Returns:
-            FWFAsset: The FWFAsset that has been added to this datasource.
+            The FWFAsset that has been added to this datasource.
         """
         asset = FWFAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -966,7 +966,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_fwf().
 
         Returns:
-            Batch: A Batch using an ephemeral FWFAsset.
+            A Batch using an ephemeral FWFAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: FWFAsset = self.add_fwf_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -992,7 +992,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_gbq().
 
         Returns:
-            GBQAsset: The GBQAsset that has been added to this datasource.
+            The GBQAsset that has been added to this datasource.
         """
         asset = GBQAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1017,7 +1017,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_gbq().
 
         Returns:
-            Batch: A Batch using an ephemeral GBQAsset.
+            A Batch using an ephemeral GBQAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: GBQAsset = self.add_gbq_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1043,7 +1043,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_hdf().
 
         Returns:
-            HDFAsset: The HDFAsset that has been added to this datasource.
+            The HDFAsset that has been added to this datasource.
         """
         asset = HDFAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1068,7 +1068,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_hdf().
 
         Returns:
-            Batch: A Batch using an ephemeral HDFAsset.
+            A Batch using an ephemeral HDFAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: HDFAsset = self.add_hdf_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1094,7 +1094,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_html().
 
         Returns:
-            HTMLAsset: The HTMLAsset that has been added to this datasource.
+            The HTMLAsset that has been added to this datasource.
         """
         asset = HTMLAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1119,7 +1119,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_html().
 
         Returns:
-            Batch: A Batch using an ephemeral HTMLAsset.
+            A Batch using an ephemeral HTMLAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: HTMLAsset = self.add_html_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1145,7 +1145,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_json().
 
         Returns:
-            JSONAsset: The JSONAsset that has been added to this datasource.
+            The JSONAsset that has been added to this datasource.
         """
         asset = JSONAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1170,7 +1170,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_json().
 
         Returns:
-            Batch: A Batch using an ephemeral JSONAsset.
+            A Batch using an ephemeral JSONAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: JSONAsset = self.add_json_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1196,7 +1196,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional kwargs to pass to the ORC reader.
 
         Returns:
-            ORCAsset: The ORCAsset that has been added to this datasource.
+            The ORCAsset that has been added to this datasource.
         """
         asset = ORCAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1221,7 +1221,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional kwargs to pass to the ORC reader.
 
         Returns:
-            Batch: A Batch using an ephemeral ORCAsset.
+            A Batch using an ephemeral ORCAsset.
         """  # noqa: E501 # FIXME CoP
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: ORCAsset = self.add_orc_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1247,7 +1247,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional kwargs to pass to the parquet reader.
 
         Returns:
-            ParquetAsset: The ParquetAsset that has been added to this datasource.
+            The ParquetAsset that has been added to this datasource.
         """
         asset = ParquetAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1272,7 +1272,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional kwargs to pass to the parquet reader.
 
         Returns:
-            Batch: A Batch using an ephemeral ParquetAsset.
+            A Batch using an ephemeral ParquetAsset.
         """  # noqa: E501 # FIXME CoP
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: ParquetAsset = self.add_parquet_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1298,7 +1298,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional kwargs to pass to the pickle reader.
 
         Returns:
-            PickleAsset: The PickleAsset that has been added to this datasource.
+            The PickleAsset that has been added to this datasource.
         """
         asset = PickleAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1323,7 +1323,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional kwargs to pass to the pickle reader.
 
         Returns:
-            Batch: A Batch using an ephemeral PickleAsset.
+            A Batch using an ephemeral PickleAsset.
         """  # noqa: E501 # FIXME CoP
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: PickleAsset = self.add_pickle_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1349,7 +1349,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_sas().
 
         Returns:
-            SASAsset: The SASAsset that has been added to this datasource.
+            The SASAsset that has been added to this datasource.
         """
         asset = SASAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1374,7 +1374,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_sas().
 
         Returns:
-            Batch: A Batch using an ephemeral SASAsset.
+            A Batch using an ephemeral SASAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: SASAsset = self.add_sas_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1400,7 +1400,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_spss().
 
         Returns:
-            SPSSAsset: The SPSSAsset that has been added to this datasource.
+            The SPSSAsset that has been added to this datasource.
         """
         asset = SPSSAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1425,7 +1425,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_spss().
 
         Returns:
-            Batch: A Batch using an ephemeral SPSSAsset.
+            A Batch using an ephemeral SPSSAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: SPSSAsset = self.add_parquet_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1453,7 +1453,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_sql().
 
         Returns:
-            SQLAsset: The SQLAsset that has been added to this datasource.
+            The SQLAsset that has been added to this datasource.
         """
         asset = SQLAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1481,7 +1481,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_sql().
 
         Returns:
-            Batch: A Batch using an ephemeral SQLAsset.
+            A Batch using an ephemeral SQLAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: SQLAsset = self.add_sql_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1510,7 +1510,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_sql_query().
 
         Returns:
-            SQLQueryAsset: The SQLQueryAsset that has been added to this datasource.
+            The SQLQueryAsset that has been added to this datasource.
         """
         asset = SQLQueryAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1538,7 +1538,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_sql_query().
 
         Returns:
-            Batch: A Batch using an ephemeral SQLQueryAsset.
+            A Batch using an ephemeral SQLQueryAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: SQLQueryAsset = self.add_sql_query_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1567,7 +1567,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_sql_table().
 
         Returns:
-            SQLTableAsset: The SQLTableAsset that has been added to this datasource.
+            The SQLTableAsset that has been added to this datasource.
         """
         asset = SQLTableAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1595,7 +1595,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_sql_table().
 
         Returns:
-            Batch: A Batch using an ephemeral SQLTableAsset.
+            A Batch using an ephemeral SQLTableAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: SQLTableAsset = self.add_sql_table_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1622,7 +1622,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_stata().
 
         Returns:
-            StataAsset: The StataAsset that has been added to this datasource.
+            The StataAsset that has been added to this datasource.
         """
         asset = StataAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1647,7 +1647,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_stata().
 
         Returns:
-            Batch: A Batch using an ephemeral StataAsset.
+            A Batch using an ephemeral StataAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: StataAsset = self.add_stata_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1673,7 +1673,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_table().
 
         Returns:
-            TableAsset: The TableAsset that has been added to this datasource.
+            The TableAsset that has been added to this datasource.
         """
         asset = TableAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1698,7 +1698,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_table().
 
         Returns:
-            Batch: A Batch using an ephemeral TableAsset.
+            A Batch using an ephemeral TableAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: TableAsset = self.add_table_asset(  # type: ignore[valid-type] # FIXME CoP
@@ -1724,7 +1724,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_xml().
 
         Returns:
-            XMLAsset: The XMLAsset that has been added to this datasource.
+            The XMLAsset that has been added to this datasource.
         """
         asset = XMLAsset(  # type: ignore[call-arg] # FIXME CoP
             name=name,
@@ -1749,7 +1749,7 @@ class PandasDatasource(_PandasDatasource):
             **kwargs: Additional keyword arguments to pass to pandas.read_xml().
 
         Returns:
-            Batch: A Batch using an ephemeral XMLAsset.
+            A Batch using an ephemeral XMLAsset.
         """
         name: str = self._validate_asset_name(asset_name=asset_name)
         asset: XMLAsset = self.add_xml_asset(  # type: ignore[valid-type] # FIXME CoP

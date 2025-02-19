@@ -792,7 +792,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
             name: The name of the Batch Definition to be added
 
         Returns:
-            BatchDefinition: The added BatchDefinition object.
+            The added BatchDefinition object.
         """
         return self.add_batch_definition(
             name=name,
@@ -817,7 +817,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 if one is not explicitly specified.
 
         Returns:
-            BatchDefinition: The added BatchDefinition object.
+            The added BatchDefinition object.
         """
 
         return self.add_batch_definition(
@@ -846,7 +846,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 if one is not explicitly specified.
 
         Returns:
-            BatchDefinition: The added BatchDefinition object.
+            The added BatchDefinition object.
         """
 
         return self.add_batch_definition(
@@ -877,7 +877,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 if one is not explicitly specified.
 
         Returns:
-            BatchDefinition: The added BatchDefinition object.
+            The added BatchDefinition object.
         """
 
         return self.add_batch_definition(
@@ -1298,7 +1298,7 @@ class SQLDatasource(Datasource):
             batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches derived from it.
 
         Returns:
-            TableAsset: The table asset that is added to the datasource.
+            The table asset that is added to the datasource.
             The type of this object will match the necessary type for this datasource.
             eg, it could be a TableAsset or a SqliteTableAsset.
         """  # noqa: E501 # FIXME CoP
@@ -1327,7 +1327,7 @@ class SQLDatasource(Datasource):
             batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches derived from it.
 
         Returns:
-            QueryAsset: The query asset that is added to the datasource.
+            The query asset that is added to the datasource.
             The type of this object will match the necessary type for this datasource.
             eg, it could be a QueryAsset or a SqliteQueryAsset.
         """  # noqa: E501 # FIXME CoP
