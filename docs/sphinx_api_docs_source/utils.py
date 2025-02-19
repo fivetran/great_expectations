@@ -116,6 +116,7 @@ def create_table(soup, item, dd, title):
     parent_div.append(table)
     add_table_title(soup, table, title)
 
+
 def closest_return_type(dd):
     method = dd.find_parent("dl", class_="py")
     type_text = ""
@@ -124,6 +125,7 @@ def closest_return_type(dd):
         if code_block is not None and "→" in code_block.get_text():
             type_text = code_block.get_text().replace("`}", "").split("→")[-1]
     return type_text.strip()
+
 
 def add_section_title(soup, items, title):
     wrapper_div = soup.new_tag("div")
@@ -182,6 +184,7 @@ def create_row(soup, tbody, columns):
         new_row.append(new_cell)
 
     tbody.append(new_row)
+
 
 def add_table_title(soup, table, title):
     title_h4 = soup.new_tag("h4")
