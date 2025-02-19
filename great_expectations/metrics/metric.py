@@ -1,10 +1,9 @@
-import re
 from functools import cache
 from typing import ClassVar, Final
 
 from typing_extensions import dataclass_transform
 
-from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass
+from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass, StrictStr
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
@@ -21,6 +20,11 @@ class MixinTypeError(TypeError):
         )
 
 
+class MissingAttributeError(AttributeError):
+    def __init__(self, class_name: str, attribute_name: str) -> None:
+        super().__init__(f"`{class_name}` must define the `{attribute_name}` attribute.")
+
+
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
     def __new__(cls, name, bases, attrs):
@@ -30,6 +34,8 @@ class MetaMetric(ModelMetaclass):
             or not any(issubclass(base_type, Domain) for base_type in bases)
         ):
             raise MixinTypeError(name, "Domain")
+        if name != "Metric" and not attrs.get("name"):
+            raise MissingAttributeError(name, "name")
         return super().__new__(cls, name, bases, attrs)
 
 
@@ -61,7 +67,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
         MetricConfiguration: Configuration class for metric computation
     """
 
-    name: ClassVar[str]
+    name: ClassVar[StrictStr]
 
     class Config:
         arbitrary_types_allowed = True
@@ -70,7 +76,6 @@ class Metric(BaseModel, metaclass=MetaMetric):
     def __new__(cls, *args, **kwargs):
         if cls is Metric:
             raise AbstractClassInstantiationError(cls.__name__)
-        cls.name = cls._get_metric_name()
         return super().__new__(cls)
 
     @property
@@ -83,41 +88,6 @@ class Metric(BaseModel, metaclass=MetaMetric):
             instance_class=self.__class__,
             metric_value_set=frozenset(self.dict().items()),
         )
-
-    @staticmethod
-    def _pascal_to_snake(class_name: str) -> str:
-        # Adds an underscore between a sequence of uppercase letters and an uppercase-lowercase pair
-        # APIFunctionMetric -> API_FunctionMetric
-        class_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", class_name)
-        # Adds an underscore between a lowercase letter/digit and an uppercase letter
-        # APIFunctionMetric -> API_Function_Metric
-        class_name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", class_name)
-        # Convert the entire string to lowercase
-        # API_Function_Metric -> api_function_metric
-        return class_name.lower()
-
-    @classmethod
-    def _get_metric_name(cls) -> str:
-        """The name of the metric as it exists in the registry."""
-        for base_type in cls.__bases__:
-            if issubclass(base_type, Domain):
-                domain_class_name = str(base_type.__name__)
-                metric_class_name = str(cls.__name__)
-                domain_class_snake_case = Metric._pascal_to_snake(domain_class_name)
-                translated_domain_name = domain_class_snake_case.replace("batch", "table")
-                metric_class_snake_case = Metric._pascal_to_snake(metric_class_name)
-                # the convention is that the metric class name includes the domain class name
-                # but the metric names don't repeat the domain name, so we remove it
-                return ".".join(
-                    [
-                        translated_domain_name,
-                        metric_class_snake_case.replace(domain_class_snake_case, "").strip("_"),
-                    ]
-                )
-
-        # this should never be reached
-        # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
-        raise MixinTypeError(cls.__name__, "Domain")
 
     @staticmethod
     @cache

@@ -3,7 +3,7 @@ import pytest
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.core.types import Comparable
 from great_expectations.metrics.domain import AbstractClassInstantiationError, ColumnValues, Domain
-from great_expectations.metrics.metric import Metric, MixinTypeError
+from great_expectations.metrics.metric import Metric, MissingAttributeError, MixinTypeError
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -34,6 +34,8 @@ class TestMetricDefinition:
     @pytest.mark.unit
     def test_success(self):
         class ColumnValuesAbove(Metric, ColumnValues):
+            name = "column_values.above"
+
             min_value: Comparable
             strict_min: bool = False
 
@@ -42,6 +44,8 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric):
+                name = "column_values.above"
+
                 min_value: Comparable
                 strict_min: bool = False
 
@@ -50,6 +54,8 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric, ColumnValues, MockDomain):
+                name = "column_values.above"
+
                 min_value: Comparable
                 strict_min: bool = False
 
@@ -58,28 +64,24 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric, NotADomain):
+                name = "column_values.above"
+
                 min_value: Comparable
                 strict_min: bool = False
 
     @pytest.mark.unit
-    def test_metric_name_inference(self):
-        class ColumnValuesAbove(Metric, ColumnValues):
-            min_value: Comparable
-            strict_min: bool = False
+    def test_missing_name_raises(self):
+        with pytest.raises(MissingAttributeError):
 
-        assert (
-            ColumnValuesAbove(
-                batch_id=BATCH_ID,
-                table=TABLE,
-                column=COLUMN,
-                min_value=42,
-            ).name
-            == FULLY_QUALIFIED_METRIC_NAME
-        )
+            class ColumnValuesAbove(Metric, ColumnValues):
+                min_value: Comparable
+                strict_min: bool = False
 
 
 class TestMetricInstantiation:
     class ColumnValuesAbove(Metric, ColumnValues):
+        name = "column_values.above"
+
         min_value: Comparable
         strict_min: bool = False
 
@@ -100,6 +102,8 @@ class TestMetricInstantiation:
 
 class TestMetricConfig:
     class ColumnValuesAbove(Metric, ColumnValues):
+        name = "column_values.above"
+
         min_value: Comparable
         strict_min: bool = False
 
@@ -134,6 +138,8 @@ class TestMetricConfig:
 
 class TestMetricImmutability:
     class ColumnValuesAbove(Metric, ColumnValues):
+        name = "column_values.above"
+
         min_value: Comparable
         strict_min: bool = False
 
