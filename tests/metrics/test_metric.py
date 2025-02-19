@@ -10,7 +10,6 @@ from great_expectations.validator.metric_configuration import (
 )
 
 BATCH_ID = "my_data_source-my_data_asset-year_2025"
-TABLE = "my_table"
 COLUMN = "my_column"
 
 FULLY_QUALIFIED_METRIC_NAME = "column_values.above"
@@ -27,7 +26,7 @@ class TestMetric:
     @pytest.mark.unit
     def test_metric_instantiation_raises(self):
         with pytest.raises(AbstractClassInstantiationError):
-            Metric(batch_id=BATCH_ID, table=TABLE, column=COLUMN)
+            Metric(batch_id=BATCH_ID, column=COLUMN)
 
 
 class TestMetricDefinition:
@@ -81,7 +80,6 @@ class TestMetricInstantiation:
     def test_instantiation_success(self):
         self.ColumnValuesAbove(
             batch_id=BATCH_ID,
-            table=TABLE,
             column=COLUMN,
             min_value=42,
         )
@@ -105,7 +103,6 @@ class TestMetricConfig:
             metric_name=FULLY_QUALIFIED_METRIC_NAME,
             metric_domain_kwargs={
                 "batch_id": BATCH_ID,
-                "table": TABLE,
                 "row_condition": None,
                 "column": COLUMN,
             },
@@ -117,7 +114,6 @@ class TestMetricConfig:
 
         actual_config = self.ColumnValuesAbove(
             batch_id=BATCH_ID,
-            table=TABLE,
             column=COLUMN,
             min_value=42,
         ).config
@@ -139,19 +135,17 @@ class TestMetricImmutability:
     def test_domain_kwarg_immutability_success(self):
         column_values_above = self.ColumnValuesAbove(
             batch_id=BATCH_ID,
-            table=TABLE,
             column=COLUMN,
             min_value=42,
         )
 
         with pytest.raises(TypeError):
-            column_values_above.table = "updated_table"
+            column_values_above.column = "updated_column"
 
     @pytest.mark.unit
     def test_value_kwarg_immutability_success(self):
         column_values_above = self.ColumnValuesAbove(
             batch_id=BATCH_ID,
-            table=TABLE,
             column=COLUMN,
             min_value=42,
         )

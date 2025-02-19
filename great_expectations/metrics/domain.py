@@ -25,7 +25,6 @@ class Domain(BaseModel):
 class Values(Domain):
     """The abstract base class for metric domain types that compute row-level calculations."""
 
-    table: Optional[StrictStr] = None
     row_condition: Optional[StrictStr] = None
 
     def __new__(cls, *args, **kwargs):
@@ -69,6 +68,5 @@ class Batch(Domain):
     with the Metric class when defining a new Metric.
     """
 
-    table: Optional[NonEmptyString] = None
     row_condition: Optional[StrictStr] = None
     condition_parser: Optional[ConditionParser] = None
