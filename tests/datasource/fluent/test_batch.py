@@ -12,6 +12,7 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, Datasource
 from great_expectations.expectations.expectation import Expectation
 from great_expectations.metrics import ColumnValuesBetween
+from great_expectations.metrics.column_values.between import ColumnValuesBetweenResult
 from great_expectations.metrics.metric_results import MetricResult
 
 DATASOURCE_NAME = "my_pandas"
@@ -306,3 +307,6 @@ def test_batch_compute_metrics_success(
     )
     metric_results: list[MetricResult] | MetricResult = batch.compute_metrics(metric)
     assert isinstance(metric_results, list)
+    assert any(
+        isinstance(metric_result, ColumnValuesBetweenResult) for metric_result in metric_results
+    )

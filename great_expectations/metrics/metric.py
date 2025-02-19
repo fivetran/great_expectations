@@ -1,11 +1,12 @@
 import re
 from functools import cache
-from typing import ClassVar, Final
+from typing import ClassVar, Final, Generic, TypeVar
 
-from typing_extensions import dataclass_transform
+from typing_extensions import dataclass_transform, get_args
 
 from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
+from great_expectations.metrics.metric_results import MetricResult
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -33,7 +34,10 @@ class MetaMetric(ModelMetaclass):
         return super().__new__(cls, name, bases, attrs)
 
 
-class Metric(BaseModel, metaclass=MetaMetric):
+_MetricResult = TypeVar("_MetricResult", bound=MetricResult)
+
+
+class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     """The abstract base class for defining all metrics.
 
     A Metric represents a measurable property that can be computed over a specific domain
@@ -84,6 +88,10 @@ class Metric(BaseModel, metaclass=MetaMetric):
             instance_class=self.__class__,
             metric_value_set=frozenset(self.dict().items()),
         )
+
+    @classmethod
+    def get_metric_result_type(cls) -> type[_MetricResult]:
+        return get_args(cls.__orig_bases__[0])[0]  # type: ignore[attr-defined]  # fix this before merge
 
     @staticmethod
     def _pascal_to_snake(class_name: str) -> str:

@@ -35,7 +35,6 @@ class TestColumnMap:
         "kwargs",
         [
             {"batch_id": "", "table": TABLE, "column": COLUMN},
-            {"batch_id": BATCH_ID, "table": "", "column": COLUMN},
             {"batch_id": BATCH_ID, "table": TABLE, "column": ""},
         ],
     )

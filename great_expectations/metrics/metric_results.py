@@ -10,6 +10,9 @@ class MetricResult(GenericModel, Generic[_MetricResultValue]):
     id: MetricConfigurationID
     value: _MetricResultValue
 
+    class Config:
+        arbitrary_types_allowed = True
+
 
 class MetricErrorResult(MetricResult[dict[str, Union[int, dict, str]]]): ...
 
@@ -35,6 +38,3 @@ class UnexpectedValuesResult(MetricResult[list[Any]]): ...
 
 
 class TableRowCountResult(MetricResult[int]): ...
-
-
-class ColumnValuesBetweenResult(MetricResult[tuple[int, bool]]): ...
