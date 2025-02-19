@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas
 import pytest
 
-from great_expectations.metrics.batch.batch import BatchRowCount
+from great_expectations.metrics.batch.row_count import BatchRowCount, BatchRowCountResult
 from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
@@ -36,6 +36,7 @@ class TestBatchRowCount:
         with batch_setup.batch_test_context() as batch:
             metric = BatchRowCount(batch_id=batch.id)
             metric_result = batch.compute_metrics(metric)
+            assert isinstance(metric_result, BatchRowCountResult)
             assert metric_result.value == self.ROW_COUNT
 
     @pytest.mark.spark
@@ -50,6 +51,7 @@ class TestBatchRowCount:
                 batch_id=batch.id,
             )
             metric_result = batch.compute_metrics(metric)
+            assert isinstance(metric_result, BatchRowCountResult)
             assert metric_result.value == self.ROW_COUNT
 
     @pytest.mark.postgresql
@@ -60,4 +62,5 @@ class TestBatchRowCount:
         with batch_setup.batch_test_context() as batch:
             metric = BatchRowCount(batch_id=batch.id)
             metric_result = batch.compute_metrics(metric)
+            assert isinstance(metric_result, BatchRowCountResult)
             assert metric_result.value == self.ROW_COUNT

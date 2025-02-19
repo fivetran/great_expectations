@@ -57,6 +57,7 @@ from great_expectations.exceptions.exceptions import (
     DataContextError,
     MissingDataContextError,
 )
+from great_expectations.metrics.batch.row_count import BatchRowCount
 from great_expectations.metrics.metric import Metric, _MetricResult
 from great_expectations.metrics.metric_results import MetricErrorResult, MetricResult
 from great_expectations.validator.metrics_calculator import (
@@ -1313,5 +1314,7 @@ class Batch:
         # TODO: Something more generic here
         if metric_name == ColumnValuesBetween.name:
             return ColumnValuesBetween.get_metric_result_type()
+        elif metric_name == BatchRowCount.name:
+            return BatchRowCount.get_metric_result_type()
         else:
             return MetricResult
