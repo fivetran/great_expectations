@@ -58,7 +58,7 @@ from great_expectations.exceptions.exceptions import (
     MissingDataContextError,
 )
 from great_expectations.metrics.metric import Metric, _MetricResult
-from great_expectations.metrics.metric_results import MetricResult
+from great_expectations.metrics.metric_results import MetricErrorResult, MetricResult
 from great_expectations.validator.metrics_calculator import (
     MetricsCalculator,
     _AbortedMetricsInfoDict,
@@ -1258,53 +1258,47 @@ class Batch:
         execution_engine.batch_manager.load_batch_list(batch_list=[self])
         metrics_calculator = MetricsCalculator(execution_engine=execution_engine)
 
+        requested_metric_names = [metric.name for metric in metrics]
         metrics_calculator_result = metrics_calculator.compute_metrics(
             metric_configurations=[metric.config for metric in metrics],
             runtime_configuration=None,
         )
-        return self.metrics_calculator_result_to_metric_result(metrics_calculator_result)
+        return self.metrics_calculator_result_to_metric_result(
+            requested_metric_names=requested_metric_names,
+            metrics_calculator_result=metrics_calculator_result,
+        )
 
     @classmethod
     def metrics_calculator_result_to_metric_result(
         cls,
+        requested_metric_names: list[str],
         metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict],
     ) -> MetricResult | list[MetricResult]:
         raw_metrics = metrics_calculator_result[0]
         raw_metrics_errors = metrics_calculator_result[1]
-        if len(raw_metrics) + len(raw_metrics_errors) == 1:
-            metric_result_dict = raw_metrics or raw_metrics_errors
-            metric_configuration_id = next(iter(metric_result_dict))
-            value = metric_result_dict[metric_configuration_id]
-            MetricResultType = cls.get_metric_result_type_from_metric_name(
-                metric_configuration_id.metric_name
-            )
-            return MetricResultType(
-                id=metric_configuration_id,
-                value=value,
-            )
-        else:
-            metric_results = []
+        metric_results = []
+        for metric_name in requested_metric_names:
+            MetricResultType = cls.get_metric_result_type_from_metric_name(metric_name)
             for metric_configuration_id, value in raw_metrics.items():
-                MetricResultType = cls.get_metric_result_type_from_metric_name(
-                    metric_configuration_id.metric_name
-                )
-                metric_results.append(
-                    MetricResultType(
-                        id=metric_configuration_id,
-                        value=value,
+                if metric_configuration_id.metric_name == metric_name:
+                    metric_results.append(
+                        MetricResultType(
+                            id=metric_configuration_id,
+                            value=value,
+                        )
                     )
-                )
             for metric_configuration_id, value in raw_metrics_errors.items():
-                MetricResultType = cls.get_metric_result_type_from_metric_name(
-                    metric_configuration_id.metric_name
-                )
-                metric_results.append(
-                    MetricResultType(
-                        id=metric_configuration_id,
-                        value=value,
+                if metric_configuration_id.metric_name == metric_name:
+                    metric_results.append(
+                        MetricErrorResult(
+                            id=metric_configuration_id,
+                            value=value,
+                        )
                     )
-                )
-            return metric_results
+
+        if len(metric_results) == 1:
+            return metric_results[0]
+        return metric_results
 
     @classmethod
     def get_metric_result_type_from_metric_name(

@@ -12,6 +12,7 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, Datasource
 from great_expectations.expectations.expectation import Expectation
 from great_expectations.metrics import ColumnValuesBetween
+from great_expectations.metrics.batch.batch import BatchRowCount
 from great_expectations.metrics.column_values.between import ColumnValuesBetweenResult
 from great_expectations.metrics.metric_results import MetricResult
 
@@ -296,7 +297,7 @@ def test_batch_validate_expectation_suite_does_not_persist_a_batch_definition(
 
 
 @pytest.mark.filesystem
-def test_batch_compute_metrics_success(
+def test_batch_compute_metrics_single_metric_success(
     pandas_setup: Tuple[AbstractDataContext, Batch],
 ):
     _, batch = pandas_setup
@@ -306,7 +307,21 @@ def test_batch_compute_metrics_success(
         min_value=0,
     )
     metric_results: list[MetricResult] | MetricResult = batch.compute_metrics(metric)
-    assert isinstance(metric_results, list)
-    assert any(
-        isinstance(metric_result, ColumnValuesBetweenResult) for metric_result in metric_results
+    assert isinstance(metric_results, ColumnValuesBetweenResult)
+
+
+@pytest.mark.filesystem
+def test_batch_compute_metrics_multiple_metrics_success(
+    pandas_setup: Tuple[AbstractDataContext, Batch],
+):
+    _, batch = pandas_setup
+    metric_1 = ColumnValuesBetween(
+        batch_id=batch.id,
+        column="passenger_count",
+        min_value=0,
     )
+    metric_2 = BatchRowCount(batch_id=batch.id)
+    metric_results: list[MetricResult] | MetricResult = batch.compute_metrics([metric_1, metric_2])
+    assert isinstance(metric_results, list)
+    assert isinstance(metric_results[0], ColumnValuesBetweenResult)
+    assert isinstance(metric_results[1], MetricResult)
