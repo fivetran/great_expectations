@@ -95,37 +95,35 @@ def create_table(soup, item, dd, title):
     else:
         create_header_row(soup, table, ["Type", "Description"])
 
+    p = dd.find("p")
+    columns = []
+
     if title in ("Parameters", "Raises"):
-        for p in dd.select("p"):
-            columns = p.get_text().split(" – ")  # noqa: RUF001
-            if len(columns) == 2:
-                create_row(soup, tbody, columns)
-        dd.find_previous_sibling("dt").extract()
-        dd.extract()
-
+        columns = p.get_text().split(" – ")  # noqa: RUF001
+        if len(columns) != 2:
+            return
     if title == "Returns":
-        populate_return_table_body(soup, dd, tbody)
+        type_text = closest_return_type(dd)
+        if type_text == "":
+            return
+        columns = [type_text, p.get_text()]
 
+    create_row(soup, tbody, columns)
+    dd.find_previous_sibling("dt").extract()
+    dd.extract()
     table.append(tbody)
     parent_div = item.parent
     parent_div.append(table)
     add_table_title(soup, table, title)
 
-
-def populate_return_table_body(soup, dd, tbody):
-    return_type_dt = dd.find_next_sibling("dt")
-    if return_type_dt is not None and return_type_dt.get_text() == "Return type":
-        type_text = return_type_dt.find_next_sibling("dd")
-        if type_text is not None:
-            for p in dd.select("p"):
-                columns = [type_text.get_text(), p.get_text()]
-                if len(columns) == 2:
-                    create_row(soup, tbody, columns)
-        type_text.extract()
-        return_type_dt.extract()
-        dd.find_previous_sibling("dt").extract()
-        dd.extract()
-
+def closest_return_type(dd):
+    method = dd.find_parent("dl", class_="py")
+    type_text = ""
+    if method is not None:
+        code_block = method.select("CodeBlock")[-1]
+        if code_block is not None and "→" in code_block.get_text():
+            type_text = code_block.get_text().replace("`}", "").split("→")[-1]
+    return type_text.strip()
 
 def add_section_title(soup, items, title):
     wrapper_div = soup.new_tag("div")
@@ -184,7 +182,6 @@ def create_row(soup, tbody, columns):
         new_row.append(new_cell)
 
     tbody.append(new_row)
-
 
 def add_table_title(soup, table, title):
     title_h4 = soup.new_tag("h4")

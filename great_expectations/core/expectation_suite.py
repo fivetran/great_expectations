@@ -383,7 +383,7 @@ class ExpectationSuite(SerializableDictDot):
         """Returns a JSON-serializable dict representation of this ExpectationSuite.
 
         Returns:
-            Dict: A JSON-serializable dict representation of this ExpectationSuite.
+            A JSON-serializable dict representation of this ExpectationSuite.
         """
         myself = expectationSuiteSchema.dump(self)
         # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501 # FIXME CoP

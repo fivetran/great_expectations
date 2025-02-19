@@ -1841,7 +1841,7 @@ class DataContextConfig(BaseYamlConfig):
         """Returns a JSON-serializable dict representation of this DataContextConfig.
 
         Returns:
-            Dict: A JSON-serializable dict representation of this DataContextConfig.
+            A JSON-serializable dict representation of this DataContextConfig.
         """
         # TODO: <Alex>2/4/2022</Alex>
         # This implementation of "SerializableDictDot.to_json_dict() occurs frequently and should ideally serve as the  # noqa: E501 # FIXME CoP

@@ -88,7 +88,7 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
             batch_parameters: Additional parameters to be used in fetching the batch.
 
         Returns:
-            Batch: A Batch of data.
+            A Batch of data.
         """
         batch_request = self.build_batch_request(batch_parameters=batch_parameters)
         return self.data_asset.get_batch(batch_request)
@@ -106,7 +106,7 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
                 list.
 
         Returns:
-            List[Dict]: A list of batch identifiers.
+            A list of batch identifiers.
         """
         batch_request = self.build_batch_request(batch_parameters=batch_parameters)
         return self.data_asset.get_batch_identifiers_list(batch_request)

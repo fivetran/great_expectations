@@ -83,7 +83,7 @@ class EphemeralDataContext(AbstractDataContext):
         Scaffolds a file-backed project structure in the current working directory.
 
         Returns:
-            FileDataContext: A FileDataContext with an updated config to reflect the state of the
+            A FileDataContext with an updated config to reflect the state of the
             current context.
         """
         self._synchronize_fluent_datasources()
