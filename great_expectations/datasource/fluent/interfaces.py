@@ -1262,10 +1262,11 @@ class Batch:
             metric_configurations=[metric.config for metric in metrics],
             runtime_configuration=None,
         )
-        return self._metrics_calculator_result_to_metric_result(metrics_calculator_result)
+        return self.metrics_calculator_result_to_metric_result(metrics_calculator_result)
 
-    @staticmethod
-    def _metrics_calculator_result_to_metric_result(
+    @classmethod
+    def metrics_calculator_result_to_metric_result(
+        cls,
         metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict],
     ) -> MetricResult | list[MetricResult]:
         raw_metrics = metrics_calculator_result[0]
@@ -1274,7 +1275,7 @@ class Batch:
             metric_result_dict = raw_metrics or raw_metrics_errors
             metric_configuration_id = next(iter(metric_result_dict))
             value = metric_result_dict[metric_configuration_id]
-            MetricResultType = Batch._get_metric_result_type_from_metric_name(
+            MetricResultType = cls.get_metric_result_type_from_metric_name(
                 metric_configuration_id.metric_name
             )
             return MetricResultType(
@@ -1284,7 +1285,7 @@ class Batch:
         else:
             metric_results = []
             for metric_configuration_id, value in raw_metrics.items():
-                MetricResultType = Batch._get_metric_result_type_from_metric_name(
+                MetricResultType = cls.get_metric_result_type_from_metric_name(
                     metric_configuration_id.metric_name
                 )
                 metric_results.append(
@@ -1294,7 +1295,7 @@ class Batch:
                     )
                 )
             for metric_configuration_id, value in raw_metrics_errors.items():
-                MetricResultType = Batch._get_metric_result_type_from_metric_name(
+                MetricResultType = cls.get_metric_result_type_from_metric_name(
                     metric_configuration_id.metric_name
                 )
                 metric_results.append(
@@ -1305,8 +1306,9 @@ class Batch:
                 )
             return metric_results
 
-    @staticmethod
-    def _get_metric_result_type_from_metric_name(
+    @classmethod
+    def get_metric_result_type_from_metric_name(
+        cls,
         metric_name: str,
     ) -> type[_MetricResult | MetricResult]:
         from great_expectations.metrics import ColumnValuesBetween
