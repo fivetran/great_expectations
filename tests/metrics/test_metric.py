@@ -34,7 +34,7 @@ class TestMetricDefinition:
     @pytest.mark.unit
     def test_success(self):
         class ColumnValuesAbove(Metric, ColumnValues):
-            name = "column_values.above"
+            name = FULLY_QUALIFIED_METRIC_NAME
 
             min_value: Comparable
             strict_min: bool = False
@@ -44,7 +44,7 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric):
-                name = "column_values.above"
+                name = FULLY_QUALIFIED_METRIC_NAME
 
                 min_value: Comparable
                 strict_min: bool = False
@@ -54,7 +54,7 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric, ColumnValues, MockDomain):
-                name = "column_values.above"
+                name = FULLY_QUALIFIED_METRIC_NAME
 
                 min_value: Comparable
                 strict_min: bool = False
@@ -64,7 +64,7 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric, NotADomain):
-                name = "column_values.above"
+                name = FULLY_QUALIFIED_METRIC_NAME
 
                 min_value: Comparable
                 strict_min: bool = False
@@ -80,7 +80,7 @@ class TestMetricDefinition:
 
 class TestMetricInstantiation:
     class ColumnValuesAbove(Metric, ColumnValues):
-        name = "column_values.above"
+        name = FULLY_QUALIFIED_METRIC_NAME
 
         min_value: Comparable
         strict_min: bool = False
@@ -102,7 +102,7 @@ class TestMetricInstantiation:
 
 class TestMetricConfig:
     class ColumnValuesAbove(Metric, ColumnValues):
-        name = "column_values.above"
+        name = FULLY_QUALIFIED_METRIC_NAME
 
         min_value: Comparable
         strict_min: bool = False
@@ -138,7 +138,7 @@ class TestMetricConfig:
 
 class TestMetricImmutability:
     class ColumnValuesAbove(Metric, ColumnValues):
-        name = "column_values.above"
+        name = FULLY_QUALIFIED_METRIC_NAME
 
         min_value: Comparable
         strict_min: bool = False
