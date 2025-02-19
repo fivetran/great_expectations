@@ -1177,8 +1177,7 @@ class Batch:
                                     to be used for this validation run.
 
         Returns:
-            ExpectationValidationResult or ExpectationSuiteValidationResult: An
-            ExpectationValidationResult or ExpectationSuiteValidationResult object.
+            An ExpectationValidationResult or ExpectationSuiteValidationResult object.
 
         Raises:
             ValueError: If the expect argument is not an Expectation or an ExpectationSuite.
