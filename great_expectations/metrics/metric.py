@@ -68,6 +68,8 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
         MetricConfiguration: Configuration class for metric computation
     """
 
+    # we wouldn't mind removing this `name` attribute
+    # it's currently used by the legacy metrics system
     name: ClassVar[StrictStr]
 
     class Config:
