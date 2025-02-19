@@ -1577,9 +1577,7 @@ class BatchExpectation(Expectation, ABC):
 
     batch_id: Union[str, None] = None
 
-    domain_keys: ClassVar[Tuple[str, ...]] = (
-        "batch_id",
-    )
+    domain_keys: ClassVar[Tuple[str, ...]] = ("batch_id",)
     metric_dependencies: ClassVar[Tuple[str, ...]] = ()
     domain_type: ClassVar[MetricDomainTypes] = MetricDomainTypes.TABLE
     args_keys: ClassVar[Tuple[str, ...]] = ()
