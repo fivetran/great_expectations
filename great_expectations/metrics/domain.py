@@ -24,7 +24,7 @@ class Domain(BaseModel):
 class Values(Domain):
     """The abstract base class for metric domain types that compute row-level calculations."""
 
-    table: NonEmptyString
+    table: Optional[StrictStr] = None
     row_condition: Optional[StrictStr] = None
 
     def __new__(cls, *args, **kwargs):

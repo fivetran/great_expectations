@@ -57,7 +57,13 @@ from great_expectations.exceptions.exceptions import (
     DataContextError,
     MissingDataContextError,
 )
-from great_expectations.validator.metrics_calculator import MetricsCalculator
+from great_expectations.metrics.metric import Metric
+from great_expectations.metrics.metric_results import MetricResult
+from great_expectations.validator.metrics_calculator import (
+    MetricsCalculator,
+    _AbortedMetricsInfoDict,
+    _MetricsDict,
+)
 
 logger = logging.getLogger(__name__)
 from great_expectations.datasource.fluent.data_connector import (
@@ -1243,3 +1249,49 @@ class Batch:
             batch_parameters=self.batch_request.options,
             result_format=result_format,
         )
+
+    def compute_metrics(self, metrics: Metric | list[Metric]) -> MetricResult | list[MetricResult]:
+        if isinstance(metrics, Metric):
+            metrics = [metrics]
+
+        execution_engine = self.data.execution_engine
+        execution_engine.batch_manager.load_batch_list(batch_list=[self])
+        metrics_calculator = MetricsCalculator(execution_engine=execution_engine)
+
+        raw_results = metrics_calculator.compute_metrics(
+            metric_configurations=[metric.config for metric in metrics],
+            runtime_configuration=None,
+        )
+        return self._metrics_calculator_result_to_metric_result(raw_results)
+
+    @staticmethod
+    def _metrics_calculator_result_to_metric_result(
+        metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict],
+    ) -> MetricResult | list[MetricResult]:
+        metrics = metrics_calculator_result[0]
+        metrics_errors = metrics_calculator_result[1]
+        if len(metrics) + len(metrics_errors) == 1:
+            metric_result_dict = metrics or metrics_errors
+            metric_configuration_id = next(iter(metric_result_dict))
+            value = metric_result_dict[metric_configuration_id]
+            return MetricResult(
+                id=metric_configuration_id,
+                value=value,
+            )
+        else:
+            metric_results = []
+            for metric_configuration_id, value in metrics.items():
+                metric_results.append(
+                    MetricResult(
+                        id=metric_configuration_id,
+                        value=value,
+                    )
+                )
+            for metric_configuration_id, value in metrics_errors.items():
+                metric_results.append(
+                    MetricResult(
+                        id=metric_configuration_id,
+                        value=value,
+                    )
+                )
+            return metric_results

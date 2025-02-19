@@ -62,6 +62,7 @@ class Metric(BaseModel, metaclass=MetaMetric):
     """
 
     name: ClassVar[str]
+    condition_metric: ClassVar[bool] = False
 
     class Config:
         arbitrary_types_allowed = True
@@ -107,12 +108,15 @@ class Metric(BaseModel, metaclass=MetaMetric):
                 metric_class_snake_case = Metric._pascal_to_snake(metric_class_name)
                 # the convention is that the metric class name includes the domain class name
                 # but the metric names don't repeat the domain name, so we remove it
-                return ".".join(
-                    [
-                        domain_class_snake_case,
-                        metric_class_snake_case.replace(domain_class_snake_case, "").strip("_"),
-                    ]
-                )
+                metric_name_parts = [
+                    domain_class_snake_case,
+                    metric_class_snake_case.replace(domain_class_snake_case, "").strip("_"),
+                ]
+                # in the legacy system some metrics have a "condition_metric_name"
+                # instead of a "metric_name" and those get "condition" appended as a result
+                if cls.condition_metric:
+                    metric_name_parts.append("condition")
+                return ".".join(metric_name_parts)
 
         # this should never be reached
         # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__

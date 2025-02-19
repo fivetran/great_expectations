@@ -6,6 +6,8 @@ from great_expectations.metrics.metric import Metric
 
 
 class ColumnValuesBetween(Metric, ColumnValues):
+    condition_metric = True
+
     min_value: Optional[Comparable] = None
     max_value: Optional[Comparable] = None
     strict_min: bool = False

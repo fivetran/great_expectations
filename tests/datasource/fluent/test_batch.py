@@ -11,6 +11,8 @@ from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, Datasource
 from great_expectations.expectations.expectation import Expectation
+from great_expectations.metrics import ColumnValuesBetween
+from great_expectations.metrics.metric_results import MetricResult
 
 DATASOURCE_NAME = "my_pandas"
 ASSET_NAME = "my_csv"
@@ -290,3 +292,17 @@ def test_batch_validate_expectation_suite_does_not_persist_a_batch_definition(
 
     assert result.success
     assert len(asset.batch_definitions) == 0
+
+
+@pytest.mark.filesystem
+def test_batch_compute_metrics_success(
+    pandas_setup: Tuple[AbstractDataContext, Batch],
+):
+    _, batch = pandas_setup
+    metric = ColumnValuesBetween(
+        batch_id=batch.id,
+        column="vendor_id",
+        min_value=0,
+    )
+    metric_results: list[MetricResult] | MetricResult = batch.compute_metrics(metric)
+    assert isinstance(metric_results, list)
