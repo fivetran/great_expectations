@@ -34,6 +34,8 @@ class TestMetricDefinition:
     @pytest.mark.unit
     def test_success(self):
         class ColumnValuesAbove(Metric, ColumnValues):
+            name = FULLY_QUALIFIED_METRIC_NAME
+
             min_value: Comparable
             strict_min: bool = False
 
@@ -42,6 +44,8 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric):
+                name = FULLY_QUALIFIED_METRIC_NAME
+
                 min_value: Comparable
                 strict_min: bool = False
 
@@ -50,6 +54,8 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric, ColumnValues, MockDomain):
+                name = FULLY_QUALIFIED_METRIC_NAME
+
                 min_value: Comparable
                 strict_min: bool = False
 
@@ -58,28 +64,16 @@ class TestMetricDefinition:
         with pytest.raises(MixinTypeError):
 
             class ColumnValuesAbove(Metric, NotADomain):
+                name = FULLY_QUALIFIED_METRIC_NAME
+
                 min_value: Comparable
                 strict_min: bool = False
-
-    @pytest.mark.unit
-    def test_metric_name_inference(self):
-        class ColumnValuesAbove(Metric, ColumnValues):
-            min_value: Comparable
-            strict_min: bool = False
-
-        assert (
-            ColumnValuesAbove(
-                batch_id=BATCH_ID,
-                table=TABLE,
-                column=COLUMN,
-                min_value=42,
-            ).name
-            == FULLY_QUALIFIED_METRIC_NAME
-        )
 
 
 class TestMetricInstantiation:
     class ColumnValuesAbove(Metric, ColumnValues):
+        name = FULLY_QUALIFIED_METRIC_NAME
+
         min_value: Comparable
         strict_min: bool = False
 
@@ -100,6 +94,8 @@ class TestMetricInstantiation:
 
 class TestMetricConfig:
     class ColumnValuesAbove(Metric, ColumnValues):
+        name = FULLY_QUALIFIED_METRIC_NAME
+
         min_value: Comparable
         strict_min: bool = False
 
@@ -134,6 +130,8 @@ class TestMetricConfig:
 
 class TestMetricImmutability:
     class ColumnValuesAbove(Metric, ColumnValues):
+        name = FULLY_QUALIFIED_METRIC_NAME
+
         min_value: Comparable
         strict_min: bool = False
 

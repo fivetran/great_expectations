@@ -1,10 +1,9 @@
-import re
 from functools import cache
 from typing import ClassVar, Final, Generic, TypeVar
 
 from typing_extensions import dataclass_transform, get_args
 
-from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass
+from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass, StrictStr
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
 from great_expectations.metrics.metric_results import MetricResult
 from great_expectations.validator.metric_configuration import (
@@ -65,8 +64,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
         MetricConfiguration: Configuration class for metric computation
     """
 
-    name: ClassVar[str]
-    condition_metric: ClassVar[bool] = False
+    name: ClassVar[StrictStr]
 
     class Config:
         arbitrary_types_allowed = True
@@ -75,7 +73,6 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     def __new__(cls, *args, **kwargs):
         if cls is Metric:
             raise AbstractClassInstantiationError(cls.__name__)
-        cls.name = cls._get_metric_name()
         return super().__new__(cls)
 
     @property
@@ -92,43 +89,6 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     @classmethod
     def get_metric_result_type(cls) -> type[_MetricResult]:
         return get_args(cls.__orig_bases__[0])[0]  # type: ignore[attr-defined]  # fix this before merge
-
-    @staticmethod
-    def _pascal_to_snake(class_name: str) -> str:
-        # Adds an underscore between a sequence of uppercase letters and an uppercase-lowercase pair
-        # APIFunctionMetric -> API_FunctionMetric
-        class_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", class_name)
-        # Adds an underscore between a lowercase letter/digit and an uppercase letter
-        # APIFunctionMetric -> API_Function_Metric
-        class_name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", class_name)
-        # Convert the entire string to lowercase
-        # API_Function_Metric -> api_function_metric
-        return class_name.lower()
-
-    @classmethod
-    def _get_metric_name(cls) -> str:
-        """The name of the metric as it exists in the registry."""
-        for base_type in cls.__bases__:
-            if issubclass(base_type, Domain):
-                domain_class_name = str(base_type.__name__)
-                metric_class_name = str(cls.__name__)
-                domain_class_snake_case = Metric._pascal_to_snake(domain_class_name)
-                metric_class_snake_case = Metric._pascal_to_snake(metric_class_name)
-                # the convention is that the metric class name includes the domain class name
-                # but the metric names don't repeat the domain name, so we remove it
-                metric_name_parts = [
-                    domain_class_snake_case,
-                    metric_class_snake_case.replace(domain_class_snake_case, "").strip("_"),
-                ]
-                # in the legacy system some metrics have a "condition_metric_name"
-                # instead of a "metric_name" and those get "condition" appended as a result
-                if cls.condition_metric:
-                    metric_name_parts.append("condition")
-                return ".".join(metric_name_parts)
-
-        # this should never be reached
-        # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
-        raise MixinTypeError(cls.__name__, "Domain")
 
     @staticmethod
     @cache

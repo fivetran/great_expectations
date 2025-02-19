@@ -13,7 +13,7 @@ class ColumnValuesBetweenResult(MetricResult[tuple[pd.Series, IDDict, dict]]): .
 
 
 class ColumnValuesBetween(Metric[ColumnValuesBetweenResult], ColumnValues):
-    condition_metric = True
+    name = "column_values.between.condition"
 
     min_value: Optional[Comparable] = None
     max_value: Optional[Comparable] = None

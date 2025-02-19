@@ -1,6 +1,7 @@
 from typing import Annotated, Optional
 
 from great_expectations.compatibility.pydantic import BaseModel, Field, StrictStr
+from great_expectations.expectations.model_field_types import ConditionParser
 
 NonEmptyString = Annotated[StrictStr, Field(min_length=1)]
 
@@ -58,3 +59,16 @@ class ColumnValues(Values):
     """
 
     column: NonEmptyString
+
+
+class Batch(Domain):
+    """A domain type for metrics that compute over an entire batch.
+
+    The Batch domain type is used to define metrics that evaluate conditions or compute
+    values for an entire table. This class is intended to be used as a mixin
+    with the Metric class when defining a new Metric.
+    """
+
+    table: Optional[NonEmptyString] = None
+    row_condition: Optional[StrictStr] = None
+    condition_parser: Optional[ConditionParser] = None

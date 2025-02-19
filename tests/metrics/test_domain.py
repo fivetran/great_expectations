@@ -3,6 +3,7 @@ import pytest
 from great_expectations.compatibility.pydantic import ValidationError, errors
 from great_expectations.metrics.domain import (
     AbstractClassInstantiationError,
+    Batch,
     ColumnValues,
     Domain,
     Values,
@@ -25,9 +26,9 @@ class TestAbstractClasses:
             Values(batch_id=BATCH_ID, table=TABLE)
 
 
-class TestColumnMap:
+class TestColumnValues:
     @pytest.mark.unit
-    def test_column_map_instantiation_success(self):
+    def test_instantiation(self):
         ColumnValues(batch_id=BATCH_ID, table=TABLE, column=COLUMN)
 
     @pytest.mark.unit
@@ -38,7 +39,7 @@ class TestColumnMap:
             {"batch_id": BATCH_ID, "table": TABLE, "column": ""},
         ],
     )
-    def test_column_map_arguments_empty_string_raises(self, kwargs: dict):
+    def test_arguments_empty_string_raises(self, kwargs: dict):
         with pytest.raises(ValidationError) as e:
             ColumnValues(**kwargs)
         all_errors = e.value.raw_errors
@@ -47,4 +48,12 @@ class TestColumnMap:
             if hasattr(error, "exc") and isinstance(error.exc, errors.AnyStrMinLengthError)
             else False
             for error in all_errors
+        )
+
+
+class TestBatch:
+    @pytest.mark.unit
+    def test_instantiation(self):
+        Batch(
+            batch_id=BATCH_ID, table=TABLE, row_condition='PClass=="1st"', condition_parser="pandas"
         )
