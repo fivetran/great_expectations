@@ -3,7 +3,7 @@ import pytest
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.core.types import Comparable
 from great_expectations.metrics.domain import AbstractClassInstantiationError, ColumnValues, Domain
-from great_expectations.metrics.metric import Metric, MissingAttributeError, MixinTypeError
+from great_expectations.metrics.metric import Metric, MixinTypeError
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -66,14 +66,6 @@ class TestMetricDefinition:
             class ColumnValuesAbove(Metric, NotADomain):
                 name = FULLY_QUALIFIED_METRIC_NAME
 
-                min_value: Comparable
-                strict_min: bool = False
-
-    @pytest.mark.unit
-    def test_missing_name_raises(self):
-        with pytest.raises(MissingAttributeError):
-
-            class ColumnValuesAbove(Metric, ColumnValues):
                 min_value: Comparable
                 strict_min: bool = False
 

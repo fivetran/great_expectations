@@ -20,11 +20,6 @@ class MixinTypeError(TypeError):
         )
 
 
-class MissingAttributeError(AttributeError):
-    def __init__(self, class_name: str, attribute_name: str) -> None:
-        super().__init__(f"`{class_name}` must define the `{attribute_name}` attribute.")
-
-
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
     def __new__(cls, name, bases, attrs):
@@ -34,8 +29,6 @@ class MetaMetric(ModelMetaclass):
             or not any(issubclass(base_type, Domain) for base_type in bases)
         ):
             raise MixinTypeError(name, "Domain")
-        if name != "Metric" and not attrs.get("name"):
-            raise MissingAttributeError(name, "name")
         return super().__new__(cls, name, bases, attrs)
 
 
