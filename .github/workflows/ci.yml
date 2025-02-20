@@ -31,12 +31,6 @@ on:
       - "[0-9]+.[0-9]+.[0-9]+b[0-9]+"
       - "[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
 
-concurrency:
-  # Only run one instance of this workflow in PRs, but allow multiple instances in develop.
-  # https://stackoverflow.com/questions/74117321/if-condition-in-concurrency-in-gha
-  group: ${{ github.workflow }}-${{ github.head_ref && github.ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   check-actor-permissions:
     permissions:
@@ -89,7 +83,7 @@ jobs:
             Our GitHub actions pipelines require a user with write permissions to retry the failed jobs. We've sent a message to a maintainer to review your PR. Please be patient and we'll get back to you as soon as possible.
 
       - name: Fail if No Write Permission
-        if: steps.check-user-permission.outputs.require-result == 'false' && steps.check-user-permission.outputs.check-result == 'false'
+        if: steps.check-user-permission.outputs.require-result == 'false'
         run: exit 1
 
   ci-does-not-run-on-draft-pull-requests:

@@ -81,7 +81,7 @@ def test_get_metrics_table_metrics_only(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -132,7 +132,7 @@ def test_get_metrics_full_list(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -325,7 +325,7 @@ def test_get_metrics_metrics_missing(
     mock_computed_metrics = {
         # ("table.row_count", (), ()): 2, # Missing table.row_count metric
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -426,7 +426,7 @@ def test_get_metrics_with_exception(
     computed_metrics = {
         # ("table.row_count", (), ()): 2, # Error in table.row_count metric
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -497,7 +497,7 @@ def test_get_metrics_with_column_type_missing(
     computed_metrics = {
         # ("table.row_count", (), ()): 2, # Error in table.row_count metric
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {
                 "name": "col2",
@@ -570,7 +570,7 @@ def test_get_metrics_with_timestamp_columns(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["timestamp_col"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "timestamp_col", "type": "TIMESTAMP_NTZ"},
         ],
         ("column.min", "column=timestamp_col", ()): "2023-01-01T00:00:00",
@@ -648,7 +648,7 @@ def test_get_metrics_only_gets_a_validator_once(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -683,7 +683,7 @@ def test_get_metrics_only_gets_new_validator_on_asset_change(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -767,7 +767,7 @@ def test_get_table_column_types(
     mocker: MockerFixture, mock_context, mock_validator, mock_batch_request, metric_retriever
 ):
     computed_metrics = {
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -821,7 +821,7 @@ def test_get_metrics_with_timestamp_columns_exclude_time(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["timestamp_col", "time_col"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "timestamp_col", "type": "TIMESTAMP_NTZ"},
             {"name": "time_col", "type": "TIME"},
         ],

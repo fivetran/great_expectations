@@ -46,7 +46,7 @@ DATA = pd.DataFrame(
         ],
         STRINGS_A: ["b", "m", "y", "z", "zz"],
         STRINGS_B: ["a", "k", "x", "y", "za"],
-        NULLS_A: [None, None, None, None, None],
+        NULLS_A: [None, None, None, None, 1],
         NULLS_B: [1, 2, None, 4, 5],
         NULLS_C: [2, 3, None, 5, 6],
     },

@@ -2,6 +2,7 @@
 sidebar_label: 'Get support'
 title: 'Get support'
 description: Learn what resources are available to help you resolve issues with GX Cloud and GX Core.
+id: get_support
 ---
 
 Knowing how and where to request GX support can improve response times.

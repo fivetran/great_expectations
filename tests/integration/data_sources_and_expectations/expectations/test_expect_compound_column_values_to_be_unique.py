@@ -15,6 +15,18 @@ INT_COL = "int_col"
 INT_COL_2 = "int_col_2"
 DUPLICATES = "duplicates"
 
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    SPARK_COLUMN_TYPES = {
+        STRING_COL: PYSPARK_TYPES.StringType,
+        INT_COL: PYSPARK_TYPES.IntegerType,
+        INT_COL_2: PYSPARK_TYPES.IntegerType,
+        DUPLICATES: PYSPARK_TYPES.IntegerType,
+    }
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
+
 
 DATA = pd.DataFrame(
     {
@@ -28,7 +40,10 @@ DATA = pd.DataFrame(
 
 @parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=DATA)
 def test_golden_path(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectCompoundColumnsToBeUnique(column_list=[STRING_COL, INT_COL, INT_COL_2])
+    expectation = gxe.ExpectCompoundColumnsToBeUnique(
+        column_list=[STRING_COL, INT_COL, INT_COL_2],
+        ignore_row_if="any_value_is_missing",
+    )
     result = batch_for_datasource.validate(expectation)
     assert result.success
 

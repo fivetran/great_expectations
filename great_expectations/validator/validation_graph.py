@@ -19,7 +19,10 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.registry import get_metric_provider
 from great_expectations.validator.exception_info import ExceptionInfo
-from great_expectations.validator.metric_configuration import MetricConfiguration
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 
 if TYPE_CHECKING:
     from great_expectations.core import IDDict
@@ -31,7 +34,6 @@ if TYPE_CHECKING:
     from great_expectations.validator.computed_metric import MetricValue
     from great_expectations.validator.metrics_calculator import (
         _AbortedMetricsInfoDict,
-        _MetricKey,
     )
 
 __all__ = [
@@ -196,10 +198,10 @@ class ValidationGraph:
         # Set to low number (e.g., 3) to suppress progress bar for small graphs.
         show_progress_bars: bool = True,
     ) -> Tuple[
-        Dict[_MetricKey, MetricValue],
+        Dict[MetricConfigurationID, MetricValue],
         _AbortedMetricsInfoDict,
     ]:
-        resolved_metrics: Dict[_MetricKey, MetricValue] = {}
+        resolved_metrics: Dict[MetricConfigurationID, MetricValue] = {}
 
         # updates graph with aborted metrics
         aborted_metrics_info: _AbortedMetricsInfoDict = self._resolve(
@@ -213,7 +215,7 @@ class ValidationGraph:
 
     def _resolve(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
-        metrics: Dict[_MetricKey, MetricValue],
+        metrics: Dict[MetricConfigurationID, MetricValue],
         runtime_configuration: Optional[dict] = None,
         min_graph_edges_pbar_enable: int = 0,  # Set to low number (e.g., 3) to suppress progress bar for small graphs.  # noqa: E501 # FIXME CoP
         show_progress_bars: bool = True,
@@ -274,8 +276,8 @@ class ValidationGraph:
                 # Access "ExecutionEngine.resolve_metrics()" method, to resolve missing "MetricConfiguration" objects.  # noqa: E501 # FIXME CoP
                 metrics.update(
                     self._execution_engine.resolve_metrics(
-                        metrics_to_resolve=computable_metrics,  # type: ignore[arg-type]  # Metric typing needs further refinement.
-                        metrics=metrics,  # type: ignore[arg-type]  # Metric typing needs further refinement.
+                        metrics_to_resolve=computable_metrics,
+                        metrics=metrics,
                         runtime_configuration=runtime_configuration,
                     )
                 )
@@ -323,7 +325,7 @@ class ValidationGraph:
 
     def _parse(
         self,
-        metrics: Dict[_MetricKey, MetricValue],
+        metrics: Dict[MetricConfigurationID, MetricValue],
     ) -> Tuple[Set[MetricConfiguration], Set[MetricConfiguration]]:
         """Given validation graph, returns the ready and needed metrics necessary for validation using a traversal of
         validation graph (a graph structure of metric ids) edges"""  # noqa: E501 # FIXME CoP
@@ -403,7 +405,7 @@ class ExpectationValidationGraph:
     ) -> Dict[str, Union[MetricConfiguration, ExceptionInfo, int]]:
         metric_info = self._filter_metric_info_in_graph(metric_info=metric_info)
         metric_exception_info: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]] = {}
-        metric_id: _MetricKey
+        metric_id: MetricConfigurationID
         metric_info_item: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]]
         for metric_id, metric_info_item in metric_info.items():
             metric_exception_info[str(metric_id)] = metric_info_item["exception_info"]
@@ -414,7 +416,7 @@ class ExpectationValidationGraph:
         self,
         metric_info: _AbortedMetricsInfoDict,
     ) -> _AbortedMetricsInfoDict:
-        graph_metric_ids: List[_MetricKey] = []
+        graph_metric_ids: List[MetricConfigurationID] = []
         edge: MetricEdge
         vertex: MetricConfiguration
         for edge in self.graph.edges:
@@ -422,7 +424,7 @@ class ExpectationValidationGraph:
                 if vertex is not None:
                     graph_metric_ids.append(vertex.id)
 
-        metric_id: _MetricKey
+        metric_id: MetricConfigurationID
         metric_info_item: Dict[str, Union[MetricConfiguration, Set[ExceptionInfo], int]]
         return {
             metric_id: metric_info_item

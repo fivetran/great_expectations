@@ -29,7 +29,6 @@ class TestConfig:
         return hash(
             (
                 self.__class__,
-                self.data_source_config,
                 hash_data_frame(self.data),
                 dict_to_tuple(
                     {k: hash_data_frame(self.extra_data[k]) for k in sorted(self.extra_data)}
