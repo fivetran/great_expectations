@@ -1259,6 +1259,29 @@ class Batch:
         )
 
     def compute_metrics(self, metrics: Metric | list[Metric]) -> MetricResult | list[MetricResult]:
+        """Compute one or more metrics on this Batch.
+
+        Args:
+            metrics: A single Metric or list of Metrics to compute. Each Metric must be an instance
+                    of a concrete Metric class.
+
+        Returns:
+            If a single Metric is provided, returns a single MetricResult.
+            If a list of Metrics is provided, returns a list of MetricResults,
+            in the same order as the input metrics.
+            For metrics without a defined MetricResult generic type,
+            the base MetricResult class will be returned.
+
+        Examples:
+            >>> batch.compute_metrics(BatchRowCount())
+            BatchRowCountResult(id=..., value=1000)
+
+            >>> batch.compute_metrics([
+            ...     BatchRowCount(),
+            ...     ColumnMax(column="age")
+            ... ])
+            [BatchRowCountResult(id=..., value=1000), ColumnMaxResult(id=..., value=85)]
+        """
         if isinstance(metrics, Metric):
             metrics = [metrics]
 
