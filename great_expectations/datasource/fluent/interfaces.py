@@ -1274,7 +1274,7 @@ class Batch:
         Returns:
             If a single Metric is provided, returns a single MetricResult.
             If a list of Metrics is provided, returns a list of MetricResults,
-            in the same order as the input metrics.
+            in the same order as the input metrics were received.
             For metrics without a defined MetricResult generic type,
             the base MetricResult class will be returned.
 
