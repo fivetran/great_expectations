@@ -48,18 +48,6 @@ exports.handler = async (req, context) => {
 
         const result = await response.json()
 
-        if (result.id) {
-            try {
-                await httpPostRequest(`${JIRA_ISSUE_ENDPOINT_URL}/${result.id}/transitions`, {
-                    "transition": {
-                        "id": TO_DO_STATE_ID
-                    }
-                })
-            } catch (error) {
-                console.error("Fetch failed", error.message)
-            }
-        }
-
         return {
             statusCode: response.status,
             body: JSON.stringify(result)

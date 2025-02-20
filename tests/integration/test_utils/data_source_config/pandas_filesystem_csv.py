@@ -1,5 +1,6 @@
 import pathlib
-from typing import Mapping
+from dataclasses import dataclass, field
+from typing import Any, Mapping
 
 import pandas as pd
 import pytest
@@ -13,7 +14,13 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 
 
+@dataclass(frozen=True)
 class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
+    # see options: https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html
+    read_options: dict[str, Any] = field(default_factory=dict)
+    # see options: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_csv.html
+    write_options: dict[str, Any] = field(default_factory=dict)
+
     @property
     @override
     def label(self) -> str:
@@ -59,7 +66,10 @@ class PandasFilesystemCsvBatchTestSetup(
     def make_asset(self) -> CSVAsset:
         return self.context.data_sources.add_pandas_filesystem(
             name=self._random_resource_name(), base_directory=self._base_dir
-        ).add_csv_asset(name=self._random_resource_name())
+        ).add_csv_asset(
+            name=self._random_resource_name(),
+            **self.config.read_options,
+        )
 
     @override
     def make_batch(self) -> Batch:
@@ -72,7 +82,7 @@ class PandasFilesystemCsvBatchTestSetup(
     @override
     def setup(self) -> None:
         file_path = self._base_dir / self.csv_path
-        self.data.to_csv(file_path, index=False)
+        self.data.to_csv(file_path, index=False, **self.config.write_options)
 
     @override
     def teardown(self) -> None: ...

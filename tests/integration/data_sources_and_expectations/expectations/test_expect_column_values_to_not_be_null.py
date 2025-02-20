@@ -29,6 +29,17 @@ DATA = pd.DataFrame(
     },
 )
 
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    SPARK_COLUMN_TYPES = {
+        NON_NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+        MOSTLY_NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+        ALL_NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+    }
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
+
 
 @parameterize_batch_for_data_sources(
     data_source_configs=[PandasDataFrameDatasourceTestConfig()], data=DATA
@@ -79,7 +90,12 @@ def test_failure_pandas_csv(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()], data=DATA
+    data_source_configs=[
+        SparkFilesystemCsvDatasourceTestConfig(
+            column_types=SPARK_COLUMN_TYPES,
+        )
+    ],
+    data=DATA,
 )
 def test_failure_spark(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToNotBeNull(column=MOSTLY_NULL_COLUMN)

@@ -18,8 +18,8 @@ The following table lists the available GX Cloud Expectations.
 
 | Data quality issue |                    Expectation                       |                                                               Description                                                              | Dynamic Parameters? |
 |------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-| Completeness       | **column values to be null**                         | Expect the column values to be null.                                                                                                   | Coming soon         |
-| Completeness       | **column values to not be null**                     | Expect the column values to not be null.                                                                                               | Coming soon         |
+| Completeness       | **column values to be null**                         | Expect the column values to be null.                                                                                                   | Yes                 |
+| Completeness       | **column values to not be null**                     | Expect the column values to not be null.                                                                                               | Yes                 |
 | Numeric            | **column max to be between**                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 |
 | Numeric            | **column mean to be between**                        | Expect the column mean to be between a minimum and a maximum value.                                                                    | Yes                 |
 | Numeric            | **column median to be between**                      | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes                 |
@@ -137,6 +137,21 @@ To clear the Expectation condition, click the clear button located on the right-
 :::tip Automate rules for schema change detection
 When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes in that Data Asset.
 :::
+
+## Generate Expectations with ExpectAI (BETA)
+
+To accelerate test coverage, you can use ExpectAI to generate recommended Expectations for a Data Asset. These will be personalized based on an analysis of a sample of your data.
+
+Keep the following requirements and limitations in mind when working with ExpectAI:
+- Only [Snowflake Data Sources](/cloud/connect/connect_snowflake.md) are supported at this time.
+- Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+
+To add AI-recommended Expectations:
+1. In GX Cloud, click **Data Assets**.
+2. In the **Data Assets** list, click the Data Asset name.
+3. Click **Generate Expectations**.
+4. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
+5. Optional. [Edit](#edit-an-expectation) or [delete](#delete-an-expectation) AI-generated Expectations based on the insights you get from running a Validation and your data quality needs.
 
 
 ## Optional. Define a Batch

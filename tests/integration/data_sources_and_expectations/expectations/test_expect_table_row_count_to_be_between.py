@@ -128,3 +128,20 @@ def test_failure(
 def test_valid_range() -> None:
     with pytest.raises(pydantic.ValidationError):
         gxe.ExpectTableRowCountToBeBetween(min_value=5, max_value=4)
+
+
+@pytest.mark.unit
+def test_valid_runtime_parameters() -> None:
+    gxe.ExpectTableRowCountToBeBetween(
+        min_value={"$PARAMETER": "param_min_value"},
+        max_value={"$PARAMETER": "param_max_values"},
+    )
+
+
+@pytest.mark.unit
+def test_invalid_runtime_parameters() -> None:
+    with pytest.raises(pydantic.ValidationError):
+        gxe.ExpectTableRowCountToBeBetween(
+            min_value={"min_value": "param_min_value"},
+            max_value={"max_value": "param_max_values"},
+        )

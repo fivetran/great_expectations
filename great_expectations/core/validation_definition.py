@@ -298,9 +298,11 @@ class ValidationDefinition(BaseModel):
 
         # NOTE: We should promote this to a top-level field of the result.
         #       Meta should be reserved for user-defined information.
-        if run_id:
-            results.meta["run_id"] = run_id
-            results.meta["validation_time"] = run_id.run_time
+        if not run_id:
+            run_id = RunIdentifier(run_time=datetime.datetime.now(datetime.timezone.utc))
+        results.meta["run_id"] = run_id
+        results.meta["validation_time"] = run_id.run_time
+
         if batch_parameters:
             batch_parameters_copy = {k: v for k, v in batch_parameters.items()}
             if "dataframe" in batch_parameters_copy:
