@@ -59,7 +59,7 @@ from great_expectations.exceptions.exceptions import (
     DataContextError,
     MissingDataContextError,
 )
-from great_expectations.metrics.metric import Metric, _MetricResult
+from great_expectations.metrics.metric import Metric
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
     MetricResult,
@@ -1320,7 +1320,7 @@ class Batch:
         cls,
         metric_name: str,
         metric_types: list[type[Metric]],
-    ) -> type[_MetricResult | MetricResult]:
+    ) -> type[MetricResult]:
         for metric_type in metric_types:
             if metric_type.name == metric_name:
                 return metric_type.get_metric_result_type()
