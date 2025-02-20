@@ -1104,6 +1104,13 @@ class Batch:
     def id(self) -> str:
         return self._id
 
+    def _get_metrics_calculator(self) -> MetricsCalculator:
+        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
+        return MetricsCalculator(
+            execution_engine=self.data.execution_engine,
+            show_progress_bars=True,
+        )
+
     @public_api
     @validate_arguments
     def columns(self) -> List[str]:
@@ -1112,12 +1119,7 @@ class Batch:
         Returns
             List[str]
         """
-        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(
-            execution_engine=self.data.execution_engine,
-            show_progress_bars=True,
-        )
-        return metrics_calculator.columns()
+        return self._get_metrics_calculator().columns()
 
     @public_api
     @validate_arguments
@@ -1141,11 +1143,7 @@ class Batch:
         Returns
             HeadData
         """
-        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(
-            execution_engine=self.data.execution_engine,
-            show_progress_bars=True,
-        )
+        metrics_calculator = self._get_metrics_calculator()
         table_head_df: pd.DataFrame = metrics_calculator.head(
             n_rows=n_rows,
             domain_kwargs={"batch_id": self.id},
@@ -1297,9 +1295,7 @@ class Batch:
         if isinstance(metrics, Metric):
             metrics = [metrics]
 
-        execution_engine = self.data.execution_engine
-        execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(execution_engine=execution_engine)
+        metrics_calculator = self._get_metrics_calculator()
 
         requested_metric_names = [metric.name for metric in metrics]
         metrics_calculator_result = metrics_calculator.compute_metrics(
