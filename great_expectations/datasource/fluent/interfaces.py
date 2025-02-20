@@ -1287,6 +1287,12 @@ class Batch:
             ...     ColumnMax(column="age")
             ... ])
             [BatchRowCountResult(id=..., value=1000), ColumnMaxResult(id=..., value=85)]
+
+        Notes:
+            Until this mypy bug is resolved, lists of Metrics are being incorrectly
+            inferred by the static type checker as list[Domain]. You can work around
+            this by adding an explicit annotation (e.g. metrics: list[Metric] = ...)
+            https://github.com/python/mypy/issues/18712
         """
         if isinstance(metrics, Metric):
             metrics = [metrics]
