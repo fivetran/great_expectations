@@ -1338,7 +1338,7 @@ class Batch:
                         value=raw_metrics[metric_name][1],
                     )
                 )
-            if metric_name in raw_metrics_errors:
+            elif metric_name in raw_metrics_errors:
                 metric_results.append(
                     MetricErrorResult(
                         id=raw_metrics_errors[metric_name][0],
