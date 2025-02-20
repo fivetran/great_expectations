@@ -44,18 +44,18 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     must inherit from this class and specify their domain type as a mixin.
 
     Examples:
-        A metric for column nullity values computed on each row:
+        A metric for a single column max value:
 
-        >>> class ColumnValuesNullResult(MetricResult[]): ...
+        >>> class ColumnMaxResult(MetricResult[int]): ...
         >>>
-        >>> class ColumnValuesNull(Metric[ColumnValuesNullResult], ColumnValues):
+        >>> class ColumnMax(Metric[ColumnMaxResult], Column):
         ...     ...
 
-        A metric for a single table row count value:
+        A metric for a single batch row count value:
 
-        >>> class TableRowCountResult(MetricResult[int]): ...
+        >>> class BatchRowCountResult(MetricResult[int]): ...
         >>>
-        >>> class TableRowCount(Metric[TableRowCountResult], Table):
+        >>> class BatchRowCount(Metric[BatchRowCountResult], Batch):
         ...     ...
 
     Notes:

@@ -1313,9 +1313,9 @@ class Batch:
         requested_metric_names: list[str],
         metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict],
     ) -> MetricResult | list[MetricResult]:
-        """Converts the result of metrics_calculator.compute_metrics() into
+        """Converts the result of MetricsCalculator.compute_metrics() into
         a MetricResult or list[MetricResult]. Only the metrics that were
-        requested in the call to metrics_calculator.compute_metrics()
+        requested in the call to MetricsCalculator.compute_metrics()
         will be returned (dependency metrics are excluded)."""
         # add another level of nesting to these metric dicts
         # since the key we care about is nested inside the current key
