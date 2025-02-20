@@ -60,7 +60,10 @@ from great_expectations.exceptions.exceptions import (
     MissingDataContextError,
 )
 from great_expectations.metrics.metric import Metric, _MetricResult
-from great_expectations.metrics.metric_results import MetricErrorResult, MetricResult
+from great_expectations.metrics.metric_results import (
+    MetricErrorResult,
+    MetricResult,
+)
 from great_expectations.validator.metrics_calculator import (
     MetricsCalculator,
     _AbortedMetricsInfoDict,

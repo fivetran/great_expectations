@@ -1,4 +1,4 @@
-from typing import Any, Generic, TypeVar, Union
+from typing import Any, Generic, TypedDict, TypeVar
 
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
 from great_expectations.validator.exception_info import ExceptionInfo
@@ -18,9 +18,13 @@ class MetricResult(GenericModel, Generic[_MetricResultValue]):
         arbitrary_types_allowed = True
 
 
-class MetricErrorResult(
-    MetricResult[dict[str, Union[MetricConfiguration, ExceptionInfo, int]]]
-): ...
+class MetricErrorResultValue(TypedDict):
+    metric_configuration: MetricConfiguration
+    exception_info: ExceptionInfo
+    num_failures: int
+
+
+class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
 
 
 class TableColumnsResult(MetricResult[list[str]]): ...

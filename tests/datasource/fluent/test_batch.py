@@ -14,7 +14,7 @@ from great_expectations.expectations.expectation import Expectation
 from great_expectations.metrics import BatchRowCount, ColumnValuesBetween, Metric
 from great_expectations.metrics.batch.row_count import BatchRowCountResult
 from great_expectations.metrics.column_values.between import ColumnValuesBetweenResult
-from great_expectations.metrics.metric_results import MetricResult
+from great_expectations.metrics.metric_results import MetricErrorResult, MetricResult
 
 DATASOURCE_NAME = "my_pandas"
 ASSET_NAME = "my_csv"
@@ -327,4 +327,24 @@ def test_batch_compute_metrics_multiple_metrics_success(
     assert isinstance(metric_results, list)
     assert len(metric_results) == requested_metric_count
     assert type(metric_results[0]) is ColumnValuesBetweenResult
+    assert type(metric_results[1]) is BatchRowCountResult
+
+
+@pytest.mark.filesystem
+def test_batch_compute_metrics_multiple_metrics_error(
+    pandas_setup: Tuple[AbstractDataContext, Batch],
+):
+    _, batch = pandas_setup
+    metric_1 = ColumnValuesBetween(
+        batch_id=batch.id,
+        column="not_a_column",
+        min_value=0,
+    )
+    metric_2 = BatchRowCount(batch_id=batch.id)
+    metrics: list[Metric] = [metric_1, metric_2]
+    requested_metric_count = len(metrics)
+    metric_results: list[MetricResult] | MetricResult = batch.compute_metrics(metrics)
+    assert isinstance(metric_results, list)
+    assert len(metric_results) == requested_metric_count
+    assert type(metric_results[0]) is MetricErrorResult
     assert type(metric_results[1]) is BatchRowCountResult
