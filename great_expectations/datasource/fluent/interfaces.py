@@ -1258,6 +1258,12 @@ class Batch:
             result_format=result_format,
         )
 
+    @overload
+    def compute_metrics(self, metrics: Metric) -> MetricResult: ...
+
+    @overload
+    def compute_metrics(self, metrics: list[Metric]) -> list[MetricResult]: ...
+
     def compute_metrics(self, metrics: Metric | list[Metric]) -> MetricResult | list[MetricResult]:
         """Compute one or more metrics on this Batch.
 
