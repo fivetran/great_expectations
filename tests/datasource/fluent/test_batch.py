@@ -11,8 +11,7 @@ from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, Datasource
 from great_expectations.expectations.expectation import Expectation
-from great_expectations.metrics import ColumnValuesBetween
-from great_expectations.metrics.batch.row_count import BatchRowCount
+from great_expectations.metrics import BatchRowCount, ColumnValuesBetween
 from great_expectations.metrics.column_values.between import ColumnValuesBetweenResult
 from great_expectations.metrics.metric_results import MetricResult
 
