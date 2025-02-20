@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 import dataclasses
 import functools
+import importlib
+import inspect
 import logging
 import uuid
 import warnings
@@ -57,7 +59,6 @@ from great_expectations.exceptions.exceptions import (
     DataContextError,
     MissingDataContextError,
 )
-from great_expectations.metrics.batch.row_count import BatchRowCount
 from great_expectations.metrics.metric import Metric, _MetricResult
 from great_expectations.metrics.metric_results import MetricErrorResult, MetricResult
 from great_expectations.validator.metrics_calculator import (
@@ -1283,8 +1284,12 @@ class Batch:
             k.metric_name: (k, v) for k, v in metrics_calculator_result[1].items()
         }
         metric_results = []
+        metric_types: list[type[Metric]] = cls.get_all_metric_classes()
         for metric_name in requested_metric_names:
-            MetricResultType = cls.get_metric_result_type_from_metric_name(metric_name)
+            MetricResultType = cls.get_metric_result_type_from_metric_name(
+                metric_name=metric_name,
+                metric_types=metric_types,
+            )
             if metric_name in raw_metrics:
                 metric_results.append(
                     MetricResultType(
@@ -1308,13 +1313,18 @@ class Batch:
     def get_metric_result_type_from_metric_name(
         cls,
         metric_name: str,
+        metric_types: list[type[Metric]],
     ) -> type[_MetricResult | MetricResult]:
-        from great_expectations.metrics import ColumnValuesBetween
+        for metric_type in metric_types:
+            if metric_type.name == metric_name:
+                return metric_type.get_metric_result_type()
+        return MetricResult
 
-        # TODO: Something more generic here
-        if metric_name == ColumnValuesBetween.name:
-            return ColumnValuesBetween.get_metric_result_type()
-        elif metric_name == BatchRowCount.name:
-            return BatchRowCount.get_metric_result_type()
-        else:
-            return MetricResult
+    @classmethod
+    def get_all_metric_classes(cls) -> list[type[Metric]]:
+        package = importlib.import_module("great_expectations.metrics")
+        metric_classes_list = []
+        for name, obj in inspect.getmembers(package):
+            if inspect.isclass(obj) and issubclass(obj, Metric):
+                metric_classes_list.append(obj)
+        return metric_classes_list
