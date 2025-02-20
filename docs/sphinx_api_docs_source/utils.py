@@ -96,6 +96,8 @@ def create_table(soup, item, dd, title):
         create_header_row(soup, table, ["Type", "Description"])
 
     p = dd.find("p")
+    if p is None:
+        return
     columns = []
 
     if title in ("Parameters", "Raises"):
