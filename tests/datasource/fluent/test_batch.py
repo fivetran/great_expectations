@@ -11,7 +11,7 @@ from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, Datasource
 from great_expectations.expectations.expectation import Expectation
-from great_expectations.metrics import BatchRowCount, ColumnValuesBetween
+from great_expectations.metrics import BatchRowCount, ColumnValuesBetween, Metric
 from great_expectations.metrics.batch.row_count import BatchRowCountResult
 from great_expectations.metrics.column_values.between import ColumnValuesBetweenResult
 from great_expectations.metrics.metric_results import MetricResult
@@ -307,7 +307,7 @@ def test_batch_compute_metrics_single_metric_success(
         min_value=0,
     )
     metric_results: list[MetricResult] | MetricResult = batch.compute_metrics(metric)
-    assert isinstance(metric_results, ColumnValuesBetweenResult)
+    assert type(metric_results) is ColumnValuesBetweenResult
 
 
 @pytest.mark.filesystem
@@ -321,7 +321,7 @@ def test_batch_compute_metrics_multiple_metrics_success(
         min_value=0,
     )
     metric_2 = BatchRowCount(batch_id=batch.id)
-    metrics = [metric_1, metric_2]
+    metrics: list[Metric] = [metric_1, metric_2]
     requested_metric_count = len(metrics)
     metric_results: list[MetricResult] | MetricResult = batch.compute_metrics(metrics)
     assert isinstance(metric_results, list)
