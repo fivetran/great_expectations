@@ -94,7 +94,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
 
     @classmethod
     def get_metric_result_type(cls) -> type[_MetricResult]:
-        return get_args(cls.__orig_bases__[0])[0]  # type: ignore[attr-defined]  # fix this before merge
+        return get_args(getattr(cls, "__orig_bases__", [])[0])[0]
 
     @staticmethod
     @cache
