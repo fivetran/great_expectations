@@ -112,6 +112,9 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
+METRICS_PACKAGE = "great_expectations.metrics"
+
+
 class PartitionerSortingProtocol(Protocol):
     """Interface defining the fields a Partitioner must contain for sorting."""
 
@@ -1322,7 +1325,7 @@ class Batch:
 
     @classmethod
     def get_all_metric_classes(cls) -> list[type[Metric]]:
-        package = importlib.import_module("great_expectations.metrics")
+        package = importlib.import_module(METRICS_PACKAGE)
         metric_classes_list = []
         for name, obj in inspect.getmembers(package):
             if inspect.isclass(obj) and issubclass(obj, Metric):
