@@ -1268,8 +1268,8 @@ class Batch:
         """Compute one or more metrics on this Batch.
 
         Args:
-            metrics: A single Metric or list of Metrics to compute. Each Metric must be an instance
-                    of a concrete Metric class.
+            metrics: A single Metric or list of Metrics to compute.
+                     Each Metric must be an instance of a concrete Metric subclass.
 
         Returns:
             If a single Metric is provided, returns a single MetricResult.
