@@ -1317,6 +1317,10 @@ class Batch:
         requested_metric_names: list[str],
         metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict],
     ) -> MetricResult | list[MetricResult]:
+        """Converts the result of metrics_calculator.compute_metrics() into
+        a MetricResult or list[MetricResult]. Only the metrics that were
+        requested in the call to metrics_calculator.compute_metrics()
+        will be returned (dependency metrics are excluded)."""
         # add another level of nesting to these metric dicts
         # since the key we care about is nested inside the current key
         # enables us to iterate through these dicts only once
@@ -1327,11 +1331,11 @@ class Batch:
         metric_results = []
         metric_types: list[type[Metric]] = cls.get_all_metric_classes()
         for metric_name in requested_metric_names:
-            MetricResultType = cls.get_metric_result_type_from_metric_name(
-                metric_name=metric_name,
-                metric_types=metric_types,
-            )
             if metric_name in raw_metrics:
+                MetricResultType = cls.get_metric_result_type_from_metric_name(
+                    metric_name=metric_name,
+                    metric_types=metric_types,
+                )
                 metric_results.append(
                     MetricResultType(
                         id=raw_metrics[metric_name][0],
@@ -1356,6 +1360,9 @@ class Batch:
         metric_name: str,
         metric_types: list[type[Metric]],
     ) -> type[MetricResult]:
+        """Given a metric name and a list of Metric types gets the
+        MetricResult type for that Metric. Returns the base
+        MetricResult class if no MetricResult subclass is defined."""
         for metric_type in metric_types:
             if metric_type.name == metric_name:
                 return metric_type.get_metric_result_type()
@@ -1363,6 +1370,7 @@ class Batch:
 
     @classmethod
     def get_all_metric_classes(cls) -> list[type[Metric]]:
+        """Gets the classes for the Metrics defined in METRICS_PACKAGE."""
         package = importlib.import_module(METRICS_PACKAGE)
         metric_classes_list = []
         for name, obj in inspect.getmembers(package):
