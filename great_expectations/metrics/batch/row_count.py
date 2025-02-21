@@ -8,4 +8,4 @@ class BatchRowCountResult(MetricResult[int]): ...
 
 
 class BatchRowCount(Metric[BatchRowCountResult], Batch):
-    name = f"{DomainName.BATCH}.row_count"
+    name = f"{DomainName.BATCH.value}.row_count"
