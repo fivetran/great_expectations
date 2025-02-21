@@ -59,7 +59,7 @@ class MetaMetric(ModelMetaclass):
         try:
             return cls._registry[metric_name]
         except KeyError:
-            raise UnregisteredMetricError()
+            raise UnregisteredMetricError(metric_name)
 
 
 _MetricResult = TypeVar("_MetricResult", bound=MetricResult)
