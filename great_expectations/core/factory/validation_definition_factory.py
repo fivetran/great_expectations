@@ -127,7 +127,8 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             return self.add(validation=validation)
 
         batch_definition = validation.data
-        batch_definition.id = existing_batch_definition.id
+        if not batch_definition.id:
+            batch_definition.id = existing_batch_definition.id
         batch_definition.save()
 
         validation.id = existing_validation.id
