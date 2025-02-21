@@ -1,5 +1,5 @@
 from functools import cache
-from typing import ClassVar, Final, Generic, TypeVar, Union
+from typing import ClassVar, Final, Generic, TypeVar
 
 from typing_extensions import dataclass_transform, get_args
 
@@ -21,6 +21,11 @@ class MixinTypeError(TypeError):
         )
 
 
+class MissingAttributeError(AttributeError):
+    def __init__(self, class_name: str, attribute_name: str) -> None:
+        super().__init__(f"`{class_name}` must define `{attribute_name}` attribute.")
+
+
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
     """Metaclass for Metric classes that maintains a registry of all concrete Metric types."""
@@ -36,18 +41,17 @@ class MetaMetric(ModelMetaclass):
                 issubclass(base_type, Domain) for base_type in bases
             ):
                 raise MixinTypeError(name, "Domain")
-            MetaMetric._registry[attrs.get("name", name)] = register_cls
+            try:
+                metric_name = attrs["name"]
+            except KeyError:
+                raise MissingAttributeError(name, "name")
+            MetaMetric._registry[metric_name] = register_cls
         return register_cls
 
     @classmethod
-    def get_registered_metric_classes(cls) -> list[type["Metric"]]:
-        """Returns all registered concrete Metric classes."""
-        return list(cls._registry.values())
-
-    @classmethod
-    def get_metric_class(cls, metric_name: str) -> Union[type["Metric"], None]:
-        """Returns the Metric class for a given metric name."""
-        return cls._registry.get(metric_name)
+    def get_registered_metric_class_from_metric_name(cls, metric_name: str) -> type["Metric"]:
+        """Returns the registered Metric class for a given metric name."""
+        return cls._registry[metric_name]
 
 
 _MetricResult = TypeVar("_MetricResult", bound=MetricResult)
@@ -111,6 +115,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
 
     @classmethod
     def get_metric_result_type(cls) -> type[_MetricResult]:
+        """Returns the MetricResult type for this Metric."""
         return get_args(getattr(cls, "__orig_bases__", [])[0])[0]
 
     @staticmethod

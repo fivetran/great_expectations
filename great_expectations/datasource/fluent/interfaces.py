@@ -1320,13 +1320,10 @@ class Batch:
             k.metric_name: (k, v) for k, v in metrics_calculator_result[1].items()
         }
         metric_results = []
-        metric_types: list[type[Metric]] = cls.get_all_metric_classes()
         for metric_name in requested_metric_names:
             if metric_name in raw_metrics:
-                MetricResultType = cls.get_metric_result_type_from_metric_name(
-                    metric_name=metric_name,
-                    metric_types=metric_types,
-                )
+                MetricType = MetaMetric.get_registered_metric_class_from_metric_name(metric_name)
+                MetricResultType = MetricType.get_metric_result_type()
                 metric_results.append(
                     MetricResultType(
                         id=raw_metrics[metric_name][0],
@@ -1344,22 +1341,3 @@ class Batch:
         if len(metric_results) == 1:
             return metric_results[0]
         return metric_results
-
-    @classmethod
-    def get_metric_result_type_from_metric_name(
-        cls,
-        metric_name: str,
-        metric_types: list[type[Metric]],
-    ) -> type[MetricResult]:
-        """Given a metric name and a list of Metric types gets the
-        MetricResult type for that Metric. Returns the base
-        MetricResult class if no MetricResult subclass is defined."""
-        for metric_type in metric_types:
-            if metric_type.name == metric_name:
-                return metric_type.get_metric_result_type()
-        return MetricResult
-
-    @classmethod
-    def get_all_metric_classes(cls) -> list[type[Metric]]:
-        """Gets all registered Metric classes from the MetaMetric registry."""
-        return MetaMetric.get_registered_metric_classes()
