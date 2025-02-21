@@ -87,7 +87,7 @@ class TestColumnValuesNonNull:
         metric = ColumnValuesNonNull(batch_id=batch.id, column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
-        expected_value = (~(F.col(STRING_COLUMN_NAME).isNotNull()),)
+        expected_value = ~(F.col(STRING_COLUMN_NAME).isNotNull())
         assert str(metric_result.value) == str(expected_value)
 
     @parameterize_batch_for_data_sources(
@@ -99,7 +99,7 @@ class TestColumnValuesNonNull:
         metric = ColumnValuesNonNull(batch_id=batch.id, column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
-        expected_value = (sa.ColumnClause(STRING_COLUMN_NAME).is_(None),)
+        expected_value = sa.ColumnClause(STRING_COLUMN_NAME).is_(None)
         assert metric_result.value.compare(expected_value)
 
 
