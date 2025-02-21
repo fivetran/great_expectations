@@ -47,7 +47,9 @@ PANDAS_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasDataFrameDatasourceTestConfig(),
 ]
 
-SPARK_DATA_SOURCES: Sequence[DataSourceTestConfig] = [SparkFilesystemCsvDatasourceTestConfig()]
+SPARK_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    SparkFilesystemCsvDatasourceTestConfig(),
+]
 
 SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),

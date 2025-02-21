@@ -1,22 +1,41 @@
-from pathlib import Path
+from typing import Sequence
 
 import pandas
-import pytest
 
-from great_expectations.metrics.batch.batch import BatchRowCount, BatchRowCountResult
-from great_expectations.validator.metrics_calculator import MetricsCalculator
+from great_expectations.metrics.batch.row_count import BatchRowCount, BatchRowCountResult
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
+    BigQueryDatasourceTestConfig,
+    DatabricksDatasourceTestConfig,
+    DataSourceTestConfig,
+    MSSQLDatasourceTestConfig,
+    MySQLDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
+    PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
+    SqliteDatasourceTestConfig,
 )
-from tests.integration.test_utils.data_source_config.pandas_data_frame import (
-    PandasDataFrameBatchTestSetup,
-)
-from tests.integration.test_utils.data_source_config.postgres import PostgresBatchTestSetup
-from tests.integration.test_utils.data_source_config.spark_filesystem_csv import (
-    SparkFilesystemCsvBatchTestSetup,
-)
+
+PANDAS_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    PandasFilesystemCsvDatasourceTestConfig(),
+    PandasDataFrameDatasourceTestConfig(),
+]
+
+SPARK_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    SparkFilesystemCsvDatasourceTestConfig(),
+]
+
+SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    BigQueryDatasourceTestConfig(),
+    DatabricksDatasourceTestConfig(),
+    MSSQLDatasourceTestConfig(),
+    MySQLDatasourceTestConfig(),
+    PostgreSQLDatasourceTestConfig(),
+    SnowflakeDatasourceTestConfig(),
+    SqliteDatasourceTestConfig(),
+]
 
 
 class TestBatchRowCount:
@@ -28,63 +47,35 @@ class TestBatchRowCount:
     )
     ROW_COUNT = 4
 
-    @pytest.mark.unit
-    def test_success_pandas(self) -> None:
-        batch_setup = PandasDataFrameBatchTestSetup(
-            config=PandasDataFrameDatasourceTestConfig(),
-            data=self.DATA_FRAME,
-        )
-        with batch_setup.batch_test_context() as batch:
-            # todo: replace with batch.compute_metrics when available
-            metrics_calculator = MetricsCalculator(
-                execution_engine=batch.data.execution_engine,
-                show_progress_bars=False,
-            )
-            batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
-            metric = BatchRowCount(
-                batch_id=batch.id,
-            )
-            result = BatchRowCountResult(
-                id=metric.id, value=metrics_calculator.get_metric(metric=metric.config)
-            )
-            assert result.value == self.ROW_COUNT
+    @parameterize_batch_for_data_sources(
+        data_source_configs=PANDAS_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_success_pandas(self, batch_for_datasource) -> None:
+        batch = batch_for_datasource
+        metric = BatchRowCount(batch_id=batch.id)
+        metric_result = batch.compute_metrics(metric)
+        assert isinstance(metric_result, BatchRowCountResult)
+        assert metric_result.value == self.ROW_COUNT
 
-    @pytest.mark.spark
-    def test_success_spark(self, tmp_path: Path) -> None:
-        batch_setup = SparkFilesystemCsvBatchTestSetup(
-            config=SparkFilesystemCsvDatasourceTestConfig(),
-            data=self.DATA_FRAME,
-            base_dir=tmp_path,
-        )
-        with batch_setup.batch_test_context() as batch:
-            # todo: replace with batch.compute_metrics when available
-            metrics_calculator = MetricsCalculator(
-                execution_engine=batch.data.execution_engine,
-                show_progress_bars=False,
-            )
-            batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
-            metric = BatchRowCount(
-                batch_id=batch.id,
-            )
-            result = BatchRowCountResult(
-                id=metric.id, value=metrics_calculator.get_metric(metric=metric.config)
-            )
-            assert result.value == self.ROW_COUNT
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SPARK_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_success_spark(self, batch_for_datasource) -> None:
+        batch = batch_for_datasource
+        metric = BatchRowCount(batch_id=batch.id)
+        metric_result = batch.compute_metrics(metric)
+        assert isinstance(metric_result, BatchRowCountResult)
+        assert metric_result.value == self.ROW_COUNT
 
-    @pytest.mark.postgresql
-    def test_success_postgres(self) -> None:
-        batch_setup = PostgresBatchTestSetup(
-            config=PostgreSQLDatasourceTestConfig(), data=self.DATA_FRAME, extra_data={}
-        )
-        with batch_setup.batch_test_context() as batch:
-            # todo: replace with batch.compute_metrics when available
-            metrics_calculator = MetricsCalculator(
-                execution_engine=batch.data.execution_engine,
-                show_progress_bars=False,
-            )
-            batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
-            metric = BatchRowCount(batch_id=batch.id)
-            result = BatchRowCountResult(
-                id=metric.id, value=metrics_calculator.get_metric(metric=metric.config)
-            )
-            assert result.value == self.ROW_COUNT
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_success_sql(self, batch_for_datasource) -> None:
+        batch = batch_for_datasource
+        metric = BatchRowCount(batch_id=batch.id)
+        metric_result = batch.compute_metrics(metric)
+        assert isinstance(metric_result, BatchRowCountResult)
+        assert metric_result.value == self.ROW_COUNT
