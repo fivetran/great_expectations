@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from great_expectations.compatibility.pyspark import pyspark
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.core.id_dict import IDDict
 from great_expectations.metrics.column_values.non_null import (
@@ -76,11 +76,13 @@ class TestColumnValuesNonNull:
             metric_result = batch.compute_metrics(metric)
             assert isinstance(metric_result, ColumnValuesNonNullResult)
             expected_value = (
-                pyspark.Column(),
+                ~(F.col(STRING_COLUMN_NAME).isNotNull()),
                 IDDict({"batch_id": batch.id, "row_condition": None}),
                 {"column": STRING_COLUMN_NAME},
             )
-            assert metric_result.value == expected_value
+            assert str(metric_result.value[0]) == str(expected_value[0])
+            assert metric_result.value[1] == expected_value[1]
+            assert metric_result.value[2] == expected_value[2]
 
     @pytest.mark.postgresql
     def test_success_postgres(self) -> None:
