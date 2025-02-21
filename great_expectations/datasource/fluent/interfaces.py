@@ -113,9 +113,6 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
-METRICS_PACKAGE = "great_expectations.metrics"
-
-
 class PartitionerSortingProtocol(Protocol):
     """Interface defining the fields a Partitioner must contain for sorting."""
 
