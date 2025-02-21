@@ -831,7 +831,7 @@ class Datasource(
             name: name of DataAsset sought.
 
         Returns:
-            _DataAssetT -- if named "DataAsset" object exists; otherwise, exception is raised.
+            if named "DataAsset" object exists; otherwise, exception is raised.
         """
         # This default implementation will be used if protocol is inherited
         try:
@@ -1114,8 +1114,8 @@ class Batch:
     def columns(self) -> List[str]:
         """Return column names of this Batch.
 
-        Returns
-            List[str]
+        Returns:
+            list of column names.
         """
         return self._get_metrics_calculator().columns()
 
@@ -1134,11 +1134,11 @@ class Batch:
 
         If n_rows is larger than the number of rows, this method returns all rows.
 
-        Parameters
+        Args:
             n_rows: The number of rows to return from the Batch.
             fetch_all: If True, ignore n_rows and return the entire Batch.
 
-        Returns
+        Returns:
             HeadData
         """
         metrics_calculator = self._get_metrics_calculator()
