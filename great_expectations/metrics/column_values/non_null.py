@@ -1,9 +1,9 @@
 from great_expectations.metrics.domain import ColumnValues
 from great_expectations.metrics.metric import Metric
-from great_expectations.metrics.metric_results import ColumnValuesCondition, MetricResult
+from great_expectations.metrics.metric_results import ConditionValues, MetricResult
 
 
-class ColumnValuesNonNullResult(MetricResult[ColumnValuesCondition]): ...
+class ColumnValuesNonNullResult(MetricResult[ConditionValues]): ...
 
 
 class ColumnValuesNonNull(Metric[ColumnValuesNonNullResult], ColumnValues):

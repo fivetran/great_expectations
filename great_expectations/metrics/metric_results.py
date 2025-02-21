@@ -5,7 +5,6 @@ import pandas as pd
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
 from great_expectations.compatibility.pyspark import pyspark
 from great_expectations.compatibility.sqlalchemy import BinaryExpression
-from great_expectations.core.id_dict import IDDict
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
@@ -32,7 +31,7 @@ class MetricErrorResultValue(TypedDict):
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
 
 
-ColumnValuesCondition = tuple[Union[pd.Series, BinaryExpression, pyspark.sql.Column], IDDict, dict]
+ConditionValues = Union[pd.Series, BinaryExpression, pyspark.sql.Column]
 
 
 class TableColumnsResult(MetricResult[list[str]]): ...

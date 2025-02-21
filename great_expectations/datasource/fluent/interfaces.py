@@ -1324,10 +1324,16 @@ class Batch:
             if metric_name in raw_metrics:
                 MetricType = MetaMetric.get_registered_metric_class_from_metric_name(metric_name)
                 MetricResultType = MetricType.get_metric_result_type()
+                metric_configuration_id = raw_metrics[metric_name][0]
+                value = (
+                    raw_metrics[metric_name][1][0]
+                    if metric_name.endswith("condition")
+                    else raw_metrics[metric_name][1]
+                )
                 metric_results.append(
                     MetricResultType(
-                        id=raw_metrics[metric_name][0],
-                        value=raw_metrics[metric_name][1],
+                        id=metric_configuration_id,
+                        value=value,
                     )
                 )
             elif metric_name in raw_metrics_errors:
