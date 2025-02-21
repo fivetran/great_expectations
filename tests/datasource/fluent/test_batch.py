@@ -304,7 +304,6 @@ def test_batch_compute_metrics_single_metric_success(
     metric = ColumnValuesNonNull(
         batch_id=batch.id,
         column="vendor_id",
-        min_value=0,
     )
     metric_results = batch.compute_metrics(metric)
     assert type(metric_results) is ColumnValuesNonNullResult
@@ -318,7 +317,6 @@ def test_batch_compute_metrics_multiple_metrics_success(
     metric_1 = ColumnValuesNonNull(
         batch_id=batch.id,
         column="passenger_count",
-        min_value=0,
     )
     metric_2 = BatchRowCount(batch_id=batch.id)
     metrics: list[Metric] = [metric_1, metric_2]
@@ -338,7 +336,6 @@ def test_batch_compute_metrics_multiple_metrics_error(
     metric_1 = ColumnValuesNonNull(
         batch_id=batch.id,
         column="not_a_column",
-        min_value=0,
     )
     metric_2 = BatchRowCount(batch_id=batch.id)
     metrics: list[Metric] = [metric_1, metric_2]
