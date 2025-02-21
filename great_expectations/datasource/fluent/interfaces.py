@@ -58,7 +58,7 @@ from great_expectations.exceptions.exceptions import (
     MissingDataContextError,
 )
 from great_expectations.metrics.metric import MetaMetric, Metric
-from great_expectations.metrics.metric_names import MetricNameSuffixes
+from great_expectations.metrics.metric_name import MetricNameSuffix
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
     MetricResult,
@@ -1327,7 +1327,7 @@ class Batch:
                 MetricResultType = MetricType.get_metric_result_type()
                 metric_configuration_id = raw_metrics[metric_name][0]
                 value = raw_metrics[metric_name][1]
-                if metric_name.endswith(MetricNameSuffixes.CONDITION) and isinstance(value, tuple):
+                if metric_name.endswith(MetricNameSuffix.CONDITION) and isinstance(value, tuple):
                     value = value[0]
                 metric_results.append(
                     MetricResultType(
