@@ -1,7 +1,11 @@
-from typing import Any, Generic, TypeVar, Union
+from typing import Any, Generic, TypedDict, TypeVar
 
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
-from great_expectations.validator.metric_configuration import MetricConfigurationID
+from great_expectations.validator.exception_info import ExceptionInfo
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 
 _MetricResultValue = TypeVar("_MetricResultValue")
 
@@ -10,8 +14,17 @@ class MetricResult(GenericModel, Generic[_MetricResultValue]):
     id: MetricConfigurationID
     value: _MetricResultValue
 
+    class Config:
+        arbitrary_types_allowed = True
 
-class MetricErrorResult(MetricResult[dict[str, Union[int, dict, str]]]): ...
+
+class MetricErrorResultValue(TypedDict):
+    metric_configuration: MetricConfiguration
+    exception_info: ExceptionInfo
+    num_failures: int
+
+
+class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
 
 
 class TableColumnsResult(MetricResult[list[str]]): ...

@@ -49,7 +49,7 @@ class ColumnValues(Values):
     Examples:
         A metric with a ColumnValues domain for column nullity values computed on each row:
 
-        >>> class Null(Metric, ColumnValues):
+        >>> class ColumnValuesNull(Metric[ColumnValuesNullResult], ColumnValues):
         ...     ...
 
     See Also:

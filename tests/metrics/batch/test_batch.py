@@ -3,8 +3,7 @@ from pathlib import Path
 import pandas
 import pytest
 
-from great_expectations.metrics.batch.batch import BatchRowCount, BatchRowCountResult
-from great_expectations.validator.metrics_calculator import MetricsCalculator
+from great_expectations.metrics.batch.row_count import BatchRowCount, BatchRowCountResult
 from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
@@ -35,19 +34,10 @@ class TestBatchRowCount:
             data=self.DATA_FRAME,
         )
         with batch_setup.batch_test_context() as batch:
-            # todo: replace with batch.compute_metrics when available
-            metrics_calculator = MetricsCalculator(
-                execution_engine=batch.data.execution_engine,
-                show_progress_bars=False,
-            )
-            batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
-            metric = BatchRowCount(
-                batch_id=batch.id,
-            )
-            result = BatchRowCountResult(
-                id=metric.id, value=metrics_calculator.get_metric(metric=metric.config)
-            )
-            assert result.value == self.ROW_COUNT
+            metric = BatchRowCount(batch_id=batch.id)
+            metric_result = batch.compute_metrics(metric)
+            assert isinstance(metric_result, BatchRowCountResult)
+            assert metric_result.value == self.ROW_COUNT
 
     @pytest.mark.spark
     def test_success_spark(self, tmp_path: Path) -> None:
@@ -57,19 +47,12 @@ class TestBatchRowCount:
             base_dir=tmp_path,
         )
         with batch_setup.batch_test_context() as batch:
-            # todo: replace with batch.compute_metrics when available
-            metrics_calculator = MetricsCalculator(
-                execution_engine=batch.data.execution_engine,
-                show_progress_bars=False,
-            )
-            batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
             metric = BatchRowCount(
                 batch_id=batch.id,
             )
-            result = BatchRowCountResult(
-                id=metric.id, value=metrics_calculator.get_metric(metric=metric.config)
-            )
-            assert result.value == self.ROW_COUNT
+            metric_result = batch.compute_metrics(metric)
+            assert isinstance(metric_result, BatchRowCountResult)
+            assert metric_result.value == self.ROW_COUNT
 
     @pytest.mark.postgresql
     def test_success_postgres(self) -> None:
@@ -77,14 +60,7 @@ class TestBatchRowCount:
             config=PostgreSQLDatasourceTestConfig(), data=self.DATA_FRAME, extra_data={}
         )
         with batch_setup.batch_test_context() as batch:
-            # todo: replace with batch.compute_metrics when available
-            metrics_calculator = MetricsCalculator(
-                execution_engine=batch.data.execution_engine,
-                show_progress_bars=False,
-            )
-            batch.data.execution_engine.batch_manager.load_batch_list(batch_list=[batch])
             metric = BatchRowCount(batch_id=batch.id)
-            result = BatchRowCountResult(
-                id=metric.id, value=metrics_calculator.get_metric(metric=metric.config)
-            )
-            assert result.value == self.ROW_COUNT
+            metric_result = batch.compute_metrics(metric)
+            assert isinstance(metric_result, BatchRowCountResult)
+            assert metric_result.value == self.ROW_COUNT

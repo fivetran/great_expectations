@@ -1,10 +1,11 @@
 from functools import cache
-from typing import ClassVar, Final
+from typing import ClassVar, Final, Generic, TypeVar
 
-from typing_extensions import dataclass_transform
+from typing_extensions import dataclass_transform, get_args
 
 from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass, StrictStr
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
+from great_expectations.metrics.metric_results import MetricResult
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -20,19 +21,51 @@ class MixinTypeError(TypeError):
         )
 
 
+class MissingAttributeError(AttributeError):
+    def __init__(self, class_name: str, attribute_name: str) -> None:
+        super().__init__(f"`{class_name}` must define `{attribute_name}` attribute.")
+
+
+class UnregisteredMetricError(ValueError):
+    def __init__(self, metric_name: str) -> None:
+        super().__init__(f"Metric `{metric_name}` was not found in the registry.")
+
+
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
+    """Metaclass for Metric classes that maintains a registry of all concrete Metric types."""
+
+    _registry: dict[str, type["Metric"]] = {}
+
     def __new__(cls, name, bases, attrs):
-        # ensure a single Domain mixin is defined
-        if name != "Metric" and (
-            len(bases) != ALLOWABLE_METRIC_MIXINS + 1
-            or not any(issubclass(base_type, Domain) for base_type in bases)
-        ):
-            raise MixinTypeError(name, "Domain")
-        return super().__new__(cls, name, bases, attrs)
+        register_cls = super().__new__(cls, name, bases, attrs)
+        # Don't register the base Metric class
+        if name != "Metric":
+            # ensure a single Domain mixin is defined
+            if len(bases) != ALLOWABLE_METRIC_MIXINS + 1 or not any(
+                issubclass(base_type, Domain) for base_type in bases
+            ):
+                raise MixinTypeError(name, "Domain")
+            try:
+                metric_name = attrs["name"]
+            except KeyError:
+                raise MissingAttributeError(name, "name")
+            MetaMetric._registry[metric_name] = register_cls
+        return register_cls
+
+    @classmethod
+    def get_registered_metric_class_from_metric_name(cls, metric_name: str) -> type["Metric"]:
+        """Returns the registered Metric class for a given metric name."""
+        try:
+            return cls._registry[metric_name]
+        except KeyError:
+            raise UnregisteredMetricError(metric_name)
 
 
-class Metric(BaseModel, metaclass=MetaMetric):
+_MetricResult = TypeVar("_MetricResult", bound=MetricResult)
+
+
+class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     """The abstract base class for defining all metrics.
 
     A Metric represents a measurable property that can be computed over a specific domain
@@ -40,14 +73,18 @@ class Metric(BaseModel, metaclass=MetaMetric):
     must inherit from this class and specify their domain type as a mixin.
 
     Examples:
-        A metric for column nullity values computed on each row:
+        A metric for a single column max value:
 
-        >>> class ColumnValuesNull(Metric, ColumnValues):
+        >>> class ColumnMaxResult(MetricResult[int]): ...
+        >>>
+        >>> class ColumnMax(Metric[ColumnMaxResult], Column):
         ...     ...
 
-        A metric for a single table row count value:
+        A metric for a single batch row count value:
 
-        >>> class TableRowCount(Metric, Table):
+        >>> class BatchRowCountResult(MetricResult[int]): ...
+        >>>
+        >>> class BatchRowCount(Metric[BatchRowCountResult], Batch):
         ...     ...
 
     Notes:
@@ -60,6 +97,8 @@ class Metric(BaseModel, metaclass=MetaMetric):
         MetricConfiguration: Configuration class for metric computation
     """
 
+    # we wouldn't mind removing this `name` attribute
+    # it's currently our only hook into the legacy metrics system
     name: ClassVar[StrictStr]
 
     class Config:
@@ -81,6 +120,11 @@ class Metric(BaseModel, metaclass=MetaMetric):
             instance_class=self.__class__,
             metric_value_set=frozenset(self.dict().items()),
         )
+
+    @classmethod
+    def get_metric_result_type(cls) -> type[_MetricResult]:
+        """Returns the MetricResult type for this Metric."""
+        return get_args(getattr(cls, "__orig_bases__", [])[0])[0]
 
     @staticmethod
     @cache
