@@ -3,8 +3,6 @@ from __future__ import annotations
 import copy
 import dataclasses
 import functools
-import importlib
-import inspect
 import logging
 import uuid
 import warnings
@@ -59,7 +57,7 @@ from great_expectations.exceptions.exceptions import (
     DataContextError,
     MissingDataContextError,
 )
-from great_expectations.metrics.metric import Metric
+from great_expectations.metrics.metric import MetaMetric, Metric
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
     MetricResult,
@@ -1366,10 +1364,5 @@ class Batch:
 
     @classmethod
     def get_all_metric_classes(cls) -> list[type[Metric]]:
-        """Gets the classes for the Metrics defined in METRICS_PACKAGE."""
-        package = importlib.import_module(METRICS_PACKAGE)
-        metric_classes_list = []
-        for name, obj in inspect.getmembers(package):
-            if inspect.isclass(obj) and issubclass(obj, Metric):
-                metric_classes_list.append(obj)
-        return metric_classes_list
+        """Gets all registered Metric classes from the MetaMetric registry."""
+        return MetaMetric.get_registered_metric_classes()

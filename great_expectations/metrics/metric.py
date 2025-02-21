@@ -1,5 +1,5 @@
 from functools import cache
-from typing import ClassVar, Final, Generic, TypeVar
+from typing import ClassVar, Final, Generic, TypeVar, Union
 
 from typing_extensions import dataclass_transform, get_args
 
@@ -23,14 +23,31 @@ class MixinTypeError(TypeError):
 
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
+    """Metaclass for Metric classes that maintains a registry of all concrete Metric types."""
+
+    _registry: dict[str, type["Metric"]] = {}
+
     def __new__(cls, name, bases, attrs):
-        # ensure a single Domain mixin is defined
-        if name != "Metric" and (
-            len(bases) != ALLOWABLE_METRIC_MIXINS + 1
-            or not any(issubclass(base_type, Domain) for base_type in bases)
-        ):
-            raise MixinTypeError(name, "Domain")
-        return super().__new__(cls, name, bases, attrs)
+        register_cls = super().__new__(cls, name, bases, attrs)
+        # Don't register the base Metric class
+        if name != "Metric":
+            # ensure a single Domain mixin is defined
+            if len(bases) != ALLOWABLE_METRIC_MIXINS + 1 or not any(
+                issubclass(base_type, Domain) for base_type in bases
+            ):
+                raise MixinTypeError(name, "Domain")
+            MetaMetric._registry[attrs.get("name", name)] = register_cls
+        return register_cls
+
+    @classmethod
+    def get_registered_metric_classes(cls) -> list[type["Metric"]]:
+        """Returns all registered concrete Metric classes."""
+        return list(cls._registry.values())
+
+    @classmethod
+    def get_metric_class(cls, metric_name: str) -> Union[type["Metric"], None]:
+        """Returns the Metric class for a given metric name."""
+        return cls._registry.get(metric_name)
 
 
 _MetricResult = TypeVar("_MetricResult", bound=MetricResult)
