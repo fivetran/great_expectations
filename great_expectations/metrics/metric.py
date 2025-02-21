@@ -26,6 +26,11 @@ class MissingAttributeError(AttributeError):
         super().__init__(f"`{class_name}` must define `{attribute_name}` attribute.")
 
 
+class UnregisteredMetricError(ValueError):
+    def __init__(self, metric_name: str) -> None:
+        super().__init__(f"Metric `{metric_name}` was not found in the registry.")
+
+
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
     """Metaclass for Metric classes that maintains a registry of all concrete Metric types."""
@@ -51,7 +56,10 @@ class MetaMetric(ModelMetaclass):
     @classmethod
     def get_registered_metric_class_from_metric_name(cls, metric_name: str) -> type["Metric"]:
         """Returns the registered Metric class for a given metric name."""
-        return cls._registry[metric_name]
+        try:
+            return cls._registry[metric_name]
+        except KeyError:
+            raise UnregisteredMetricError()
 
 
 _MetricResult = TypeVar("_MetricResult", bound=MetricResult)
