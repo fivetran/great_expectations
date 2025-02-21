@@ -1,6 +1,10 @@
-from typing import Any, Generic, TypedDict, TypeVar
+from typing import Any, Generic, TypedDict, TypeVar, Union
+
+import pandas as pd
 
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
+from great_expectations.compatibility.sqlalchemy import BinaryExpression
+from great_expectations.core.id_dict import IDDict
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
@@ -25,6 +29,9 @@ class MetricErrorResultValue(TypedDict):
 
 
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
+
+
+ColumnValuesCondition = tuple[Union[pd.Series, BinaryExpression], IDDict, dict]
 
 
 class TableColumnsResult(MetricResult[list[str]]): ...
