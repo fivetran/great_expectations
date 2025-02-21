@@ -103,7 +103,7 @@ class BatchDefinition(pydantic.GenericModel, Generic[PartitionerT]):
 
         Args:
             batch_parameters: Additional parameters to be used in fetching the batch identifiers
-            list.
+                list.
 
         Returns:
             A list of batch identifiers.
