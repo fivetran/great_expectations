@@ -569,7 +569,7 @@ class TestSlackNotificationAction:
                             "type": "mrkdwn",
                             "text": (
                                 "\n*Asset*: `__no_data_asset_name__`  "
-                                "*Expectation Suite*: `{SUITE_A}`"
+                                f"\n*Expectation Suite*: `{SUITE_A}`"
                                 "\n*Summary*: *3* of *3* Expectations were met"
                             ),
                         },
@@ -580,7 +580,7 @@ class TestSlackNotificationAction:
                             "type": "mrkdwn",
                             "text": (
                                 "\n*Asset*: `__no_data_asset_name__`  "
-                                "*Expectation Suite*: `{SUITE_B}`"
+                                f"\n*Expectation Suite*: `{SUITE_B}`"
                                 "\n*Summary*: *2* of *2* Expectations were met"
                             ),
                         },
@@ -626,7 +626,7 @@ class TestSlackNotificationAction:
                             "type": "mrkdwn",
                             "text": (
                                 "\n*Asset*: `asset_2_two_wow_whoa_vroom`  "
-                                f"*Expectation Suite*: `{SUITE_B}`"
+                                f"\n*Expectation Suite*: `{SUITE_B}`"
                                 "\n*Summary*: *2* of *2* Expectations were met"
                             ),
                         },
