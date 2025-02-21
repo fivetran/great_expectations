@@ -1329,6 +1329,7 @@ class Batch:
                 value = raw_metrics[metric_name][1]
                 if metric_name.endswith(MetricNameSuffix.CONDITION) and isinstance(value, tuple):
                     value = value[0]
+                MetricResultType.update_forward_refs()
                 metric_results.append(
                     MetricResultType(
                         id=metric_configuration_id,
