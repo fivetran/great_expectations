@@ -33,7 +33,36 @@ class MetricErrorResultValue(TypedDict):
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
 
 
-ConditionValues = Union[pd.Series, "BinaryExpression", "pyspark.sql.Column"]
+PYSPARK_SQL_COLUMN: bool
+
+
+try:
+    from great_expectations.compatibility.pyspark import pyspark
+
+    PYSPARK_SQL_COLUMN = True
+except ModuleNotFoundError:
+    PYSPARK_SQL_COLUMN = False
+
+
+SA_BINARY_EXPRESSION: bool
+
+
+try:
+    from great_expectations.compatibility.sqlalchemy import BinaryExpression
+
+    SA_BINARY_EXPRESSION = True
+except ModuleNotFoundError:
+    SA_BINARY_EXPRESSION = False
+
+
+if PYSPARK_SQL_COLUMN and SA_BINARY_EXPRESSION:
+    ConditionValues = Union[pd.Series, pyspark.sql.Column, BinaryExpression]
+elif PYSPARK_SQL_COLUMN:
+    ConditionValues = Union[pd.Series, pyspark.sql.Column]  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
+elif SA_BINARY_EXPRESSION:
+    ConditionValues = Union[pd.Series, BinaryExpression]  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
+else:
+    ConditionValues = pd.Series  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
 
 
 class TableColumnsResult(MetricResult[list[str]]): ...
