@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import cached_property
-from typing import Any, Generator, Generic, Mapping, Optional, Sequence, Union
+from typing import Any, Generic, Mapping, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,6 @@ from great_expectations.compatibility.sqlalchemy import (
     Table,
     TextClause,
     TypeEngine,
-    create_engine,
     insert,
     sqltypes,
 )
@@ -80,14 +79,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         self._user_specified_table_name = table_name
         super().__init__(config, data)
 
-    def _get_engine(self) -> Generator[Engine, None, None]:
-        engine = create_engine(url=self.connection_string)
-        yield engine
-        engine.dispose()
-
     @cached_property
     def engine(self) -> Engine:
-        return next(self._get_engine())
+        return self.make_asset().datasource.get_engine()
 
     @override
     def make_batch(self) -> Batch:
@@ -137,13 +131,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     def setup(self) -> None:
         with self.engine.connect() as conn, conn.begin():
             # create schema if needed
-
             if self.schema:
                 conn.execute(TextClause(f"CREATE SCHEMA {self.schema}"))
 
             # create tables
             all_table_data = self._ensure_all_table_data_created()
-            self.metadata.create_all(self.engine)
+            self.metadata.create_all(conn)
 
             # insert data
             for table_data in all_table_data:
@@ -158,10 +151,10 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def teardown(self) -> None:
-        for table in self.tables:
-            table.drop(self.engine)
-        if self.schema:
-            with self.engine.connect() as conn, conn.begin():
+        with self.engine.connect() as conn, conn.begin():
+            for table in self.tables:
+                table.drop(conn)
+            if self.schema:
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
