@@ -1,17 +1,15 @@
-from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar, Union
+from typing import Any, Generic, TypedDict, TypeVar, Union
 
 import pandas as pd
 
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
+from great_expectations.compatibility.pyspark import pyspark
+from great_expectations.compatibility.sqlalchemy import BinaryExpression, sqlalchemy
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
 )
-
-if TYPE_CHECKING:
-    from great_expectations.compatibility.pyspark import pyspark
-    from great_expectations.compatibility.sqlalchemy import BinaryExpression
 
 _MetricResultValue = TypeVar("_MetricResultValue")
 
@@ -33,33 +31,11 @@ class MetricErrorResultValue(TypedDict):
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
 
 
-PYSPARK_SQL_COLUMN: bool
-
-
-try:
-    from great_expectations.compatibility.pyspark import pyspark
-
-    PYSPARK_SQL_COLUMN = True
-except ModuleNotFoundError:
-    PYSPARK_SQL_COLUMN = False
-
-
-SA_BINARY_EXPRESSION: bool
-
-
-try:
-    from great_expectations.compatibility.sqlalchemy import BinaryExpression
-
-    SA_BINARY_EXPRESSION = True
-except ModuleNotFoundError:
-    SA_BINARY_EXPRESSION = False
-
-
-if PYSPARK_SQL_COLUMN and SA_BINARY_EXPRESSION:
+if pyspark and sqlalchemy:
     ConditionValues = Union[pd.Series, pyspark.sql.Column, BinaryExpression]
-elif PYSPARK_SQL_COLUMN:
+elif pyspark:
     ConditionValues = Union[pd.Series, pyspark.sql.Column]  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
-elif SA_BINARY_EXPRESSION:
+elif sqlalchemy:
     ConditionValues = Union[pd.Series, BinaryExpression]  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
 else:
     ConditionValues = pd.Series  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
