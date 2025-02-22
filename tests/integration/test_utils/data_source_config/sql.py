@@ -75,7 +75,6 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         extra_data: Mapping[str, pd.DataFrame],
         table_name: Optional[str] = None,  # Overrides random table name generation
     ) -> None:
-        self._engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
         self._user_specified_table_name = table_name
@@ -83,8 +82,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @cached_property
     def engine(self) -> Generator[Engine, None, None]:
-        yield self._engine
-        self._engine.dispose()
+        engine = create_engine(url=self.connection_string)
+        yield engine
+        engine.dispose()
 
     @override
     def make_batch(self) -> Batch:
