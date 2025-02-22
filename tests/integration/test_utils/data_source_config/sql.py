@@ -75,13 +75,13 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         extra_data: Mapping[str, pd.DataFrame],
         table_name: Optional[str] = None,  # Overrides random table name generation
     ) -> None:
+        self.engine = next(self._get_engine())
         self.extra_data = extra_data
         self.metadata = MetaData()
         self._user_specified_table_name = table_name
         super().__init__(config, data)
 
-    @cached_property
-    def engine(self) -> Generator[Engine, None, None]:
+    def _get_engine(self) -> Generator[Engine, None, None]:
         engine = create_engine(url=self.connection_string)
         yield engine
         engine.dispose()
@@ -132,8 +132,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def setup(self) -> None:
-        engine = next(self.engine)
-        with engine.connect() as conn, conn.begin():
+        with self.engine.connect() as conn, conn.begin():
             # create schema if needed
 
             if self.schema:
@@ -141,7 +140,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
             # create tables
             all_table_data = self._ensure_all_table_data_created()
-            self.metadata.create_all(engine)
+            self.metadata.create_all(self.engine)
 
             # insert data
             for table_data in all_table_data:
@@ -156,11 +155,10 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def teardown(self) -> None:
-        engine = next(self.engine)
         for table in self.tables:
-            table.drop(engine)
+            table.drop(self.engine)
         if self.schema:
-            with engine.connect() as conn, conn.begin():
+            with self.engine.connect() as conn, conn.begin():
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
