@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import cached_property
-from typing import Any, Generic, Mapping, Optional, Sequence, Union
+from typing import Any, Generator, Generic, Mapping, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -12,6 +12,7 @@ from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
     Column,
+    Engine,
     MetaData,
     Table,
     TextClause,
@@ -74,11 +75,16 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         extra_data: Mapping[str, pd.DataFrame],
         table_name: Optional[str] = None,  # Overrides random table name generation
     ) -> None:
-        # self.engine = create_engine(url=self.connection_string)
+        self._engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
         self._user_specified_table_name = table_name
         super().__init__(config, data)
+
+    @cached_property
+    def engine(self) -> Generator[Engine, None, None]:
+        yield self._engine
+        self._engine.dispose()
 
     @override
     def make_batch(self) -> Batch:
@@ -126,7 +132,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def setup(self) -> None:
-        engine = create_engine(url=self.connection_string)
+        engine = next(self.engine)
         with engine.connect() as conn, conn.begin():
             # create schema if needed
 
@@ -147,17 +153,15 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 df = table_data.df.replace(np.nan, None)
                 values = list(df.to_dict("index").values())
                 conn.execute(insert(table_data.table), values)
-        engine.dispose()
 
     @override
     def teardown(self) -> None:
-        engine = create_engine(url=self.connection_string)
+        engine = next(self.engine)
         for table in self.tables:
             table.drop(engine)
         if self.schema:
             with engine.connect() as conn, conn.begin():
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
-        engine.dispose()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = ["expectation_test_table", label, self._random_resource_name()]
