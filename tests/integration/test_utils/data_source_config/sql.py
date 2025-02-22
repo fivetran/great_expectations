@@ -152,10 +152,10 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
     @override
     def teardown(self) -> None:
         engine = create_engine(url=self.connection_string)
-        with engine.connect() as conn, conn.begin():
-            for table in self.tables:
-                table.drop(conn)
-            if self.schema:
+        for table in self.tables:
+            table.drop(engine)
+        if self.schema:
+            with engine.connect() as conn, conn.begin():
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
         engine.dispose()
 
