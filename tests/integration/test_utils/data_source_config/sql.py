@@ -136,7 +136,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
             # create tables
             all_table_data = self._ensure_all_table_data_created()
-            self.metadata.create_all(conn)
+            self.metadata.create_all(self.engine)
 
             # insert data
             for table_data in all_table_data:
@@ -151,9 +151,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def teardown(self) -> None:
+        for table in self.tables:
+            table.drop(self.engine)
         with self.engine.connect() as conn, conn.begin():
-            for table in self.tables:
-                table.drop(conn)
             if self.schema:
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
 
