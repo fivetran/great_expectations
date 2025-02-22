@@ -3,7 +3,7 @@ from typing import Sequence
 import pandas as pd
 
 from great_expectations.compatibility.pyspark import functions as F
-from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+from great_expectations.compatibility.sqlalchemy import ColumnClause
 from great_expectations.metrics.column_values.non_null import (
     ColumnValuesNonNull,
     ColumnValuesNonNullCount,
@@ -99,7 +99,7 @@ class TestColumnValuesNonNull:
         metric = ColumnValuesNonNull(batch_id=batch.id, column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
-        expected_value = sa.ColumnClause(STRING_COLUMN_NAME).is_(None)
+        expected_value = ColumnClause(STRING_COLUMN_NAME).is_(None)
         assert metric_result.value.compare(expected_value)  # type: ignore[call-overload,operator]  # figure out how to overload return types based on backend
 
 
