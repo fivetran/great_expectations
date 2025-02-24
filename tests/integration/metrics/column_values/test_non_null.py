@@ -65,7 +65,7 @@ class TestColumnValuesNonNull:
             name=STRING_COLUMN_NAME,
             dtype=bool,
         )
-        assert metric_result.value.equals(expected_value)  # type: ignore[operator]  # figure out how to overload return types based on backend
+        assert metric_result.value.equals(expected_value)
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SPARK_DATA_SOURCES,
@@ -89,7 +89,7 @@ class TestColumnValuesNonNull:
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
         expected_value = ColumnClause(STRING_COLUMN_NAME).is_(None)
-        assert metric_result.value.compare(expected_value)  # type: ignore[call-overload,operator]  # figure out how to overload return types based on backend
+        assert metric_result.value.compare(expected_value)
 
 
 class TestColumnValuesNonNullCount:

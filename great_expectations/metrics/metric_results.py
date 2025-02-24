@@ -11,7 +11,7 @@ from great_expectations.validator.metric_configuration import (
 
 if TYPE_CHECKING:
     from great_expectations.compatibility.pyspark import pyspark
-    from great_expectations.compatibility.sqlalchemy import BinaryExpression
+    from great_expectations.compatibility.sqlalchemy import BinaryExpression, ClauseElement
 
 _MetricResultValue = TypeVar("_MetricResultValue")
 
@@ -72,6 +72,14 @@ class ConditionValues(MetricResult[Union[pd.Series, "pyspark.sql.Column", "Binar
     @classmethod
     def __get_validators__(cls):
         yield cls.validate_value_type
+
+    def equals(self, other: pd.Series) -> bool:
+        assert isinstance(self, pd.Series)
+        return self.equals(other)
+
+    def compare(self, other: "ClauseElement") -> bool:
+        assert isinstance(self, BinaryExpression)
+        return self.compare(other)
 
 
 class TableColumnsResult(MetricResult[list[str]]): ...
