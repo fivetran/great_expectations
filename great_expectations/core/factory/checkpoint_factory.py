@@ -15,6 +15,7 @@ from great_expectations.core.factory.factory import Factory
 from great_expectations.exceptions import DataContextError
 
 if TYPE_CHECKING:
+    from great_expectations import ValidationDefinition
     from great_expectations.core.data_context_key import StringKey
     from great_expectations.data_context.store.checkpoint_store import (
         CheckpointStore,
@@ -40,7 +41,7 @@ class CheckpointFactory(Factory[Checkpoint]):
             checkpoint: Checkpoint to add
 
         Raises:
-            DataContextError if Checkpoint already exists
+            DataContextError: if Checkpoint already exists
         """
         key = self._store.get_key(name=checkpoint.name, id=None)
         if self._store.has_key(key=key):
@@ -82,7 +83,7 @@ class CheckpointFactory(Factory[Checkpoint]):
             name: The name of the Checkpoint to delete
 
         Raises:
-            DataContextError if Checkpoint doesn't exist
+            DataContextError: if Checkpoint doesn't exist
         """
         try:
             checkpoint = self.get(name=name)
@@ -109,7 +110,7 @@ class CheckpointFactory(Factory[Checkpoint]):
             name: Name of Checkpoint to get
 
         Raises:
-            DataContextError when Checkpoint is not found.
+            DataContextError: when Checkpoint is not found.
         """
         key = self._store.get_key(name=name, id=None)
         if not self._store.has_key(key=key):
@@ -129,3 +130,50 @@ class CheckpointFactory(Factory[Checkpoint]):
             raise ValueError(f"Object with key {key} was found, but it is not a Checkpoint.")  # noqa: TRY003, TRY004 # FIXME CoP
 
         return checkpoint
+
+    @public_api
+    @override
+    def add_or_update(self, checkpoint: Checkpoint) -> Checkpoint:
+        """Add or update a Checkpoint by name.
+
+        If a Checkpoint with the same name exists, overwrite it, otherwise
+        create a new Checkpoint.
+
+        Args:
+            checkpoint: Checkpoint to add or update
+        """
+
+        try:
+            existing_checkpoint = self.get(name=checkpoint.name)
+        except DataContextError:
+            # checkpoint doesn't exist yet, so add it
+            self._add_or_update_validation_definitions(
+                validation_definitions=checkpoint.validation_definitions,
+                existing_validation_definitions=[],
+            )
+            return self.add(checkpoint=checkpoint)
+
+        # update checkpoint
+        checkpoint.id = existing_checkpoint.id
+        self._add_or_update_validation_definitions(
+            validation_definitions=checkpoint.validation_definitions,
+            existing_validation_definitions=existing_checkpoint.validation_definitions,
+        )
+        checkpoint.save()
+        return checkpoint
+
+    def _add_or_update_validation_definitions(
+        self,
+        validation_definitions: list[ValidationDefinition],
+        existing_validation_definitions: list[ValidationDefinition],
+    ):
+        from great_expectations.data_context import project_manager
+
+        val_def_ids_by_name = {
+            val_def.name: val_def.id for val_def in existing_validation_definitions
+        }
+        val_def_factory = project_manager.get_validation_definitions_factory()
+        for val_def in validation_definitions:
+            if val_def.name in val_def_ids_by_name:
+                val_def.id = val_def_ids_by_name[val_def.name]
+            val_def_factory.add_or_update(validation=val_def)

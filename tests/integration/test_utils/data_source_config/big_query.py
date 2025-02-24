@@ -57,9 +57,8 @@ class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
         # dataset is to create a schema: https://cloud.google.com/bigquery/docs/datasets#sql
         return True
 
-    @cached_property
     @override
-    def asset(self) -> TableAsset:
+    def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_sql(
             name=self._random_resource_name(), connection_string=self.connection_string
         ).add_table_asset(

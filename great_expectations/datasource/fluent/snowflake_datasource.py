@@ -17,6 +17,7 @@ from typing import (
     Type,
     Union,
 )
+from urllib.parse import quote
 
 from great_expectations._docs_decorators import deprecated_method_or_class, public_api
 from great_expectations.compatibility import pydantic
@@ -788,6 +789,11 @@ class SnowflakeDatasource(SQLDatasource):
         if not url:
             url_args = self._get_url_args()
             url_args.update(kwargs)
+
+            password = url_args.get("password")
+            if isinstance(password, str):
+                url_args["password"] = quote(password)
+
             url = SnowflakeURL(**url_args)
         else:
             url_args = {}

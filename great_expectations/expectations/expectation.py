@@ -1577,10 +1577,7 @@ class BatchExpectation(Expectation, ABC):
 
     batch_id: Union[str, None] = None
 
-    domain_keys: ClassVar[Tuple[str, ...]] = (
-        "batch_id",
-        "table",
-    )
+    domain_keys: ClassVar[Tuple[str, ...]] = ("batch_id",)
     metric_dependencies: ClassVar[Tuple[str, ...]] = ()
     domain_type: ClassVar[MetricDomainTypes] = MetricDomainTypes.TABLE
     args_keys: ClassVar[Tuple[str, ...]] = ()
@@ -1815,7 +1812,6 @@ class ColumnAggregateExpectation(BatchExpectation, ABC):
 
     domain_keys: ClassVar[Tuple[str, ...]] = (
         "batch_id",
-        "table",
         "column",
         "row_condition",
         "condition_parser",
@@ -1867,7 +1863,6 @@ class ColumnMapExpectation(BatchExpectation, ABC):
     map_metric: ClassVar[Optional[str]] = None
     domain_keys: ClassVar[Tuple[str, ...]] = (
         "batch_id",
-        "table",
         "column",
         "row_condition",
         "condition_parser",
@@ -2131,7 +2126,6 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
     map_metric: ClassVar[Optional[str]] = None
     domain_keys = (
         "batch_id",
-        "table",
         "column_A",
         "column_B",
         "row_condition",
@@ -2385,7 +2379,6 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
     map_metric: ClassVar[Optional[str]] = None
     domain_keys = (
         "batch_id",
-        "table",
         "column_list",
         "row_condition",
         "condition_parser",
@@ -2408,6 +2401,13 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
                     }
                 }
             )
+
+    @pydantic.validator("column_list")
+    def _validate_column_list(cls, v: List[str]) -> List[str]:
+        min_length = 2
+        if len(v) < min_length:
+            raise ValueError("column_list must contain at least two columns.")  # noqa: TRY003 # Error message swallowed by Pydantic
+        return v
 
     @classmethod
     @override

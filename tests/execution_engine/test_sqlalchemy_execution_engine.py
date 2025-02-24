@@ -42,6 +42,7 @@ from great_expectations.validator.metric_configuration import MetricConfiguratio
 from great_expectations.validator.validator import Validator
 from tests.expectations.test_util import get_table_columns_metric
 from tests.test_utils import (
+    get_default_mssql_url,
     get_sqlite_table_names,
     get_sqlite_temp_table_names,
     get_sqlite_temp_table_names_from_engine,
@@ -1214,7 +1215,7 @@ class TestGetConnection:
 @pytest.mark.unit
 class TestDialectRequiresPersistedConnection:
     def test__dialect_requires_persisted_connection_mssql(self):
-        connection_string = "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@db_hostname:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
+        connection_string = get_default_mssql_url()
         assert _dialect_requires_persisted_connection(connection_string=connection_string)
 
     def test__dialect_requires_persisted_connection_sqlite(self):

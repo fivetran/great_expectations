@@ -1,5 +1,6 @@
 import pytest
 
+from great_expectations.analytics.base_event import Event
 from great_expectations.analytics.events import (
     ActionInfo,
     CheckpointCreatedEvent,
@@ -99,11 +100,17 @@ from great_expectations.analytics.events import (
     ],
 )
 @pytest.mark.unit
-def test_event_properties(event, expected_properties):
+def test_event_properties(event: Event, expected_properties: dict):
     actual_properties = event.properties()
 
     # Assert that base properties are present
-    for base_property in ("data_context_id", "oss_id", "service", "gx_version"):
+    for base_property in (
+        "data_context_id",
+        "oss_id",
+        "service",
+        "gx_version",
+        "user_agent_str",
+    ):
         assert base_property in actual_properties
         actual_properties.pop(base_property)
 

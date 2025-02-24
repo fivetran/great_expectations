@@ -83,7 +83,7 @@ class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], Generic[Dat
              PathNotFoundError: path cannot be resolved
              AmbiguousPathError: path matches more than one file
         """
-        regex = re.compile(str(path))
+        regex = re.compile(f"{path}$")
         matched_data_references = len(self._data_connector.get_matched_data_references(regex=regex))
         # we require path to match exactly 1 file
         if matched_data_references < 1:

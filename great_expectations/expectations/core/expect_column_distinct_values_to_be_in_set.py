@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 import altair as alt
 import pandas as pd
 
+from great_expectations.compatibility import pydantic
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
@@ -252,6 +253,12 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                     },
                 }
             )
+
+    @pydantic.validator("value_set")
+    def _validate_value_set(cls, value_set: ValueSetField) -> ValueSetField:
+        if not value_set:
+            raise ValueError("value_set must be a non-empty set-like object.")  # noqa: TRY003 # Error messaged gets swallowed by Pydantic
+        return value_set
 
     @classmethod
     def _prescriptive_template(

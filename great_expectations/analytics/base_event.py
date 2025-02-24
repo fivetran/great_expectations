@@ -51,6 +51,10 @@ class Event:
         return get_config().user_id
 
     @property
+    def user_agent_str(self) -> str | None:
+        return get_config().user_agent_str
+
+    @property
     def distinct_id(self) -> UUID | None:
         """The distinct_id is the primary key for identifying
         analytics events. It is the user_id if it is set
@@ -75,6 +79,7 @@ class Event:
             "oss_id": self.oss_id,
             "gx_version": gx_version,
             "service": "gx-core",
+            "user_agent_str": self.user_agent_str,
         }
         if self.user_id is not None:
             props.update({"user_id": self.user_id, "organization_id": self.organization_id})

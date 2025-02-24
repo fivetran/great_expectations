@@ -229,6 +229,11 @@
                 },
                 "offset": {
                     "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "default": false,
+                    "type": "boolean"
                 }
             },
             "required": [

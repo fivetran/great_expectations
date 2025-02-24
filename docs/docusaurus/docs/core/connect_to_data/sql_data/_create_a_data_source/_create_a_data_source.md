@@ -9,13 +9,13 @@ import PreReqCredentials from '../../../_core_components/prerequisites/_securely
 
 import DatasourceMethodReferenceTable from './_datasource_method_reference_table.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-source}
 - <PreReqPython/>.
 - <PreReqGxInstalledWithSqlDependecies/>
 - <PreReqDataContext/>.
 - <PreReqCredentials/>.
 
-### Procedure
+### Procedure {#procedure-data-source}
 
 <Tabs 
    queryString="procedure"

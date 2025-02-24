@@ -342,7 +342,7 @@ class ExpectationValidationResult(SerializableDictDot):
         }
         if self.exception_info.get("raised_exception"):
             describe_dict["exception_info"] = self.exception_info
-        return describe_dict
+        return convert_to_json_serializable(describe_dict)
 
     @public_api
     def describe(self) -> str:
@@ -604,12 +604,14 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         )
 
     def describe_dict(self) -> dict:
-        return {
-            "success": self.success,
-            "statistics": self.statistics,
-            "expectations": [expectation.describe_dict() for expectation in self.results],
-            "result_url": self.result_url,
-        }
+        return convert_to_json_serializable(
+            {
+                "success": self.success,
+                "statistics": self.statistics,
+                "expectations": [expectation.describe_dict() for expectation in self.results],
+                "result_url": self.result_url,
+            }
+        )
 
     @public_api
     def describe(self) -> str:

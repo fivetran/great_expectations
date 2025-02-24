@@ -125,12 +125,31 @@ else:
 
 
 from great_expectations.compatibility.bigquery import (
-    BIGQUERY_TYPES,
     GEOGRAPHY,
+    sqlalchemy_bigquery,
 )
 
-if GEOGRAPHY:
-    BIGQUERY_TYPES["GEOGRAPHY"] = GEOGRAPHY
+try:
+    BIGQUERY_TYPES = {
+        "INTEGER": sqlalchemy_bigquery.INTEGER,
+        "NUMERIC": sqlalchemy_bigquery.NUMERIC,
+        "STRING": sqlalchemy_bigquery.STRING,
+        "BIGNUMERIC": sqlalchemy_bigquery.BIGNUMERIC,
+        "BYTES": sqlalchemy_bigquery.BYTES,
+        "BOOL": sqlalchemy_bigquery.BOOL,
+        "BOOLEAN": sqlalchemy_bigquery.BOOLEAN,
+        "TIMESTAMP": sqlalchemy_bigquery.TIMESTAMP,
+        "TIME": sqlalchemy_bigquery.TIME,
+        "FLOAT": sqlalchemy_bigquery.FLOAT,
+        "DATE": sqlalchemy_bigquery.DATE,
+        "DATETIME": sqlalchemy_bigquery.DATETIME,
+    }
+
+    if GEOGRAPHY:
+        BIGQUERY_TYPES["GEOGRAPHY"] = GEOGRAPHY
+
+except (ImportError, AttributeError):
+    BIGQUERY_TYPES = {}
 
 try:
     import sqlalchemy.dialects.postgresql as postgresqltypes  # noqa: TID251 # FIXME CoP
@@ -800,11 +819,12 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         connection_string = f"mysql+pymysql://root@{db_hostname}/test_ci"
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "mssql":
-        connection_string = f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
-        engine = sa.create_engine(
-            connection_string,
-            # echo=True,
+        connection_string = (
+            "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
+            "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+            "&autocommit=true&TrustServerCertificate=yes"
         )
+        engine = sa.create_engine(connection_string)
     elif sa_engine_name == "bigquery":
         connection_string = _get_bigquery_connection_string()
         engine = sa.create_engine(connection_string)
@@ -1051,9 +1071,6 @@ def build_spark_engine(
     ):
         raise ValueError("Exactly one of batch_id or batch_definition must be specified.")  # noqa: TRY003 # FIXME CoP
 
-    if batch_id is None:
-        batch_id = cast(LegacyBatchDefinition, batch_definition).id
-
     if isinstance(df, pd.DataFrame):
         if schema is None:
             data: Union[pd.DataFrame, List[tuple]] = [
@@ -1074,7 +1091,7 @@ def build_spark_engine(
     execution_engine = SparkDFExecutionEngine(
         spark_config=spark_config,
         batch_data_dict={
-            batch_id: df,
+            batch_id or cast(LegacyBatchDefinition, batch_definition).id: df,
         },
     )
     return execution_engine
@@ -1384,27 +1401,25 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
                 test_backends += ["mysql"]
 
         if include_mssql:
-            # noinspection PyUnresolvedReferences
+            connection_string = (
+                "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
+                "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+                "&autocommit=true&TrustServerCertificate=yes"
+            )
             try:
-                engine = sa.create_engine(
-                    f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                    "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true",
-                    # echo=True,
-                )
+                engine = sa.create_engine(connection_string)
                 conn = engine.connect()
                 conn.close()
             except (ImportError, sa.exc.SQLAlchemyError):
                 if raise_exceptions_for_backends is True:
                     raise ImportError(  # noqa: TRY003 # FIXME CoP
                         "mssql tests are requested, but unable to connect to the mssql database at "
-                        f"'mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                        "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true'",
+                        f"{connection_string}",
                     )
                 else:
                     logger.warning(
                         "mssql tests are requested, but unable to connect to the mssql database at "
-                        f"'mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?"
-                        "driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true'",
+                        f"{connection_string}",
                     )
             else:
                 test_backends += ["mssql"]

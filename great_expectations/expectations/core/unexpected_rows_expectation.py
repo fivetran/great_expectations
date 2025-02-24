@@ -113,7 +113,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
             print(batch_warning_message)
             logger.info(batch_warning_message)
 
-        return query
+        return query.rstrip("; \t\r\n\v\f")
 
     class Config:
         title = "Custom Expectation with SQL"

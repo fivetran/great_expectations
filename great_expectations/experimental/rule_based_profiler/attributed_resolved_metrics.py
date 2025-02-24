@@ -16,6 +16,7 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.core.id_dict import IDDictID
     from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
         MetricValues,
     )
@@ -135,7 +136,7 @@ class AttributedResolvedMetrics(SerializableDictDot):
         self.metric_values_by_batch_id[batch_id] = value
 
     @property
-    def id(self) -> str:
+    def id(self) -> IDDictID:
         if self.metric_attributes is None:
             return ""
 

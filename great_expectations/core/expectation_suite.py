@@ -169,9 +169,12 @@ class ExpectationSuite(SerializableDictDot):
         that are not relevant for uniqueness in the suite.
         """
         exclude_params = {"id", "rendered_content", "notes", "meta"}
-        return expectation_a.dict(exclude=exclude_params) == expectation_b.dict(
+        # pydantic model.dict() excludes ClassVars, so we compare Expectation type explicitly
+        types_are_equal = expectation_a.expectation_type == expectation_b.expectation_type
+        attributes_are_equal = expectation_a.dict(exclude=exclude_params) == expectation_b.dict(
             exclude=exclude_params
         )
+        return types_are_equal and attributes_are_equal
 
     def _submit_expectation_created_event(self, expectation: Expectation) -> None:
         if expectation.__module__.startswith("great_expectations."):
