@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Generic, Mapping, Optional, Sequence, Union
+from typing import Any, Generic, Mapping, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -24,7 +24,6 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
-
 
 
 @dataclass(frozen=True)
