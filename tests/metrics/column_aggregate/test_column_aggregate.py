@@ -12,12 +12,16 @@ from great_expectations.metrics.metric_results import MetricErrorResult
 from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.pandas_data_frame import (
     PandasDataFrameBatchTestSetup,
 )
 from tests.integration.test_utils.data_source_config.postgres import PostgresBatchTestSetup
+from tests.integration.test_utils.data_source_config.snowflake import (
+    SnowflakeBatchTestSetup,
+)
 from tests.integration.test_utils.data_source_config.spark_filesystem_csv import (
     SparkFilesystemCsvBatchTestSetup,
 )
@@ -57,6 +61,12 @@ def setup_postgres(dataframe: pandas.DataFrame) -> PostgresBatchTestSetup:
         config=PostgreSQLDatasourceTestConfig(), data=dataframe, extra_data={}
     )
 
+@pytest.fixture
+def setup_snowflake(dataframe: pandas.DataFrame) -> SnowflakeBatchTestSetup:
+    return SnowflakeBatchTestSetup(
+        config=SnowflakeDatasourceTestConfig(), data=dataframe, extra_data={}
+    )
+
 
 @pytest.mark.parametrize(
     "setup_datasource",
@@ -64,6 +74,8 @@ def setup_postgres(dataframe: pandas.DataFrame) -> PostgresBatchTestSetup:
         pytest.param("setup_pandas", marks=pytest.mark.unit),
         pytest.param("setup_spark", marks=pytest.mark.spark),
         pytest.param("setup_postgres", marks=pytest.mark.postgresql),
+        pytest.param("setup_snowflake", marks=pytest.mark.snowflake),
+
     ],
 )
 def test_mean_success(setup_datasource: str, request: FixtureRequest) -> None:
@@ -83,6 +95,7 @@ def test_mean_success(setup_datasource: str, request: FixtureRequest) -> None:
         # There is a bug to track fixing this: https://greatexpectations.atlassian.net/browse/GX-448
         # pytest.param("setup_spark", marks=pytest.mark.spark),
         pytest.param("setup_postgres", marks=pytest.mark.postgresql),
+        pytest.param("setup_snowflake", marks=pytest.mark.snowflake),
     ],
 )
 def test_mean_failure(setup_datasource: str, request: FixtureRequest) -> None:
