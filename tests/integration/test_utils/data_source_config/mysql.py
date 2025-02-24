@@ -67,8 +67,8 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
     def get_engine(self) -> Engine:
         return self.create_engine(url=self.connection_string)
 
-    @cache
     @staticmethod
+    @cache
     def create_engine(connection_string: str) -> Engine:
         return create_engine(url=connection_string)
 
