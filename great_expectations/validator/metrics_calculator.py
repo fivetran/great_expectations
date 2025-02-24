@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
+from great_expectations.metrics.metric_results import MetricErrorResultValue
 from great_expectations.validator.computed_metric import MetricValue
-from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -24,7 +24,7 @@ logging.captureWarnings(True)
 _MetricsDict: TypeAlias = Dict[MetricConfigurationID, MetricValue]
 _AbortedMetricsInfoDict: TypeAlias = Dict[
     MetricConfigurationID,
-    Dict[str, Union[MetricConfiguration, ExceptionInfo, int]],
+    MetricErrorResultValue,
 ]
 
 

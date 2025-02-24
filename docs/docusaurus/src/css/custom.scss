@@ -299,6 +299,14 @@ table.borderless tr:nth-child(2n) {
   line-height: var(--p-line-height)
 }
 
+div.theme-doc-toc-mobile {
+  display: none;
+  
+  @media (max-width: $mobile-breakpoint) {
+    display: block;
+  }
+}
+
 .request-a-demo {
   margin-top: 24px;
 }

@@ -18,6 +18,7 @@ from tqdm.auto import tqdm
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.registry import get_metric_provider
+from great_expectations.metrics.metric_results import MetricErrorResultValue
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
@@ -265,7 +266,7 @@ class ValidationGraph:
             for metric in ready_metrics:
                 if (
                     metric.id in failed_metric_info
-                    and failed_metric_info[metric.id]["num_failures"]  # type: ignore[operator]  # Incorrect flagging of 'Unsupported operand types for <= ("int" and "MetricConfiguration") and for >= ("Set[ExceptionInfo]" and "int")' in deep "Union" structure.
+                    and failed_metric_info[metric.id]["num_failures"]
                     >= MAX_METRIC_COMPUTATION_RETRIES
                 ):
                     aborted_metrics_info[metric.id] = failed_metric_info[metric.id]
@@ -293,15 +294,14 @@ class ValidationGraph:
                     )
                     for failed_metric in err.failed_metrics:
                         if failed_metric.id in failed_metric_info:
-                            failed_metric_info[failed_metric.id]["num_failures"] += 1  # type: ignore[operator]  # Incorrect flagging of 'Unsupported operand types for <= ("int" and "MetricConfiguration") and for >= ("Set[ExceptionInfo]" and "int")' in deep "Union" structure.
+                            failed_metric_info[failed_metric.id]["num_failures"] += 1
                             failed_metric_info[failed_metric.id]["exception_info"] = exception_info
                         else:
-                            failed_metric_info[failed_metric.id] = {}
-                            failed_metric_info[failed_metric.id]["metric_configuration"] = (
-                                failed_metric
+                            failed_metric_info[failed_metric.id] = MetricErrorResultValue(
+                                metric_configuration=failed_metric,
+                                exception_info=exception_info,
+                                num_failures=1,
                             )
-                            failed_metric_info[failed_metric.id]["num_failures"] = 1
-                            failed_metric_info[failed_metric.id]["exception_info"] = exception_info
 
                 else:
                     raise err  # noqa: TRY201 # FIXME CoP
@@ -406,7 +406,7 @@ class ExpectationValidationGraph:
         metric_info = self._filter_metric_info_in_graph(metric_info=metric_info)
         metric_exception_info: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]] = {}
         metric_id: MetricConfigurationID
-        metric_info_item: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]]
+        metric_info_item: MetricErrorResultValue
         for metric_id, metric_info_item in metric_info.items():
             metric_exception_info[str(metric_id)] = metric_info_item["exception_info"]
 
