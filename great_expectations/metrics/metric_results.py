@@ -71,16 +71,15 @@ class ConditionValues(MetricResult[Union[pd.Series, "pyspark.sql.Column", "Binar
         yield cls.validate_value_type
 
     def equals(self, other: pd.Series) -> bool:
-        assert isinstance(self, pd.Series), (
-            "ConditionValues.equals() can only be called " "when the value is a pandas.Series."
-        )
+        assert isinstance(
+            self, pd.Series
+        ), "ConditionValues.equals() can only be called on a pandas.Series."
         return self.equals(other)
 
     def compare(self, other: "ClauseElement") -> bool:
-        assert isinstance(self, BinaryExpression), (
-            "ConditionValues.compare() can only be called "
-            "when the value is a sqlalchemy.BinaryExpression."
-        )
+        assert isinstance(
+            self, BinaryExpression
+        ), "ConditionValues.compare() can only be called on a sqlalchemy.BinaryExpression."
         return self.compare(other)
 
 
