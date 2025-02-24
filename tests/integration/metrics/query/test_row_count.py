@@ -37,9 +37,6 @@ DATA_FRAME = pd.DataFrame(
 
 
 class TestQueryRowCount:
-    ROW_COUNT = 4
-    TEST_QUERY = "SELECT * FROM {batch} WHERE id > 0"
-
     @parameterize_batch_for_data_sources(
         data_source_configs=SPARK_DATA_SOURCES,
         data=DATA_FRAME,
@@ -48,11 +45,11 @@ class TestQueryRowCount:
         batch = batch_for_datasource
         metric = QueryRowCount(
             batch_id=batch.id,
-            query=self.TEST_QUERY,
+            query="SELECT * FROM {batch} WHERE id > 0",
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryRowCountResult)
-        assert metric_result.value == self.ROW_COUNT
+        assert metric_result.value == 4
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SQL_DATA_SOURCES,
@@ -62,11 +59,11 @@ class TestQueryRowCount:
         batch = batch_for_datasource
         metric = QueryRowCount(
             batch_id=batch.id,
-            query=self.TEST_QUERY,
+            query="SELECT * FROM {batch} WHERE id > 0",
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryRowCountResult)
-        assert metric_result.value == self.ROW_COUNT
+        assert metric_result.value == 4
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SQL_DATA_SOURCES,
