@@ -64,8 +64,8 @@ class TestQueryRowCount:
         batch = batch_for_datasource
         metric = QueryRowCount(
             batch_id=batch.id,
-            query="SELECT * FROM {batch} WHERE id > 0",
+            query=query,
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryRowCountResult)
-        assert metric_result.value == 4
+        assert metric_result.value == result_value
