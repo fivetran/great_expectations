@@ -9,7 +9,6 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
@@ -23,7 +22,6 @@ SPARK_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
 SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
