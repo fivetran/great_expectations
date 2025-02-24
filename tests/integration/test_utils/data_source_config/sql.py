@@ -12,6 +12,7 @@ from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
     Column,
+    Engine,
     MetaData,
     Table,
     TextClause,
@@ -24,8 +25,6 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
 
-if TYPE_CHECKING:
-    from sqlalchemy import Engine
 
 
 @dataclass(frozen=True)
