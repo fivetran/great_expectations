@@ -45,11 +45,9 @@ class ConditionValuesValueError(ValueError):
 class ConditionValues(MetricResult[Union[pd.Series, "pyspark.sql.Column", "BinaryExpression"]]):
     @classmethod
     def validate_value_type(cls, value):
-        # Check pandas Series first since it's directly imported
         if isinstance(value, pd.Series):
             return value
 
-        # Check pyspark.sql.Column
         try:
             from great_expectations.compatibility.pyspark import pyspark
 
@@ -58,7 +56,6 @@ class ConditionValues(MetricResult[Union[pd.Series, "pyspark.sql.Column", "Binar
         except (ImportError, AttributeError):
             pass
 
-        # Check SQLAlchemy BinaryExpression
         try:
             from great_expectations.compatibility.sqlalchemy import BinaryExpression
 
