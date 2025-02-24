@@ -1328,7 +1328,7 @@ class Batch:
                 metric_configuration_id = raw_metrics[metric_name][0]
                 value = raw_metrics[metric_name][1]
                 # "condition" metrics return the domain and value kwargs
-                # we just want the value, which is the first item int he tuple
+                # we just want the value, which is the first item in the tuple
                 if metric_name.endswith(MetricNameSuffix.CONDITION) and isinstance(value, tuple):
                     value = value[0]
                 metric_results.append(
