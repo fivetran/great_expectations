@@ -14,6 +14,15 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.7
+* [FEATURE] BatchRowCount Metric ([#10944](https://github.com/great-expectations/great_expectations/pull/10944))
+* [BUGFIX] remove unused domain key ([#10951](https://github.com/great-expectations/great_expectations/pull/10951))
+* [DOCS] Replacing search keys with env variables ([#10940](https://github.com/great-expectations/great_expectations/pull/10940))
+* [DOCS] SSO cta ([#10872](https://github.com/great-expectations/great_expectations/pull/10872))
+* [MAINTENANCE] Make `Metric.config` un-instantiable and excluded from auto-complete ([#10938](https://github.com/great-expectations/great_expectations/pull/10938))
+* [MAINTENANCE] Drop jinja2 v2 support ([#10941](https://github.com/great-expectations/great_expectations/pull/10941))
+* [MAINTENANCE] Require `Metric.name` instead of using `name` inference ([#10953](https://github.com/great-expectations/great_expectations/pull/10953))
+
 ### 1.3.6
 * [BUGFIX] Quote password before passing to SnowflakeURL ([#10919](https://github.com/great-expectations/great_expectations/pull/10919))
 * [BUGFIX] Trim the unexpected rows query ([#10923](https://github.com/great-expectations/great_expectations/pull/10923))

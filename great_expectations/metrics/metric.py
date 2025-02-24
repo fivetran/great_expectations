@@ -1,11 +1,11 @@
-import re
 from functools import cache
-from typing import ClassVar, Final
+from typing import ClassVar, Final, Generic, TypeVar
 
-from typing_extensions import dataclass_transform
+from typing_extensions import dataclass_transform, get_args
 
-from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass
+from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass, StrictStr
 from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
+from great_expectations.metrics.metric_results import MetricResult
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -21,19 +21,51 @@ class MixinTypeError(TypeError):
         )
 
 
+class MissingAttributeError(AttributeError):
+    def __init__(self, class_name: str, attribute_name: str) -> None:
+        super().__init__(f"`{class_name}` must define `{attribute_name}` attribute.")
+
+
+class UnregisteredMetricError(ValueError):
+    def __init__(self, metric_name: str) -> None:
+        super().__init__(f"Metric `{metric_name}` was not found in the registry.")
+
+
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
+    """Metaclass for Metric classes that maintains a registry of all concrete Metric types."""
+
+    _registry: dict[str, type["Metric"]] = {}
+
     def __new__(cls, name, bases, attrs):
-        # ensure a single Domain mixin is defined
-        if name != "Metric" and (
-            len(bases) != ALLOWABLE_METRIC_MIXINS + 1
-            or not any(issubclass(base_type, Domain) for base_type in bases)
-        ):
-            raise MixinTypeError(name, "Domain")
-        return super().__new__(cls, name, bases, attrs)
+        register_cls = super().__new__(cls, name, bases, attrs)
+        # Don't register the base Metric class
+        if name != "Metric":
+            # ensure a single Domain mixin is defined
+            if len(bases) != ALLOWABLE_METRIC_MIXINS + 1 or not any(
+                issubclass(base_type, Domain) for base_type in bases
+            ):
+                raise MixinTypeError(name, "Domain")
+            try:
+                metric_name = attrs["name"]
+            except KeyError:
+                raise MissingAttributeError(name, "name")
+            MetaMetric._registry[metric_name] = register_cls
+        return register_cls
+
+    @classmethod
+    def get_registered_metric_class_from_metric_name(cls, metric_name: str) -> type["Metric"]:
+        """Returns the registered Metric class for a given metric name."""
+        try:
+            return cls._registry[metric_name]
+        except KeyError:
+            raise UnregisteredMetricError(metric_name)
 
 
-class Metric(BaseModel, metaclass=MetaMetric):
+_MetricResult = TypeVar("_MetricResult", bound=MetricResult)
+
+
+class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     """The abstract base class for defining all metrics.
 
     A Metric represents a measurable property that can be computed over a specific domain
@@ -41,14 +73,18 @@ class Metric(BaseModel, metaclass=MetaMetric):
     must inherit from this class and specify their domain type as a mixin.
 
     Examples:
-        A metric for column nullity values computed on each row:
+        A metric for a single column max value:
 
-        >>> class ColumnValuesNull(Metric, ColumnValues):
+        >>> class ColumnMaxResult(MetricResult[int]): ...
+        >>>
+        >>> class ColumnMax(Metric[ColumnMaxResult], Column):
         ...     ...
 
-        A metric for a single table row count value:
+        A metric for a single batch row count value:
 
-        >>> class TableRowCount(Metric, Table):
+        >>> class BatchRowCountResult(MetricResult[int]): ...
+        >>>
+        >>> class BatchRowCount(Metric[BatchRowCountResult], Batch):
         ...     ...
 
     Notes:
@@ -61,7 +97,9 @@ class Metric(BaseModel, metaclass=MetaMetric):
         MetricConfiguration: Configuration class for metric computation
     """
 
-    name: ClassVar[str]
+    # we wouldn't mind removing this `name` attribute
+    # it's currently our only hook into the legacy metrics system
+    name: ClassVar[StrictStr]
 
     class Config:
         arbitrary_types_allowed = True
@@ -70,7 +108,6 @@ class Metric(BaseModel, metaclass=MetaMetric):
     def __new__(cls, *args, **kwargs):
         if cls is Metric:
             raise AbstractClassInstantiationError(cls.__name__)
-        cls.name = cls._get_metric_name()
         return super().__new__(cls)
 
     @property
@@ -84,40 +121,10 @@ class Metric(BaseModel, metaclass=MetaMetric):
             metric_value_set=frozenset(self.dict().items()),
         )
 
-    @staticmethod
-    def _pascal_to_snake(class_name: str) -> str:
-        # Adds an underscore between a sequence of uppercase letters and an uppercase-lowercase pair
-        # APIFunctionMetric -> API_FunctionMetric
-        class_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", class_name)
-        # Adds an underscore between a lowercase letter/digit and an uppercase letter
-        # APIFunctionMetric -> API_Function_Metric
-        class_name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", class_name)
-        # Convert the entire string to lowercase
-        # API_Function_Metric -> api_function_metric
-        return class_name.lower()
-
     @classmethod
-    def _get_metric_name(cls) -> str:
-        """The name of the metric as it exists in the registry."""
-        for base_type in cls.__bases__:
-            if issubclass(base_type, Domain):
-                domain_class_name = str(base_type.__name__)
-                metric_class_name = str(cls.__name__)
-                domain_class_snake_case = Metric._pascal_to_snake(domain_class_name)
-                translated_domain_name = domain_class_snake_case.replace("batch", "table")
-                metric_class_snake_case = Metric._pascal_to_snake(metric_class_name)
-                # the convention is that the metric class name includes the domain class name
-                # but the metric names don't repeat the domain name, so we remove it
-                return ".".join(
-                    [
-                        translated_domain_name,
-                        metric_class_snake_case.replace(domain_class_snake_case, "").strip("_"),
-                    ]
-                )
-
-        # this should never be reached
-        # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
-        raise MixinTypeError(cls.__name__, "Domain")
+    def get_metric_result_type(cls) -> type[_MetricResult]:
+        """Returns the MetricResult type for this Metric."""
+        return get_args(getattr(cls, "__orig_bases__", [])[0])[0]
 
     @staticmethod
     @cache

@@ -8,7 +8,10 @@ from great_expectations.metrics.metric_results import (
     UnexpectedCountResult,
     UnexpectedValuesResult,
 )
-from great_expectations.validator.metric_configuration import MetricConfigurationID
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 
 
 class TestMetricResultInstantiation:
@@ -97,13 +100,11 @@ class TestMetricResultInstantiation:
                 "exception_message": "Error: The column does not exist.",
                 "raised_exception": True,
             },
-            "metric_configuration": {
-                "metric_name": "column.mean",
-                "metric_domain_kwargs": {"table": None, "column": "doesnt exist"},
-                "metric_d..._kwargs": {},
-                "metric_value_kwargs_id": [],
-                "id": ["column.mean", "8a975130e802d66f85ab0cac8d10fbec", []],
-            },
+            "metric_configuration": MetricConfiguration(
+                metric_name="column.mean",
+                metric_domain_kwargs={"table": None, "column": "doesnt exist"},
+                metric_value_kwargs={},
+            ),
             "num_failures": 3,
         }
         metric_result = MetricErrorResult(
