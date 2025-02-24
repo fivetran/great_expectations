@@ -31,15 +31,6 @@ DATA_FRAME = pd.DataFrame(
     },
 )
 
-try:
-    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
-
-    SPARK_COLUMN_TYPES = {
-        STRING_COLUMN_NAME: PYSPARK_TYPES.StringType,
-    }
-except ModuleNotFoundError:
-    SPARK_COLUMN_TYPES = {}
-
 PANDAS_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasFilesystemCsvDatasourceTestConfig(),
     PandasDataFrameDatasourceTestConfig(),
