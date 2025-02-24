@@ -61,6 +61,7 @@ def setup_postgres(dataframe: pandas.DataFrame) -> PostgresBatchTestSetup:
         config=PostgreSQLDatasourceTestConfig(), data=dataframe, extra_data={}
     )
 
+
 @pytest.fixture
 def setup_snowflake(dataframe: pandas.DataFrame) -> SnowflakeBatchTestSetup:
     return SnowflakeBatchTestSetup(
@@ -75,7 +76,6 @@ def setup_snowflake(dataframe: pandas.DataFrame) -> SnowflakeBatchTestSetup:
         pytest.param("setup_spark", marks=pytest.mark.spark),
         pytest.param("setup_postgres", marks=pytest.mark.postgresql),
         pytest.param("setup_snowflake", marks=pytest.mark.snowflake),
-
     ],
 )
 def test_mean_success(setup_datasource: str, request: FixtureRequest) -> None:
