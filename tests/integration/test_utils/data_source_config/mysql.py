@@ -1,10 +1,9 @@
-from functools import cache
 from typing import Mapping
 
 import pandas as pd
 import pytest
 
-from great_expectations.compatibility.sqlalchemy import Engine, create_engine, sqltypes
+from great_expectations.compatibility.sqlalchemy import Engine, NullPool, create_engine, sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
@@ -65,12 +64,7 @@ class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
 
     @override
     def get_engine(self) -> Engine:
-        return self.create_engine(url=self.connection_string)
-
-    @staticmethod
-    @cache
-    def create_engine(connection_string: str) -> Engine:
-        return create_engine(url=connection_string)
+        return create_engine(url=self.connection_string, poolclass=NullPool)
 
     @override
     def make_asset(self) -> TableAsset:

@@ -242,6 +242,11 @@ except (ImportError, AttributeError):
     CursorResult = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
 
 try:
+    from sqlalchemy.pool import NullPool
+except (ImportError, AttributeError):
+    NullPool = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
+
+try:
     from sqlalchemy.pool import StaticPool
 except (ImportError, AttributeError):
     StaticPool = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
