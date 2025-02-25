@@ -4,7 +4,7 @@ import pandas as pd
 
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
 from great_expectations.compatibility.pyspark import pyspark
-from great_expectations.compatibility.sqlalchemy import BinaryExpression, sqlalchemy
+from great_expectations.compatibility.sqlalchemy import BinaryExpression
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
