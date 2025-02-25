@@ -44,7 +44,7 @@ class MetaMetric(ModelMetaclass):
     _registry: dict[str, type["Metric"]] = {}
 
     def __new__(cls, name, bases, attrs):
-        register_cls = super().__new__(cls, name, bases, attrs)
+        register_cls = super().__new__(cls, name, bases, attrs, kw_only=True)
         # Don't register the base Metric class
         if name != "Metric":
             metric_name = attrs.get("name")
@@ -66,7 +66,7 @@ class MetaMetric(ModelMetaclass):
 _MetricResult = TypeVar("_MetricResult", bound=MetricResult)
 
 
-class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric, kw_only=True):
+class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     """The abstract base class for defining all metrics.
 
     A Metric represents a measurable property that can be computed over a specific domain
