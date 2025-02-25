@@ -1,4 +1,3 @@
-from typing import Sequence
 
 import pandas
 
@@ -28,7 +27,7 @@ DATA_FRAME = pandas.DataFrame(
     },
 )
 
-DATA_SOURCES_WITHOUT_SPARK: Sequence[DataSourceTestConfig] = [
+DATA_SOURCES_WITHOUT_SPARK: list[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     DatabricksDatasourceTestConfig(),
     MSSQLDatasourceTestConfig(),
@@ -38,7 +37,7 @@ DATA_SOURCES_WITHOUT_SPARK: Sequence[DataSourceTestConfig] = [
     PandasDataFrameDatasourceTestConfig(),
 ]
 
-DATA_SOURCES: Sequence[DataSourceTestConfig] = DATA_SOURCES_WITHOUT_SPARK + [
+DATA_SOURCES: list[DataSourceTestConfig] = DATA_SOURCES_WITHOUT_SPARK + [
     SparkFilesystemCsvDatasourceTestConfig()
 ]
 
