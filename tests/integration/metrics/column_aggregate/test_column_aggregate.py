@@ -1,4 +1,3 @@
-
 import pandas
 
 from great_expectations.metrics.column_aggregate.mean import (
