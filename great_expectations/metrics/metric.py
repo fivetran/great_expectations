@@ -78,23 +78,21 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
 
         >>> class ColumnMaxResult(MetricResult[int]): ...
         >>>
-        >>> class ColumnMax(Metric[ColumnMaxResult], Column):
+        >>> class ColumnMax(Metric[ColumnMaxResult]):
         ...     ...
 
         A metric for a single batch row count value:
 
         >>> class BatchRowCountResult(MetricResult[int]): ...
         >>>
-        >>> class BatchRowCount(Metric[BatchRowCountResult], Batch):
+        >>> class BatchRowCount(Metric[BatchRowCountResult]):
         ...     ...
 
     Notes:
         - The Metric class cannot be instantiated directly - it must be subclassed.
-        - Subclasses must specify a single Domain type as a mixin.
         - Once Metrics are instantiated, they are immutable.
 
     See Also:
-        Domain: The base class for all domain types
         MetricConfiguration: Configuration class for metric computation
     """
 
