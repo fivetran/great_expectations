@@ -11,9 +11,9 @@ from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, Datasource
 from great_expectations.expectations.expectation import Expectation
-from great_expectations.metrics import BatchRowCount, ColumnValuesBetween, Metric
+from great_expectations.metrics import BatchRowCount, ColumnValuesNonNull, Metric
 from great_expectations.metrics.batch.row_count import BatchRowCountResult
-from great_expectations.metrics.column_values.between import ColumnValuesBetweenResult
+from great_expectations.metrics.column_values.non_null import ColumnValuesNonNullResult
 from great_expectations.metrics.metric_results import MetricErrorResult
 
 DATASOURCE_NAME = "my_pandas"
@@ -301,13 +301,12 @@ def test_batch_compute_metrics_single_metric_success(
     pandas_setup: Tuple[AbstractDataContext, Batch],
 ):
     _, batch = pandas_setup
-    metric = ColumnValuesBetween(
+    metric = ColumnValuesNonNull(
         batch_id=batch.id,
         column="vendor_id",
-        min_value=0,
     )
     metric_results = batch.compute_metrics(metric)
-    assert type(metric_results) is ColumnValuesBetweenResult
+    assert type(metric_results) is ColumnValuesNonNullResult
 
 
 @pytest.mark.filesystem
@@ -315,10 +314,9 @@ def test_batch_compute_metrics_multiple_metrics_success(
     pandas_setup: Tuple[AbstractDataContext, Batch],
 ):
     _, batch = pandas_setup
-    metric_1 = ColumnValuesBetween(
+    metric_1 = ColumnValuesNonNull(
         batch_id=batch.id,
         column="passenger_count",
-        min_value=0,
     )
     metric_2 = BatchRowCount(batch_id=batch.id)
     metrics: list[Metric] = [metric_1, metric_2]
@@ -326,7 +324,7 @@ def test_batch_compute_metrics_multiple_metrics_success(
     metric_results = batch.compute_metrics(metrics)
     assert isinstance(metric_results, list)
     assert len(metric_results) == requested_metric_count
-    assert type(metric_results[0]) is ColumnValuesBetweenResult
+    assert type(metric_results[0]) is ColumnValuesNonNullResult
     assert type(metric_results[1]) is BatchRowCountResult
 
 
@@ -335,10 +333,9 @@ def test_batch_compute_metrics_multiple_metrics_error(
     pandas_setup: Tuple[AbstractDataContext, Batch],
 ):
     _, batch = pandas_setup
-    metric_1 = ColumnValuesBetween(
+    metric_1 = ColumnValuesNonNull(
         batch_id=batch.id,
         column="not_a_column",
-        min_value=0,
     )
     metric_2 = BatchRowCount(batch_id=batch.id)
     metrics: list[Metric] = [metric_1, metric_2]
