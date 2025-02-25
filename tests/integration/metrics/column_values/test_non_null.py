@@ -60,12 +60,12 @@ class TestColumnValuesNonNull:
         metric = ColumnValuesNonNull(batch_id=batch.id, column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
+        assert isinstance(metric_result.value, pd.Series)
         expected_value = pd.Series(
             [False, True, False, False],
             name=STRING_COLUMN_NAME,
             dtype=bool,
         )
-        assert isinstance(metric_result.value, pd.Series)
         assert metric_result.value.equals(expected_value)
 
     @parameterize_batch_for_data_sources(
@@ -89,8 +89,8 @@ class TestColumnValuesNonNull:
         metric = ColumnValuesNonNull(batch_id=batch.id, column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
-        expected_value = ColumnClause(STRING_COLUMN_NAME).is_(None)
         assert isinstance(metric_result.value, BinaryExpression)
+        expected_value = ColumnClause(STRING_COLUMN_NAME).is_(None)
         assert metric_result.value.compare(expected_value)
 
 
