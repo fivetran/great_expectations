@@ -26,17 +26,17 @@ DATA_FRAME = pandas.DataFrame(
     },
 )
 
-DATA_SOURCES_WITHOUT_SPARK_SQLITE: list[DataSourceTestConfig] = [
+DATA_SOURCES_WITHOUT_SPARK_DATABRICKS_SQLITE: list[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
-    DatabricksDatasourceTestConfig(),
     MSSQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     PandasDataFrameDatasourceTestConfig(),
 ]
 
-DATA_SOURCES: list[DataSourceTestConfig] = DATA_SOURCES_WITHOUT_SPARK_SQLITE + [
+DATA_SOURCES: list[DataSourceTestConfig] = DATA_SOURCES_WITHOUT_SPARK_DATABRICKS_SQLITE + [
     SparkFilesystemCsvDatasourceTestConfig(),
+    DatabricksDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
 
@@ -56,10 +56,13 @@ def test_mean_success(batch_for_datasource) -> None:
 # For spark, when computing the mean, if it fails, the metric name changes from
 # `column.mean` to `column.aggregate.mean`.
 # There is a bug to track fixing this: https://greatexpectations.atlassian.net/browse/GX-448
+# For databricks, when computing the mean, any non-numeric values are ignored and the result is
+# None, which will cause a crash later when trying to set the value of the MetricResult
+# (not MetricErrorResult) to None.
 # For sqlite, when computing the mean, any non-numeric values are ignored (or maybe treated
 # as 0) so we don't an error.
 @parameterize_batch_for_data_sources(
-    data_source_configs=DATA_SOURCES_WITHOUT_SPARK_SQLITE,
+    data_source_configs=DATA_SOURCES_WITHOUT_SPARK_DATABRICKS_SQLITE,
     data=DATA_FRAME,
 )
 def test_mean_failure(batch_for_datasource) -> None:
