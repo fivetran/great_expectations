@@ -3,7 +3,7 @@ from typing import Sequence
 import pandas as pd
 
 from great_expectations.compatibility.pyspark import functions as F
-from great_expectations.compatibility.sqlalchemy import ColumnClause
+from great_expectations.compatibility.sqlalchemy import BinaryExpression, ColumnClause
 from great_expectations.metrics.column_values.non_null import (
     ColumnValuesNonNull,
     ColumnValuesNonNullCount,
@@ -65,6 +65,7 @@ class TestColumnValuesNonNull:
             name=STRING_COLUMN_NAME,
             dtype=bool,
         )
+        assert isinstance(metric_result.value, pd.Series)
         assert metric_result.value.equals(expected_value)
 
     @parameterize_batch_for_data_sources(
@@ -89,6 +90,7 @@ class TestColumnValuesNonNull:
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
         expected_value = ColumnClause(STRING_COLUMN_NAME).is_(None)
+        assert isinstance(metric_result.value, BinaryExpression)
         assert metric_result.value.compare(expected_value)
 
 
