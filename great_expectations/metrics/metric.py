@@ -66,7 +66,7 @@ class MetaMetric(ModelMetaclass):
 _MetricResult = TypeVar("_MetricResult", bound=MetricResult)
 
 
-class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
+class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric, kw_only=True):
     """The abstract base class for defining all metrics.
 
     A Metric represents a measurable property that can be computed over a specific domain
