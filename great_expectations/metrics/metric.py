@@ -1,4 +1,3 @@
-from functools import cache
 from typing import ClassVar, Final, Generic, TypeVar
 
 from typing_extensions import dataclass_transform, get_args
@@ -118,7 +117,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     def config(self) -> MetricConfiguration:
         return Metric._to_config(
             instance_class=self.__class__,
-            metric_value_set=frozenset(self.dict().items()),
+            metric_value_set=list(self.dict().items()),
         )
 
     @classmethod
@@ -127,9 +126,8 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
         return get_args(getattr(cls, "__orig_bases__", [])[0])[0]
 
     @staticmethod
-    @cache
     def _to_config(
-        instance_class: type["Metric"], metric_value_set: frozenset[tuple]
+        instance_class: type["Metric"], metric_value_set: list[tuple]
     ) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
         metric_domain_kwargs = {}
