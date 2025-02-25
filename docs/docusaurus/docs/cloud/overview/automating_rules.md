@@ -19,11 +19,11 @@ When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cl
 
 ### Schema
 
-To detect schema changes, we automatically generate a rule to **expect table columns to match set** using the Data Asset’s initial columns as the set to match. If the number or names of columns in the Data Asset change, this Expectation will fail.
+To detect schema changes, we automatically generate a rule to [**expect table columns to match set**](/reference/learn/data_quality_use_cases/schema.md#expect-table-columns-to-match-set) using the Data Asset’s initial columns as the set to match. If the number or names of columns in the Data Asset change, this Expectation will fail.
 
 ### Volume
 
-To detect non-increasing volume, we automatically generate a rule to **expect table row count to be between** with dynamic parameters that test that the current validation run has more rows than the previous run. If the row count shrinks or stays the same between runs, this Expectation will fail.
+To detect non-increasing volume, we automatically generate a rule to [**expect table row count to be between**](/reference/learn/data_quality_use_cases/volume.md#expect-table-row-count-to-be-between) with dynamic parameters that test that the current validation run has more rows than the previous run. If the row count shrinks or stays the same between runs, this Expectation will fail.
 
 ## Personalizing recommendations with ExpectAI (BETA)
 
