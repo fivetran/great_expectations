@@ -195,6 +195,11 @@ except (ImportError, AttributeError):
     ColumnClause = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
 
 try:
+    from sqlalchemy.sql.expression import ClauseElement
+except (ImportError, AttributeError):
+    ClauseElement = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
+
+try:
     from sqlalchemy.sql.expression import Label
 except (ImportError, AttributeError):
     Label = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc,assignment] # FIXME CoP
