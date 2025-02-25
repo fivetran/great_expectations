@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 from great_expectations.compatibility.pydantic import BaseModel, Field, StrictStr
 from great_expectations.expectations.model_field_types import ConditionParser
@@ -57,6 +57,21 @@ class ColumnValues(Values):
     """
 
     column: NonEmptyString
+
+
+class ColumnPairValues(Values):
+    """A domain type for metrics that compute row-level calculations on multiple columns.
+
+    The ColumnPairValues domain type is used to define metrics that evaluate conditions or compute
+    values for each row in multiple columns. This class is intended to be used as a mixin
+    with the Metric class when defining a new Metric.
+    """
+
+    column_A: NonEmptyString
+    column_B: NonEmptyString
+    ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
+        "both_values_are_missing"
+    )
 
 
 class Batch(Domain):
