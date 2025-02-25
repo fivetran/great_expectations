@@ -43,8 +43,8 @@ class MetaMetric(ModelMetaclass):
 
     _registry: dict[str, type["Metric"]] = {}
 
-    def __new__(cls, name, bases, attrs):
-        register_cls = super().__new__(cls, name, bases, attrs, kw_only=True)
+    def __new__(cls, name, bases, attrs, **kwargs):
+        register_cls = super().__new__(cls, name, bases, attrs)
         # Don't register the base Metric class
         if name != "Metric":
             metric_name = attrs.get("name")
