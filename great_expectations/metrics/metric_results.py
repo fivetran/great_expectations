@@ -1,4 +1,4 @@
-from typing import Any, Generic, TypedDict, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar, Union
 
 import pandas as pd
 
@@ -10,6 +10,10 @@ from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.compatibility.pyspark import pyspark
+    from great_expectations.compatibility.sqlalchemy import BinaryExpression
 
 _MetricResultValue = TypeVar("_MetricResultValue")
 
@@ -31,14 +35,42 @@ class MetricErrorResultValue(TypedDict):
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
 
 
-if pyspark and sqlalchemy:
-    ConditionValues = Union[pd.Series, pyspark.sql.Column, BinaryExpression]
-elif pyspark:
-    ConditionValues = Union[pd.Series, pyspark.sql.Column]  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
-elif sqlalchemy:
-    ConditionValues = Union[pd.Series, BinaryExpression]  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
-else:
-    ConditionValues = pd.Series  # type: ignore[misc]  # can't find type to satisfy "<typing special form>"
+class ConditionValuesValueError(ValueError):
+    def __init__(self, actual_type: type) -> None:
+        super().__init__(
+            "Value must be one of: "
+            "pandas.Series, pyspark.sql.Column, or sqlalchemy.BinaryExpression. "
+            f"Got type `{actual_type}` instead."
+        )
+
+
+class ConditionValues(MetricResult[Union[pd.Series, "pyspark.sql.Column", "BinaryExpression"]]):
+    @classmethod
+    def validate_value_type(cls, value):
+        if isinstance(value, pd.Series):
+            return value
+
+        try:
+            from great_expectations.compatibility.pyspark import pyspark
+
+            if isinstance(value, pyspark.sql.Column):
+                return value
+        except (ImportError, AttributeError):
+            pass
+
+        try:
+            from great_expectations.compatibility.sqlalchemy import BinaryExpression
+
+            if isinstance(value, BinaryExpression):
+                return value
+        except (ImportError, AttributeError):
+            pass
+
+        raise ConditionValuesValueError(type(value))
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate_value_type
 
 
 class TableColumnsResult(MetricResult[list[str]]): ...
