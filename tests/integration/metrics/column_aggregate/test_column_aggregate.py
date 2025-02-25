@@ -47,7 +47,7 @@ DATA_SOURCES: list[DataSourceTestConfig] = DATA_SOURCES_WITHOUT_SPARK_DATABRICKS
 )
 def test_mean_success(batch_for_datasource) -> None:
     batch = batch_for_datasource
-    metric = ColumnValuesMean(batch_id=batch.id, column="number")
+    metric = ColumnValuesMean(column="number")
     metric_result = batch.compute_metrics(metric)
     assert isinstance(metric_result, ColumnValuesMeanResult)
     assert metric_result.value == 2.5
@@ -67,6 +67,6 @@ def test_mean_success(batch_for_datasource) -> None:
 )
 def test_mean_failure(batch_for_datasource) -> None:
     batch = batch_for_datasource
-    metric = ColumnValuesMean(batch_id=batch.id, column="string")
+    metric = ColumnValuesMean(column="string")
     metric_result = batch.compute_metrics(metric)
     assert isinstance(metric_result, MetricErrorResult)

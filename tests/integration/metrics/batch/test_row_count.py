@@ -52,7 +52,7 @@ class TestBatchRowCount:
     )
     def test_success_pandas(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = BatchRowCount(batch_id=batch.id)
+        metric = BatchRowCount()
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, BatchRowCountResult)
         assert metric_result.value == self.ROW_COUNT
@@ -63,7 +63,7 @@ class TestBatchRowCount:
     )
     def test_success_spark(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = BatchRowCount(batch_id=batch.id)
+        metric = BatchRowCount()
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, BatchRowCountResult)
         assert metric_result.value == self.ROW_COUNT
@@ -74,7 +74,7 @@ class TestBatchRowCount:
     )
     def test_success_sql(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = BatchRowCount(batch_id=batch.id)
+        metric = BatchRowCount()
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, BatchRowCountResult)
         assert metric_result.value == self.ROW_COUNT

@@ -57,7 +57,7 @@ class TestColumnValuesNonNull:
     )
     def test_success_pandas(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = ColumnValuesNonNull(batch_id=batch.id, column=STRING_COLUMN_NAME)
+        metric = ColumnValuesNonNull(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
         assert isinstance(metric_result.value, pd.Series)
@@ -74,7 +74,7 @@ class TestColumnValuesNonNull:
     )
     def test_success_spark(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = ColumnValuesNonNull(batch_id=batch.id, column=STRING_COLUMN_NAME)
+        metric = ColumnValuesNonNull(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
         expected_value = ~(F.col(STRING_COLUMN_NAME).isNotNull())
@@ -86,7 +86,7 @@ class TestColumnValuesNonNull:
     )
     def test_success_sql(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = ColumnValuesNonNull(batch_id=batch.id, column=STRING_COLUMN_NAME)
+        metric = ColumnValuesNonNull(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullResult)
         assert isinstance(metric_result.value, BinaryExpression)
@@ -103,7 +103,7 @@ class TestColumnValuesNonNullCount:
     )
     def test_success_pandas(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = ColumnValuesNonNullCount(batch_id=batch.id, column=STRING_COLUMN_NAME)
+        metric = ColumnValuesNonNullCount(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullCountResult)
         assert metric_result.value == self.NON_NULL_COUNT
@@ -114,7 +114,7 @@ class TestColumnValuesNonNullCount:
     )
     def test_success_spark(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = ColumnValuesNonNullCount(batch_id=batch.id, column=STRING_COLUMN_NAME)
+        metric = ColumnValuesNonNullCount(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullCountResult)
         assert metric_result.value == self.NON_NULL_COUNT
@@ -125,7 +125,7 @@ class TestColumnValuesNonNullCount:
     )
     def test_success_sql(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = ColumnValuesNonNullCount(batch_id=batch.id, column=STRING_COLUMN_NAME)
+        metric = ColumnValuesNonNullCount(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, ColumnValuesNonNullCountResult)
         assert metric_result.value == self.NON_NULL_COUNT
