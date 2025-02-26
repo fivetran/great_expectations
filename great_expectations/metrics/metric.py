@@ -103,6 +103,8 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     # it's currently our only hook into the legacy metrics system
     name: ClassVar[StrictStr]
 
+    _domain_fields: ClassVar[tuple[str, ...]] = ("column", "row_condition")
+
     class Config:
         arbitrary_types_allowed = True
         frozen = True
@@ -138,18 +140,17 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
         metric_value_kwargs = {}
         metric_values = dict(metric_value_set)
         metric_fields = Metric.__fields__
-        domain_keys = ("batch_id", "column", "row_condition")
         domain_fields = {
             field_name: field_info
             for field_name, field_info in instance_class.__fields__.items()
-            if field_name in domain_keys and field_name not in metric_fields
+            if field_name in Metric._domain_fields and field_name not in metric_fields
         }
         for field_name, field_info in domain_fields.items():
             metric_domain_kwargs[field_name] = metric_values.get(field_name, field_info.default)
         value_fields = {
             field_name: field_info
             for field_name, field_info in instance_class.__fields__.items()
-            if field_name not in domain_keys and field_name not in metric_fields
+            if field_name not in Metric._domain_fields and field_name not in metric_fields
         }
         for field_name, field_info in value_fields.items():
             metric_value_kwargs[field_name] = metric_values.get(field_name, field_info.default)
