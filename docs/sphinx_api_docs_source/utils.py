@@ -64,18 +64,15 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Display signatures as code blocks
     items = soup.select(".sig-object")
     for item in items:
-        codeBlockSection = soup.new_tag("div")
-
-        if "class" not in item.get_text():
-            codeBlockTitle = soup.new_tag("h3")
-            codeBlockTitle.string = "HOLA"
-            codeBlockSection.append(codeBlockTitle)
-
+        code_block_text = item.get_text()
         code_block = soup.new_tag("CodeBlock", language="python", title="Signature")
         code_block.append("{`" + item.get_text().replace("#", "") + "`}")
-        codeBlockSection.append(code_block)
+        item.replace_with(code_block)
 
-        item.replace_with(codeBlockSection)
+        if "class" not in code_block_text:
+            code_block_title = soup.new_tag("h3")
+            code_block_title.string = code_block_text.split("(")[0].strip()
+            code_block.insert_before(code_block_title)
 
     # Prevent build from failing when there's code-like text outside code blocks
     for item in soup.find_all(text=True):
@@ -205,8 +202,3 @@ def add_table_title(soup, table, title):
     table.insert_before("\r\n")
     table.insert_before(title_h4)
     table.insert_before("\r\n")
-
-
-"""
-def isClassCodeBlock(item):
-    item.get_text().startswith("class") """
