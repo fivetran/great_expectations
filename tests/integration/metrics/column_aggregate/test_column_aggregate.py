@@ -1,8 +1,8 @@
 import pandas
 
-from great_expectations.metrics.column_aggregate.mean import (
-    ColumnValuesMean,
-    ColumnValuesMeanResult,
+from great_expectations.metrics.column.mean import (
+    ColumnMean,
+    ColumnMeanResult,
 )
 from great_expectations.metrics.metric_results import MetricErrorResult
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -47,9 +47,9 @@ DATA_SOURCES: list[DataSourceTestConfig] = DATA_SOURCES_WITHOUT_SPARK_DATABRICKS
 )
 def test_mean_success(batch_for_datasource) -> None:
     batch = batch_for_datasource
-    metric = ColumnValuesMean(column="number")
+    metric = ColumnMean(column="number")
     metric_result = batch.compute_metrics(metric)
-    assert isinstance(metric_result, ColumnValuesMeanResult)
+    assert isinstance(metric_result, ColumnMeanResult)
     assert metric_result.value == 2.5
 
 
@@ -67,6 +67,6 @@ def test_mean_success(batch_for_datasource) -> None:
 )
 def test_mean_failure(batch_for_datasource) -> None:
     batch = batch_for_datasource
-    metric = ColumnValuesMean(column="string")
+    metric = ColumnMean(column="string")
     metric_result = batch.compute_metrics(metric)
     assert isinstance(metric_result, MetricErrorResult)
