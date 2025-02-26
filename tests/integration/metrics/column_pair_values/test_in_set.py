@@ -75,7 +75,7 @@ class TestColumnPairValuesInSetUnexpectedValues:
         ],
     )
     @parameterize_batch_for_data_sources(
-        data_source_configs=PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES,
+        data_source_configs=PANDAS_DATA_SOURCES,
         data=DATA_FRAME_WITH_NULLS,
     )
     def test_ignore_row_if__pandas(
