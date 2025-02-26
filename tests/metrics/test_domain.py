@@ -34,7 +34,6 @@ class TestColumnValues:
     @pytest.mark.parametrize(
         "kwargs",
         [
-            {"batch_id": "", "column": COLUMN},
             {"batch_id": BATCH_ID, "column": ""},
         ],
     )

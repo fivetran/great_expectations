@@ -114,7 +114,7 @@ class TestMetricConfig:
         actual_config = self.ColumnValuesAbove(
             column=COLUMN,
             min_value=42,
-        ).config
+        ).config(batch_id=BATCH_ID)
 
         assert actual_config.metric_name == expected_config.metric_name
         assert actual_config.metric_domain_kwargs == expected_config.metric_domain_kwargs
