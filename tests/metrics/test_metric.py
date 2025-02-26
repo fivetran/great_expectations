@@ -26,7 +26,7 @@ class TestMetric:
     @pytest.mark.unit
     def test_metric_instantiation_raises(self):
         with pytest.raises(AbstractClassInstantiationError):
-            Metric(batch_id=BATCH_ID, column=COLUMN)
+            Metric(column=COLUMN)
 
 
 class TestMetricDefinition:
@@ -79,7 +79,6 @@ class TestMetricInstantiation:
     @pytest.mark.unit
     def test_instantiation_success(self):
         self.ColumnValuesAbove(
-            batch_id=BATCH_ID,
             column=COLUMN,
             min_value=42,
         )
@@ -113,10 +112,9 @@ class TestMetricConfig:
         )
 
         actual_config = self.ColumnValuesAbove(
-            batch_id=BATCH_ID,
             column=COLUMN,
             min_value=42,
-        ).config
+        ).config(batch_id=BATCH_ID)
 
         assert actual_config.metric_name == expected_config.metric_name
         assert actual_config.metric_domain_kwargs == expected_config.metric_domain_kwargs
@@ -134,7 +132,6 @@ class TestMetricImmutability:
     @pytest.mark.unit
     def test_domain_kwarg_immutability_success(self):
         column_values_above = self.ColumnValuesAbove(
-            batch_id=BATCH_ID,
             column=COLUMN,
             min_value=42,
         )
@@ -145,7 +142,6 @@ class TestMetricImmutability:
     @pytest.mark.unit
     def test_value_kwarg_immutability_success(self):
         column_values_above = self.ColumnValuesAbove(
-            batch_id=BATCH_ID,
             column=COLUMN,
             min_value=42,
         )
