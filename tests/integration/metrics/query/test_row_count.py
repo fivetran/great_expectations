@@ -42,10 +42,7 @@ class TestQueryRowCount:
     )
     def test_success_spark(self, batch_for_datasource) -> None:
         batch = batch_for_datasource
-        metric = QueryRowCount(
-            batch_id=batch.id,
-            query="SELECT * FROM {batch} WHERE id > 0",
-        )
+        metric = QueryRowCount(query="SELECT * FROM {batch} WHERE id > 0")
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryRowCountResult)
         assert metric_result.value == 4
@@ -60,10 +57,7 @@ class TestQueryRowCount:
     )
     def test_success_sql(self, batch_for_datasource, query, result_value) -> None:
         batch = batch_for_datasource
-        metric = QueryRowCount(
-            batch_id=batch.id,
-            query=query,
-        )
+        metric = QueryRowCount(query=query)
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryRowCountResult)
         assert metric_result.value == result_value
