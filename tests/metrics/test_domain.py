@@ -28,13 +28,12 @@ class TestAbstractClasses:
 class TestColumnValues:
     @pytest.mark.unit
     def test_instantiation(self):
-        ColumnValues(batch_id=BATCH_ID, column=COLUMN)
+        ColumnValues(column=COLUMN)
 
     @pytest.mark.unit
     @pytest.mark.parametrize(
         "kwargs",
         [
-            {"batch_id": "", "column": COLUMN},
             {"batch_id": BATCH_ID, "column": ""},
         ],
     )

@@ -98,19 +98,21 @@ def create_table(soup, item, dd, title):
     p = dd.find("p")
     if p is None:
         return
-    columns = []
 
     if title in ("Parameters", "Raises"):
-        columns = p.get_text().split(" – ")  # noqa: RUF001
-        if len(columns) != 2:
-            return
+        for p in dd.find_all("p"):
+            columns = p.get_text().split(" – ")  # noqa: RUF001
+            if len(columns) != 2:
+                return
+            create_row(soup, tbody, columns)
+
     if title == "Returns":
         type_text = closest_return_type(dd)
         if type_text == "":
             return
         columns = [type_text, p.get_text()]
+        create_row(soup, tbody, columns)
 
-    create_row(soup, tbody, columns)
     dd.find_previous_sibling("dt").extract()
     dd.extract()
     table.append(tbody)
