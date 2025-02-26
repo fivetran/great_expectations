@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 from great_expectations.compatibility.pydantic import BaseModel, Field, StrictStr
 from great_expectations.expectations.model_field_types import ConditionParser
@@ -57,6 +57,15 @@ class ColumnValues(Values):
     """
 
     column: NonEmptyString
+
+
+class MultiColumnValues(Values):
+    column_list: list[str]
+    row_condition: Optional[StrictStr] = None
+    condition_parser: Optional[ConditionParser] = None
+    ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (
+        "all_values_are_missing"
+    )
 
 
 class Batch(Domain):
