@@ -1,7 +1,7 @@
 from typing import Mapping
 
-import pytest
 import pandas as pd
+import pytest
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.interfaces import Batch
