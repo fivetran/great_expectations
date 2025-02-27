@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.metrics.column_pair_values.in_set import (
+from great_expectations.metrics.column_pair.values_in_set import (
     ColumnPairValuesInSetUnexpectedCount,
     ColumnPairValuesInSetUnexpectedCountResult,
 )
