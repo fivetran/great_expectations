@@ -60,6 +60,8 @@ from great_expectations.exceptions.exceptions import (
 from great_expectations.metrics.metric import MetaMetric, Metric
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
+    MetricInternalErrorResult,
+    MetricInternalErrorResultValue,
     MetricResult,
 )
 from great_expectations.validator.metrics_calculator import (
@@ -1308,8 +1310,16 @@ class Batch:
                 value = metrics_calculator_errors[metric_id_for_batch]
                 results.append(MetricErrorResult(id=metric_id_for_batch, value=value))
             else:
-                # TODO: Replace this with a more specific error and add to result list
-                raise Exception()
+                results.append(
+                    MetricInternalErrorResult(
+                        id=metric_id_for_batch,
+                        value=MetricInternalErrorResultValue(
+                            msg=f"Metric {metric.name} not found in results: "
+                            "{list(metrics_calculator_results.keys())} or errors: "
+                            "{list(metrics_calculator_errors.keys())}"
+                        ),
+                    )
+                )
 
         if is_single_metric:
             return results[0]

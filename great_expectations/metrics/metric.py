@@ -105,6 +105,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     name: ClassVar[StrictStr]
 
     _domain_fields: ClassVar[tuple[str, ...]] = (
+        "batch_id",
         "column",
         "row_condition",
         "column_A",
@@ -129,11 +130,12 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
         # when the same batch_id is passed in.
         if not batch_id:
             raise EmptyStrError("batch_id")
+
         config = Metric._to_config(
             instance_class=self.__class__,
+            batch_id=batch_id,
             metric_value_set=list(self.dict().items()),
         )
-        config.metric_domain_kwargs["batch_id"] = batch_id
         return config
 
     @classmethod
@@ -143,7 +145,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
 
     @staticmethod
     def _to_config(
-        instance_class: type["Metric"], metric_value_set: list[tuple]
+        instance_class: type["Metric"], batch_id: str, metric_value_set: list[tuple]
     ) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
         metric_domain_kwargs = {}
@@ -157,6 +159,9 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
         }
         for field_name, field_info in domain_fields.items():
             metric_domain_kwargs[field_name] = metric_values.get(field_name, field_info.default)
+        # Set the batch_id last so past in one is always the one used
+        metric_domain_kwargs["batch_id"] = batch_id
+
         value_fields = {
             field_name: field_info
             for field_name, field_info in instance_class.__fields__.items()

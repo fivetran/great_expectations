@@ -33,6 +33,13 @@ class MetricErrorResultValue(TypedDict):
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
 
 
+class MetricInternalErrorResultValue(TypedDict):
+    msg: str
+
+
+class MetricInternalErrorResult(MetricResult[MetricInternalErrorResultValue]): ...
+
+
 class ConditionValuesValueError(ValueError):
     def __init__(self, actual_type: type) -> None:
         super().__init__(
