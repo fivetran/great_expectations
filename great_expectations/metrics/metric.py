@@ -103,7 +103,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     # it's currently our only hook into the legacy metrics system
     name: ClassVar[StrictStr]
 
-    _domain_fields: ClassVar[tuple[str, ...]] = ("column", "row_condition")
+    _domain_fields: ClassVar[tuple[str, ...]] = ("column", "row_condition", "column_list", "condition_parser")
 
     class Config:
         arbitrary_types_allowed = True
