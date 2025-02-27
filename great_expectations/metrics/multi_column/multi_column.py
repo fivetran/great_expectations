@@ -2,8 +2,7 @@ from typing import Literal, Optional
 
 from great_expectations.compatibility.pydantic import StrictStr
 from great_expectations.expectations.model_field_types import ConditionParser
-from great_expectations.metrics import Metric
-from great_expectations.metrics.metric import _MetricResult
+from great_expectations.metrics.metric import Metric, _MetricResult
 
 
 class MultiColumnMetric(Metric[_MetricResult], kw_only=True):

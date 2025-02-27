@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
-from great_expectations.compatibility.pyspark import types
 
+from great_expectations.compatibility.pyspark import types
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.metrics.multi_column.sum_equal import (
     MultiColumnSumEqualUnexpectedCount,
