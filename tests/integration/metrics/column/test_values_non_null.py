@@ -1,5 +1,3 @@
-from typing import Sequence
-
 import pandas as pd
 
 from great_expectations.compatibility.pyspark import functions as F
@@ -11,18 +9,6 @@ from great_expectations.metrics.column.values_non_null import (
     ColumnValuesNonNullResult,
 )
 from tests.integration.conftest import parameterize_batch_for_data_sources
-from tests.integration.test_utils.data_source_config import (
-    BigQueryDatasourceTestConfig,
-    DatabricksDatasourceTestConfig,
-    DataSourceTestConfig,
-    MSSQLDatasourceTestConfig,
-    PandasDataFrameDatasourceTestConfig,
-    PandasFilesystemCsvDatasourceTestConfig,
-    PostgreSQLDatasourceTestConfig,
-    SnowflakeDatasourceTestConfig,
-    SparkFilesystemCsvDatasourceTestConfig,
-    SqliteDatasourceTestConfig,
-)
 from tests.metrics.conftest import PANDAS_DATA_SOURCES, SPARK_DATA_SOURCES, SQL_DATA_SOURCES
 
 STRING_COLUMN_NAME = "letter"
