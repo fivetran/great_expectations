@@ -14,6 +14,18 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.8
+* [FEATURE] `Batch.compute_metrics()` ([#10950](https://github.com/great-expectations/great_expectations/pull/10950))
+* [FEATURE] `ColumnValuesNonNull` and `ColumnValuesNonNullCount` metrics ([#10959](https://github.com/great-expectations/great_expectations/pull/10959))
+* [FEATURE] Add mean to metrics API ([#10961](https://github.com/great-expectations/great_expectations/pull/10961))
+* [FEATURE] Remove batch_id parameter from Metric classes ([#10971](https://github.com/great-expectations/great_expectations/pull/10971))
+* [DOCS] SSO cta ([#10872](https://github.com/great-expectations/great_expectations/pull/10872))
+* [DOCS] Display args, returns and raises as tables in API reference pages ([#10910](https://github.com/great-expectations/great_expectations/pull/10910))
+* [DOCS] typo ([#10965](https://github.com/great-expectations/great_expectations/pull/10965))
+* [DOCS] Args and Raises in API reference should be able to display several rows ([#10968](https://github.com/great-expectations/great_expectations/pull/10968))
+* [MAINTENANCE] Remove `table` parameter from all Metric `Domain`s ([#10954](https://github.com/great-expectations/great_expectations/pull/10954))
+* [CONTRIB] remove table domain key ([#10956](https://github.com/great-expectations/great_expectations/pull/10956)) (thanks @VolkovGeoPhy)
+
 ### 1.3.7
 * [FEATURE] BatchRowCount Metric ([#10944](https://github.com/great-expectations/great_expectations/pull/10944))
 * [BUGFIX] remove unused domain key ([#10951](https://github.com/great-expectations/great_expectations/pull/10951))
