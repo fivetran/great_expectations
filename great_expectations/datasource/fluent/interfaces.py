@@ -1309,7 +1309,7 @@ class Batch:
 
         requested_metric_names = [metric.name for metric in metrics]
         metrics_calculator_result = metrics_calculator.compute_metrics(
-            metric_configurations=[metric.config for metric in metrics],
+            metric_configurations=[metric.config(batch_id=self.id) for metric in metrics],
             runtime_configuration=None,
         )
         return self.metrics_calculator_result_to_metric_result(
