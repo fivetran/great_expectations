@@ -41,7 +41,6 @@ class TestColumnPairValuesInSetUnexpectedValues:
     def test_success(self, batch_for_datasource: Batch) -> None:
         batch = batch_for_datasource
         metric = ColumnPairValuesInSetUnexpectedCount(
-            batch_id=batch.id,
             value_pairs_set=SUCCESS_VALUE_PAIR_SET,
             column_A=COL_A,
             column_B=COL_B,
@@ -57,7 +56,6 @@ class TestColumnPairValuesInSetUnexpectedValues:
     def test_failure(self, batch_for_datasource: Batch) -> None:
         batch = batch_for_datasource
         metric = ColumnPairValuesInSetUnexpectedCount(
-            batch_id=batch.id,
             value_pairs_set=FAILURE_VALUE_PAIR_SET,
             column_A=COL_A,
             column_B=COL_B,
@@ -83,7 +81,6 @@ class TestColumnPairValuesInSetUnexpectedValues:
     ) -> None:
         batch = batch_for_datasource
         metric = ColumnPairValuesInSetUnexpectedCount(
-            batch_id=batch.id,
             value_pairs_set=NO_MATCH_PAIR_SET,
             column_A=COL_A_WITH_NULLS,
             column_B=COL_B_WITH_NULLS,
@@ -95,9 +92,17 @@ class TestColumnPairValuesInSetUnexpectedValues:
     @pytest.mark.parametrize(
         "ignore_row_if,unexpected_count",
         [
-            ("either_value_is_missing", 2),
-            ("both_values_are_missing", 6),
-            ("neither", 6),
+            pytest.param(
+                "either_value_is_missing",
+                1,
+                marks=pytest.mark.xfail(reason="returns 2", strict=True),
+            ),
+            pytest.param(
+                "both_values_are_missing",
+                3,
+                marks=pytest.mark.xfail(reason="returns 6", strict=True),
+            ),
+            pytest.param("neither", 6),
         ],
     )
     @parameterize_batch_for_data_sources(
@@ -110,7 +115,6 @@ class TestColumnPairValuesInSetUnexpectedValues:
         """This test captures unexpected behavior for Spark FileSystem data sources."""
         batch = batch_for_datasource
         metric = ColumnPairValuesInSetUnexpectedCount(
-            batch_id=batch.id,
             value_pairs_set=NO_MATCH_PAIR_SET,
             column_A=COL_A_WITH_NULLS,
             column_B=COL_B_WITH_NULLS,
@@ -139,7 +143,6 @@ class TestColumnPairValuesInSetUnexpectedValues:
         """
         batch = batch_for_datasource
         metric = ColumnPairValuesInSetUnexpectedCount(
-            batch_id=batch.id,
             value_pairs_set=NO_MATCH_PAIR_SET,
             column_A=COL_A_WITH_NULLS,
             column_B=COL_B_WITH_NULLS,
