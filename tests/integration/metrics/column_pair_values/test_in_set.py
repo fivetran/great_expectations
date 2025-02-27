@@ -126,9 +126,16 @@ class TestColumnPairValuesInSetUnexpectedValues:
     @pytest.mark.parametrize(
         "ignore_row_if,unexpected_count",
         [
-            ("either_value_is_missing", 1),
-            ("both_values_are_missing", 3),
-            ("neither", 3),  # SQL data sources are dropping pairs where both are null
+            pytest.param("either_value_is_missing", 1),
+            pytest.param("both_values_are_missing", 3),
+            pytest.param(
+                "neither",
+                6,
+                marks=pytest.mark.xfail(
+                    reason=("returns 3 - pairs where both are null are dropped"),
+                    strict=True,
+                ),
+            ),
         ],
     )
     @parameterize_batch_for_data_sources(
