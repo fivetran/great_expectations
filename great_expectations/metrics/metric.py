@@ -103,7 +103,13 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     # it's currently our only hook into the legacy metrics system
     name: ClassVar[StrictStr]
 
-    _domain_fields: ClassVar[tuple[str, ...]] = ("column", "row_condition")
+    _domain_fields: ClassVar[tuple[str, ...]] = (
+        "column",
+        "row_condition",
+        "column_A",
+        "column_B",
+        "ignore_row_if",
+    )
 
     class Config:
         arbitrary_types_allowed = True
@@ -121,7 +127,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
             raise EmptyStrError("batch_id")
         config = Metric._to_config(
             instance_class=self.__class__,
-            metric_value_set=frozenset(self.dict().items()),
+            metric_value_set=list(self.dict().items()),
         )
         config.metric_domain_kwargs["batch_id"] = batch_id
         return config
@@ -133,7 +139,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
 
     @staticmethod
     def _to_config(
-        instance_class: type["Metric"], metric_value_set: frozenset[tuple]
+        instance_class: type["Metric"], metric_value_set: list[tuple]
     ) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
         metric_domain_kwargs = {}
