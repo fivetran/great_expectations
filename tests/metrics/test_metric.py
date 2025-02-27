@@ -2,8 +2,9 @@ import pytest
 
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.core.types import Comparable
-from great_expectations.metrics.domain import AbstractClassInstantiationError, ColumnValues, Domain
-from great_expectations.metrics.metric import Metric, MixinTypeError
+from great_expectations.metrics.column import ColumnMetric
+from great_expectations.metrics.metric import AbstractClassInstantiationError, Metric
+from great_expectations.metrics.metric_results import MetricResult
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -15,11 +16,7 @@ COLUMN = "my_column"
 FULLY_QUALIFIED_METRIC_NAME = "column_values.above"
 
 
-class MockDomain(Domain):
-    galaxy: str
-
-
-class NotADomain: ...
+class ColumnValuesAboveResult(MetricResult[bool]): ...
 
 
 class TestMetric:
@@ -32,45 +29,23 @@ class TestMetric:
 class TestMetricDefinition:
     @pytest.mark.unit
     def test_success(self):
-        class ColumnValuesAbove(Metric, ColumnValues):
+        class ColumnValuesAbove(ColumnMetric[ColumnValuesAboveResult]):
             name = FULLY_QUALIFIED_METRIC_NAME
 
             min_value: Comparable
             strict_min: bool = False
 
     @pytest.mark.unit
-    def test_missing_domain_mixin_raises(self):
-        with pytest.raises(MixinTypeError):
+    def test_success_without_generic_return_types(self):
+        class ColumnValuesAbove(ColumnMetric):
+            name = FULLY_QUALIFIED_METRIC_NAME
 
-            class ColumnValuesAbove(Metric):
-                name = FULLY_QUALIFIED_METRIC_NAME
-
-                min_value: Comparable
-                strict_min: bool = False
-
-    @pytest.mark.unit
-    def test_more_than_one_domain_mixin_raises(self):
-        with pytest.raises(MixinTypeError):
-
-            class ColumnValuesAbove(Metric, ColumnValues, MockDomain):
-                name = FULLY_QUALIFIED_METRIC_NAME
-
-                min_value: Comparable
-                strict_min: bool = False
-
-    @pytest.mark.unit
-    def test_non_domain_mixin_raises(self):
-        with pytest.raises(MixinTypeError):
-
-            class ColumnValuesAbove(Metric, NotADomain):
-                name = FULLY_QUALIFIED_METRIC_NAME
-
-                min_value: Comparable
-                strict_min: bool = False
+            min_value: Comparable
+            strict_min: bool = False
 
 
 class TestMetricInstantiation:
-    class ColumnValuesAbove(Metric, ColumnValues):
+    class ColumnValuesAbove(ColumnMetric[ColumnValuesAboveResult]):
         name = FULLY_QUALIFIED_METRIC_NAME
 
         min_value: Comparable
@@ -90,7 +65,7 @@ class TestMetricInstantiation:
 
 
 class TestMetricConfig:
-    class ColumnValuesAbove(Metric, ColumnValues):
+    class ColumnValuesAbove(ColumnMetric[ColumnValuesAboveResult]):
         name = FULLY_QUALIFIED_METRIC_NAME
 
         min_value: Comparable
@@ -123,7 +98,7 @@ class TestMetricConfig:
 
 
 class TestMetricImmutability:
-    class ColumnValuesAbove(Metric, ColumnValues):
+    class ColumnValuesAbove(ColumnMetric[ColumnValuesAboveResult]):
         name = FULLY_QUALIFIED_METRIC_NAME
 
         min_value: Comparable

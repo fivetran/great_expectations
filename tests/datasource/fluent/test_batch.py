@@ -13,7 +13,7 @@ from great_expectations.datasource.fluent.interfaces import Batch, Datasource
 from great_expectations.expectations.expectation import Expectation
 from great_expectations.metrics import BatchRowCount, ColumnValuesNonNull, Metric
 from great_expectations.metrics.batch.row_count import BatchRowCountResult
-from great_expectations.metrics.column_values.non_null import ColumnValuesNonNullResult
+from great_expectations.metrics.column.values_non_null import ColumnValuesNonNullResult
 from great_expectations.metrics.metric_results import MetricErrorResult
 
 DATASOURCE_NAME = "my_pandas"

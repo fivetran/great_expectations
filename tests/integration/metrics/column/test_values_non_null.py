@@ -4,7 +4,7 @@ import pandas as pd
 
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import BinaryExpression, ColumnClause
-from great_expectations.metrics.column_values.non_null import (
+from great_expectations.metrics.column.values_non_null import (
     ColumnValuesNonNull,
     ColumnValuesNonNullCount,
     ColumnValuesNonNullCountResult,
