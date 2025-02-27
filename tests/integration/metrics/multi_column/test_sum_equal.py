@@ -3,7 +3,7 @@ import pytest
 from pyspark.sql.types import StringType
 
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.metrics.multi_column_values.sum import (
+from great_expectations.metrics.multi_column.sum_equal import (
     MultiColumnSumEqualUnexpectedCount,
     MultiColumnSumEqualUnexpectedCountResult,
 )
