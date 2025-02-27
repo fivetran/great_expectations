@@ -108,6 +108,8 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     _domain_fields: ClassVar[tuple[str, ...]] = (
         "column",
         "column_list",
+        "column_A",
+        "column_B",
         "condition_parser",
         "ignore_row_if",
         "row_condition",
