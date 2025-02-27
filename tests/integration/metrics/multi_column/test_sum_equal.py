@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from pyspark.sql.types import StringType
+from great_expectations.compatibility.pyspark import types
 
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.metrics.multi_column.sum_equal import (
@@ -108,8 +108,8 @@ class TestMultiColumnSumEqualsUnexpectedCount:
         data_source_configs=[
             SparkFilesystemCsvDatasourceTestConfig(
                 column_types={
-                    COL_A_WITH_NULLS: StringType,
-                    COL_B_WITH_NULLS: StringType,
+                    COL_A_WITH_NULLS: types.StringType,
+                    COL_B_WITH_NULLS: types.StringType,
                 }
             )
         ],
