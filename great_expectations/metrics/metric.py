@@ -6,6 +6,7 @@ from great_expectations.compatibility.pydantic import BaseModel, Field, ModelMet
 from great_expectations.metrics.metric_results import MetricResult
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
+    MetricConfigurationID,
 )
 
 ALLOWABLE_METRIC_MIXINS: Final[int] = 1
@@ -119,6 +120,9 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
         if cls is Metric:
             raise AbstractClassInstantiationError(cls.__name__)
         return super().__new__(cls)
+
+    def metric_id_for_batch(self, batch_id: str) -> MetricConfigurationID:
+        return self.config(batch_id=batch_id).id
 
     def config(self, batch_id: str) -> MetricConfiguration:
         # This class is frozen so Metric._to_config will always return the same value
