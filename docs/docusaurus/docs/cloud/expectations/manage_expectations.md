@@ -4,6 +4,8 @@ title: "Manage Expectations"
 description: Create and manage Expectations in GX Cloud.
 ---
 
+import BetaBadge from '@site/src/components/BetaBadge';
+
 An Expectation is a verifiable assertion about your data. They make implicit assumptions about your data explicit, and they provide a flexible, declarative language for describing expected behavior. They can help you better understand your data and help you improve data quality.
 
 <!-- [//]: # (TODO: To learn more about Expectations, see Expectation.) -->
@@ -138,7 +140,7 @@ To clear the Expectation condition, click the clear button located on the right-
 When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes in that Data Asset.
 :::
 
-## Generate Expectations with ExpectAI (BETA)
+## Generate Expectations with ExpectAI <BetaBadge/>
 
 To accelerate test coverage, you can use ExpectAI to generate recommended Expectations for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
