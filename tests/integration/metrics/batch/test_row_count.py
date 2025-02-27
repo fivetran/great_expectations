@@ -16,24 +16,7 @@ from tests.integration.test_utils.data_source_config import (
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
-
-PANDAS_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
-    PandasFilesystemCsvDatasourceTestConfig(),
-    PandasDataFrameDatasourceTestConfig(),
-]
-
-SPARK_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
-    SparkFilesystemCsvDatasourceTestConfig(),
-]
-
-SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
-    BigQueryDatasourceTestConfig(),
-    DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
-    PostgreSQLDatasourceTestConfig(),
-    SnowflakeDatasourceTestConfig(),
-    SqliteDatasourceTestConfig(),
-]
+from tests.metrics.conftest import PANDAS_DATA_SOURCES, SPARK_DATA_SOURCES, SQL_DATA_SOURCES
 
 DATA_FRAME = pd.DataFrame(
     {
