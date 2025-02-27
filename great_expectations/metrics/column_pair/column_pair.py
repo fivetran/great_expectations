@@ -1,14 +1,10 @@
 from typing import Literal
 
-from great_expectations.metrics.domain import NonEmptyString
-from great_expectations.metrics.metric_results import MetricResult
+from great_expectations.metrics.batch import BatchMetric
+from great_expectations.metrics.metric import NonEmptyString, _MetricResult
 
 
-class BatchMetric:
-    pass
-
-
-class ColumnPairMetric(BatchMetric[MetricResult]):
+class ColumnPairMetric(BatchMetric[_MetricResult]):
     column_A: NonEmptyString
     column_B: NonEmptyString
     ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
