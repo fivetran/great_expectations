@@ -12,6 +12,7 @@ from tests.integration.metrics.conftest import (
     SPARK_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import SparkFilesystemCsvDatasourceTestConfig
 
 COL_A = "A"
 COL_B = "B"
@@ -103,7 +104,14 @@ class TestMultiColumnSumEqualsUnexpectedCount:
         ],
     )
     @parameterize_batch_for_data_sources(
-        data_source_configs=SPARK_DATA_SOURCES,
+        data_source_configs=[
+            SparkFilesystemCsvDatasourceTestConfig(
+                column_types={
+                    COL_A_WITH_NULLS: str,
+                    COL_B_WITH_NULLS: str,
+                }
+            )
+        ],
         data=DATA_FRAME_WITH_NULLS,
     )
     def test_ignore_row_if__spark(
