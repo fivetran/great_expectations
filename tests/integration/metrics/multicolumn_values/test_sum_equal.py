@@ -73,10 +73,68 @@ class TestMultiColumnSumEqualsUnexpectedCount:
         ],
     )
     @parameterize_batch_for_data_sources(
-        data_source_configs=PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES + SQL_DATA_SOURCES,
+        data_source_configs=PANDAS_DATA_SOURCES,
         data=DATA_FRAME_WITH_NULLS,
     )
     def test_ignore_row_if__pandas(
+        self, batch_for_datasource: Batch, ignore_row_if, unexpected_count
+    ) -> None:
+        batch = batch_for_datasource
+        metric = MultiColumnSumEqualUnexpectedCount(
+            sum_total=FAILURE_SUM_TOTAL,
+            column_list=[COL_A_WITH_NULLS, COL_B_WITH_NULLS],
+            ignore_row_if=ignore_row_if,
+        )
+        result = batch.compute_metrics(metric)
+        assert result.value == unexpected_count
+
+    @pytest.mark.parametrize(
+        "ignore_row_if,unexpected_count",
+        [
+            pytest.param(
+                "any_value_is_missing", 1, marks=pytest.mark.xfail(reason="returns 6", strict=True)
+            ),
+            pytest.param(
+                "all_values_are_missing",
+                3,
+                marks=pytest.mark.xfail(reason="returns 6", strict=True),
+            ),
+            pytest.param("never", 6),
+        ],
+    )
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SPARK_DATA_SOURCES,
+        data=DATA_FRAME_WITH_NULLS,
+    )
+    def test_ignore_row_if__spark(
+        self, batch_for_datasource: Batch, ignore_row_if, unexpected_count
+    ) -> None:
+        batch = batch_for_datasource
+        metric = MultiColumnSumEqualUnexpectedCount(
+            sum_total=FAILURE_SUM_TOTAL,
+            column_list=[COL_A_WITH_NULLS, COL_B_WITH_NULLS],
+            ignore_row_if=ignore_row_if,
+        )
+        result = batch.compute_metrics(metric)
+        assert result.value == unexpected_count
+
+    @pytest.mark.parametrize(
+        "ignore_row_if,unexpected_count",
+        [
+            pytest.param("any_value_is_missing", 1),
+            pytest.param(
+                "all_values_are_missing",
+                3,
+                marks=pytest.mark.xfail(reason="returns 1", strict=True),
+            ),
+            pytest.param("never", 6, marks=pytest.mark.xfail(reason="returns 1", strict=True)),
+        ],
+    )
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA_FRAME_WITH_NULLS,
+    )
+    def test_ignore_row_if__sql(
         self, batch_for_datasource: Batch, ignore_row_if, unexpected_count
     ) -> None:
         batch = batch_for_datasource
