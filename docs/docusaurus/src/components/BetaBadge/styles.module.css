@@ -1,8 +1,0 @@
-.betaIcon {
-  height: 22px;
-}
-
-[data-theme='dark'] :global(.markdown) img.betaIcon {
-  background-color: transparent;
-  margin: 0;
-}
