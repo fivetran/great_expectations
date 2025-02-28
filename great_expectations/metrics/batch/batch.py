@@ -1,10 +1,8 @@
-from great_expectations.metrics.domain import Batch
-from great_expectations.metrics.metric import Metric
-from great_expectations.metrics.metric_results import MetricResult
+from typing import Optional
+
+from great_expectations.compatibility.pydantic import StrictStr
+from great_expectations.metrics.metric import Metric, _MetricResult
 
 
-class BatchRowCount(Metric, Batch):
-    name = "table.row_count"
-
-
-class BatchRowCountResult(MetricResult[int]): ...
+class BatchMetric(Metric[_MetricResult], kw_only=True):
+    row_condition: Optional[StrictStr] = None

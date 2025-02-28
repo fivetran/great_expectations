@@ -21,6 +21,7 @@ from typing import (
     Mapping,
     MutableMapping,
     MutableSequence,
+    NamedTuple,
     Optional,
     Protocol,
     Sequence,
@@ -57,7 +58,18 @@ from great_expectations.exceptions.exceptions import (
     DataContextError,
     MissingDataContextError,
 )
-from great_expectations.validator.metrics_calculator import MetricsCalculator
+from great_expectations.metrics.metric import MetaMetric, Metric
+from great_expectations.metrics.metric_name import MetricNameSuffix
+from great_expectations.metrics.metric_results import (
+    MetricErrorResult,
+    MetricErrorResultValue,
+    MetricResult,
+)
+from great_expectations.validator.metrics_calculator import (
+    MetricsCalculator,
+    _AbortedMetricsInfoDict,
+    _MetricsDict,
+)
 
 logger = logging.getLogger(__name__)
 from great_expectations.datasource.fluent.data_connector import (
@@ -97,6 +109,8 @@ if TYPE_CHECKING:
         TypeLookup,
     )
     from great_expectations.expectations.expectation import Expectation
+    from great_expectations.validator.computed_metric import MetricValue
+    from great_expectations.validator.metric_configuration import MetricConfigurationID
     from great_expectations.validator.v1_validator import (
         Validator as V1Validator,
     )
@@ -998,6 +1012,16 @@ class Datasource(
 _BASE_DATASOURCE_FIELD_NAMES: Final[Set[str]] = {name for name in Datasource.__fields__}
 
 
+class RawMetric(NamedTuple):
+    metric_configuration_id: MetricConfigurationID
+    value: MetricValue
+
+
+class RawMetricError(NamedTuple):
+    metric_configuration_id: MetricConfigurationID
+    value: MetricErrorResultValue
+
+
 @dataclasses.dataclass(frozen=True)
 class HeadData:
     """
@@ -1090,6 +1114,13 @@ class Batch:
     def id(self) -> str:
         return self._id
 
+    def _get_metrics_calculator(self) -> MetricsCalculator:
+        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
+        return MetricsCalculator(
+            execution_engine=self.data.execution_engine,
+            show_progress_bars=True,
+        )
+
     @public_api
     @validate_arguments
     def columns(self) -> List[str]:
@@ -1098,12 +1129,7 @@ class Batch:
         Returns:
             list of column names.
         """
-        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(
-            execution_engine=self.data.execution_engine,
-            show_progress_bars=True,
-        )
-        return metrics_calculator.columns()
+        return self._get_metrics_calculator().columns()
 
     @public_api
     @validate_arguments
@@ -1127,11 +1153,7 @@ class Batch:
         Returns:
             HeadData
         """
-        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(
-            execution_engine=self.data.execution_engine,
-            show_progress_bars=True,
-        )
+        metrics_calculator = self._get_metrics_calculator()
         table_head_df: pd.DataFrame = metrics_calculator.head(
             n_rows=n_rows,
             domain_kwargs={"batch_id": self.id},
@@ -1243,3 +1265,125 @@ class Batch:
             batch_parameters=self.batch_request.options,
             result_format=result_format,
         )
+
+    @overload
+    def compute_metrics(self, metrics: Metric) -> MetricResult: ...
+
+    @overload
+    def compute_metrics(self, metrics: list[Metric]) -> list[MetricResult]: ...
+
+    def compute_metrics(self, metrics: Metric | list[Metric]) -> MetricResult | list[MetricResult]:
+        """Compute one or more metrics on this Batch.
+
+        Args:
+            metrics: A single Metric or list of Metrics to compute.
+                     Each Metric must be an instance of a concrete Metric subclass.
+
+        Returns:
+            If a single Metric is provided, returns a single MetricResult.
+            If a list of Metrics is provided, returns a list of MetricResults,
+            in the same order as the input metrics were received.
+            For metrics without a defined MetricResult generic type,
+            the base MetricResult class will be returned.
+
+        Examples:
+            >>> batch.compute_metrics(BatchRowCount())
+            BatchRowCountResult(id=..., value=1000)
+
+            >>> batch.compute_metrics([
+            ...     BatchRowCount(),
+            ...     ColumnMax(column="age")
+            ... ])
+            [BatchRowCountResult(id=..., value=1000), ColumnMaxResult(id=..., value=85)]
+
+        Notes:
+            Until this mypy bug is resolved, lists of Metrics are being incorrectly
+            inferred by the static type checker as list[Domain]. You can work around
+            this by adding an explicit annotation (e.g. metrics: list[Metric] = ...)
+            https://github.com/python/mypy/issues/18712
+        """
+        if isinstance(metrics, Metric):
+            metrics = [metrics]
+
+        metrics_calculator = self._get_metrics_calculator()
+
+        requested_metric_names = [metric.name for metric in metrics]
+        metrics_calculator_result = metrics_calculator.compute_metrics(
+            metric_configurations=[metric.config(batch_id=self.id) for metric in metrics],
+            runtime_configuration=None,
+        )
+        return self.metrics_calculator_result_to_metric_result(
+            requested_metric_names=requested_metric_names,
+            metrics_calculator_result=metrics_calculator_result,
+        )
+
+    @classmethod
+    def _metrics_calculator_result_to_metrics_hashmaps(
+        cls, metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict]
+    ) -> tuple[
+        dict[str, RawMetric],
+        dict[str, RawMetricError],
+    ]:
+        # add another level of nesting to these metric dicts
+        # since the key we care about is nested inside the current key
+        # enables us to iterate through these dicts only once
+        raw_metrics = {
+            metric_configuration_id.metric_name: RawMetric(metric_configuration_id, value)
+            for metric_configuration_id, value in metrics_calculator_result[0].items()
+        }
+        raw_metrics_errors = {
+            metric_configuration_id.metric_name: RawMetricError(metric_configuration_id, value)
+            for metric_configuration_id, value in metrics_calculator_result[1].items()
+        }
+        return raw_metrics, raw_metrics_errors
+
+    @classmethod
+    def _parse_raw_metric_to_metric_result_value(
+        cls, metric_name: str, raw_metric: RawMetric
+    ) -> MetricValue:
+        # "condition" metrics return the domain and value kwargs
+        # we just want the value, which is the first item in the tuple
+        if metric_name.endswith(MetricNameSuffix.CONDITION) and isinstance(raw_metric.value, tuple):
+            value = raw_metric.value[0]
+        else:
+            value = raw_metric.value
+        return value
+
+    @classmethod
+    def metrics_calculator_result_to_metric_result(
+        cls,
+        requested_metric_names: list[str],
+        metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict],
+    ) -> MetricResult | list[MetricResult]:
+        """Converts the result of MetricsCalculator.compute_metrics() into
+        a MetricResult or list[MetricResult]. Only the metrics that were
+        requested in the call to MetricsCalculator.compute_metrics()
+        will be returned (dependency metrics are excluded)."""
+        raw_metrics, raw_metrics_errors = cls._metrics_calculator_result_to_metrics_hashmaps(
+            metrics_calculator_result
+        )
+        metric_results = []
+        for metric_name in requested_metric_names:
+            if metric_name in raw_metrics:
+                MetricType = MetaMetric.get_registered_metric_class_from_metric_name(metric_name)
+                MetricResultType = MetricType.get_metric_result_type()
+                value = cls._parse_raw_metric_to_metric_result_value(
+                    metric_name, raw_metrics[metric_name]
+                )
+                metric_results.append(
+                    MetricResultType(
+                        id=raw_metrics[metric_name].metric_configuration_id,
+                        value=value,
+                    )
+                )
+            elif metric_name in raw_metrics_errors:
+                metric_results.append(
+                    MetricErrorResult(
+                        id=raw_metrics_errors[metric_name].metric_configuration_id,
+                        value=raw_metrics_errors[metric_name].value,
+                    )
+                )
+
+        if len(metric_results) == 1:
+            return metric_results[0]
+        return metric_results
