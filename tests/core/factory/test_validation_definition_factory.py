@@ -642,7 +642,7 @@ class TestValidationDefinitionFactoryAddOrUpdate:
     @pytest.mark.filesystem
     @pytest.mark.xfail(
         raises=ValidationError,
-        reason="Changing a BatchDefinition breaks loading a Validation Definition.",
+        reason="GX-481: Changing a BatchDefinition breaks loading a Validation Definition.",
         strict=True,
     )
     def test_update_batch_definition__filesystem(self, empty_data_context: FileDataContext):
@@ -651,7 +651,7 @@ class TestValidationDefinitionFactoryAddOrUpdate:
     @pytest.mark.cloud
     @pytest.mark.xfail(
         raises=ValidationError,
-        reason="Changing a BatchDefinition breaks loading a Validation Definition.",
+        reason="GX-481: Changing a BatchDefinition breaks loading a Validation Definition.",
         strict=True,
     )
     def test_update_batch_definition__cloud(self, empty_cloud_context_fluent: CloudDataContext):
@@ -660,7 +660,7 @@ class TestValidationDefinitionFactoryAddOrUpdate:
     @pytest.mark.unit
     @pytest.mark.xfail(
         raises=ValidationError,
-        reason="Changing a BatchDefinition breaks loading a Validation Definition.",
+        reason="GX-481: Changing a BatchDefinition breaks loading a Validation Definition.",
         strict=True,
     )
     def test_update_batch_definition__ephemeral(
