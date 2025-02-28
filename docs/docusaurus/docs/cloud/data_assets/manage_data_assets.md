@@ -123,4 +123,3 @@ To connect to your Data Source in GX Cloud, there are two methods for managing c
    When running the GX Agent in another container-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
 
    When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Core Python client is running.
-
