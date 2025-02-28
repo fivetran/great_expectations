@@ -734,6 +734,7 @@ class TestValidationDefinitionFactoryAddOrUpdate:
         assert (
             updated_vd.data.id != existing_vd.data.id
         )  # New batch definition should have a different ID
+        assert updated_vd.data.id  # should not be None
         assert updated_vd.data.id == new_batch_def.id
         assert updated_vd.id == existing_vd.id
         context.validation_definitions.get(vd_name)
