@@ -1,3 +1,6 @@
+import re
+
+
 def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noqa: C901
     # Add newline before closing dt tags when they have more than one child
     for item in soup.find_all("dt"):
@@ -66,7 +69,7 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
     for item in items:
         code_block_text = item.get_text()
         code_block = soup.new_tag("CodeBlock", language="python", title="Signature")
-        code_block.append("{`" + item.get_text().replace("#", "") + "`}")
+        code_block.append(format_code_block(item.get_text()))
         item.replace_with(code_block)
 
         if "class" not in code_block_text:
@@ -202,3 +205,11 @@ def add_table_title(soup, table, title):
     table.insert_before("\r\n")
     table.insert_before(title_h4)
     table.insert_before("\r\n")
+
+
+def format_code_block(item_text):
+    code_with_newline_at_beginning = re.sub(r"\((?!\))", "(\n   ", item_text)
+    code_with_newline_at_end = re.sub(
+        r"(?<!\()\)", "\n)", code_with_newline_at_beginning
+    )
+    return "{`" + code_with_newline_at_end.replace("#", "").replace(",", ",\n  ") + "`}"
