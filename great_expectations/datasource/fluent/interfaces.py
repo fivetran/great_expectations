@@ -58,6 +58,7 @@ from great_expectations.exceptions.exceptions import (
     MissingDataContextError,
 )
 from great_expectations.metrics.metric import MetaMetric, Metric
+from great_expectations.metrics.metric_name import MetricNameSuffix
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
     MetricInternalErrorResult,
@@ -106,6 +107,7 @@ if TYPE_CHECKING:
         TypeLookup,
     )
     from great_expectations.expectations.expectation import Expectation
+    from great_expectations.validator.computed_metric import MetricValue
     from great_expectations.validator.v1_validator import (
         Validator as V1Validator,
     )
@@ -1304,7 +1306,10 @@ class Batch:
             if metric_id_for_batch in metrics_calculator_results:
                 MetricType = MetaMetric.get_registered_metric_class_from_metric_name(metric.name)
                 MetricResultType = MetricType.get_metric_result_type()
-                value = metrics_calculator_results[metric_id_for_batch]
+                value = self._parse_metric_value(
+                    metric_name=metric.name,
+                    metric_calculator_result=metrics_calculator_results[metric_id_for_batch],
+                )
                 results.append(MetricResultType(id=metric_id_for_batch, value=value))
             elif metric_id_for_batch in metrics_calculator_errors:
                 value = metrics_calculator_errors[metric_id_for_batch]
@@ -1324,3 +1329,14 @@ class Batch:
         if is_single_metric:
             return results[0]
         return results
+
+    def _parse_metric_value(
+        self, metric_name: str, metric_calculator_result: MetricValue
+    ) -> MetricValue:
+        if metric_name.endswith(MetricNameSuffix.CONDITION) and isinstance(
+            metric_calculator_result, tuple
+        ):
+            value = metric_calculator_result[0]
+        else:
+            value = metric_calculator_result
+        return value
