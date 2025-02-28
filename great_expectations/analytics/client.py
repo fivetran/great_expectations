@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 from uuid import UUID
 
 import posthog
@@ -46,6 +46,7 @@ def init(  # noqa: PLR0913 # FIXME CoP
     oss_id: Optional[UUID] = None,
     cloud_mode: bool = False,
     user_agent_str: Optional[str] = None,
+    mode: Literal["cloud", "ephemeral", "file", None] = None,
 ):
     """Initializes the analytics platform client."""
     conf = {}
@@ -61,6 +62,7 @@ def init(  # noqa: PLR0913 # FIXME CoP
         config=Config(
             cloud_mode=cloud_mode,
             user_agent_str=user_agent_str,
+            mode=mode,
             **conf,
         )
     )

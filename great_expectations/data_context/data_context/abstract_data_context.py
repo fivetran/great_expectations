@@ -17,6 +17,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -276,6 +277,7 @@ class AbstractDataContext(ConfigPeer, ABC):
             data_context_id=self._data_context_id,
             organization_id=None,
             oss_id=self._get_oss_id(),
+            mode=self.mode,
             user_agent_str=self._user_agent_str,
         )
 
@@ -294,6 +296,12 @@ class AbstractDataContext(ConfigPeer, ABC):
             return env_var_enabled
         else:
             return True
+
+    @property
+    @abstractmethod
+    def mode(self) -> Literal[None, "cloud", "file", "ephemeral"]:
+        """Context mode. Should correspond to the modes passed to `get_context`"""
+        ...
 
     def _init_config_provider(self) -> _ConfigurationProvider:
         config_provider = _ConfigurationProvider()
