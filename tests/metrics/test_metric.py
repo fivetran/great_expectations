@@ -78,6 +78,7 @@ class TestMetricConfig:
             metric_domain_kwargs={
                 "batch_id": BATCH_ID,
                 "row_condition": None,
+                "condition_parser": None,
                 "column": COLUMN,
             },
             metric_value_kwargs={
