@@ -1,4 +1,4 @@
-from typing import Annotated, ClassVar, Final, Generic, TypeVar
+from typing import Annotated, Any, ClassVar, Final, Generic, TypeVar
 
 from typing_extensions import dataclass_transform, get_args
 
@@ -103,12 +103,16 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     # it's currently our only hook into the legacy metrics system
     name: ClassVar[StrictStr]
 
+    # we use this list to build a dictionary of domain-specific fields
+    # by introspecting inheriting models for these keys
     _domain_fields: ClassVar[tuple[str, ...]] = (
         "column",
-        "row_condition",
+        "column_list",
         "column_A",
         "column_B",
+        "condition_parser",
         "ignore_row_if",
+        "row_condition",
     )
 
     class Config:
@@ -139,7 +143,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
 
     @staticmethod
     def _to_config(
-        instance_class: type["Metric"], metric_value_set: list[tuple]
+        instance_class: type["Metric"], metric_value_set: list[tuple[str, Any]]
     ) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
         metric_domain_kwargs = {}
