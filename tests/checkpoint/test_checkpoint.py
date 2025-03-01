@@ -1108,13 +1108,13 @@ class TestCheckpointResult:
             {
                 "type": "section",
                 "text": {
-                    'text': '\n'
-                    '*Asset*: `my_asset`  \n'
-                    '*Expectation Suite*: `my_suite`\n'
-                    '*Summary*: *1* of *2* Expectations were met',
+                    "text": "\n"
+                    "*Asset*: `my_asset`  \n"
+                    "*Expectation Suite*: `my_suite`\n"
+                    "*Summary*: *1* of *2* Expectations were met",
                     "type": "mrkdwn",
                 },
-                'type': 'section',
+                "type": "section",
             },
             {"type": "divider"},
         ]
