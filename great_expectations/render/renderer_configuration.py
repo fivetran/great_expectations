@@ -32,10 +32,10 @@ from great_expectations.compatibility.pydantic import (
 from great_expectations.compatibility.pydantic import generics as pydantic_generics
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
-    ExpectationValidationResult,  # noqa: TCH001 # FIXME CoP
+    ExpectationValidationResult,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,  # noqa: TCH001 # FIXME CoP
+    ExpectationConfiguration,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.render.exceptions import RendererConfigurationError
 from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
