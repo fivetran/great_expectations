@@ -24,10 +24,17 @@ class MetricResult(GenericModel, Generic[_MetricResultValue]):
         arbitrary_types_allowed = True
 
 
-class MetricErrorResultValue(TypedDict):
+class DeprecatedMetricErrorResultValue(TypedDict):
     metric_configuration: MetricConfiguration
     exception_info: ExceptionInfo
     num_failures: int
+
+
+class DeprecatedMetricErrorResult(MetricResult[DeprecatedMetricErrorResultValue]): ...
+
+
+class MetricErrorResultValue(TypedDict):
+    exception_info: ExceptionInfo
 
 
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
