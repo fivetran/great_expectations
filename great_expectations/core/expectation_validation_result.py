@@ -10,14 +10,14 @@ from typing_extensions import TypedDict
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
-from great_expectations.alias_types import JSONValues  # noqa: TCH001 # FIXME CoP
+from great_expectations.alias_types import JSONValues  # noqa: TC001 # FIXME CoP
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.batch import (  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.batch import (  # noqa: TC001 # FIXME CoP
     BatchMarkers,
     LegacyBatchDefinition,
 )
-from great_expectations.core.id_dict import BatchSpec  # noqa: TCH001 # FIXME CoP
-from great_expectations.core.run_identifier import RunIdentifier  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.id_dict import BatchSpec  # noqa: TC001 # FIXME CoP
+from great_expectations.core.run_identifier import RunIdentifier  # noqa: TC001 # FIXME CoP
 from great_expectations.data_context.util import instantiate_class_from_config
 from great_expectations.exceptions import ClassInstantiationError
 from great_expectations.render import (
@@ -312,7 +312,7 @@ class ExpectationValidationResult(SerializableDictDot):
                     return self.success
                 else:
                     raise gx_exceptions.UnavailableMetricError(  # noqa: TRY003 # FIXME CoP
-                        "Metric name must have more than two parts for keys other than " "success."
+                        "Metric name must have more than two parts for keys other than success."
                     )
             elif metric_name_parts[1] == "result":
                 try:

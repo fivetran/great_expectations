@@ -230,15 +230,15 @@ class ExpectTableBinaryLabelModelBias(BatchExpectation):
             assert y_pred is not None, "target y_true must be specified"
             assert isinstance(y_pred, str), "y_pred must be a string column name"
             assert isinstance(y_true, str), "y_true must be a string column name"
-            assert (
-                isinstance(alpha, float) and (0 <= alpha <= 1)
-            ) or alpha is None, "alpha must be a float between 0 and 1"
-            assert (
-                isinstance(partial_success, bool)
-            ) or partial_success is None, "reference_group must be a boolean"
-            assert (
-                isinstance(reference_group, dict)
-            ) or reference_group is None, "reference_group must be a dictionary"
+            assert (isinstance(alpha, float) and (0 <= alpha <= 1)) or alpha is None, (
+                "alpha must be a float between 0 and 1"
+            )
+            assert (isinstance(partial_success, bool)) or partial_success is None, (
+                "reference_group must be a boolean"
+            )
+            assert (isinstance(reference_group, dict)) or reference_group is None, (
+                "reference_group must be a dictionary"
+            )
 
         except AssertionError as e:
             raise InvalidExpectationConfigurationError(str(e))

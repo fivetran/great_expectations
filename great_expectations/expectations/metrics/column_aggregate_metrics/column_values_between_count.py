@@ -59,13 +59,13 @@ class ColumnValuesBetweenCount(MetricProvider):
 
         if min_value is not None and max_value is not None:
             if strict_min and strict_max:
-                series = (min_value < val) and (val < max_value)
+                series = min_value < val < max_value
             elif strict_min:
-                series = (min_value < val) and (val <= max_value)
+                series = min_value < val <= max_value
             elif strict_max:
-                series = (min_value <= val) and (val < max_value)
+                series = min_value <= val < max_value
             else:
-                series = (min_value <= val) and (val <= max_value)
+                series = min_value <= val <= max_value
 
         elif min_value is None and max_value is not None:
             if strict_max:

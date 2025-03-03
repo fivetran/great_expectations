@@ -717,7 +717,7 @@ class DataConnectorConfigSchema(AbstractConfigSchema):
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by a
-subclass of the FilePathDataConnector class (your data connector is "{data['class_name']}").  Please update your
+subclass of the FilePathDataConnector class (your data connector is "{data["class_name"]}").  Please update your
 configuration to continue.
                 """  # noqa: E501 # FIXME CoP
             )
@@ -732,7 +732,7 @@ configuration to continue.
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by a
-filesystem type of the data connector (your data connector is "{data['class_name']}").  Please update your
+filesystem type of the data connector (your data connector is "{data["class_name"]}").  Please update your
 configuration to continue.
                 """  # noqa: E501 # FIXME CoP
             )
@@ -749,7 +749,7 @@ configuration to continue.
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
-S3/Azure/GCS type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration \
+S3/Azure/GCS type of the data connector (your data connector is "{data["class_name"]}").  Please update your configuration \
 to continue.
 """  # noqa: E501 # FIXME CoP
             )
@@ -764,7 +764,7 @@ to continue.
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
-S3/GCS type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
+S3/GCS type of the data connector (your data connector is "{data["class_name"]}").  Please update your configuration to
 continue.
                 """  # noqa: E501 # FIXME CoP
             )
@@ -777,7 +777,7 @@ continue.
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
-S3 type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
+S3 type of the data connector (your data connector is "{data["class_name"]}").  Please update your configuration to
 continue.
                 """  # noqa: E501 # FIXME CoP
             )
@@ -790,7 +790,7 @@ continue.
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
-Azure type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
+Azure type of the data connector (your data connector is "{data["class_name"]}").  Please update your configuration to
 continue.
                     """  # noqa: E501 # FIXME CoP
             )
@@ -815,7 +815,7 @@ configuration to continue.
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by a
-GCS type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
+GCS type of the data connector (your data connector is "{data["class_name"]}").  Please update your configuration to
 continue.
                     """  # noqa: E501 # FIXME CoP
             )
@@ -847,7 +847,7 @@ data connector. You must only select one between `filename` (from_service_accoun
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
-SQL type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
+SQL type of the data connector (your data connector is "{data["class_name"]}").  Please update your configuration to
 continue.
                 """  # noqa: E501 # FIXME CoP
             )
@@ -867,7 +867,7 @@ continue.
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
-SQL/GlueCatalog type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
+SQL/GlueCatalog type of the data connector (your data connector is "{data["class_name"]}").  Please update your configuration to
 continue.
                 """  # noqa: E501 # FIXME CoP
             )
@@ -883,7 +883,7 @@ continue.
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses one or more keys in a data connector that are required only by an
-GlueCatalog type of the data connector (your data connector is "{data['class_name']}").  Please update your configuration to
+GlueCatalog type of the data connector (your data connector is "{data["class_name"]}").  Please update your configuration to
 continue.
                 """  # noqa: E501 # FIXME CoP
             )
@@ -1020,14 +1020,14 @@ class ExecutionEngineConfigSchema(Schema):
         ):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses the "connection_string" key in an execution engine, but only
-SqlAlchemyExecutionEngine requires this attribute (your execution engine is "{data['class_name']}").  Please update your
+SqlAlchemyExecutionEngine requires this attribute (your execution engine is "{data["class_name"]}").  Please update your
 configuration to continue.
                 """  # noqa: E501 # FIXME CoP
             )
         if "spark_config" in data and not (data["class_name"] == "SparkDFExecutionEngine"):
             raise gx_exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
                 f"""Your current configuration uses the "spark_config" key in an execution engine, but only
-SparkDFExecutionEngine requires this attribute (your execution engine is "{data['class_name']}").  Please update your
+SparkDFExecutionEngine requires this attribute (your execution engine is "{data["class_name"]}").  Please update your
 configuration to continue.
                 """  # noqa: E501 # FIXME CoP
             )
@@ -1094,7 +1094,7 @@ class GXCloudConfig(DictDot):
 class DataContextConfigSchema(Schema):
     config_version: fields.Number = fields.Number(
         validate=lambda x: 0 < x < 100,  # noqa: PLR2004 # FIXME CoP
-        error_messages={"invalid": "config version must " "be a number."},
+        error_messages={"invalid": "config version must be a number."},
     )
     fluent_datasources = fields.Dict(
         keys=fields.Str(),

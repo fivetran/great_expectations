@@ -1829,7 +1829,7 @@ class AbstractDataContext(ConfigPeer, ABC):
         for kwarg_name in metric_configuration:
             if not isinstance(metric_configuration[kwarg_name], dict):
                 raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                    "Invalid metric_configuration: each key must contain a " "dictionary."
+                    "Invalid metric_configuration: each key must contain a dictionary."
                 )
             if (
                 kwarg_name == "metric_kwargs_id"
@@ -1842,7 +1842,7 @@ class AbstractDataContext(ConfigPeer, ABC):
                         )
                     if not isinstance(metric_configuration[kwarg_name][metric_kwargs_id], list):
                         raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                            "Invalid metric_configuration: each value must contain a " "list."
+                            "Invalid metric_configuration: each value must contain a list."
                         )
                     metric_configurations_list += [
                         (metric_name, {"metric_kwargs_id": metric_kwargs_id})
@@ -1853,7 +1853,7 @@ class AbstractDataContext(ConfigPeer, ABC):
                     base_kwargs.update({kwarg_name: kwarg_value})
                     if not isinstance(metric_configuration[kwarg_name][kwarg_value], list):
                         raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                            "Invalid metric_configuration: each value must contain a " "list."
+                            "Invalid metric_configuration: each value must contain a list."
                         )
                     for nested_configuration in metric_configuration[kwarg_name][kwarg_value]:
                         metric_configurations_list += (

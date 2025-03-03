@@ -11,7 +11,7 @@ from great_expectations.expectations.expectation import (
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_types import (
-    ConditionParser,  # noqa: TCH001 # FIXME CoP
+    ConditionParser,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.render import (
     LegacyDiagnosticRendererType,

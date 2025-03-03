@@ -254,10 +254,8 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
 def _should_notify(success: bool, notify_on: Literal["all", "failure", "success"]) -> bool:
     return (
         notify_on == "all"
-        or notify_on == "success"
-        and success
-        or notify_on == "failure"
-        and not success
+        or (notify_on == "success" and success)
+        or (notify_on == "failure" and not success)
     )
 
 
@@ -467,8 +465,7 @@ class SlackNotificationAction(DataDocsAction):
             return {"slack_notification_result": None}
         except requests.HTTPError:
             logger.warning(
-                "Request to Slack webhook "
-                f"returned error {response.status_code}: {response.text}"  # type: ignore[possibly-undefined] # ok for httperror
+                f"Request to Slack webhook returned error {response.status_code}: {response.text}"  # type: ignore[possibly-undefined] # ok for httperror
             )
             return {"slack_notification_result": None}
 

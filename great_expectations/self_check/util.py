@@ -1599,11 +1599,8 @@ def generate_expectation_tests(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME
                 if _engine == "sqlalchemy" and "sqlalchemy" in engines_implemented:
                     engines_to_include[_engine] = True
                     dialects_to_include[backend] = True
-                elif (
-                    _engine == "pandas"
-                    and "pandas" in engines_implemented
-                    or _engine == "spark"
-                    and "spark" in engines_implemented
+                elif (_engine == "pandas" and "pandas" in engines_implemented) or (
+                    _engine == "spark" and "spark" in engines_implemented
                 ):
                     engines_to_include[_engine] = True
     else:
@@ -2105,15 +2102,17 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                     ],
                     rtol=RTOL,
                     atol=ATOL,
-                ), f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']} not np.allclose to {expectationValidationResultSchema.load(test['output'])['result']['observed_value']}"  # noqa: E501 # FIXME CoP
+                ), (
+                    f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']} not np.allclose to {expectationValidationResultSchema.load(test['output'])['result']['observed_value']}"
+                )  # noqa: E501 # FIXME CoP
             else:
-                assert result == expectationValidationResultSchema.load(
-                    test["output"]
-                ), f"{result} != {expectationValidationResultSchema.load(test['output'])}"
+                assert result == expectationValidationResultSchema.load(test["output"]), (
+                    f"{result} != {expectationValidationResultSchema.load(test['output'])}"
+                )
         else:
-            assert result == expectationValidationResultSchema.load(
-                test["output"]
-            ), f"{result} != {expectationValidationResultSchema.load(test['output'])}"
+            assert result == expectationValidationResultSchema.load(test["output"]), (
+                f"{result} != {expectationValidationResultSchema.load(test['output'])}"
+            )
     else:
         # Convert result to json since our tests are reading from json so cannot easily contain richer types (e.g. NaN)  # noqa: E501 # FIXME CoP
         # NOTE - 20191031 - JPC - we may eventually want to change these tests as we update our view on how  # noqa: E501 # FIXME CoP
@@ -2128,7 +2127,9 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                             value,
                             rtol=RTOL,
                             atol=ATOL,
-                        ), f"(RTOL={RTOL}, ATOL={ATOL}) {result['success']} not np.allclose to {value}"  # noqa: E501 # FIXME CoP
+                        ), (
+                            f"(RTOL={RTOL}, ATOL={ATOL}) {result['success']} not np.allclose to {value}"
+                        )  # noqa: E501 # FIXME CoP
                     except TypeError:
                         assert result["success"] == value, f"{result['success']} != {value}"
                 else:
@@ -2137,9 +2138,11 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
             elif key == "observed_value":
                 if "tolerance" in test:
                     if isinstance(value, dict):
-                        assert (
-                            set(result["result"]["observed_value"].keys()) == set(value.keys())
-                        ), f"{set(result['result']['observed_value'].keys())} != {set(value.keys())}"  # noqa: E501 # FIXME CoP
+                        assert set(result["result"]["observed_value"].keys()) == set(
+                            value.keys()
+                        ), (
+                            f"{set(result['result']['observed_value'].keys())} != {set(value.keys())}"
+                        )  # noqa: E501 # FIXME CoP
                         for k, v in value.items():
                             assert np.allclose(
                                 result["result"]["observed_value"][k],
@@ -2160,23 +2163,27 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                                 value["values"],
                                 rtol=RTOL,
                                 atol=ATOL,
-                            ), f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']['values']} not np.allclose to {value['values']}"  # noqa: E501 # FIXME CoP
+                            ), (
+                                f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']['values']} not np.allclose to {value['values']}"
+                            )  # noqa: E501 # FIXME CoP
                         except TypeError as e:
                             print(e)
-                            assert (
-                                result["result"]["observed_value"] == value
-                            ), f"{result['result']['observed_value']} != {value}"
+                            assert result["result"]["observed_value"] == value, (
+                                f"{result['result']['observed_value']} != {value}"
+                            )
                     elif try_allclose:
                         assert np.allclose(
                             result["result"]["observed_value"],
                             value,
                             rtol=RTOL,
                             atol=ATOL,
-                        ), f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']} not np.allclose to {value}"  # noqa: E501 # FIXME CoP
+                        ), (
+                            f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']} not np.allclose to {value}"
+                        )  # noqa: E501 # FIXME CoP
                     else:
-                        assert (
-                            result["result"]["observed_value"] == value
-                        ), f"{result['result']['observed_value']} != {value}"
+                        assert result["result"]["observed_value"] == value, (
+                            f"{result['result']['observed_value']} != {value}"
+                        )
 
             # NOTE: This is a key used ONLY for testing cases where an expectation is legitimately allowed to return  # noqa: E501 # FIXME CoP
             # any of multiple possible observed_values. expect_column_values_to_be_of_type is one such expectation.  # noqa: E501 # FIXME CoP
@@ -2187,9 +2194,9 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                 unexpected_list = result["result"].get("unexpected_index_list")
                 if pk_column and unexpected_list:
                     # Note that consistent ordering of unexpected_list is not a guarantee by ID/PK
-                    assert (
-                        sorted(unexpected_list, key=lambda d: d["pk_index"]) == value
-                    ), f"{unexpected_list} != {value}"
+                    assert sorted(unexpected_list, key=lambda d: d["pk_index"]) == value, (
+                        f"{unexpected_list} != {value}"
+                    )
 
             elif key == "unexpected_list":
                 try:
@@ -2253,9 +2260,9 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                             "expected to find " + value + " in " + value["exception_traceback"]
                         )
                 else:
-                    assert result["exception_info"][
-                        "raised_exception"
-                    ], f"{result['exception_info']['raised_exception']}"
+                    assert result["exception_info"]["raised_exception"], (
+                        f"{result['exception_info']['raised_exception']}"
+                    )
                     assert value in result["exception_info"]["exception_traceback"], (
                         "expected to find "
                         + value

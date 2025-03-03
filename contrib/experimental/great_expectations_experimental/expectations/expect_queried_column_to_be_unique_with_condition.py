@@ -26,7 +26,7 @@ class ExpectQueriedColumnToBeUniqueWithCondition(QueryExpectation):
             HAVING count(1) > 1
             """
 
-    success_keys = ("template_dict" "query",)
+    success_keys = ("template_dictquery",)
 
     domain_keys = (
         "query",
