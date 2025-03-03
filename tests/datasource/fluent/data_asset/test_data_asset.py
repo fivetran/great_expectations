@@ -1,12 +1,9 @@
-import random
-import string
 from typing import List
 
 import pytest
 
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.partitioners import ColumnPartitionerYearly
-from great_expectations.data_context import EphemeralDataContext, FileDataContext
 from great_expectations.data_context.data_context.abstract_data_context import (
     AbstractDataContext,
 )
@@ -16,6 +13,7 @@ from great_expectations.data_context.data_context.cloud_data_context import (
 from great_expectations.datasource.fluent.fluent_base_model import FluentBaseModel
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset, Datasource
 from great_expectations.datasource.fluent.pandas_datasource import PandasDatasource
+from tests.conftest import random_name
 
 DATASOURCE_NAME = "my datasource for batch configs"
 EMPTY_DATA_ASSET_NAME = "my data asset for batch configs"
@@ -476,25 +474,10 @@ def test_sort_batches__requires_keys(empty_data_asset, mocker):
 
 
 class TestGetBatchDefinition:
-    def random_name(self) -> str:
-        return "".join([random.choice(string.ascii_letters) for _ in range(6)])
-
-    @pytest.mark.filesystem
-    def test_get_returns_id__filesystem(self, empty_data_context: FileDataContext):
-        self._test_get_returns_id(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_get_returns_id__cloud(self, empty_cloud_context_fluent: CloudDataContext):
-        self._test_get_returns_id(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_get_returns_id__ephemeral(self, ephemeral_context_with_defaults: EphemeralDataContext):
-        self._test_get_returns_id(ephemeral_context_with_defaults)
-
-    def _test_get_returns_id(self, context: AbstractDataContext) -> None:
+    def test_get_returns_id(self, data_context: AbstractDataContext) -> None:
         # arrange
-        resource_name = self.random_name()
-        ds = context.data_sources.add_pandas(
+        resource_name = random_name()
+        ds = data_context.data_sources.add_pandas(
             name=resource_name,
         )
         asset = ds.add_dataframe_asset(name=resource_name)
