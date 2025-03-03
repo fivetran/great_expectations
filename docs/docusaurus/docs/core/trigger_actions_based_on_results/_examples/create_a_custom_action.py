@@ -47,7 +47,7 @@ class MyCustomAction(ValidationAction):
     ) -> dict:
         # Domain-specific logic
         self._do_my_custom_action(checkpoint_result)
-        # Optionally, access custom fields you provide the action at runtime
+        # Optional. Access custom fields you provide the Action at runtime.
         extra_context = self.my_custom_str_field
         # Return information about the Action
         return {"some": "info", "extra_context": extra_context}
