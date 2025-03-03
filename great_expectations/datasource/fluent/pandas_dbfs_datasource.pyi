@@ -162,7 +162,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         kwargs: typing.Union[dict, None] = ...,
     ) -> HDFAsset: ...
     @override
-    def add_html_asset(  # FIXME CoP
+    def add_html_asset(
         self,
         name: str,
         *,
@@ -184,7 +184,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         displayed_only: bool = ...,
     ) -> HTMLAsset: ...
     @override
-    def add_json_asset(  # FIXME CoP
+    def add_json_asset(
         self,
         name: str,
         *,
@@ -217,7 +217,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         kwargs: typing.Union[dict, None] = ...,
     ) -> ORCAsset: ...
     @override
-    def add_parquet_asset(  # FIXME CoP
+    def add_parquet_asset(
         self,
         name: str,
         *,
@@ -240,7 +240,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> PickleAsset: ...
     @override
-    def add_sas_asset(  # FIXME CoP
+    def add_sas_asset(
         self,
         name: str,
         *,
@@ -264,7 +264,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         convert_categoricals: bool = ...,
     ) -> SPSSAsset: ...
     @override
-    def add_stata_asset(  # FIXME CoP
+    def add_stata_asset(
         self,
         name: str,
         *,
@@ -283,7 +283,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> StataAsset: ...
     @override
-    def add_xml_asset(  # FIXME CoP
+    def add_xml_asset(
         self,
         name: str,
         *,
