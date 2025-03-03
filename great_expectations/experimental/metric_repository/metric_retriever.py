@@ -135,7 +135,7 @@ class MetricRetriever(abc.ABC):
         )
         assert isinstance(validator.active_batch, Batch), (
             f"validator.active_batch is type {type(validator.active_batch).__name__} instead of type {Batch.__name__}"
-        )  # noqa: E501 # FIXME CoP
+        )  # FIXME CoP
         batch_id = validator.active_batch.id
         return batch_id, computed_metrics, aborted_metrics
 
@@ -190,7 +190,7 @@ class MetricRetriever(abc.ABC):
         )
         assert isinstance(validator.active_batch, Batch), (
             f"validator.active_batch is type {type(validator.active_batch).__name__} instead of type {Batch.__name__}"
-        )  # noqa: E501 # FIXME CoP
+        )  # FIXME CoP
         batch_id = validator.active_batch.id
         column_names = domain_builder.get_effective_column_names(
             validator=validator,

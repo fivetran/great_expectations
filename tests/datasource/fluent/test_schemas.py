@@ -160,7 +160,7 @@ def test_no_orphaned_schemas():
 
     assert not orphans, (
         f"The following schemas appear to be orphaned and should be removed. Run `invoke schema --sync --clean`\n{pf(orphans)}"
-    )  # noqa: E501 # FIXME CoP
+    )  # FIXME CoP
 
 
 if __name__ == "__main__":

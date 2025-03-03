@@ -65,7 +65,7 @@ def get_extras_require():
         match = rx_name_part.match(file_path.name)
         assert match is not None, (
             f"The extras requirements dir ({requirements_dir}) contains files that do not adhere to the following format: requirements-dev-*.txt"
-        )  # noqa: E501
+        )
         key = match.group(1)
         if key in ignore_keys:
             continue
