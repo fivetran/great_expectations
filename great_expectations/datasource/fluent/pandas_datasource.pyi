@@ -553,7 +553,7 @@ class PandasDatasource(_PandasDatasource):
         float_precision: typing.Union[str, None] = ...,
         storage_options: StorageOptions = ...,
     ) -> TableAsset: ...
-    def add_xml_asset(  # FIXME CoP
+    def add_xml_asset(
         self,
         name: str,
         path_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
@@ -934,7 +934,7 @@ class PandasDatasource(_PandasDatasource):
         float_precision: typing.Union[str, None] = ...,
         storage_options: StorageOptions = ...,
     ) -> Batch: ...
-    def read_xml(  # FIXME CoP
+    def read_xml(
         self,
         path_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
         *,

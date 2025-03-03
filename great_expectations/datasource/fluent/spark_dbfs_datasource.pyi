@@ -27,7 +27,7 @@ class SparkDBFSDatasource(SparkFilesystemDatasource):
     type: Literal["spark_dbfs"]  # type: ignore[assignment] # FIXME CoP
 
     @override
-    def add_csv_asset(  # FIXME CoP
+    def add_csv_asset(
         self,
         name: str,
         *,

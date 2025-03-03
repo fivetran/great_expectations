@@ -302,7 +302,7 @@ class PandasS3Datasource(_PandasFilePathDatasource):
         iterator: bool = ...,
         compression: CompressionOptions = "infer",
     ) -> SASAsset: ...
-    def add_spss_asset(  # FIXME CoP
+    def add_spss_asset(
         self,
         name: str,
         *,
@@ -313,7 +313,7 @@ class PandasS3Datasource(_PandasFilePathDatasource):
         usecols: typing.Union[int, str, typing.Sequence[int], None] = ...,
         convert_categoricals: bool = ...,
     ) -> SPSSAsset: ...
-    def add_stata_asset(  # FIXME CoP
+    def add_stata_asset(
         self,
         name: str,
         *,

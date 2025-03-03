@@ -335,7 +335,7 @@ class PandasGoogleCloudStorageDatasource(_PandasFilePathDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> StataAsset: ...
-    def add_xml_asset(  # FIXME CoP
+    def add_xml_asset(
         self,
         name: str,
         *,

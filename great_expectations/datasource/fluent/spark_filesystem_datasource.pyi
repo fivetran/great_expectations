@@ -581,7 +581,7 @@ class SparkFilesystemDatasource(_SparkFilePathDatasource):
         version_as_of: Optional[str] = None,
         # Delta Specific Options ^^^
     ) -> DeltaAsset: ...
-    def add_delta_directory_asset(  # FIXME CoP
+    def add_delta_directory_asset(
         self,
         name: str,
         *,

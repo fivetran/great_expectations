@@ -254,7 +254,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         nrows: typing.Union[int, None] = ...,
         storage_options: StorageOptions = ...,
     ) -> JSONAsset: ...
-    def add_orc_asset(  # FIXME CoP
+    def add_orc_asset(
         self,
         name: str,
         *,
@@ -265,7 +265,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         columns: typing.Union[typing.List[str], None] = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> ORCAsset: ...
-    def add_parquet_asset(  # FIXME CoP
+    def add_parquet_asset(
         self,
         name: str,
         *,
@@ -279,7 +279,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         use_nullable_dtypes: bool = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> ParquetAsset: ...
-    def add_pickle_asset(  # FIXME CoP
+    def add_pickle_asset(
         self,
         name: str,
         *,
@@ -290,7 +290,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> PickleAsset: ...
-    def add_sas_asset(  # FIXME CoP
+    def add_sas_asset(
         self,
         name: str,
         *,
@@ -305,7 +305,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         iterator: bool = ...,
         compression: CompressionOptions = "infer",
     ) -> SASAsset: ...
-    def add_spss_asset(  # FIXME CoP
+    def add_spss_asset(
         self,
         name: str,
         *,
@@ -316,7 +316,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         usecols: typing.Union[int, str, typing.Sequence[int], None] = ...,
         convert_categoricals: bool = ...,
     ) -> SPSSAsset: ...
-    def add_stata_asset(  # FIXME CoP
+    def add_stata_asset(
         self,
         name: str,
         *,
