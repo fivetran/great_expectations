@@ -218,7 +218,7 @@ class AzureUrl:
             search = re.search(AzureUrl.AZURE_BLOB_STORAGE_HTTPS_URL_REGEX_PATTERN, url)
             assert search is not None, (
                 "The provided URL does not adhere to the format specified by the Azure SDK (<ACCOUNT_NAME>.blob.core.windows.net/<CONTAINER>/<BLOB>)"
-            )  # noqa: E501 # FIXME CoP
+            )  # FIXME CoP
             self._protocol = search.group(1)
             self._account_name = search.group(2)
             self._container = search.group(3)
