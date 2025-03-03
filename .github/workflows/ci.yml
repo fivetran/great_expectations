@@ -272,10 +272,6 @@ jobs:
             reqs/requirements-dev-test.txt
             setup.py
 
-      - name: Print event name
-        run: |
-          echo EVENT NAME is ${{ github.event_name }}
-
       - name: Install dependencies
         run: pip install . -c constraints-dev.txt -r reqs/requirements-dev-test.txt
 
@@ -588,8 +584,8 @@ jobs:
           # TODO: would like to adopt `actionlint` pre-commit hook
           # but false positive here and inability to do an inline ignore
           # prevents this https://github.com/rhysd/actionlint/issues/237
-          - python-version: ${{ github.event_name == 'pull_request' && '3.10' }}
-          - python-version: ${{ github.event_name == 'pull_request' && '3.11' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
           - python-version: ${{ github.event_name == 'merge_group' && '3.10' }}
           - python-version: ${{ github.event_name == 'merge_group' && '3.11' }}
             # clickhouse needs dependency update
@@ -610,10 +606,6 @@ jobs:
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
             setup.py
-
-      - name: Print event name
-        run: |
-          echo EVENT NAME is ${{ github.event_name }}
 
       - name: Copy GCP credentials to file
         run: |
