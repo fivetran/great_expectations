@@ -145,12 +145,12 @@ TABLE_NAME_MAPPING: Final[Mapping[DatabaseType, Mapping[TableNameCase, str]]] = 
 }
 
 # column names
-UNQUOTED_UPPER_COL: Final[Literal["UNQUOTED_UPPER_COL"]] = "UNQUOTED_UPPER_COL"
-UNQUOTED_LOWER_COL: Final[Literal["unquoted_lower_col"]] = "unquoted_lower_col"
-QUOTED_UPPER_COL: Final[Literal["QUOTED_UPPER_COL"]] = "QUOTED_UPPER_COL"
-QUOTED_LOWER_COL: Final[Literal["quoted_lower_col"]] = "quoted_lower_col"
-QUOTED_MIXED_CASE: Final[Literal["quotedMixed"]] = "quotedMixed"
-QUOTED_W_DOTS: Final[Literal["quoted.w.dots"]] = "quoted.w.dots"
+UNQUOTED_UPPER_COL: Final = "UNQUOTED_UPPER_COL"
+UNQUOTED_LOWER_COL: Final = "unquoted_lower_col"
+QUOTED_UPPER_COL: Final = "QUOTED_UPPER_COL"
+QUOTED_LOWER_COL: Final = "quoted_lower_col"
+QUOTED_MIXED_CASE: Final = "quotedMixed"
+QUOTED_W_DOTS: Final = "quoted.w.dots"
 
 
 def get_random_identifier_name() -> str:

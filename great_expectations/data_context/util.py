@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 import pyparsing as pp
 
-from great_expectations.alias_types import PathStr  # noqa: TCH001 # FIXME CoP
+from great_expectations.alias_types import PathStr  # noqa: TC001 # FIXME CoP
 from great_expectations.exceptions import StoreConfigurationError
 from great_expectations.types import safe_deep_copy
 from great_expectations.util import load_class, verify_dynamic_loading_support

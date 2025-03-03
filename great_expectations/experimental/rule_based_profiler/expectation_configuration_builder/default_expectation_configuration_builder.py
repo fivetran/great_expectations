@@ -18,12 +18,12 @@ from pyparsing import (
 from pyparsing import Optional as ppOptional
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.domain import Domain  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
+    ParameterBuilderConfig,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.expectation_configuration_builder import (
@@ -33,7 +33,7 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001 # FIXME CoP
+    ParameterContainer,  # noqa: TC001 # FIXME CoP
 )
 
 if TYPE_CHECKING:
