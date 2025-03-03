@@ -1,9 +1,12 @@
+import random
+import string
 from typing import List
 
 import pytest
 
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.partitioners import ColumnPartitionerYearly
+from great_expectations.data_context import EphemeralDataContext, FileDataContext
 from great_expectations.data_context.data_context.abstract_data_context import (
     AbstractDataContext,
 )
@@ -470,3 +473,37 @@ def test_sort_batches__requires_keys(empty_data_asset, mocker):
 
     with pytest.raises(KeyError, match=expected_error):
         empty_data_asset.sort_batches([wheres_my_b, i_have_a_b], partitioner)
+
+
+class TestGetBatchDefinition:
+    def random_name(self) -> str:
+        return "".join([random.choice(string.ascii_letters) for _ in range(6)])
+
+    @pytest.mark.filesystem
+    def test_get_returns_id__filesystem(self, empty_data_context: FileDataContext):
+        self._test_get_returns_id(empty_data_context)
+
+    @pytest.mark.cloud
+    def test_get_returns_id__cloud(self, empty_cloud_context_fluent: CloudDataContext):
+        self._test_get_returns_id(empty_cloud_context_fluent)
+
+    @pytest.mark.unit
+    def test_get_returns_id__ephemeral(self, ephemeral_context_with_defaults: EphemeralDataContext):
+        self._test_get_returns_id(ephemeral_context_with_defaults)
+
+    def _test_get_returns_id(self, context: AbstractDataContext) -> None:
+        # arrange
+        resource_name = self.random_name()
+        ds = context.data_sources.add_pandas(
+            name=resource_name,
+        )
+        asset = ds.add_dataframe_asset(name=resource_name)
+        batch_def = asset.add_batch_definition_whole_dataframe(name=resource_name)
+
+        # act
+        refetched_batch_def = asset.get_batch_definition(resource_name)
+
+        # assert
+        assert batch_def.id
+        assert refetched_batch_def.id
+        assert batch_def.id == refetched_batch_def.id
