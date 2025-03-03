@@ -45,6 +45,8 @@
 
     --ifm-tabs-padding-vertical: 0.7em;
 
+    --badge-background-color: #F26422;
+
     /* enlarge the sidebar width */
     --doc-sidebar-width: 350px !important;
 
@@ -347,4 +349,21 @@ li p + ol {
 
 [data-theme='dark'] .markdown h3{
   color: var(--ifm-font-color-base);
+}
+
+.beta {
+  background-color: var(--badge-background-color);
+  border-radius: 36px;
+  color: var(--white);
+  display: inline-block;
+  font-size: .75em;
+  font-weight: bold;
+  padding: 0 .75em;
+  margin: .125em .25em;
+  text-transform: uppercase;
+  transform: translateY(-0.125em);
+
+  [data-theme='dark'] & {
+    border: 1px solid var(--ifm-font-color-base);
+  }
 }
