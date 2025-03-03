@@ -164,6 +164,7 @@ def test_cloud_context_init(
         organization_id=UUID(cloud_details.org_id),
         oss_id=mock.ANY,
         cloud_mode=True,
+        mode="cloud",
         user_agent_str=user_agent_str,
     )
     mock_submit.assert_called_once_with(
