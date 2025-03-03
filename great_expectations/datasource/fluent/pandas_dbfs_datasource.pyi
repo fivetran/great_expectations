@@ -102,7 +102,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> CSVAsset: ...
     @override
-    def add_excel_asset(  # FIXME CoP
+    def add_excel_asset(
         self,
         name: str,
         *,
@@ -133,7 +133,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> ExcelAsset: ...
     @override
-    def add_feather_asset(  # FIXME CoP
+    def add_feather_asset(
         self,
         name: str,
         *,
@@ -144,7 +144,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> FeatherAsset: ...
     @override
-    def add_hdf_asset(  # FIXME CoP
+    def add_hdf_asset(
         self,
         name: str,
         *,
