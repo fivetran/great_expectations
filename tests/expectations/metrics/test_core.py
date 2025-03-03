@@ -86,7 +86,7 @@ def test_basic_metric_pd():
         ],
         [
             build_pandas_engine,
-            pd.DataFrame({"a": [Decimal(2.0), Decimal(0.18781)]}),
+            pd.DataFrame({"a": [Decimal("2.0"), Decimal("0.18781")]}),
             2.18781,
         ],
     ],
@@ -124,7 +124,7 @@ def test_column_sum_metric_pd(build_engine, dataframe, expected_result):
             6,
         ],
         [
-            pd.DataFrame({"a": [Decimal(2.0), Decimal(0.18781)]}),
+            pd.DataFrame({"a": [Decimal("2.0"), Decimal("0.18781")]}),
             2.18781,
         ],
     ],
@@ -171,7 +171,7 @@ def test_column_sum_metric_spark(spark_session, dataframe, expected_result):
     [
         [pd.DataFrame({"a": [1, 2, 3, None]}), 2],
         [
-            pd.DataFrame({"a": [Decimal(2.0), Decimal(0.18781)]}),
+            pd.DataFrame({"a": [Decimal("2.0"), Decimal("0.18781")]}),
             1.093905,
         ],
     ],
@@ -206,7 +206,7 @@ def test_column_mean_metric_pd(dataframe, expected_result):
     [
         [pd.DataFrame({"a": [1, 2, 3, None]}), 2],
         [
-            pd.DataFrame({"a": [Decimal(2.0), Decimal(0.18781)]}),
+            pd.DataFrame({"a": [Decimal("2.0"), Decimal("0.18781")]}),
             1.093905,
         ],
     ],
@@ -258,7 +258,7 @@ def test_column_mean_metric_spark(spark_session, dataframe, expected_result):
         ],
         [
             build_pandas_engine,
-            pd.DataFrame({"a": [Decimal(2.0), Decimal(0.18781)]}),
+            pd.DataFrame({"a": [Decimal("2.0"), Decimal("0.18781")]}),
             1.2814118377984496,
         ],
     ],
