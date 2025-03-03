@@ -567,14 +567,22 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_A}",  # noqa: E501 # FIXME CoP
+                            "text": (
+                                "\n*Asset*: `__no_data_asset_name__`  "
+                                f"\n*Expectation Suite*: `{SUITE_A}`"
+                                "\n*Summary*: *3* of *3* Expectations were met"
+                            ),
                         },
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: __no_data_asset_name__  *Expectation Suite*: {SUITE_B}",  # noqa: E501 # FIXME CoP
+                            "text": (
+                                "\n*Asset*: `__no_data_asset_name__`  "
+                                f"\n*Expectation Suite*: `{SUITE_B}`"
+                                "\n*Summary*: *2* of *2* Expectations were met"
+                            ),
                         },
                     },
                     {"type": "divider"},
@@ -605,16 +613,22 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: asset_1  *Expectation Suite*: {SUITE_A}  "
-                            "<www.testing?slack=true|View Results>",
+                            "text": (
+                                f"\n*Asset*: `asset_1`  \n*Expectation Suite*: {SUITE_A}  "
+                                "<www.testing?slack=true|View Results>"
+                                "\n*Summary*: *3* of *3* Expectations were met"
+                            ),
                         },
                     },
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: asset_2_two_wow_whoa_vroom  "
-                            f"*Expectation Suite*: {SUITE_B}",
+                            "text": (
+                                "\n*Asset*: `asset_2_two_wow_whoa_vroom`  "
+                                f"\n*Expectation Suite*: `{SUITE_B}`"
+                                "\n*Summary*: *2* of *2* Expectations were met"
+                            ),
                         },
                     },
                     {"type": "divider"},
@@ -663,8 +677,11 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*Asset*: asset_1  *Expectation Suite*: {SUITE_A}  "
-                            "<www.testing?slack=true|View Results>",
+                            "text": (
+                                f"\n*Asset*: `asset_1`  \n*Expectation Suite*: {SUITE_A}  "
+                                "<www.testing?slack=true|View Results>"
+                                "\n*Summary*: *3* of *3* Expectations were met"
+                            ),
                         },
                     },
                     {
@@ -678,8 +695,11 @@ class TestSlackNotificationAction:
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "*Asset*: asset_2_two_wow_whoa_vroom  "
-                            f"*Expectation Suite*: {SUITE_B}",
+                            "text": (
+                                "\n*Asset*: `asset_2_two_wow_whoa_vroom`  "
+                                f"\n*Expectation Suite*: `{SUITE_B}`"
+                                "\n*Summary*: *2* of *2* Expectations were met"
+                            ),
                         },
                     },
                     {
