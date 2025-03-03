@@ -272,6 +272,10 @@ jobs:
             reqs/requirements-dev-test.txt
             setup.py
 
+      - name: Print event name
+        run: |
+          echo EVENT NAME is ${{ github.event_name }}
+
       - name: Install dependencies
         run: pip install . -c constraints-dev.txt -r reqs/requirements-dev-test.txt
 
