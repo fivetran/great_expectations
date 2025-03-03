@@ -278,7 +278,7 @@ class SparkFilesystemDatasource(_SparkFilePathDatasource):
         # Spark Generic File Reader Options ^^^
         # ^^^ pyspark Docs <> Source Code mismatch
     ) -> ParquetAsset: ...
-    def add_directory_parquet_asset(  # FIXME CoP
+    def add_directory_parquet_asset(
         self,
         name: str,
         *,
@@ -309,7 +309,7 @@ class SparkFilesystemDatasource(_SparkFilePathDatasource):
         # Spark Generic File Reader Options ^^^
         # ^^^ pyspark Docs <> Source Code mismatch
     ) -> DirectoryParquetAsset: ...
-    def add_orc_asset(  # FIXME CoP
+    def add_orc_asset(
         self,
         name: str,
         *,
