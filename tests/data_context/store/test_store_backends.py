@@ -1284,7 +1284,7 @@ def test_TupleS3StoreBackend_list_over_1000_keys(aws_credentials):
             content_type="text/html; charset=utf-8",
         )
     assert my_store.get(("AAA_0",)) == "aaa_0"
-    assert my_store.get((f"AAA_{num_keys_to_add-1}",)) == f"aaa_{num_keys_to_add-1}"
+    assert my_store.get((f"AAA_{num_keys_to_add - 1}",)) == f"aaa_{num_keys_to_add - 1}"
 
     # Without pagination only list max_keys_in_a_single_call
     # This is belt and suspenders to make sure mocking s3 list_objects_v2 implements

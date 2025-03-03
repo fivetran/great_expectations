@@ -1550,8 +1550,8 @@ def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_hap
                         "params": {
                             "column": "start_date",
                             "condition_parser": None,
-                            "max_value": {"$PARAMETER": "now() " "- " "timedelta(weeks=1)"},
-                            "min_value": {"$PARAMETER": "now() " "- " "timedelta(weeks=208)"},
+                            "max_value": {"$PARAMETER": "now() - timedelta(weeks=1)"},
+                            "min_value": {"$PARAMETER": "now() - timedelta(weeks=208)"},
                             "result_format": "SUMMARY",
                             "row_condition": None,
                             "strict_max": None,

@@ -107,9 +107,9 @@ def test_get_domain_records_with_column_domain(
     expected_column_pd_df = pd_df.iloc[:3]
     expected_column_df = spark_df_from_pandas_df(spark_session, expected_column_pd_df)
 
-    assert dataframes_equal(
-        data, expected_column_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_column_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 def test_get_domain_records_with_column_domain_and_filter_conditions(
@@ -136,9 +136,9 @@ def test_get_domain_records_with_column_domain_and_filter_conditions(
     expected_column_pd_df = pd_df.iloc[:3]
     expected_column_df = spark_df_from_pandas_df(spark_session, expected_column_pd_df)
 
-    assert dataframes_equal(
-        data, expected_column_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_column_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 def test_get_domain_records_with_different_column_domain_and_filter_conditions(
@@ -165,9 +165,9 @@ def test_get_domain_records_with_different_column_domain_and_filter_conditions(
     expected_column_pd_df = pd_df.iloc[:1]
     expected_column_df = spark_df_from_pandas_df(spark_session, expected_column_pd_df)
 
-    assert dataframes_equal(
-        data, expected_column_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_column_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 def test_get_domain_records_with_different_column_domain_and_multiple_filter_conditions(
@@ -198,9 +198,9 @@ def test_get_domain_records_with_different_column_domain_and_multiple_filter_con
     expected_column_pd_df = pd_df.iloc[:4]
     expected_column_df = spark_df_from_pandas_df(spark_session, expected_column_pd_df)
 
-    assert dataframes_equal(
-        data, expected_column_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_column_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 def test_get_domain_records_with_column_pair_domain(
@@ -231,9 +231,9 @@ def test_get_domain_records_with_column_pair_domain(
     )
     expected_column_pair_df = spark_df_from_pandas_df(spark_session, expected_column_pair_pd_df)
 
-    assert dataframes_equal(
-        data, expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     pd_df = pd.DataFrame(
         {
@@ -260,9 +260,9 @@ def test_get_domain_records_with_column_pair_domain(
     expected_column_pair_pd_df = pd.DataFrame({"a": [2, 3, 4], "b": [3, 4, 5], "c": [2, 3, 4]})
     expected_column_pair_df = spark_df_from_pandas_df(spark_session, expected_column_pair_pd_df)
 
-    assert dataframes_equal(
-        data, expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     pd_df = pd.DataFrame(
         {
@@ -293,9 +293,9 @@ def test_get_domain_records_with_column_pair_domain(
     )
     expected_column_pair_df = spark_df_from_pandas_df(spark_session, expected_column_pair_pd_df)
 
-    assert dataframes_equal(
-        data, expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 def test_get_domain_records_with_multicolumn_domain(
@@ -330,9 +330,9 @@ def test_get_domain_records_with_multicolumn_domain(
     engine = basic_spark_df_execution_engine
     engine.load_batch_data(batch_id="1234", batch_data=expected_multicolumn_df)
 
-    assert dataframes_equal(
-        data, expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     pd_df = pd.DataFrame(
         {
@@ -361,9 +361,9 @@ def test_get_domain_records_with_multicolumn_domain(
 
     expected_multicolumn_df = spark_df_from_pandas_df(spark_session, expected_multicolumn_pd_df)
 
-    assert dataframes_equal(
-        data, expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     pd_df = pd.DataFrame(
         {
@@ -393,9 +393,9 @@ def test_get_domain_records_with_multicolumn_domain(
 
     expected_multicolumn_df = spark_df_from_pandas_df(spark_session, expected_multicolumn_pd_df)
 
-    assert dataframes_equal(
-        data, expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert dataframes_equal(data, expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 def test_get_compute_domain_with_no_domain_kwargs(
@@ -449,9 +449,9 @@ def test_get_compute_domain_with_row_condition(
     assert data.collect() == expected_df.collect()
 
     # Ensuring compute kwargs have not been modified
-    assert (
-        "row_condition" in compute_kwargs
-    ), "Row condition should be located within compute kwargs"
+    assert "row_condition" in compute_kwargs, (
+        "Row condition should be located within compute kwargs"
+    )
     assert accessor_kwargs == {}
 
 
@@ -935,9 +935,9 @@ def test_get_compute_domain_with_gx_condition_parser(spark_session):
     assert dataframes_equal(data, expected_df), "Data does not match after getting compute domain"
 
     # Ensuring compute kwargs have not been modified
-    assert (
-        "row_condition" in compute_kwargs
-    ), "Row condition should be located within compute kwargs"
+    assert "row_condition" in compute_kwargs, (
+        "Row condition should be located within compute kwargs"
+    )
     assert accessor_kwargs == {"column": "b"}, "Accessor kwargs have been modified"
 
     # Should react same for get_domain_records()

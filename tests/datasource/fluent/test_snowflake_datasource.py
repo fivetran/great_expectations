@@ -957,9 +957,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.schema_
-                ), "Don't expect schema to be available without config_provider"
+                assert not datasource.schema_, (
+                    "Don't expect schema to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.schema_
@@ -977,9 +977,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.database
-                ), "Don't expect database to be available without config_provider"
+                assert not datasource.database, (
+                    "Don't expect database to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.database
@@ -997,9 +997,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.warehouse
-                ), "Don't expect warehouse to be available without config_provider"
+                assert not datasource.warehouse, (
+                    "Don't expect warehouse to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.warehouse
@@ -1017,9 +1017,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.role
-                ), "Don't expect role to be available without config_provider"
+                assert not datasource.role, (
+                    "Don't expect role to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.role
@@ -1037,9 +1037,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.account
-                ), "Don't expect account to be available without config_provider"
+                assert not datasource.account, (
+                    "Don't expect account to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.account
