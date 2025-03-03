@@ -30,7 +30,7 @@ class MyCustomAction(ValidationAction):
     type: Literal["my_custom_action"] = "my_custom_action"
     # </snippet>
 
-    # 3. Optionally add any additional fields your Action requires at runtime.
+    # 3. Optional. Add any additional fields your Action requires at runtime.
     # <snippet name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_custom_action.py - add custom fields">
     my_custom_str_field: str
     # </snippet>
