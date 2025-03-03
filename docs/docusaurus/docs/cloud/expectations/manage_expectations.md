@@ -138,7 +138,7 @@ To clear the Expectation condition, click the clear button located on the right-
 When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes in that Data Asset.
 :::
 
-## Generate Expectations with ExpectAI (BETA)
+## Generate Expectations with ExpectAI <span class="beta">Beta</span>
 
 To accelerate test coverage, you can use ExpectAI to generate recommended Expectations for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 

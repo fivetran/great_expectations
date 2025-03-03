@@ -51,36 +51,30 @@ class SlackRenderer(Renderer):
         validation_result: ExpectationSuiteValidationResult,
         validation_result_urls: list[str],
     ) -> dict:
-        status = "Failed :x:"
-        if validation_result.success:
-            status = "Success :tada:"
-
         validation_link = None
         summary_text = ""
         if validation_result_urls:
             if len(validation_result_urls) == 1:
                 validation_link = validation_result_urls[0]
-            else:
-                title_hlink = "*Validation Results*"
-                batch_validation_status_hlinks = "".join(
-                    f"*<{validation_result_url} | {status}>*"
-                    for validation_result_url in validation_result_urls
-                )
-                summary_text += f"""{title_hlink}
-    {batch_validation_status_hlinks}
-                """
+
+        n_checks_succeeded = validation_result.statistics["successful_expectations"]
+        n_checks = validation_result.statistics["evaluated_expectations"]
+        check_details_text = f"*{n_checks_succeeded}* of *{n_checks}* Expectations were met"
 
         expectation_suite_name = validation_result.suite_name
         data_asset_name = validation_result.asset_name or "__no_data_asset_name__"
-        summary_text += f"*Asset*: {data_asset_name}  "
+
+        summary_text += f"\n*Asset*: `{data_asset_name}`  "
         # Slack does not allow links to local files due to security risks
         # DataDocs links will be added in a block after this summary text when applicable
         if validation_link and "file://" not in validation_link:
             summary_text += (
-                f"*Expectation Suite*: {expectation_suite_name}  <{validation_link}|View Results>"
+                f"\n*Expectation Suite*: {expectation_suite_name}  <{validation_link}|View Results>"
             )
         else:
-            summary_text += f"*Expectation Suite*: {expectation_suite_name}"
+            summary_text += f"\n*Expectation Suite*: `{expectation_suite_name}`"
+
+        summary_text += f"\n*Summary*: {check_details_text}"
 
         return {
             "type": "section",
@@ -112,7 +106,10 @@ class SlackRenderer(Renderer):
         status = "Success :white_check_mark:" if success else "Failure :no_entry:"
         return {
             "type": "header",
-            "text": {"type": "plain_text", "text": f"{name} - {checkpoint_name} - {status}"},
+            "text": {
+                "type": "plain_text",
+                "text": f"{name} - {checkpoint_name} - {status}",
+            },
         }
 
     def _build_run_time_block(self, run_id: RunIdentifier) -> dict:

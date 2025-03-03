@@ -263,7 +263,6 @@ class ValidationDefinition(BaseModel):
             batch_parameters: The dictionary of parameters necessary for selecting the
               correct batch to run the validation on. The keys are strings that are determined
               by the BatchDefinition used to instantiate this ValidationDefinition. For example:
-
               - whole table -> None
               - yearly -> year
               - monthly -> year, month
