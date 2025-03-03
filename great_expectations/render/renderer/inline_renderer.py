@@ -154,8 +154,9 @@ class InlineRenderer(Renderer):
                 )
 
             assert isinstance(renderer_rendered_content, RenderedAtomicContent), (
-                f"The renderer: {renderer_name} for expectation: {expectation_type} should return RenderedAtomicContent."
-            )  # FIXME CoP
+                f"The renderer: {renderer_name} for expectation: "
+                f"{expectation_type} should return RenderedAtomicContent."
+            )
         except Exception as e:
             error_message = f'Renderer "{renderer_name}" failed to render Expectation "{expectation_type} with exception message: {e!s}".'  # noqa: E501 # FIXME CoP
             logger.info(error_message)

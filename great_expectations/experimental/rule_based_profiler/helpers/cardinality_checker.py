@@ -234,8 +234,9 @@ class CardinalityChecker:
             )
         else:
             assert max_proportion_unique is not None, (
-                "Guaranteed to have `max_proportion_unique` due to prior call to `validate_input_parameters`"
-            )  # FIXME CoP
+                "Guaranteed to have `max_proportion_unique` due "
+                "to prior call to `validate_input_parameters`"
+            )
             return RelativeCardinalityLimit(
                 name=f"CUSTOM_REL_{max_proportion_unique}",
                 max_proportion_unique=max_proportion_unique,
