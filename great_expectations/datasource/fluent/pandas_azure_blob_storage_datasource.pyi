@@ -72,7 +72,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
     def _get_azure_client(self) -> azure.BlobServiceClient: ...
     @override
     def test_connection(self, test_assets: bool = ...) -> None: ...
-    def add_csv_asset(  # FIXME CoP
+    def add_csv_asset(
         self,
         name: str,
         *,
@@ -132,7 +132,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         memory_map: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> CSVAsset: ...
-    def add_excel_asset(  # FIXME CoP
+    def add_excel_asset(
         self,
         name: str,
         *,
@@ -164,7 +164,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         mangle_dupe_cols: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> ExcelAsset: ...
-    def add_feather_asset(  # FIXME CoP
+    def add_feather_asset(
         self,
         name: str,
         *,
@@ -176,7 +176,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         use_threads: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> FeatherAsset: ...
-    def add_fwf_asset(  # FIXME CoP
+    def add_fwf_asset(
         self,
         name: str,
         *,
@@ -188,7 +188,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         infer_nrows: int = ...,
         kwargs: Optional[dict] = ...,
     ) -> FWFAsset: ...
-    def add_hdf_asset(  # FIXME CoP
+    def add_hdf_asset(
         self,
         name: str,
         *,
@@ -207,7 +207,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         chunksize: typing.Union[int, None] = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> HDFAsset: ...
-    def add_html_asset(  # FIXME CoP
+    def add_html_asset(
         self,
         name: str,
         *,
@@ -230,7 +230,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         keep_default_na: bool = ...,
         displayed_only: bool = ...,
     ) -> HTMLAsset: ...
-    def add_json_asset(  # FIXME CoP
+    def add_json_asset(
         self,
         name: str,
         *,
@@ -336,7 +336,7 @@ class PandasAzureBlobStorageDatasource(_PandasFilePathDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> StataAsset: ...
-    def add_xml_asset(  # FIXME CoP
+    def add_xml_asset(
         self,
         name: str,
         *,
