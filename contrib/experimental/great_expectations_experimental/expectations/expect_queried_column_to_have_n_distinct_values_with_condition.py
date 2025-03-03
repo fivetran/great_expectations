@@ -26,7 +26,10 @@ class ExpectQueriedColumnToHaveNDistinctValuesWithCondition(QueryExpectation):
             GROUP BY {column_to_check}
             """
 
-    success_keys = ("template_dictquery",)
+    success_keys = (
+        "template_dict",
+        "query",
+    )
 
     domain_keys = (
         "query",

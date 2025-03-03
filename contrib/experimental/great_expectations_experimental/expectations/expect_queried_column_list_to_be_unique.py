@@ -26,7 +26,10 @@ class ExpectQueriedColumnListToBeUnique(QueryExpectation):
             )
             """
 
-    success_keys = ("template_dictquery",)
+    success_keys = (
+        "template_dict",
+        "query",
+    )
 
     domain_keys = (
         "query",
