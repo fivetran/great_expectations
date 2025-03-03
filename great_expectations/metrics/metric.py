@@ -105,7 +105,6 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     name: ClassVar[StrictStr]
 
     _domain_fields: ClassVar[tuple[str, ...]] = (
-        "batch_id",
         "column",
         "row_condition",
         "column_A",
@@ -159,7 +158,7 @@ class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
         }
         for field_name, field_info in domain_fields.items():
             metric_domain_kwargs[field_name] = metric_values.get(field_name, field_info.default)
-        # Set the batch_id last so past in one is always the one used
+        # Set the batch_id with the passed in value
         metric_domain_kwargs["batch_id"] = batch_id
 
         value_fields = {
