@@ -16,19 +16,19 @@ from typing import (
 import numpy as np
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.domain import Domain  # noqa: TC001 # FIXME CoP
 from great_expectations.experimental.rule_based_profiler.attributed_resolved_metrics import (
     AttributedResolvedMetrics,
 )
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
+    ParameterBuilderConfig,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
     datetime_semantic_domain_type,
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-    MetricValues,  # noqa: TCH001 # FIXME CoP
+    MetricValues,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import (
     MetricMultiBatchParameterBuilder,

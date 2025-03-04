@@ -17,6 +17,7 @@ from great_expectations.analytics.actions import (
     NOTIFICATION_ACTION_RAN,
     VALIDATION_DEFINITION_CREATED,
     VALIDATION_DEFINITION_DELETED,
+    VALIDATION_DEFINITION_RAN,
 )
 from great_expectations.analytics.base_event import Action, Event
 from great_expectations.compatibility.typing_extensions import override
@@ -251,6 +252,31 @@ class ValidationDefinitionDeletedEvent(_ValidationDefinitionEvent):
     def __init__(self, validation_definition_id: str | None = None):
         super().__init__(
             action=VALIDATION_DEFINITION_DELETED,
+            validation_definition_id=validation_definition_id,
+        )
+
+
+@dataclass
+class ValidationDefinitionRanEvent(_ValidationDefinitionEvent):
+    checkpoint_id: str | None = None
+    _allowed_actions: ClassVar[List[Action]] = [VALIDATION_DEFINITION_RAN]
+
+    @override
+    def _properties(self) -> dict:
+        return {
+            "checkpoint_id": self.checkpoint_id,
+            "validation_definition_id": self.validation_definition_id,
+        }
+
+    def __init__(
+        self,
+        *,
+        validation_definition_id: str | None = None,
+        checkpoint_id: str | None = None,
+    ):
+        self.checkpoint_id = checkpoint_id
+        super().__init__(
+            action=VALIDATION_DEFINITION_RAN,
             validation_definition_id=validation_definition_id,
         )
 

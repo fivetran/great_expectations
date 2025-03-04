@@ -179,7 +179,7 @@ def register_core_metrics() -> None:
     if before_count == after_count:
         logger.debug("Already registered core metrics; no updates to registry")
     else:
-        logger.debug(f"Registered {after_count-before_count} core metrics")
+        logger.debug(f"Registered {after_count - before_count} core metrics")
 
 
 def register_core_expectations() -> None:
@@ -205,7 +205,7 @@ def register_core_expectations() -> None:
     if before_count == after_count:
         logger.debug("Already registered core expectations; no updates to registry")
     else:
-        logger.debug(f"Registered {after_count-before_count} core expectations")
+        logger.debug(f"Registered {after_count - before_count} core expectations")
 
 
 def _add_response_key(res, key, value):
@@ -406,10 +406,8 @@ def list_registered_expectation_implementations(
         expectation_name,
         expectation_implementation,
     ) in _registered_expectations.items():
-        if (
-            expectation_root is None
-            or expectation_root
-            and issubclass(expectation_implementation, expectation_root)
+        if expectation_root is None or (
+            expectation_root and issubclass(expectation_implementation, expectation_root)
         ):
             registered_expectation_implementations.append(expectation_name)
 

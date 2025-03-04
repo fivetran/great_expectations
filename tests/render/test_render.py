@@ -103,7 +103,7 @@ def test_render_profiling_results_column_section_renderer(titanic_profiled_evrs_
         except KeyError:
             pass
 
-    for column in evrs:
+    for column, evr in evrs.items():
         with open(
             file_relative_path(
                 __file__,
@@ -115,7 +115,7 @@ def test_render_profiling_results_column_section_renderer(titanic_profiled_evrs_
             "w",
         ) as outfile:
             json.dump(
-                ProfilingResultsColumnSectionRenderer().render(evrs[column]).to_json_dict(),
+                ProfilingResultsColumnSectionRenderer().render(evr).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -147,7 +147,7 @@ def test_render_validation_results_column_section_renderer(titanic_profiler_evrs
         except KeyError:
             pass
 
-    for column in evrs:
+    for column, evr in evrs.items():
         with open(
             file_relative_path(
                 __file__,
@@ -159,7 +159,7 @@ def test_render_validation_results_column_section_renderer(titanic_profiler_evrs
             "w",
         ) as outfile:
             json.dump(
-                ValidationResultsColumnSectionRenderer().render(evrs[column]).to_json_dict(),
+                ValidationResultsColumnSectionRenderer().render(evr).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -179,7 +179,7 @@ def test_render_expectation_suite_column_section_renderer(
         except KeyError:
             pass
 
-    for column in exp_groups:
+    for column, exp_group in exp_groups.items():
         with open(
             file_relative_path(
                 __file__,
@@ -189,7 +189,7 @@ def test_render_expectation_suite_column_section_renderer(
             "w",
         ) as outfile:
             json.dump(
-                ExpectationSuiteColumnSectionRenderer().render(exp_groups[column]).to_json_dict(),
+                ExpectationSuiteColumnSectionRenderer().render(exp_group).to_json_dict(),
                 outfile,
                 indent=2,
             )

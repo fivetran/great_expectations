@@ -12,7 +12,7 @@ from great_expectations.datasource.fluent.data_asset.path.spark.spark_generic im
     _SparkGenericFilePathAssetMixin,
 )
 from great_expectations.datasource.fluent.serializable_types.pyspark import (
-    SerializableStructType,  # noqa: TCH001  # pydantic uses type at runtime
+    SerializableStructType,  # noqa: TC001  # pydantic uses type at runtime
 )
 
 

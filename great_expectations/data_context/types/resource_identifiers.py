@@ -307,7 +307,7 @@ class ValidationMetricIdentifier(MetricIdentifier):
     def from_fixed_length_tuple(cls, tuple_):
         if len(tuple_) != 6:  # noqa: PLR2004 # FIXME CoP
             raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
-                "ValidationMetricIdentifier fixed length tuple must have exactly six " "components."
+                "ValidationMetricIdentifier fixed length tuple must have exactly six components."
             )
         if tuple_[2] == "__":
             tuple_data_asset_name = None
@@ -393,7 +393,7 @@ class ValidationResultIdentifierSchema(Schema):
     run_id = fields.Nested(
         RunIdentifierSchema,
         required=True,
-        error_messages={"required": "run_id is required for a " "ValidationResultIdentifier"},
+        error_messages={"required": "run_id is required for a ValidationResultIdentifier"},
     )
     batch_identifier = fields.Nested(BatchIdentifierSchema, required=True)
 

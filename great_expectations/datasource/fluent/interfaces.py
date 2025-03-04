@@ -747,7 +747,9 @@ class Datasource(
 
         updated_asset = updated_datasource.get_asset(asset_name)
         updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
-
+        if batch_definition is not updated_batch_definition:
+            # update in memory copy with the new ID
+            batch_definition.id = updated_batch_definition.id
         return updated_batch_definition
 
     def delete_batch_definition(self, batch_definition: BatchDefinition[PartitionerT]) -> None:

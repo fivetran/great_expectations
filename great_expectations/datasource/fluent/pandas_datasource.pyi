@@ -84,7 +84,7 @@ class _PandasDataAsset(DataAsset):
     @override
     def _validate_batch_request(self, batch_request: BatchRequest) -> None: ...
     @override
-    def json(  # noqa: PLR0913 # FIXME CoP
+    def json(
         self,
         *,
         include: Union[AbstractSetIntStr, MappingIntStrAny, None] = ...,
@@ -146,7 +146,7 @@ class _PandasDatasource(Datasource):
     @override
     def test_connection(self, test_assets: bool = ...) -> None: ...
     @override
-    def json(  # noqa: PLR0913 # FIXME CoP
+    def json(
         self,
         *,
         include: Union[AbstractSetIntStr, MappingIntStrAny, None] = ...,
@@ -196,7 +196,7 @@ class PandasDatasource(_PandasDatasource):
         sep: str = "\\s+",
         kwargs: typing.Union[dict, None] = ...,
     ) -> ClipboardAsset: ...
-    def add_csv_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_csv_asset(
         self,
         name: str,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
@@ -253,7 +253,7 @@ class PandasDatasource(_PandasDatasource):
         memory_map: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> CSVAsset: ...
-    def add_excel_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_excel_asset(
         self,
         name: str,
         io: os.PathLike | str | bytes,
@@ -283,7 +283,7 @@ class PandasDatasource(_PandasDatasource):
         mangle_dupe_cols: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> ExcelAsset: ...
-    def add_feather_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_feather_asset(
         self,
         name: str,
         path: pydantic.FilePath | pydantic.AnyUrl,
@@ -293,7 +293,7 @@ class PandasDatasource(_PandasDatasource):
         use_threads: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> FeatherAsset: ...
-    def add_fwf_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_fwf_asset(
         self,
         name: str,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
@@ -304,7 +304,7 @@ class PandasDatasource(_PandasDatasource):
         infer_nrows: int = ...,
         kwargs: Optional[dict] = ...,
     ) -> FWFAsset: ...
-    def add_gbq_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_gbq_asset(
         self,
         name: str,
         query: str,
@@ -323,7 +323,7 @@ class PandasDatasource(_PandasDatasource):
         max_results: typing.Union[int, None] = ...,
         progress_bar_type: typing.Union[str, None] = ...,
     ) -> GBQAsset: ...
-    def add_hdf_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_hdf_asset(
         self,
         name: str,
         path_or_buf: str | os.PathLike | pd.HDFStore,
@@ -340,7 +340,7 @@ class PandasDatasource(_PandasDatasource):
         chunksize: typing.Union[int, None] = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> HDFAsset: ...
-    def add_html_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_html_asset(
         self,
         name: str,
         io: os.PathLike | str,
@@ -361,7 +361,7 @@ class PandasDatasource(_PandasDatasource):
         keep_default_na: bool = ...,
         displayed_only: bool = ...,
     ) -> HTMLAsset: ...
-    def add_json_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_json_asset(
         self,
         name: str,
         path_or_buf: pydantic.Json | pydantic.FilePath | pydantic.AnyUrl,
@@ -392,7 +392,7 @@ class PandasDatasource(_PandasDatasource):
         columns: typing.Union[typing.List[str], None] = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> ORCAsset: ...
-    def add_parquet_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_parquet_asset(
         self,
         name: str,
         path: pydantic.FilePath | pydantic.AnyUrl,
@@ -413,7 +413,7 @@ class PandasDatasource(_PandasDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> PickleAsset: ...
-    def add_sas_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_sas_asset(
         self,
         name: str,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
@@ -435,7 +435,7 @@ class PandasDatasource(_PandasDatasource):
         usecols: typing.Union[int, str, typing.Sequence[int], None] = ...,
         convert_categoricals: bool = ...,
     ) -> SPSSAsset: ...
-    def add_sql_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_sql_asset(
         self,
         name: str,
         sql: sa.select | sa.text | str,  # type: ignore[valid-type] # FIXME CoP
@@ -449,7 +449,7 @@ class PandasDatasource(_PandasDatasource):
         columns: typing.Union[typing.List[str], None] = ...,
         chunksize: typing.Union[int, None] = ...,
     ) -> SQLAsset: ...
-    def add_sql_query_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_sql_query_asset(
         self,
         name: str,
         sql: sa.select | sa.text | str,  # type: ignore[valid-type] # FIXME CoP
@@ -463,7 +463,7 @@ class PandasDatasource(_PandasDatasource):
         chunksize: typing.Union[int, None] = ...,
         dtype: typing.Union[dict, None] = ...,
     ) -> SQLQueryAsset: ...
-    def add_sql_table_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_sql_table_asset(
         self,
         name: str,
         table_name: str,
@@ -477,7 +477,7 @@ class PandasDatasource(_PandasDatasource):
         columns: typing.Union[typing.List[str], None] = ...,
         chunksize: typing.Union[int, None] = ...,
     ) -> SQLTableAsset: ...
-    def add_stata_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_stata_asset(
         self,
         name: str,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
@@ -495,7 +495,7 @@ class PandasDatasource(_PandasDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> StataAsset: ...
-    def add_table_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_table_asset(
         self,
         name: str,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
@@ -553,7 +553,7 @@ class PandasDatasource(_PandasDatasource):
         float_precision: typing.Union[str, None] = ...,
         storage_options: StorageOptions = ...,
     ) -> TableAsset: ...
-    def add_xml_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_xml_asset(
         self,
         name: str,
         path_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
@@ -578,7 +578,7 @@ class PandasDatasource(_PandasDatasource):
         sep: str = r"\s+",
         kwargs: typing.Union[dict, None] = ...,
     ) -> Batch: ...
-    def read_csv(  # noqa: PLR0913 # FIXME CoP
+    def read_csv(
         self,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
         *,
@@ -635,7 +635,7 @@ class PandasDatasource(_PandasDatasource):
         memory_map: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> Batch: ...
-    def read_excel(  # noqa: PLR0913 # FIXME CoP
+    def read_excel(
         self,
         io: os.PathLike | str | bytes,
         *,
@@ -665,7 +665,7 @@ class PandasDatasource(_PandasDatasource):
         mangle_dupe_cols: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> Batch: ...
-    def read_feather(  # noqa: PLR0913 # FIXME CoP
+    def read_feather(
         self,
         path: pydantic.FilePath | pydantic.AnyUrl,
         *,
@@ -675,7 +675,7 @@ class PandasDatasource(_PandasDatasource):
         use_threads: bool = ...,
         storage_options: StorageOptions = ...,
     ) -> Batch: ...
-    def read_fwf(  # noqa: PLR0913 # FIXME CoP
+    def read_fwf(
         self,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
         *,
@@ -685,7 +685,7 @@ class PandasDatasource(_PandasDatasource):
         infer_nrows: int = ...,
         kwargs: Optional[dict] = ...,
     ) -> Batch: ...
-    def read_gbq(  # noqa: PLR0913 # FIXME CoP
+    def read_gbq(
         self,
         query: str,
         *,
@@ -704,7 +704,7 @@ class PandasDatasource(_PandasDatasource):
         max_results: typing.Union[int, None] = ...,
         progress_bar_type: typing.Union[str, None] = ...,
     ) -> Batch: ...
-    def read_hdf(  # noqa: PLR0913 # FIXME CoP
+    def read_hdf(
         self,
         path_or_buf: pd.HDFStore | os.PathLike | str,
         *,
@@ -721,7 +721,7 @@ class PandasDatasource(_PandasDatasource):
         chunksize: typing.Union[int, None] = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> Batch: ...
-    def read_html(  # noqa: PLR0913 # FIXME CoP
+    def read_html(
         self,
         io: os.PathLike | str,
         *,
@@ -742,7 +742,7 @@ class PandasDatasource(_PandasDatasource):
         keep_default_na: bool = ...,
         displayed_only: bool = ...,
     ) -> Batch: ...
-    def read_json(  # noqa: PLR0913 # FIXME CoP
+    def read_json(
         self,
         path_or_buf: pydantic.Json | pydantic.FilePath | pydantic.AnyUrl,
         *,
@@ -773,7 +773,7 @@ class PandasDatasource(_PandasDatasource):
         columns: typing.Union[typing.List[str], None] = ...,
         kwargs: typing.Union[dict, None] = ...,
     ) -> Batch: ...
-    def read_parquet(  # noqa: PLR0913 # FIXME CoP
+    def read_parquet(
         self,
         path: pydantic.FilePath | pydantic.AnyUrl,
         *,
@@ -794,7 +794,7 @@ class PandasDatasource(_PandasDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> Batch: ...
-    def read_sas(  # noqa: PLR0913 # FIXME CoP
+    def read_sas(
         self,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
         *,
@@ -816,7 +816,7 @@ class PandasDatasource(_PandasDatasource):
         usecols: typing.Union[int, str, typing.Sequence[int], None] = ...,
         convert_categoricals: bool = ...,
     ) -> Batch: ...
-    def read_sql(  # noqa: PLR0913 # FIXME CoP
+    def read_sql(
         self,
         sql: sa.select | sa.text | str,  # type: ignore[valid-type] # FIXME CoP
         con: sqlalchemy.Engine | sqlite3.Connection | str,
@@ -830,7 +830,7 @@ class PandasDatasource(_PandasDatasource):
         columns: typing.Union[typing.List[str], None] = ...,
         chunksize: typing.Union[int, None] = ...,
     ) -> Batch: ...
-    def read_sql_query(  # noqa: PLR0913 # FIXME CoP
+    def read_sql_query(
         self,
         sql: sa.select | sa.text | str,  # type: ignore[valid-type] # FIXME CoP
         con: sqlalchemy.Engine | sqlite3.Connection | str,
@@ -844,7 +844,7 @@ class PandasDatasource(_PandasDatasource):
         chunksize: typing.Union[int, None] = ...,
         dtype: typing.Union[dict, None] = ...,
     ) -> Batch: ...
-    def read_sql_table(  # noqa: PLR0913 # FIXME CoP
+    def read_sql_table(
         self,
         table_name: str,
         con: sqlalchemy.Engine | str,
@@ -858,7 +858,7 @@ class PandasDatasource(_PandasDatasource):
         columns: typing.Union[typing.List[str], None] = ...,
         chunksize: typing.Union[int, None] = ...,
     ) -> Batch: ...
-    def read_stata(  # noqa: PLR0913 # FIXME CoP
+    def read_stata(
         self,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
         *,
@@ -876,7 +876,7 @@ class PandasDatasource(_PandasDatasource):
         compression: CompressionOptions = "infer",
         storage_options: StorageOptions = ...,
     ) -> Batch: ...
-    def read_table(  # noqa: PLR0913 # FIXME CoP
+    def read_table(
         self,
         filepath_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
         *,
@@ -934,7 +934,7 @@ class PandasDatasource(_PandasDatasource):
         float_precision: typing.Union[str, None] = ...,
         storage_options: StorageOptions = ...,
     ) -> Batch: ...
-    def read_xml(  # noqa: PLR0913 # FIXME CoP
+    def read_xml(
         self,
         path_or_buffer: pydantic.FilePath | pydantic.AnyUrl,
         *,

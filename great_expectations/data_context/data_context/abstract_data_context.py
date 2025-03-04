@@ -17,6 +17,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -276,6 +277,7 @@ class AbstractDataContext(ConfigPeer, ABC):
             data_context_id=self._data_context_id,
             organization_id=None,
             oss_id=self._get_oss_id(),
+            mode=self.mode,
             user_agent_str=self._user_agent_str,
         )
 
@@ -294,6 +296,12 @@ class AbstractDataContext(ConfigPeer, ABC):
             return env_var_enabled
         else:
             return True
+
+    @property
+    @abstractmethod
+    def mode(self) -> Literal["cloud", "file", "ephemeral"]:
+        """Context mode. Should correspond to the modes passed to `get_context`"""
+        ...
 
     def _init_config_provider(self) -> _ConfigurationProvider:
         config_provider = _ConfigurationProvider()
@@ -1829,7 +1837,7 @@ class AbstractDataContext(ConfigPeer, ABC):
         for kwarg_name in metric_configuration:
             if not isinstance(metric_configuration[kwarg_name], dict):
                 raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                    "Invalid metric_configuration: each key must contain a " "dictionary."
+                    "Invalid metric_configuration: each key must contain a dictionary."
                 )
             if (
                 kwarg_name == "metric_kwargs_id"
@@ -1842,7 +1850,7 @@ class AbstractDataContext(ConfigPeer, ABC):
                         )
                     if not isinstance(metric_configuration[kwarg_name][metric_kwargs_id], list):
                         raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                            "Invalid metric_configuration: each value must contain a " "list."
+                            "Invalid metric_configuration: each value must contain a list."
                         )
                     metric_configurations_list += [
                         (metric_name, {"metric_kwargs_id": metric_kwargs_id})
@@ -1853,7 +1861,7 @@ class AbstractDataContext(ConfigPeer, ABC):
                     base_kwargs.update({kwarg_name: kwarg_value})
                     if not isinstance(metric_configuration[kwarg_name][kwarg_value], list):
                         raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                            "Invalid metric_configuration: each value must contain a " "list."
+                            "Invalid metric_configuration: each value must contain a list."
                         )
                     for nested_configuration in metric_configuration[kwarg_name][kwarg_value]:
                         metric_configurations_list += (

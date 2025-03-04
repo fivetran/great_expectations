@@ -75,11 +75,8 @@ def pytest_generate_tests(metafunc):  # noqa C901 - 35
                             backend, test_configuration["expectation_type"]
                         ):
                             skip_expectation = True
-                        elif (
-                            suppress_test_for
-                            and backend in suppress_test_for
-                            or only_for
-                            and backend not in only_for
+                        elif (suppress_test_for and backend in suppress_test_for) or (
+                            only_for and backend not in only_for
                         ):
                             continue
                         else:

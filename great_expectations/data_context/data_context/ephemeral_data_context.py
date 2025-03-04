@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Literal, Mapping, Optional, Union
 
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.typing_extensions import override
@@ -44,6 +44,11 @@ class EphemeralDataContext(AbstractDataContext):
         """
         self._project_config = self._init_project_config(project_config)
         super().__init__(runtime_environment=runtime_environment, user_agent_str=user_agent_str)
+
+    @property
+    @override
+    def mode(self) -> Literal["ephemeral"]:
+        return "ephemeral"
 
     @override
     def _init_project_config(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 from great_expectations.compatibility.pydantic import (
@@ -42,6 +42,7 @@ class Config(GenericModel):
     oss_id: Optional[UUID] = None
     cloud_mode: bool = False
     user_agent_str: Optional[str] = None
+    mode: Literal["ephemeral", "file", "cloud", None] = None
 
 
 ENV_CONFIG = _EnvConfig()

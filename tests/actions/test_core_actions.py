@@ -803,9 +803,9 @@ class TestUpdateDataDocsAction:
         validation_identifier_a, validation_identifier_b = tuple(
             checkpoint_result.run_results.keys()
         )
-        assert (
-            context.build_data_docs.call_count == 2
-        ), "Data Docs should be incrementally built (once per validation result)"
+        assert context.build_data_docs.call_count == 2, (
+            "Data Docs should be incrementally built (once per validation result)"
+        )
         context.build_data_docs.assert_has_calls(
             [
                 mock.call(
@@ -871,9 +871,9 @@ class TestUpdateDataDocsAction:
         validation_identifier_a, validation_identifier_b = tuple(
             checkpoint_result.run_results.keys()
         )
-        assert (
-            context.build_data_docs.call_count == 2
-        ), "Data Docs should be incrementally built (once per validation result)"
+        assert context.build_data_docs.call_count == 2, (
+            "Data Docs should be incrementally built (once per validation result)"
+        )
         context.build_data_docs.assert_has_calls(
             [
                 mock.call(

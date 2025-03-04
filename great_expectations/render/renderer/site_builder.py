@@ -373,7 +373,7 @@ class DefaultSiteSectionBuilder:
         self.ge_cloud_mode = cloud_mode
         if renderer is None:
             raise exceptions.InvalidConfigError(  # noqa: TRY003 # FIXME CoP
-                "SiteSectionBuilder requires a renderer configuration " "with a class_name key."
+                "SiteSectionBuilder requires a renderer configuration with a class_name key."
             )
         module_name = renderer.get("module_name") or "great_expectations.render.renderer"
         self.renderer_class = instantiate_class_from_config(
@@ -488,7 +488,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                 """  # noqa: E501 # FIXME CoP
                 exception_traceback = traceback.format_exc()
                 exception_message += (
-                    f'{type(e).__name__}: "{e!s}".  ' f'Traceback: "{exception_traceback}".'
+                    f'{type(e).__name__}: "{e!s}".  Traceback: "{exception_traceback}".'
                 )
                 logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
 

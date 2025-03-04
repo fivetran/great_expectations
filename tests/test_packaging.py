@@ -39,7 +39,7 @@ def parse_requirements_files_to_strings(
         key = abs_path.rsplit(os.path.sep, 1)[-1]
         with open(req_file) as f:
             req_set_dict[key] = {
-                f'{line.name}{",".join(["".join(spec) for spec in line.specs])}'
+                f"{line.name}{','.join([''.join(spec) for spec in line.specs])}"
                 for line in rp.parse(f)
                 if line.specs
             }

@@ -434,15 +434,15 @@ class ExpectTableChecksumToEqualOtherTable(BatchExpectation):
 
         try:
             assert "other_table_name" in configuration.kwargs, "other_table_name is required"
-            assert isinstance(
-                configuration.kwargs["other_table_name"], str
-            ), "other_table_name must be a string"
+            assert isinstance(configuration.kwargs["other_table_name"], str), (
+                "other_table_name must be a string"
+            )
 
             if "ignore_columns" in configuration.kwargs:
                 pattern = re.compile(r"^(\w+)(,\s*\w+)*$")
-                assert (
-                    True if (pattern.match(configuration.kwargs["ignore_columns"])) else False
-                ), "ignore_columns input is not valid. Please provide comma seperated columns list"
+                assert True if (pattern.match(configuration.kwargs["ignore_columns"])) else False, (
+                    "ignore_columns input is not valid. Please provide comma seperated columns list"
+                )
         except AssertionError as e:
             raise InvalidExpectationConfigurationError(str(e))
         super().validate_configuration(configuration)

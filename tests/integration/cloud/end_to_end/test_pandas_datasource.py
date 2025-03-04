@@ -35,16 +35,16 @@ def datasource(
     datasource = context.data_sources.add_or_update_pandas(
         datasource=datasource,
     )
-    assert (
-        datasource.name == new_datasource_name
-    ), "The datasource was not updated in the previous method call."
+    assert datasource.name == new_datasource_name, (
+        "The datasource was not updated in the previous method call."
+    )
     datasource.name = datasource_name
     datasource = context.data_sources.add_or_update_pandas(
         datasource=datasource,
     )
-    assert (
-        datasource.name == datasource_name
-    ), "The datasource was not updated in the previous method call."
+    assert datasource.name == datasource_name, (
+        "The datasource was not updated in the previous method call."
+    )
     return datasource
 
 

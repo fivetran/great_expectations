@@ -205,7 +205,7 @@ class ParameterBuilderConfig(SerializableDictDot):
         for k, v in kwargs.items():
             setattr(self, k, v)
             logger.debug(
-                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{ self.__class__.__name__}".',  # noqa: E501 # FIXME CoP
+                f'Setting unknown kwarg ({k}, {v}) provided to constructor as argument in "{self.__class__.__name__}".',  # noqa: E501 # FIXME CoP
             )
 
     @override
