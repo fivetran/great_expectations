@@ -175,16 +175,19 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         if min_value is None and max_value is None:
             raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
-        # Make a best-effort check that the sql statement we generate won't raise an error
-        # when executed. ColumnValuesBetween metrics are only computable on numbers and dates,
-        # so we verify that the column isn't a string or boolean type.
-        column_types = kwargs.get("_metrics", {}).get("table.column_types", [])
-        type_by_column_name = {
-            column_type.get("name"): str(column_type.get("type", ""))
-            for column_type in column_types
-        }
-        column_type = type_by_column_name.get(column.name)
-        INVALID_COLUMN_TYPES = {
+        # Check that the generated SQL won't raise an error.
+        # ColumnValuesBetween metrics only work on numbers/dates,
+        # so we check for common string and boolean types.
+
+        # Retrieve column types from metrics.
+        metrics = kwargs.get("_metrics", {})
+        column_types = metrics.get("table.column_types", [])
+
+        # Map column names to their types as strings.
+        type_by_column = {ct.get("name"): str(ct.get("type", "")) for ct in column_types}
+        column_type = type_by_column.get(column.name)
+
+        INVALID_COLUMN_TYPES = (
             "VARCHAR",
             "CHAR",
             "NVARCHAR",
@@ -197,8 +200,8 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
             "TINYTEXT",
             "MEDIUMTEXT",
             "LONGTEXT",
-        }
-        if column_type.upper() in INVALID_COLUMN_TYPES:
+        )
+        if column_type and column_type.upper().startswith(INVALID_COLUMN_TYPES):
             raise InvalidColumnTypeError(column_type=column_type)
 
         if min_value is None:
