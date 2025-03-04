@@ -14,14 +14,11 @@ from typing import (
 )
 
 from tqdm.auto import tqdm
+from typing_extensions import TypedDict
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.registry import get_metric_provider
-from great_expectations.metrics.metric_results import (
-    DeprecatedMetricErrorResultValue,
-    MetricErrorResultValue,
-)
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
@@ -37,10 +34,19 @@ if TYPE_CHECKING:
         ExpectationConfiguration,
     )
     from great_expectations.expectations.metrics.metric_provider import MetricProvider
+    from great_expectations.metrics.metric_results import (
+        MetricErrorResultValue,
+    )
     from great_expectations.validator.computed_metric import MetricValue
     from great_expectations.validator.metrics_calculator import (
         _AbortedMetricsInfoDict,
     )
+
+
+class DeprecatedMetricErrorResultValue(TypedDict):
+    metric_configuration: MetricConfiguration
+    exception_info: ExceptionInfo
+    num_failures: int
 
 
 _DeprecatedAbortedMetricsInfoDict: TypeAlias = Dict[

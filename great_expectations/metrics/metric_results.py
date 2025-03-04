@@ -5,7 +5,6 @@ import pandas as pd
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,
     MetricConfigurationID,
 )
 
@@ -22,15 +21,6 @@ class MetricResult(GenericModel, Generic[_MetricResultValue]):
 
     class Config:
         arbitrary_types_allowed = True
-
-
-class DeprecatedMetricErrorResultValue(TypedDict):
-    metric_configuration: MetricConfiguration
-    exception_info: ExceptionInfo
-    num_failures: int
-
-
-class DeprecatedMetricErrorResult(MetricResult[DeprecatedMetricErrorResultValue]): ...
 
 
 class MetricErrorResultValue(TypedDict):
