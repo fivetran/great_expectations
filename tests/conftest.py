@@ -8,6 +8,7 @@ import os
 import pathlib
 import random
 import shutil
+import string
 import urllib.parse
 import warnings
 from dataclasses import dataclass
@@ -2202,6 +2203,22 @@ def ephemeral_context_with_defaults() -> EphemeralDataContext:
     return get_context(project_config=project_config, mode="ephemeral")
 
 
+@pytest.fixture(
+    params=[
+        pytest.param("ephemeral_context_with_defaults", marks=pytest.mark.unit, id="ephemeral"),
+        pytest.param("empty_data_context", marks=pytest.mark.filesystem, id="file"),
+        pytest.param(
+            "empty_cloud_context_fluent",
+            marks=pytest.mark.cloud,
+            id="cloud",
+        ),
+    ]
+)
+def data_context(request: pytest.FixtureRequest) -> AbstractDataContext:
+    """Fixture to parameterize a test against each DataContext type."""
+    return request.getfixturevalue(request.param)
+
+
 @pytest.fixture
 def arbitrary_batch_definition(empty_data_context: AbstractDataContext) -> BatchDefinition:
     return (
@@ -2278,3 +2295,7 @@ def param_id(request: pytest.FixtureRequest) -> str:
     """
     raw_name: str = request.node.name
     return raw_name.split("[")[1].split("]")[0]
+
+
+def random_name() -> str:
+    return "".join([random.choice(string.ascii_letters) for _ in range(6)])

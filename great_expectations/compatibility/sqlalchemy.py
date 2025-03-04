@@ -30,7 +30,7 @@ except ImportError:
 try:
     from sqlalchemy import inspect
 except ImportError:
-    inspect = SQLALCHEMY_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+    inspect = SQLALCHEMY_NOT_IMPORTED
 
 try:
     from sqlalchemy.dialects import sqlite
@@ -142,7 +142,7 @@ except (ImportError, AttributeError):
 try:
     from sqlalchemy.sql.elements import literal
 except (ImportError, AttributeError):
-    literal = SQLALCHEMY_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+    literal = SQLALCHEMY_NOT_IMPORTED
 
 try:
     from sqlalchemy.sql.elements import TextClause
@@ -272,7 +272,7 @@ except (ImportError, AttributeError):
 try:
     from sqlalchemy import create_engine
 except (ImportError, AttributeError):
-    create_engine = SQLALCHEMY_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+    create_engine = SQLALCHEMY_NOT_IMPORTED
 
 
 try:

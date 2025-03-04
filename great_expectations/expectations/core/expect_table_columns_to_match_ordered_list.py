@@ -190,7 +190,6 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
     success_keys = ("column_list",)
     domain_keys = (
         "batch_id",
-        "table",
         "row_condition",
         "condition_parser",
     )

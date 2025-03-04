@@ -3,7 +3,6 @@ title: "GX Cloud"
 hide_title: true
 description: Get started with GX Cloud and learn more about GX Cloud features and functionality.
 hide_table_of_contents: true
-pagination_next: null
 pagination_prev: null
 slug: "/cloud/"
 displayed_sidebar: gx_cloud
@@ -18,13 +17,18 @@ import OverviewCard from '@site/src/components/OverviewCard';
   Test and validate your Data Assets with our web-based UI.
 </OverviewCard>
 
-### Get started
+
+### Introduction
 
 <LinkCardGrid>
   <LinkCard topIcon label="GX Cloud overview" description="Learn more about GX Cloud features and functionality." to="/cloud/overview/gx_cloud_overview" icon="/img/small_gx_logo.png" />
+  <LinkCard topIcon label="Automating data quality rules" description="Explore options for more quickly achieving test coverage." to="/cloud/overview/automating_rules" icon="/img/small_gx_logo.png" />
+</LinkCardGrid>
 
+### Get started
+
+<LinkCardGrid>
   <LinkCard topIcon label="Deploy GX Cloud" description="Learn how to deploy GX Cloud in your environment." to="/cloud/deploy/deploy_lp" icon="/img/small_gx_logo.png" />
-
   <LinkCard topIcon label="Connect GX Cloud" description="Ready to integrate GX Cloud with your production environment? Connect GX Cloud to popular data platforms and orchestration tools." to="/cloud/connect/connect_lp" icon="/img/small_gx_logo.png" />
 </LinkCardGrid>
 
@@ -34,6 +38,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
   <LinkCard topIcon label="Manage Data Assets" description="Create, edit, or delete a Data Asset." to="/cloud/data_assets/manage_data_assets" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Manage Expectations" description="Create, edit, or delete an Expectation." to="/cloud/expectations/manage_expectations" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Manage Validations" description="Run a Validation, or view the Validation run history." to="/cloud/validations/manage_validations" icon="/img/small_gx_logo.png" />
+  <LinkCard topIcon label="Manage schedules" description="Use a schedule to automate data quality checks." to="/cloud/schedules/manage_schedules" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Manage alerts" description="Add, edit, or delete alerts." to="/cloud/alerts/manage_alerts" icon="/img/small_gx_logo.png" />
   <LinkCard topIcon label="Manage users and access tokens" description="Manage GX Cloud users and access tokens." to="/cloud/users/manage_users" icon="/img/small_gx_logo.png" />
 </LinkCardGrid>

@@ -134,8 +134,8 @@ To clear the Expectation condition, click the clear button located on the right-
 
 8. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 
-:::tip Automate rules for schema change detection
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes in that Data Asset.
+:::tip Automate rules for common data quality issues
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes and non-increasing volume in that Data Asset.
 :::
 
 ## Generate Expectations with ExpectAI <span class="beta">Beta</span>

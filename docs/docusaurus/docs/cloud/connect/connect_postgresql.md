@@ -58,9 +58,16 @@ import Tabs from '@theme/Tabs';
 
 5. Select one or more tables to import as Data Assets.
 
-6. Decide if you want to **Generate Expectations that detect column changes in selected Data Assets**.
+6. Click **Add x Asset(s)**.
 
-7. Click **Add x Asset(s)**. 
+7. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema** and **Volume** issues. You can de-select recommendations you’d like to opt out of.
 
-8. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+8. Click **Start monitoring** or **Finish**.
+
+
+## Next steps
+
+- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+- [Run a Validation](/cloud/validations/manage_validations.md).
+
 
