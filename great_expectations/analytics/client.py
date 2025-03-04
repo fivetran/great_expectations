@@ -40,13 +40,13 @@ def submit(event: Event) -> None:
 
 def init(  # noqa: PLR0913 # FIXME CoP
     enable: bool,
+    mode: Literal["cloud", "ephemeral", "file"],
     user_id: Optional[UUID] = None,
     data_context_id: Optional[UUID] = None,
     organization_id: Optional[UUID] = None,
     oss_id: Optional[UUID] = None,
     cloud_mode: bool = False,
     user_agent_str: Optional[str] = None,
-    mode: Literal["cloud", "ephemeral", "file", None] = None,
 ):
     """Initializes the analytics platform client."""
     conf = {}
