@@ -119,17 +119,12 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         # Always add or update underlying suite to avoid freshness issues
         suite_factory = project_manager.get_suite_factory()
         validation.suite = suite_factory.add_or_update(suite=validation.suite)
+        validation.data.save()
 
         try:
             existing_validation = self.get(name=validation.name)
-            existing_batch_definition = existing_validation.data
         except DataContextError:
             return self.add(validation=validation)
-
-        batch_definition = validation.data
-        batch_definition.id = existing_batch_definition.id
-        batch_definition.save()
-
         validation.id = existing_validation.id
         validation.save()
 

@@ -148,9 +148,13 @@ module.exports = {
   ],
   gx_cloud: [
     {
-      type: 'doc',
-      label: 'GX Cloud overview',
-      id: 'cloud/overview/gx_cloud_overview'
+      type: 'category',
+      label: 'Introduction',
+      link: { type: 'doc', id: 'cloud/gx_cloud_lp' },
+      items: [
+        'cloud/overview/gx_cloud_overview',
+        'cloud/overview/automating_rules',
+      ]
     },
     {
       type: 'category',
