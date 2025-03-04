@@ -180,7 +180,8 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
         # so we verify that the column isn't a string or boolean type.
         column_types = kwargs.get("_metrics", {}).get("table.column_types", [])
         type_by_column_name = {
-            column_type.get("name"): column_type.get("type") for column_type in column_types
+            column_type.get("name"): str(column_type.get("type", ""))
+            for column_type in column_types
         }
         column_type = type_by_column_name.get(column.name)
         INVALID_COLUMN_TYPES = {
