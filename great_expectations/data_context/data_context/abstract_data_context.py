@@ -299,7 +299,7 @@ class AbstractDataContext(ConfigPeer, ABC):
 
     @property
     @abstractmethod
-    def mode(self) -> Literal[None, "cloud", "file", "ephemeral"]:
+    def mode(self) -> Literal["cloud", "file", "ephemeral"]:
         """Context mode. Should correspond to the modes passed to `get_context`"""
         ...
 
