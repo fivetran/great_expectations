@@ -271,7 +271,7 @@ def test_post_expectation_suite_request(
             request_path=pathlib.Path(
                 "/",
                 "api",
-                "v1" "organizations",
+                "v1organizations",
                 EXISTING_ORGANIZATION_ID,
                 "expectation-suites",
                 PUT_EXPECTATION_SUITE_ID,

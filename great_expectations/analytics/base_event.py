@@ -55,6 +55,10 @@ class Event:
         return get_config().user_agent_str
 
     @property
+    def mode(self) -> str | None:
+        return get_config().mode
+
+    @property
     def distinct_id(self) -> UUID | None:
         """The distinct_id is the primary key for identifying
         analytics events. It is the user_id if it is set

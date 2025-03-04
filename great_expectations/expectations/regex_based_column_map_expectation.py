@@ -167,17 +167,17 @@ class RegexBasedColumnMapExpectation(ColumnMapExpectation, ABC):
         """  # noqa: E501 # FIXME CoP
         super().validate_configuration(configuration)
         try:
-            assert (
-                getattr(self, "regex", None) is not None
-            ), "regex is required for RegexBasedColumnMap Expectations"
+            assert getattr(self, "regex", None) is not None, (
+                "regex is required for RegexBasedColumnMap Expectations"
+            )
             assert (
                 "column" in configuration.kwargs  # type: ignore[union-attr] # This method is being removed
             ), "'column' parameter is required for column map expectations"
             if "mostly" in configuration.kwargs:  # type: ignore[union-attr] # This method is being removed
                 mostly = configuration.kwargs["mostly"]  # type: ignore[union-attr] # This method is being removed
-                assert isinstance(
-                    mostly, (int, float)
-                ), "'mostly' parameter must be an integer or float"
+                assert isinstance(mostly, (int, float)), (
+                    "'mostly' parameter must be an integer or float"
+                )
                 assert 0 <= mostly <= 1, "'mostly' parameter must be between 0 and 1"
         except AssertionError as e:
             raise InvalidExpectationConfigurationError(str(e))

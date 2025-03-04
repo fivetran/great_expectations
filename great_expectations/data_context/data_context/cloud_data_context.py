@@ -6,6 +6,7 @@ import uuid
 from typing import (
     TYPE_CHECKING,
     Dict,
+    Literal,
     Mapping,
     Optional,
     Union,
@@ -132,6 +133,11 @@ class CloudDataContext(SerializableDataContext):
         checker = _VersionChecker(__version__)
         checker.check_if_using_latest_gx()
 
+    @property
+    @override
+    def mode(self) -> Literal["cloud"]:
+        return "cloud"
+
     @override
     def _init_analytics(self) -> None:
         organization_id = self.ge_cloud_config.organization_id
@@ -142,6 +148,7 @@ class CloudDataContext(SerializableDataContext):
             organization_id=uuid.UUID(organization_id) if organization_id else None,
             oss_id=self._get_oss_id(),
             cloud_mode=True,
+            mode=self.mode,
             user_agent_str=self._user_agent_str,
         )
 

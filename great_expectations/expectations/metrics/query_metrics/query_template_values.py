@@ -76,7 +76,7 @@ class QueryTemplateValues(QueryMetricProvider):
             query = cls.get_query(
                 query,
                 template_dict,
-                f'({selectable.compile(compile_kwargs={"literal_binds": True})}) AS subselect',
+                f"({selectable.compile(compile_kwargs={'literal_binds': True})}) AS subselect",
             )
 
         else:

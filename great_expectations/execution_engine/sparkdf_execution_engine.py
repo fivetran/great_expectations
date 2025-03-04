@@ -37,7 +37,7 @@ from great_expectations.core.batch_spec import (
 )
 from great_expectations.core.id_dict import IDDict, IDDictID
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,  # noqa: TCH001 # FIXME CoP
+    MetricDomainTypes,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.core.util import AzureUrl
 from great_expectations.exceptions import (
@@ -49,8 +49,8 @@ from great_expectations.exceptions import (
 from great_expectations.exceptions import exceptions as gx_exceptions
 from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.execution_engine.execution_engine import (
-    MetricComputationConfiguration,  # noqa: TCH001 # FIXME CoP
-    PartitionDomainKwargs,  # noqa: TCH001 # FIXME CoP
+    MetricComputationConfiguration,  # noqa: TC001 # FIXME CoP
+    PartitionDomainKwargs,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.execution_engine.partition_and_sample.sparkdf_data_partitioner import (
     SparkDataPartitioner,
@@ -70,7 +70,7 @@ from great_expectations.expectations.row_conditions import (
     parse_condition_to_spark,
 )
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
@@ -908,9 +908,9 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
             )
 
             assert len(res) == 1, "all bundle-computed metrics must be single-value statistics"
-            assert len(aggregate["metric_ids"]) == len(
-                res[0]
-            ), "unexpected number of metrics returned"
+            assert len(aggregate["metric_ids"]) == len(res[0]), (
+                "unexpected number of metrics returned"
+            )
 
             idx: int
             metric_id: MetricConfigurationID

@@ -23,10 +23,10 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_parameter_value_and_validate_return_type,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001 # FIXME CoP
+    ParameterContainer,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.semantic_type_filter import (
-    SemanticTypeFilter,  # noqa: TCH001 # FIXME CoP
+    SemanticTypeFilter,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
 

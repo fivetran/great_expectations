@@ -340,9 +340,9 @@ def post_datasources_cb(
             if not datasource_id:
                 datasource_id = str(uuid.uuid4())
                 payload.data.id = datasource_id
-            assert (
-                datasource_id not in _CLOUD_API_FAKE_DB["datasources"]
-            ), f"ID collision for '{datasource_name}'"
+            assert datasource_id not in _CLOUD_API_FAKE_DB["datasources"], (
+                f"ID collision for '{datasource_name}'"
+            )
 
             _CLOUD_API_FAKE_DB["datasources"][datasource_id] = payload.dict()
             _CLOUD_API_FAKE_DB["DATASOURCE_NAMES"].add(payload.data.name)

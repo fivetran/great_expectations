@@ -10,7 +10,7 @@ from dateutil.parser import parse
 from marshmallow import Schema, fields, post_load, pre_dump
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.alias_types import JSONValues  # noqa: TCH001 # FIXME CoP
+from great_expectations.alias_types import JSONValues  # noqa: TC001 # FIXME CoP
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.data_context_key import DataContextKey
 
@@ -32,7 +32,7 @@ class RunIdentifier(DataContextKey):
         super().__init__()
         assert run_name is None or isinstance(run_name, str), "run_name must be an instance of str"
         assert run_time is None or isinstance(run_time, (datetime.datetime, str)), (
-            "run_time must be either None or " "an instance of str or datetime"
+            "run_time must be either None or an instance of str or datetime"
         )
         self._run_name = run_name
 

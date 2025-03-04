@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 from great_expectations.experimental.rule_based_profiler.expectation_configuration_builder import (
-    ExpectationConfigurationBuilder,  # noqa: TCH001 # FIXME CoP
+    ExpectationConfigurationBuilder,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
     ParameterNode,

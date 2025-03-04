@@ -55,9 +55,9 @@ class ExpectQueriedColumnPairValuesToHaveDiff(QueryExpectation):
         try:
             assert diff is not None, "'diff' must be specified"
             assert isinstance(diff, (int, float)), "`diff` must be a valid float or int"
-            assert (
-                isinstance(mostly, (int, float)) and 0 < mostly <= 1
-            ), "'mostly' must be 1, a float between 0 and 1"
+            assert isinstance(mostly, (int, float)) and 0 < mostly <= 1, (
+                "'mostly' must be 1, a float between 0 and 1"
+            )
         except AssertionError as e:
             raise InvalidExpectationConfigurationError(str(e))
 

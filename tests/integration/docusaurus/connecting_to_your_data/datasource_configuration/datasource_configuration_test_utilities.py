@@ -79,13 +79,13 @@ def is_subset(subset, superset, test_mode=True):
     keys_test = all(item in superset_full_paths for item in subset_full_paths)
 
     if test_mode is True:
-        assert all(
-            [items_test, keys_test]
-        ), f"\nEITHER:\n{subset_items}\n is not a subset of \n{superset_items}\n\nOR:\n\n{subset_full_paths}\n is not a subset of \n{superset_full_paths}"
+        assert all([items_test, keys_test]), (
+            f"\nEITHER:\n{subset_items}\n is not a subset of \n{superset_items}\n\nOR:\n\n{subset_full_paths}\n is not a subset of \n{superset_full_paths}"
+        )
     else:
-        assert (
-            all([items_test, keys_test]) is False
-        ), f"\nBOTH:\n{subset_items} is a subset of \n{superset_items}\nAND:\n{subset_full_paths} is a subset of \n{superset_full_paths}"
+        assert all([items_test, keys_test]) is False, (
+            f"\nBOTH:\n{subset_items} is a subset of \n{superset_items}\nAND:\n{subset_full_paths} is a subset of \n{superset_full_paths}"
+        )
 
 
 if __name__ == "__main__":
