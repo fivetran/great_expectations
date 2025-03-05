@@ -662,7 +662,7 @@ class TestValidationDefinitionFactoryAnalytics:
     ) -> None:
         # Arrange
         ds = data_context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", "data.csv")
+        asset = ds.add_csv_asset("my_asset", pathlib.Path("data.csv"))
         batch_def = asset.add_batch_definition("my_batch_definition")
         suite = data_context.suites.add(ExpectationSuite(name="my_suite"))
 
@@ -689,7 +689,7 @@ class TestValidationDefinitionFactoryAnalytics:
     ) -> None:
         # Arrange
         ds = data_context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", "data.csv")
+        asset = ds.add_csv_asset("my_asset", pathlib.Path("data.csv"))
         batch_def = asset.add_batch_definition("my_batch_definition")
         suite = data_context.suites.add(ExpectationSuite(name="my_suite"))
 
