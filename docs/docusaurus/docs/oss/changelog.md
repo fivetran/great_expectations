@@ -14,6 +14,37 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.9
+* [FEATURE] Remove batch_id parameter from Metric classes ([#10971](https://github.com/great-expectations/great_expectations/pull/10971))
+* [FEATURE] `QueryRowCount` metric ([#10964](https://github.com/great-expectations/great_expectations/pull/10964))
+* [FEATURE] ColumnPairValueInSet metric ([#10969](https://github.com/great-expectations/great_expectations/pull/10969))
+* [FEATURE] MultiColumnValues metric ([#10973](https://github.com/great-expectations/great_expectations/pull/10973))
+* [BUGFIX] Validation Definition factory add_or_update doesnt allow updating batch definition ([#10960](https://github.com/great-expectations/great_expectations/pull/10960))
+* [BUGFIX] Fix 3 batch.compute_metrics bugs and enforce len(metrics) == len(results) ([#10979](https://github.com/great-expectations/great_expectations/pull/10979))
+* [BUGFIX] Ensure Asset.get_batch_definition returns BatchDefinition with ID ([#10986](https://github.com/great-expectations/great_expectations/pull/10986))
+* [BUGFIX] Raise error when ExpectColumnValuesToBeBetween is run against an unsupported column ([#10995](https://github.com/great-expectations/great_expectations/pull/10995))
+* [DOCS] make airflow provider discoverable ([#10967](https://github.com/great-expectations/great_expectations/pull/10967))
+* [DOCS] Adding title to codeblocks in API ([#10970](https://github.com/great-expectations/great_expectations/pull/10970))
+* [DOCS] Adds script to update links when new docs version is cut ([#10976](https://github.com/great-expectations/great_expectations/pull/10976))
+* [DOCS] Add README.md to scripts folder ([#10982](https://github.com/great-expectations/great_expectations/pull/10982))
+* [DOCS] DOC-1045: Beta badge ([#10980](https://github.com/great-expectations/great_expectations/pull/10980))
+* [DOCS] DSB-1312: Fix validation definition parameters display ([#10981](https://github.com/great-expectations/great_expectations/pull/10981))
+* [DOCS] temporarily remove link checker ([#10992](https://github.com/great-expectations/great_expectations/pull/10992))
+* [DOCS] volume change detection ([#10927](https://github.com/great-expectations/great_expectations/pull/10927))
+* [DOCS] update action docs to include custom field example ([#10987](https://github.com/great-expectations/great_expectations/pull/10987))
+* [DOCS] update search key ([#10994](https://github.com/great-expectations/great_expectations/pull/10994))
+* [DOCS] Adding formatting to codeblocks in API ([#10985](https://github.com/great-expectations/great_expectations/pull/10985))
+* [MAINTENANCE] Remove `Domain` mixin from Metrics API ([#10966](https://github.com/great-expectations/great_expectations/pull/10966))
+* [MAINTENANCE] Remove old workflow. ([#10975](https://github.com/great-expectations/great_expectations/pull/10975))
+* [MAINTENANCE] Slack notification message - remove duplicated link text, decluttering ([#10890](https://github.com/great-expectations/great_expectations/pull/10890)) (thanks @data-han)
+* [MAINTENANCE] Upgrade mypy to version 1.15.0 ([#10988](https://github.com/great-expectations/great_expectations/pull/10988))
+* [MAINTENANCE] Change github action event name we exclude from marker tests ([#10991](https://github.com/great-expectations/great_expectations/pull/10991))
+* [MAINTENANCE] Remove unused domain key ([#10983](https://github.com/great-expectations/great_expectations/pull/10983))
+* [MAINTENANCE] Analytics event for validation definition runs ([#10984](https://github.com/great-expectations/great_expectations/pull/10984))
+* [MAINTENANCE] Upgrade ruff to version 0.9.9 ([#10990](https://github.com/great-expectations/great_expectations/pull/10990))
+* [MAINTENANCE] Remove duplicated configuration ([#10989](https://github.com/great-expectations/great_expectations/pull/10989))
+* [MAINTENANCE] refactor to use data_context fixture ([#10997](https://github.com/great-expectations/great_expectations/pull/10997))
+
 ### 1.3.8
 * [FEATURE] `Batch.compute_metrics()` ([#10950](https://github.com/great-expectations/great_expectations/pull/10950))
 * [FEATURE] `ColumnValuesNonNull` and `ColumnValuesNonNullCount` metrics ([#10959](https://github.com/great-expectations/great_expectations/pull/10959))
