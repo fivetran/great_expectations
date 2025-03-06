@@ -3,7 +3,7 @@ title: 'Coverage health'
 description: Understand what you're testing and how often for a more holistic perspective on data health. 
 ---
 
-To understand data health, you need to know more than just whether tests are passing or failing - you also need to understand what you're testing and how often. 
+To understand data health, you need to know more than just whether tests are passing or failing. You also need to understand what you're testing and how often. 
 
 ## Coverage health metrics
 To help you have a better understanding of data health, GX Cloud provides the following coverage health metrics on the **Data Assets** page:
@@ -27,7 +27,7 @@ To help you have a better understanding of data health, GX Cloud provides the fo
       - [ExpectColumnValuesToBeNull](https://greatexpectations.io/expectations/expect_column_values_to_be_null/)
       - [ExpectColumnValuesToNotBeNull](https://greatexpectations.io/expectations/expect_column_values_to_not_be_null/)
 
-Only current Data Assets are considered in coverage health metrics. Any Assets that have been deleted are excluded in the calculations even if they've had Validations within the last 30 days. 
+Only current Data Assets are considered in coverage health metrics. Any Assets that have been deleted are excluded from the calculations even if they've had Validations within the last 30 days. 
 
 ![Example metrics: Active Assets 100%, Active Coverage 58% warning run validations, volume 100%, schema 75% warning add Expectations, completeness 50% warning add Expectations.](/img/coverage_health.png)
 
