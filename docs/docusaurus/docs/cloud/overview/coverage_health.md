@@ -3,7 +3,7 @@ title: 'Coverage health'
 description: Understand what you're testing and how often for a more holistic perspective on data health. 
 ---
 
-To understand data health, you need to know more than just whether tests are passing or failing. You also need to understand what you're testing and how often. 
+To understand data health, you need to know more than just whether tests are passing or failing. You also need to know what you're testing and how often. 
 
 ## Coverage health metrics
 To help you have a better understanding of data health, GX Cloud provides the following coverage health metrics on the **Data Assets** page:
