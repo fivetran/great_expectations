@@ -154,6 +154,7 @@ module.exports = {
       items: [
         'cloud/overview/gx_cloud_overview',
         'cloud/overview/automating_rules',
+        'cloud/overview/coverage_health',
       ]
     },
     {
