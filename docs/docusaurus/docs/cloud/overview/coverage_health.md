@@ -27,7 +27,7 @@ To help you have a better understanding of data health, GX Cloud provides the fo
       - [ExpectColumnValuesToBeNull](https://greatexpectations.io/expectations/expect_column_values_to_be_null/)
       - [ExpectColumnValuesToNotBeNull](https://greatexpectations.io/expectations/expect_column_values_to_not_be_null/)
 
-Only current Data Assets are considered in coverage health metrics. Any Assets that have been deleted are excluded from the calculations even if they've had Validations within the last 30 days. 
+Only current Data Assets are considered in coverage health metrics. Deleted Assets are excluded from the calculations even if they've had Validations within the last 30 days. 
 
 ![Example metrics: Active Assets 100%, Active Coverage 58% warning run validations, volume 100%, schema 75% warning add Expectations, completeness 50% warning add Expectations.](/img/coverage_health.png)
 
