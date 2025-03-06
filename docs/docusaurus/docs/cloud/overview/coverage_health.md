@@ -34,5 +34,5 @@ Only current Data Assets are considered in coverage health metrics. Deleted Asse
 ## Next steps
 - If **Active Assets** are low, [schedule recurring Validations](/cloud/schedules/manage_schedules.md).
 - If **Volume**, **Schema**, or **Completeness** coverage is low, [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation).
-- When adding new Data Assets, automate [standard data quality rules](/cloud/overview/automating_rules.md).
+- When adding new Data Assets, [automate standard data quality rules](/cloud/overview/automating_rules.md).
 
