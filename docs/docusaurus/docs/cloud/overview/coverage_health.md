@@ -8,9 +8,9 @@ To understand data health, you need to know more than just whether tests are pas
 ## Coverage health metrics
 To help you have a better understanding of data health, GX Cloud provides the following coverage health metrics on the **Data Assets** page:
 
-- **Active Assets:** The percentage of Data Assets that have had any Validations in the last 30 days. All kinds of Validations count including scheduled validations, manual validations, and API-orchestrated validiations. This metric does not consider what kinds of Expectations have been validated. 
+- **Active Assets:** The percentage of Data Assets that have had any Validations in the last 30 days. This metric does not consider what kinds of Expectations have been validated. 
 - **Active Coverage:** The percentage of Data Assets that have been validated in the last 30 days with an Expectation for volume, schema, or completeness. This is calculated as ((% of Assets validated for volume) + (% of Assets validated for schema) + (% of Assets validated for completeness)) / 3. 
-- Coverage for the following data quality issues. Note that these metrics consider only whether or not Expectations exist. The following metrics do not consider whether the Expectations have been validated. 
+- **Coverage** for the following data quality issues. Note that these metrics consider only whether or not Expectations exist. The following metrics do not consider whether the Expectations have been validated. 
    - **Volume:** The percentage of Data Assets that have at least one volume-focused Expectation. This includes the following Expectations:
       - [ExpectTableRowCountToBeBetween](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between/)
       - [ExpectTableRowCountToEqual](https://greatexpectations.io/expectations/expect_table_row_count_to_equal/)
