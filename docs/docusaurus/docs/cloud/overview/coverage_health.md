@@ -30,7 +30,7 @@ To help you have a better understanding of data health, GX provides the followin
 
 Only current Data Assets are considered in these metrics. Any Assets that have been deleted are excluded in the calculations even if they've had Validations within the last 30 days. 
 
-Screenshot (include alt text with specific numbers shown in screenshot that illustrate how the numbers relate to each other)
+![Example metrics: Active Assets 100%, Active Coverage 58% warning run validations, volume 100%, schema 75% warning add Expectations, completeness 50% warning add Expectations.](/img/coverage_health.png)
 
 ## Next steps
 - If **Active Assets** are low, [schedule recurring Validations](/cloud/schedules/manage_schedules.md).
