@@ -17,6 +17,7 @@ module.exports = {
   organizationName: 'great-expectations',
   projectName: 'great_expectations',
   plugins: [
+    require.resolve('@cmfcmf/docusaurus-search-local'),
     '@docusaurus-terminology/parser',
     'docusaurus-plugin-sass',
     [
