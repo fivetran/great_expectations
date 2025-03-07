@@ -1,6 +1,6 @@
 {
     "title": "RedshiftDatasource",
-    "description": "--Public API--Adds a postgres datasource to the data context.\n\nArgs:\n    name: The name of this postgres datasource.\n    connection_string: The SQLAlchemy connection string used to connect to the redshift database.\n        This will use a postgres dsn type.\n        For example: \"postgresql+psycopg2://postgres:@localhost/test_database\"\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values\n        are TableAsset or QueryAsset objects.",
+    "description": "--Public API--Adds a redshift datasource to the data context.\n\nArgs:\n    name: The name of this redshift datasource.\n    connection_string: The SQLAlchemy connection string used to connect to the redshift database.\n        This will use a redshift dsn type.\n        For example: \"redshift+psycopg2://username@host.amazonaws.com:5439/database\"\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values\n        are TableAsset or QueryAsset objects.",
     "type": "object",
     "properties": {
         "type": {
@@ -58,10 +58,7 @@
                     ]
                 },
                 {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 65536,
-                    "format": "uri"
+                    "type": "string"
                 }
             ]
         },
