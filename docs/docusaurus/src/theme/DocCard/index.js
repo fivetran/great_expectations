@@ -83,7 +83,6 @@ function CardLink({item}) {
         <img src={useBaseUrl(item.customProps.icon)} alt="icon" /> : 
         icon}
       title={item.label}
-      description={item.description ?? ''}
     />
   );
 }
