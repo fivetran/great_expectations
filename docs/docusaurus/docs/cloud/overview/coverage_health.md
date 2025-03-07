@@ -11,7 +11,11 @@ To help you have a better understanding of data health, GX Cloud provides the fo
 ![Example metrics: Active Assets 100%, Active Coverage 58% warning add Expectations, volume 100%, schema 75% warning add Expectations, completeness 50% warning add Expectations.](/img/coverage_health.png)
 
 - **Active Assets:** The percentage of Data Assets that have had any Validations in the last 30 days. This metric does not consider what kinds of Expectations have been validated. 
-- **Active Coverage:** The percentage of Data Assets that have been validated in the last 30 days with an Expectation for volume, schema, or completeness. This is calculated as ((% of Assets validated for volume) + (% of Assets validated for schema) + (% of Assets validated for completeness)) / 3. 
+- **Active Coverage:** The percentage of Data Assets that have been validated in the last 30 days with an Expectation for volume, schema, or completeness. This is calculated as:
+   ```markup title="Calculation"
+   ((% of Assets validated for volume) + (% of Assets validated for schema) + (% of Assets validated for completeness)) / 3. 
+   ```
+   
 - **Coverage** for the following data quality issues. Note that these metrics consider only whether or not Expectations exist. The following metrics do not consider whether the Expectations have been validated. 
    - **Volume:** The percentage of Data Assets that have at least one volume-focused Expectation. This includes the following Expectations:
       - [ExpectTableRowCountToBeBetween](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between/)
