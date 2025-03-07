@@ -322,6 +322,37 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
+    def add_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, pydantic.Redshift, str] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def update_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, pydantic.networks.PostgresDsn, str] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def add_or_update_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, pydantic.networks.PostgresDsn, str] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def delete_redshift(
+        self,
+        name: str,
+    ) -> None: ...
     def add_spark(
         self,
         name: str,
