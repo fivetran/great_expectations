@@ -1,7 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
-import {useDocsSidebar} from '@docusaurus/theme-common/internal';
 import isInternalUrl from '@docusaurus/isInternalUrl';
 import {translate} from '@docusaurus/Translate';
 import styles from './styles.module.css';
@@ -74,16 +73,17 @@ function CardCategory({item}) {
 }
 
 function CardLink({item}) {
-  const icon = isInternalUrl(item.href) ? <img src={useBaseUrl(`img/integrations/page_icon.svg`)} alt="icon" /> : '🔗';
-  const sidebar = useDocsSidebar();
-  const doc = sidebar?.items.find(docItem => docItem.docId === item.docId);
+  const icon = isInternalUrl(item.href) ? 
+    <img src={useBaseUrl(`img/integrations/page_icon.svg`)} alt="icon" /> : 
+    '🔗';
   return (
     <CardLayout
       href={item.href}
-      // Custom handling for index icons. Specify custom icons using `sidebar_custom_props` in the doc's frontmatter
-      icon={item?.customProps?.icon ? <img src={useBaseUrl(`${item.customProps.icon}`)} alt="icon" /> : icon}
+      icon={item?.customProps?.icon ? 
+        <img src={useBaseUrl(item.customProps.icon)} alt="icon" /> : 
+        icon}
       title={item.label}
-      description={doc?.description}
+      description={item.description ?? ''}
     />
   );
 }
