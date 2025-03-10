@@ -252,7 +252,7 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
 
     @classmethod
     @override
-    @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
+    @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE, lang="en")
     @render_suite_parameter_string
     def _prescriptive_renderer(
         cls,
@@ -304,7 +304,6 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
         ]
 
     @classmethod
-    @override
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE, lang="it")
     @render_suite_parameter_string
     def _prescriptive_renderer_italiano(
@@ -326,10 +325,13 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
             if include_column_name:
                 template_str = (
-                    "i valori di $column non devono essere nulli, almeno per $mostly_pct % del tempo."
+                    "i valori di $column non devono essere nulli, "
+                    "almeno per $mostly_pct % del tempo."
                 )
             else:
-                template_str = "i valori non devono essere nulli, almeno per $mostly_pct % del tempo."
+                template_str = (
+                    "i valori non devono essere nulli, almeno per $mostly_pct % del tempo."
+                )
         else:  # noqa: PLR5501 # FIXME CoP
             if include_column_name:
                 template_str = "i valori di $column non devono mai essere nulli."
