@@ -714,9 +714,7 @@ class ExpectationDoctor:
                 LegacyRendererType.QUESTION,
             ]
 
-        multi_lang_renderers = {
-            LegacyRendererType.PRESCRIPTIVE
-        }
+        multi_lang_renderers = {LegacyRendererType.PRESCRIPTIVE}
         default_lang = "en"  # todo: replace with global constant
 
         supported_renderers = self._get_registered_renderers(
@@ -729,7 +727,9 @@ class ExpectationDoctor:
             samples = []
             if renderer_name in supported_renderers:
                 if renderer_name in multi_lang_renderers:
-                    _, renderer = registered_renderers[expectation_type][renderer_name][default_lang]  # type: ignore[call-overload] # FIXME CoP
+                    _, renderer = registered_renderers[expectation_type][renderer_name][
+                        default_lang
+                    ]  # type: ignore[call-overload] # FIXME CoP
                 else:
                     _, renderer = registered_renderers[expectation_type][renderer_name]  # type: ignore[call-overload] # FIXME CoP
 
