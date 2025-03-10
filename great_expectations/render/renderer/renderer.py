@@ -27,6 +27,8 @@ def renderer(renderer_type: str, **kwargs) -> Callable[[Callable[P, T]], Callabl
         def inner_func(*args: P.args, **kwargs: P.kwargs):
             return renderer_fn(*args, **kwargs)
 
+        if "lang" in kwargs:
+            inner_func.lang = kwargs.pop("lang")
         inner_func._renderer_type = renderer_type  # type: ignore[attr-defined] # FIXME CoP
         inner_func._renderer_definition_kwargs = kwargs  # type: ignore[attr-defined] # FIXME CoP
         return inner_func

@@ -12,7 +12,7 @@ from great_expectations.expectations.expectation_configuration import (
 )
 from great_expectations.expectations.registry import (
     _registered_renderers,
-    get_renderer_impl,
+    get_renderer_with_lang_impl,
 )
 from great_expectations.render import (
     CollapseContent,
@@ -398,8 +398,9 @@ diagnose and repair the underlying issue.  Detailed information follows:
             if content_block_fn:
                 return content_block_fn
 
-        content_block_fn = get_renderer_impl(
-            object_name=expectation_type, renderer_type=LegacyRendererType.PRESCRIPTIVE
+        lang = "it"  # todo: pull from global config via project manager
+        content_block_fn = get_renderer_with_lang_impl(
+            object_name=expectation_type, renderer_type=LegacyRendererType.PRESCRIPTIVE, lang=lang
         )
         return content_block_fn[1] if content_block_fn else None
 

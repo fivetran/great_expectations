@@ -305,6 +305,52 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
 
     @classmethod
     @override
+    @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE, lang="it")
+    @render_suite_parameter_string
+    def _prescriptive_renderer_italiano(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+        **kwargs,
+    ) -> list[RenderedStringTemplateContent]:
+        runtime_configuration = runtime_configuration or {}
+        include_column_name = runtime_configuration.get("include_column_name") is not False
+        styling = runtime_configuration.get("styling")
+        params = substitute_none_for_missing(
+            configuration.kwargs,  # type: ignore[union-attr] # FIXME: could be None
+            ["column", "mostly", "row_condition", "condition_parser"],
+        )
+
+        if params["mostly"] is not None and params["mostly"] < 1.0:
+            params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+            if include_column_name:
+                template_str = (
+                    "i valori di $column non devono essere nulli, almeno per $mostly_pct % del tempo."
+                )
+            else:
+                template_str = "i valori non devono essere nulli, almeno per $mostly_pct % del tempo."
+        else:  # noqa: PLR5501 # FIXME CoP
+            if include_column_name:
+                template_str = "i valori di $column non devono mai essere nulli."
+            else:
+                template_str = "i valori non devono mai essere nulli."
+
+        # row conditions not implemented for this renderer
+
+        return [
+            RenderedStringTemplateContent(
+                content_block_type="string_template",
+                string_template={
+                    "template": template_str,
+                    "params": params,
+                    "styling": styling,
+                },
+            )
+        ]
+
+    @classmethod
+    @override
     @renderer(renderer_type=LegacyDiagnosticRendererType.OBSERVED_VALUE)
     def _diagnostic_observed_value_renderer(
         cls,
