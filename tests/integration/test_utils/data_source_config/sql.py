@@ -12,6 +12,7 @@ from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
     Column,
+    Engine,
     MetaData,
     Table,
     TextClause,
@@ -74,7 +75,6 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         extra_data: Mapping[str, pd.DataFrame],
         table_name: Optional[str] = None,  # Overrides random table name generation
     ) -> None:
-        # self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
         self._user_specified_table_name = table_name
@@ -87,6 +87,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             .add_batch_definition_whole_table(name=self._random_resource_name())
             .get_batch()
         )
+
+    def create_engine(self) -> Engine:
+        return create_engine(url=self.connection_string)
 
     @cached_property
     def table_name(self) -> str:
@@ -126,7 +129,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def setup(self) -> None:
-        engine = create_engine(url=self.connection_string)
+        engine = self.create_engine()
         with engine.connect() as conn, conn.begin():
             # create schema if needed
 
@@ -151,7 +154,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def teardown(self) -> None:
-        engine = create_engine(url=self.connection_string)
+        engine = self.create_engine()
         for table in self.tables:
             table.drop(engine)
         if self.schema:
