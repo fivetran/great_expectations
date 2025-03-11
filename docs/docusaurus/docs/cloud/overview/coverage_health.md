@@ -10,7 +10,7 @@ To help you have a better understanding of data health, GX Cloud provides the fo
 
 ![Example metrics: Active Coverage 75% warning add Expectations, Active Data Assets 100%, schema 75% warning add Expectations, volume 100%, completeness 50% warning add Expectations.](/img/coverage_health.png)
 
-- **Active Coverage:** The percentage of Data Assets that have been validated in the last 30 days with an Expectation for schema,volume, or completeness. This is calculated as:
+- **Active Coverage:** The percentage of Data Assets that have been validated in the last 30 days with an Expectation for schema, volume, or completeness. This is calculated as:
    
    ```markup title="Formula"
    ((% of Data Assets validated for schema) +
