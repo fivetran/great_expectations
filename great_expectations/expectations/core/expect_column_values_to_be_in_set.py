@@ -59,7 +59,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 
 
 class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
@@ -113,7 +113,6 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
-        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2
