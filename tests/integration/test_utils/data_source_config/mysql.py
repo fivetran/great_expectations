@@ -44,8 +44,8 @@ class MySQLDatasourceTestConfig(DataSourceTestConfig):
 
 
 @cache
-def create_cached_engine(connection_string: str) -> Engine:
-    return create_engine(url=connection_string)
+def create_cached_engine(url: str) -> Engine:
+    return create_engine(url=url)
 
 
 class MySQLBatchTestSetup(SQLBatchTestSetup[MySQLDatasourceTestConfig]):
