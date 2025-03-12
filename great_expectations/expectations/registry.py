@@ -142,7 +142,7 @@ def get_renderer_impl(object_name: str, renderer_type: str) -> Optional[Renderer
     from great_expectations.data_context import project_manager
 
     lang = project_manager.get_lang()
-    renderer_tuple = _registered_renderers.get(object_name, {}).get(renderer_type).get(lang)
+    renderer_tuple = _registered_renderers.get(object_name, {}).get(renderer_type, {}).get(lang)
     if not renderer_tuple and lang != DEFAULT_LANG:
         # user configured lang not available, try using the default lang
         renderer_tuple = (
