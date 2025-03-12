@@ -1,6 +1,3 @@
 [mysqld]
 skip-host-cache
 skip-name-resolve
-max_connections = 1000
-wait_timeout = 28800
-interactive_timeout = 28800
