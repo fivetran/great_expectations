@@ -150,7 +150,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 df = table_data.df.replace(np.nan, None)
                 values = list(df.to_dict("index").values())
                 conn.execute(insert(table_data.table), values)
-        engine.dispose()
+        # engine.dispose()
 
     @override
     def teardown(self) -> None:
@@ -160,7 +160,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         if self.schema:
             with engine.connect() as conn, conn.begin():
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
-        engine.dispose()
+        # engine.dispose()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = ["expectation_test_table", label, self._random_resource_name()]

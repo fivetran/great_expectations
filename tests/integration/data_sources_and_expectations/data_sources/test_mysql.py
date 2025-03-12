@@ -74,9 +74,10 @@ def test_f(batch_for_datasource: Batch) -> None:
     data=pd.DataFrame({"a": [1, 2, 3]}),
 )
 def test_g(batch_for_datasource: Batch) -> None:
-    batch_for_datasource.validate(
+    result = batch_for_datasource.validate(
         gxe.ExpectColumnValuesToBeBetween(column="a", min_value=0, max_value=5)
     )
+    assert result.success
 
 
 @parameterize_batch_for_data_sources(
