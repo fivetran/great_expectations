@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -15,6 +16,7 @@ from typing import (
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
+from great_expectations.constants import DEFAULT_LANG
 from great_expectations.exceptions import (
     GXCloudConfigurationError,
 )
@@ -125,6 +127,11 @@ class ProjectManager:
         from great_expectations.data_context import CloudDataContext
 
         return isinstance(self._project, CloudDataContext)
+
+    def get_lang(self) -> str:
+        # todo: update to enum, configure in the data context, consider validation
+        lang = os.environ.get("GX_LANG", DEFAULT_LANG).lower()  # noqa: TID251  # POC
+        return lang
 
     def build_data_docs(
         self,

@@ -10,6 +10,7 @@ import traceback
 from collections import defaultdict
 from typing import TYPE_CHECKING, Final, List, Optional, Union
 
+from great_expectations.constants import DEFAULT_LANG
 from great_expectations.core.expectation_diagnostics.expectation_diagnostics import (
     ExpectationDiagnostics,
 )
@@ -714,10 +715,7 @@ class ExpectationDoctor:
                 LegacyRendererType.QUESTION,
             ]
 
-        multi_lang_renderers = {
-            LegacyRendererType.PRESCRIPTIVE
-        }
-        default_lang = "en"  # todo: replace with global constant
+        multi_lang_renderers = {LegacyRendererType.PRESCRIPTIVE}
 
         supported_renderers = self._get_registered_renderers(
             expectation_type=expectation_type,
@@ -729,7 +727,9 @@ class ExpectationDoctor:
             samples = []
             if renderer_name in supported_renderers:
                 if renderer_name in multi_lang_renderers:
-                    _, renderer = registered_renderers[expectation_type][renderer_name][default_lang]  # type: ignore[call-overload] # FIXME CoP
+                    _, renderer = registered_renderers[expectation_type][renderer_name][  # type: ignore[call-overload] # FIXME CoP
+                        DEFAULT_LANG
+                    ]
                 else:
                     _, renderer = registered_renderers[expectation_type][renderer_name]  # type: ignore[call-overload] # FIXME CoP
 
