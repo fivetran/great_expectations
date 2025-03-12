@@ -373,6 +373,26 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
         return "--"
 
     @classmethod
+    @renderer(renderer_type=LegacyDiagnosticRendererType.OBSERVED_VALUE, lang="it")
+    def _diagnostic_observed_value_renderer_italiano(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+        **kwargs,
+    ):
+        result_dict = result.result  # type: ignore[union-attr] # FIXME: could be None
+
+        try:
+            null_percent = result_dict["unexpected_percent"]
+            return num_to_str(100 - null_percent, precision=5, use_locale=True) + "% non nullo"
+        except KeyError:
+            return "Percentuale sconosciuta non nulla"
+        except TypeError:
+            return "NaN% non nullo"
+        return "--"
+
+    @classmethod
     @renderer(renderer_type=LegacyDescriptiveRendererType.COLUMN_PROPERTIES_TABLE_MISSING_COUNT_ROW)
     def _descriptive_column_properties_table_missing_count_row_renderer(
         cls,
