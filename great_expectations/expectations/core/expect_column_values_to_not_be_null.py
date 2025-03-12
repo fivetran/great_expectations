@@ -252,7 +252,7 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
 
     @classmethod
     @override
-    @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE, lang="en")
+    @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
     def _prescriptive_renderer(
         cls,
