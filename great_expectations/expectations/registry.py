@@ -14,6 +14,7 @@ from typing import (
 )
 
 import great_expectations.exceptions as gx_exceptions
+from great_expectations.constants import DEFAULT_LANG
 from great_expectations.core.id_dict import IDDict
 
 if TYPE_CHECKING:
@@ -63,87 +64,40 @@ def register_renderer(
     object_name: str,
     parent_class: Union[Type[Expectation], Type[MetricProvider]],
     renderer_fn: Callable[..., Union[RenderedAtomicContent, RenderedContent]],
-    lang: Optional[str] = "en",
+    lang: Optional[str] = DEFAULT_LANG,
 ):
-    # noinspection PyUnresolvedReferences
     renderer_name = renderer_fn._renderer_type  # type: ignore[attr-defined] # FIXME CoP
-    if renderer_name == "renderer.prescriptive":
-        # language-aware renderers
-        return _register_prescriptive_renderer(object_name, parent_class, renderer_fn, lang)
     if object_name not in _registered_renderers:
-        logger.debug(f"Registering {renderer_name} for expectation_type {object_name}.")
-        _registered_renderers[object_name] = {renderer_name: (parent_class, renderer_fn)}
-        return
-
-    if renderer_name in _registered_renderers[object_name]:
-        if _registered_renderers[object_name][renderer_name] == (
+        # top level key is the Expectation class name
+        _registered_renderers[object_name] = {renderer_name: {lang: (parent_class, renderer_fn)}}
+    elif renderer_name not in _registered_renderers[object_name]:
+        # next level of nesting is the Renderer class name
+        _registered_renderers[object_name][renderer_name] = {lang: (parent_class, renderer_fn)}
+    elif lang not in _registered_renderers[object_name][renderer_name]:
+        # third level of nesting is the language
+        _registered_renderers[object_name][renderer_name][lang] = (
             parent_class,
             renderer_fn,
-        ):
-            logger.info(
-                f"Multiple declarations of {renderer_name} renderer for expectation_type {object_name} "  # noqa: E501 # FIXME CoP
-                f"found."
-            )
-            return
-        else:
-            logger.warning(
-                f"Overwriting declaration of {renderer_name} renderer for expectation_type "
-                f"{object_name}."
-            )
-            _registered_renderers[object_name][renderer_name] = (
-                parent_class,
-                renderer_fn,
-            )
-        return
+        )
+    elif _registered_renderers[object_name][renderer_name][lang] != (
+        parent_class,
+        renderer_fn,
+    ):
+        # if an expectation has multiple renderers of the same type and language,
+        # legacy behavior is that the last write wins.
+        logger.warning(
+            f"Overwriting declaration of {renderer_name} renderer for expectation_type "
+            f"{object_name} for language {lang}."
+        )
+        _registered_renderers[object_name][renderer_name][lang] = (
+            parent_class,
+            renderer_fn,
+        )
     else:
-        logger.debug(f"Registering {renderer_name} for expectation_type {object_name}.")
-        _registered_renderers[object_name][renderer_name] = (parent_class, renderer_fn)
-        return
-
-
-def _register_prescriptive_renderer(
-    object_name: str,
-    parent_class: Union[Type[Expectation], Type[MetricProvider]],
-    renderer_fn: Callable[..., Union[RenderedAtomicContent, RenderedContent]],
-    lang: Optional[str] = "en",
-):
-    # for now support lang on prescriptive renderer only
-    renderer_name = renderer_fn._renderer_type  # type: ignore[attr-defined] # FIXME CoP
-    if object_name not in _registered_renderers:
-        logger.debug(f"Registering {renderer_name} for expectation_type {object_name}.")
-        _registered_renderers[object_name] = {renderer_name: {lang: (parent_class, renderer_fn)}}
-        return
-
-    if renderer_name in _registered_renderers[object_name]:
-        if lang in _registered_renderers[object_name][renderer_name]:
-            if _registered_renderers[object_name][renderer_name][lang] == (
-                parent_class,
-                renderer_fn,
-            ):
-                logger.info(
-                    f"Multiple declarations of {renderer_name} renderer for expectation_type {object_name} "  # noqa: E501 # FIXME CoP
-                    f"found."
-                )
-                return
-            else:
-                logger.warning(
-                    f"Overwriting declaration of {renderer_name} renderer for expectation_type "
-                    f"{object_name}."
-                )
-                _registered_renderers[object_name][renderer_name][lang] = (
-                    parent_class,
-                    renderer_fn,
-                )
-            return
-        else:
-            _registered_renderers[object_name][renderer_name][lang] = (
-                parent_class,
-                renderer_fn,
-            )
-    else:
-        logger.debug(f"Registering {renderer_name} for expectation_type {object_name}.")
-        _registered_renderers[object_name][renderer_name] = {lang: (parent_class, renderer_fn)}
-        return
+        logger.info(
+            f"Multiple declarations of {renderer_name} renderer for "
+            f"expectation_type {object_name} found."
+        )
 
 
 def get_renderer_names(expectation_or_metric_type: str) -> List[str]:
@@ -185,29 +139,19 @@ def get_renderer_impls(object_name: str) -> List[str]:
 
 
 def get_renderer_impl(object_name: str, renderer_type: str) -> Optional[RendererImpl]:
-    renderer_tuple: Optional[tuple] = _registered_renderers.get(object_name, {}).get(renderer_type)
-    renderer_impl: Optional[RendererImpl] = None
-    if renderer_tuple:
-        renderer_impl = RendererImpl(expectation=renderer_tuple[0], renderer=renderer_tuple[1])
-    return renderer_impl
+    from great_expectations.data_context import project_manager
 
-
-def get_renderer_with_lang_impl(
-    object_name: str, renderer_type: str, lang: str
-) -> Optional[RendererImpl]:
-    FALLBACK_LANG = "en"  # todo: move this to global constant
-    renderer_tuple: Optional[tuple] = (
-        _registered_renderers.get(object_name, {}).get(renderer_type).get(lang)
-    )
-    if not renderer_tuple:
-        # try using the default lang
-        renderer_tuple: Optional[tuple] = (
-            _registered_renderers.get(object_name, {}).get(renderer_type).get(FALLBACK_LANG)
+    lang = project_manager.get_lang()
+    renderer_tuple = _registered_renderers.get(object_name, {}).get(renderer_type).get(lang)
+    if not renderer_tuple and lang != DEFAULT_LANG:
+        # user configured lang not available, try using the default lang
+        renderer_tuple = (
+            _registered_renderers.get(object_name, {}).get(renderer_type).get(DEFAULT_LANG)
         )
-    renderer_impl: Optional[RendererImpl] = None
     if renderer_tuple:
-        renderer_impl = RendererImpl(expectation=renderer_tuple[0], renderer=renderer_tuple[1])
-    return renderer_impl
+        return RendererImpl(expectation=renderer_tuple[0], renderer=renderer_tuple[1])
+    else:
+        return None
 
 
 def register_expectation(expectation: Type[Expectation]) -> None:

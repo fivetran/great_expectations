@@ -36,6 +36,7 @@ from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import Field, ModelMetaclass, StrictStr
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.constants import DEFAULT_LANG
 from great_expectations.core.expectation_validation_result import (
     ExpectationValidationResult,
 )
@@ -418,11 +419,10 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                 continue
             if not hasattr(attr_obj, "_renderer_type"):
                 continue
-            if lang := getattr(attr_obj, "lang", None):
-                register_renderer(
-                    object_name=expectation_type, parent_class=cls, renderer_fn=attr_obj, lang=lang
-                )
-            register_renderer(object_name=expectation_type, parent_class=cls, renderer_fn=attr_obj)
+            lang = getattr(attr_obj, "lang", DEFAULT_LANG)
+            register_renderer(
+                object_name=expectation_type, parent_class=cls, renderer_fn=attr_obj, lang=lang
+            )
 
     def render(self) -> None:
         """

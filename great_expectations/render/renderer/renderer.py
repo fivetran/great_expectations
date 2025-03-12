@@ -7,6 +7,7 @@ from typing_extensions import ParamSpec
 
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.constants import DEFAULT_LANG
 from great_expectations.core.expectation_validation_result import (
     ExpectationValidationResult,
 )
@@ -21,14 +22,15 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def renderer(renderer_type: str, **kwargs) -> Callable[[Callable[P, T]], Callable[P, T]]:
+def renderer(
+    renderer_type: str, lang: str = DEFAULT_LANG, **kwargs
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     def wrapper(renderer_fn: Callable[P, T]) -> Callable[P, T]:
         @wraps(renderer_fn)
         def inner_func(*args: P.args, **kwargs: P.kwargs):
             return renderer_fn(*args, **kwargs)
 
-        if "lang" in kwargs:
-            inner_func.lang = kwargs.pop("lang")
+        inner_func.lang = lang  # type: ignore[attr-defined] # FIXME CoP
         inner_func._renderer_type = renderer_type  # type: ignore[attr-defined] # FIXME CoP
         inner_func._renderer_definition_kwargs = kwargs  # type: ignore[attr-defined] # FIXME CoP
         return inner_func
