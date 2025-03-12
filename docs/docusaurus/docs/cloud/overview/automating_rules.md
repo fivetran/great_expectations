@@ -25,7 +25,7 @@ To detect schema changes, we automatically generate a rule to [**expect table co
 
 To detect non-increasing volume, we automatically generate a rule to [**expect table row count to be between**](/reference/learn/data_quality_use_cases/volume.md#expect-table-row-count-to-be-between) with dynamic parameters that test that the current validation run has more rows than the previous run. If the row count shrinks or stays the same between runs, this Expectation will fail.
 
-## Personalizing recommendations with ExpectAI (BETA)
+## Personalizing recommendations with ExpectAI <span class="beta">Beta</span>
 
 [ExpectAI (BETA)](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) performs deep analysis on a given Data Asset to set Expectations based on patterns in the data. These AI-recommended data quality rules are sometimes based on anomalies detected in the data, so they may fail on the first validation to bring your attention to potential problems.  
 
