@@ -1,10 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
-import {
-  findFirstSidebarItemLink,
-  useDocById,
-} from '@docusaurus/theme-common/internal';
 import isInternalUrl from '@docusaurus/isInternalUrl';
 import {translate} from '@docusaurus/Translate';
 import styles from './styles.module.css';
@@ -19,6 +15,7 @@ function CardContainer({href, children}) {
     </Link>
   );
 }
+
 function CardLayout({item, href, icon, title, description}) {
   return (
     <CardContainer href={href}>
@@ -35,8 +32,24 @@ function CardLayout({item, href, icon, title, description}) {
     </CardContainer>
   );
 }
+
+function findFirstLink(item) {
+  if (item.href) {
+    return item.href;
+  }
+  if (item.items?.length) {
+    for (const subItem of item.items) {
+      const link = findFirstLink(subItem);
+      if (link) {
+        return link;
+      }
+    }
+  }
+  return null;
+}
+
 function CardCategory({item}) {
-  const href = findFirstSidebarItemLink(item);
+  const href = findFirstLink(item);
   // Unexpected: categories that don't have a link have been filtered upfront
   if (!href) {
     return null;
@@ -44,7 +57,7 @@ function CardCategory({item}) {
   return (
     <CardLayout
       href={href}
-      icon=<img src={useBaseUrl(`img/groupicon.svg`)} alt="icon" />
+      icon={<img src={useBaseUrl(`img/groupicon.svg`)} alt="icon" />}
       title={item.label}
       description={translate(
         {
@@ -58,19 +71,22 @@ function CardCategory({item}) {
     />
   );
 }
+
 function CardLink({item}) {
-  const icon = isInternalUrl(item.href) ? <img src={useBaseUrl(`img/integrations/page_icon.svg`)} alt="icon" /> : '🔗';
-  const doc = useDocById(item.docId ?? undefined);
+  const icon = isInternalUrl(item.href) ? 
+    <img src={useBaseUrl(`img/integrations/page_icon.svg`)} alt="icon" /> : 
+    '🔗';
   return (
     <CardLayout
       href={item.href}
-      // Custom handling for index icons. Specify custom icons using `sidebar_custom_props` in the doc's frontmatter
-      icon={item?.customProps?.icon ? <img src={useBaseUrl(`${item.customProps.icon}`)} alt="icon" /> : icon}
+      icon={item?.customProps?.icon ? 
+        <img src={useBaseUrl(item.customProps.icon)} alt="icon" /> : 
+        icon}
       title={item.label}
-      description={doc?.description}
     />
   );
 }
+
 export default function DocCard({item}) {
   switch (item.type) {
     case 'link':

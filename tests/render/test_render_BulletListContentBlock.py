@@ -77,9 +77,9 @@ def test_all_expectations_using_test_definitions():
     test_files = glob.glob(pattern)  # noqa: PTH207 # FIXME CoP
 
     # Historically, collecting all the JSON tests was an issue - this step ensures we actually have test data.  # noqa: E501 # FIXME CoP
-    assert (
-        len(test_files) == 61
-    ), "Something went wrong when collecting JSON Expectation test fixtures"
+    assert len(test_files) == 61, (
+        "Something went wrong when collecting JSON Expectation test fixtures"
+    )
 
     # Not ported over to V1 so ignore for purposes of this test
     UNSUPPORTED_EXPECTATIONS = {

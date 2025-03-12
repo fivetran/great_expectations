@@ -12,7 +12,7 @@ from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.rule_based_profiler.domain_builder import ColumnDomainBuilder
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001 # FIXME CoP
+    ParameterContainer,  # noqa: TC001 # FIXME CoP
 )
 
 if TYPE_CHECKING:

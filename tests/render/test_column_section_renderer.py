@@ -96,7 +96,7 @@ def test_render_profiling_results_column_section_renderer(titanic_validation_res
         except KeyError:
             pass
 
-    for column in evrs:
+    for column, evr in evrs.items():
         with open(
             file_relative_path(
                 __file__,
@@ -108,7 +108,7 @@ def test_render_profiling_results_column_section_renderer(titanic_validation_res
             "w",
         ) as outfile:
             json.dump(
-                ProfilingResultsColumnSectionRenderer().render(evrs[column]).to_json_dict(),
+                ProfilingResultsColumnSectionRenderer().render(evr).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -130,7 +130,7 @@ def test_render_expectation_suite_column_section_renderer(titanic_expectations):
         except KeyError:
             pass
 
-    for column in exp_groups:
+    for column, exp_group in exp_groups.items():
         with open(
             file_relative_path(
                 __file__,
@@ -140,7 +140,7 @@ def test_render_expectation_suite_column_section_renderer(titanic_expectations):
             "w",
         ) as outfile:
             json.dump(
-                ExpectationSuiteColumnSectionRenderer().render(exp_groups[column]).to_json_dict(),
+                ExpectationSuiteColumnSectionRenderer().render(exp_group).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -1550,8 +1550,8 @@ def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_hap
                         "params": {
                             "column": "start_date",
                             "condition_parser": None,
-                            "max_value": {"$PARAMETER": "now() " "- " "timedelta(weeks=1)"},
-                            "min_value": {"$PARAMETER": "now() " "- " "timedelta(weeks=208)"},
+                            "max_value": {"$PARAMETER": "now() - timedelta(weeks=1)"},
+                            "min_value": {"$PARAMETER": "now() - timedelta(weeks=208)"},
                             "result_format": "SUMMARY",
                             "row_condition": None,
                             "strict_max": None,

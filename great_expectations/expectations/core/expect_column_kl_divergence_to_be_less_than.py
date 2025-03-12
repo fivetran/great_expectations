@@ -9,7 +9,7 @@ import pandas as pd
 from scipy import stats
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.execution_engine.util import (
     is_valid_categorical_partition_object,
     is_valid_partition_object,

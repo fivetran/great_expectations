@@ -869,13 +869,13 @@ def public_api_report_filter_out_file(
 class TestPublicAPIReport:
     def test_generate_printable_definitions(self, public_api_report: PublicAPIReport):
         expected: List[str] = [
-            "File: sample_with_definitions_python_file_string.py Name: " "ExampleClass",
-            "File: sample_with_definitions_python_file_string.py Name: " "example_classmethod",
-            "File: sample_with_definitions_python_file_string.py Name: " "example_method",
-            "File: sample_with_definitions_python_file_string.py Name: " "example_method_with_args",
+            "File: sample_with_definitions_python_file_string.py Name: ExampleClass",
+            "File: sample_with_definitions_python_file_string.py Name: example_classmethod",
+            "File: sample_with_definitions_python_file_string.py Name: example_method",
+            "File: sample_with_definitions_python_file_string.py Name: example_method_with_args",
             "File: sample_with_definitions_python_file_string.py Name: "
             "example_module_level_function",
-            "File: sample_with_definitions_python_file_string.py Name: " "example_staticmethod",
+            "File: sample_with_definitions_python_file_string.py Name: example_staticmethod",
         ]
         observed = [str(p) for p in public_api_report.generate_printable_definitions()]
         assert observed == expected

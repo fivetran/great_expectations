@@ -160,7 +160,8 @@ class ExpectMulticolumnSumValuesToBeBetween(MulticolumnMapExpectation):
     # This object contains metadata for display in the public Gallery
     library_metadata = {
         "tags": [
-            "multi-column sum to be between min and max" "multi-column expectation"
+            "multi-column sum to be between min and max",
+            "multi-column expectation",
         ],  # Tags for this Expectation in the Gallery
         "contributors": [  # Github handles for all contributors to this Expectation.
             "@swittchawa",  # Don't forget to add your github handle here!

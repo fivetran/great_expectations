@@ -593,7 +593,7 @@ def build_class_document(
         "---",
         f"title: {description}",
         "---",
-        f"# {class_name}" "",
+        f"# {class_name}",
         f"[See it on GitHub]({github_path})",
     ]
 

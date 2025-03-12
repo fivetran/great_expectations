@@ -334,43 +334,19 @@ def test_suite_factory_all_with_bad_pydantic_config(
 
 
 class TestSuiteFactoryAddOrUpdate:
-    @pytest.mark.filesystem
-    def test_add_empty_new_suite__filesystem(self, empty_data_context):
-        self._test_add_empty_new_suite(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_add_empty_new_suite__cloud(self, empty_cloud_context_fluent):
-        self._test_add_empty_new_suite(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_add_empty_new_suite__ephemeral(self, ephemeral_context_with_defaults):
-        self._test_add_empty_new_suite(ephemeral_context_with_defaults)
-
-    def _test_add_empty_new_suite(self, context: AbstractDataContext):
+    def test_add_empty_new_suite(self, data_context: AbstractDataContext) -> None:
         # arrange
         suite_name = "suite A"
         suite = ExpectationSuite(name=suite_name)
 
         # act
-        created_suite = context.suites.add_or_update(suite=suite)
+        created_suite = data_context.suites.add_or_update(suite=suite)
 
         # assert
         assert created_suite.id
-        context.suites.get(suite_name)
+        data_context.suites.get(suite_name)
 
-    @pytest.mark.filesystem
-    def test_add_new_suite_with_expectations_filesystem(self, empty_data_context):
-        self._test_add_new_suite_with_expectations(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_add_new_suite_with_expectations__cloud(self, empty_cloud_context_fluent):
-        self._test_add_new_suite_with_expectations(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_add_new_suite_with_expectations__ephemeral(self, ephemeral_context_with_defaults):
-        self._test_add_new_suite_with_expectations(ephemeral_context_with_defaults)
-
-    def _test_add_new_suite_with_expectations(self, context: AbstractDataContext):
+    def test_add_new_suite_with_expectations(self, data_context: AbstractDataContext) -> None:
         # arrange
         suite_name = "suite A"
         expectations = [
@@ -390,31 +366,19 @@ class TestSuiteFactoryAddOrUpdate:
         )
 
         # act
-        created_suite = context.suites.add_or_update(suite=suite)
+        created_suite = data_context.suites.add_or_update(suite=suite)
 
         # assert
         assert created_suite.id
-        context.suites.get(suite_name)
+        data_context.suites.get(suite_name)
         for exp, created_exp in zip(expectations, created_suite.expectations):
             assert created_exp.id
             exp.id = ANY
             assert exp == created_exp
 
-    @pytest.mark.filesystem
-    def test_update_existing_suite_adds_expectations__filesystem(self, empty_data_context):
-        self._test_update_existing_suite_adds_expectations(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_update_existing_suite_adds_expectations__cloud(self, empty_cloud_context_fluent):
-        self._test_update_existing_suite_adds_expectations(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_update_existing_suite_adds_expectations__ephemeral(
-        self, ephemeral_context_with_defaults
-    ):
-        self._test_update_existing_suite_adds_expectations(ephemeral_context_with_defaults)
-
-    def _test_update_existing_suite_adds_expectations(self, context: AbstractDataContext):
+    def test_update_existing_suite_adds_expectations(
+        self, data_context: AbstractDataContext
+    ) -> None:
         # arrange
         suite_name = "suite A"
         expectations = [
@@ -432,10 +396,10 @@ class TestSuiteFactoryAddOrUpdate:
             name=suite_name,
             expectations=[copy(exp) for exp in expectations],
         )
-        existing_suite = context.suites.add(suite=ExpectationSuite(name=suite_name))
+        existing_suite = data_context.suites.add(suite=ExpectationSuite(name=suite_name))
 
         # act
-        updated_suite = context.suites.add_or_update(suite=suite)
+        updated_suite = data_context.suites.add_or_update(suite=suite)
 
         # assert
         assert updated_suite.id == existing_suite.id
@@ -444,21 +408,9 @@ class TestSuiteFactoryAddOrUpdate:
             exp.id = ANY
             assert exp == created_exp
 
-    @pytest.mark.filesystem
-    def test_update_existing_suite_updates_expectations__filesystem(self, empty_data_context):
-        self._test_update_existing_suite_updates_expectations(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_update_existing_suite_updates_expectations__cloud(self, empty_cloud_context_fluent):
-        self._test_update_existing_suite_updates_expectations(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_update_existing_suite_updates_expectations__ephemeral(
-        self, ephemeral_context_with_defaults
-    ):
-        self._test_update_existing_suite_updates_expectations(ephemeral_context_with_defaults)
-
-    def _test_update_existing_suite_updates_expectations(self, context: AbstractDataContext):
+    def _test_update_existing_suite_updates_expectations(
+        self, data_context: AbstractDataContext
+    ) -> None:
         # arrange
         suite_name = "suite A"
         expectations = [
@@ -472,7 +424,7 @@ class TestSuiteFactoryAddOrUpdate:
                 value_set=["a", "b", "c"],
             ),
         ]
-        existing_suite = context.suites.add(
+        existing_suite = data_context.suites.add(
             suite=ExpectationSuite(
                 name=suite_name,
                 expectations=[copy(exp) for exp in expectations],
@@ -487,7 +439,7 @@ class TestSuiteFactoryAddOrUpdate:
         )
 
         # act
-        updated_suite = context.suites.add_or_update(suite=suite)
+        updated_suite = data_context.suites.add_or_update(suite=suite)
 
         # assert
         assert updated_suite.id == existing_suite.id
@@ -501,21 +453,9 @@ class TestSuiteFactoryAddOrUpdate:
             # expectations have been deleted and re added, not updated
             assert old_exp.id != new_exp.id
 
-    @pytest.mark.filesystem
-    def test_update_existing_suite_deletes_expectations__filesystem(self, empty_data_context):
-        self._test_update_existing_suite_deletes_expectations(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_update_existing_suite_deletes_expectations__cloud(self, empty_cloud_context_fluent):
-        self._test_update_existing_suite_deletes_expectations(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_update_existing_suite_deletes_expectations__ephemeral(
-        self, ephemeral_context_with_defaults
-    ):
-        self._test_update_existing_suite_deletes_expectations(ephemeral_context_with_defaults)
-
-    def _test_update_existing_suite_deletes_expectations(self, context: AbstractDataContext):
+    def test_update_existing_suite_deletes_expectations(
+        self, data_context: AbstractDataContext
+    ) -> None:
         # arrange
         suite_name = "suite A"
         expectations = [
@@ -529,7 +469,7 @@ class TestSuiteFactoryAddOrUpdate:
                 value_set=["a", "b", "c"],
             ),
         ]
-        existing_suite = context.suites.add(
+        existing_suite = data_context.suites.add(
             suite=ExpectationSuite(
                 name=suite_name,
                 expectations=[copy(exp) for exp in expectations],
@@ -544,25 +484,13 @@ class TestSuiteFactoryAddOrUpdate:
         )
 
         # act
-        updated_suite = context.suites.add_or_update(suite=suite)
+        updated_suite = data_context.suites.add_or_update(suite=suite)
 
         # assert
         assert updated_suite.id == existing_suite.id
         assert updated_suite.expectations == []
 
-    @pytest.mark.filesystem
-    def test_add_or_update_is_idempotent__filesystem(self, empty_data_context):
-        self._test_add_or_update_is_idempotent(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_add_or_update_is_idempotent__cloud(self, empty_cloud_context_fluent):
-        self._test_add_or_update_is_idempotent(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_add_or_update_is_idempotent__ephemeral(self, ephemeral_context_with_defaults):
-        self._test_add_or_update_is_idempotent(ephemeral_context_with_defaults)
-
-    def _test_add_or_update_is_idempotent(self, context: AbstractDataContext):
+    def test_add_or_update_is_idempotent(self, data_context: AbstractDataContext) -> None:
         # arrange
         suite_name = "suite A"
         expectations = [
@@ -582,24 +510,16 @@ class TestSuiteFactoryAddOrUpdate:
         )
 
         # act
-        suite_1 = context.suites.add_or_update(suite=suite)
-        suite_2 = context.suites.add_or_update(suite=suite)
-        suite_3 = context.suites.add_or_update(suite=suite)
+        suite_1 = data_context.suites.add_or_update(suite=suite)
+        suite_2 = data_context.suites.add_or_update(suite=suite)
+        suite_3 = data_context.suites.add_or_update(suite=suite)
 
         # assert
         assert suite_1 == suite_2 == suite_3
 
 
 class TestSuiteFactoryAnalytics:
-    @pytest.mark.filesystem
-    def test_suite_factory_add_emits_event_filesystem(self, empty_data_context):
-        self._test_suite_factory_add_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_suite_factory_add_emits_event_cloud(self, empty_cloud_context_fluent):
-        self._test_suite_factory_add_emits_event(empty_cloud_context_fluent)
-
-    def _test_suite_factory_add_emits_event(self, context):
+    def test_suite_factory_add_emits_event(self, data_context: AbstractDataContext) -> None:
         # Arrange
         name = "test-suite"
         suite = ExpectationSuite(name=name)
@@ -608,32 +528,24 @@ class TestSuiteFactoryAnalytics:
         with mock.patch(
             "great_expectations.core.factory.suite_factory.submit_event", autospec=True
         ) as mock_submit:
-            _ = context.suites.add(suite=suite)
+            _ = data_context.suites.add(suite=suite)
 
         # Assert
         mock_submit.assert_called_once_with(
             event=ExpectationSuiteCreatedEvent(expectation_suite_id=suite.id)
         )
 
-    @pytest.mark.filesystem
-    def test_suite_factory_delete_emits_event_filesystem(self, empty_data_context):
-        self._test_suite_factory_delete_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_suite_factory_delete_emits_event_cloud(self, empty_cloud_context_fluent):
-        self._test_suite_factory_delete_emits_event(empty_cloud_context_fluent)
-
-    def _test_suite_factory_delete_emits_event(self, context):
+    def test_suite_factory_delete_emits_event(self, data_context: AbstractDataContext) -> None:
         # Arrange
         name = "test-suite"
         suite = ExpectationSuite(name=name)
-        suite = context.suites.add(suite=suite)
+        suite = data_context.suites.add(suite=suite)
 
         # Act
         with mock.patch(
             "great_expectations.core.factory.suite_factory.submit_event", autospec=True
         ) as mock_submit:
-            context.suites.delete(name=name)
+            data_context.suites.delete(name=name)
 
         # Assert
         mock_submit.assert_called_once_with(

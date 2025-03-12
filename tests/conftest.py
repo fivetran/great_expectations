@@ -186,7 +186,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--verify-marker-coverage-and-exit",
         action="store_true",
-        help="If set, checks that all tests have one of the markers necessary " "for it to be run.",
+        help="If set, checks that all tests have one of the markers necessary for it to be run.",
     )
 
     # note: --no-spark will be deprecated in favor of --spark
@@ -1277,7 +1277,7 @@ def titanic_data_context_stats_enabled_config_version_3(tmp_path_factory, monkey
 @pytest.fixture(scope="module")
 def titanic_spark_db(tmp_path_factory, spark_warehouse_session):
     try:
-        from pyspark.sql import DataFrame  # noqa: TCH002 # FIXME CoP
+        from pyspark.sql import DataFrame  # noqa: TC002 # FIXME CoP
     except ImportError:
         raise ValueError("spark tests are requested, but pyspark is not installed")
 

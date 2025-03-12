@@ -2,6 +2,7 @@ import pandas as pd
 
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import BinaryExpression, ColumnClause
+from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.metrics.column.values_non_null import (
     ColumnValuesNonNull,
     ColumnValuesNonNullCount,
@@ -24,7 +25,7 @@ class TestColumnValuesNonNull:
         data_source_configs=PANDAS_DATA_SOURCES,
         data=DATA_FRAME,
     )
-    def test_success_pandas(self, batch_for_datasource) -> None:
+    def test_success_pandas(self, batch_for_datasource: Batch) -> None:
         batch = batch_for_datasource
         metric = ColumnValuesNonNull(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
@@ -41,7 +42,7 @@ class TestColumnValuesNonNull:
         data_source_configs=SPARK_DATA_SOURCES,
         data=DATA_FRAME,
     )
-    def test_success_spark(self, batch_for_datasource) -> None:
+    def test_success_spark(self, batch_for_datasource: Batch) -> None:
         batch = batch_for_datasource
         metric = ColumnValuesNonNull(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
@@ -53,7 +54,7 @@ class TestColumnValuesNonNull:
         data_source_configs=SQL_DATA_SOURCES,
         data=DATA_FRAME,
     )
-    def test_success_sql(self, batch_for_datasource) -> None:
+    def test_success_sql(self, batch_for_datasource: Batch) -> None:
         batch = batch_for_datasource
         metric = ColumnValuesNonNull(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
@@ -70,7 +71,7 @@ class TestColumnValuesNonNullCount:
         data_source_configs=PANDAS_DATA_SOURCES,
         data=DATA_FRAME,
     )
-    def test_success_pandas(self, batch_for_datasource) -> None:
+    def test_success_pandas(self, batch_for_datasource: Batch) -> None:
         batch = batch_for_datasource
         metric = ColumnValuesNonNullCount(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
@@ -81,7 +82,7 @@ class TestColumnValuesNonNullCount:
         data_source_configs=SPARK_DATA_SOURCES,
         data=DATA_FRAME,
     )
-    def test_success_spark(self, batch_for_datasource) -> None:
+    def test_success_spark(self, batch_for_datasource: Batch) -> None:
         batch = batch_for_datasource
         metric = ColumnValuesNonNullCount(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)
@@ -92,7 +93,7 @@ class TestColumnValuesNonNullCount:
         data_source_configs=SQL_DATA_SOURCES,
         data=DATA_FRAME,
     )
-    def test_success_sql(self, batch_for_datasource) -> None:
+    def test_success_sql(self, batch_for_datasource: Batch) -> None:
         batch = batch_for_datasource
         metric = ColumnValuesNonNullCount(column=STRING_COLUMN_NAME)
         metric_result = batch.compute_metrics(metric)

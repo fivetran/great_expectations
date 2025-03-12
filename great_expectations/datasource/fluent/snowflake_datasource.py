@@ -525,7 +525,7 @@ class SnowflakeDatasource(SQLDatasource):
 
     @deprecated_method_or_class(
         version="1.0.0a4",
-        message="`schema_name` is deprecated." " The schema now comes from the datasource.",
+        message="`schema_name` is deprecated. The schema now comes from the datasource.",
     )
     @public_api
     @override

@@ -109,9 +109,9 @@ def run_checkpoint_and_data_doc(
     # Rudimentary test for data doc generation
     docs_dict = context.build_data_docs()
     assert "local_site" in docs_dict, "build_data_docs returned dictionary has changed"
-    assert docs_dict["local_site"].startswith(
-        "file://"
-    ), "build_data_docs returns file path in unexpected form"
+    assert docs_dict["local_site"].startswith("file://"), (
+        "build_data_docs returns file path in unexpected form"
+    )
     path = docs_dict["local_site"][7:]
     with open(path) as f:
         data_doc_index = f.read()

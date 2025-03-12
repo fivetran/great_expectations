@@ -31,7 +31,7 @@ from great_expectations.util import (
     convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     filter_properties_dict,
 )
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.compatibility.pyspark import functions as F
@@ -355,9 +355,10 @@ class ExecutionEngine(ABC):
             )
 
         new_domain_kwargs = copy.deepcopy(domain_kwargs)
-        assert (
-            "column" in domain_kwargs or column_name is not None
-        ), "No column provided: A column must be provided in domain_kwargs or in the column_name parameter"  # noqa: E501 # FIXME CoP
+        assert "column" in domain_kwargs or column_name is not None, (
+            "No column provided: A column must be provided "
+            "in domain_kwargs or in the column_name parameter"
+        )
         if column_name is not None:
             column = column_name
         else:
@@ -643,9 +644,9 @@ class ExecutionEngine(ABC):
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.TABLE
-        ), "This method only supports MetricDomainTypes.TABLE"
+        assert domain_type == MetricDomainTypes.TABLE, (
+            "This method only supports MetricDomainTypes.TABLE"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
@@ -689,9 +690,9 @@ class ExecutionEngine(ABC):
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.COLUMN
-        ), "This method only supports MetricDomainTypes.COLUMN"
+        assert domain_type == MetricDomainTypes.COLUMN, (
+            "This method only supports MetricDomainTypes.COLUMN"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
@@ -721,9 +722,9 @@ class ExecutionEngine(ABC):
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.COLUMN_PAIR
-        ), "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        assert domain_type == MetricDomainTypes.COLUMN_PAIR, (
+            "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
@@ -754,9 +755,9 @@ class ExecutionEngine(ABC):
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.MULTICOLUMN
-        ), "This method only supports MetricDomainTypes.MULTICOLUMN"
+        assert domain_type == MetricDomainTypes.MULTICOLUMN, (
+            "This method only supports MetricDomainTypes.MULTICOLUMN"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}

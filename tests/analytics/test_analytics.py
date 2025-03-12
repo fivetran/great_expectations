@@ -98,6 +98,7 @@ def test_ephemeral_context_init(monkeypatch):
         oss_id=mock.ANY,
         user_id=None,
         user_agent_str=None,
+        mode="ephemeral",
     )
     mock_submit.assert_called_once_with(
         mock.ANY,
@@ -163,6 +164,7 @@ def test_cloud_context_init(
         organization_id=UUID(cloud_details.org_id),
         oss_id=mock.ANY,
         cloud_mode=True,
+        mode="cloud",
         user_agent_str=user_agent_str,
     )
     mock_submit.assert_called_once_with(
@@ -221,6 +223,7 @@ def test_analytics_enabled_on_load(
         oss_id=mock.ANY,
         user_id=mock.ANY,
         user_agent_str=user_agent_str,
+        mode="ephemeral",
     )
 
 
@@ -249,6 +252,7 @@ def test_analytics_enabled_on_load__filesystem(
         oss_id=mock.ANY,
         user_id=mock.ANY,
         user_agent_str=user_agent_str,
+        mode="file",
     )
 
 
@@ -286,6 +290,7 @@ def test_analytics_enabled_after_setting_explicitly(
         oss_id=mock.ANY,
         user_id=mock.ANY,
         user_agent_str=mock.ANY,
+        mode="ephemeral",
     )
 
 
@@ -316,4 +321,5 @@ def test_user_agent_str_after_setting_explicitly(
         oss_id=mock.ANY,
         user_id=mock.ANY,
         user_agent_str=new_user_agent_str,
+        mode="ephemeral",
     )

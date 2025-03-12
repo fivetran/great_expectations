@@ -8,7 +8,7 @@ from typing import List, Sequence, Tuple, Union
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_diagnostics.expectation_test_data_cases import (
-    ExpectationTestDataCases,  # noqa: TCH001 # FIXME CoP
+    ExpectationTestDataCases,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.core.expectation_diagnostics.supporting_types import (
     AugmentedLibraryMetadata,

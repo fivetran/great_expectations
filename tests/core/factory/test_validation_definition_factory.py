@@ -1,8 +1,6 @@
 import json
 import pathlib
-import random
 import re
-import string
 from unittest import mock
 from unittest.mock import ANY as ANY_TEST_ARG
 
@@ -28,7 +26,6 @@ from great_expectations.data_context.data_context.abstract_data_context import (
 from great_expectations.data_context.data_context.cloud_data_context import (
     CloudDataContext,
 )
-from great_expectations.data_context.data_context.ephemeral_data_context import EphemeralDataContext
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
@@ -36,6 +33,7 @@ from great_expectations.data_context.store.validation_definition_store import (
     ValidationDefinitionStore,
 )
 from great_expectations.exceptions import DataContextError
+from tests.conftest import random_name
 
 
 @pytest.fixture
@@ -471,18 +469,15 @@ def test_validation_definition_factory_round_trip(
 
 
 class TestValidationDefinitionFactoryAddOrUpdate:
-    def random_name(self) -> str:
-        return "".join([random.choice(string.ascii_letters) for _ in range(6)])
-
     def _build_batch_definition(self, context: AbstractDataContext):
-        name = self.random_name()
+        name = random_name()
         ds = context.data_sources.add_pandas(name=name)
         asset = ds.add_csv_asset(name=name, filepath_or_buffer=pathlib.Path("data.csv"))
         return asset.add_batch_definition(name=name)
 
     def _build_suite(self) -> ExpectationSuite:
         return ExpectationSuite(
-            name=self.random_name(),
+            name=random_name(),
             expectations=[
                 gxe.ExpectColumnValuesToBeBetween(
                     column="passenger_count", min_value=0, max_value=10
@@ -490,60 +485,28 @@ class TestValidationDefinitionFactoryAddOrUpdate:
             ],
         )
 
-    @pytest.mark.filesystem
-    def test_add_new_validation__filesystem(self, empty_data_context: FileDataContext):
-        self._test_add_new_validation(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_add_new_validation__cloud(self, empty_cloud_context_fluent: CloudDataContext):
-        self._test_add_new_validation(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_add_new_validation__ephemeral(
-        self, ephemeral_context_with_defaults: EphemeralDataContext
-    ):
-        self._test_add_new_validation(ephemeral_context_with_defaults)
-
-    def _test_add_new_validation(self, context: AbstractDataContext):
+    def test_add_new_validation(self, data_context: AbstractDataContext) -> None:
         # arrange
-        vd_name = self.random_name()
-        batch_def = self._build_batch_definition(context)
+        vd_name = random_name()
+        batch_def = self._build_batch_definition(data_context)
         suite = self._build_suite()
         vd = ValidationDefinition(
             name=vd_name,
             data=batch_def,
-            suite=context.suites.add(suite),
+            suite=data_context.suites.add(suite),
         )
 
         # act
-        created_vd = context.validation_definitions.add_or_update(validation=vd)
+        created_vd = data_context.validation_definitions.add_or_update(validation=vd)
 
         # assert
         assert created_vd.id
-        context.validation_definitions.get(vd_name)
+        data_context.validation_definitions.get(vd_name)
 
-    @pytest.mark.filesystem
-    def test_add_new_validation_with_new_suite__filesystem(
-        self, empty_data_context: FileDataContext
-    ):
-        self._test_add_new_validation_with_new_suite(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_add_new_validation_with_new_suite__cloud(
-        self, empty_cloud_context_fluent: CloudDataContext
-    ):
-        self._test_add_new_validation_with_new_suite(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_add_new_validation_with_new_suite__ephemeral(
-        self, ephemeral_context_with_defaults: EphemeralDataContext
-    ):
-        self._test_add_new_validation_with_new_suite(ephemeral_context_with_defaults)
-
-    def _test_add_new_validation_with_new_suite(self, context: AbstractDataContext):
+    def test_add_new_validation_with_new_suite(self, data_context: AbstractDataContext) -> None:
         # arrange
-        vd_name = self.random_name()
-        batch_def = self._build_batch_definition(context)
+        vd_name = random_name()
+        batch_def = self._build_batch_definition(data_context)
         suite = self._build_suite()
         vd = ValidationDefinition(
             name=vd_name,
@@ -552,182 +515,116 @@ class TestValidationDefinitionFactoryAddOrUpdate:
         )
 
         # act
-        created_vd = context.validation_definitions.add_or_update(validation=vd)
+        created_vd = data_context.validation_definitions.add_or_update(validation=vd)
 
         # assert
         assert created_vd.id
-        context.validation_definitions.get(vd_name)
+        data_context.validation_definitions.get(vd_name)
 
-    @pytest.mark.filesystem
-    def test_update_expectation_suite__filesystem(self, empty_data_context: FileDataContext):
-        self._test_update_expectation_suite(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_update_expectation_suite__cloud(self, empty_cloud_context_fluent: CloudDataContext):
-        self._test_update_expectation_suite(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_update_expectation_suite__ephemeral(
-        self, ephemeral_context_with_defaults: EphemeralDataContext
-    ):
-        self._test_update_expectation_suite(ephemeral_context_with_defaults)
-
-    def _test_update_expectation_suite(self, context: AbstractDataContext):
+    def test_update_expectation_suite(self, data_context: AbstractDataContext) -> None:
         # arrange
-        vd_name = self.random_name()
-        batch_def = self._build_batch_definition(context)
+        vd_name = random_name()
+        batch_def = self._build_batch_definition(data_context)
         suite = self._build_suite()
         vd = ValidationDefinition(
             name=vd_name,
             data=batch_def,
-            suite=context.suites.add(suite),
+            suite=data_context.suites.add(suite),
         )
-        existing_vd = context.validation_definitions.add(validation=vd)
+        existing_vd = data_context.validation_definitions.add(validation=vd)
 
         # act
         vd.suite.expectations = [
             gxe.ExpectColumnMaxToBeBetween(column="passenger_count", min_value=0, max_value=5)
         ]
 
-        updated_vd = context.validation_definitions.add_or_update(validation=vd)
+        updated_vd = data_context.validation_definitions.add_or_update(validation=vd)
 
         # assert
         assert updated_vd.id == existing_vd.id
         assert len(updated_vd.suite.expectations) == 1 and isinstance(
             updated_vd.suite.expectations[0], gxe.ExpectColumnMaxToBeBetween
         )
-        context.validation_definitions.get(vd_name)
+        data_context.validation_definitions.get(vd_name)
 
-    @pytest.mark.filesystem
-    def test_replace_expectation_suite__filesystem(self, empty_data_context: FileDataContext):
-        self._test_replace_expectation_suite(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_replace_expectation_suite__cloud(self, empty_cloud_context_fluent: CloudDataContext):
-        self._test_replace_expectation_suite(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_replace_expectation_suite__ephemeral(
-        self, ephemeral_context_with_defaults: EphemeralDataContext
-    ):
-        self._test_replace_expectation_suite(ephemeral_context_with_defaults)
-
-    def _test_replace_expectation_suite(self, context: AbstractDataContext):
+    def test_replace_expectation_suite(self, data_context: AbstractDataContext) -> None:
         # arrange
-        vd_name = self.random_name()
-        batch_def = self._build_batch_definition(context)
-        suite = context.suites.add(self._build_suite())
+        vd_name = random_name()
+        batch_def = self._build_batch_definition(data_context)
+        suite = data_context.suites.add(self._build_suite())
         vd = ValidationDefinition(
             name=vd_name,
             data=batch_def,
             suite=suite,
         )
-        existing_vd = context.validation_definitions.add(validation=vd)
+        existing_vd = data_context.validation_definitions.add(validation=vd)
 
         # act
-        new_suite = context.suites.add(self._build_suite())
+        new_suite = data_context.suites.add(self._build_suite())
         new_vd = ValidationDefinition(
             name=vd_name,
             data=batch_def,
             suite=new_suite,
         )
-        updated_vd = context.validation_definitions.add_or_update(validation=new_vd)
+        updated_vd = data_context.validation_definitions.add_or_update(validation=new_vd)
 
         # assert
         assert updated_vd.suite.id != existing_vd.suite.id  # New suite should have a different ID
         assert updated_vd.data.id == existing_vd.data.id
         assert updated_vd.id == existing_vd.id
-        context.validation_definitions.get(vd_name)
+        data_context.validation_definitions.get(vd_name)
 
-    @pytest.mark.filesystem
     @pytest.mark.xfail(
         raises=ValidationError,
         reason="GX-481: Changing a BatchDefinition breaks loading a Validation Definition.",
         strict=True,
     )
-    def test_update_batch_definition__filesystem(self, empty_data_context: FileDataContext):
-        self._test_update_batch_definition(empty_data_context)
-
-    @pytest.mark.cloud
-    @pytest.mark.xfail(
-        raises=ValidationError,
-        reason="GX-481: Changing a BatchDefinition breaks loading a Validation Definition.",
-        strict=True,
-    )
-    def test_update_batch_definition__cloud(self, empty_cloud_context_fluent: CloudDataContext):
-        self._test_update_batch_definition(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    @pytest.mark.xfail(
-        raises=ValidationError,
-        reason="GX-481: Changing a BatchDefinition breaks loading a Validation Definition.",
-        strict=True,
-    )
-    def test_update_batch_definition__ephemeral(
-        self, ephemeral_context_with_defaults: EphemeralDataContext
-    ):
-        self._test_update_batch_definition(ephemeral_context_with_defaults)
-
-    def _test_update_batch_definition(self, context: AbstractDataContext):
+    def test_update_batch_definition(self, data_context: AbstractDataContext) -> None:
         # arrange
-        vd_name = self.random_name()
-        batch_def = self._build_batch_definition(context)
-        suite = context.suites.add(self._build_suite())
+        vd_name = random_name()
+        batch_def = self._build_batch_definition(data_context)
+        suite = data_context.suites.add(self._build_suite())
         vd = ValidationDefinition(
             name=vd_name,
             data=batch_def,
             suite=suite,
         )
-        context.validation_definitions.add(validation=vd)
+        data_context.validation_definitions.add(validation=vd)
 
         # act
-        new_batch_def_name = self.random_name()
+        new_batch_def_name = random_name()
         batch_def.name = new_batch_def_name
         new_vd = ValidationDefinition(
             name=vd_name,
             data=batch_def,
             suite=suite,
         )
-        updated_vd = context.validation_definitions.add_or_update(validation=new_vd)
+        updated_vd = data_context.validation_definitions.add_or_update(validation=new_vd)
 
         # assert
         assert updated_vd.data.name == new_batch_def_name
-        context.validation_definitions.get(vd_name)
+        data_context.validation_definitions.get(vd_name)
 
-    @pytest.mark.filesystem
-    def test_replace_batch_definition__filesystem(self, empty_data_context: FileDataContext):
-        self._test_replace_batch_definition(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_replace_batch_definition__cloud(self, empty_cloud_context_fluent: CloudDataContext):
-        self._test_replace_batch_definition(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_replace_batch_definition__ephemeral(
-        self, ephemeral_context_with_defaults: EphemeralDataContext
-    ):
-        self._test_replace_batch_definition(ephemeral_context_with_defaults)
-
-    def _test_replace_batch_definition(self, context: AbstractDataContext):
+    def test_replace_batch_definition(self, data_context: AbstractDataContext) -> None:
         # arrange
-        vd_name = self.random_name()
-        batch_def = self._build_batch_definition(context)
-        suite = context.suites.add(self._build_suite())
+        vd_name = random_name()
+        batch_def = self._build_batch_definition(data_context)
+        suite = data_context.suites.add(self._build_suite())
         vd = ValidationDefinition(
             name=vd_name,
             data=batch_def,
             suite=suite,
         )
-        existing_vd = context.validation_definitions.add(validation=vd)
+        existing_vd = data_context.validation_definitions.add(validation=vd)
 
         # act
-        new_batch_def = self._build_batch_definition(context)
+        new_batch_def = self._build_batch_definition(data_context)
         new_vd = ValidationDefinition(
             name=vd_name,
             data=new_batch_def,
             suite=suite,
         )
-        updated_vd = context.validation_definitions.add_or_update(validation=new_vd)
+        updated_vd = data_context.validation_definitions.add_or_update(validation=new_vd)
 
         # assert
         assert updated_vd.suite.id == existing_vd.suite.id
@@ -737,26 +634,12 @@ class TestValidationDefinitionFactoryAddOrUpdate:
         assert updated_vd.data.id  # should not be None
         assert updated_vd.data.id == new_batch_def.id
         assert updated_vd.id == existing_vd.id
-        context.validation_definitions.get(vd_name)
+        data_context.validation_definitions.get(vd_name)
 
-    @pytest.mark.filesystem
-    def test_add_or_update_is_idempotent__filesystem(self, empty_data_context: FileDataContext):
-        self._test_add_or_update_is_idempotent(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_add_or_update_is_idempotent__cloud(self, empty_cloud_context_fluent: CloudDataContext):
-        self._test_add_or_update_is_idempotent(empty_cloud_context_fluent)
-
-    @pytest.mark.unit
-    def test_add_or_update_is_idempotent__ephemeral(
-        self, ephemeral_context_with_defaults: EphemeralDataContext
-    ):
-        self._test_add_or_update_is_idempotent(ephemeral_context_with_defaults)
-
-    def _test_add_or_update_is_idempotent(self, context: AbstractDataContext):
+    def test_add_or_update_is_idempotent(self, data_context: AbstractDataContext) -> None:
         # arrange
-        vd_name = self.random_name()
-        batch_def = self._build_batch_definition(context)
+        vd_name = random_name()
+        batch_def = self._build_batch_definition(data_context)
         suite = self._build_suite()
         vd = ValidationDefinition(
             name=vd_name,
@@ -765,29 +648,23 @@ class TestValidationDefinitionFactoryAddOrUpdate:
         )
 
         # act
-        vd_1 = context.validation_definitions.add_or_update(validation=vd)
-        vd_2 = context.validation_definitions.add_or_update(validation=vd)
-        vd_3 = context.validation_definitions.add_or_update(validation=vd)
+        vd_1 = data_context.validation_definitions.add_or_update(validation=vd)
+        vd_2 = data_context.validation_definitions.add_or_update(validation=vd)
+        vd_3 = data_context.validation_definitions.add_or_update(validation=vd)
 
         # assert
         assert vd_1 == vd_2 == vd_3
 
 
 class TestValidationDefinitionFactoryAnalytics:
-    @pytest.mark.filesystem
-    def test_validation_definition_factory_add_emits_event_filesystem(self, empty_data_context):
-        self._test_validation_definition_factory_add_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_validation_definition_factory_add_emits_event_cloud(self, empty_cloud_context_fluent):
-        self._test_validation_definition_factory_add_emits_event(empty_cloud_context_fluent)
-
-    def _test_validation_definition_factory_add_emits_event(self, context):
+    def test_validation_definition_factory_add_emits_event(
+        self, data_context: AbstractDataContext
+    ) -> None:
         # Arrange
-        ds = context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", "data.csv")
+        ds = data_context.data_sources.add_pandas("my_datasource")
+        asset = ds.add_csv_asset("my_asset", pathlib.Path("data.csv"))
         batch_def = asset.add_batch_definition("my_batch_definition")
-        suite = context.suites.add(ExpectationSuite(name="my_suite"))
+        suite = data_context.suites.add(ExpectationSuite(name="my_suite"))
 
         validation_definition = ValidationDefinition(
             name="validation_def", data=batch_def, suite=suite
@@ -798,7 +675,7 @@ class TestValidationDefinitionFactoryAnalytics:
             "great_expectations.core.factory.validation_definition_factory.submit_event",
             autospec=True,
         ) as mock_submit:
-            _ = context.validation_definitions.add(validation=validation_definition)
+            _ = data_context.validation_definitions.add(validation=validation_definition)
 
         # Assert
         mock_submit.assert_called_once_with(
@@ -807,25 +684,17 @@ class TestValidationDefinitionFactoryAnalytics:
             )
         )
 
-    @pytest.mark.filesystem
-    def test_validation_definition_factory_delete_emits_event_filesystem(self, empty_data_context):
-        self._test_validation_definition_factory_delete_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_validation_definition_factory_delete_emits_event_cloud(
-        self, empty_cloud_context_fluent
-    ):
-        self._test_validation_definition_factory_delete_emits_event(empty_cloud_context_fluent)
-
-    def _test_validation_definition_factory_delete_emits_event(self, context):
+    def test_validation_definition_factory_delete_emits_event(
+        self, data_context: AbstractDataContext
+    ) -> None:
         # Arrange
-        ds = context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", "data.csv")
+        ds = data_context.data_sources.add_pandas("my_datasource")
+        asset = ds.add_csv_asset("my_asset", pathlib.Path("data.csv"))
         batch_def = asset.add_batch_definition("my_batch_definition")
-        suite = context.suites.add(ExpectationSuite(name="my_suite"))
+        suite = data_context.suites.add(ExpectationSuite(name="my_suite"))
 
         name = "validation_def"
-        validation_definition = context.validation_definitions.add(
+        validation_definition = data_context.validation_definitions.add(
             validation=ValidationDefinition(name=name, data=batch_def, suite=suite)
         )
 
@@ -834,7 +703,7 @@ class TestValidationDefinitionFactoryAnalytics:
             "great_expectations.core.factory.validation_definition_factory.submit_event",
             autospec=True,
         ) as mock_submit:
-            context.validation_definitions.delete(name=name)
+            data_context.validation_definitions.delete(name=name)
 
         # Assert
         mock_submit.assert_called_once_with(
