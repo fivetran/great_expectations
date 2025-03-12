@@ -715,8 +715,6 @@ class ExpectationDoctor:
                 LegacyRendererType.QUESTION,
             ]
 
-        multi_lang_renderers = {LegacyRendererType.PRESCRIPTIVE}
-
         supported_renderers = self._get_registered_renderers(
             expectation_type=expectation_type,
             registered_renderers=registered_renderers,  # type: ignore[arg-type] # FIXME CoP
@@ -726,12 +724,9 @@ class ExpectationDoctor:
         for renderer_name in set(standard_renderers).union(set(supported_renderers)):
             samples = []
             if renderer_name in supported_renderers:
-                if renderer_name in multi_lang_renderers:
-                    _, renderer = registered_renderers[expectation_type][renderer_name][  # type: ignore[call-overload] # FIXME CoP
-                        DEFAULT_LANG
-                    ]
-                else:
-                    _, renderer = registered_renderers[expectation_type][renderer_name]  # type: ignore[call-overload] # FIXME CoP
+                _, renderer = registered_renderers[expectation_type][renderer_name][  # type: ignore[call-overload] # FIXME CoP
+                    DEFAULT_LANG
+                ]
 
                 for test_diagnostic in test_diagnostics:
                     test_title = test_diagnostic["test_title"]
