@@ -38,7 +38,7 @@ import PandasDefault from './_pandas_default.md'
    - `name`: A descriptive name used to reference the Data Source.  This should be unique within the Data Context.
    - `base_directory`: The path to the folder that contains the data files, or the root folder of the directory hierarchy that contains the data files.
    
-   If you are using a File Data Context, you can provide a path that is relative to the Data Context's `base_directory`.  Otherwise, you should provide the absolute path to the folder that contains your data.
+   If you are using a Filesystem Data Source, provide a path that is relative to the Data Source's `base_directory`.  Otherwise, provide an absolute path to the folder that contains your data.
 
    In this example, a relative path is defined for a folder that contains taxi trip data for New York City in `.csv` format:
 
