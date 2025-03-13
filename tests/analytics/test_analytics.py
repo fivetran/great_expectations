@@ -109,6 +109,7 @@ def test_ephemeral_context_init(monkeypatch):
             "service": "gx-core",
             "gx_version": mock.ANY,
             "user_agent_str": None,
+            "mode": "ephemeral",
         },
         groups={"data_context": mock.ANY},
     )
@@ -131,6 +132,7 @@ def test_ephemeral_context_init_with_optional_fields(monkeypatch):
             "service": "gx-core",
             "gx_version": mock.ANY,
             "user_agent_str": user_agent_str,
+            "mode": "ephemeral",
         },
         groups={"data_context": mock.ANY},
     )
@@ -176,6 +178,7 @@ def test_cloud_context_init(
             "service": "gx-core",
             "gx_version": mock.ANY,
             "user_agent_str": mock.ANY,
+            "mode": mock.ANY,
         },
         groups={"data_context": mock.ANY},
     )
