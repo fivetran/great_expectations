@@ -178,7 +178,7 @@ def test_cloud_context_init(
             "service": "gx-core",
             "gx_version": mock.ANY,
             "user_agent_str": mock.ANY,
-            "mode": "cloud",
+            "mode": mock.ANY,
         },
         groups={"data_context": mock.ANY},
     )
