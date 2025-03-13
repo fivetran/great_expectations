@@ -4,7 +4,7 @@ import great_expectations as gx
 context = gx.get_context()
 
 # Define the Data Source's parameters:
-# This path is relative to the `base_directory` of the Data Source.
+# This path is relative to the `base_directory` of the Data Context.
 # <snippet name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_data_source/_local_or_networked/_spark.py - define Data Source parameters">
 source_folder = "./data"
 data_source_name = "my_filesystem_data_source"
