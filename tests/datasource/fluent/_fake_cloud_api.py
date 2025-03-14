@@ -780,10 +780,7 @@ def post_validation_results_cb(request: PreparedRequest) -> CallbackResult:
         raise NotImplementedError("Handling missing body")
 
     payload: dict = json.loads(request.body)
-    try:
-        validation_id = payload["data"]["attributes"]["result"]["meta"]["validation_id"]
-    except KeyError:
-        validation_id = payload["data"]["meta"]["validation_id"]
+    validation_id = payload["data"]["meta"]["validation_id"]
     if validation_id:
         return CallbackResult(
             200,
