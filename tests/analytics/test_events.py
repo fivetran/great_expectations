@@ -110,6 +110,7 @@ def test_event_properties(event: Event, expected_properties: dict):
         "service",
         "gx_version",
         "user_agent_str",
+        "mode",
     ):
         assert base_property in actual_properties
         actual_properties.pop(base_property)

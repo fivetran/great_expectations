@@ -22,7 +22,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
 2. Add a Batch Definition to the Data Asset.
 
-   A path Batch Definition returns all of the records in a specific data file as a single Batch.  A partitioned Batch Definition will return the records of a single file in the Data Asset based on which file name matches a regex.
+   A path Batch Definition returns all of the records in a specific data file as a single Batch.  A partitioned Batch Definition will return the records of a single file in the Data Asset based on which file name matches a regex.  
 
    <Tabs queryString="batch_definition" groupId="batch_definition" defaultValue='path'>
 
@@ -31,7 +31,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
    To define a path Batch Definition you need to provide the following information:
 
    - `name`: A name by which you can reference the Batch Definition in the future.  This should be unique within the Data Asset.
-   - `path`: The path within the Data Asset of the data file containing the records to return.
+   - `path`: The path within the Data Asset of the data file containing the records to return. When using a Filesystem Data Source, `path` is relative to the Data Source parameter `base_directory`.
  
    Update the `batch_definition_name` and `batch_definition_path` variables and execute the following code to add a path Batch Definition to your Data Asset:
 
@@ -42,7 +42,10 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
    <TabItem value="partitioned" label="Partitioned">
    
-   GX Core currently supports partitioning File Data Assets based on dates.  The files can be returned by year, month, or day.
+   GX Core currently supports partitioning File Data Assets based on dates.  The files can be returned by year, month, or day. To define a Batch Definition, you need to provide the following information: 
+
+    - `name`: A name by which you can reference the Batch Definition in the future.  This should be unique within the Data Asset.
+    - `regex`: A regular expression used to match against file names. When using a Filesystem Data Source, `regex` is relative to the Data Source parameter `base_directory`.
 
    <Tabs queryString="partition_type" groupId="partition_type" defaultValue='yearly'>
    
