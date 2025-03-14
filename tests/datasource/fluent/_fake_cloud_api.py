@@ -780,9 +780,23 @@ def post_validation_results_cb(request: PreparedRequest) -> CallbackResult:
         raise NotImplementedError("Handling missing body")
 
     payload: dict = json.loads(request.body)
-    validation_id = payload["data"]["attributes"]["result"]["meta"]["validation_id"]
+    validation_id = payload["data"]["meta"]["validation_id"]
     if validation_id:
-        raise NotImplementedError("TODO: Handling the validation_id success case")
+        return CallbackResult(
+            200,
+            headers=DEFAULT_HEADERS,
+            body=json.dumps(
+                {
+                    "data": {
+                        "id": validation_id,
+                        "result_url": (
+                            f"{GX_CLOUD_MOCK_BASE_URL}organizations/{FAKE_ORG_ID}/"
+                            "validation-results/{validation_id}"
+                        ),
+                    }
+                }
+            ),
+        )
     else:
         result = CallbackResult(
             422,  # 400 in prod but this is a more informative status code
