@@ -2854,3 +2854,28 @@ def add_values_with_json_schema_from_list_in_params(
                 "value": v,
             }
     return params_with_json_schema
+
+
+def parse_value_to_observed_type(observed_value: Any, value: Any) -> Any:
+    """
+    Try to coerce a value to match the type of an observed value,
+    particularly handling datetime and date types.
+
+    Args:
+        observed_value: A value with the target type
+        value: Value to be coerced to match observed_value's type
+
+    Returns:
+        A value coerced to match observed_value's type where possible
+    """
+    # Handle datetime and date types
+    if isinstance(observed_value, (datetime.date, datetime.datetime)):
+        try:
+            return (
+                parse(value).date() if isinstance(observed_value, datetime.date) else parse(value)
+            )
+        except (ValueError, TypeError):
+            return value
+
+    # For other types, no special handling needed
+    return value
