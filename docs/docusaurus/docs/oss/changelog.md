@@ -14,6 +14,17 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.10
+* [DOCS] beta badge followup ([#11015](https://github.com/great-expectations/great_expectations/pull/11015))
+* [DOCS] Test coverage metrics ([#11002](https://github.com/great-expectations/great_expectations/pull/11002))
+* [MAINTENANCE] refactor to use data_context fixture ([#10997](https://github.com/great-expectations/great_expectations/pull/10997))
+* [MAINTENANCE] Remove unneeded tests ([#11007](https://github.com/great-expectations/great_expectations/pull/11007))
+* [MAINTENANCE] remove numeric dqi from validity expectations ([#11005](https://github.com/great-expectations/great_expectations/pull/11005))
+* [MAINTENANCE] Upgrade transitive dependencies and stop using internal docusaurus functions ([#11009](https://github.com/great-expectations/great_expectations/pull/11009))
+* [MAINTENANCE] Stop over alerting on failures ([#11021](https://github.com/great-expectations/great_expectations/pull/11021))
+* [MAINTENANCE] remove outdated walkthrough modal ([#11022](https://github.com/great-expectations/great_expectations/pull/11022))
+* [MAINTENANCE] Bump mysql max_connections for tests ([#11023](https://github.com/great-expectations/great_expectations/pull/11023))
+
 ### 1.3.9
 * [FEATURE] Remove batch_id parameter from Metric classes ([#10971](https://github.com/great-expectations/great_expectations/pull/10971))
 * [FEATURE] `QueryRowCount` metric ([#10964](https://github.com/great-expectations/great_expectations/pull/10964))
