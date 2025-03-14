@@ -1,8 +1,10 @@
+from functools import cached_property
 from typing import Mapping
 
 import pandas as pd
 import pytest
 
+from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
@@ -42,8 +44,7 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
     @property
     @override
     def connection_string(self) -> str:
-        # TODO: update this to redshift connection string
-        return "postgresql+psycopg2://postgres@localhost:5432/test_ci"
+        return self.redshift_connection_config.connection_string
 
     @property
     @override
@@ -58,4 +59,26 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
             name=self._random_resource_name(),
             table_name=self.table_name,
             schema_name=self.schema,
+        )
+
+    @cached_property
+    def redshift_connection_config(self) -> RedshiftDatasourceTestConfig:
+        return RedshiftConnectionConfig()
+
+
+class RedshiftConnectionConfig(BaseSettings):
+    # BaseSettings will retrieve this environment variable
+    REDSHIFT_DATABASE: str
+    REDSHIFT_HOST: str
+    REDSHIFT_PASSWORD: str
+    REDSHIFT_PORT: int
+    REDSHIFT_USERNAME: str
+    REDSHIFT_SSLMODE: str
+
+    @property
+    def connection_string(self) -> str:
+        return (
+            f"redshift+psycopg2://{self.REDSHIFT_USERNAME}:{self.REDSHIFT_PASSWORD}@"
+            f"{self.REDSHIFT_HOST}:{self.REDSHIFT_PORT}/{self.REDSHIFT_DATABASE}?"
+            f"sslmode={self.REDSHIFT_SSLMODE}"
         )
