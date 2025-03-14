@@ -45,7 +45,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
    GX Core currently supports partitioning File Data Assets based on dates.  The files can be returned by year, month, or day. To define a Batch Definition, you need to provide the following information: 
 
     - `name`: A name by which you can reference the Batch Definition in the future.  This should be unique within the Data Asset.
-    - `regex`: A regular expression used to match against file names. When using a Filesystem Data Source, `regex` is relative to Data Source param `base_directory`.
+    - `regex`: A regular expression used to match against file names. When using a Filesystem Data Source, `regex` is relative to the Data Source parameter `base_directory`.
 
    <Tabs queryString="partition_type" groupId="partition_type" defaultValue='yearly'>
    
