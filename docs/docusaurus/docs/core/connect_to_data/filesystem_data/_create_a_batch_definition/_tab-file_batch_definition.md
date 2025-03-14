@@ -31,7 +31,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
    To define a path Batch Definition you need to provide the following information:
 
    - `name`: A name by which you can reference the Batch Definition in the future.  This should be unique within the Data Asset.
-   - `path`: The path within the Data Asset of the data file containing the records to return. When using a Filesystem Data Source, `path` is relative to Data Source param `base_directory`.
+   - `path`: The path within the Data Asset of the data file containing the records to return. When using a Filesystem Data Source, `path` is relative to the Data Source parameter `base_directory`.
  
    Update the `batch_definition_name` and `batch_definition_path` variables and execute the following code to add a path Batch Definition to your Data Asset:
 
