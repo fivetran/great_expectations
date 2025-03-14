@@ -374,15 +374,13 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         value_set = self._get_success_kwargs()["value_set"]
 
         # Try to coerce string values to match the type of observed values
-        if len(observed_value_set) > 0 and len(value_set) > 0:
+        if observed_value_set and value_set:
             first_observed = next(iter(observed_value_set))
-            parsed_value_set = {
+            expected_value_set = {
                 parse_value_to_observed_type(first_observed, value) for value in value_set
             }
         else:
-            parsed_value_set = value_set
-
-        expected_value_set = set(parsed_value_set)
+            expected_value_set = set(value_set)
 
         return {
             "success": observed_value_set == expected_value_set,
