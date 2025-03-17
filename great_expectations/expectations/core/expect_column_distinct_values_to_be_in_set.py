@@ -502,9 +502,14 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         for name, schema in renderer_configuration.params:
             if not name.startswith(ov_param_prefix):
                 continue
+            # try to coerce value_set to a type that can be compared with schema.value
+            coerced_value_set = {
+                parse_value_to_observed_type(observed_value=schema.value, value=value)
+                for value in value_set
+            }
             render_state = (
                 ObservedValueRenderState.EXPECTED.value
-                if schema.value in value_set
+                if schema.value in coerced_value_set
                 else ObservedValueRenderState.UNEXPECTED.value
             )
             renderer_configuration.params.__dict__[name].render_state = render_state
