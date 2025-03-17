@@ -78,7 +78,7 @@ expectations_store_name: expectations_S3_store
 configured_expectations_store = yaml.load(configured_expectations_store_yaml)
 configured_expectations_store["stores"]["expectations_S3_store"]["store_backend"][
     "bucket"
-] = "aws-golden-path-tests"
+] = "gx-golden-path-tests"
 configured_expectations_store["stores"]["expectations_S3_store"]["store_backend"][
     "prefix"
 ] = "metadata/expectations"
@@ -161,7 +161,7 @@ configured_validation_results_store = yaml.load(
 )
 configured_validation_results_store["stores"]["validation_results_S3_store"][
     "store_backend"
-]["bucket"] = "aws-golden-path-tests"
+]["bucket"] = "gx-golden-path-tests"
 configured_validation_results_store["stores"]["validation_results_S3_store"][
     "store_backend"
 ]["prefix"] = "metadata/validations"
