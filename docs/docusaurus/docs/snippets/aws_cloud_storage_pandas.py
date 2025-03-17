@@ -202,7 +202,7 @@ data_docs_sites:
 """
 
 data_docs_site_yaml = data_docs_site_yaml.replace(
-    "<YOUR S3 BUCKET NAME>", "demo-data-docs"
+    "<YOUR S3 BUCKET NAME>", "gx-demo-data-docs"
 )
 great_expectations_yaml_file_path = pathlib.Path(
     context.root_directory, FileDataContext.GX_YML
@@ -218,7 +218,7 @@ with open(great_expectations_yaml_file_path, "w") as f:
 
 # <snippet name="docs/docusaurus/docs/snippets/aws_cloud_storage_pandas.py add_s3_datasource">
 datasource = context.data_sources.add_or_update_pandas_s3(
-    name="s3_datasource", bucket="taxi-data-sample-test"
+    name="s3_datasource", bucket="gx-taxi-data-sample-test"
 )
 # </snippet>
 

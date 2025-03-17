@@ -207,7 +207,7 @@ data_docs_sites:
 """
 
 data_docs_site_yaml = data_docs_site_yaml.replace(
-    "<YOUR S3 BUCKET NAME>", "demo-data-docs"
+    "<YOUR S3 BUCKET NAME>", "gx-demo-data-docs"
 )
 great_expectations_yaml_file_path = pathlib.Path(
     context.root_directory, FileDataContext.GX_YML
@@ -228,7 +228,7 @@ awscreds = {
 # <snippet name="docs/docusaurus/docs/snippets/aws_cloud_storage_spark.py add_s3_datasource">
 datasource = context.sources.add_or_update_spark_s3(
     name="s3_datasource",
-    bucket="taxi-data-sample-test",
+    bucket="gx-taxi-data-sample-test",
     boto3_options=awscreds,
 )
 # </snippet>
@@ -296,5 +296,5 @@ context.build_data_docs()
 # </snippet>
 
 # assert docs have been built
-results = client.list_objects(Bucket="demo-data-docs")
-assert client.head_object(Bucket="demo-data-docs", Key="index.html")
+results = client.list_objects(Bucket="gx-demo-data-docs")
+assert client.head_object(Bucket="gx-demo-data-docs", Key="index.html")

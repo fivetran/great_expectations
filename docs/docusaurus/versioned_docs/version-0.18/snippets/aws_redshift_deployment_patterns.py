@@ -201,7 +201,7 @@ data_docs_sites:
 """
 
 data_docs_site_yaml = data_docs_site_yaml.replace(
-    "<YOUR S3 BUCKET NAME>", "demo-data-docs"
+    "<YOUR S3 BUCKET NAME>", "gx-demo-data-docs"
 )
 great_expectations_yaml_file_path = pathlib.Path(
     context.root_directory, FileDataContext.GX_YML
