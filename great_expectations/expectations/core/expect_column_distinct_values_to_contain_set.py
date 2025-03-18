@@ -418,6 +418,10 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
             renderer_configuration=renderer_configuration,
         )
 
+        observed_value_set = set(
+            result.get("result", {}).get("observed_value", []) if result else []
+        )
+
         observed_values = (
             (name, sch)
             for name, sch in renderer_configuration.params
@@ -437,12 +441,16 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
             template_str_list.append(f"${name}")
 
         for name, schema in expected_values:
-            # try to coerce observed_value_set to a type that can be compared with schema.value
-            coerced_value_set = {
-                parse_value_to_observed_type(observed_value=schema.value, value=value)
-                for value in expected_values
-            }
-            if schema.value not in coerced_value_set:
+            # try to coerce the expected value to a type that can be compared with observed values
+            if observed_value_set:
+                observed_value = next(val for val in observed_value_set)
+                expected_value = parse_value_to_observed_type(
+                    observed_value=observed_value, value=schema.value
+                )
+            else:
+                expected_value = schema.value
+
+            if expected_value not in observed_value_set:
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value
