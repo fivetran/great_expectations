@@ -14,4 +14,5 @@ EXPECTATION_SUITE_EXPECTATION_DELETED: Action = Action("expectation_suite.expect
 EXPECTATION_SUITE_EXPECTATION_UPDATED: Action = Action("expectation_suite.expectation_updated")
 VALIDATION_DEFINITION_CREATED: Action = Action("validation_definition.created")
 VALIDATION_DEFINITION_DELETED: Action = Action("validation_definition.deleted")
+VALIDATION_DEFINITION_RAN: Action = Action("validation_definition.ran")
 NOTIFICATION_ACTION_RAN: Action = Action("notification.ran")

@@ -54,7 +54,10 @@ def test_SlackRenderer_render(mocker):
     assert output == [
         {
             "text": {
-                "text": "*Asset*: taxi_data_1.csv  *Expectation Suite*: my_suite",
+                "text": (
+                    "\n*Asset*: `taxi_data_1.csv`  \n*Expectation Suite*: `my_suite`"
+                    "\n*Summary*: *3* of *3* Expectations were met"
+                ),
                 "type": "mrkdwn",
             },
             "type": "section",

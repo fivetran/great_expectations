@@ -49,10 +49,11 @@ class TypeLookup(
 
     def __init__(
         self,
-        __dict: Optional[Mapping[ValidTypes, ValidTypes]] = None,
+        dict: Optional[Mapping[ValidTypes, ValidTypes]] = None,
+        /,
         **kwargs: Hashable,
     ):
-        __dict = __dict or {}
+        __dict = dict or {}
         super().__init__(__dict, **kwargs)
 
     def type_names(self) -> Generator[str, None, None]:

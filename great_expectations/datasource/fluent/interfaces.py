@@ -58,14 +58,15 @@ from great_expectations.exceptions.exceptions import (
     MissingDataContextError,
 )
 from great_expectations.metrics.metric import MetaMetric, Metric
+from great_expectations.metrics.metric_name import MetricNameSuffix
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
+    MetricInternalErrorResult,
+    MetricInternalErrorResultValue,
     MetricResult,
 )
 from great_expectations.validator.metrics_calculator import (
     MetricsCalculator,
-    _AbortedMetricsInfoDict,
-    _MetricsDict,
 )
 
 logger = logging.getLogger(__name__)
@@ -106,6 +107,7 @@ if TYPE_CHECKING:
         TypeLookup,
     )
     from great_expectations.expectations.expectation import Expectation
+    from great_expectations.validator.computed_metric import MetricValue
     from great_expectations.validator.v1_validator import (
         Validator as V1Validator,
     )
@@ -745,7 +747,9 @@ class Datasource(
 
         updated_asset = updated_datasource.get_asset(asset_name)
         updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
-
+        if batch_definition is not updated_batch_definition:
+            # update in memory copy with the new ID
+            batch_definition.id = updated_batch_definition.id
         return updated_batch_definition
 
     def delete_batch_definition(self, batch_definition: BatchDefinition[PartitionerT]) -> None:
@@ -1287,57 +1291,54 @@ class Batch:
             this by adding an explicit annotation (e.g. metrics: list[Metric] = ...)
             https://github.com/python/mypy/issues/18712
         """
+        is_single_metric = False
         if isinstance(metrics, Metric):
             metrics = [metrics]
+            is_single_metric = True
 
         metrics_calculator = self._get_metrics_calculator()
-
-        requested_metric_names = [metric.name for metric in metrics]
-        metrics_calculator_result = metrics_calculator.compute_metrics(
-            metric_configurations=[metric.config for metric in metrics],
+        metrics_calculator_results, metrics_calculator_errors = metrics_calculator.compute_metrics(
+            metric_configurations=[metric.config(batch_id=self.id) for metric in metrics],
             runtime_configuration=None,
         )
-        return self.metrics_calculator_result_to_metric_result(
-            requested_metric_names=requested_metric_names,
-            metrics_calculator_result=metrics_calculator_result,
-        )
 
-    @classmethod
-    def metrics_calculator_result_to_metric_result(
-        cls,
-        requested_metric_names: list[str],
-        metrics_calculator_result: tuple[_MetricsDict, _AbortedMetricsInfoDict],
-    ) -> MetricResult | list[MetricResult]:
-        """Converts the result of MetricsCalculator.compute_metrics() into
-        a MetricResult or list[MetricResult]. Only the metrics that were
-        requested in the call to MetricsCalculator.compute_metrics()
-        will be returned (dependency metrics are excluded)."""
-        # add another level of nesting to these metric dicts
-        # since the key we care about is nested inside the current key
-        # enables us to iterate through these dicts only once
-        raw_metrics = {k.metric_name: (k, v) for k, v in metrics_calculator_result[0].items()}
-        raw_metrics_errors = {
-            k.metric_name: (k, v) for k, v in metrics_calculator_result[1].items()
-        }
-        metric_results = []
-        for metric_name in requested_metric_names:
-            if metric_name in raw_metrics:
-                MetricType = MetaMetric.get_registered_metric_class_from_metric_name(metric_name)
+        results = []
+        for metric in metrics:
+            metric_id_for_batch = metric.metric_id_for_batch(batch_id=self.id)
+            if metric_id_for_batch in metrics_calculator_results:
+                MetricType = MetaMetric.get_registered_metric_class_from_metric_name(metric.name)
                 MetricResultType = MetricType.get_metric_result_type()
-                metric_results.append(
-                    MetricResultType(
-                        id=raw_metrics[metric_name][0],
-                        value=raw_metrics[metric_name][1],
-                    )
+                value = self._parse_metric_value(
+                    metric_name=metric.name,
+                    metric_calculator_result=metrics_calculator_results[metric_id_for_batch],
                 )
-            elif metric_name in raw_metrics_errors:
-                metric_results.append(
-                    MetricErrorResult(
-                        id=raw_metrics_errors[metric_name][0],
-                        value=raw_metrics_errors[metric_name][1],
+                results.append(MetricResultType(id=metric_id_for_batch, value=value))
+            elif metric_id_for_batch in metrics_calculator_errors:
+                value = metrics_calculator_errors[metric_id_for_batch]
+                results.append(MetricErrorResult(id=metric_id_for_batch, value=value))
+            else:
+                results.append(
+                    MetricInternalErrorResult(
+                        id=metric_id_for_batch,
+                        value=MetricInternalErrorResultValue(
+                            msg=f"Metric {metric.name} not found in results: "
+                            "{list(metrics_calculator_results.keys())} or errors: "
+                            "{list(metrics_calculator_errors.keys())}"
+                        ),
                     )
                 )
 
-        if len(metric_results) == 1:
-            return metric_results[0]
-        return metric_results
+        if is_single_metric:
+            return results[0]
+        return results
+
+    def _parse_metric_value(
+        self, metric_name: str, metric_calculator_result: MetricValue
+    ) -> MetricValue:
+        if metric_name.endswith(MetricNameSuffix.CONDITION) and isinstance(
+            metric_calculator_result, tuple
+        ):
+            value = metric_calculator_result[0]
+        else:
+            value = metric_calculator_result
+        return value

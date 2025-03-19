@@ -137,9 +137,9 @@ def context_sources_cleanup() -> Generator[DataSourceManager, None, None]:
         type_lookup_copy = copy.deepcopy(DataSourceManager.type_lookup)
         sources = get_context().data_sources
 
-        assert (
-            "add_datasource" not in sources.factories
-        ), "Datasource base class should not be registered as a source factory"
+        assert "add_datasource" not in sources.factories, (
+            "Datasource base class should not be registered as a source factory"
+        )
 
         yield sources
     finally:
@@ -202,9 +202,9 @@ class TestMetaDatasource:
 
         ds_factory_method_final = getattr(context_sources_cleanup, expected_method_name, None)
 
-        assert (
-            ds_factory_method_final
-        ), f"{MetaDatasource.__name__}.__new__ failed to add `{expected_method_name}()` method"
+        assert ds_factory_method_final, (
+            f"{MetaDatasource.__name__}.__new__ failed to add `{expected_method_name}()` method"
+        )
 
     def test_registered_sources_factory_method_has_correct_signature(
         self, context_sources_cleanup: DataSourceManager
@@ -232,9 +232,9 @@ class TestMetaDatasource:
             print(f"{i} {param_name} ", end="")
 
             if param_name in ["type", "assets"]:
-                assert (
-                    param_name not in ds_factory_method_sig.parameters
-                ), f"{param_name} should not be part of the `add_<DATASOURCE_TYPE>` method"
+                assert param_name not in ds_factory_method_sig.parameters, (
+                    f"{param_name} should not be part of the `add_<DATASOURCE_TYPE>` method"
+                )
                 print("⏩")
                 continue
 

@@ -30,8 +30,8 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine import (
-    PandasExecutionEngine,  # noqa: TCH001 # FIXME CoP
-    SqlAlchemyExecutionEngine,  # noqa: TCH001 # FIXME CoP
+    PandasExecutionEngine,  # noqa: TC001 # FIXME CoP
+    SqlAlchemyExecutionEngine,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
@@ -1209,9 +1209,9 @@ def get_sqlalchemy_source_table_and_schema(
     Returns:
         SqlAlchemy Table that is the source table and schema.
     """  # noqa: E501 # FIXME CoP
-    assert isinstance(
-        engine.batch_manager.active_batch_data, SqlAlchemyBatchData
-    ), "`active_batch_data` not SqlAlchemyBatchData"
+    assert isinstance(engine.batch_manager.active_batch_data, SqlAlchemyBatchData), (
+        "`active_batch_data` not SqlAlchemyBatchData"
+    )
 
     schema_name = engine.batch_manager.active_batch_data.source_schema_name
     table_name = engine.batch_manager.active_batch_data.source_table_name
@@ -1413,9 +1413,9 @@ def compute_unexpected_pandas_indices(  # noqa: C901 # FIXME CoP
         else:
             for index in unexpected_indices:
                 primary_key_dict: Dict[str, Any] = dict()
-                assert (
-                    expectation_domain_column_list
-                ), "`expectation_domain_column_list` was not provided"
+                assert expectation_domain_column_list, (
+                    "`expectation_domain_column_list` was not provided"
+                )
                 for domain_column_name in expectation_domain_column_list:
                     primary_key_dict[domain_column_name] = domain_records_df.at[
                         index, domain_column_name

@@ -1,3 +1,6 @@
+import re
+
+
 def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noqa: C901
     # Add newline before closing dt tags when they have more than one child
     for item in soup.find_all("dt"):
@@ -64,9 +67,15 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Display signatures as code blocks
     items = soup.select(".sig-object")
     for item in items:
+        code_block_text = item.get_text()
         code_block = soup.new_tag("CodeBlock", language="python", title="Signature")
-        code_block.append("{`" + item.get_text().replace("#", "") + "`}")
+        code_block.append(format_code_block(item.get_text()))
         item.replace_with(code_block)
+
+        if "class" not in code_block_text:
+            code_block_title = soup.new_tag("h3")
+            code_block_title.string = code_block_text.split("(")[0].strip()
+            code_block.insert_before(code_block_title)
 
     # Prevent build from failing when there's code-like text outside code blocks
     for item in soup.find_all(text=True):
@@ -98,19 +107,21 @@ def create_table(soup, item, dd, title):
     p = dd.find("p")
     if p is None:
         return
-    columns = []
 
     if title in ("Parameters", "Raises"):
-        columns = p.get_text().split(" – ")  # noqa: RUF001
-        if len(columns) != 2:
-            return
+        for p in dd.find_all("p"):
+            columns = p.get_text().split(" – ")  # noqa: RUF001
+            if len(columns) != 2:
+                return
+            create_row(soup, tbody, columns)
+
     if title == "Returns":
         type_text = closest_return_type(dd)
         if type_text == "":
             return
         columns = [type_text, p.get_text()]
+        create_row(soup, tbody, columns)
 
-    create_row(soup, tbody, columns)
     dd.find_previous_sibling("dt").extract()
     dd.extract()
     table.append(tbody)
@@ -194,3 +205,11 @@ def add_table_title(soup, table, title):
     table.insert_before("\r\n")
     table.insert_before(title_h4)
     table.insert_before("\r\n")
+
+
+def format_code_block(item_text):
+    code_with_newline_at_beginning = re.sub(r"\((?!\))", "(\n   ", item_text)
+    code_with_newline_at_end = re.sub(
+        r"(?<!\()\)", "\n)", code_with_newline_at_beginning
+    )
+    return "{`" + code_with_newline_at_end.replace("#", "").replace(",", ",\n  ") + "`}"

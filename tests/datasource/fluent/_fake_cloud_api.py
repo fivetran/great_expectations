@@ -340,9 +340,9 @@ def post_datasources_cb(
             if not datasource_id:
                 datasource_id = str(uuid.uuid4())
                 payload.data.id = datasource_id
-            assert (
-                datasource_id not in _CLOUD_API_FAKE_DB["datasources"]
-            ), f"ID collision for '{datasource_name}'"
+            assert datasource_id not in _CLOUD_API_FAKE_DB["datasources"], (
+                f"ID collision for '{datasource_name}'"
+            )
 
             _CLOUD_API_FAKE_DB["datasources"][datasource_id] = payload.dict()
             _CLOUD_API_FAKE_DB["DATASOURCE_NAMES"].add(payload.data.name)
@@ -780,9 +780,23 @@ def post_validation_results_cb(request: PreparedRequest) -> CallbackResult:
         raise NotImplementedError("Handling missing body")
 
     payload: dict = json.loads(request.body)
-    validation_id = payload["data"]["attributes"]["result"]["meta"]["validation_id"]
+    validation_id = payload["data"]["meta"]["validation_id"]
     if validation_id:
-        raise NotImplementedError("TODO: Handling the validation_id success case")
+        return CallbackResult(
+            200,
+            headers=DEFAULT_HEADERS,
+            body=json.dumps(
+                {
+                    "data": {
+                        "id": validation_id,
+                        "result_url": (
+                            f"{GX_CLOUD_MOCK_BASE_URL}organizations/{FAKE_ORG_ID}/"
+                            "validation-results/{validation_id}"
+                        ),
+                    }
+                }
+            ),
+        )
     else:
         result = CallbackResult(
             422,  # 400 in prod but this is a more informative status code

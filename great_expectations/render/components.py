@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, List, Optional, Union
 
 from marshmallow import Schema, fields, post_dump, post_load
 
-from great_expectations.alias_types import JSONValues  # noqa: TCH001 # FIXME CoP
+from great_expectations.alias_types import JSONValues  # noqa: TC001 # FIXME CoP
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.render.exceptions import InvalidRenderedContentError
 from great_expectations.types import DictDot
@@ -681,7 +681,7 @@ class RenderedDocumentContent(RenderedContent):
             isinstance(section, RenderedSectionContent) for section in sections
         ):
             raise InvalidRenderedContentError(  # noqa: TRY003 # FIXME CoP
-                "RenderedDocumentContent requires a list of RenderedSectionContent for " "sections."
+                "RenderedDocumentContent requires a list of RenderedSectionContent for sections."
             )
         self.sections = sections
         self.data_asset_name = data_asset_name

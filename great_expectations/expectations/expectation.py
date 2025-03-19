@@ -100,7 +100,7 @@ from great_expectations.render.util import (
     num_to_str,
 )
 from great_expectations.util import camel_to_snake
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:
@@ -1758,9 +1758,9 @@ class QueryExpectation(BatchExpectation, ABC):
         query: Optional[Any] = configuration.kwargs.get("query") or self._get_default_value("query")
 
         try:
-            assert (
-                "query" in configuration.kwargs or query
-            ), "'query' parameter is required for Query Expectations."
+            assert "query" in configuration.kwargs or query, (
+                "'query' parameter is required for Query Expectations."
+            )
         except AssertionError as e:
             raise InvalidExpectationConfigurationError(str(e))
         try:
@@ -1901,12 +1901,14 @@ class ColumnMapExpectation(BatchExpectation, ABC):
             execution_engine=execution_engine,
             runtime_configuration=runtime_configuration,
         )
-        assert isinstance(
-            self.map_metric, str
-        ), "ColumnMapExpectation must override get_validation_dependencies or declare exactly one map_metric"  # noqa: E501 # FIXME CoP
-        assert (
-            self.metric_dependencies == tuple()
-        ), "ColumnMapExpectation must be configured using map_metric, and cannot have metric_dependencies declared."  # noqa: E501 # FIXME CoP
+        assert isinstance(self.map_metric, str), (
+            "ColumnMapExpectation must override get_validation_dependencies "
+            "or declare exactly one map_metric"
+        )
+        assert self.metric_dependencies == tuple(), (
+            "ColumnMapExpectation must be configured using map_metric, "
+            "and cannot have metric_dependencies declared."
+        )
 
         metric_kwargs: dict
 
@@ -2164,12 +2166,14 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
             execution_engine=execution_engine,
             runtime_configuration=runtime_configuration,
         )
-        assert isinstance(
-            self.map_metric, str
-        ), "ColumnPairMapExpectation must override get_validation_dependencies or declare exactly one map_metric"  # noqa: E501 # FIXME CoP
-        assert (
-            self.metric_dependencies == tuple()
-        ), "ColumnPairMapExpectation must be configured using map_metric, and cannot have metric_dependencies declared."  # noqa: E501 # FIXME CoP
+        assert isinstance(self.map_metric, str), (
+            "ColumnPairMapExpectation must override get_validation_dependencies "
+            "or declare exactly one map_metric"
+        )
+        assert self.metric_dependencies == tuple(), (
+            "ColumnPairMapExpectation must be configured using map_metric, "
+            "and cannot have metric_dependencies declared."
+        )
         metric_kwargs: dict
 
         configuration = self.configuration
@@ -2424,12 +2428,14 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
             execution_engine=execution_engine,
             runtime_configuration=runtime_configuration,
         )
-        assert isinstance(
-            self.map_metric, str
-        ), "MulticolumnMapExpectation must override get_validation_dependencies or declare exactly one map_metric"  # noqa: E501 # FIXME CoP
-        assert (
-            self.metric_dependencies == tuple()
-        ), "MulticolumnMapExpectation must be configured using map_metric, and cannot have metric_dependencies declared."  # noqa: E501 # FIXME CoP
+        assert isinstance(self.map_metric, str), (
+            "MulticolumnMapExpectation must override get_validation_dependencies "
+            "or declare exactly one map_metric"
+        )
+        assert self.metric_dependencies == tuple(), (
+            "MulticolumnMapExpectation must be configured using map_metric, "
+            "and cannot have metric_dependencies declared."
+        )
         # convenient name for updates
 
         configuration = self.configuration
@@ -2848,3 +2854,28 @@ def add_values_with_json_schema_from_list_in_params(
                 "value": v,
             }
     return params_with_json_schema
+
+
+def parse_value_to_observed_type(observed_value: Any, value: Any) -> Any:
+    """
+    Try to coerce a value to match the type of an observed value,
+    particularly handling datetime and date types.
+
+    Args:
+        observed_value: A value with the target type
+        value: Value to be coerced to match observed_value's type
+
+    Returns:
+        A value coerced to match observed_value's type where possible
+    """
+    # Handle datetime and date types
+    if isinstance(observed_value, (datetime.date, datetime.datetime)):
+        try:
+            return (
+                parse(value).date() if isinstance(observed_value, datetime.date) else parse(value)
+            )
+        except (ValueError, TypeError):
+            return value
+
+    # For other types, no special handling needed
+    return value

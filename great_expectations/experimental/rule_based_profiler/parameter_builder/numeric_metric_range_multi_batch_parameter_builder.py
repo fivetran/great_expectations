@@ -19,9 +19,9 @@ from typing import (
 
 import numpy as np
 
-from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.domain import Domain  # noqa: TC001 # FIXME CoP
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
+    ParameterBuilderConfig,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.estimators.bootstrap_numeric_range_estimator import (  # noqa: E501 # FIXME CoP
     BootstrapNumericRangeEstimator,
@@ -37,7 +37,7 @@ from great_expectations.experimental.rule_based_profiler.estimators.numeric_rang
     NumericRangeEstimationResult,
 )
 from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimator import (
-    NumericRangeEstimator,  # noqa: TCH001 # FIXME CoP
+    NumericRangeEstimator,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.estimators.quantiles_numeric_range_estimator import (  # noqa: E501 # FIXME CoP
     QuantilesNumericRangeEstimator,
@@ -51,7 +51,7 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     integer_semantic_domain_type,
 )
 from great_expectations.experimental.rule_based_profiler.metric_computation_result import (
-    MetricValues,  # noqa: TCH001 # FIXME CoP
+    MetricValues,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import (
     MetricMultiBatchParameterBuilder,

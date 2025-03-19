@@ -22,12 +22,12 @@ class ProfileNumericColumnsDiffExpectation(BatchExpectation):
         dependencies: ValidationDependencies = super().get_validation_dependencies(
             execution_engine, runtime_configuration
         )
-        assert isinstance(
-            self.profile_metric, str
-        ), "ProfileNumericColumnsDiffExpectation must override get_validation_dependencies or declare exactly one profile_metric"
-        assert (
-            self.metric_dependencies == tuple()
-        ), "ProfileNumericColumnsDiffExpectation must be configured using profile_metric, and cannot have metric_dependencies declared."
+        assert isinstance(self.profile_metric, str), (
+            "ProfileNumericColumnsDiffExpectation must override get_validation_dependencies or declare exactly one profile_metric"
+        )
+        assert self.metric_dependencies == tuple(), (
+            "ProfileNumericColumnsDiffExpectation must be configured using profile_metric, and cannot have metric_dependencies declared."
+        )
         # convenient name for updates
 
         metric_kwargs = get_metric_kwargs(

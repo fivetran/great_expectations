@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Set
 import numpy as np
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.domain import Domain  # noqa: TC001 # FIXME CoP
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.experimental.rule_based_profiler.config import ParameterBuilderConfig
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
@@ -26,7 +26,7 @@ from great_expectations.experimental.rule_based_profiler.parameter_container imp
     ParameterNode,
 )
 from great_expectations.types.attributes import Attributes
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.data_context.data_context.abstract_data_context import (

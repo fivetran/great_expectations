@@ -65,7 +65,7 @@ def _compare_select_statement_with_converted_string(engine) -> None:
     returned_string = sql_statement_with_post_compile_to_string(
         engine=engine, select_statement=select_statement
     )
-    assert returned_string == ("SELECT a.id, a.data \n" "FROM a \n" "WHERE a.data = '00000000';")
+    assert returned_string == ("SELECT a.id, a.data \nFROM a \nWHERE a.data = '00000000';")
 
 
 @pytest.fixture
@@ -162,7 +162,7 @@ def test_sql_statement_conversion_to_string_bigquery(test_backends):
             engine=engine, select_statement=select_statement
         )
         assert returned_string == (
-            "SELECT `a`.`id`, `a`.`data` \n" "FROM `a` \n" "WHERE `a`.`data` = '00000000';"
+            "SELECT `a`.`id`, `a`.`data` \nFROM `a` \nWHERE `a`.`data` = '00000000';"
         )
     else:
         pytest.skip("skipping sql statement conversion test for : bigquery")
@@ -388,7 +388,7 @@ def test_get_unexpected_indices_for_multiple_pandas_named_indices_named_unexpect
             expectation_domain_column_list=expectation_domain_column_list,
         )
     assert e.value.message == (
-        "Error: The list of domain columns is currently empty. Please check your " "configuration."
+        "Error: The list of domain columns is currently empty. Please check your configuration."
     )
 
 

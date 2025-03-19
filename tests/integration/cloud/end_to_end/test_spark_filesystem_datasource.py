@@ -63,15 +63,15 @@ def datasource(
 
     datasource.base_directory = normalize_directory_path(updated_base_dir, context.root_directory)
     datasource = context.data_sources.add_or_update_spark_filesystem(datasource=datasource)
-    assert (
-        datasource.base_directory == updated_base_dir
-    ), "The datasource was not updated in the previous method call."
+    assert datasource.base_directory == updated_base_dir, (
+        "The datasource was not updated in the previous method call."
+    )
 
     datasource.base_directory = normalize_directory_path(original_base_dir, context.root_directory)
     datasource = context.data_sources.add_or_update_spark_filesystem(datasource=datasource)
-    assert (
-        datasource.base_directory == original_base_dir
-    ), "The datasource was not updated in the previous method call."
+    assert datasource.base_directory == original_base_dir, (
+        "The datasource was not updated in the previous method call."
+    )
     return datasource
 
 

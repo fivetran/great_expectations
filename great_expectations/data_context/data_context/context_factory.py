@@ -312,9 +312,9 @@ class ProjectManager:
         # If available and applicable, convert project_config mapping into a rich config type
         if project_config:
             project_config = AbstractDataContext.get_or_create_data_context_config(project_config)
-        assert project_config is None or isinstance(
-            project_config, DataContextConfig
-        ), "project_config must be of type Optional[DataContextConfig]"
+        assert project_config is None or isinstance(project_config, DataContextConfig), (
+            "project_config must be of type Optional[DataContextConfig]"
+        )
 
         return project_config
 

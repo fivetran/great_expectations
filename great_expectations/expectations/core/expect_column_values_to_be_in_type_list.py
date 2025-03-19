@@ -10,7 +10,7 @@ from packaging import version
 from great_expectations.compatibility import pydantic, pyspark
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001, RUF100 # FIXME CoP
+    SuiteParameterDict,  # noqa: TC001, RUF100 # FIXME CoP
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import (
     GXSqlDialect,

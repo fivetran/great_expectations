@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
