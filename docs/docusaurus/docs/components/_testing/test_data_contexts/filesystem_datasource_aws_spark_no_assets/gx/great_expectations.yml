@@ -81,6 +81,6 @@ analytics_enabled: true
 fluent_datasources:
   my_filesystem_data_source:
     type: spark_s3
-    bucket: superconductive-docs-test
+    bucket: great-expectations-docs-test
     boto3_options: {}
 data_context_id: b0994ef6-1290-461b-b065-5cb67870e555
