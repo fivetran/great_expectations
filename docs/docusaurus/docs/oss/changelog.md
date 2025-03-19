@@ -14,6 +14,22 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.11
+* [FEATURE] Add the ability to run checkpoints with cloud windowed expectations ([#11027](https://github.com/great-expectations/great_expectations/pull/11027))
+* [BUGFIX] Distinct values expectations correctly compare dates and datetimes ([#11030](https://github.com/great-expectations/great_expectations/pull/11030))
+* [DOCS] restore link checker ([#11025](https://github.com/great-expectations/great_expectations/pull/11025))
+* [DOCS] - single category for Expectations ([#11008](https://github.com/great-expectations/great_expectations/pull/11008))
+* [DOCS] fix error in filesystem data source docs ([#11019](https://github.com/great-expectations/great_expectations/pull/11019))
+* [MAINTENANCE] Remove default snowflake role ([#11004](https://github.com/great-expectations/great_expectations/pull/11004))
+* [MAINTENANCE] Add mode to props sent in analytics ([#11001](https://github.com/great-expectations/great_expectations/pull/11001))
+* [MAINTENANCE] Update ci.yml so pr targets become pr-event targets ([#11031](https://github.com/great-expectations/great_expectations/pull/11031))
+* [MAINTENANCE] Remove timber from CODEOWNERS ([#10996](https://github.com/great-expectations/great_expectations/pull/10996))
+* [MAINTENANCE] Update aws ci secret vars. ([#11035](https://github.com/great-expectations/great_expectations/pull/11035))
+* [MAINTENANCE] Revert Update aws ci secret vars. ([#11036](https://github.com/great-expectations/great_expectations/pull/11036))
+* [MAINTENANCE] Add ci aws creds. ([#11037](https://github.com/great-expectations/great_expectations/pull/11037))
+* [MAINTENANCE] Point tests to aws buckets in oss account. ([#11034](https://github.com/great-expectations/great_expectations/pull/11034))
+* [MAINTENANCE] Fix atomic diagnostic observed value renderers when used with datetime ([#11033](https://github.com/great-expectations/great_expectations/pull/11033))
+
 ### 1.3.10
 * [DOCS] beta badge followup ([#11015](https://github.com/great-expectations/great_expectations/pull/11015))
 * [DOCS] Test coverage metrics ([#11002](https://github.com/great-expectations/great_expectations/pull/11002))
