@@ -433,10 +433,7 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         observed_value_set = set(
             result.get("result", {}).get("observed_value", []) if result else []
         )
-        if observed_value_set:
-            sample_observed_value = next(val for val in observed_value_set)
-        else:
-            sample_observed_value = None
+        sample_observed_value = next(iter(observed_value_set)) if observed_value_set else None
         expected_value_set = {
             parse_value_to_observed_type(observed_value=sample_observed_value, value=value)
             for value in renderer_configuration.kwargs.get("value_set", [])
