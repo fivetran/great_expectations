@@ -443,9 +443,9 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         for name, schema in expected_values:
             # try to coerce the expected value to a type that can be compared with observed values
             if observed_value_set:
-                observed_value = next(val for val in observed_value_set)
+                sample_observed_value = next(iter(observed_value_set))
                 expected_value = parse_value_to_observed_type(
-                    observed_value=observed_value, value=schema.value
+                    observed_value=sample_observed_value, value=schema.value
                 )
             else:
                 expected_value = schema.value
