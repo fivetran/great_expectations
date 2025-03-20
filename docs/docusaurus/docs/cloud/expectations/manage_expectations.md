@@ -188,11 +188,13 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 3. Click **Delete Expectation** for the Expectation you want to delete.
 
+   :::tip You can delete Expectations in bulk
+    If you want to delete all Expectations that test for a certain data quality issue, you can instead click **Bulk-delete Expectations** for the relevant category.
+    :::
+
 4. Click **Yes, delete Expectation**.
 
-:::tip You can delete Expectations in bulk
-If you want to delete all Expectations that test for a certain data quality issue, you can instead click **Bulk-delete Expectations** for the relevant category.
-:::
+
 
 ## GX-managed vs. API-managed Expectations
 
