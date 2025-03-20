@@ -108,7 +108,7 @@ DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
-    __docs__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
+    __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
 
     KL divergence compares two distributions. The higher the divergence value (relative entropy), the larger \
     the difference between the two distributions. A relative entropy of zero indicates that the data are \
