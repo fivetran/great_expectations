@@ -320,7 +320,9 @@ def get_metric_provider(
     try:
         return metric_definition["providers"][type(execution_engine).__name__]
     except KeyError:
-        # Search up class hierarchy for a match
+        # Search up class hierarchy for a match. We skip the first entry since that's the
+        # execution engine type itself, type(execution_engine), which we just checked and
+        # resulted in the KeyError we're handling here.
         for cls in type(execution_engine).mro()[1:]:
             possible_key = cls.__name__
             if metric_definition["providers"].get(possible_key) is not None:
