@@ -314,7 +314,7 @@ def get_metric_provider(
         metric_definition = _registered_metrics[metric_name]
     except KeyError:
         raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
-            f"No metric named {metric_name} found"
+            f"No metric named {metric_name} found."
         )
 
     try:
