@@ -327,7 +327,7 @@ def get_metric_provider(
             possible_key = cls.__name__
             if metric_definition["providers"].get(possible_key) is not None:
                 metric_provider = metric_definition["providers"][possible_key]
-                # Register the metric definition for this engine so we don't have to search again
+                # Register the metric provider for this engine so we don't have to search again
                 metric_definition["providers"][type(execution_engine).__name__] = metric_provider
                 return metric_provider
         # no matches when search hierarchy so we raise
