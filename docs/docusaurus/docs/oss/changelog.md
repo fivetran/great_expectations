@@ -16,7 +16,6 @@ Before we completely remove the functionality in a new major release, there will
 
 ### 1.3.12
 * [DOCS] KL divergence gallery fix ([#11040](https://github.com/great-expectations/great_expectations/pull/11040))
-* [DOCS] Add key pair authentication as a limitation of ExpectAI in manage_expectations.md ([#11047](https://github.com/great-expectations/great_expectations/pull/11047)) (thanks @adeola-ak)
 * [MAINTENANCE] Add MINORBUMP title tag. ([#10841](https://github.com/great-expectations/great_expectations/pull/10841))
 * [MAINTENANCE] Add a sqlite execution engine and 1 sqlite specific metric. ([#11042](https://github.com/great-expectations/great_expectations/pull/11042))
 
