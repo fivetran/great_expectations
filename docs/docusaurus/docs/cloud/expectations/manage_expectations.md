@@ -143,7 +143,7 @@ When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-
 To accelerate test coverage, you can use ExpectAI to generate recommended Expectations for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
 Keep the following requirements and limitations in mind when working with ExpectAI:
-- Only [Snowflake Data Sources](/cloud/connect/connect_snowflake.md) are supported at this time.
+- Only [Snowflake Data Sources](/cloud/connect/connect_snowflake.md) using password authentication are supported at this time; key-pair authentication is not yet available.
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 
 To add AI-recommended Expectations:
