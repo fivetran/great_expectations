@@ -312,8 +312,25 @@ def get_metric_provider(
 ) -> Tuple[MetricProvider, Callable]:
     try:
         metric_definition = _registered_metrics[metric_name]
+    except KeyError:
+        raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
+            f"No metric named {metric_name} found."
+        )
+
+    try:
         return metric_definition["providers"][type(execution_engine).__name__]
     except KeyError:
+        # Search up class hierarchy for a match. We skip the first entry since that's the
+        # execution engine type itself, type(execution_engine), which we just checked and
+        # resulted in the KeyError we're handling here.
+        for cls in type(execution_engine).mro()[1:]:
+            possible_key = cls.__name__
+            if metric_definition["providers"].get(possible_key) is not None:
+                metric_def = metric_definition["providers"][possible_key]
+                # Register the metric definition for this engine so we don't have to search again
+                metric_definition["providers"][type(execution_engine).__name__] = metric_def
+                return metric_def
+        # no matches when search hierarchy so we raise
         raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
             f"No provider found for {metric_name} using {type(execution_engine).__name__}"
         )
