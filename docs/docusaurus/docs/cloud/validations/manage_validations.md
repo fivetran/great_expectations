@@ -30,7 +30,7 @@ To run a validation for an [API-managed Expectation](/cloud/expectations/manage_
 
 ## Run a Validation on a subset of a Data Asset
 
-If you've [defined a Batch](/cloud/expectations/manage_expectations.md#optional-define-a-batch), you can run a Validation on the latest Batch of data, or you can select a specific year, year and month, or year, month, and day period for the Validation. If a Batch is defined, Batch information appears on the Data Asset **Metrics** page and on the **Validations** page in the **Batches & run history** pane.
+If you've [defined a Batch](/cloud/expectations/manage_expectations.md#optional-define-a-batch), you can run a Validation on the latest Batch of data, or you can select a specific year, year and month, or year, month, and day period for the Validation. If a Batch is defined, Batch information appears on the **Validations** page in the **Batches & run history** pane.
 
 To run a Validation for a specific Batch, do the following:
 

@@ -14,6 +14,11 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.12
+* [DOCS] KL divergence gallery fix ([#11040](https://github.com/great-expectations/great_expectations/pull/11040))
+* [MAINTENANCE] Add MINORBUMP title tag. ([#10841](https://github.com/great-expectations/great_expectations/pull/10841))
+* [MAINTENANCE] Add a sqlite execution engine and 1 sqlite specific metric. ([#11042](https://github.com/great-expectations/great_expectations/pull/11042))
+
 ### 1.3.11
 * [FEATURE] Add the ability to run checkpoints with cloud windowed expectations ([#11027](https://github.com/great-expectations/great_expectations/pull/11027))
 * [BUGFIX] Distinct values expectations correctly compare dates and datetimes ([#11030](https://github.com/great-expectations/great_expectations/pull/11030))
