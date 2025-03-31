@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
+    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues
@@ -350,18 +351,26 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         runtime_configuration: Optional[dict] = None,
         execution_engine: Optional[ExecutionEngine] = None,
     ):
-        observed_value_counts = metrics.get("column.value_counts")
+        observed_value_counts = metrics["column.value_counts"]
+        observed_value_set = set(observed_value_counts.index)
         value_set = self._get_success_kwargs()["value_set"]
 
-        parsed_value_set = value_set
+        # Try to coerce string values to match the type of observed values
+        if observed_value_set and value_set:
+            first_observed = next(iter(observed_value_set))
+            expected_value_set = {
+                parse_value_to_observed_type(first_observed, value) for value in value_set
+            }
+        else:
+            expected_value_set = set(value_set)
 
-        if observed_value_counts is None:
-            raise ValueError("observed_value_counts None, but is required")  # noqa: TRY003 # FIXME CoP
-        observed_value_set = set(observed_value_counts.index)
-        expected_value_set = set(parsed_value_set)
+        if not expected_value_set:
+            success = True
+        else:
+            success = expected_value_set.issubset(observed_value_set)
 
         return {
-            "success": observed_value_set.issuperset(expected_value_set),
+            "success": success,
             "result": {
                 "observed_value": sorted(list(observed_value_set)),
                 "details": {"value_counts": observed_value_counts},
@@ -432,7 +441,16 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
             template_str_list.append(f"${name}")
 
         for name, schema in expected_values:
-            if schema.value not in observed_value_set:
+            # try to coerce the expected value to a type that can be compared with observed values
+            if observed_value_set:
+                sample_observed_value = next(iter(observed_value_set))
+                expected_value = parse_value_to_observed_type(
+                    observed_value=sample_observed_value, value=schema.value
+                )
+            else:
+                expected_value = schema.value
+
+            if expected_value not in observed_value_set:
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value

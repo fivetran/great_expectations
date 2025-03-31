@@ -5,12 +5,14 @@ import os
 import uuid
 from typing import (
     TYPE_CHECKING,
+    Any,
     Dict,
     Literal,
     Mapping,
     Optional,
     Union,
 )
+from urllib.parse import urljoin
 
 from requests import HTTPError, Response
 
@@ -63,7 +65,8 @@ from great_expectations.exceptions.exceptions import DataContextError
 
 if TYPE_CHECKING:
     from great_expectations.alias_types import PathStr
-    from great_expectations.checkpoint.checkpoint import CheckpointResult
+    from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
+    from great_expectations.core.suite_parameters import SuiteParameterDict
     from great_expectations.datasource.fluent import Datasource as FluentDatasource
     from great_expectations.render.renderer.site_builder import SiteBuilder
 
@@ -654,3 +657,57 @@ class CloudDataContext(SerializableDataContext):
             datasource=datasource,
             **kwargs,
         )
+
+    @override
+    def prepare_checkpoint_run(
+        self,
+        checkpoint: Checkpoint,
+        batch_parameters: Dict[str, Any],
+        expectation_parameters: SuiteParameterDict,
+    ) -> None:
+        """CloudContext specific preparation for a checkpoint run.
+
+        Actualizes windowed parameters by updating expectation_parameters in place.
+        """
+        if not self._checkpoint_has_windowed_expectations(checkpoint):
+            return
+
+        base_url = self.ge_cloud_config.base_url
+        org_id = self.ge_cloud_config.organization_id
+        expectation_parameters_url = urljoin(
+            base=base_url,
+            url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
+        )
+        with create_session(access_token=self.ge_cloud_config.access_token) as session:
+            response = session.get(url=expectation_parameters_url)
+
+        if not response.ok:
+            raise gx_exceptions.GXCloudError(
+                message="Unable to retrieve expectation_parameters for Checkpoint with "
+                f"ID={checkpoint.id}.",
+                response=response,
+            )
+        data = response.json()
+        try:
+            overlapping_keys = set(expectation_parameters.keys()) & set(
+                data["data"]["expectation_parameters"].keys()
+            )
+            if overlapping_keys:
+                logger.warning(
+                    "Passed in expectation_parameters also found in GX Cloud. Overwriting "
+                    f"passed in values with GX Cloud values for keys: {overlapping_keys}"
+                )
+            expectation_parameters.update(data["data"]["expectation_parameters"])
+        except KeyError as e:
+            raise gx_exceptions.GXCloudError(
+                message="Malformed expectation_parameters response received from GX Cloud",
+                response=response,
+            ) from e
+
+    def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
+        # Check if we have a windowed parameter
+        for validation_def in checkpoint.validation_definitions:
+            for expectation in validation_def.suite.expectations:
+                if expectation.windows is not None:
+                    return True
+        return False

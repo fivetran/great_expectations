@@ -96,6 +96,7 @@ if TYPE_CHECKING:
     from great_expectations.core.expectation_validation_result import (
         ExpectationValidationResult,
     )
+    from great_expectations.core.suite_parameters import SuiteParameterDict
     from great_expectations.data_context.data_context_variables import (
         DataContextVariables,
     )
@@ -2486,3 +2487,16 @@ class AbstractDataContext(ConfigPeer, ABC):
             self.fluent_config.update_datasources(datasources=fluent_datasources)
 
         return self.fluent_config.get_datasources_as_dict()
+
+    def prepare_checkpoint_run(
+        self,
+        checkpoint: gx.Checkpoint,
+        batch_parameters: Dict[str, Any],
+        expectation_parameters: SuiteParameterDict,
+    ) -> None:
+        """Context specific preparation for a checkpoint run.
+
+        Defaults to a no-op but can be overriden for context specific checkpoint run preparation.
+        The preparation can update the input arguments in place.
+        """
+        ...

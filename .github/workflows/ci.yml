@@ -144,10 +144,10 @@ jobs:
       GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
       GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
       # aws
-      AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-      AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION}}
-      AWS_REGION: ${{secrets.AWS_DEFAULT_REGION}}
-      AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
+      AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
+      AWS_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
+      AWS_SECRET_ACCESS_KEY: ${{secrets.CI_AWS_SECRET_ACCESS_KEY}}
       # aws-redshift
       REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
       REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
@@ -369,6 +369,14 @@ jobs:
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && bash ../build_docs
 
+      - name: Run broken link checker
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
+          # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
+          # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
+          args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' 'docs/docusaurus/build/**/*.html'"
+
   docs-tests:
     needs: [check-actor-permissions]
     runs-on: ubuntu-latest
@@ -534,9 +542,9 @@ jobs:
       GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
       GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
       # aws
-      AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-      AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION}}
-      AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
+      AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
+      AWS_SECRET_ACCESS_KEY: ${{secrets.CI_AWS_SECRET_ACCESS_KEY}}
       DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
@@ -792,8 +800,8 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         exclude:
-          - python-version: ${{ github.event_name == 'pull_request' && '3.10' }}
-          - python-version: ${{ github.event_name == 'pull_request' && '3.11' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -885,7 +893,7 @@ jobs:
         import_gx,
         build-n-publish,
       ]
-    if: always() && !cancelled() && contains(needs.*.result, 'failure') && github.event_name != 'pull_request' && github.event_name != 'merge_group'
+    if: failure() && !cancelled() && github.event_name != 'pull_request_target' && github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - name: Scheduled CI job failure

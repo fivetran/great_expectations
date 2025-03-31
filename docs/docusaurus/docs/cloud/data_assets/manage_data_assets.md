@@ -24,7 +24,7 @@ To add a Data Asset from an existing Data Source, complete the following steps:
 
 4. Click **Add x Asset(s)**.
 
-5. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema** and **Volume** issues. You can de-select recommendations you’d like to opt out of.
+5. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** issues. You can de-select recommendations you’d like to opt out of.
 
 6. Click **Start monitoring** or **Finish**.
 
@@ -58,20 +58,6 @@ The following table lists the available Data Asset metrics.
 | **Mean**                                 | For numeric columns, the average value in the column.<br/> This is determined by dividing the sum of all values in the column by the number of values.  |
 | **Median**                                 | For numeric columns, the value in the middle of a data set.<br/> 50% of the data within the Data Asset has a value smaller or equal to the median, and 50% of the data within the Data Asset has a value that is higher or equal to the median.  |
 | **Null %**                                | The percentage of missing values in a column.             |
-
-## Edit a Data Asset
-
-You can only edit the settings of Data Assets created in GX Cloud.
-
-1. In GX Cloud, click **Data Assets**.
-2. In the Data Assets list, click **Edit Data Asset** for the Data Asset you want to edit.
-3. Edit the following fields:
-
-    - **Table name**: Enter the name of a new table from the Data Source to import as a Data Asset.
-
-    - **Data Asset name**: Enter a new name for the Data Asset. If you use the same name for multiple Data Assets, each Data Asset must be associated with a unique Data Source.
-
-4. Click **Save**.
 
 ## Delete a Data Asset
 

@@ -160,3 +160,6 @@ tests/integration/cloud/rest_contracts/pacts
 
 # mercury container volume
 assets/docker/mercury/volume/
+
+# cursor
+.cursor/

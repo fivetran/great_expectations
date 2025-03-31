@@ -84,6 +84,7 @@ class Event:
             "gx_version": gx_version,
             "service": "gx-core",
             "user_agent_str": self.user_agent_str,
+            "mode": self.mode,
         }
         if self.user_id is not None:
             props.update({"user_id": self.user_id, "organization_id": self.organization_id})
