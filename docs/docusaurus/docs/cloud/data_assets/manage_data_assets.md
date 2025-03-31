@@ -59,20 +59,6 @@ The following table lists the available Data Asset metrics.
 | **Median**                                 | For numeric columns, the value in the middle of a data set.<br/> 50% of the data within the Data Asset has a value smaller or equal to the median, and 50% of the data within the Data Asset has a value that is higher or equal to the median.  |
 | **Null %**                                | The percentage of missing values in a column.             |
 
-## Edit a Data Asset
-
-You can only edit the settings of Data Assets created in GX Cloud.
-
-1. In GX Cloud, click **Data Assets**.
-2. In the Data Assets list, click **Edit Data Asset** for the Data Asset you want to edit.
-3. Edit the following fields:
-
-    - **Table name**: Enter the name of a new table from the Data Source to import as a Data Asset.
-
-    - **Data Asset name**: Enter a new name for the Data Asset. If you use the same name for multiple Data Assets, each Data Asset must be associated with a unique Data Source.
-
-4. Click **Save**.
-
 ## Delete a Data Asset
 
 
