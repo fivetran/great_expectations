@@ -6,12 +6,31 @@ import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.datasource.fluent.redshift_datasource import RedshiftDsn
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+
+
+class RedshiftConnectionConfig(BaseSettings):
+    # BaseSettings will retrieve this environment variable
+    REDSHIFT_DATABASE: str
+    REDSHIFT_HOST: str
+    REDSHIFT_PASSWORD: str
+    REDSHIFT_PORT: int
+    REDSHIFT_USERNAME: str
+    REDSHIFT_SSLMODE: str
+
+    @property
+    def connection_string(self) -> RedshiftDsn:
+        return RedshiftDsn(
+            f"redshift+psycopg2://{self.REDSHIFT_USERNAME}:{self.REDSHIFT_PASSWORD}@"
+            f"{self.REDSHIFT_HOST}:{self.REDSHIFT_PORT}/{self.REDSHIFT_DATABASE}?"
+            f"sslmode={self.REDSHIFT_SSLMODE}"
+        )
 
 
 class RedshiftDatasourceTestConfig(DataSourceTestConfig):
@@ -43,7 +62,7 @@ class RedshiftDatasourceTestConfig(DataSourceTestConfig):
 class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
     @property
     @override
-    def connection_string(self) -> str:
+    def connection_string(self) -> RedshiftDsn:
         return self.redshift_connection_config.connection_string
 
     @property
@@ -62,23 +81,5 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
         )
 
     @cached_property
-    def redshift_connection_config(self) -> RedshiftDatasourceTestConfig:
+    def redshift_connection_config(self) -> RedshiftConnectionConfig:
         return RedshiftConnectionConfig()
-
-
-class RedshiftConnectionConfig(BaseSettings):
-    # BaseSettings will retrieve this environment variable
-    REDSHIFT_DATABASE: str
-    REDSHIFT_HOST: str
-    REDSHIFT_PASSWORD: str
-    REDSHIFT_PORT: int
-    REDSHIFT_USERNAME: str
-    REDSHIFT_SSLMODE: str
-
-    @property
-    def connection_string(self) -> str:
-        return (
-            f"redshift+psycopg2://{self.REDSHIFT_USERNAME}:{self.REDSHIFT_PASSWORD}@"
-            f"{self.REDSHIFT_HOST}:{self.REDSHIFT_PORT}/{self.REDSHIFT_DATABASE}?"
-            f"sslmode={self.REDSHIFT_SSLMODE}"
-        )
