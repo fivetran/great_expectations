@@ -1,5 +1,4 @@
-from functools import cached_property
-from typing import Mapping
+from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -70,6 +69,16 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
     def use_schema(self) -> bool:
         return False
 
+    def __init__(
+        self,
+        config: RedshiftDatasourceTestConfig,
+        data: pd.DataFrame,
+        extra_data: Mapping[str, pd.DataFrame],
+        table_name: Optional[str] = None,  # Overrides random table name generation
+    ) -> None:
+        self.redshift_connection_config = RedshiftConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
+        super().__init__(config=config, data=data, extra_data=extra_data, table_name=table_name)
+
     @override
     def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_redshift(
@@ -79,7 +88,3 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
             table_name=self.table_name,
             schema_name=self.schema,
         )
-
-    @cached_property
-    def redshift_connection_config(self) -> RedshiftConnectionConfig:
-        return RedshiftConnectionConfig()
