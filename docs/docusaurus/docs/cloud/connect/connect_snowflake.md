@@ -109,7 +109,7 @@ Then, you can use GX Cloud to [add a Data Asset](/cloud/data_assets/manage_data_
 
 7. Click **Add x Asset(s)**.
 
-8. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema** and **Volume** issues. You can de-select recommendations you’d like to opt out of.
+8. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** issues. You can de-select recommendations you’d like to opt out of.
 
 9. Click **Start monitoring** or **Finish**.
 

@@ -24,7 +24,7 @@ To add a Data Asset from an existing Data Source, complete the following steps:
 
 4. Click **Add x Asset(s)**.
 
-5. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema** and **Volume** issues. You can de-select recommendations you’d like to opt out of.
+5. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** issues. You can de-select recommendations you’d like to opt out of.
 
 6. Click **Start monitoring** or **Finish**.
 

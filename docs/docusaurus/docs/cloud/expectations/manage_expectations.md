@@ -135,7 +135,7 @@ To clear the Expectation condition, click the clear button located on the right-
 8. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 
 :::tip Automate rules for common data quality issues
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations that detect column changes and non-increasing volume in that Data Asset.
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations for that Data Asset that detect column changes, non-increasing volume, and changes to the percentage of null values in each column.
 :::
 
 ## Generate Expectations with ExpectAI <span class="beta">Beta</span>
@@ -188,7 +188,13 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 3. Click **Delete Expectation** for the Expectation you want to delete.
 
+   :::tip You can delete Expectations in bulk
+    If you want to delete all Expectations that test for a certain data quality issue, you can instead click **Bulk-delete Expectations** for the relevant category.
+    :::
+
 4. Click **Yes, delete Expectation**.
+
+
 
 ## GX-managed vs. API-managed Expectations
 
