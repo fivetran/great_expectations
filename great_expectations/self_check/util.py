@@ -1307,7 +1307,9 @@ def candidate_test_is_on_temporary_notimplemented_list_v3_api(context, expectati
     return False
 
 
-test_connections = set()
+# We cache whether we can successfully connect to a test backend so we don't have to
+# validate we can connect over and over again.
+_successfully_backend_connection = set()
 
 
 def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
@@ -1506,11 +1508,11 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
         if include_redshift:
             # noinspection PyUnresolvedReferences
             try:
-                if "redshift" not in test_connections:
+                if "redshift" not in _successfully_backend_connection:
                     engine = _create_redshift_engine()
                     conn = engine.connect()
                     conn.close()
-                    test_connections.add("redshift")
+                    _successfully_backend_connection.add("redshift")
             except (ImportError, ValueError, sa.exc.SQLAlchemyError) as e:
                 if raise_exceptions_for_backends is True:
                     raise ImportError("redshift tests are requested, but unable to connect") from e  # noqa: TRY003 # FIXME CoP

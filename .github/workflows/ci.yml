@@ -574,7 +574,6 @@ jobs:
           - mssql
           - mysql
           - postgresql
-          # TODO: We should make this a required PR check in the github settings
           - redshift
           - snowflake
           - spark

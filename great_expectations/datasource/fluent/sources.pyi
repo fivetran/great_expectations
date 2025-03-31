@@ -48,6 +48,7 @@ from great_expectations.datasource.fluent.interfaces import (
     DataAsset,
     Datasource,
 )
+from great_expectations.datasource.fluent.redshift_datasource import RedshiftDsn
 from great_expectations.datasource.fluent.snowflake_datasource import (
     ConnectionDetails as SnowflakeConnectionDetails,
 )
@@ -328,7 +329,7 @@ class DataSourceManager:
         name: Optional[str] = None,
         datasource: Optional[Datasource] = None,
         *,
-        connection_string: Union[ConfigStr, pydantic.Redshift, str] = ...,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
         create_temp_table: bool = True,
     ) -> PostgresDatasource: ...
     def update_redshift(
@@ -337,7 +338,7 @@ class DataSourceManager:
         name: Optional[str] = None,
         datasource: Optional[Datasource] = None,
         *,
-        connection_string: Union[ConfigStr, pydantic.networks.PostgresDsn, str] = ...,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
         create_temp_table: bool = True,
     ) -> PostgresDatasource: ...
     def add_or_update_redshift(
@@ -346,7 +347,7 @@ class DataSourceManager:
         name: Optional[str] = None,
         datasource: Optional[Datasource] = None,
         *,
-        connection_string: Union[ConfigStr, pydantic.networks.PostgresDsn, str] = ...,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
         create_temp_table: bool = True,
     ) -> PostgresDatasource: ...
     def delete_redshift(
