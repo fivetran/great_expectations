@@ -27,7 +27,7 @@ class ColumnStandardDeviation(BaseColumnStandardDeviation):
     """MetricProvider Class for Aggregate Standard Deviation metric for SQLite databases."""
 
     # We should change this decorator to compute this metric a completely new way
-    @column_aggregate_partial(engine=SqlAlchemyExecutionEngine)
+    @column_aggregate_partial(engine=SqliteExecutionEngine)
     def _sqlalchemy(cls, column, _dialect, _metrics, **kwargs):
         """Sqlite Standard Deviation implementation"""
         mean = _metrics["column.mean"]
