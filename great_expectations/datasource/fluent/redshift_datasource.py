@@ -10,7 +10,7 @@ from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
 
 class RedshiftDsn(pydantic.AnyUrl):
     allowed_schemes = {
-        "redshift+pyscopog2",
+        "redshift+psycopg2",
     }
 
 
