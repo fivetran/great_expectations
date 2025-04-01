@@ -28,7 +28,8 @@ class RedshiftConnectionConfig(BaseSettings):
         return RedshiftDsn(
             f"redshift+psycopg2://{self.REDSHIFT_USERNAME}:{self.REDSHIFT_PASSWORD}@"
             f"{self.REDSHIFT_HOST}:{self.REDSHIFT_PORT}/{self.REDSHIFT_DATABASE}?"
-            f"sslmode={self.REDSHIFT_SSLMODE}"
+            f"sslmode={self.REDSHIFT_SSLMODE}",
+            scheme="redshift+psycopg2",
         )
 
 
