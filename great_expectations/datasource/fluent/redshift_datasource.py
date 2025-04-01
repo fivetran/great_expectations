@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Literal, Union
 
-from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility import pydantic
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
@@ -14,7 +13,6 @@ class RedshiftDsn(pydantic.AnyUrl):
     }
 
 
-@public_api
 class RedshiftDatasource(SQLDatasource):
     """Adds a redshift datasource to the data context using psycopg2.
 
