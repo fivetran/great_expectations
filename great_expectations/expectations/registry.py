@@ -311,7 +311,7 @@ def _get_metric_definition(metric_name: str) -> dict:
     try:
         return _registered_metrics[metric_name]
     except KeyError:
-        raise gx_exceptions.MetricProviderError(f"No definition found for {metric_name}")  # noqa: TRY003 # FIXME CoP
+        raise gx_exceptions.MetricProviderError(f"No metric named {metric_name} found.")  # noqa: TRY003 # FIXME CoP
 
 
 def get_sqlalchemy_metric_provider(
