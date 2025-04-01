@@ -921,7 +921,7 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
     else:
         sql_insert_method = None
 
-    execution_engine_class = SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT[engine.name]
+    execution_engine_class = SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT[sa_engine_name]
     execution_engine = execution_engine_class(caching=caching, engine=engine)
     batch_data = SqlAlchemyBatchData(execution_engine=execution_engine, table_name=table_name)
     with execution_engine.get_connection() as connection:
