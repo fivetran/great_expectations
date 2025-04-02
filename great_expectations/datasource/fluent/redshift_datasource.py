@@ -1,10 +1,17 @@
 from __future__ import annotations
 
-from typing import Literal, Union
+from typing import TYPE_CHECKING, Literal, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
+from great_expectations.execution_engine.redshift_execution_engine import RedshiftExecutionEngine
+
+if TYPE_CHECKING:
+    from great_expectations.execution_engine.sqlalchemy_execution_engine import (
+        SqlAlchemyExecutionEngine,
+    )
 
 
 class RedshiftDsn(pydantic.AnyUrl):
@@ -27,3 +34,9 @@ class RedshiftDatasource(SQLDatasource):
 
     type: Literal["redshift"] = "redshift"  # type: ignore[assignment] # This is a hardcoded constant
     connection_string: Union[ConfigStr, RedshiftDsn]
+
+    @property
+    @override
+    def execution_engine_type(self) -> Type[SqlAlchemyExecutionEngine]:
+        """Returns the default execution engine type."""
+        return RedshiftExecutionEngine
