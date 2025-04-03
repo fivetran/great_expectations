@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Optional, cast
 
 from great_expectations.compatibility import aws
@@ -32,11 +33,17 @@ REDSHIFT_TYPES = (
         "bigint": aws.redshiftdialect.BIGINT,
         "real": aws.redshiftdialect.REAL,
         "double precision": aws.redshiftdialect.DOUBLE_PRECISION,
+        # Numeric is odd since the data returns numeric as a type to pg_get_cols
+        # In sqlalchemy 1.4 we get the type sa.sql.sqltypes.NUMERIC returned.
+        # However, the sqlalchemy redshift dialect only has DECIMAL. The official
+        # redshift docs say 'DECIMAL' is the correct type and NUMER is an alias:
+        # https://docs.aws.amazon.com/redshift/latest/dg/c_Supported_data_types.html
+        # So we are settling on DECIMAL here.
         "numeric": aws.redshiftdialect.DECIMAL,
         "character": aws.redshiftdialect.CHAR,
         "character varying": aws.redshiftdialect.VARCHAR,
         "date": aws.redshiftdialect.DATE,
-        # Redshift has this type but the dialect doesn't so we map the sa.TIME.
+        # Redshift has this type but the dialect doesn't so we map it to sa.TIME.
         "time without time zone": sa.TIME,
         "time with time zone": aws.redshiftdialect.TIMETZ,
         "timestamp without time zone": aws.redshiftdialect.TIMESTAMP,
@@ -45,6 +52,29 @@ REDSHIFT_TYPES = (
     if aws.redshiftdialect
     else {}
 )
+
+
+def split_by_comma_outside_quotes(text: str) -> list[str]:
+    """Splits a string by commas, ignoring commas within double quotes.
+
+    Args:
+        text: The string to split
+
+    Returns:
+        A list of strings split by commas outside of double quotes
+
+    Examples:
+        >>> split_by_comma_outside_quotes('a,b,c')
+        ['a', 'b', 'c']
+        >>> split_by_comma_outside_quotes('a,"b,c",d')
+        ['a', '"b,c"', 'd']
+        >>> split_by_comma_outside_quotes('a,"b,c",d,"e,f,g"')
+        ['a', '"b,c"', 'd', '"e,f,g"']
+    """
+    # This regex pattern uses a positive lookahead to ensure we only split on commas
+    # that are followed by an even number of double quotes (meaning we're outside quotes)
+    pattern = r',(?=(?:[^"]*"[^"]*")*[^"]*$)'
+    return [part.strip() for part in re.split(pattern, text)]
 
 
 class ColumnTypes(BaseColumnTypes):
@@ -93,7 +123,9 @@ class ColumnTypes(BaseColumnTypes):
             # If the type is parameterized, we must removed the arguments to the types to do a
             # string lookup from the type string to the actual type.
             result = r[0].strip("()")
-            _schema, _table, column, raw_column_type, _column_num = result.split(",")
+            _schema, _table, column, raw_column_type, _column_num = split_by_comma_outside_quotes(
+                result
+            )
             column_type_str_parts = raw_column_type.strip('"').split("(")
             column_base_type = REDSHIFT_TYPES.get(column_type_str_parts[0])
             if column_base_type is None:
