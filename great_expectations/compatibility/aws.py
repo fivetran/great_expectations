@@ -43,6 +43,56 @@ except (ImportError, AttributeError):
     redshiftdialect = REDSHIFT_NOT_IMPORTED
 
 try:
+    from sqlalchemy import CHAR
+except (ImportError, AttributeError):
+    CHAR = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import VARCHAR
+except (ImportError, AttributeError):
+    VARCHAR = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import INTEGER
+except (ImportError, AttributeError):
+    INTEGER = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import SMALLINT
+except (ImportError, AttributeError):
+    SMALLINT = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import BIGINT
+except (ImportError, AttributeError):
+    BIGINT = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import TIMESTAMP
+except (ImportError, AttributeError):
+    TIMESTAMP = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import DATE
+except (ImportError, AttributeError):
+    DATE = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import DOUBLE_PRECISION
+except (ImportError, AttributeError):
+    DOUBLE_PRECISION = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import BOOLEAN
+except (ImportError, AttributeError):
+    BOOLEAN = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy import DECIMAL
+except (ImportError, AttributeError):
+    DECIMAL = REDSHIFT_NOT_IMPORTED
+
+try:
     import pyathena  # type: ignore[import-not-found] # FIXME CoP
 except ImportError:
     pyathena = ATHENA_NOT_IMPORTED
@@ -63,13 +113,13 @@ except (ImportError, AttributeError):
 class REDSHIFT_TYPES:
     """Namespace for Redshift dialect types."""
 
-    CHAR = redshiftdialect.CHAR
-    VARCHAR = redshiftdialect.VARCHAR
-    INTEGER = redshiftdialect.INTEGER
-    SMALLINT = redshiftdialect.SMALLINT
-    BIGINT = redshiftdialect.BIGINT
-    TIMESTAMP = redshiftdialect.TIMESTAMP
-    DATE = redshiftdialect.DATE
-    DOUBLE_PRECISION = redshiftdialect.DOUBLE_PRECISION
-    BOOLEAN = redshiftdialect.BOOLEAN
-    DECIMAL = redshiftdialect.DECIMAL
+    CHAR = CHAR
+    VARCHAR = VARCHAR
+    INTEGER = INTEGER
+    SMALLINT = SMALLINT
+    BIGINT = BIGINT
+    TIMESTAMP = TIMESTAMP
+    DATE = DATE
+    DOUBLE_PRECISION = DOUBLE_PRECISION
+    BOOLEAN = BOOLEAN
+    DECIMAL = DECIMAL
