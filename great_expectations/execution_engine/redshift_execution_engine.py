@@ -145,7 +145,7 @@ class ColumnTypes(BaseColumnTypes):
         cls,
         execution_engine: RedshiftExecutionEngine,
         metric_domain_kwargs: dict,
-    ) -> tuple[str, Optional[str]]:
+    ) -> tuple[str | sa.TextClause, Optional[str]]:
         batch_id: Optional[str] = metric_domain_kwargs.get("batch_id")
         if batch_id is None:
             if execution_engine.batch_manager.active_batch_data_id is not None:
@@ -166,10 +166,10 @@ class ColumnTypes(BaseColumnTypes):
 
         table_selectable: str | sa.TextClause
 
-        if sa.Table and isinstance(batch_data.selectable, sa.Table):
+        if isinstance(batch_data.selectable, sa.Table):
             table_selectable = batch_data.source_table_name or batch_data.selectable.name
             schema_name = batch_data.source_schema_name or batch_data.selectable.schema
-        elif sa.TextClause and isinstance(batch_data.selectable, sa.TextClause):
+        elif isinstance(batch_data.selectable, sa.TextClause):
             table_selectable = batch_data.selectable
             schema_name = None
         else:
