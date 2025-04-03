@@ -307,16 +307,30 @@ def register_metric(  # noqa: PLR0913 # FIXME CoP
     return res
 
 
+def _get_metric_definition(metric_name: str) -> dict:
+    try:
+        return _registered_metrics[metric_name]
+    except KeyError:
+        raise gx_exceptions.MetricProviderError(f"No metric named {metric_name} found.")  # noqa: TRY003 # FIXME CoP
+
+
+def get_sqlalchemy_metric_provider(
+    metric_name: str,
+) -> Tuple[MetricProvider, Callable]:
+    """The default SqlAlchemy metric provider for a given metric."""
+    metric_definition = _get_metric_definition(metric_name)
+    try:
+        return metric_definition["providers"]["SqlAlchemyExecutionEngine"]
+    except KeyError:
+        raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
+            f"No provider found for {metric_name} using SqlAlchemyExecutionEngine"
+        )
+
+
 def get_metric_provider(
     metric_name: str, execution_engine: ExecutionEngine
 ) -> Tuple[MetricProvider, Callable]:
-    try:
-        metric_definition = _registered_metrics[metric_name]
-    except KeyError:
-        raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
-            f"No metric named {metric_name} found."
-        )
-
+    metric_definition = _get_metric_definition(metric_name)
     try:
         return metric_definition["providers"][type(execution_engine).__name__]
     except KeyError:
@@ -326,10 +340,10 @@ def get_metric_provider(
         for cls in type(execution_engine).mro()[1:]:
             possible_key = cls.__name__
             if metric_definition["providers"].get(possible_key) is not None:
-                metric_def = metric_definition["providers"][possible_key]
-                # Register the metric definition for this engine so we don't have to search again
-                metric_definition["providers"][type(execution_engine).__name__] = metric_def
-                return metric_def
+                metric_provider = metric_definition["providers"][possible_key]
+                # Register the metric provider for this engine so we don't have to search again
+                metric_definition["providers"][type(execution_engine).__name__] = metric_provider
+                return metric_provider
         # no matches when search hierarchy so we raise
         raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
             f"No provider found for {metric_name} using {type(execution_engine).__name__}"
@@ -340,10 +354,7 @@ def get_metric_function_type(
     metric_name: str, execution_engine: ExecutionEngine
 ) -> Optional[Union[MetricPartialFunctionTypes, MetricFunctionTypes]]:
     try:
-        metric_definition = _registered_metrics[metric_name]
-        provider_fn, _provider_class = metric_definition["providers"][
-            type(execution_engine).__name__
-        ]
+        provider_fn, _provider_class = get_metric_provider(metric_name, execution_engine)
         return getattr(provider_fn, "metric_fn_type", None)
     except KeyError:
         raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP

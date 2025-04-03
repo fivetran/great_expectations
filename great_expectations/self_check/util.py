@@ -70,6 +70,7 @@ from great_expectations.execution_engine import (
 from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
+from great_expectations.execution_engine.sqlite_execution_engine import SqliteExecutionEngine
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfigurationSchema,
 )
@@ -447,6 +448,14 @@ BACKEND_TO_ENGINE_NAME_DICT = {
 }
 
 BACKEND_TO_ENGINE_NAME_DICT.update({name: "sqlalchemy" for name in SQL_DIALECT_NAMES})
+
+
+# The default exeuction engine is SqlAlchemyExecutionEngine so we set this and then override
+# with specific values.
+SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT = {
+    name: SqlAlchemyExecutionEngine for name in SQL_DIALECT_NAMES
+}
+SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT["sqlite"] = SqliteExecutionEngine
 
 
 def get_sqlite_connection_url(sqlite_db_path):
@@ -912,7 +921,8 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
     else:
         sql_insert_method = None
 
-    execution_engine = SqlAlchemyExecutionEngine(caching=caching, engine=engine)
+    execution_engine_class = SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT[sa_engine_name]
+    execution_engine = execution_engine_class(caching=caching, engine=engine)
     batch_data = SqlAlchemyBatchData(execution_engine=execution_engine, table_name=table_name)
     with execution_engine.get_connection() as connection:
         _debug("Calling df.to_sql")
@@ -1307,6 +1317,11 @@ def candidate_test_is_on_temporary_notimplemented_list_v3_api(context, expectati
     return False
 
 
+# We cache whether we can successfully connect to a test backend so we don't have to
+# validate we can connect over and over again.
+_successful_backend_connection = set()
+
+
 def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     include_pandas=True,
     include_spark=False,
@@ -1503,9 +1518,11 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
         if include_redshift:
             # noinspection PyUnresolvedReferences
             try:
-                engine = _create_redshift_engine()
-                conn = engine.connect()
-                conn.close()
+                if "redshift" not in _successful_backend_connection:
+                    engine = _create_redshift_engine()
+                    conn = engine.connect()
+                    conn.close()
+                    _successful_backend_connection.add("redshift")
             except (ImportError, ValueError, sa.exc.SQLAlchemyError) as e:
                 if raise_exceptions_for_backends is True:
                     raise ImportError("redshift tests are requested, but unable to connect") from e  # noqa: TRY003 # FIXME CoP

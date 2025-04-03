@@ -48,6 +48,7 @@ from great_expectations.datasource.fluent.interfaces import (
     DataAsset,
     Datasource,
 )
+from great_expectations.datasource.fluent.redshift_datasource import RedshiftDsn
 from great_expectations.datasource.fluent.snowflake_datasource import (
     ConnectionDetails as SnowflakeConnectionDetails,
 )
@@ -319,6 +320,37 @@ class DataSourceManager:
         create_temp_table: bool = True,
     ) -> PostgresDatasource: ...
     def delete_postgres(
+        self,
+        name: str,
+    ) -> None: ...
+    def add_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def update_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def add_or_update_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def delete_redshift(
         self,
         name: str,
     ) -> None: ...
