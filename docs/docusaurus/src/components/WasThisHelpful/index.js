@@ -1,9 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import styles from './styles.module.scss';
 import {useLocation} from "@docusaurus/router";
 import useBaseUrl from "@docusaurus/useBaseUrl";
-import { posthog as posthogJS } from 'posthog-js';
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 const CREATE_JIRA_TICKET_IN_DOCS_BOARD_ENDPOINT_URL = "/.netlify/functions/createJiraTicketInDocsBoard";
 
 export default function WasThisHelpful(){
@@ -11,15 +9,6 @@ export default function WasThisHelpful(){
     const [feedbackSent, setFeedbackSent] = useState(false)
     const [isOpen, setIsOpen] = useState(false);
     const [error, setError] = useState(false);
-    const config = useDocusaurusContext()
-
-    useEffect(() => {
-        if (window && !window.posthog) {
-            // Checking if Posthog is already initialized
-            posthogJS.init(config.siteConfig.customFields.posthogApiKey)
-            window.posthog = posthogJS
-        }
-    }, []);
 
     const [formData, setFormData] = useState({
         name: '',
