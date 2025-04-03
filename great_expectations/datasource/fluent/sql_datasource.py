@@ -1055,15 +1055,11 @@ class TableAsset(_SQLAsset):
         engine: sqlalchemy.Engine = datasource.get_engine()
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
-<<<<<<< HEAD
         if self.schema_name and self.schema_name not in map(
             to_lower_if_not_quoted, inspector.get_schema_names()
         ):
-            raise TestConnectionError(  # noqa: TRY003
-=======
-        if self.schema_name and self.schema_name not in inspector.get_schema_names():
+        #if self.schema_name and self.schema_name not in inspector.get_schema_names():
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
->>>>>>> develop
                 f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
                 f'"{self.schema_name}" does not exist.'
             )
