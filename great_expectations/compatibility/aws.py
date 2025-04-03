@@ -58,3 +58,18 @@ try:
     )
 except (ImportError, AttributeError):
     athenatypes = ATHENA_NOT_IMPORTED
+
+
+class REDSHIFT_TYPES:
+    """Namespace for Redshift dialect types."""
+
+    CHAR = redshiftdialect.CHAR
+    VARCHAR = redshiftdialect.VARCHAR
+    INTEGER = redshiftdialect.INTEGER
+    SMALLINT = redshiftdialect.SMALLINT
+    BIGINT = redshiftdialect.BIGINT
+    TIMESTAMP = redshiftdialect.TIMESTAMP
+    DATE = redshiftdialect.DATE
+    DOUBLE_PRECISION = redshiftdialect.DOUBLE_PRECISION
+    BOOLEAN = redshiftdialect.BOOLEAN
+    DECIMAL = redshiftdialect.DECIMAL

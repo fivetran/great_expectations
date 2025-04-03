@@ -4,7 +4,7 @@ import sqlalchemy.types as sqltypes
 from packaging import version
 
 import great_expectations.expectations as gxe
-from great_expectations.compatibility.aws import redshiftdialect
+from great_expectations.compatibility.aws import REDSHIFT_TYPES
 from great_expectations.compatibility.databricks import DATABRICKS_TYPES
 from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
@@ -723,16 +723,16 @@ if version.parse(sa.__version__) >= version.parse("2.0.0"):
     data_source_configs=[
         RedshiftDatasourceTestConfig(
             column_types={
-                "char": redshiftdialect.CHAR,
-                "text": redshiftdialect.VARCHAR,
-                "integer": redshiftdialect.INTEGER,
-                "smallint": redshiftdialect.SMALLINT,
-                "bigint": redshiftdialect.BIGINT,
-                "timestamp": redshiftdialect.TIMESTAMP,
-                "date": redshiftdialect.DATE,
-                "double_precision": redshiftdialect.DOUBLE_PRECISION,
-                "boolean": redshiftdialect.BOOLEAN,
-                "numeric": redshiftdialect.DECIMAL,
+                "char": REDSHIFT_TYPES.CHAR,
+                "text": REDSHIFT_TYPES.VARCHAR,
+                "integer": REDSHIFT_TYPES.INTEGER,
+                "smallint": REDSHIFT_TYPES.SMALLINT,
+                "bigint": REDSHIFT_TYPES.BIGINT,
+                "timestamp": REDSHIFT_TYPES.TIMESTAMP,
+                "date": REDSHIFT_TYPES.DATE,
+                "double_precision": REDSHIFT_TYPES.DOUBLE_PRECISION,
+                "boolean": REDSHIFT_TYPES.BOOLEAN,
+                "numeric": REDSHIFT_TYPES.DECIMAL,
             }
         ),
     ],
