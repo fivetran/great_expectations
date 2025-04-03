@@ -43,52 +43,52 @@ except (ImportError, AttributeError):
     redshiftdialect = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import CHAR
+    from sqlalchemy_redshift.dialect import CHAR
 except (ImportError, AttributeError):
     CHAR = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import VARCHAR
+    from sqlalchemy_redshift.dialect import VARCHAR
 except (ImportError, AttributeError):
     VARCHAR = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import INTEGER
+    from sqlalchemy_redshift.dialect import INTEGER
 except (ImportError, AttributeError):
     INTEGER = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import SMALLINT
+    from sqlalchemy_redshift.dialect import SMALLINT
 except (ImportError, AttributeError):
     SMALLINT = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import BIGINT
+    from sqlalchemy_redshift.dialect import BIGINT
 except (ImportError, AttributeError):
     BIGINT = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import TIMESTAMP
+    from sqlalchemy_redshift.dialect import TIMESTAMP
 except (ImportError, AttributeError):
     TIMESTAMP = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import DATE
+    from sqlalchemy_redshift.dialect import DATE
 except (ImportError, AttributeError):
     DATE = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import DOUBLE_PRECISION
+    from sqlalchemy_redshift.dialect import DOUBLE_PRECISION
 except (ImportError, AttributeError):
     DOUBLE_PRECISION = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import BOOLEAN
+    from sqlalchemy_redshift.dialect import BOOLEAN
 except (ImportError, AttributeError):
     BOOLEAN = REDSHIFT_NOT_IMPORTED
 
 try:
-    from sqlalchemy import DECIMAL
+    from sqlalchemy_redshift.dialect import DECIMAL
 except (ImportError, AttributeError):
     DECIMAL = REDSHIFT_NOT_IMPORTED
 
