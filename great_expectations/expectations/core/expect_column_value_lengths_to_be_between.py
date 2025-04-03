@@ -8,7 +8,7 @@ from great_expectations.compatibility.pydantic import (
     root_validator,
 )
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,

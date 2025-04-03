@@ -177,7 +177,7 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "PClass",
-        "value_set": null
+        "value_set": ["a", "b", "c"]
       }
     },
     {
@@ -345,7 +345,7 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "Sex",
-        "value_set": null
+        "value_set": ["a", "b", "c"] 
       }
     },
     {
@@ -389,7 +389,7 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "Survived",
-        "value_set": null
+        "value_set": ["a", "b", "c"] 
       }
     },
     {
@@ -433,7 +433,7 @@
       "type": "expect_column_distinct_values_to_be_in_set",
       "kwargs": {
         "column": "SexCode",
-        "value_set": null
+        "value_set": ["a", "b", "c"] 
       }
     }
   ]

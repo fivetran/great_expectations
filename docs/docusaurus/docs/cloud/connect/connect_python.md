@@ -60,7 +60,7 @@ Environment variables securely store your GX Cloud access credentials.
     export GX_CLOUD_ORGANIZATION_ID=<organization_id>
     ```
 
-    :::note
+    :::note Note
    After you save your **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZTION_ID**, you can use Python scripts to access GX Cloud and complete other tasks. See the [GX Core guides](/core/introduction/introduction.mdx).
     :::
 

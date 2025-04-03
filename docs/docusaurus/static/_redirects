@@ -54,7 +54,7 @@
 /en/latest/expectation_glossary.html https://docs.greatexpectations.io/docs/reference/learn/glossary
 /en/latest/reference/supporting_resources.html https://docs.greatexpectations.io/docs/core/introduction/community_resources/
 /en/latest/reference/spare_parts/* https://docs.greatexpectations.io/docs/core/introduction/
-/docs/reference/usage_statistics https://docs.greatexpectations.io/docs/reference/learn/usage_statistics
+/docs/reference/usage_statistics /docs/core/configure_project_settings/toggle_analytics_events/
 /en/latest/autoapi/great_expectations/render/renderer/page_renderer/index.html https://docs.greatexpectations.io/docs/reference/api/render/renderer/renderer/Renderer_class
 /en/latest/autoapi/great_expectations/expectations/* https://greatexpectations.io/expectations
 /en/latest/getting_started* https://docs.greatexpectations.io/docs/core/introduction/
@@ -143,7 +143,7 @@
 
 # Redirects for renamed reference docs
 
-/docs/reference/anonymous_usage_statistics /docs/reference/usage_statistics
+/docs/reference/anonymous_usage_statistics /docs/core/configure_project_settings/toggle_analytics_events/
 /docs/reference/learn/integrations/airflow_pipeline_tutorial /docs/reference/learn/integrations/data_pipeline_tutorial
 
 # Redirect from Getting Started Tutorial to Quickstart
@@ -301,6 +301,7 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/reference/expectations/implemented_expectations/ https://greatexpectations.io/expectations.html
 /docs/reference/customize_your_deployment /docs/core/configure_project_settings/
 /docs/guides/expectations/advanced/how_to_create_a_new_expectation_suite_using_rule_based_profilers /docs/guides/expectations/expectations_lp
+/docs/reference/learn/usage_statistics /docs/core/configure_project_settings/toggle_analytics_events/
 
 # Redirects for removed index pages and new landing pages
 

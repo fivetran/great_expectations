@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 Data volume, a critical aspect of data quality, refers to the quantity of records or data points within a dataset. Managing data volume effectively is crucial for maintaining data integrity, ensuring system performance, and deriving accurate insights. Unexpected changes in data volume can signal issues in data collection, processing, or storage, potentially leading to skewed analyses or system failures. Volume management is intrinsically linked to other aspects of data quality, such as data completeness and consistency, forming a crucial part of a comprehensive data quality strategy.
 
-Great Expectations (GX) offers a powerful set of tools for monitoring and validating data volume through its volume-focused Expectations. By integrating these Expectations into your data pipelines, you can establish robust checks that ensure your datasets maintain the expected volume, catch anomalies early, and prevent downstream issues in your data workflows.
+Great Expectations (GX) offers a powerful set of tools for monitoring and validating data volume through its volume-focused Expectations. You can automatically generate some of these Expectations when you add a new Data Asset in GX Cloud. By integrating these Expectations into your data pipelines, you can establish robust checks that ensure your datasets maintain the expected volume, catch anomalies early, and prevent downstream issues in your data workflows.
 
 This guide will walk you through leveraging GX to effectively manage and validate data volume, helping you maintain high-quality, reliable datasets.
 
@@ -28,7 +28,7 @@ This dataset represents daily financial transactions. In a real-world scenario, 
 
 ## Key volume Expectations
 
-GX provides several Expectations specifically designed for managing data volume. These can be added via the GX Cloud UI or using the GX Core Python library.
+GX provides several Expectations specifically designed for managing data volume, all of which can be added directly from the GX Cloud UI or using the GX Core Python library. Some of them can be automatically generated when you add a new Data Asset using GX Cloud.
 
 ### Expect Table Row Count To Be Between
 
@@ -38,6 +38,10 @@ Ensures that the number of rows in a dataset falls within a specified range.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToBeBetween"
 ```
+
+:::tip Automate this rule
+When you [create a new Data Asset with GX Cloud](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate an instance of this Expectation that detects non-increasing volume over time.
+:::
 
 <small>View `ExpectTableRowCountToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between).</small>
 

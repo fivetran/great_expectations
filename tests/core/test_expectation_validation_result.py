@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
@@ -424,3 +425,71 @@ def test_render_updates_rendered_content():
     evr.render()
 
     assert evr.rendered_content is not None
+
+
+class TestSerialization:
+    @pytest.mark.unit
+    def test_expectation_validation_results_serializes(self) -> None:
+        evr = ExpectationValidationResult(
+            success=True,
+            expectation_config=gxe.ExpectColumnDistinctValuesToEqualSet(
+                column="passenger_count",
+                value_set=[1, 2],
+            ).configuration,
+            result={
+                "details": {
+                    "observed_value": pd.Series({"a": 1, "b": 2, "c": 4}),
+                }
+            },
+        )
+
+        # Ensure the results are serializable.
+        as_dict = evr.describe_dict()
+        from_describe_dict = json.dumps(as_dict, indent=4)
+        from_describe = evr.describe()
+
+        assert from_describe_dict == from_describe
+        assert as_dict["result"]["details"]["observed_value"] == [
+            {"index": "a", "value": 1},
+            {"index": "b", "value": 2},
+            {"index": "c", "value": 4},
+        ]
+
+    @pytest.mark.unit
+    def test_expectation_suite_validation_results_serializes(self) -> None:
+        svr = ExpectationSuiteValidationResult(
+            success=True,
+            statistics={
+                "evaluated_expectations": 2,
+                "successful_expectations": 2,
+                "unsuccessful_expectations": 0,
+                "success_percent": 100.0,
+            },
+            suite_name="whatever",
+            results=[
+                ExpectationValidationResult(
+                    success=True,
+                    expectation_config=gxe.ExpectColumnDistinctValuesToEqualSet(
+                        column="passenger_count",
+                        value_set=[1, 2],
+                    ).configuration,
+                    result={
+                        "details": {
+                            "observed_value": pd.Series({"a": 1, "b": 2, "c": 4}),
+                        }
+                    },
+                )
+            ],
+        )
+
+        # Ensure the results are serializable.
+        as_dict = svr.describe_dict()
+        from_describe_dict = json.dumps(as_dict, indent=4)
+        from_describe = svr.describe()
+
+        assert from_describe_dict == from_describe
+        assert as_dict["expectations"][0]["result"]["details"]["observed_value"] == [
+            {"index": "a", "value": 1},
+            {"index": "b", "value": 2},
+            {"index": "c", "value": 4},
+        ]

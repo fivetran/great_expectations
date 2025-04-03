@@ -54,7 +54,7 @@ This example workflow walks you through connecting to data in a Pandas DataFrame
 This example requires that [Pandas](https://pandas.pydata.org/) is installed in the same Python environment where you are running GX Core.
 :::
 
-### Procedure
+### Procedure {#procedure-1}
 
 <Tabs 
    queryString="procedure"
@@ -130,7 +130,7 @@ Run the following steps in a Python interpreter, IDE, notebook, or script.
 ## Validate data in a SQL table
 This example workflow walks you through connecting to data in a Postgres table, creating an Expectation Suite, and setting up a Checkpoint to validate the data.
 
-### Procedure
+### Procedure {#procedure-2}
 
 <Tabs 
    queryString="procedure"

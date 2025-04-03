@@ -94,9 +94,9 @@ class TestPublicAPI:
         All objects that are decorated with @public_api should have a docstring.
         """
         violations = public_api_introspector.docstring_violations
-        assert (
-            len(violations) == 0
-        ), f"Public API decorated objects without docstrings: {pf(violations)}"
+        assert len(violations) == 0, (
+            f"Public API decorated objects without docstrings: {pf(violations)}"
+        )
 
 
 # @deprecated
@@ -176,13 +176,13 @@ class TestDeprecatedMethod:
     @pytest.mark.unit
     def test_deprecated_decorator_only_summary(self):
         assert _func_only_summary_deprecated.__doc__ == (
-            "My docstring.\n" "\n" ".. deprecated:: 1.2.3\n" "    This is deprecated!!\n"
+            "My docstring.\n\n.. deprecated:: 1.2.3\n    This is deprecated!!\n"
         )
 
     @pytest.mark.unit
     def test_deprecated_decorator_no_docstring(self):
         assert _func_no_docstring_deprecated.__doc__ == (
-            "\n" "\n" ".. deprecated:: 1.2.3\n" "    This is deprecated!!\n"
+            "\n\n.. deprecated:: 1.2.3\n    This is deprecated!!\n"
         )
 
 
@@ -262,13 +262,13 @@ class TestNewMethod:
     @pytest.mark.unit
     def test_new_method_decorator_only_summary(self):
         assert _func_only_summary_new_method.__doc__ == (
-            "My docstring.\n" "\n" ".. versionadded:: 1.2.3\n" "    Added in version 1.2.3\n"
+            "My docstring.\n\n.. versionadded:: 1.2.3\n    Added in version 1.2.3\n"
         )
 
     @pytest.mark.unit
     def test_new_method_decorator_no_docstring(self):
         assert _func_no_docstring_new_method.__doc__ == (
-            "\n" "\n" ".. versionadded:: 1.2.3\n" "    Added in version 1.2.3\n"
+            "\n\n.. versionadded:: 1.2.3\n    Added in version 1.2.3\n"
         )
 
 

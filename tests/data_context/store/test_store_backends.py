@@ -492,7 +492,7 @@ def test_TupleS3StoreBackend_with_prefix(aws_credentials):
 
     obj = boto3.client("s3").get_object(Bucket=bucket, Key=prefix + "/my_file_AAA")
     assert obj["ContentType"] == "text/html; charset=utf-8"
-    assert obj["ContentEncoding"] == "utf-8"
+    assert obj["ContentEncoding"] == "utf-8,aws-chunked"
 
     my_store.set(("BBB",), "bbb")
     assert my_store.get(("BBB",)) == "bbb"
@@ -790,7 +790,7 @@ def test_TupleS3StoreBackend_with_empty_prefixes(aws_credentials):
     obj = boto3.client("s3").get_object(Bucket=bucket, Key=prefix + "my_file_AAA")
     assert my_store._build_s3_object_key(("AAA",)) == "my_file_AAA"
     assert obj["ContentType"] == "text/html; charset=utf-8"
-    assert obj["ContentEncoding"] == "utf-8"
+    assert obj["ContentEncoding"] == "utf-8,aws-chunked"
 
     my_store.set(("BBB",), "bbb")
     assert my_store.get(("BBB",)) == "bbb"
@@ -1284,7 +1284,7 @@ def test_TupleS3StoreBackend_list_over_1000_keys(aws_credentials):
             content_type="text/html; charset=utf-8",
         )
     assert my_store.get(("AAA_0",)) == "aaa_0"
-    assert my_store.get((f"AAA_{num_keys_to_add-1}",)) == f"aaa_{num_keys_to_add-1}"
+    assert my_store.get((f"AAA_{num_keys_to_add - 1}",)) == f"aaa_{num_keys_to_add - 1}"
 
     # Without pagination only list max_keys_in_a_single_call
     # This is belt and suspenders to make sure mocking s3 list_objects_v2 implements

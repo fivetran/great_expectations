@@ -6,12 +6,12 @@ import SqlDialectInstallationCommands from './_sql_dialect_installation_commands
 
 To validate data stored on SQL databases with GX Core, you create your GX Python environment, install GX Core locally, and then configure the necessary dependencies.
 
-## Prerequisites
+## Prerequisites {#prerequisites-sql}
 
 - <PrereqPythonInstalled/>
 - <RecommendedVirtualEnvironment/>
 
-## Installation
+## Installation {#installation-sql}
 
 1. Run the pip command to install the dependencies for your data's SQL dialect.
 
@@ -34,7 +34,7 @@ To validate data stored on SQL databases with GX Core, you create your GX Python
    export MY_DB_CONNECTION_STRING=<MY_CONNECTION_STRING>
    ```
 
-   :::info
+   :::info Info
 
    You can manage your credentials for all environments and Data Sources by storing them as environment variables.  To do this, enter `export ENV_VARIABLE_NAME=env_var_value` in the terminal or add the equivalent command to your `~/.bashrc` file.
 

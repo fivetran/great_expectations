@@ -17,7 +17,6 @@ module.exports = {
   organizationName: 'great-expectations',
   projectName: 'great_expectations',
   plugins: [
-    require.resolve('@cmfcmf/docusaurus-search-local'),
     '@docusaurus-terminology/parser',
     'docusaurus-plugin-sass',
     [
@@ -75,8 +74,9 @@ module.exports = {
     },
     algolia: {
       // See: https://docusaurus.io/docs/search#connecting-algolia
-      appId: 'PFK639M3JK',
-      apiKey: 'fc3e3b1588b46d8d476aca9c1cadd53f',
+      // Algolia apiKey is stored on Netlify's ENV variables
+      appId: config.parsed.ALGOLIA_ID || 'PFK639M3JK',
+      apiKey: config.parsed.ALGOLIA_API_KEY || '348b970580f56fe06a29b33485592856',
       indexName: 'greatexpectations',
       searchPagePath: 'search',
       contextualSearch: true,
@@ -189,12 +189,16 @@ module.exports = {
           label: 'Resources',
           items: [
             {
+              type: 'doc',
               label: 'Get support',
-              to: '/docs/resources/get_support',
+              docId: 'resources/get_support',
+              className: 'non-versioned-section',
             },
             {
+              type: 'doc',
               label: 'Integration support policy',
-              to: '/docs/application_integration_support',
+              docId: 'application_integration_support',
+              className: 'non-versioned-section',
             },
             {
               label: 'Community',
@@ -303,7 +307,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.3.1',
+              label: '1.3.12',
             },
             ['0.18']: {
               label: '0.18.21',

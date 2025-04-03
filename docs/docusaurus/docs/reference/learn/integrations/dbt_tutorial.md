@@ -19,7 +19,7 @@ Finally, to interact with our data, you will be using pgAdmin to query/view it (
 
 
 ## Prerequisites
-:::note
+:::note Note
 In addition to the prerequisites below, you are recommneded to use an IDE like VSCode to organize your project.
 :::
 
@@ -124,7 +124,7 @@ docker compose up -d --build
 
 When you run this for the first time, it may take several minutes to download and install the required libraries. 
 
-:::note
+:::note Note
 You will also notice that one of the services `airflow-init` exits after running, but that is expected because it’s only used to initialize the airflow service. 
 :::
 
@@ -167,7 +167,7 @@ Open the dbt Docker container’s terminal via running the following command in 
 docker exec -it dbt bash -l
 ```
 
-:::note
+:::note Note
 Here you are using the `docker exec` command to open an interactive terminal inside the container using bash as the shell. The -l flag is important here because it tells the shell to be a login shell, which automatically sources the .bashrc file in the container, which in turn exports the dbt environment variables. See the dbt.Dockerfile for more info.
 :::
 
@@ -229,7 +229,7 @@ from great_expectations.checkpoint import UpdateDataDocsAction
 context = gx.get_context(mode="file")
 ```
 
-:::note
+:::note Note
 You can either press the b button on your keyboard or press the “Insert a cell below” button in any cell to create a new cell.
 :::
 
@@ -285,6 +285,10 @@ You can see that the two Expectations you have created are passing. View failed 
 
 ## 7. Build a data pipeline and automate it with Airflow
 The final portion of this tutorial automates the process above with a pipeline or DAG in the workflow orchestration tool Airflow. You will create a simple pipeline using the common write-audit-publish pattern.
+
+:::tip Try the Great Expectations Airflow Provider
+For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider maintained by Astronomer](https://github.com/astronomer/airflow-provider-great-expectations/blob/main/docs/index.md) to validate data directly from a DAG.
+:::
 
 ### Log into Airflow
 Open [http://localhost:8080](http://localhost:8080) in your browser. You can use the username and password created earlier in the configuration step.
@@ -399,7 +403,7 @@ Run the DAG by navigating to **Actions** and clicking the **play** button. Then 
 
 ![Trigger DAG](./dbt_tutorial/trigger_dag.png)
 
-:::note
+:::note Note
 If you see an error saying “Task exited with return code Negsignal.SIGKILL” then it usually means that Airflow doesn’t have enough resources to run. Airflow recommends 4GB memory. Make sure your Docker resources are set appropriately (Docker Desktop > settings > Resources.)
 :::
 

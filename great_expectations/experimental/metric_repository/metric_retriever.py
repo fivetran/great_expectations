@@ -20,7 +20,10 @@ from great_expectations.experimental.metric_repository.metrics import (
 )
 from great_expectations.experimental.rule_based_profiler.domain_builder import ColumnDomainBuilder
 from great_expectations.validator.exception_info import ExceptionInfo
-from great_expectations.validator.metric_configuration import MetricConfiguration
+from great_expectations.validator.metric_configuration import (
+    MetricConfiguration,
+    MetricConfigurationID,
+)
 
 if TYPE_CHECKING:
     from great_expectations.data_context import AbstractDataContext
@@ -28,7 +31,6 @@ if TYPE_CHECKING:
     from great_expectations.experimental.metric_repository.metrics import Metric
     from great_expectations.validator.metrics_calculator import (
         _AbortedMetricsInfoDict,
-        _MetricKey,
         _MetricsDict,
     )
     from great_expectations.validator.validator import (
@@ -71,7 +73,7 @@ class MetricRetriever(abc.ABC):
         metric_name: str | MetricTypes,
         computed_metrics: _MetricsDict,
         aborted_metrics: _AbortedMetricsInfoDict,
-        metric_lookup_key: _MetricKey | None = None,
+        metric_lookup_key: MetricConfigurationID | None = None,
     ) -> tuple[Any, MetricException | None]:
         # look up is done by string
         # TODO: update to be MetricTypes once MetricListMetricRetriever implementation is complete.
@@ -79,10 +81,10 @@ class MetricRetriever(abc.ABC):
             metric_name = metric_name.value
 
         if metric_lookup_key is None:
-            metric_lookup_key = (
+            metric_lookup_key = MetricConfigurationID(
                 metric_name,
-                tuple(),
-                tuple(),
+                (),
+                (),
             )
         value = None
         metric_exception = None
@@ -131,9 +133,10 @@ class MetricRetriever(abc.ABC):
             metric_configurations=metric_configs,
             runtime_configuration={"catch_exceptions": True},
         )
-        assert isinstance(
-            validator.active_batch, Batch
-        ), f"validator.active_batch is type {type(validator.active_batch).__name__} instead of type {Batch.__name__}"  # noqa: E501 # FIXME CoP
+        assert isinstance(validator.active_batch, Batch), (
+            f"validator.active_batch is type {type(validator.active_batch).__name__} "
+            f"instead of type {Batch.__name__}"
+        )
         batch_id = validator.active_batch.id
         return batch_id, computed_metrics, aborted_metrics
 
@@ -186,9 +189,10 @@ class MetricRetriever(abc.ABC):
             include_semantic_types=include_semantic_types,  # type: ignore[arg-type]  # ColumnDomainBuilder supports other ways of specifying semantic types
             exclude_column_names=exclude_column_names,
         )
-        assert isinstance(
-            validator.active_batch, Batch
-        ), f"validator.active_batch is type {type(validator.active_batch).__name__} instead of type {Batch.__name__}"  # noqa: E501 # FIXME CoP
+        assert isinstance(validator.active_batch, Batch), (
+            f"validator.active_batch is type {type(validator.active_batch).__name__} "
+            f"instead of type {Batch.__name__}"
+        )
         batch_id = validator.active_batch.id
         column_names = domain_builder.get_effective_column_names(
             validator=validator,
@@ -232,11 +236,10 @@ class MetricRetriever(abc.ABC):
         # Convert computed_metrics
         ColumnMetric.update_forward_refs()
         metrics: list[Metric] = []
-        metric_lookup_key: _MetricKey
 
         for metric_name in column_metric_names:
             for column in column_list:
-                metric_lookup_key = (metric_name, f"column={column}", tuple())
+                metric_lookup_key = MetricConfigurationID(metric_name, f"column={column}", ())
                 value, exception = self._get_metric_from_computed_metrics(
                     metric_name=metric_name,
                     metric_lookup_key=metric_lookup_key,
@@ -293,7 +296,7 @@ class MetricRetriever(abc.ABC):
     def _get_table_column_types(self, batch_request: BatchRequest) -> Metric:
         metric_name = MetricTypes.TABLE_COLUMN_TYPES
 
-        metric_lookup_key: _MetricKey = (metric_name, tuple(), "include_nested=True")
+        metric_lookup_key = MetricConfigurationID(metric_name, (), ())
         table_metric_configs = self._generate_table_metric_configurations(
             table_metric_names=[metric_name]
         )

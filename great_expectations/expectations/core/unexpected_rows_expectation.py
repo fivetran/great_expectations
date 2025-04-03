@@ -52,7 +52,7 @@ DATA_QUALITY_ISSUES = [DataQualityIssues.SQL.value]
 
 
 class UnexpectedRowsExpectation(BatchExpectation):
-    __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION }
+    __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
 
     UnexpectedRowsExpectations facilitate the execution of SQL or Spark-SQL queries \
     as the core logic for an Expectation. UnexpectedRowsExpectations must implement \
@@ -113,7 +113,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
             print(batch_warning_message)
             logger.info(batch_warning_message)
 
-        return query
+        return query.rstrip("; \t\r\n\v\f")
 
     class Config:
         title = "Custom Expectation with SQL"

@@ -885,6 +885,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         services=("postgresql",),
         extra_pytest_args=("--postgresql",),
     ),
+    "redshift": TestDependencies(
+        requirement_files=("reqs/requirements-dev-redshift.txt",),
+    ),
     "snowflake": TestDependencies(
         requirement_files=("reqs/requirements-dev-snowflake.txt",),
     ),

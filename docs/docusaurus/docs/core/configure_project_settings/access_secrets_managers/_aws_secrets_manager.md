@@ -1,13 +1,13 @@
 import GxData from '../../_core_components/_data.jsx'
 import PreReqFileDataContext from '../../_core_components/prerequisites/_file_data_context.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-aws}
 
 - An AWS Secrets Manager instance.  See [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/tutorials_basic.html).
 - The ability to install Python packages with `pip`.
 - <PreReqFileDataContext/>.
 
-### Procedure
+### Procedure {#procedure-aws}
 
 1. Set up AWS Secrets Manager support.
    

@@ -11,6 +11,7 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     JUST_PANDAS_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import RedshiftDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.big_query import BigQueryDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.databricks import (
@@ -49,6 +50,17 @@ DATA = pd.DataFrame(
 )
 
 COLUMN_TYPES = {NO_UNIQUE_COL: sqlatypes.INTEGER}
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    SPARK_COLUMN_TYPES = {
+        ALL_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
+        NO_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
+        SOME_UNIQUE_COL: PYSPARK_TYPES.IntegerType,
+        STRING_COL: PYSPARK_TYPES.StringType,
+    }
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
 
 ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(column_types=COLUMN_TYPES),
@@ -58,8 +70,9 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasDataFrameDatasourceTestConfig(),
     PandasFilesystemCsvDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(column_types=COLUMN_TYPES),
+    RedshiftDatasourceTestConfig(column_types=COLUMN_TYPES),
     SnowflakeDatasourceTestConfig(column_types=COLUMN_TYPES),
-    SparkFilesystemCsvDatasourceTestConfig(),
+    SparkFilesystemCsvDatasourceTestConfig(column_types=SPARK_COLUMN_TYPES),
     SqliteDatasourceTestConfig(column_types=COLUMN_TYPES),
 ]
 

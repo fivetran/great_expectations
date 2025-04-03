@@ -5,7 +5,11 @@ id: connect_airflow
 description: Connect GX Cloud to an Airflow Orchestrator.
 ---
 
-In this quickstart, you'll learn how to use GX Cloud with Apache Airflow. You'll create a basic DAG that runs a Checkpoint in GX Cloud, and then trigger it through a local installation of an Airflow server.
+In this quickstart, you'll learn how to use GX Cloud with Apache Airflow directly. You'll create a basic DAG that runs a Checkpoint in GX Cloud, and then trigger it through a local installation of an Airflow server.
+
+:::tip Try the Great Expectations Airflow Provider
+For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider maintained by Astronomer](https://github.com/astronomer/airflow-provider-great-expectations/blob/main/docs/index.md) to validate data directly from a DAG.
+:::
 
 Apache Airflow is an orchestration tool that allows you to schedule and monitor your data pipelines. For more information about Apache Airflow, see the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/index.html).
 
@@ -77,7 +81,7 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
             GX_CLOUD_ACCESS_TOKEN = "<YOUR_ACCESS_TOKEN>"
             GX_CLOUD_ORGANIZATION_ID = "<YOUR_CLOUD_ORGANIZATION_ID>"
             # Find the Checkpoint name in the GX Cloud UI. 
-            # - Go to the "Expectations" tab.
+            # - Go to the "Validations" tab.
             # - Next to the "Validate" button, click the code snippet icon.
             # - Click "Generate snippet". 
             # - Copy the Checkpoint name from the code snippet and use it below.

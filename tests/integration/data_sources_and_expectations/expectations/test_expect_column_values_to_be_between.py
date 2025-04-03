@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations import ExpectationSuite
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -16,6 +17,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 
 NUMERIC_COLUMN = "numbers"
 DATE_COLUMN = "dates"
+STRING_COLUMN = "strings"
 
 DATA = pd.DataFrame(
     {
@@ -28,6 +30,7 @@ DATA = pd.DataFrame(
             datetime(2024, 6, 15).date(),  # noqa: DTZ001 # FIXME CoP
             None,
         ],
+        STRING_COLUMN: ["a", "b", "c", "d", "e", "f"],
     },
     dtype="object",
 )
@@ -146,3 +149,61 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+class TestColumnValuesBetweenAgainstInvalidColumn:
+    # expect a standard error message, but exclude the column type string, which is backend specific
+    EXPECTED_ERROR = "ColumnValuesBetween metrics cannot be computed on column of type"
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA,
+    )
+    def test_fails_when_run_against_invalid_column_type(self, batch_for_datasource: Batch) -> None:
+        expect = gxe.ExpectColumnValuesToBeBetween(
+            column=STRING_COLUMN,
+            min_value=0,
+            max_value=1,
+        )
+        result = batch_for_datasource.validate(expect=expect)
+        exception_info = list(result.exception_info.values())
+        assert len(exception_info) == 1
+        assert self.EXPECTED_ERROR in exception_info[0]["exception_message"]
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA,
+    )
+    def test_other_expectations_pass_on_failure(self, batch_for_datasource: Batch) -> None:
+        """Prior to GX v1.3.8, if ExpectColumnValuesToBeBetween ran against a string column in a
+        SQL context, every other expectation would fail with an exception, including metrics for
+        unrelated columns. This test ensures that when a user tries to run that expectation
+        against an invalid column type, other expectations continue to work as expected.
+        """
+        expect = ExpectationSuite(
+            name="test_suite",
+            expectations=[
+                gxe.ExpectColumnValuesToBeBetween(
+                    column=STRING_COLUMN,
+                    min_value=0,
+                    max_value=1,
+                ),
+                # this expectation used to fail because of shared metrics
+                gxe.ExpectColumnValuesToNotBeNull(column=STRING_COLUMN),
+                # this expectation also used to fail despite not sharing metrics
+                gxe.ExpectColumnValuesToNotBeNull(
+                    column=NUMERIC_COLUMN,
+                ),
+            ],
+        )
+        result = batch_for_datasource.validate(expect=expect)
+        # expect only one ExpectationResult to have an error
+        results_with_errors = [
+            result
+            for result in result.results
+            if result.exception_info.get("raised_exception") is not False
+        ]
+        assert len(results_with_errors) == 1
+        exception_info = list(results_with_errors[0].exception_info.values())
+        assert len(exception_info) == 1
+        assert self.EXPECTED_ERROR in exception_info[0]["exception_message"]

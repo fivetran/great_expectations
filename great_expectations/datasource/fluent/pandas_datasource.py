@@ -694,7 +694,7 @@ class PandasDatasource(_PandasDatasource):
                             batches created from the asset.
 
         Returns:
-            The DataFameAsset that has been added to this datasource.
+            The DataFrameAsset that has been added to this datasource.
         """  # noqa: E501 # FIXME CoP
         asset: DataFrameAsset = DataFrameAsset(
             name=name,

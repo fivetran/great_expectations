@@ -14,6 +14,7 @@ from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
@@ -27,6 +28,7 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PandasDataFrameDatasourceTestConfig(),
     PandasFilesystemCsvDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SparkFilesystemCsvDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
@@ -44,6 +46,7 @@ SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
@@ -55,6 +58,7 @@ DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS: Sequence[DataSourceTestConfig] = [
     MySQLDatasourceTestConfig(),
     PandasDataFrameDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SparkFilesystemCsvDatasourceTestConfig(),
 ]
@@ -122,35 +126,5 @@ def test_expect_column_max_to_be_between__date(batch_for_datasource) -> None:
 )
 def test_expect_column_max_to_be_between(batch_for_datasource) -> None:
     expectation = gxe.ExpectColumnMaxToBeBetween(column="a", min_value=2, max_value=2)
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=ALL_DATA_SOURCES,
-    data=pd.DataFrame({"a": [1, 2]}),
-)
-def test_expect_column_to_exist(batch_for_datasource):
-    expectation = gxe.ExpectColumnToExist(column="a")
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=ALL_DATA_SOURCES,
-    data=pd.DataFrame({"a": [1, 2]}),
-)
-def test_expect_column_values_to_not_be_null(batch_for_datasource):
-    expectation = gxe.ExpectColumnValuesToNotBeNull(column="a")
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=ALL_DATA_SOURCES,
-    data=pd.DataFrame({"a": [1, 2, 3, 4]}),
-)
-def test_expect_column_mean_to_be_between(batch_for_datasource):
-    expectation = gxe.ExpectColumnMeanToBeBetween(column="a", min_value=2, max_value=3)
     result = batch_for_datasource.validate(expectation)
     assert result.success

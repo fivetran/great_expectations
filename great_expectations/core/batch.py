@@ -20,7 +20,7 @@ import pandas as pd
 from great_expectations._docs_decorators import deprecated_argument
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.id_dict import BatchKwargs, BatchSpec, IDDict
+from great_expectations.core.id_dict import BatchKwargs, BatchSpec, IDDict, IDDictID
 from great_expectations.exceptions import InvalidBatchIdError
 from great_expectations.types import DictDot, SerializableDictDot, safe_deep_copy
 from great_expectations.util import (
@@ -223,7 +223,7 @@ class LegacyBatchDefinition(SerializableDictDot):
         self._batch_spec_passthrough = batch_spec_passthrough
 
     @property
-    def id(self) -> str:
+    def id(self) -> IDDictID:
         return IDDict(self.to_json_dict()).to_id()
 
     @property
@@ -354,7 +354,7 @@ class BatchRequestBase(SerializableDictDot):
         self._batch_spec_passthrough = value
 
     @property
-    def id(self) -> str:
+    def id(self) -> IDDictID:
         return IDDict(self.to_json_dict()).to_id()
 
     @override

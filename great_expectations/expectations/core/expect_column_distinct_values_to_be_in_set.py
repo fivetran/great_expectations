@@ -5,8 +5,10 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 import altair as alt
 import pandas as pd
 
+from great_expectations.compatibility import pydantic
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
+    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues
@@ -15,7 +17,7 @@ from great_expectations.expectations.model_field_descriptions import (
     VALUE_SET_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
-    ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
+    ValueSetField,  # noqa: TC001  # type needed in pydantic validation
 )
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
@@ -253,6 +255,12 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
                 }
             )
 
+    @pydantic.validator("value_set")
+    def _validate_value_set(cls, value_set: ValueSetField) -> ValueSetField:
+        if not value_set:
+            raise ValueError("value_set must be a non-empty set-like object.")  # noqa: TRY003 # Error messaged gets swallowed by Pydantic
+        return value_set
+
     @classmethod
     def _prescriptive_template(
         cls,
@@ -439,9 +447,14 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         observed_value_set = set(observed_value_counts.index)
         value_set = self._get_success_kwargs().get("value_set") or []
 
-        parsed_value_set = value_set
-
-        expected_value_set = set(parsed_value_set)
+        # Try to coerce string values to match the type of observed values
+        if observed_value_set and value_set:
+            first_observed = next(iter(observed_value_set))
+            expected_value_set = {
+                parse_value_to_observed_type(first_observed, value) for value in value_set
+            }
+        else:
+            expected_value_set = set(value_set)
 
         if not expected_value_set:
             success = True
@@ -489,9 +502,14 @@ class ExpectColumnDistinctValuesToBeInSet(ColumnAggregateExpectation):
         for name, schema in renderer_configuration.params:
             if not name.startswith(ov_param_prefix):
                 continue
+            # try to coerce value_set to a type that can be compared with schema.value
+            coerced_value_set = {
+                parse_value_to_observed_type(observed_value=schema.value, value=value)
+                for value in value_set
+            }
             render_state = (
                 ObservedValueRenderState.EXPECTED.value
-                if schema.value in value_set
+                if schema.value in coerced_value_set
                 else ObservedValueRenderState.UNEXPECTED.value
             )
             renderer_configuration.params.__dict__[name].render_state = render_state

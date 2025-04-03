@@ -16,7 +16,7 @@ from great_expectations.expectations.model_field_descriptions import (
     VALUE_SET_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
-    ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
+    ValueSetField,  # noqa: TC001  # type needed in pydantic validation
 )
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect column entries to not be in the set."
-DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
     "Pandas",
     "Spark",
@@ -106,7 +106,6 @@ class ExpectColumnValuesToNotBeInSet(ColumnMapExpectation):
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
-        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2

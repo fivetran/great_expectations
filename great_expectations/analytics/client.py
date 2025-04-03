@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 from uuid import UUID
 
 import posthog
@@ -40,11 +40,13 @@ def submit(event: Event) -> None:
 
 def init(  # noqa: PLR0913 # FIXME CoP
     enable: bool,
+    mode: Literal["cloud", "ephemeral", "file"],
     user_id: Optional[UUID] = None,
     data_context_id: Optional[UUID] = None,
     organization_id: Optional[UUID] = None,
     oss_id: Optional[UUID] = None,
     cloud_mode: bool = False,
+    user_agent_str: Optional[str] = None,
 ):
     """Initializes the analytics platform client."""
     conf = {}
@@ -56,7 +58,14 @@ def init(  # noqa: PLR0913 # FIXME CoP
         conf["organization_id"] = organization_id
     if oss_id:
         conf["oss_id"] = oss_id
-    update_config(config=Config(cloud_mode=cloud_mode, **conf))
+    update_config(
+        config=Config(
+            cloud_mode=cloud_mode,
+            user_agent_str=user_agent_str,
+            mode=mode,
+            **conf,
+        )
+    )
 
     enable = enable and not _in_gx_ci()
     posthog.disabled = not enable

@@ -25,7 +25,7 @@ The following Python code creates a Batch Request that includes every available 
 ```python title="Python" name="docs/docusaurus/docs/oss/guides/validation/checkpoints/how_to_validate_multiple_batches_within_single_checkpoint.py build_a_batch_request_with_multiple_batches"
 ```
 
-:::tip
+:::tip Tip
 A Batch Request can only retrieve multiple Batches from a Data Asset that has been configured to include more than the default single Batch.
 
 When working with a Filesystem Data Source and organizing Batches, the `batching_regex` argument determines the inclusion of multiple Batches into a single Data Asset, with each file that matches the `batching_regex` resulting in a single Batch.

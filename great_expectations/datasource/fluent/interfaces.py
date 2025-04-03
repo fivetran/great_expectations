@@ -57,7 +57,17 @@ from great_expectations.exceptions.exceptions import (
     DataContextError,
     MissingDataContextError,
 )
-from great_expectations.validator.metrics_calculator import MetricsCalculator
+from great_expectations.metrics.metric import MetaMetric, Metric
+from great_expectations.metrics.metric_name import MetricNameSuffix
+from great_expectations.metrics.metric_results import (
+    MetricErrorResult,
+    MetricInternalErrorResult,
+    MetricInternalErrorResultValue,
+    MetricResult,
+)
+from great_expectations.validator.metrics_calculator import (
+    MetricsCalculator,
+)
 
 logger = logging.getLogger(__name__)
 from great_expectations.datasource.fluent.data_connector import (
@@ -97,6 +107,7 @@ if TYPE_CHECKING:
         TypeLookup,
     )
     from great_expectations.expectations.expectation import Expectation
+    from great_expectations.validator.computed_metric import MetricValue
     from great_expectations.validator.v1_validator import (
         Validator as V1Validator,
     )
@@ -736,7 +747,9 @@ class Datasource(
 
         updated_asset = updated_datasource.get_asset(asset_name)
         updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
-
+        if batch_definition is not updated_batch_definition:
+            # update in memory copy with the new ID
+            batch_definition.id = updated_batch_definition.id
         return updated_batch_definition
 
     def delete_batch_definition(self, batch_definition: BatchDefinition[PartitionerT]) -> None:
@@ -819,7 +832,7 @@ class Datasource(
             name: name of DataAsset sought.
 
         Returns:
-            _DataAssetT -- if named "DataAsset" object exists; otherwise, exception is raised.
+            if named "DataAsset" object exists; otherwise, exception is raised.
         """
         # This default implementation will be used if protocol is inherited
         try:
@@ -1090,20 +1103,22 @@ class Batch:
     def id(self) -> str:
         return self._id
 
+    def _get_metrics_calculator(self) -> MetricsCalculator:
+        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
+        return MetricsCalculator(
+            execution_engine=self.data.execution_engine,
+            show_progress_bars=True,
+        )
+
     @public_api
     @validate_arguments
     def columns(self) -> List[str]:
         """Return column names of this Batch.
 
-        Returns
-            List[str]
+        Returns:
+            list of column names.
         """
-        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(
-            execution_engine=self.data.execution_engine,
-            show_progress_bars=True,
-        )
-        return metrics_calculator.columns()
+        return self._get_metrics_calculator().columns()
 
     @public_api
     @validate_arguments
@@ -1120,18 +1135,14 @@ class Batch:
 
         If n_rows is larger than the number of rows, this method returns all rows.
 
-        Parameters
+        Args:
             n_rows: The number of rows to return from the Batch.
             fetch_all: If True, ignore n_rows and return the entire Batch.
 
-        Returns
+        Returns:
             HeadData
         """
-        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(
-            execution_engine=self.data.execution_engine,
-            show_progress_bars=True,
-        )
+        metrics_calculator = self._get_metrics_calculator()
         table_head_df: pd.DataFrame = metrics_calculator.head(
             n_rows=n_rows,
             domain_kwargs={"batch_id": self.id},
@@ -1243,3 +1254,91 @@ class Batch:
             batch_parameters=self.batch_request.options,
             result_format=result_format,
         )
+
+    @overload
+    def compute_metrics(self, metrics: Metric) -> MetricResult: ...
+
+    @overload
+    def compute_metrics(self, metrics: list[Metric]) -> list[MetricResult]: ...
+
+    def compute_metrics(self, metrics: Metric | list[Metric]) -> MetricResult | list[MetricResult]:
+        """Compute one or more metrics on this Batch.
+
+        Args:
+            metrics: A single Metric or list of Metrics to compute.
+                     Each Metric must be an instance of a concrete Metric subclass.
+
+        Returns:
+            If a single Metric is provided, returns a single MetricResult.
+            If a list of Metrics is provided, returns a list of MetricResults,
+            in the same order as the input metrics were received.
+            For metrics without a defined MetricResult generic type,
+            the base MetricResult class will be returned.
+
+        Examples:
+            >>> batch.compute_metrics(BatchRowCount())
+            BatchRowCountResult(id=..., value=1000)
+
+            >>> batch.compute_metrics([
+            ...     BatchRowCount(),
+            ...     ColumnMax(column="age")
+            ... ])
+            [BatchRowCountResult(id=..., value=1000), ColumnMaxResult(id=..., value=85)]
+
+        Notes:
+            Until this mypy bug is resolved, lists of Metrics are being incorrectly
+            inferred by the static type checker as list[Domain]. You can work around
+            this by adding an explicit annotation (e.g. metrics: list[Metric] = ...)
+            https://github.com/python/mypy/issues/18712
+        """
+        is_single_metric = False
+        if isinstance(metrics, Metric):
+            metrics = [metrics]
+            is_single_metric = True
+
+        metrics_calculator = self._get_metrics_calculator()
+        metrics_calculator_results, metrics_calculator_errors = metrics_calculator.compute_metrics(
+            metric_configurations=[metric.config(batch_id=self.id) for metric in metrics],
+            runtime_configuration=None,
+        )
+
+        results = []
+        for metric in metrics:
+            metric_id_for_batch = metric.metric_id_for_batch(batch_id=self.id)
+            if metric_id_for_batch in metrics_calculator_results:
+                MetricType = MetaMetric.get_registered_metric_class_from_metric_name(metric.name)
+                MetricResultType = MetricType.get_metric_result_type()
+                value = self._parse_metric_value(
+                    metric_name=metric.name,
+                    metric_calculator_result=metrics_calculator_results[metric_id_for_batch],
+                )
+                results.append(MetricResultType(id=metric_id_for_batch, value=value))
+            elif metric_id_for_batch in metrics_calculator_errors:
+                value = metrics_calculator_errors[metric_id_for_batch]
+                results.append(MetricErrorResult(id=metric_id_for_batch, value=value))
+            else:
+                results.append(
+                    MetricInternalErrorResult(
+                        id=metric_id_for_batch,
+                        value=MetricInternalErrorResultValue(
+                            msg=f"Metric {metric.name} not found in results: "
+                            "{list(metrics_calculator_results.keys())} or errors: "
+                            "{list(metrics_calculator_errors.keys())}"
+                        ),
+                    )
+                )
+
+        if is_single_metric:
+            return results[0]
+        return results
+
+    def _parse_metric_value(
+        self, metric_name: str, metric_calculator_result: MetricValue
+    ) -> MetricValue:
+        if metric_name.endswith(MetricNameSuffix.CONDITION) and isinstance(
+            metric_calculator_result, tuple
+        ):
+            value = metric_calculator_result[0]
+        else:
+            value = metric_calculator_result
+        return value

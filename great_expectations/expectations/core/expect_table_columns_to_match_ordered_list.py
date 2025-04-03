@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
@@ -190,7 +190,6 @@ class ExpectTableColumnsToMatchOrderedList(BatchExpectation):
     success_keys = ("column_list",)
     domain_keys = (
         "batch_id",
-        "table",
         "row_condition",
         "condition_parser",
     )

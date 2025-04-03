@@ -41,7 +41,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
             suite: ExpectationSuite to add
 
         Raises:
-            DataContextError if ExpectationSuite already exists
+            DataContextError: if ExpectationSuite already exists
         """
         key = self._store.get_key(name=suite.name, id=None)
         if self._store.has_key(key=key):
@@ -70,7 +70,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
             name: The name of the ExpectationSuite to delete
 
         Raises:
-            DataContextError if ExpectationSuite doesn't exist
+            DataContextError: if ExpectationSuite doesn't exist
         """
         try:
             suite = self.get(name=name)
@@ -97,7 +97,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
             name: Name of ExpectationSuite to get
 
         Raises:
-            DataContextError when ExpectationSuite is not found.
+            DataContextError: when ExpectationSuite is not found.
         """
 
         key = self._store.get_key(name=name, id=None)
@@ -131,6 +131,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
         return deserializable_suites
 
     @public_api
+    @override
     def add_or_update(self, suite: ExpectationSuite) -> ExpectationSuite:
         """Add or update an ExpectationSuite by name.
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import pathlib
-from typing import TYPE_CHECKING, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Literal, Mapping, Optional, Union
 
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.constructor import DuplicateKeyError
@@ -43,6 +43,7 @@ class FileDataContext(SerializableDataContext):
         context_root_dir: Optional[PathStr] = None,
         project_root_dir: Optional[PathStr] = None,
         runtime_environment: Optional[dict] = None,
+        user_agent_str: Optional[str] = None,
     ) -> None:
         """FileDataContext constructor
 
@@ -63,7 +64,13 @@ class FileDataContext(SerializableDataContext):
         super().__init__(
             context_root_dir=self._context_root_directory,
             runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
         )
+
+    @property
+    @override
+    def mode(self) -> Literal["file"]:
+        return "file"
 
     def _init_context_root_directory(
         self, context_root_dir: Optional[PathStr], project_root_dir: Optional[PathStr]
