@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import re
 from typing import Any, Optional, cast
 
 from great_expectations.compatibility import aws
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.exceptions.exceptions import GreatExpectationsError
+from great_expectations.exceptions.exceptions import (
+    RedshiftExecutionEngineError,
+)
 from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
 from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
@@ -54,29 +55,6 @@ REDSHIFT_TYPES = (
 )
 
 
-def split_by_comma_outside_quotes(text: str) -> list[str]:
-    """Splits a string by commas, ignoring commas within double quotes.
-
-    Args:
-        text: The string to split
-
-    Returns:
-        A list of strings split by commas outside of double quotes
-
-    Examples:
-        >>> split_by_comma_outside_quotes('a,b,c')
-        ['a', 'b', 'c']
-        >>> split_by_comma_outside_quotes('a,"b,c",d')
-        ['a', '"b,c"', 'd']
-        >>> split_by_comma_outside_quotes('a,"b,c",d,"e,f,g"')
-        ['a', '"b,c"', 'd', '"e,f,g"']
-    """
-    # This regex pattern uses a positive lookahead to ensure we only split on commas
-    # that are followed by an even number of double quotes (meaning we're outside quotes)
-    pattern = r',(?=(?:[^"]*"[^"]*")*[^"]*$)'
-    return [part.strip() for part in re.split(pattern, text)]
-
-
 class ColumnTypes(BaseColumnTypes):
     """MetricProvider Class for Aggregate Column Types metric for Redshift databases."""
 
@@ -105,38 +83,40 @@ class ColumnTypes(BaseColumnTypes):
         # Get the table information
         assert isinstance(execution_engine, RedshiftExecutionEngine)
         table_name, schema_name = cls._get_table_schema(execution_engine, metric_domain_kwargs)
-        full_table_name = f"{schema_name}.{table_name}" if schema_name else table_name
+        full_table_name = f'"{schema_name}"."{table_name}"' if schema_name else f"{table_name}"
         # Query for the column information
         query = sa.text(f"""
-            select pg_get_cols('{full_table_name}');
+            select * from pg_get_cols('{full_table_name}')
+            cols(view_schema name, view_name name, col_name name, col_type varchar, col_num int);
         """)
-
         raw_result = execution_engine.execute_query(query)
         # Parse out metadata
         column_metadata = []
         # The raw result is a tuple of strings, one for each row.
         for r in raw_result:
-            # r is a string with the following format:
-            # (schema, table, column, type, column_num)
-            # We do some string manipulations name we string the '()' surrounding the tuple
-            # We then split on ',' to get the individual elements.
+            _schema, _table, column, raw_column_type, _column_num = r
             # If the type is parameterized, we must removed the arguments to the types to do a
             # string lookup from the type string to the actual type.
-            result = r[0].strip("()")
-            _schema, _table, column, raw_column_type, _column_num = split_by_comma_outside_quotes(
-                result
-            )
-            column_type_str_parts = raw_column_type.strip('"').split("(")
+            column_type_str_parts = raw_column_type.split("(")
             column_base_type = REDSHIFT_TYPES.get(column_type_str_parts[0])
             if column_base_type is None:
-                raise GreatExpectationsError(  # noqa: TRY003
-                    f"Unknown Redshift column type: {raw_column_type}"
+                raise RedshiftExecutionEngineError(
+                    message=f"Unknown Redshift column type: {raw_column_type}"
                 )
-            if len(column_type_str_parts) == 1:
+            # We expect our split on the raw column type to be either:
+            #  length 1: no arguments
+            #  length 2: has arguments
+            # We don't expect any argument nesting.
+            expected_column_type_str_parts = [1, 2]
+            if len(column_type_str_parts) == expected_column_type_str_parts[0]:
                 column_type = column_base_type()
-            else:
+            elif len(column_type_str_parts) == expected_column_type_str_parts[1]:
                 column_type_args = column_type_str_parts[1].rstrip(")").split(",")
                 column_type = column_base_type(*column_type_args)
+            else:
+                raise RedshiftExecutionEngineError(
+                    message=f"Unexpected nesting of arguments in column type: {raw_column_type}"
+                )
             column_metadata.append({"name": column, "type": column_type})
         return column_metadata
 
@@ -151,16 +131,16 @@ class ColumnTypes(BaseColumnTypes):
             if execution_engine.batch_manager.active_batch_data_id is not None:
                 batch_id = execution_engine.batch_manager.active_batch_data_id
             else:
-                raise GreatExpectationsError(  # noqa: TRY003
-                    "batch_id could not be determined from domain kwargs and no active_batch_data "
-                    "is loaded into the execution engine"
+                raise RedshiftExecutionEngineError(
+                    message="batch_id could not be determined from domain kwargs and no "
+                    "active_batch_data is loaded into the execution engine"
                 )
 
         possible_batch_data = execution_engine.batch_manager.batch_data_cache.get(batch_id)
         if possible_batch_data is None:
-            raise GreatExpectationsError(  # noqa: TRY003
-                "the requested batch is not available; please load the batch into the execution "
-                "engine."
+            raise RedshiftExecutionEngineError(
+                message="the requested batch is not available; please load the batch into the "
+                "execution engine."
             )
         batch_data: SqlAlchemyBatchData = cast(SqlAlchemyBatchData, possible_batch_data)
 
