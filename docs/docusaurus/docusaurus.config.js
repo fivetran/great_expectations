@@ -307,7 +307,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.3.12',
+              label: '1.3.13',
             },
             ['0.18']: {
               label: '0.18.21',
