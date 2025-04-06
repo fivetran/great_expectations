@@ -566,7 +566,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
         actual_column_type = [
             type_dict["type"]
             for type_dict in actual_column_types_list
-            if type_dict["name"] == column_name
+            if type_dict["name"].casefold() == column_name.casefold()
         ][0]
 
         if isinstance(execution_engine, PandasExecutionEngine):
