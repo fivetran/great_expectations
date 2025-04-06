@@ -5,4 +5,4 @@ from great_expectations.analytics.anonymizer import anonymize
 
 @pytest.mark.unit
 def test_anonymizer_anonymize():
-    assert anonymize("string") == "b45cffe084dd3d20d928bee85e7b0f21"
+    assert anonymize("string") == "473287f8298dba7163a897908958f7c0eae733e25d2e027992ea2edc9bed2fa8"
