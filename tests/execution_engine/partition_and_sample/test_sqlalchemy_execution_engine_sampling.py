@@ -54,7 +54,7 @@ pytestmark = [
             "sample_using_random",
             "sample_using_mod",
             "sample_using_a_list",
-            "sample_using_md5",
+            "sample_using_sha256",
         ]
     ],
 )

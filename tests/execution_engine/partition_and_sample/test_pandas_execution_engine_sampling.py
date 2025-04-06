@@ -96,7 +96,7 @@ def test_sample_using_a_list(test_df):
 
 
 @pytest.mark.unit
-def test_sample_using_md5(test_df):
+def test_sample_using_sha256(test_df):
     with pytest.raises(gx_exceptions.ExecutionEngineError):
         # noinspection PyUnusedLocal
         sampled_df = PandasExecutionEngine().get_batch_data(
@@ -114,7 +114,7 @@ def test_sample_using_md5(test_df):
         RuntimeDataBatchSpec(
             batch_data=test_df,
             sampling_method="_sample_using_hash",
-            sampling_kwargs={"column_name": "date", "hash_function_name": "md5"},
+            sampling_kwargs={"column_name": "date", "hash_function_name": "sha256"},
         )
     )
     assert sampled_df.dataframe.shape == (10, 10)

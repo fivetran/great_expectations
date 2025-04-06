@@ -215,11 +215,11 @@ class SqlAlchemyDataSampler(DataSampler):
         value_list: list = self.get_sampling_kwargs_value_or_default(batch_spec, "value_list")
         return sa.column(column_name).in_(value_list)  # type: ignore[return-value] # FIXME CoP
 
-    def sample_using_md5(
+    def sample_using_sha256(
         self,
         batch_spec: BatchSpec,
     ) -> sqlalchemy.Selectable:
-        """Hash the values in the named column using md5, and only keep rows that match the given hash_value.
+        """Hash the values in the named column using sha256, and only keep rows that match the given hash_value.
 
         Args:
             batch_spec: should contain keys `column_name` and optionally `hash_digits`
@@ -242,6 +242,6 @@ class SqlAlchemyDataSampler(DataSampler):
         )
 
         return (
-            sa.func.right(sa.func.md5(sa.cast(sa.column(column_name), sa.Text)), hash_digits)  # type: ignore[return-value] # FIXME CoP
+            sa.func.right(sa.func.sha256(sa.cast(sa.column(column_name), sa.Text)), hash_digits)  # type: ignore[return-value] # FIXME CoP
             == hash_value
         )

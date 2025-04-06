@@ -105,7 +105,7 @@ def test_sample_using_a_list(test_sparkdf, basic_spark_df_execution_engine):
     assert len(sampled_df.columns) == 10
 
 
-def test_sample_using_md5_wrong_hash_function_name(test_sparkdf, basic_spark_df_execution_engine):
+def test_sample_using_sha256_wrong_hash_function_name(test_sparkdf, basic_spark_df_execution_engine):
     with pytest.raises(gx_exceptions.ExecutionEngineError):
         # noinspection PyUnusedLocal
         _ = basic_spark_df_execution_engine.get_batch_data(
@@ -120,14 +120,14 @@ def test_sample_using_md5_wrong_hash_function_name(test_sparkdf, basic_spark_df_
         ).dataframe
 
 
-def test_sample_using_md5(test_sparkdf, basic_spark_df_execution_engine):
+def test_sample_using_sha256(test_sparkdf, basic_spark_df_execution_engine):
     sampled_df = basic_spark_df_execution_engine.get_batch_data(
         RuntimeDataBatchSpec(
             batch_data=test_sparkdf,
             sampling_method="_sample_using_hash",
             sampling_kwargs={
                 "column_name": "date",
-                "hash_function_name": "md5",
+                "hash_function_name": "sha256",
             },
         )
     ).dataframe

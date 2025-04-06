@@ -290,7 +290,7 @@ The format for an unstructured profile is below:
 * CREDIT_CARD
 * EMAIL_ADDRESS
 * UUID
-* HASH_OR_KEY (md5, sha1, sha256, random hash, etc.)
+* HASH_OR_KEY (sha1, sha256, random hash, etc.)
 * IPV4
 * IPV6
 * MAC_ADDRESS

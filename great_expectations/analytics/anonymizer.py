@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from hashlib import md5
+from hashlib import sha256
 
 
 def anonymize(string: str) -> str:
-    return md5(string.encode("utf-8")).hexdigest()
+    return sha256(string.encode("utf-8")).hexdigest()

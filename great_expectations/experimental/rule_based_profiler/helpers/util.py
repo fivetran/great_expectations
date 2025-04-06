@@ -1068,10 +1068,10 @@ def sanitize_parameter_name(
         suffix: additional component (i.e., "suffix") argument to be appended to "name" and sanitized together
 
     Returns:
-        string-valued sanitized concatenation of "name" and MD5-digest of "suffix" arguments.
+        string-valued sanitized concatenation of "name" and SHA256-digest of "suffix" arguments.
     """  # noqa: E501 # FIXME CoP
     if suffix:
-        suffix = hashlib.md5(suffix.encode("utf-8")).hexdigest()
+        suffix = hashlib.sha256(suffix.encode("utf-8")).hexdigest()
         name = f"{name}{FULLY_QUALIFIED_PARAMETER_NAME_SEPARATOR_CHARACTER}{suffix}"
 
     return name.replace(FULLY_QUALIFIED_PARAMETER_NAME_SEPARATOR_CHARACTER, "_")

@@ -141,7 +141,7 @@ def test_cases_for_sql_data_connector_sqlite_execution_engine(
     raw_connection = engine.raw_connection()
     raw_connection.create_function("sqrt", 1, lambda x: math.sqrt(x))
     raw_connection.create_function(
-        "md5", 2, lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :]
+        "sha256", 2, lambda x, d: hashlib.sha256(str(x).encode("utf-8")).hexdigest()[-1 * d :]
     )
 
     conn: sa.engine.Connection = engine.connect()  # noqa: F841 # FIXME CoP

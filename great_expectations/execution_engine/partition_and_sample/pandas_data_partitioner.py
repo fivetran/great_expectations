@@ -225,7 +225,7 @@ class PandasDataPartitioner(DataPartitioner):
         column_name: str,
         hash_digits: int,
         batch_identifiers: dict,
-        hash_function_name: str = "md5",
+        hash_function_name: str = "sha256",
     ) -> pd.DataFrame:
         """Partition on the hashed value of the named column"""
         try:

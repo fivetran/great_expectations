@@ -641,4 +641,4 @@ def hash_pandas_dataframe(df):
         # In case of facing unhashable objects (like dict), use pickle
         obj = pickle.dumps(df, pickle.HIGHEST_PROTOCOL)
 
-    return hashlib.md5(obj).hexdigest()
+    return hashlib.sha256(obj).hexdigest()

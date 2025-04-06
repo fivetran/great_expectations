@@ -163,7 +163,7 @@ class TaxiTestData:
             key=lambda element: sum(
                 map(
                     ord,
-                    hashlib.md5(
+                    hashlib.sha256(
                         str(tuple(zip(element.keys(), element.values()))).encode("utf-8")
                     ).hexdigest(),
                 )
@@ -177,7 +177,7 @@ class TaxiTestData:
         hash_code: str
         dictionary_element: dict
         for dictionary_element in multi_column_values:
-            hash_code = hashlib.md5(
+            hash_code = hashlib.sha256(
                 str(tuple(zip(dictionary_element.keys(), dictionary_element.values()))).encode(
                     "utf-8"
                 )
@@ -209,8 +209,8 @@ class TaxiTestData:
 
     def get_hashed_test_column_values(self, hash_digits: int) -> List[Optional[Any]]:
         """
-        hashlib.md5(string).hexdigest()
-        hashlib.md5(str(tuple_).encode("utf-8")).hexdigest()
+        hashlib.sha256(string).hexdigest()
+        hashlib.sha256(str(tuple_).encode("utf-8")).hexdigest()
         [:num_digits]
         """
         column_values: List[Optional[Any]] = self.get_unique_sorted_test_column_values(
@@ -219,7 +219,7 @@ class TaxiTestData:
 
         column_value: Any
         column_values = [
-            hashlib.md5(str(column_value).encode("utf-8")).hexdigest()[-1 * hash_digits :]
+            hashlib.sha256(str(column_value).encode("utf-8")).hexdigest()[-1 * hash_digits :]
             for column_value in column_values
         ]
 

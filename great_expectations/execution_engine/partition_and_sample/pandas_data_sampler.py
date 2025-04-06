@@ -125,7 +125,7 @@ class PandasDataSampler(DataSampler):
             df: dataframe to sample
             batch_spec: should contain keys `column_name` and optionally `hash_digits`
                 (default is 1 if not provided), `hash_value` (default is "f" if not provided),
-                and `hash_function_name` (default is "md5" if not provided)
+                and `hash_function_name` (default is "sha256" if not provided)
 
         Returns:
             Sampled dataframe
@@ -146,7 +146,7 @@ class PandasDataSampler(DataSampler):
         hash_function_name: str = self.get_sampling_kwargs_value_or_default(
             batch_spec=batch_spec,
             sampling_kwargs_key="hash_function_name",
-            default_value="md5",
+            default_value="sha256",
         )
 
         try:

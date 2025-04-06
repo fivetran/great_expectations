@@ -348,9 +348,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                     logger.info(f"Adding custom sqlite functions to connection {connection}")
                     connection.create_function("sqrt", 1, lambda x: math.sqrt(x))
                     connection.create_function(
-                        "md5",
+                        "sha256",
                         2,
-                        lambda x, d: hashlib.md5(str(x).encode("utf-8")).hexdigest()[-1 * d :],
+                        lambda x, d: hashlib.sha256(str(x).encode("utf-8")).hexdigest()[-1 * d :],
                     )
 
                 # Add sqlite functions to any future connections.

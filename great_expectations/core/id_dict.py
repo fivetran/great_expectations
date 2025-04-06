@@ -29,7 +29,7 @@ class IDDict(dict):
             return f"{key}={self[key]!s}"
 
         _id_dict = convert_to_json_serializable(data={k: self[k] for k in id_keys})
-        return hashlib.md5(json.dumps(_id_dict, sort_keys=True).encode("utf-8")).hexdigest()
+        return hashlib.sha256(json.dumps(_id_dict, sort_keys=True).encode("utf-8")).hexdigest()
 
     @override
     def __hash__(self) -> int:  # type: ignore[override] # FIXME CoP

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from hashlib import md5
+from hashlib import sha256
 
 
 def tuple_to_hash(tuple_):
-    return md5(str(tuple_).encode("utf-8")).hexdigest()
+    return sha256(str(tuple_).encode("utf-8")).hexdigest()
 
 
 def kwargs_to_tuple(d):

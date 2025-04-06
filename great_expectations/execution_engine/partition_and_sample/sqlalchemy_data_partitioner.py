@@ -300,7 +300,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         """Partition on the hashed value of the named column"""
         if self._dialect == GXSqlDialect.SQLITE:
             return (
-                sa.func.md5(sa.cast(sa.column(column_name), sa.VARCHAR), hash_digits)
+                sa.func.sha256(sa.cast(sa.column(column_name), sa.VARCHAR), hash_digits)
                 == batch_identifiers[column_name]
             )
 
@@ -851,7 +851,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         if self._dialect == GXSqlDialect.SQLITE:
             return sa.select(
                 sa.func.distinct(
-                    sa.func.md5(sa.cast(sa.column(column_name), sa.VARCHAR), hash_digits)
+                    sa.func.sha256(sa.cast(sa.column(column_name), sa.VARCHAR), hash_digits)
                 )
             ).select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
 

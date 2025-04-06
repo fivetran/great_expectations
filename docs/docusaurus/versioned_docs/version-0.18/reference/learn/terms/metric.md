@@ -49,7 +49,7 @@ An Expectation can also expose Metrics, such as the observed value of a useful s
 
 Validation Results can expose Metrics that are defined by specific Expectations that have been validated, called "Expectation Defined Metrics." To access those values, you address the Metric as a dot-delimited string that identifies the value, such as `expect_column_values_to_be_unique.success`or `expect_column_values_to_be_between.result.unexpected_percent`. These Metrics may be stored in a Metrics Store.
 
-A `metric_kwargs_id` is a string representation of the Metric Kwargs that can be used as a database key. For simple cases, it could be easily readable, such as `column=Age`, but when there are multiple keys and values or complex values, it will most likely be a md5 hash of key/value pairs. It can also be `None` in the case that there are no kwargs required to identify the Metric.
+A `metric_kwargs_id` is a string representation of the Metric Kwargs that can be used as a database key. For simple cases, it could be easily readable, such as `column=Age`, but when there are multiple keys and values or complex values, it will most likely be a sha256 hash of key/value pairs. It can also be `None` in the case that there are no kwargs required to identify the Metric.
 
 The following examples demonstrate how Metrics are defined:
 

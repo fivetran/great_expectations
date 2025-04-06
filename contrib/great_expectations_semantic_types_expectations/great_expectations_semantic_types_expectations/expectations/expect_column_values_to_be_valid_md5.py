@@ -7,22 +7,22 @@ from great_expectations.expectations.metrics import (
     column_condition_partial,
 )
 
-MD5_REGEX = r"^([a-fA-F\d]{32})$"
+SHA256_REGEX = r"^([a-fA-F\d]{64})$"
 
 
 # This class defines a Metric to support your Expectation.
 # For most ColumnMapExpectations, the main business logic for calculation will live in this class.
-class ColumnValuesToBeValidMd5(ColumnMapMetricProvider):
+class ColumnValuesToBeValidSha256(ColumnMapMetricProvider):
     # This is the id string that will be used to reference your metric.
-    condition_metric_name = "column_values.valid_md5"
+    condition_metric_name = "column_values.valid_sha256"
 
     # This method implements the core logic for the PandasExecutionEngine
     @column_condition_partial(engine=PandasExecutionEngine)
     def _pandas(cls, column, **kwargs):
-        def matches_md5_regex(x):
-            return bool(re.match(MD5_REGEX, str(x)))
+        def matches_sha256_regex(x):
+            return bool(re.match(SHA256_REGEX, str(x)))
 
-        return column.apply(lambda x: matches_md5_regex(x) if x else False)
+        return column.apply(lambda x: matches_sha256_regex(x) if x else False)
 
     # This method defines the business logic for evaluating your metric when using a SqlAlchemyExecutionEngine
     # @column_condition_partial(engine=SqlAlchemyExecutionEngine)
@@ -36,27 +36,27 @@ class ColumnValuesToBeValidMd5(ColumnMapMetricProvider):
 
 
 # This class defines the Expectation itself
-class ExpectColumnValuesToBeValidMd5(ColumnMapExpectation):
-    """Expect column values to be valid MD5 hashes."""
+class ExpectColumnValuesToBeValidSha256(ColumnMapExpectation):
+    """Expect column values to be valid SHA256 hashes."""
 
     # These examples will be shown in the public gallery.
     # They will also be executed as unit tests for your Expectation.
     examples = [
         {
             "data": {
-                "well_formed_md5": [
-                    "00000000000000000000000000000000",
-                    "71c2709c8e93e30c40bb441d7423ccfd",  # md5 hash of "great_expectations"
-                    "71C2709C8E93E30C40BB441D7423CCFD",
-                    "71C2709c8e93e30c40bb441d7423ccfD",
-                    "ffffffffffffffffffffffffffffffff",
+                "well_formed_sha256": [
+                    "0000000000000000000000000000000000000000000000000000000000000000",
+                    "e93ac4c39c921632d9a237cd86452a3ba417e7e27b68fb6f0acef66f0e18f2ab",  # sha256 hash of "great_expectations" UTF-8
+                    "E93AC4C39C921632D9A237CD86452A3BA417E7E27B68FB6F0ACEF66F0E18F2AB",
+                    "e93ac4c39C921632d9a237cD86452a3Ba417e7e27B68fb6f0acef66f0e18F2aB",
+                    "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
                 ],
-                "malformed_md5": [
+                "malformed_sha256": [
                     "",
                     "ab12",
-                    "71c2709c8e93e30c40bb441d7423ccfdffff",
-                    "71c2709c8e93e30c40bb441d7423xxxx",
-                    "This is not valid md5",
+                    "e93ac4c39c921632d9a237cd86452a3ba417e7e27b68fb6f0acef66f0e18f2abffff",
+                    "e93ac4c39c921632d9a237cd86452a3ba417e7e27b68fb6f0acef66f0e18f2abxxxx",
+                    "This is not valid sha256",
                 ],
             },
             "tests": [
@@ -64,14 +64,14 @@ class ExpectColumnValuesToBeValidMd5(ColumnMapExpectation):
                     "title": "basic_positive_test",
                     "exact_match_out": False,
                     "include_in_gallery": True,
-                    "in": {"column": "well_formed_md5"},
+                    "in": {"column": "well_formed_sha256"},
                     "out": {"success": True},
                 },
                 {
                     "title": "basic_negative_test",
                     "exact_match_out": False,
                     "include_in_gallery": True,
-                    "in": {"column": "malformed_md5"},
+                    "in": {"column": "malformed_sha256"},
                     "out": {"success": False},
                 },
             ],
@@ -80,7 +80,7 @@ class ExpectColumnValuesToBeValidMd5(ColumnMapExpectation):
 
     # This is the id string of the Metric used by this Expectation.
     # For most Expectations, it will be the same as the `condition_metric_name` defined in your Metric class above.
-    map_metric = "column_values.valid_md5"
+    map_metric = "column_values.valid_sha256"
 
     # This is a list of parameter names that can affect whether the Expectation evaluates to True or False
     success_keys = ("mostly",)
@@ -99,4 +99,4 @@ class ExpectColumnValuesToBeValidMd5(ColumnMapExpectation):
 
 
 if __name__ == "__main__":
-    ExpectColumnValuesToBeValidMd5().print_diagnostic_checklist()
+    ExpectColumnValuesToBeValidSha256().print_diagnostic_checklist()
