@@ -1,6 +1,6 @@
 from typing import Any
 
-from great_expectations.compatibility.pydantic import BaseModel, validator
+from great_expectations.compatibility.pydantic import BaseModel
 from great_expectations.metrics.batch.batch import BatchMetric
 from great_expectations.metrics.metric_results import MetricResult
 
