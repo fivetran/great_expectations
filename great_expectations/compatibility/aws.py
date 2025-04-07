@@ -43,6 +43,56 @@ except (ImportError, AttributeError):
     redshiftdialect = REDSHIFT_NOT_IMPORTED
 
 try:
+    from sqlalchemy_redshift.dialect import CHAR
+except (ImportError, AttributeError):
+    CHAR = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import VARCHAR
+except (ImportError, AttributeError):
+    VARCHAR = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import INTEGER
+except (ImportError, AttributeError):
+    INTEGER = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import SMALLINT
+except (ImportError, AttributeError):
+    SMALLINT = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import BIGINT
+except (ImportError, AttributeError):
+    BIGINT = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import TIMESTAMP
+except (ImportError, AttributeError):
+    TIMESTAMP = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import DATE
+except (ImportError, AttributeError):
+    DATE = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import DOUBLE_PRECISION
+except (ImportError, AttributeError):
+    DOUBLE_PRECISION = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import BOOLEAN
+except (ImportError, AttributeError):
+    BOOLEAN = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import DECIMAL
+except (ImportError, AttributeError):
+    DECIMAL = REDSHIFT_NOT_IMPORTED
+
+try:
     import pyathena  # type: ignore[import-not-found] # FIXME CoP
 except ImportError:
     pyathena = ATHENA_NOT_IMPORTED
@@ -58,3 +108,18 @@ try:
     )
 except (ImportError, AttributeError):
     athenatypes = ATHENA_NOT_IMPORTED
+
+
+class REDSHIFT_TYPES:
+    """Namespace for Redshift dialect types."""
+
+    CHAR = CHAR
+    VARCHAR = VARCHAR
+    INTEGER = INTEGER
+    SMALLINT = SMALLINT
+    BIGINT = BIGINT
+    TIMESTAMP = TIMESTAMP
+    DATE = DATE
+    DOUBLE_PRECISION = DOUBLE_PRECISION
+    BOOLEAN = BOOLEAN
+    DECIMAL = DECIMAL
