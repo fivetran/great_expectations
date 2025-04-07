@@ -1,5 +1,5 @@
-from numpy import dtype
 import pandas as pd
+from numpy import dtype
 
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.metrics.batch.batch_column_types import (
@@ -7,7 +7,7 @@ from great_expectations.metrics.batch.batch_column_types import (
     BatchColumnTypesResult,
 )
 from tests.integration.conftest import parameterize_batch_for_data_sources
-from tests.metrics.conftest import SQL_DATA_SOURCES, PANDAS_DATA_SOURCES, SPARK_DATA_SOURCES
+from tests.metrics.conftest import PANDAS_DATA_SOURCES, SPARK_DATA_SOURCES, SQL_DATA_SOURCES
 
 DATA_FRAME = pd.DataFrame(
     {
