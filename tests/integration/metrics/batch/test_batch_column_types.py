@@ -1,6 +1,7 @@
 import pandas as pd
 from numpy import dtype
 
+from great_expectations.compatibility import pyspark
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.metrics.batch.batch_column_types import (
     BatchColumnTypes,
@@ -44,8 +45,8 @@ class TestBatchColumnTypes__Spark:
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, BatchColumnTypesResult)
         assert metric_result.value == [
-            {"name": "numbers", "type": dtype("int64")},
-            {"name": "strings", "type": dtype("O")},
+            {"name": "numbers", "type": pyspark.types.IntegerType()},
+            {"name": "strings", "type": pyspark.types.StringType()},
         ]
 
 
