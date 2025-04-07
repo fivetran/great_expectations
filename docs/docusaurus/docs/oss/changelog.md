@@ -14,6 +14,17 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.13
+* [FEATURE] Add initial RedShift datasource ([#11011](https://github.com/great-expectations/great_expectations/pull/11011))
+* [BUGFIX] Prevent sqlite metric impl from overwriting default sqlalchemy ([#11055](https://github.com/great-expectations/great_expectations/pull/11055))
+* [DOCS] Add key pair authentication as a limitation of ExpectAI in manage_expectations.md ([#11047](https://github.com/great-expectations/great_expectations/pull/11047)) (thanks @adeola-ak)
+* [DOCS] reflect change on metrics page, clarify perms ([#11052](https://github.com/great-expectations/great_expectations/pull/11052))
+* [DOCS] test coverage metrics part 2 (table) ([#11046](https://github.com/great-expectations/great_expectations/pull/11046))
+* [DOCS] completeness change detection ([#11039](https://github.com/great-expectations/great_expectations/pull/11039))
+* [DOCS] ccd fast follow ([#11056](https://github.com/great-expectations/great_expectations/pull/11056))
+* [DOCS] update coverage health screenshot ([#11057](https://github.com/great-expectations/great_expectations/pull/11057))
+* [MAINTENANCE] Use get_metric_provider internal to registry ([#11044](https://github.com/great-expectations/great_expectations/pull/11044))
+
 ### 1.3.12
 * [DOCS] KL divergence gallery fix ([#11040](https://github.com/great-expectations/great_expectations/pull/11040))
 * [MAINTENANCE] Add MINORBUMP title tag. ([#10841](https://github.com/great-expectations/great_expectations/pull/10841))
