@@ -273,7 +273,7 @@ jobs:
             setup.py
 
       - name: Install dependencies
-        run: pip install . --debug -c constraints-dev.txt -r reqs/requirements-dev-test.txt
+        run: pip install . -c constraints-dev.txt -r reqs/requirements-dev-test.txt
 
       - name: Run the unit tests
         # TODO: revert the timeout back to 1.5 or lower after resolving arc issues
