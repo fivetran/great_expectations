@@ -1312,6 +1312,7 @@ class Batch:
                     metric_name=metric.name,
                     metric_calculator_result=metrics_calculator_results[metric_id_for_batch],
                 )
+                breakpoint()
                 results.append(MetricResultType(id=metric_id_for_batch, value=value))
             elif metric_id_for_batch in metrics_calculator_errors:
                 value = metrics_calculator_errors[metric_id_for_batch]
