@@ -1,7 +1,7 @@
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 
-const remarkNamedSnippets = require('./scripts/remark-named-snippets/index');
-const remarkCodeImport = require('remark-code-import');
+const remarkNamedSnippets = require('./scripts/remark-named-snippets/index')
+const remarkCodeImport = require('remark-code-import')
 
 const config = require('dotenv').config()
 
@@ -10,7 +10,6 @@ module.exports = {
   tagline: 'Always know what to expect from your data.',
   url: 'https://docs.greatexpectations.io', // Url to your site with no trailing slash
   baseUrl: '/',
-  customFields: {posthogApiKey: config.parsed.POSTHOG_API_KEY},
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   favicon: '/img/gx-mark.png',
@@ -22,16 +21,23 @@ module.exports = {
     [
       require.resolve('docusaurus-gtm-plugin'),
       {
-        id: 'GTM-K63L45F', // GTM Container ID
-      },
+        id: 'GTM-K63L45F' // GTM Container ID
+      }
     ],
+    [
+      'posthog-docusaurus',
+      {
+        apiKey: config.parsed.POSTHOG_API_KEY,
+        enableInDevelopment: false
+      }
+    ]
   ],
 
   scripts: [
     {
       src: '/scripts/set-tab.js',
       async: true,
-      defer: true,
+      defer: true
     },
     {
       src: '/scripts/web-tracking.js',
@@ -50,7 +56,7 @@ module.exports = {
           '<a style="font-weight:600" href="https://hubs.li/Q02nK_ZH0">Get started with GX Cloud by joining our bi-weekly hands on workshop.</a>',
       backgroundColor: '#141432',
       textColor: '#fff',
-      isCloseable: false,
+      isCloseable: false
     },
     gxCard: {
       title: 'What is GX Cloud?',
@@ -59,18 +65,18 @@ module.exports = {
       buttons: {
         primary: {
           label: 'Request a demo',
-          href: 'https://greatexpectations.io/demo',
+          href: 'https://greatexpectations.io/demo'
         },
         secondary: {
           label: 'Why GX Cloud?',
-          href: 'https://greatexpectations.io/why-gx-cloud',
-        },
-      },
+          href: 'https://greatexpectations.io/why-gx-cloud'
+        }
+      }
     },
     docs: {
       sidebar: {
-        autoCollapseCategories: true,
-      },
+        autoCollapseCategories: true
+      }
     },
     algolia: {
       // See: https://docusaurus.io/docs/search#connecting-algolia
@@ -79,7 +85,7 @@ module.exports = {
       apiKey: config.parsed.ALGOLIA_API_KEY || '348b970580f56fe06a29b33485592856',
       indexName: 'greatexpectations',
       searchPagePath: 'search',
-      contextualSearch: true,
+      contextualSearch: true
     },
     prism: {
       additionalLanguages: ['bash', 'json', 'python', 'yaml'],
@@ -89,16 +95,16 @@ module.exports = {
         {
           className: 'theme-code-block-highlighted-line',
           line: 'highlight-next-line',
-          block: {start: 'highlight-start', end: 'highlight-end'},
+          block: { start: 'highlight-start', end: 'highlight-end' }
         },
         {
           className: 'code-block-hide-line',
-          line: 'Hide this',
-        },
+          line: 'Hide this'
+        }
       ]
     },
     colorMode: {
-      disableSwitch: false,
+      disableSwitch: false
     },
     zoomSelector: '.markdown :not(em) > img',
     // announcementBar: {
@@ -116,7 +122,7 @@ module.exports = {
         alt: 'Great Expectations',
         src: 'img/GXDocs.svg',
         srcDark: 'img/GXDocs-dark.svg',
-        href: 'https://greatexpectations.io',
+        href: 'https://greatexpectations.io'
       },
       items: [
         {
@@ -125,59 +131,59 @@ module.exports = {
           dropdownItemsAfter: [
             {
               to: 'https://legacy.017.docs.greatexpectations.io',
-              label: '0.17.x and earlier',
-            },
+              label: '0.17.x and earlier'
+            }
           ],
           dropdownActiveClassDisabled: true,
-          className: 'version-dropdown',
+          className: 'version-dropdown'
         },
         {
           type: 'search',
           position: 'left',
-          className: 'custom-search-bar',
+          className: 'custom-search-bar'
         },
         {
           type: 'custom-colorModeToggle',
           position: 'left',
-          className: 'color-mode-toggle',
+          className: 'color-mode-toggle'
         },
         {
           type: 'custom-githubNavbarItem',
           position: 'left',
           owner: 'great-expectations',
           repository: 'great_expectations',
-          className: 'github-badge',
+          className: 'github-badge'
         },
         {
           label: 'Home',
           to: '/docs/home',
           position: 'right',
-          className: 'non-versioned-section',
+          className: 'non-versioned-section'
         },
         {
           label: 'GX Cloud',
           to: 'docs/cloud/overview/gx_cloud_overview',
           position: 'right',
           className: 'non-versioned-section',
-          activeBaseRegex: `/cloud/`
+          activeBaseRegex: '/cloud/'
         },
         {
           type: 'doc',
           label: 'GX Core',
           docId: 'core/introduction/introduction',
-          position: 'right',
+          position: 'right'
         },
         {
           type: 'doc',
           label: 'Learn',
           docId: 'reference/learn/reference_overview',
-          position: 'right',
+          position: 'right'
         },
         {
           type: 'doc',
           label: 'GX API',
           docId: 'reference/index',
-          position: 'right',
+          position: 'right'
         },
         {
           label: 'Expectations gallery',
@@ -192,33 +198,33 @@ module.exports = {
               type: 'doc',
               label: 'Get support',
               docId: 'resources/get_support',
-              className: 'non-versioned-section',
+              className: 'non-versioned-section'
             },
             {
               type: 'doc',
               label: 'Integration support policy',
               docId: 'application_integration_support',
-              className: 'non-versioned-section',
+              className: 'non-versioned-section'
             },
             {
               label: 'Community',
-              to: 'https://greatexpectations.io/community',
+              to: 'https://greatexpectations.io/community'
             },
             {
               label: 'Request a demo',
-              to: 'https://greatexpectations.io/demo-gx-cloud',
-            },
+              to: 'https://greatexpectations.io/demo-gx-cloud'
+            }
           ],
-          position: 'right',
+          position: 'right'
         },
         {
           to: 'https://greatexpectations.io/cloud',
           label: 'Try GX Cloud',
           position: 'left',
           className: 'header-cloud-link',
-          'aria-label': 'Early cloud access',
-        },
-      ],
+          'aria-label': 'Early cloud access'
+        }
+      ]
     },
     footer: {
       style: 'light',
@@ -227,7 +233,7 @@ module.exports = {
         src: 'img/gx-logo-dark.svg',
         href: 'https://greatexpectations.io',
         width: '100%',
-        height: 'auto',
+        height: 'auto'
       },
       links: [
         {
@@ -235,34 +241,34 @@ module.exports = {
           items: [
             {
               label: 'GX Cloud',
-              to: 'https://greatexpectations.io/gx-cloud',
+              to: 'https://greatexpectations.io/gx-cloud'
             },
             {
               label: 'GX Core',
-              to: 'https://greatexpectations.io/gx-oss',
+              to: 'https://greatexpectations.io/gx-oss'
             },
             {
               label: 'Integration support policy',
-              to: '/docs/application_integration_support',
-            },
-          ],
+              to: '/docs/application_integration_support'
+            }
+          ]
         },
         {
           title: 'Company',
           items: [
             {
               label: 'Careers',
-              to: 'https://jobs.greatexpectations.io/',
+              to: 'https://jobs.greatexpectations.io/'
             },
             {
               label: 'Legal Center',
-              to: 'https://greatexpectations.io/legal-center',
+              to: 'https://greatexpectations.io/legal-center'
             },
             {
               label: 'Privacy Policy',
-              to: 'https://greatexpectations.io/privacy-policy',
-            },
-          ],
+              to: 'https://greatexpectations.io/privacy-policy'
+            }
+          ]
         },
         {
           title: 'Check Us Out',
@@ -281,16 +287,16 @@ module.exports = {
                 <a class="footer__icon" href="https://www.linkedin.com/company/greatexpectations-data" target="_blank" rel="noreferrer noopener" aria-label="check out or Slack community">
                   <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="18px" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M847.7 112H176.3c-35.5 0-64.3 28.8-64.3 64.3v671.4c0 35.5 28.8 64.3 64.3 64.3h671.4c35.5 0 64.3-28.8 64.3-64.3V176.3c0-35.5-28.8-64.3-64.3-64.3zm0 736c-447.8-.1-671.7-.2-671.7-.3.1-447.8.2-671.7.3-671.7 447.8.1 671.7.2 671.7.3-.1 447.8-.2 671.7-.3 671.7zM230.6 411.9h118.7v381.8H230.6zm59.4-52.2c37.9 0 68.8-30.8 68.8-68.8a68.8 68.8 0 1 0-137.6 0c-.1 38 30.7 68.8 68.8 68.8zm252.3 245.1c0-49.8 9.5-98 71.2-98 60.8 0 61.7 56.9 61.7 101.2v185.7h118.6V584.3c0-102.8-22.2-181.9-142.3-181.9-57.7 0-96.4 31.7-112.3 61.7h-1.6v-52.2H423.7v381.8h118.6V604.8z"></path></svg>
                 </a>
-              `,
-            },
-          ],
-        },
+              `
+            }
+          ]
+        }
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Great Expectations. All Rights Reserved.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Great Expectations. All Rights Reserved.`
     },
     mermaid: {
-      theme: { light: 'neutral', dark: 'neutral' },
-    },
+      theme: { light: 'neutral', dark: 'neutral' }
+    }
   },
   themes: ['@docusaurus/theme-mermaid'],
 
@@ -312,6 +318,9 @@ module.exports = {
             ['0.18']: {
               label: '0.18.21',
             },
+            0.18: {
+              label: '0.18.21'
+            }
           },
           admonitions: {
             keywords: [
@@ -321,30 +330,30 @@ module.exports = {
               'warning',
               'caution',
               'danger',
-              'cta',
-            ],
-          },
+              'cta'
+            ]
+          }
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.scss'),
+          customCss: require.resolve('./src/css/custom.scss')
         },
         gtag: {
           // You can also use your "G-" Measurement ID here.
           trackingID: 'UA-138955219-1',
           // Optional fields.
-          anonymizeIP: true, // Should IPs be anonymized?
+          anonymizeIP: true // Should IPs be anonymized?
         },
         sitemap: {
           ignorePatterns: [
             '**/0.18/oss/templates/**',
             '**/0.18/oss/team_templates/**'
-          ],
+          ]
         }
-      },
-    ],
+      }
+    ]
   ],
 
   markdown: {
-    mermaid: true,
-  },
-};
+    mermaid: true
+  }
+}
