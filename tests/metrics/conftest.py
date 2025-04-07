@@ -26,7 +26,3 @@ SQL_DATA_SOURCES: list[DataSourceTestConfig] = [
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
-
-ALL_DATA_SOURCES: list[DataSourceTestConfig] = (
-    PANDAS_DATA_SOURCES + SPARK_DATA_SOURCES + SQL_DATA_SOURCES
-)
