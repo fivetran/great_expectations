@@ -9,12 +9,6 @@ class ColumnType(BaseModel):
     name: str
     type: Any
 
-    @validator("type", pre=True)
-    def convert_type(cls, v):
-        if isinstance(v, dict):
-            return v.get("type", v)
-        return v
-
 
 class BatchColumnTypesResult(MetricResult[list[ColumnType]]): ...
 
