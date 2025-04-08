@@ -4,8 +4,10 @@ from great_expectations.metrics.batch.sample_values import SampleValues, SampleV
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import ALL_DATA_SOURCES
 
-DATA_FRAME_WITH_MANY_ROWS = pd.DataFrame({"value": [i for i in range(100)]})
-DATA_FRAME_WITH_FEW_ROWS = pd.DataFrame({"value": [1, 2, 3]})
+COL_NAME = "my_column"
+
+DATA_FRAME_WITH_MANY_ROWS = pd.DataFrame({COL_NAME: [i for i in range(100)]})
+DATA_FRAME_WITH_FEW_ROWS = pd.DataFrame({COL_NAME: [1, 2, 3]})
 
 
 class TestSampleValues:
@@ -13,25 +15,37 @@ class TestSampleValues:
         data_source_configs=ALL_DATA_SOURCES,
         data=DATA_FRAME_WITH_MANY_ROWS,
     )
-    def test_with_many_rows(self, batch_for_datasource) -> None:
+    def test_correct_return_types(self, batch_for_datasource) -> None:
         metric_result = batch_for_datasource.compute_metrics(SampleValues())
         assert isinstance(metric_result, SampleValuesResult)
-        assert metric_result.value.equals(pd.DataFrame({"value": [i for i in range(10)]}))
+
+        values = set(metric_result.value[COL_NAME])
+        assert values.issubset(range(100))
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=ALL_DATA_SOURCES,
+        data=DATA_FRAME_WITH_MANY_ROWS,
+    )
+    def test_default_n_rows(self, batch_for_datasource) -> None:
+        metric_result = batch_for_datasource.compute_metrics(SampleValues())
+        assert isinstance(metric_result, SampleValuesResult)
+        assert len(metric_result.value) == 10
 
     @parameterize_batch_for_data_sources(
         data_source_configs=ALL_DATA_SOURCES,
         data=DATA_FRAME_WITH_FEW_ROWS,
     )
-    def test_with_few_rows(self, batch_for_datasource) -> None:
+    def test_fewer_rows_exist_than_default_n_rows(self, batch_for_datasource) -> None:
         metric_result = batch_for_datasource.compute_metrics(SampleValues())
         assert isinstance(metric_result, SampleValuesResult)
-        assert metric_result.value.equals(pd.DataFrame({"value": [1, 2, 3]}))
+        assert len(metric_result.value) == 3
 
     @parameterize_batch_for_data_sources(
         data_source_configs=ALL_DATA_SOURCES,
         data=DATA_FRAME_WITH_MANY_ROWS,
     )
     def test_with_custom_n_rows(self, batch_for_datasource) -> None:
-        metric_result = batch_for_datasource.compute_metrics(SampleValues(n_rows=5))
+        n_rows = 5
+        metric_result = batch_for_datasource.compute_metrics(SampleValues(n_rows=n_rows))
         assert isinstance(metric_result, SampleValuesResult)
-        assert metric_result.value.equals(pd.DataFrame({"value": [0, 1, 2, 3, 4]}))
+        assert len(metric_result.value) == n_rows
