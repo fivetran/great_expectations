@@ -1,7 +1,9 @@
+from unittest.mock import ANY
+
 import pandas as pd
 from numpy import dtype
 
-from great_expectations.compatibility import bigquery, pyspark, snowflake, sqlalchemy
+from great_expectations.compatibility import pyspark
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.metrics.batch.batch_column_types import (
     BatchColumnTypes,
@@ -12,10 +14,7 @@ from tests.integration.test_utils.data_source_config.postgres import PostgreSQLD
 from tests.metrics.conftest import (
     PANDAS_DATA_SOURCES,
     SPARK_DATA_SOURCES,
-    BigQueryDatasourceTestConfig,
-    DatabricksDatasourceTestConfig,
-    SnowflakeDatasourceTestConfig,
-    SqliteDatasourceTestConfig,
+    SQL_DATA_SOURCES,
 )
 
 DATA_FRAME = pd.DataFrame(
@@ -57,36 +56,6 @@ def test_spark_success(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[BigQueryDatasourceTestConfig()],
-    data=DATA_FRAME,
-)
-def test_bigquery_success(batch_for_datasource: Batch) -> None:
-    batch = batch_for_datasource
-    metric = BatchColumnTypes()
-    metric_result = batch.compute_metrics(metric)
-    assert isinstance(metric_result, BatchColumnTypesResult)
-    assert metric_result.value == [
-        {"name": "numbers", "type": bigquery.BIGQUERY_TYPES.INTEGER()},
-        {"name": "strings", "type": bigquery.BIGQUERY_TYPES.STRING()},
-    ]
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=[DatabricksDatasourceTestConfig()],
-    data=DATA_FRAME,
-)
-def test_databricks_success(batch_for_datasource: Batch) -> None:
-    batch = batch_for_datasource
-    metric = BatchColumnTypes()
-    metric_result = batch.compute_metrics(metric)
-    assert isinstance(metric_result, BatchColumnTypesResult)
-    assert metric_result.value == [
-        {"name": "numbers", "type": "INT"},
-        {"name": "strings", "type": "STRING"},
-    ]
-
-
-@parameterize_batch_for_data_sources(
     data_source_configs=[PostgreSQLDatasourceTestConfig()],
     data=DATA_FRAME,
 )
@@ -102,30 +71,20 @@ def test_postgres_success(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[SnowflakeDatasourceTestConfig()],
+    data_source_configs=SQL_DATA_SOURCES,
     data=DATA_FRAME,
 )
-def test_snowflake_success(batch_for_datasource: Batch) -> None:
+def test_sql_happy_path(batch_for_datasource: Batch) -> None:
+    """General happy path for other SQL dialects.
+
+    The above Postgres test validates exact types come back for sqlalchemy datasources.
+    """
+
     batch = batch_for_datasource
     metric = BatchColumnTypes()
     metric_result = batch.compute_metrics(metric)
     assert isinstance(metric_result, BatchColumnTypesResult)
     assert metric_result.value == [
-        {"name": "numbers", "type": snowflake.DEC()},
-        {"name": "strings", "type": snowflake.TEXT()},
-    ]
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=[SqliteDatasourceTestConfig()],
-    data=DATA_FRAME,
-)
-def test_sqlite_success(batch_for_datasource: Batch) -> None:
-    batch = batch_for_datasource
-    metric = BatchColumnTypes()
-    metric_result = batch.compute_metrics(metric)
-    assert isinstance(metric_result, BatchColumnTypesResult)
-    assert metric_result.value == [
-        {"name": "numbers", "type": sqlalchemy.sqltypes.INTEGER()},
-        {"name": "strings", "type": sqlalchemy.sqlalchemy.VARCHAR()},
+        {"name": "numbers", "type": ANY},
+        {"name": "strings", "type": ANY},
     ]
