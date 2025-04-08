@@ -13,6 +13,7 @@ DATA_FRAME = pd.DataFrame(
     {
         STRING_COLUMN_NAME: ["a", None, "c", "d", None],
     },
+    dtype="object",
 )
 
 
