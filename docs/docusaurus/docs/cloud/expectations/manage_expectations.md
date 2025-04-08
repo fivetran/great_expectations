@@ -151,9 +151,9 @@ To add AI-recommended Expectations:
 2. In the **Data Assets** list, click the Data Asset name.
 3. Click **Generate Expectations**.
    :::note This might take a few minutes
-   It may take ExpectAI a few minutes to analyze your data and recommend personalized Expectations. You can navigate away from the page while ExpectAI works in the background. GX will send you an email when your recommended Expectations are ready for review.
+   ExpectAI may take a few minutes to analyze your data and recommend personalized Expectations. You can navigate away from the page while ExpectAI works in the background. GX will email you when your recommended Expectations are ready for review.
    :::
-4. Review the generated Expectations and **Approve** (✓) or **Reject** (x) them within 48 hours. After that, the recommendations will be discarded.
+4. Review the generated Expectations and **Approve** (✓) or **Reject** (✗) them within 48 hours. After that, the recommendations will be discarded.
 5. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 6. Optional. [Edit](#edit-an-expectation) AI-generated Expectations based on the insights you get from running a Validation and your data quality needs.
 
