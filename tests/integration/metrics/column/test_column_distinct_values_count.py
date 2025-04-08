@@ -21,7 +21,7 @@ class TestColumnDistinctValuesCount:
         data_source_configs=ALL_DATA_SOURCES,
         data=DATA_FRAME,
     )
-    def test_strings(self, batch_for_datasource: Batch) -> None:
+    def test_distinct_values_count(self, batch_for_datasource: Batch) -> None:
         metric = ColumnDistinctValuesCount(column=COLUMN_NAME)
         metric_result = batch_for_datasource.compute_metrics(metric)
 
