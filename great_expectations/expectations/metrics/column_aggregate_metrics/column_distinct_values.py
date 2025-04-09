@@ -36,7 +36,7 @@ class ColumnDistinctValues(ColumnAggregateMetricProvider):
 
     @column_aggregate_value(engine=PandasExecutionEngine)  # type: ignore[misc] # untyped-decorator
     def _pandas(cls, column: pd.Series, **kwargs) -> Set[Any]:
-        return set(column.unique())
+        return set(column.dropna().unique())
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(
