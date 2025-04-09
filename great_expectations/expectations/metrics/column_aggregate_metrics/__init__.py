@@ -15,6 +15,7 @@ from .column_parameterized_distribution_ks_test_p_value import (
 from .column_partition import ColumnPartition
 from .column_proportion_of_unique_values import ColumnUniqueProportion
 from .column_quantile_values import ColumnQuantileValues
+from .column_sample_values import ColumnSampleValues
 from .column_standard_deviation import ColumnStandardDeviation
 from .column_sum import ColumnSum
 from .column_value_counts import ColumnValueCounts
