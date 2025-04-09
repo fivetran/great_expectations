@@ -253,6 +253,53 @@ def test_get_context_with_context_root_dir_scaffolds_filesystem(tmp_path: pathli
 
 
 @pytest.mark.filesystem
+def test_get_context_with_custom_context_root_dir_scaffolds_filesystem(tmp_path: pathlib.Path):
+    root = tmp_path / "root"
+    context_root_dir = root.joinpath("hello_world")
+    assert not context_root_dir.exists()
+
+    context = gx.get_context(context_root_dir=context_root_dir)
+
+    assert isinstance(context, FileDataContext)
+    assert context_root_dir.exists()
+    assert (context_root_dir / FileDataContext.GITIGNORE).read_text() == "\nuncommitted/"
+
+
+@pytest.mark.filesystem
+def test_get_context_with_mode_and_custom_context_root_dir_scaffolds_filesystem(
+    tmp_path: pathlib.Path,
+):
+    root = tmp_path / "root"
+    context_root_dir = root.joinpath("hello_world")
+    assert not context_root_dir.exists()
+
+    context = gx.get_context(mode="file", context_root_dir=context_root_dir)
+
+    assert isinstance(context, FileDataContext)
+    assert context_root_dir.exists()
+    assert (context_root_dir / FileDataContext.GITIGNORE).read_text() == "\nuncommitted/"
+
+
+@pytest.mark.filesystem
+def test_errors_if_context_root_dir_and_project_root_dir_are_both_provided_for_file_context(
+    tmp_path: pathlib.Path,
+):
+    root = tmp_path / "root"
+    context_root_dir = root.joinpath("hello_world")
+    assert not context_root_dir.exists()
+
+    with pytest.raises(
+        TypeError,
+        match="'project_root_dir' and 'context_root_dir' are conflicting args; please only provide one",  # noqa: E501
+    ):
+        gx.get_context(  # type: ignore[call-overload]
+            mode="file",
+            context_root_dir=context_root_dir,
+            project_root_dir=context_root_dir.parent,
+        )
+
+
+@pytest.mark.filesystem
 def test_get_context_with_context_root_dir_scaffolds_existing_gitignore(clear_env_vars, tmp_path):
     context_root_dir = tmp_path / FileDataContext.GX_DIR
     context_root_dir.mkdir()

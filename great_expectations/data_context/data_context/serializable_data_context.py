@@ -144,13 +144,17 @@ class SerializableDataContext(AbstractDataContext):
     def _scaffold(
         cls,
         project_root_dir: Optional[PathStr] = None,
+        context_root_dir_name: Optional[str] = None,
     ) -> pathlib.Path:
         if not project_root_dir:
             project_root_dir = pathlib.Path.cwd()
         else:
             project_root_dir = pathlib.Path(project_root_dir)
 
-        gx_dir = project_root_dir / cls.GX_DIR
+        if context_root_dir_name is None:
+            context_root_dir_name = cls.GX_DIR
+
+        gx_dir = project_root_dir / context_root_dir_name
         gx_dir.mkdir(parents=True, exist_ok=True)
         cls._scaffold_directories(gx_dir)
 
