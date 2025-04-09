@@ -39,7 +39,7 @@ class TestColumnNullCount:
         data=DATA_FRAME,
     )
     @pytest.mark.xfail(strict=True)
-    def test_spark_fails(self, batch_for_datasource: Batch) -> None:
+    def test_spark(self, batch_for_datasource: Batch) -> None:
         metric = ColumnNullCount(column=STRING_COLUMN_NAME)
         metric_result = batch_for_datasource.compute_metrics(metric)
 
