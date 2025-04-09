@@ -31,6 +31,6 @@ To automate data quality checks for [API-managed Expectations](/cloud/expectatio
 
 3. In the Scheduling component, click **Edit schedule**.
 
-4. Pause the schedule using the **ON** / **OFF** toggle.
+4. Pause the schedule using the **ON**/**OFF** toggle.
 
 5. Click **Save**.
