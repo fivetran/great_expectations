@@ -460,6 +460,21 @@ def get_context(
 @overload
 def get_context(
     project_config: DataContextConfig | Mapping | None = ...,
+    context_root_dir: PathStr = ...,  # If context_root_dir is provided, project_root_dir shouldn't be  # noqa: E501 # FIXME CoP
+    project_root_dir: None = ...,
+    runtime_environment: dict | None = ...,
+    cloud_base_url: None = ...,
+    cloud_access_token: None = ...,
+    cloud_organization_id: None = ...,
+    cloud_mode: Literal[False] | None = ...,
+    user_agent_str: str | None = ...,
+    mode: Literal["file"] | None = ...,
+) -> FileDataContext: ...
+
+
+@overload
+def get_context(
+    project_config: DataContextConfig | Mapping | None = ...,
     context_root_dir: None = ...,
     project_root_dir: None = ...,
     runtime_environment: dict | None = ...,
