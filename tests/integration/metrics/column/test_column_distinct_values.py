@@ -26,4 +26,19 @@ class TestColumnDistinctValues:
         metric_result = batch_for_datasource.compute_metrics(metric)
 
         assert isinstance(metric_result, ColumnDistinctValuesResult)
-        assert metric_result.value == {"a", "b", "c"}
+
+        # NOTE: Different backends handle null values differently:
+        # - Pandas: Includes null values (None or nan depending on source)
+        # - SQLAlchemy/Spark: Excludes null values
+        datasource_type = batch_for_datasource.datasource.type
+        if datasource_type in ["pandas", "pandas_filesystem"]:
+            # For pandas, we expect the null values to be included
+            assert len(metric_result.value) == 4  # a, b, c, and null
+            assert "a" in metric_result.value
+            assert "b" in metric_result.value
+            assert "c" in metric_result.value
+            # Check for either None or nan depending on source
+            assert any(pd.isna(val) for val in metric_result.value)
+        else:
+            # For SQL and Spark, we expect only the non-null values
+            assert metric_result.value == {"a", "b", "c"}
