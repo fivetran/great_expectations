@@ -172,6 +172,9 @@ class ProjectManager:
     ) -> AbstractDataContext:
         project_config = self._prepare_project_config(project_config)
 
+        if mode == "file" and context_root_dir is None and not project_root_dir:
+            project_root_dir = Path.cwd()
+
         param_lookup: dict[ContextModes | None, dict] = {
             "ephemeral": dict(
                 project_config=project_config,
@@ -181,7 +184,7 @@ class ProjectManager:
             "file": dict(
                 project_config=project_config,
                 context_root_dir=context_root_dir,
-                project_root_dir=project_root_dir or Path.cwd(),
+                project_root_dir=project_root_dir,
                 runtime_environment=runtime_environment,
                 user_agent_str=user_agent_str,
             ),
