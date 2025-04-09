@@ -1,6 +1,6 @@
-from typing import Literal, Sequence, Union, get_args
+from typing import Any, List, Literal, Sequence, Union, get_args
 
-from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.pydantic import BaseModel, Field, validator
 from great_expectations.compatibility.typing_extensions import Annotated
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # used in pydantic validation
@@ -10,9 +10,31 @@ from great_expectations.expectations.model_field_descriptions import (
     VALUE_SET_DESCRIPTION,
 )
 
+
+class ValueSetModel(BaseModel):
+    value: Union[List, SuiteParameterDict]
+
+    @validator("value", pre=True)
+    def cast_to_list(cls, value: Any) -> Any:
+        if isinstance(value, (set, Sequence)) and not isinstance(value, (str, bytes)):
+            return list(value)
+        return value
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value: Any) -> Union[List, SuiteParameterDict]:
+        if isinstance(value, SuiteParameterDict):
+            return value
+        model = cls(value=value)
+        return model.value
+
+
 MostlyField = Annotated[
     Union[float, SuiteParameterDict],
-    pydantic.Field(
+    Field(
         description=MOSTLY_DESCRIPTION,
         ge=0.0,
         le=1.0,
@@ -22,8 +44,8 @@ MostlyField = Annotated[
 ]
 
 ValueSetField = Annotated[
-    Union[Sequence, set, SuiteParameterDict],
-    pydantic.Field(
+    ValueSetModel,
+    Field(
         title="Value Set",
         description=VALUE_SET_DESCRIPTION,
         schema_overrides={
