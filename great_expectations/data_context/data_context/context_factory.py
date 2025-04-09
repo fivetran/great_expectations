@@ -172,7 +172,7 @@ class ProjectManager:
     ) -> AbstractDataContext:
         project_config = self._prepare_project_config(project_config)
 
-        if mode == "file" and context_root_dir is not None and not project_root_dir:
+        if mode == "file" and not context_root_dir and not project_root_dir:
             project_root_dir = Path.cwd()
 
         param_lookup: dict[ContextModes | None, dict] = {
