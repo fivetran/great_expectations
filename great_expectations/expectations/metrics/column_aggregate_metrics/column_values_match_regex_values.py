@@ -36,9 +36,7 @@ class ColumnValuesMatchRegexValues(ColumnAggregateMetricProvider):
             selectable,
             _,
             accessor_domain_kwargs,
-        ) = execution_engine.get_compute_domain(
-            metric_domain_kwargs, MetricDomainTypes.COLUMN
-        )
+        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
         column_name: str = accessor_domain_kwargs["column"]
         column: sa.ColumnClause = sa.column(column_name)
         regex = metric_value_kwargs["regex"]
