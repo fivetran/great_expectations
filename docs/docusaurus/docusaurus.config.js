@@ -28,7 +28,10 @@ module.exports = {
       'posthog-docusaurus',
       {
         apiKey: config.parsed.POSTHOG_API_KEY,
-        enableInDevelopment: false
+        enableInDevelopment: false,
+        autocapture: {
+          capture_pageview: false
+        },
       }
     ]
   ],
