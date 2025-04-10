@@ -1,0 +1,79 @@
+import pandas as pd
+
+from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.metrics.column.column_values_match_regex_values import (
+    ColumnValuesMatchRegexValues,
+    ColumnValuesMatchRegexValuesResult,
+)
+from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.metrics.conftest import SQL_DATA_SOURCES
+
+COLUMN_NAME = "whatevs"
+BIG_NUMBER = 101
+
+DATA_FRAME = pd.DataFrame(
+    {
+        COLUMN_NAME: ["abc", "def", "ghi", "1ab2", None],
+    },
+)
+
+DATA_FRAME_WITH_LOTS_OF_VALUES = pd.DataFrame(
+    {
+        COLUMN_NAME: ["A"] * BIG_NUMBER,
+    },
+)
+
+
+class TestColumnValuesMatchRegexValues:
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_regular_characters(self, batch_for_datasource: Batch) -> None:
+        metric = ColumnValuesMatchRegexValues(column=COLUMN_NAME, regex="ab")
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult)
+        assert metric_result.value == ["abc", "1ab2"]
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA_FRAME_WITH_LOTS_OF_VALUES,
+    )
+    def test_default_limit(self, batch_for_datasource: Batch) -> None:
+        metric = ColumnValuesMatchRegexValues(column=COLUMN_NAME, regex=".+")
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert len(metric_result.value) == 20
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA_FRAME_WITH_LOTS_OF_VALUES,
+    )
+    def test_custom_limit(self, batch_for_datasource: Batch) -> None:
+        limit = 7
+        metric = ColumnValuesMatchRegexValues(column=COLUMN_NAME, regex=".+", limit=limit)
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert len(metric_result.value) == limit
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA_FRAME_WITH_LOTS_OF_VALUES,
+    )
+    def test_no_limit(self, batch_for_datasource: Batch) -> None:
+        metric = ColumnValuesMatchRegexValues(column=COLUMN_NAME, regex=".+", limit=None)
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert len(metric_result.value) == BIG_NUMBER
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_special_characters(self, batch_for_datasource: Batch) -> None:
+        metric = ColumnValuesMatchRegexValues(column=COLUMN_NAME, regex="^(a|d).+")
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult)
+        assert metric_result.value == ["abc", "def"]
