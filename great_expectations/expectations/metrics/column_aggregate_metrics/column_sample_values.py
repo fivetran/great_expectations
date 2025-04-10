@@ -28,4 +28,6 @@ class ColumnSampleValues(ColumnAggregateMetricProvider):
         column = metric_domain_kwargs["column"]
         count = metric_value_kwargs["count"]
         query: sa.Select = sa.select(sa.column(column)).select_from(selectable).limit(count)  # type: ignore[arg-type] # FIXME CoP
-        return execution_engine.execute_query(query).fetchall()
+        rows = execution_engine.execute_query(query).fetchall()
+        # even though we query a single column, the result is a list of length=1 tuples
+        return [row[0] for row in rows]

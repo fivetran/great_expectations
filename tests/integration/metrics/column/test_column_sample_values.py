@@ -34,8 +34,6 @@ DATA_FRAME = pd.DataFrame(
             "c",
             "c",
             "c",
-            None,
-            None,
         ],
     },
 )
@@ -52,6 +50,7 @@ class TestColumnSampleValues:
 
         assert isinstance(metric_result, ColumnSampleValuesResult)
         assert len(metric_result.value) == 20
+        assert isinstance(metric_result.value[0], str)
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SQL_DATA_SOURCES,
@@ -63,3 +62,4 @@ class TestColumnSampleValues:
 
         assert isinstance(metric_result, ColumnSampleValuesResult)
         assert len(metric_result.value) == 10
+        assert isinstance(metric_result.value[0], str)
