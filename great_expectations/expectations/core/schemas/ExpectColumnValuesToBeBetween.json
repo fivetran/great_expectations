@@ -214,7 +214,8 @@
                         "BigQuery",
                         "Snowflake",
                         "Databricks (SQL)",
-                        "MySQL"
+                        "MySQL",
+                        "Redshift"
                     ]
                 }
             }

@@ -218,7 +218,8 @@
                         "MySQL",
                         "MSSQL",
                         "BigQuery",
-                        "Snowflake"
+                        "Snowflake",
+                        "Redshift"
                     ]
                 }
             }
