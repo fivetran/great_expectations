@@ -1,2 +1,0 @@
-psycopg2-binary>=2.7.6
-sqlalchemy-redshift @ git+https://github.com/great-expectations/sqlalchemy-redshift.git
