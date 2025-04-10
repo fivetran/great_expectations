@@ -36,7 +36,9 @@ class ColumnValuesMatchRegexValues(ColumnAggregateMetricProvider):
             selectable,
             _,
             accessor_domain_kwargs,
-        ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
+        ) = execution_engine.get_compute_domain(
+            metric_domain_kwargs, MetricDomainTypes.COLUMN
+        )
         column_name: str = accessor_domain_kwargs["column"]
         column: sa.ColumnClause = sa.column(column_name)
         regex = metric_value_kwargs["regex"]
@@ -47,7 +49,7 @@ class ColumnValuesMatchRegexValues(ColumnAggregateMetricProvider):
             logger.warning(f"Regex is not supported for dialect {_dialect.name!s}")
             raise NotImplementedError
 
-        query = sa.select(column).where(regex_expression).select_from(selectable)
+        query = sa.select(column).where(regex_expression).select_from(selectable)  # type: ignore[arg-type]
         if isinstance(limit, int):
             query = query.limit(limit)
 
