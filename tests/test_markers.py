@@ -14,6 +14,10 @@ pytestmark = pytest.mark.project
 LOGGER: Final = logging.getLogger(__name__)
 PROJECT_ROOT: Final = pathlib.Path(__file__).parent.parent
 PYPROJECT_TOML: Final = PROJECT_ROOT / "pyproject.toml"
+# Markers that are used to launch CI but map to a different marker for tests.
+# eg, gx-redshift should run the redshift test so, while a marker for CI
+# there should be no tests with this marker.
+NO_TEST_MARKERS: Final = ["gx-redshift"]
 
 
 @pytest.fixture(scope="module")
@@ -39,6 +43,8 @@ def test_marker_mappings_are_registered(pytest_markers: list[str]):
     LOGGER.debug(f"pytest_markers:\n----------\n{pf(pytest_markers)}")
 
     for marker in MARKER_DEPENDENCY_MAP:
+        if marker in NO_TEST_MARKERS:
+            continue
         assert marker in pytest_markers
 
 
