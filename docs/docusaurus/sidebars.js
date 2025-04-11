@@ -171,9 +171,10 @@ module.exports = {
       label: 'Connect GX Cloud',
       link: { type: 'doc', id: 'cloud/connect/connect_lp' },
       items: [
-        'cloud/connect/connect_postgresql',
-        'cloud/connect/connect_snowflake',
         'cloud/connect/connect_databrickssql',
+        'cloud/connect/connect_postgresql',
+        'cloud/connect/connect_redshift',
+        'cloud/connect/connect_snowflake',
         'cloud/connect/connect_airflow',
         'cloud/connect/connect_python'
       ]
