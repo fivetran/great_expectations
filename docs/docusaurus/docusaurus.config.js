@@ -25,6 +25,17 @@ module.exports = {
         id: 'GTM-K63L45F', // GTM Container ID
       },
     ],
+    [
+      'posthog-docusaurus',
+      {
+        apiKey: config.parsed.POSTHOG_API_KEY,
+        enableInDevelopment: true,
+        debug: process.env.NODE_ENV === 'development',
+        autocapture: {
+          capture_pageview: false
+        },
+      }
+    ]
   ],
 
   scripts: [
