@@ -36,6 +36,17 @@ class TestColumnValuesMatchRegexValues:
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SQL_DATA_SOURCES,
+        data=DATA_FRAME,
+    )
+    def test_special_characters(self, batch_for_datasource: Batch) -> None:
+        metric = ColumnValuesMatchRegexValues(column=COLUMN_NAME, regex="^(a|d).+")
+        metric_result = batch_for_datasource.compute_metrics(metric)
+
+        assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult)
+        assert sorted(metric_result.value) == ["abc", "def"]
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=SQL_DATA_SOURCES,
         data=DATA_FRAME_WITH_LOTS_OF_VALUES,
     )
     def test_default_limit(self, batch_for_datasource: Batch) -> None:
@@ -56,14 +67,3 @@ class TestColumnValuesMatchRegexValues:
         metric_result = batch_for_datasource.compute_metrics(metric)
 
         assert len(metric_result.value) == limit
-
-    @parameterize_batch_for_data_sources(
-        data_source_configs=SQL_DATA_SOURCES,
-        data=DATA_FRAME,
-    )
-    def test_special_characters(self, batch_for_datasource: Batch) -> None:
-        metric = ColumnValuesMatchRegexValues(column=COLUMN_NAME, regex="^(a|d).+")
-        metric_result = batch_for_datasource.compute_metrics(metric)
-
-        assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult)
-        assert metric_result.value == ["abc", "def"]
