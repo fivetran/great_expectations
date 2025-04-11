@@ -14,6 +14,21 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.3.14
+* [FEATURE] Fix ExpectColumnValuesToBeOfType bug and also work with sqla2 ([#11062](https://github.com/great-expectations/great_expectations/pull/11062))
+* [FEATURE] Add gx-redshift extra dependency ([#11063](https://github.com/great-expectations/great_expectations/pull/11063))
+* [FEATURE] Enable SQLAlchemy 2.x support for BigQuery ([#11059](https://github.com/great-expectations/great_expectations/pull/11059))
+* [BUGFIX] Add test for 8-bit character support in row conditions parser ([#11053](https://github.com/great-expectations/great_expectations/pull/11053))
+* [BUGFIX] Respect context_root_dir in get_context ([#11078](https://github.com/great-expectations/great_expectations/pull/11078))
+* [DOCS] update schedule instructions ([#11080](https://github.com/great-expectations/great_expectations/pull/11080))
+* [MAINTENANCE] update docs usage of posthog ([#11060](https://github.com/great-expectations/great_expectations/pull/11060))
+* [MAINTENANCE] Improve package autocompletion behavior ([#11070](https://github.com/great-expectations/great_expectations/pull/11070))
+* [MAINTENANCE] Add BatchColumnTypes metric ([#11069](https://github.com/great-expectations/great_expectations/pull/11069))
+* [MAINTENANCE] Implement SampleValues metric ([#11071](https://github.com/great-expectations/great_expectations/pull/11071))
+* [MAINTENANCE] Implement ColumnDistinctValuesCount ([#11075](https://github.com/great-expectations/great_expectations/pull/11075))
+* [MAINTENANCE] Implement ColumnNullCount metric ([#11073](https://github.com/great-expectations/great_expectations/pull/11073))
+* [MAINTENANCE] Revert "[FEATURE] Add gx-redshift extra dependency" ([#11079](https://github.com/great-expectations/great_expectations/pull/11079))
+
 ### 1.3.13
 * [FEATURE] Add initial RedShift datasource ([#11011](https://github.com/great-expectations/great_expectations/pull/11011))
 * [BUGFIX] Prevent sqlite metric impl from overwriting default sqlalchemy ([#11055](https://github.com/great-expectations/great_expectations/pull/11055))

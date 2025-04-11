@@ -567,18 +567,32 @@ class TestCustomAnnotatedFields:
             _SampleExpectation(mostly=mostly, value_set=[1, 2, 3])
 
     @pytest.mark.parametrize(
-        "value_set",
+        "value_set,expected_value",
         [
-            ["a"],
-            [1],
-            {"a"},
-            {1},
-            [1, 2, 3],
-            ["a", "b", "c"],
-            {"$PARAMETER": "my_param"},
+            (["a"], ["a"]),
+            ([1], [1]),
+            ({"a"}, ["a"]),
+            ({1}, [1]),
+            ([1, 2, 3], [1, 2, 3]),
+            (["a", "b", "c"], ["a", "b", "c"]),
+            ({"$PARAMETER": "my_param"}, {"$PARAMETER": "my_param"}),
         ],
     )
     @pytest.mark.unit
-    def test_valid_value_set_values(self, value_set: Union[Sequence, set]):
+    def test_valid_value_set_values(self, value_set: Union[Sequence, set], expected_value: Any):
         expectation = _SampleExpectation(mostly=1, value_set=value_set)
-        assert expectation.value_set == value_set
+        assert expectation.value_set == expected_value
+
+    @pytest.mark.parametrize(
+        "input_value,expected_type",
+        [
+            ({"1", "2", "3"}, list),
+            (("1", "2", "3"), list),
+            (["1", "2", "3"], list),
+            ({"$PARAMETER": "my_param"}, dict),
+        ],
+    )
+    @pytest.mark.unit
+    def test_value_set_field_converts_to_list(self, input_value: Any, expected_type: type) -> None:
+        expectation = _SampleExpectation(mostly=1, value_set=input_value)
+        assert isinstance(expectation.value_set, expected_type)

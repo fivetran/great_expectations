@@ -111,7 +111,7 @@ def _is_databricks_dialect(dialect: ModuleType | sa.Dialect | Type[sa.Dialect]) 
 
 
 def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIXME CoP
-    column: sa.Column,
+    column: sa.Column | sa.ColumnClause,
     regex: str,
     dialect: ModuleType | Type[sa.Dialect] | sa.Dialect,
     positive: bool = True,
