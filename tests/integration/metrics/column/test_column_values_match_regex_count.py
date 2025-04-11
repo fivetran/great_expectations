@@ -8,8 +8,8 @@ from great_expectations.metrics.column.column_values_match_regex_count import (
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import (
     ALL_DATA_SOURCES,
-    PandasDataFrameDatasourceTestConfig,
-    PandasFilesystemCsvDatasourceTestConfig,
+    SPARK_DATA_SOURCES,
+    SQL_DATA_SOURCES,
     SnowflakeDatasourceTestConfig,
 )
 
@@ -21,14 +21,6 @@ ALL_DATA_SOURCES_EXCEPT_SNOWFLAKE = [
     datasource
     for datasource in ALL_DATA_SOURCES
     if not isinstance(datasource, SnowflakeDatasourceTestConfig)
-]
-
-ALL_DATA_SOURCES_EXCEPT_PANDAS = [
-    datasource
-    for datasource in ALL_DATA_SOURCES
-    if not isinstance(
-        datasource, (PandasDataFrameDatasourceTestConfig, PandasFilesystemCsvDatasourceTestConfig)
-    )
 ]
 
 
@@ -45,7 +37,7 @@ class TestColumnValuesMatchRegexCount:
         assert metric_result.value == 3
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=ALL_DATA_SOURCES_EXCEPT_PANDAS,
+        data_source_configs=SPARK_DATA_SOURCES + SQL_DATA_SOURCES,
         data=DATA_FRAME,
     )
     def test_special_characters(self, batch_for_datasource: Batch) -> None:
