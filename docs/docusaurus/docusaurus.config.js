@@ -3,14 +3,14 @@
 const remarkNamedSnippets = require('./scripts/remark-named-snippets/index')
 const remarkCodeImport = require('remark-code-import')
 
-const config = require('dotenv').config()
+require('dotenv').config()
 
 module.exports = {
   title: 'Great Expectations',
   tagline: 'Always know what to expect from your data.',
   url: 'https://docs.greatexpectations.io', // Url to your site with no trailing slash
   baseUrl: '/',
-  customFields: { posthogApiKey: config.parsed.POSTHOG_API_KEY },
+  customFields: { posthogApiKey: process.env.POSTHOG_API_KEY },
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   favicon: '/img/gx-mark.png',
@@ -28,7 +28,7 @@ module.exports = {
     [
       'posthog-docusaurus',
       {
-        apiKey: config.parsed.POSTHOG_API_KEY,
+        apiKey: process.env.POSTHOG_API_KEY,
         enableInDevelopment: false,
         debug: process.env.NODE_ENV === 'development',
         autocapture: {
