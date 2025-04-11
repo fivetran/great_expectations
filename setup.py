@@ -46,6 +46,7 @@ def get_extras_require():
         "vertica",  # https://github.com/bluelabsio/sqlalchemy-vertica-python/blob/master/setup.py
         "databricks",  # https://github.com/databricks/databricks-sql-python/blob/main/pyproject.toml
         "snowflake",  # https://github.com/snowflakedb/snowflake-sqlalchemy/blob/main/setup.cfg
+        "gx-redshift",  # https://github.com/great-expectations/sqlalchemy-redshift/blob/main/setup.py
     )
     ignore_keys = (
         "sqlalchemy",
