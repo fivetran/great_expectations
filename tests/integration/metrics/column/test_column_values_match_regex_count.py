@@ -6,16 +6,35 @@ from great_expectations.metrics.column.column_values_match_regex_count import (
     ColumnValuesMatchRegexCountResult,
 )
 from tests.integration.conftest import parameterize_batch_for_data_sources
-from tests.metrics.conftest import SQL_DATA_SOURCES
+from tests.metrics.conftest import (
+    ALL_DATA_SOURCES,
+    PandasDataFrameDatasourceTestConfig,
+    PandasFilesystemCsvDatasourceTestConfig,
+    SnowflakeDatasourceTestConfig,
+)
 
 COLUMN_NAME = "whatevs"
 
 DATA_FRAME = pd.DataFrame({COLUMN_NAME: ["abc", "def", "ghi", "1ab2", "1ab3", None]})
 
+ALL_DATA_SOURCES_EXCEPT_SNOWFLAKE = [
+    datasource
+    for datasource in ALL_DATA_SOURCES
+    if not isinstance(datasource, SnowflakeDatasourceTestConfig)
+]
+
+ALL_DATA_SOURCES_EXCEPT_PANDAS = [
+    datasource
+    for datasource in ALL_DATA_SOURCES
+    if not isinstance(
+        datasource, (PandasDataFrameDatasourceTestConfig, PandasFilesystemCsvDatasourceTestConfig)
+    )
+]
+
 
 class TestColumnValuesMatchRegexCount:
     @parameterize_batch_for_data_sources(
-        data_source_configs=SQL_DATA_SOURCES,
+        data_source_configs=ALL_DATA_SOURCES_EXCEPT_SNOWFLAKE,
         data=DATA_FRAME,
     )
     def test_partial_match_characters(self, batch_for_datasource: Batch) -> None:
@@ -26,7 +45,7 @@ class TestColumnValuesMatchRegexCount:
         assert metric_result.value == 3
 
     @parameterize_batch_for_data_sources(
-        data_source_configs=SQL_DATA_SOURCES,
+        data_source_configs=ALL_DATA_SOURCES_EXCEPT_PANDAS,
         data=DATA_FRAME,
     )
     def test_special_characters(self, batch_for_datasource: Batch) -> None:
