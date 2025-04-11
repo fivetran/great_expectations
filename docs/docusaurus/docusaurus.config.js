@@ -28,7 +28,10 @@ module.exports = {
       'posthog-docusaurus',
       {
         apiKey: config.parsed.POSTHOG_API_KEY,
-        enableInDevelopment: false
+        enableInDevelopment: false,
+        autocapture: {
+          capture_pageview: false
+        },
       }
     ]
   ],
@@ -313,7 +316,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.3.13',
+              label: '1.3.14',
             },
             ['0.18']: {
               label: '0.18.21',

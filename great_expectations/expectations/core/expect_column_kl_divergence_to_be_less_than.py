@@ -103,6 +103,7 @@ SUPPORTED_DATA_SOURCES = [
     "MSSQL",
     "BigQuery",
     "Snowflake",
+    "Redshift",
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
