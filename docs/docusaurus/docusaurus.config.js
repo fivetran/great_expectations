@@ -86,8 +86,8 @@ module.exports = {
     algolia: {
       // See: https://docusaurus.io/docs/search#connecting-algolia
       // Algolia apiKey is stored on Netlify's ENV variables
-      appId: config.parsed.ALGOLIA_ID || 'PFK639M3JK',
-      apiKey: config.parsed.ALGOLIA_API_KEY || '348b970580f56fe06a29b33485592856',
+      appId: process.env.ALGOLIA_ID || 'PFK639M3JK',
+      apiKey: process.env.ALGOLIA_API_KEY || '348b970580f56fe06a29b33485592856',
       indexName: 'greatexpectations',
       searchPagePath: 'search',
       contextualSearch: true
