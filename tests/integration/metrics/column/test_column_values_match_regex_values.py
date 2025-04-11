@@ -26,7 +26,7 @@ class TestColumnValuesMatchRegexValues:
         metric_result = batch_for_datasource.compute_metrics(metric)
 
         assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult)
-        assert metric_result.value == ["abc", "1ab2"]
+        assert sorted(metric_result.value) == ["1ab2", "abc"]
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SQL_DATA_SOURCES,
