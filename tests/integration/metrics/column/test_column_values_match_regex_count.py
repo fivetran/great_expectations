@@ -9,11 +9,8 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import ALL_DATA_SOURCES
 
 COLUMN_NAME = "whatevs"
-BIG_NUMBER = 101
-MATCH_ALL_REGEX = ".+"
 
 DATA_FRAME = pd.DataFrame({COLUMN_NAME: ["abc", "def", "ghi", "1ab2", "1ab3", None]})
-DATA_FRAME_WITH_LOTS_OF_VALUES = pd.DataFrame({COLUMN_NAME: ["A"] * BIG_NUMBER})
 
 
 class TestColumnValuesMatchRegexCount:
