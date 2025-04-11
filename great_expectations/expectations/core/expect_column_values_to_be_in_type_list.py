@@ -59,7 +59,7 @@ TYPE_LIST_DESCRIPTION = """
     A list of strings representing the data type that each column should have as entries. \
     Valid types are defined by the current backend implementation and are dynamically loaded.
     """
-SUPPORTED_DATA_SOURCES = ["Spark", "SQLite", "PostgreSQL", "MSSQL", "BigQuery"]
+SUPPORTED_DATA_SOURCES = ["Spark", "SQLite", "PostgreSQL", "MSSQL", "BigQuery", "Redshift"]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 
 
