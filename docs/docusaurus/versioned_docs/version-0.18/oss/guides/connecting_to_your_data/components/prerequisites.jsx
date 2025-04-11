@@ -28,11 +28,12 @@ export default class Prerequisites extends React.Component {
   render () {
     return (
       <div>
-        <ul>
-          {this.defaultPrerequisiteItems()}
-        </ul>
-        {this.props.children}
+          <ul>
+            {this.defaultPrerequisiteItems()}
+          </ul>
+          {this.props.children}
       </div>
     )
   }
 }
+
