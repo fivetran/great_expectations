@@ -15,7 +15,7 @@ module.exports = {
           id: 'core/introduction/try_gx',
           label: 'Try GX Core'
         }
-      ],
+      ]
     },
     {
       type: 'category',
@@ -63,7 +63,7 @@ module.exports = {
           type: 'doc',
           id: 'core/connect_to_data/dataframes/dataframes',
           label: 'Connect to data in Dataframes'
-        },
+        }
       ]
     },
     {
@@ -90,7 +90,7 @@ module.exports = {
           type: 'doc',
           id: 'core/define_expectations/organize_expectation_suites',
           label: 'Organize Expectations into an Expectation Suite'
-        },
+        }
       ]
     },
     {
@@ -99,7 +99,7 @@ module.exports = {
       link: { type: 'doc', id: 'core/run_validations/run_validations' },
       items: [
         { type: 'doc', id: 'core/run_validations/create_a_validation_definition' },
-        { type: 'doc', id: 'core/run_validations/run_a_validation_definition' },
+        { type: 'doc', id: 'core/run_validations/run_a_validation_definition' }
       ]
     },
     {
@@ -110,7 +110,7 @@ module.exports = {
         { type: 'doc', id: 'core/trigger_actions_based_on_results/create_a_checkpoint_with_actions' },
         { type: 'doc', id: 'core/trigger_actions_based_on_results/create_a_custom_action' },
         { type: 'doc', id: 'core/trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format' },
-        { type: 'doc', id: 'core/trigger_actions_based_on_results/run_a_checkpoint' },
+        { type: 'doc', id: 'core/trigger_actions_based_on_results/run_a_checkpoint' }
       ]
     },
     {
@@ -120,7 +120,7 @@ module.exports = {
       items: [
         { type: 'doc', id: 'core/customize_expectations/expectation_conditions' },
         { type: 'doc', id: 'core/customize_expectations/define_a_custom_expectation_class' },
-        { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' },
+        { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' }
       ]
     },
     {
@@ -154,7 +154,7 @@ module.exports = {
       items: [
         'cloud/overview/gx_cloud_overview',
         'cloud/overview/automating_rules',
-        'cloud/overview/coverage_health',
+        'cloud/overview/coverage_health'
       ]
     },
     {
@@ -163,7 +163,7 @@ module.exports = {
       link: { type: 'doc', id: 'cloud/deploy/deploy_lp' },
       items: [
         'cloud/deploy/deployment_patterns',
-        'cloud/deploy/deploy_gx_agent',
+        'cloud/deploy/deploy_gx_agent'
       ]
     },
     {
@@ -175,7 +175,7 @@ module.exports = {
         'cloud/connect/connect_snowflake',
         'cloud/connect/connect_databrickssql',
         'cloud/connect/connect_airflow',
-        'cloud/connect/connect_python',
+        'cloud/connect/connect_python'
       ]
     },
     {
@@ -212,8 +212,8 @@ module.exports = {
       type: 'link',
       label: 'Request a demo for GX Cloud',
       href: 'https://www.greatexpectations.io/demo',
-      className: 'request-demo-sidebar',
-    },
+      className: 'request-demo-sidebar'
+    }
   ],
   gx_apis: [
     {
@@ -229,7 +229,7 @@ module.exports = {
           dirName: 'reference/api'
         }
       ]
-    },
+    }
   ],
   learn: [
     'reference/learn/migration_guide',
@@ -253,10 +253,9 @@ module.exports = {
       link: { type: 'doc', id: 'reference/learn/integrations/integrations_lp' },
       items: [
         'reference/learn/integrations/data_pipeline_tutorial',
-        'reference/learn/integrations/dbt_tutorial',
+        'reference/learn/integrations/dbt_tutorial'
       ]
     },
     'reference/learn/glossary'
-  ],
+  ]
 }
-

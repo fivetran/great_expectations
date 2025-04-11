@@ -1,13 +1,13 @@
-import React from 'react';
-import Link from '@docusaurus/Link';
+import React from 'react'
+import Link from '@docusaurus/Link'
 import VersionedLink from '@site/src/components/VersionedLink'
-import styles from './styles.module.css';
+import styles from './styles.module.css'
 
 /**
  * Version-safe link card component.
  * Wraps VersionedLink with card styling.
  */
-export default function LinkCard({
+export default function LinkCard ({
   label,
   description,
   icon,
@@ -16,7 +16,7 @@ export default function LinkCard({
   topIcon
 }) {
   return (
-    <VersionedLink className={styles.linkCard} id="linkCard" to={to} data-truncate={truncate} data-top-icon={topIcon}>
+    <VersionedLink className={styles.linkCard} id='linkCard' to={to} data-truncate={truncate} data-top-icon={topIcon}>
       {icon && (
         <div className={styles.linkCard__icon}>
           <img src={icon} alt='' />
