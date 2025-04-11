@@ -57,6 +57,8 @@ class ColumnValuesMatchRegex(ColumnMapMetricProvider):
 class ColumnValuesMatchRegexCount(MetricProvider):
     metric_name = "column_values.match_regex.count"
 
+    metric_value_kwargs = ("regex",)
+
     @metric_value(engine=PandasExecutionEngine)
     def _pandas(*, metrics, **kwargs):
         return metrics[
@@ -66,7 +68,7 @@ class ColumnValuesMatchRegexCount(MetricProvider):
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(*, metrics, **kwargs):
         return metrics[
-            f"column_values.not_match_regex{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
+            f"column_values.not_match_regex.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
         ]
 
     @metric_value(engine=SparkDFExecutionEngine)
@@ -95,5 +97,6 @@ class ColumnValuesMatchRegexCount(MetricProvider):
         ] = MetricConfiguration(
             metric_name=f"column_values.not_match_regex.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}",
             metric_domain_kwargs=metric.metric_domain_kwargs,
+            metric_value_kwargs=metric.metric_value_kwargs,
         )
         return dependencies
