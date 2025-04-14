@@ -97,7 +97,7 @@ Then, you can use GX Cloud to [add a Data Asset](/cloud/data_assets/manage_data_
 
       - **Role**: Enter your Snowflake role.
 
-   - If you chose **Connection string** enter it with a format of:
+   - If you chose **Connection string**, enter it with a format of:
 
       ```python title="Snowflake connection string"
       snowflake://<USER>:<PASSWORD>@<ACCOUNT_IDENTIFIER>/<DATABASE>/<SCHEMA>?warehouse=<WAREHOUSE>&role=<ROLE>

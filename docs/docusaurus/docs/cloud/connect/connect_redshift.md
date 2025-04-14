@@ -72,11 +72,11 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
 
       - **Password**: Enter the password you use to access Redshift.
 
-      - **Host**: Enter your Redshift database's host. The location of this information in Redshift depends on whether you are using a provisioned cluster or Redshift serverless.
+      - **Host**: Enter the host of your Redshift database. The location of this information in Redshift depends on whether you are using a provisioned cluster or Redshift serverless.
          - If you're using a provisioned cluster, go to the **Provisioned clusters dashboard**, select your **Cluster**, and find the **Endpoint**. Copy the endpoint up to the `:`. The host has a format of `cluster-name.abc123.us-east-2.redshift.amazonaws.com`. 
          - If you're using Redshift serverless, go to the **Serverless dashboard**, select your **Workgroup**, and find the **JDBC URL**. Copy the URL up to the last the last `:`. The host has a format of `jdbc:redshift://workgroupname.123.us-east-2.redshift-serverless.amazonaws.com`. 
 
-      - **Port**: Enter your Redshift database's port. The location of this information in Redshift depends on whether you are using a provisioned cluster or Redshift serverless.
+      - **Port**: Enter the host of your Redshift database. The location of this information in Redshift depends on whether you are using a provisioned cluster or Redshift serverless.
          - If you're using a provisioned cluster, go to the **Provisioned clusters dashboard**, select your **Cluster**, and find the **Endpoint**. Copy the number after the `:`. This is usually the default of `5439`. 
          - If you're using Redshift serverless, go to the **Serverless dashboard**, select your **Workgroup**, and find the **JDBC URL**. Copy the number after the last `:`. This is usually the default of `5439`.  
 
@@ -84,7 +84,7 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
 
       - **SSL mode**:  Select how to handle encryption for client connections and server certificate verification. See [Redshift's SSL docs](https://docs.aws.amazon.com/redshift/latest/mgmt/connecting-ssl-support.html) for more information on the available options. 
 
-   - If you chose **Connection string** enter it with a format of:
+   - If you chose **Connection string**, enter it with a format of:
 
       ```python title="Redshift connection string"
       redshift+psycopg2://<USER>:<PASSWORD>@<HOST>:<PORT>/<DATABASE>?sslmode=<SSLMODE>
@@ -99,7 +99,7 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
 
 7. Click **Add x Asset(s)**.
 
-8. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** issues. You can de-select recommendations you’d like to opt out of.
+8. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** issues. You can de-select recommendations you'd like to opt out of.
 
 9. Click **Start monitoring** or **Finish**.
 
