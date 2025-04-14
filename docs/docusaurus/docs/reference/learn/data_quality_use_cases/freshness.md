@@ -31,7 +31,7 @@ This dataset is representative of a scenario in which environment readings are c
 * `reading_ts` captures the timestamp that the reading was taken by the sensor
 * `created_at` is the creation timestamp of the row in the database, indicating when data became available for analysis
 
-Freshness checks can be run against both the the `reading_ts` and `created_at` columns to ensure that the sensors are reporting fresh data and that the infrastructure responsible for delivering the readings is functioning in an expected, timely manner.
+Freshness checks can be run against both the `reading_ts` and `created_at` columns to ensure that the sensors are reporting fresh data and that the infrastructure responsible for delivering the readings is functioning in an expected, timely manner.
 
 ## Key freshness Expectations
 
