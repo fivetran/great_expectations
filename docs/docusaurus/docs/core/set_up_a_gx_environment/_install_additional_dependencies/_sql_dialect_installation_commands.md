@@ -13,6 +13,6 @@ The following table lists the installation commands used to install GX Core depe
 | Redshift GX fork with sqlalchemy 2.0| `pip install 'great_expectations[gx-redshift]` |
 | Snowflake | `pip install 'great_expectations[snowflake]'` |
 
-:::Note Redshift dialects
+:::note Redshift dialects
 If you plan to use sqlalchemy with Redshift outside of Great Expectations, we recommend installing the the default Redshift dialect with sqlalchemy 1.4. The Redshift GX fork with sqlalchemy 2.0 may not support sqlalchemy functions that aren't used directly by GX.
 :::

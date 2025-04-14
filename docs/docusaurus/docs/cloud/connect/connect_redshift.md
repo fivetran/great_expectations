@@ -10,7 +10,7 @@ description: Connect GX Cloud to a Redshift Data Source.
 
 - A Redshift database, schema, and table.
 
-- A Redshift user with
+- A Redshift user with the following permissions:
 
    - `USAGE` privileges on the schema.
 
@@ -20,7 +20,7 @@ description: Connect GX Cloud to a Redshift Data Source.
 
 ## Optional. Create a separate Redshift user
 
-Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon.com/redshift/latest/mgmt/query-editor-v2-open.html)].
+Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon.com/redshift/latest/mgmt/query-editor-v2-open.html).
 
 1. Create a new role.
 
@@ -74,7 +74,7 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
 
       - **Host**: Enter your Redshift database's host. The location of this information in Redshift depends on whether you are using a provisioned cluster or Redshift serverless.
          - If you're using a provisioned cluster, go to the **Provisioned clusters dashboard**, select your **Cluster**, and find the **Endpoint**. Copy the endpoint up to the `:`. The host has a format of `cluster-name.abc123.us-east-2.redshift.amazonaws.com`. 
-         - - If you're using Redshift serverless, go to the **Serverless dashboard**, select your **Workgroup**, and find the **JDBC URL**. Copy the URL up to the last the last `:`. The host has a format of `jdbc:redshift://workgroupname.123.us-east-2.redshift-serverless.amazonaws.com`. 
+         - If you're using Redshift serverless, go to the **Serverless dashboard**, select your **Workgroup**, and find the **JDBC URL**. Copy the URL up to the last the last `:`. The host has a format of `jdbc:redshift://workgroupname.123.us-east-2.redshift-serverless.amazonaws.com`. 
 
       - **Port**: Enter your Redshift database's port. The location of this information in Redshift depends on whether you are using a provisioned cluster or Redshift serverless.
          - If you're using a provisioned cluster, go to the **Provisioned clusters dashboard**, select your **Cluster**, and find the **Endpoint**. Copy the number after the `:`. This is usually the default of `5439`. 
@@ -87,7 +87,7 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
    - If you chose **Connection string** enter it with a format of:
 
       ```python title="Redshift connection string"
-       redshift+psycopg2://<USER>:<PASSWORD>@<HOST>:<PORT>/<DATABASE>?sslmode=<SSLMODE>
+      redshift+psycopg2://<USER>:<PASSWORD>@<HOST>:<PORT>/<DATABASE>?sslmode=<SSLMODE>
       ```
 
       For guidance on replacing each placeholder in the connection string, see the above input parameter definitions. 
