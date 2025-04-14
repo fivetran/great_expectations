@@ -369,7 +369,7 @@ jobs:
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && bash ../build_docs
 
-      # temporarily removing link checking to workaround https://greatexpectations.atlassian.net/browse/DOC-979 
+      # temporarily removing link checking to work around https://greatexpectations.atlassian.net/browse/DOC-979 
       # - name: Run broken link checker
         # uses: lycheeverse/lychee-action@v2
        #  with:
