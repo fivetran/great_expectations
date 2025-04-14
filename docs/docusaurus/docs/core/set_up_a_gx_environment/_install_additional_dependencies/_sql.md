@@ -20,7 +20,7 @@ To validate data stored on SQL databases with GX Core, you create your GX Python
    To install dependencies for a specific SQL dialect, use the corresponding command from the table above.
 
    :::note Redshift dialects
-   If you plan to use sqlalchemy with Redshift outside of Great Expectations, we recommend installing the the default Redshift dialect with sqlalchemy 1.4. The Redshift GX fork with sqlalchemy 2.0 may not support sqlalchemy functions that aren't used directly by GX.
+   If you plan to use SQLAlchemy with Redshift outside of Great Expectations, we recommend installing the the default Redshift dialect with SQLAlchemy 1.4. The Redshift GX fork with SQLAlchemy 2.0 may not support SQLAlchemy functions that aren't used directly by GX.
    :::
 
 2. Configure your SQL database credentials.
