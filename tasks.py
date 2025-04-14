@@ -869,6 +869,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         services=("spark",),
         extra_pytest_args=("--spark", "--docs-tests"),
     ),
+    "gx-redshift": TestDependencies(
+        requirement_files=("reqs/requirements-dev-gx-redshift.txt",),
+    ),
     "mssql": TestDependencies(
         ("reqs/requirements-dev-mssql.txt",),
         services=("mssql",),
@@ -912,16 +915,21 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
 }
 
 
-def _add_all_backends_marker(marker_string: str) -> bool:
-    # We should generalize this, possibly leveraging MARKER_DEPENDENCY_MAP, but for now
-    # right I've hardcoded all the containerized backend services we support in testing.
-    return marker_string in [
+def _marker_statement(marker: str) -> str:
+    # Perhaps we should move this configuration to the MARKER_DEPENDENCY_MAP instead of
+    # doing the mapping here.
+    if marker in [
         "postgresql",
         "mssql",
         "mysql",
         "spark",
         "trino",
-    ]
+    ]:
+        return f"'all_backends or {marker}'"
+    elif marker == "gx-redshift":
+        return "'redshift'"
+    else:
+        return f"'{marker}'"
 
 
 def _tokenize_marker_string(marker_string: str) -> Generator[str, None, None]:
@@ -1122,11 +1130,7 @@ def ci_tests(  # noqa: C901 - too complex (9)
         for extra_pytest_arg in test_deps.extra_pytest_args:
             pytest_options.append(extra_pytest_arg)
 
-    marker_statement = (
-        f"'all_backends or {marker}'" if _add_all_backends_marker(marker) else f"'{marker}'"
-    )
-
-    pytest_cmd = ["pytest", "-m", marker_statement] + pytest_options
+    pytest_cmd = ["pytest", "-m", _marker_statement(marker)] + pytest_options
     ctx.run(" ".join(pytest_cmd), echo=True, pty=pty)
 
 
