@@ -58,7 +58,7 @@ from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
 )
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 del get_versions  # isort:skip
 
@@ -617,9 +617,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         # For SqlAlchemyExecutionEngine only one filter condition is allowed
         if len(filter_conditions) == 1:
             filter_condition = filter_conditions[0]
-            assert (
-                filter_condition.condition_type == RowConditionParserType.GE
-            ), "filter_condition must be of type GX for SqlAlchemyExecutionEngine"
+            assert filter_condition.condition_type == RowConditionParserType.GE, (
+                "filter_condition must be of type GX for SqlAlchemyExecutionEngine"
+            )
 
             # SQLAlchemy 2.0 deprecated select_from() from a non-Table asset without a subquery.
             # Implicit coercion of SELECT and textual SELECT constructs into FROM clauses is deprecated.  # noqa: E501 # FIXME CoP
@@ -789,9 +789,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.COLUMN
-        ), "This method only supports MetricDomainTypes.COLUMN"
+        assert domain_type == MetricDomainTypes.COLUMN, (
+            "This method only supports MetricDomainTypes.COLUMN"
+        )
 
         compute_domain_kwargs: dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: dict = {}
@@ -828,9 +828,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.COLUMN_PAIR
-        ), "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        assert domain_type == MetricDomainTypes.COLUMN_PAIR, (
+            "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        )
 
         compute_domain_kwargs: dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: dict = {}
@@ -871,9 +871,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.MULTICOLUMN
-        ), "This method only supports MetricDomainTypes.MULTICOLUMN"
+        assert domain_type == MetricDomainTypes.MULTICOLUMN, (
+            "This method only supports MetricDomainTypes.MULTICOLUMN"
+        )
 
         compute_domain_kwargs: dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: dict = {}

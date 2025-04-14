@@ -9,7 +9,7 @@ import pandas as pd
 from scipy import stats
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.execution_engine.util import (
     is_valid_categorical_partition_object,
     is_valid_partition_object,
@@ -103,12 +103,13 @@ SUPPORTED_DATA_SOURCES = [
     "MSSQL",
     "BigQuery",
     "Snowflake",
+    "Redshift",
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
-    __docs__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
+    __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
 
     KL divergence compares two distributions. The higher the divergence value (relative entropy), the larger \
     the difference between the two distributions. A relative entropy of zero indicates that the data are \

@@ -1,22 +1,22 @@
-import React from 'react';
-import styles from './styles.module.css';
-import cn from 'clsx';
-import { useThemeConfig } from '@docusaurus/theme-common';
+import React from 'react'
+import styles from './styles.module.css'
+import cn from 'clsx'
+import { useThemeConfig } from '@docusaurus/theme-common'
 
-function useGXCardConfig() {
+function useGXCardConfig () {
   // TODO temporary casting until ThemeConfig type is improved
-  return useThemeConfig().gxCard;
+  return useThemeConfig().gxCard
 }
 
-export default function gxCard(
+export default function gxCard (
   {
     title,
     description
   }
 ) {
-  const content = useGXCardConfig();
+  const content = useGXCardConfig()
   return (
-    <div className={styles.gxCard} id="gxCard">
+    <div className={styles.gxCard} id='gxCard'>
       <h2 className={styles.gxCard__title}>{title || content.title}</h2>
       <p className={styles.gxCard__description}>{description || content.description}</p>
       <div className={styles.gxCard__buttons}>

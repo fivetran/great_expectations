@@ -14,6 +14,7 @@ from typing import (
 )
 
 from tqdm.auto import tqdm
+from typing_extensions import TypedDict
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
@@ -25,16 +26,33 @@ from great_expectations.validator.metric_configuration import (
 )
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     from great_expectations.core import IDDict
     from great_expectations.execution_engine import ExecutionEngine
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
     from great_expectations.expectations.metrics.metric_provider import MetricProvider
+    from great_expectations.metrics.metric_results import (
+        MetricErrorResultValue,
+    )
     from great_expectations.validator.computed_metric import MetricValue
     from great_expectations.validator.metrics_calculator import (
         _AbortedMetricsInfoDict,
     )
+
+
+class DeprecatedMetricErrorResultValue(TypedDict):
+    metric_configuration: MetricConfiguration
+    exception_info: ExceptionInfo
+    num_failures: int
+
+
+_DeprecatedAbortedMetricsInfoDict: TypeAlias = Dict[
+    MetricConfigurationID,
+    DeprecatedMetricErrorResultValue,
+]
 
 __all__ = [
     "ExpectationValidationGraph",
@@ -231,7 +249,7 @@ class ValidationGraph:
         else:
             catch_exceptions = False
 
-        failed_metric_info: _AbortedMetricsInfoDict = {}
+        failed_metric_info: _DeprecatedAbortedMetricsInfoDict = {}
         aborted_metrics_info: _AbortedMetricsInfoDict = {}
 
         ready_metrics: Set[MetricConfiguration]
@@ -265,7 +283,7 @@ class ValidationGraph:
             for metric in ready_metrics:
                 if (
                     metric.id in failed_metric_info
-                    and failed_metric_info[metric.id]["num_failures"]  # type: ignore[operator]  # Incorrect flagging of 'Unsupported operand types for <= ("int" and "MetricConfiguration") and for >= ("Set[ExceptionInfo]" and "int")' in deep "Union" structure.
+                    and failed_metric_info[metric.id]["num_failures"]
                     >= MAX_METRIC_COMPUTATION_RETRIES
                 ):
                     aborted_metrics_info[metric.id] = failed_metric_info[metric.id]
@@ -293,15 +311,14 @@ class ValidationGraph:
                     )
                     for failed_metric in err.failed_metrics:
                         if failed_metric.id in failed_metric_info:
-                            failed_metric_info[failed_metric.id]["num_failures"] += 1  # type: ignore[operator]  # Incorrect flagging of 'Unsupported operand types for <= ("int" and "MetricConfiguration") and for >= ("Set[ExceptionInfo]" and "int")' in deep "Union" structure.
+                            failed_metric_info[failed_metric.id]["num_failures"] += 1
                             failed_metric_info[failed_metric.id]["exception_info"] = exception_info
                         else:
-                            failed_metric_info[failed_metric.id] = {}
-                            failed_metric_info[failed_metric.id]["metric_configuration"] = (
-                                failed_metric
+                            failed_metric_info[failed_metric.id] = DeprecatedMetricErrorResultValue(
+                                metric_configuration=failed_metric,
+                                exception_info=exception_info,
+                                num_failures=1,
                             )
-                            failed_metric_info[failed_metric.id]["num_failures"] = 1
-                            failed_metric_info[failed_metric.id]["exception_info"] = exception_info
 
                 else:
                     raise err  # noqa: TRY201 # FIXME CoP
@@ -406,7 +423,7 @@ class ExpectationValidationGraph:
         metric_info = self._filter_metric_info_in_graph(metric_info=metric_info)
         metric_exception_info: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]] = {}
         metric_id: MetricConfigurationID
-        metric_info_item: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]]
+        metric_info_item: MetricErrorResultValue
         for metric_id, metric_info_item in metric_info.items():
             metric_exception_info[str(metric_id)] = metric_info_item["exception_info"]
 

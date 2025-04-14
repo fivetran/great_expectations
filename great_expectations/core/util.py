@@ -216,18 +216,19 @@ class AzureUrl:
         search = re.search(AzureUrl.AZURE_BLOB_STORAGE_PROTOCOL_DETECTION_REGEX_PATTERN, url)
         if search is None:
             search = re.search(AzureUrl.AZURE_BLOB_STORAGE_HTTPS_URL_REGEX_PATTERN, url)
-            assert (
-                search is not None
-            ), "The provided URL does not adhere to the format specified by the Azure SDK (<ACCOUNT_NAME>.blob.core.windows.net/<CONTAINER>/<BLOB>)"  # noqa: E501 # FIXME CoP
+            assert search is not None, (
+                "The provided URL does not adhere to the format specified by the "
+                "Azure SDK (<ACCOUNT_NAME>.blob.core.windows.net/<CONTAINER>/<BLOB>)"
+            )
             self._protocol = search.group(1)
             self._account_name = search.group(2)
             self._container = search.group(3)
             self._blob = search.group(4)
         else:
             search = re.search(AzureUrl.AZURE_BLOB_STORAGE_WASBS_URL_REGEX_PATTERN, url)
-            assert (
-                search is not None
-            ), "The provided URL does not adhere to the format specified by the Azure SDK (wasbs://<CONTAINER>@<ACCOUNT_NAME>.blob.core.windows.net/<BLOB>)"
+            assert search is not None, (
+                "The provided URL does not adhere to the format specified by the Azure SDK (wasbs://<CONTAINER>@<ACCOUNT_NAME>.blob.core.windows.net/<BLOB>)"
+            )
             self._protocol = search.group(1)
             self._container = search.group(2)
             self._account_name = search.group(3)
@@ -266,9 +267,9 @@ class GCSUrl:
 
     def __init__(self, url: str) -> None:
         search = re.search(GCSUrl.URL_REGEX_PATTERN, url)
-        assert (
-            search is not None
-        ), "The provided URL does not adhere to the format specified by the GCS SDK (gs://<BUCKET_OR_NAME>/<BLOB>)"
+        assert search is not None, (
+            "The provided URL does not adhere to the format specified by the GCS SDK (gs://<BUCKET_OR_NAME>/<BLOB>)"
+        )
         self._bucket = search.group(1)
         self._blob = search.group(2)
 

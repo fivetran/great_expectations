@@ -50,7 +50,7 @@ class SnowflakeConnectionConfig(BaseSettings):
     SNOWFLAKE_ACCOUNT: str
     SNOWFLAKE_DATABASE: str
     SNOWFLAKE_WAREHOUSE: str
-    SNOWFLAKE_ROLE: str = "PUBLIC"
+    SNOWFLAKE_ROLE: str
 
     @property
     def connection_string(self) -> str:

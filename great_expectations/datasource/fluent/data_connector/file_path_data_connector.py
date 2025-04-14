@@ -473,7 +473,7 @@ def convert_batch_identifiers_to_data_reference_string_using_regex(
     data_asset_name: Optional[str] = None,
 ) -> str:
     if not isinstance(batch_identifiers, IDDict):
-        raise TypeError("batch_identifiers is not " "an instance of type IDDict")  # noqa: TRY003 # FIXME CoP
+        raise TypeError("batch_identifiers is not an instance of type IDDict")  # noqa: TRY003 # FIXME CoP
 
     template_arguments: dict = copy.deepcopy(batch_identifiers)
     if data_asset_name is not None:

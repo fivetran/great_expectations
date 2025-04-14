@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
+from great_expectations.metrics.metric_results import (
+    MetricErrorResultValue,
+)
 from great_expectations.validator.computed_metric import MetricValue
-from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
@@ -24,7 +26,7 @@ logging.captureWarnings(True)
 _MetricsDict: TypeAlias = Dict[MetricConfigurationID, MetricValue]
 _AbortedMetricsInfoDict: TypeAlias = Dict[
     MetricConfigurationID,
-    Dict[str, Union[MetricConfiguration, ExceptionInfo, int]],
+    MetricErrorResultValue,
 ]
 
 
@@ -154,7 +156,7 @@ class MetricsCalculator:
         Args:
             metric_configurations: List of desired MetricConfiguration objects to be resolved.
             runtime_configuration: Additional run-time settings (see "Validator.DEFAULT_RUNTIME_CONFIGURATION").
-            min_graph_edges_pbar_enable: Minumum number of graph edges to warrant showing progress bars.
+            min_graph_edges_pbar_enable: Minimum number of graph edges to warrant showing progress bars.
 
         Returns:
             Tuple of two elements, the first is a dictionary with requested metrics resolved,
@@ -166,7 +168,7 @@ class MetricsCalculator:
             runtime_configuration=runtime_configuration,
         )
         resolved_metrics: _MetricsDict
-        aborted_metrics_info: _AbortedMetricsInfoDict
+        aborted_metrics: _AbortedMetricsInfoDict
         (
             resolved_metrics,
             aborted_metrics,
@@ -215,7 +217,7 @@ class MetricsCalculator:
         Args:
             graph: "ValidationGraph" object, containing "metric_edge" structures with "MetricConfiguration" objects.
             runtime_configuration: Additional run-time settings (see "Validator.DEFAULT_RUNTIME_CONFIGURATION").
-            min_graph_edges_pbar_enable: Minumum number of graph edges to warrant showing progress bars.
+            min_graph_edges_pbar_enable: Minimum number of graph edges to warrant showing progress bars.
 
         Returns:
             Dictionary with requested metrics resolved, with unique metric ID as key and computed metric as value.
@@ -255,7 +257,7 @@ class MetricsCalculator:
         Args:
             graph: "ValidationGraph" object, containing "metric_edge" structures with "MetricConfiguration" objects.
             runtime_configuration: Additional run-time settings (see "Validator.DEFAULT_RUNTIME_CONFIGURATION").
-            min_graph_edges_pbar_enable: Minumum number of graph edges to warrant showing progress bars.
+            min_graph_edges_pbar_enable: Minimum number of graph edges to warrant showing progress bars.
 
         Returns:
             Dictionary with requested metrics resolved, with unique metric ID as key and computed metric as value.

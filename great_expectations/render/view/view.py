@@ -154,10 +154,8 @@ class DefaultJinjaView:
             # If the content_block item here is actually a list of content blocks then we want to recursively render  # noqa: E501 # FIXME CoP
             rendered_block = ""
             for idx, content_block_el in enumerate(content_block):
-                if (
-                    isinstance(content_block_el, RenderedComponentContent)
-                    or isinstance(content_block_el, dict)
-                    and "content_block_type" in content_block_el
+                if isinstance(content_block_el, RenderedComponentContent) or (
+                    isinstance(content_block_el, dict) and "content_block_type" in content_block_el
                 ):
                     new_content_block_id = None
                     if content_block_id:
@@ -259,7 +257,7 @@ class DefaultJinjaView:
         else:
             if type(class_list) == str:  # noqa: E721 # FIXME CoP
                 raise TypeError("classes must be a list, not a string.")  # noqa: TRY003 # FIXME CoP
-            class_str = f"class=\"{' '.join(class_list)}\" "
+            class_str = f'class="{" ".join(class_list)}" '
 
         attribute_dict = styling.get("attributes", None)
         if attribute_dict is None:

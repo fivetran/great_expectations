@@ -139,7 +139,7 @@ flexibility where column presence is more critical than their sequence.
 ```
 
 :::tip Automate this rule
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate this Expectation to test that columns don't diverge from the initial set over time.
+When you [create a new Data Asset with GX Cloud](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate this Expectation to test that columns don't diverge from the initial set over time.
 :::
 
 <small>View `ExpectTableColumnsToMatchSet` in the [Expectation

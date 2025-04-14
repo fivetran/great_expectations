@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+from types import ModuleType
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Union
 
 import numpy as np
@@ -621,6 +622,8 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
         elif type_module.__name__ == "clickhouse_sqlalchemy.drivers.base":
             potential_type = get_clickhouse_sqlalchemy_potential_type(type_module, expected_type)
             types.append(potential_type)
+        elif type_module.__name__ == "sqlalchemy_redshift.dialect":
+            types.extend(_get_redshift_sqlalchemy_types(type_module, expected_type))
         else:
             potential_type = getattr(type_module, expected_type)
             types.append(potential_type)
@@ -629,6 +632,22 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
     if len(types) == 0:
         logger.debug("No recognized sqlalchemy types in type_list for current dialect.")
 
+    return types
+
+
+def _get_redshift_sqlalchemy_types(
+    type_module: ModuleType, expected_type: Any
+) -> list[sa.sql.type_api.TypeEngine]:
+    types: list[sa.sql.type_api.TypeEngine] = []
+    potential_type = getattr(type_module, expected_type)
+    types.append(potential_type)
+    if expected_type.lower() == "decimal":
+        # There is no redshift numeric type NUMERIC. It is suppose to be a synonym for
+        # the official type DECIMAL, according to the docs:
+        # https://docs.aws.amazon.com/redshift/latest/dg/c_Supported_data_types.html
+        # However we have observed the raw sqltypes.[NUMERIC|Numeric] instead so we
+        # add this as an allowed matching type.
+        types.append(sa.sql.sqltypes.NUMERIC)
     return types
 
 

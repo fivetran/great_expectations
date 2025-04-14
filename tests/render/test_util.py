@@ -119,14 +119,14 @@ def test_resource_key_passes_run_name_filter():
     assert (
         resource_key_passes_run_name_filter(
             resource_key,
-            run_name_filter={"matches_regex": "(foo){2}profiling(" "foo)+"},
+            run_name_filter={"matches_regex": "(foo){2}profiling(foo)+"},
         )
         is True
     )
     assert (
         resource_key_passes_run_name_filter(
             resource_key,
-            run_name_filter={"matches_regex": "(foo){3}profiling(" "foo)+"},
+            run_name_filter={"matches_regex": "(foo){3}profiling(foo)+"},
         )
         is False
     )

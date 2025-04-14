@@ -1,6 +1,6 @@
 altair>=4.2.1,<5.0.0
 cryptography>=3.2
-jinja2>=2.10
+jinja2>=3
 jsonschema>=2.5.1
 marshmallow>=3.7.1,<4.0.0
 mistune>=0.8.4

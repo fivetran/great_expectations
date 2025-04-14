@@ -41,7 +41,7 @@ class CheckpointFactory(Factory[Checkpoint]):
             checkpoint: Checkpoint to add
 
         Raises:
-            DataContextError if Checkpoint already exists
+            DataContextError: if Checkpoint already exists
         """
         key = self._store.get_key(name=checkpoint.name, id=None)
         if self._store.has_key(key=key):
@@ -83,7 +83,7 @@ class CheckpointFactory(Factory[Checkpoint]):
             name: The name of the Checkpoint to delete
 
         Raises:
-            DataContextError if Checkpoint doesn't exist
+            DataContextError: if Checkpoint doesn't exist
         """
         try:
             checkpoint = self.get(name=name)
@@ -110,7 +110,7 @@ class CheckpointFactory(Factory[Checkpoint]):
             name: Name of Checkpoint to get
 
         Raises:
-            DataContextError when Checkpoint is not found.
+            DataContextError: when Checkpoint is not found.
         """
         key = self._store.get_key(name=name, id=None)
         if not self._store.has_key(key=key):

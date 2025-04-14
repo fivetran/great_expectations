@@ -670,9 +670,9 @@ def test_sanitize_prefix_behaves_the_same_as_local_files():
             f"Expected output does not match original sanitization behavior, got "
             f"{file_system_sanitized} instead of {expected_output}"
         )
-        assert (
-            s3_sanitized == expected_output == file_system_sanitized
-        ), f'S3 sanitized result is incorrect, "{s3_sanitized} instead of {expected_output}'
+        assert s3_sanitized == expected_output == file_system_sanitized, (
+            f'S3 sanitized result is incorrect, "{s3_sanitized} instead of {expected_output}'
+        )
 
     # Copy of all samples from tests/datasource/data_connector/test_file_path_data_connector.py
     check_sameness("foo/", "foo/")

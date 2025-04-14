@@ -354,7 +354,7 @@ class HtmlSiteStore:
             (),
             page,
             content_encoding="utf-8",
-            content_type="text/html; " "charset=utf-8",
+            content_type="text/html; charset=utf-8",
         )
 
     def clean_site(self) -> None:

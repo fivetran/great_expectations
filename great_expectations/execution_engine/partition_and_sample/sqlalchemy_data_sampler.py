@@ -6,7 +6,7 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
-from great_expectations.core.id_dict import BatchSpec  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.id_dict import BatchSpec  # noqa: TC001 # FIXME CoP
 from great_expectations.execution_engine.partition_and_sample.data_sampler import (
     DataSampler,
 )

@@ -8,7 +8,7 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.expectations.model_field_types import (
-    ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
+    ValueSetField,  # noqa: TC001  # type needed in pydantic validation
 )
 from great_expectations.render import (
     LegacyDescriptiveRendererType,
@@ -58,8 +58,9 @@ SUPPORTED_DATA_SOURCES = [
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
+    "Redshift",
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 
 
 class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
@@ -113,7 +114,6 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
-        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2

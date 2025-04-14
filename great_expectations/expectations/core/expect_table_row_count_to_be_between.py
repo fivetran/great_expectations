@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Un
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
@@ -14,7 +14,7 @@ from great_expectations.expectations.expectation import (
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues
 from great_expectations.expectations.model_field_types import (
-    ConditionParser,  # noqa: TCH001 # FIXME CoP
+    ConditionParser,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -57,6 +57,7 @@ SUPPORTED_DATA_SOURCES = [
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
+    "Redshift",
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.VOLUME.value]
 
@@ -243,9 +244,25 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
         min_value = values.get("min_value")
         max_value = values.get("max_value")
 
-        if min_value is not None and max_value is not None and min_value > max_value:
+        if (
+            min_value is not None
+            and max_value is not None
+            and not isinstance(min_value, dict)
+            and not isinstance(max_value, dict)
+            and min_value > max_value
+        ):
             raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
                 f"min_value ({min_value}) must be less than or equal to max_value ({max_value})"
+            )
+
+        if isinstance(min_value, dict) and "$PARAMETER" not in min_value:
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                "min_value dict must contain key $PARAMETER"
+            )
+
+        if isinstance(max_value, dict) and "$PARAMETER" not in max_value:
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                "max_value dict must contain key $PARAMETER"
             )
 
         return values

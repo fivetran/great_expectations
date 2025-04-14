@@ -5,17 +5,17 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
-    ExpectationSuite,  # noqa: TCH001 # FIXME CoP
+    ExpectationSuite,  # noqa: TC001 # FIXME CoP
 )
-from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.domain import Domain  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,  # noqa: TCH001 # FIXME CoP
+    ExpectationConfiguration,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
     get_or_create_expectation_suite,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterNode,  # noqa: TCH001 # FIXME CoP
+    ParameterNode,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.types import SerializableDictDot
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP

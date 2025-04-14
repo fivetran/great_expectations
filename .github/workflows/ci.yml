@@ -144,10 +144,10 @@ jobs:
       GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
       GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
       # aws
-      AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-      AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION}}
-      AWS_REGION: ${{secrets.AWS_DEFAULT_REGION}}
-      AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
+      AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
+      AWS_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
+      AWS_SECRET_ACCESS_KEY: ${{secrets.CI_AWS_SECRET_ACCESS_KEY}}
       # aws-redshift
       REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
       REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
@@ -542,12 +542,20 @@ jobs:
       GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
       GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
       # aws
-      AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-      AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION}}
-      AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      AWS_ACCESS_KEY_ID: ${{secrets.CI_AWS_ACCESS_KEY_ID}}
+      AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
+      AWS_SECRET_ACCESS_KEY: ${{secrets.CI_AWS_SECRET_ACCESS_KEY}}
       DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
+      # aws-redshift
+      REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
+      REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
+      REDSHIFT_HOST: ${{secrets.REDSHIFT_HOST}}
+      REDSHIFT_PORT: ${{secrets.REDSHIFT_PORT}}
+      REDSHIFT_DATABASE: ${{secrets.REDSHIFT_DATABASE}}
+      REDSHIFT_SSLMODE: ${{secrets.REDSHIFT_SSLMODE}}
+      # snowflake
       SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
       SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
       SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
@@ -574,6 +582,7 @@ jobs:
           - mssql
           - mysql
           - postgresql
+          - redshift
           - snowflake
           - spark
           - spark_connect
@@ -584,8 +593,8 @@ jobs:
           # TODO: would like to adopt `actionlint` pre-commit hook
           # but false positive here and inability to do an inline ignore
           # prevents this https://github.com/rhysd/actionlint/issues/237
-          - python-version: ${{ github.event_name == 'pull_request' && '3.10' }}
-          - python-version: ${{ github.event_name == 'pull_request' && '3.11' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
           - python-version: ${{ github.event_name == 'merge_group' && '3.10' }}
           - python-version: ${{ github.event_name == 'merge_group' && '3.11' }}
             # clickhouse needs dependency update
@@ -798,8 +807,8 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         exclude:
-          - python-version: ${{ github.event_name == 'pull_request' && '3.10' }}
-          - python-version: ${{ github.event_name == 'pull_request' && '3.11' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -891,7 +900,7 @@ jobs:
         import_gx,
         build-n-publish,
       ]
-    if: always() && !cancelled() && contains(needs.*.result, 'failure') && github.event_name != 'pull_request' && github.event_name != 'merge_group'
+    if: failure() && !cancelled() && github.event_name != 'pull_request_target' && github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - name: Scheduled CI job failure

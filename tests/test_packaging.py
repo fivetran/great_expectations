@@ -39,7 +39,7 @@ def parse_requirements_files_to_strings(
         key = abs_path.rsplit(os.path.sep, 1)[-1]
         with open(req_file) as f:
             req_set_dict[key] = {
-                f'{line.name}{",".join(["".join(spec) for spec in line.specs])}'
+                f"{line.name}{','.join([''.join(spec) for spec in line.specs])}"
                 for line in rp.parse(f)
                 if line.specs
             }
@@ -110,7 +110,7 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-mssql.txt"]
         | req_set_dict["requirements-dev-mysql.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-redshift.txt"]
+        | req_set_dict["requirements-dev-gx-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]
@@ -150,7 +150,7 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-mysql.txt"]
         | req_set_dict["requirements-dev-pagerduty.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-redshift.txt"]
+        | req_set_dict["requirements-dev-gx-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]

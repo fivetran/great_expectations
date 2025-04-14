@@ -1,16 +1,17 @@
-import re
-from typing import ClassVar, Final
+from typing import Annotated, Any, ClassVar, Final, Generic, TypeVar
 
-from typing_extensions import dataclass_transform
+from typing_extensions import dataclass_transform, get_args
 
-from great_expectations.compatibility.pydantic import BaseModel, ModelMetaclass, root_validator
-from great_expectations.metrics.domain import AbstractClassInstantiationError, Domain
+from great_expectations.compatibility.pydantic import BaseModel, Field, ModelMetaclass, StrictStr
+from great_expectations.metrics.metric_results import MetricResult
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
 )
 
 ALLOWABLE_METRIC_MIXINS: Final[int] = 1
+
+NonEmptyString = Annotated[StrictStr, Field(min_length=1)]
 
 
 class MixinTypeError(TypeError):
@@ -20,19 +21,56 @@ class MixinTypeError(TypeError):
         )
 
 
+class MissingAttributeError(AttributeError):
+    def __init__(self, class_name: str, attribute_name: str) -> None:
+        super().__init__(f"`{class_name}` must define `{attribute_name}` attribute.")
+
+
+class UnregisteredMetricError(ValueError):
+    def __init__(self, metric_name: str) -> None:
+        super().__init__(f"Metric `{metric_name}` was not found in the registry.")
+
+
+class AbstractClassInstantiationError(TypeError):
+    def __init__(self, class_name: str) -> None:
+        super().__init__(f"Cannot instantiate abstract class `{class_name}`.")
+
+
+class EmptyStrError(ValueError):
+    def __init__(self, param_name) -> None:
+        super().__init__("{param_name} must be a non-empty string.")
+
+
 @dataclass_transform()
 class MetaMetric(ModelMetaclass):
-    def __new__(cls, name, bases, attrs):
-        # ensure a single Domain mixin is defined
-        if name != "Metric" and (
-            len(bases) != ALLOWABLE_METRIC_MIXINS + 1
-            or not any(issubclass(base_type, Domain) for base_type in bases)
-        ):
-            raise MixinTypeError(name, "Domain")
-        return super().__new__(cls, name, bases, attrs)
+    """Metaclass for Metric classes that maintains a registry of all concrete Metric types."""
+
+    _registry: dict[str, type["Metric"]] = {}
+
+    def __new__(cls, name, bases, attrs, **kwargs):
+        register_cls = super().__new__(cls, name, bases, attrs)
+        # Don't register the base Metric class
+        if name != "Metric":
+            metric_name = attrs.get("name")
+            # Some subclasses of metric may not have a name
+            # Those classes will not be registered
+            if metric_name:
+                MetaMetric._registry[metric_name] = register_cls
+        return register_cls
+
+    @classmethod
+    def get_registered_metric_class_from_metric_name(cls, metric_name: str) -> type["Metric"]:
+        """Returns the registered Metric class for a given metric name."""
+        try:
+            return cls._registry[metric_name]
+        except KeyError:
+            raise UnregisteredMetricError(metric_name)
 
 
-class Metric(BaseModel, metaclass=MetaMetric):
+_MetricResult = TypeVar("_MetricResult", bound=MetricResult)
+
+
+class Metric(Generic[_MetricResult], BaseModel, metaclass=MetaMetric):
     """The abstract base class for defining all metrics.
 
     A Metric represents a measurable property that can be computed over a specific domain
@@ -40,28 +78,43 @@ class Metric(BaseModel, metaclass=MetaMetric):
     must inherit from this class and specify their domain type as a mixin.
 
     Examples:
-        A metric for column nullity values computed on each row:
+        A metric for a single column max value:
 
-        >>> class Null(Metric, ColumnValues):
+        >>> class ColumnMaxResult(MetricResult[int]): ...
+        >>>
+        >>> class ColumnMax(Metric[ColumnMaxResult]):
         ...     ...
 
-        A metric for a single table row count value:
+        A metric for a single batch row count value:
 
-        >>> class RowCount(Metric, Table):
+        >>> class BatchRowCountResult(MetricResult[int]): ...
+        >>>
+        >>> class BatchRowCount(Metric[BatchRowCountResult]):
         ...     ...
 
     Notes:
         - The Metric class cannot be instantiated directly - it must be subclassed.
-        - Subclasses must specify a single Domain type as a mixin.
         - Once Metrics are instantiated, they are immutable.
 
     See Also:
-        Domain: The base class for all domain types
         MetricConfiguration: Configuration class for metric computation
     """
 
-    name: ClassVar[str]
-    config: MetricConfiguration
+    # we wouldn't mind removing this `name` attribute
+    # it's currently our only hook into the legacy metrics system
+    name: ClassVar[StrictStr]
+
+    # we use this list to build a dictionary of domain-specific fields
+    # by introspecting inheriting models for these keys
+    _domain_fields: ClassVar[tuple[str, ...]] = (
+        "column",
+        "column_list",
+        "column_A",
+        "column_B",
+        "condition_parser",
+        "ignore_row_if",
+        "row_condition",
+    )
 
     class Config:
         arbitrary_types_allowed = True
@@ -70,79 +123,58 @@ class Metric(BaseModel, metaclass=MetaMetric):
     def __new__(cls, *args, **kwargs):
         if cls is Metric:
             raise AbstractClassInstantiationError(cls.__name__)
-        cls.name = cls._get_metric_name()
         return super().__new__(cls)
 
-    @root_validator(pre=True)
-    @classmethod
-    def _set_config(cls, values) -> dict:
-        if "config" not in values or values["config"] is None:
-            values["config"] = cls._to_config(values)
-        return values
+    def metric_id_for_batch(self, batch_id: str) -> MetricConfigurationID:
+        return self.config(batch_id=batch_id).id
 
-    @property
-    def id(self) -> MetricConfigurationID:
-        return self.config.id
+    def config(self, batch_id: str) -> MetricConfiguration:
+        # This class is frozen so Metric._to_config will always return the same value
+        # when the same batch_id is passed in.
+        if not batch_id:
+            raise EmptyStrError("batch_id")
+
+        config = Metric._to_config(
+            instance_class=self.__class__,
+            batch_id=batch_id,
+            metric_value_set=list(self.dict().items()),
+        )
+        return config
+
+    @classmethod
+    def get_metric_result_type(cls) -> type[_MetricResult]:
+        """Returns the MetricResult type for this Metric."""
+        return get_args(getattr(cls, "__orig_bases__", [])[0])[0]
 
     @staticmethod
-    def _pascal_to_snake(class_name: str) -> str:
-        # Adds an underscore between a sequence of uppercase letters and an uppercase-lowercase pair
-        # APIFunctionMetric -> API_FunctionMetric
-        class_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", class_name)
-        # Adds an underscore between a lowercase letter/digit and an uppercase letter
-        # APIFunctionMetric -> API_Function_Metric
-        class_name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", class_name)
-        # Convert the entire string to lowercase
-        # API_Function_Metric -> api_function_metric
-        return class_name.lower()
-
-    @classmethod
-    def _get_metric_name(cls) -> str:
-        """The name of the metric as it exists in the registry."""
-        for base_type in cls.__bases__:
-            if issubclass(base_type, Domain):
-                domain_class_name = str(base_type.__name__)
-                metric_class_name = str(cls.__name__)
-                domain_class_snake_case = Metric._pascal_to_snake(domain_class_name)
-                metric_class_snake_case = Metric._pascal_to_snake(metric_class_name)
-                # the convention is that the metric class name includes the domain class name
-                # but the metric names don't repeat the domain name, so we remove it
-                return ".".join(
-                    [
-                        domain_class_snake_case,
-                        metric_class_snake_case.replace(domain_class_snake_case, "").strip("_"),
-                    ]
-                )
-
-        # this should never be reached
-        # that a Domain exists in __bases__ should have been confirmed in MetaMetric.__new__
-        raise MixinTypeError(cls.__name__, "Domain")
-
-    @classmethod
-    def _to_config(cls, model_values: dict) -> MetricConfiguration:
+    def _to_config(
+        instance_class: type["Metric"], batch_id: str, metric_value_set: list[tuple[str, Any]]
+    ) -> MetricConfiguration:
         """Returns a MetricConfiguration instance for this Metric."""
         metric_domain_kwargs = {}
         metric_value_kwargs = {}
-        for base_type in cls.__bases__:
-            if issubclass(base_type, Domain):
-                domain_fields = base_type.__fields__
-                metric_fields = Metric.__fields__
-                value_fields = {
-                    field_name: field_info
-                    for field_name, field_info in cls.__fields__.items()
-                    if field_name not in domain_fields and field_name not in metric_fields
-                }
-                for field_name, field_info in domain_fields.items():
-                    metric_domain_kwargs[field_name] = model_values.get(
-                        field_name, field_info.default
-                    )
-                for field_name, field_info in value_fields.items():
-                    metric_value_kwargs[field_name] = model_values.get(
-                        field_name, field_info.default
-                    )
+        metric_values = dict(metric_value_set)
+        metric_fields = Metric.__fields__
+        domain_fields = {
+            field_name: field_info
+            for field_name, field_info in instance_class.__fields__.items()
+            if field_name in Metric._domain_fields and field_name not in metric_fields
+        }
+        for field_name, field_info in domain_fields.items():
+            metric_domain_kwargs[field_name] = metric_values.get(field_name, field_info.default)
+        # Set the batch_id with the passed in value
+        metric_domain_kwargs["batch_id"] = batch_id
+
+        value_fields = {
+            field_name: field_info
+            for field_name, field_info in instance_class.__fields__.items()
+            if field_name not in Metric._domain_fields and field_name not in metric_fields
+        }
+        for field_name, field_info in value_fields.items():
+            metric_value_kwargs[field_name] = metric_values.get(field_name, field_info.default)
 
         return MetricConfiguration(
-            metric_name=cls.name,
+            metric_name=instance_class.name,
             metric_domain_kwargs=metric_domain_kwargs,
             metric_value_kwargs=metric_value_kwargs,
         )

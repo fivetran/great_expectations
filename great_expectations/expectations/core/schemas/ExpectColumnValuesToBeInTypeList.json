@@ -173,7 +173,8 @@
                         "SQLite",
                         "PostgreSQL",
                         "MSSQL",
-                        "BigQuery"
+                        "BigQuery",
+                        "Redshift"
                     ]
                 }
             }
