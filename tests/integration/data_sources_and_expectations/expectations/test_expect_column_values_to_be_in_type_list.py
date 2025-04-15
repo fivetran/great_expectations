@@ -4,6 +4,7 @@ import sqlalchemy.types as sqltypes
 from packaging import version
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility.aws import REDSHIFT_TYPES
 from great_expectations.compatibility.databricks import DATABRICKS_TYPES
 from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
@@ -21,6 +22,7 @@ from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
     PandasDataFrameDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
 )
 
@@ -666,3 +668,113 @@ if version.parse(sa.__version__) >= version.parse("2.0.0"):
         assert isinstance(result_dict["observed_value"], str)
         assert isinstance(expectation.type_list, list)
         assert result_dict["observed_value"] in expectation.type_list
+
+
+# Redshift will lowercase column names so we make the column names here all lowercase
+# These means we aren't case insensitive in this expectation.
+@pytest.mark.parametrize(
+    "expectation",
+    [
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="char", type_list=["CHAR", "CHAR(1)"]),
+            id="CHAR",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="text", type_list=["VARCHAR"]),
+            id="TEXT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="integer", type_list=["INTEGER"]),
+            id="INTEGER",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="smallint", type_list=["SMALLINT"]),
+            id="SMALLINT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="bigint", type_list=["BIGINT"]),
+            id="BIGINT",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="timestamp", type_list=["TIMESTAMP"]),
+            id="TIMESTAMP",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="date", type_list=["DATE"]),
+            id="DATE",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(
+                column="double_precision", type_list=["DOUBLE_PRECISION"]
+            ),
+            id="DOUBLE_PRECISION",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="boolean", type_list=["BOOLEAN"]),
+            id="BOOLEAN",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeInTypeList(column="numeric", type_list=["DECIMAL"]),
+            id="NUMERIC",
+        ),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        RedshiftDatasourceTestConfig(
+            column_types={
+                "char": REDSHIFT_TYPES.CHAR,
+                "text": REDSHIFT_TYPES.VARCHAR,
+                "integer": REDSHIFT_TYPES.INTEGER,
+                "smallint": REDSHIFT_TYPES.SMALLINT,
+                "bigint": REDSHIFT_TYPES.BIGINT,
+                "timestamp": REDSHIFT_TYPES.TIMESTAMP,
+                "date": REDSHIFT_TYPES.DATE,
+                "double_precision": REDSHIFT_TYPES.DOUBLE_PRECISION,
+                "boolean": REDSHIFT_TYPES.BOOLEAN,
+                "numeric": REDSHIFT_TYPES.DECIMAL,
+            }
+        ),
+    ],
+    data=pd.DataFrame(
+        {
+            "char": ["a", "b", "c"],
+            "text": ["a", "b", "c"],
+            "integer": [1, 2, 3],
+            "smallint": [1, 2, 3],
+            "bigint": [1, 2, 3],
+            "timestamp": [
+                "2021-01-01 00:00:00",
+                "2021-01-02 00:00:00",
+                "2021-01-03 00:00:00",
+            ],
+            "date": [
+                # Date in isoformat
+                "2021-01-01",
+                "2021-01-02",
+                "2021-01-03",
+            ],
+            "double_precision": [1.0, 2.0, 3.0],
+            "boolean": [False, False, True],
+            "numeric": [1, 2, 3],
+        },
+        dtype="object",
+    ),
+)
+def test_success_complete_redshift(
+    batch_for_datasource: Batch, expectation: gxe.ExpectColumnValuesToBeInTypeList
+) -> None:
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    result_dict = result.to_json_dict()["result"]
+
+    assert result.success
+    assert isinstance(result_dict, dict)
+    assert isinstance(result_dict["observed_value"], str)
+    assert isinstance(expectation.type_list, list)
+    # We require the user to use DECIMAL, the redshift official type:
+    # https://docs.aws.amazon.com/redshift/latest/dg/c_Supported_data_types.html
+    # However, we see the string numeric in the sqlalchemy type output.
+    if result_dict["observed_value"].lower() != "numeric":
+        assert result_dict["observed_value"] in expectation.type_list
+    else:
+        assert "DECIMAL" in expectation.type_list

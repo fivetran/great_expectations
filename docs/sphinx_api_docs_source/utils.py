@@ -1,3 +1,6 @@
+import re
+
+
 def apply_markdown_adjustments(soup, html_file_path, html_file_contents):  # noqa: C901
     # Add newline before closing dt tags when they have more than one child
     for item in soup.find_all("dt"):
@@ -49,13 +52,13 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
         add_section_title(soup, properties, "Properties")
 
         # Display properties as table
-        table = soup.new_tag("table")
+        table = soup.new_tag("table", attrs={"class": "table"})
         tbody = soup.new_tag("tbody")
 
-        create_header_row(soup, table)
+        create_header_row(soup, table, ["Name", "Description", "Reference"])
 
         for prop in properties:
-            create_row(soup, tbody, prop)
+            create_properties_row(soup, tbody, prop)
 
         table.append(tbody)
         parent_div = soup.select("#properties")[0]
@@ -64,14 +67,77 @@ def apply_structure_changes(soup, html_file_path, html_file_contents):
     # Display signatures as code blocks
     items = soup.select(".sig-object")
     for item in items:
+        code_block_text = item.get_text()
         code_block = soup.new_tag("CodeBlock", language="python", title="Signature")
-        code_block.append("{`" + item.get_text().replace("#", "") + "`}")
+        code_block.append(format_code_block(item.get_text()))
         item.replace_with(code_block)
+
+        if "class" not in code_block_text:
+            code_block_title = soup.new_tag("h3")
+            code_block_title.string = code_block_text.split("(")[0].strip()
+            code_block.insert_before(code_block_title)
 
     # Prevent build from failing when there's code-like text outside code blocks
     for item in soup.find_all(text=True):
         if item.string and ("CodeBlock" not in item.string):
             item.string.replaceWith(item.get_text().replace("<", r"\<"))
+
+    display_methods_details_as_tables(soup)
+
+
+def display_methods_details_as_tables(soup):
+    for item in soup.select(".field-list"):
+        for dd in item.select("dd"):
+            previous_sibling = dd.find_previous_sibling("dt")
+            if previous_sibling is not None:
+                previous_sibling_text = previous_sibling.get_text()
+                if previous_sibling_text in ["Parameters", "Returns", "Raises"]:
+                    create_table(soup, item, dd, previous_sibling_text)
+
+
+def create_table(soup, item, dd, title):
+    table = soup.new_tag("table", attrs={"class": "table"})
+    tbody = soup.new_tag("tbody")
+
+    if title == "Parameters":
+        create_header_row(soup, table, ["Name", "Description"])
+    else:
+        create_header_row(soup, table, ["Type", "Description"])
+
+    p = dd.find("p")
+    if p is None:
+        return
+
+    if title in ("Parameters", "Raises"):
+        for p in dd.find_all("p"):
+            columns = p.get_text().split(" – ")  # noqa: RUF001
+            if len(columns) != 2:
+                return
+            create_row(soup, tbody, columns)
+
+    if title == "Returns":
+        type_text = closest_return_type(dd)
+        if type_text == "":
+            return
+        columns = [type_text, p.get_text()]
+        create_row(soup, tbody, columns)
+
+    dd.find_previous_sibling("dt").extract()
+    dd.extract()
+    table.append(tbody)
+    parent_div = item.parent
+    parent_div.append(table)
+    add_table_title(soup, table, title)
+
+
+def closest_return_type(dd):
+    method = dd.find_parent("dl", class_="py")
+    type_text = ""
+    if method is not None:
+        code_block = method.select("CodeBlock")[-1]
+        if code_block is not None and "→" in code_block.get_text():
+            type_text = code_block.get_text().replace("`}", "").split("→")[-1]
+    return type_text.strip()
 
 
 def add_section_title(soup, items, title):
@@ -90,11 +156,9 @@ def add_section_title(soup, items, title):
     parent.insert_after(wrapper_div)
 
 
-def create_header_row(soup, table):
+def create_header_row(soup, table, column_names):
     thead = soup.new_tag("thead")
     thead_row = soup.new_tag("tr")
-
-    column_names = ["Name", "Description", "Reference"]
 
     for column_name in column_names:
         new_cell = soup.new_tag("th")
@@ -108,8 +172,7 @@ def create_header_row(soup, table):
     table.insert(0, "\r\n")
 
 
-def create_row(soup, tbody, prop):
-    new_row = soup.new_tag("tr")
+def create_properties_row(soup, tbody, prop):
     reference_link = prop.select("a")[0]
     reference_link.string = reference_link.text.split(".")[-1]
 
@@ -119,6 +182,13 @@ def create_row(soup, tbody, prop):
         reference_link,
     ]
 
+    create_row(soup, tbody, columns)
+    prop.extract()
+
+
+def create_row(soup, tbody, columns):
+    new_row = soup.new_tag("tr")
+
     for column in columns:
         new_cell = soup.new_tag("td")
         new_cell.append("\r\n")
@@ -127,4 +197,19 @@ def create_row(soup, tbody, prop):
         new_row.append(new_cell)
 
     tbody.append(new_row)
-    prop.extract()
+
+
+def add_table_title(soup, table, title):
+    title_h4 = soup.new_tag("h4")
+    title_h4.string = title
+    table.insert_before("\r\n")
+    table.insert_before(title_h4)
+    table.insert_before("\r\n")
+
+
+def format_code_block(item_text):
+    code_with_newline_at_beginning = re.sub(r"\((?!\))", "(\n   ", item_text)
+    code_with_newline_at_end = re.sub(
+        r"(?<!\()\)", "\n)", code_with_newline_at_beginning
+    )
+    return "{`" + code_with_newline_at_end.replace("#", "").replace(",", ",\n  ") + "`}"

@@ -46,6 +46,7 @@ SUPPORTED_DATA_SOURCES = [
     "Snowflake",
     "Databricks (SQL)",
     "MySQL",
+    "Redshift",
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 

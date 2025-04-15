@@ -17,7 +17,7 @@ To automate data quality checks for [API-managed Expectations](/cloud/expectatio
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. In the Scheduling component, click the **Edit Schedule** icon.
+3. In the Scheduling component, click **Edit schedule**.
 
 4. Change the **Frequency** and/or the **Start time** for the first run of the new schedule.
 
@@ -29,4 +29,8 @@ To automate data quality checks for [API-managed Expectations](/cloud/expectatio
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Pause the schedule using the toggle in the Scheduling component.
+3. In the Scheduling component, click **Edit schedule**.
+
+4. Pause the schedule using the **ON**/**OFF** toggle.
+
+5. Click **Save**.

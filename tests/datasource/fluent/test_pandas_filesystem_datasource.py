@@ -189,9 +189,9 @@ class TestDynamicPandasAssets:
             print(f"{i} {param_name} ", end="")
 
             if param_name == "type":
-                assert (
-                    param_name not in add_asset_method_sig.parameters
-                ), "type should not be part of the `add_<TYPE>_asset` method"
+                assert param_name not in add_asset_method_sig.parameters, (
+                    "type should not be part of the `add_<TYPE>_asset` method"
+                )
                 print("⏩")
                 continue
 

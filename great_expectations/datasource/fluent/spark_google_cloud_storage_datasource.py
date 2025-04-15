@@ -120,8 +120,7 @@ class SparkGoogleCloudStorageDatasource(_SparkFilePathDatasource):
             _ = self._get_gcs_client()
         except Exception as e:
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
-                "Attempt to connect to datasource failed with the following error message: "
-                f"{e!s}"
+                f"Attempt to connect to datasource failed with the following error message: {e!s}"
             ) from e
 
         # tests Spark connection, raising TestConnectionError

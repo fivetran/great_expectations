@@ -689,9 +689,9 @@ class Validator:
         for configuration in expectation_configurations:
             # Validating
             try:
-                assert (
-                    configuration.type is not None
-                ), "Given configuration should include expectation type"
+                assert configuration.type is not None, (
+                    "Given configuration should include expectation type"
+                )
             except AssertionError as e:
                 raise InvalidExpectationConfigurationError(str(e))
 
@@ -1130,9 +1130,9 @@ class Validator:
             validation_time = datetime.datetime.now(datetime.timezone.utc).strftime(
                 "%Y%m%dT%H%M%S.%fZ"
             )
-            assert not (run_id and run_name) and not (
-                run_id and run_time
-            ), "Please provide either a run_id or run_name and/or run_time."
+            assert not (run_id and run_name) and not (run_id and run_time), (
+                "Please provide either a run_id or run_name and/or run_time."
+            )
             if isinstance(run_id, dict):
                 run_id = RunIdentifier(**run_id)
             elif not isinstance(run_id, RunIdentifier):
@@ -1278,8 +1278,8 @@ class Validator:
             columns[column].append(expectation)
 
         expectations_to_evaluate = []
-        for col in columns:
-            expectations_to_evaluate.extend(columns[col])
+        for col in columns.values():
+            expectations_to_evaluate.extend(col)
 
         return expectations_to_evaluate
 

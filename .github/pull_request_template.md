@@ -2,7 +2,7 @@
 
 
 - [ ] Description of PR changes above includes a link to [an existing GitHub issue](https://github.com/great-expectations/great_expectations/issues)
-- [ ] PR title is prefixed with one of: [BUGFIX], [FEATURE], [DOCS], [MAINTENANCE], [CONTRIB]
+- [ ] PR title is prefixed with one of: [BUGFIX], [FEATURE], [DOCS], [MAINTENANCE], [CONTRIB], [MINORBUMP]
 - [ ] Code is linted - run `invoke lint` (uses `ruff format` + `ruff check`)
 - [ ] Appropriate tests and docs have been updated
 

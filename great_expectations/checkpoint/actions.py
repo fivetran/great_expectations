@@ -254,10 +254,8 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
 def _should_notify(success: bool, notify_on: Literal["all", "failure", "success"]) -> bool:
     return (
         notify_on == "all"
-        or notify_on == "success"
-        and success
-        or notify_on == "failure"
-        and not success
+        or (notify_on == "success" and success)
+        or (notify_on == "failure" and not success)
     )
 
 
@@ -307,19 +305,23 @@ class SlackNotificationAction(DataDocsAction):
     ```
 
     Args:
-        renderer: Specifies the Renderer used to generate a query consumable by Slack API, e.g.:
-            ```python
-            {
-               "module_name": "great_expectations.render.renderer.slack_renderer",
-               "class_name": "SlackRenderer",
-           }
-           ```
+        renderer: Specifies the Renderer used to generate a query consumable by Slack API.
         slack_webhook: The incoming Slack webhook to which to send notification.
         slack_token: Token from Slack app. Used when not using slack_webhook.
         slack_channel: Slack channel to receive notification. Used when not using slack_webhook.
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
         notify_with: List of DataDocs site names to display  in Slack messages. Defaults to all.
         show_failed_expectations: Shows a list of failed expectation types.
+
+    Examples:
+        **renderer:**
+
+            ```python
+            {
+               "module_name": "great_expectations.render.renderer.slack_renderer",
+               "class_name": "SlackRenderer",
+           }
+           ```
     """  # noqa: E501 # FIXME CoP
 
     type: Literal["slack"] = "slack"
@@ -463,8 +465,7 @@ class SlackNotificationAction(DataDocsAction):
             return {"slack_notification_result": None}
         except requests.HTTPError:
             logger.warning(
-                "Request to Slack webhook "
-                f"returned error {response.status_code}: {response.text}"  # type: ignore[possibly-undefined] # ok for httperror
+                f"Request to Slack webhook returned error {response.status_code}: {response.text}"  # type: ignore[possibly-undefined] # ok for httperror
             )
             return {"slack_notification_result": None}
 
@@ -738,13 +739,7 @@ class EmailAction(ValidationAction):
     ```
 
     Args:
-        renderer: Specifies the renderer used to generate an email, for example:
-            ```python
-            {
-               "module_name": "great_expectations.render.renderer.email_renderer",
-               "class_name": "EmailRenderer",
-            }
-            ```
+        renderer: Specifies the renderer used to generate an email.
         smtp_address: Address of the SMTP server used to send the email.
         smtp_address: Port of the SMTP server used to send the email.
         sender_login: Login used send the email.
@@ -755,6 +750,16 @@ class EmailAction(ValidationAction):
         use_ssl: Optional. Use of SSL to send the email (using either TLS or SSL is highly recommended).
         notify_on: "Specifies validation status that triggers notification. One of "all", "failure", "success".
         notify_with: Optional list of DataDocs site names to display  in Slack messages. Defaults to all.
+
+    Examples:
+        **renderer:**
+
+        ```python
+        {
+           "module_name": "great_expectations.render.renderer.email_renderer",
+           "class_name": "EmailRenderer",
+        }
+        ```
     """  # noqa: E501 # FIXME CoP
 
     type: Literal["email"] = "email"

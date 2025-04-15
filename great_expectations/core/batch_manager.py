@@ -145,9 +145,10 @@ class BatchManager:
         batch: AnyBatch
         for batch in batch_list:
             try:
-                assert isinstance(
-                    batch, (Batch, _get_fluent_batch_class())
-                ), "Batch objects provided to BatchManager must be formal Great Expectations Batch typed objects."  # noqa: E501 # FIXME CoP
+                assert isinstance(batch, (Batch, _get_fluent_batch_class())), (
+                    "Batch objects provided to BatchManager must be formal "
+                    "Great Expectations Batch typed objects."
+                )
             except AssertionError as e:
                 logger.error(str(e))  # noqa: TRY400 # FIXME CoP
 

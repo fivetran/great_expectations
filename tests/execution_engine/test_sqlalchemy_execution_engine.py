@@ -398,9 +398,9 @@ def test_get_domain_records_with_column_domain(sa):
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.sqlite
@@ -430,9 +430,9 @@ def test_get_domain_records_with_column_domain_and_filter_conditions(sa):
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.sqlite
@@ -462,9 +462,9 @@ def test_get_domain_records_with_different_column_domain_and_filter_conditions(s
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.sqlite
@@ -526,9 +526,9 @@ def test_get_domain_records_with_column_pair_domain(sa):
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
     execution_engine = build_sa_execution_engine(df, sa)
     data = execution_engine.get_domain_records(
@@ -552,9 +552,9 @@ def test_get_domain_records_with_column_pair_domain(sa):
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
     execution_engine = build_sa_execution_engine(df, sa)
     data = execution_engine.get_domain_records(
@@ -582,9 +582,9 @@ def test_get_domain_records_with_column_pair_domain(sa):
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.sqlite
@@ -619,9 +619,9 @@ def test_get_domain_records_with_multicolumn_domain(sa):
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
     df = pd.DataFrame(
         {
@@ -653,9 +653,9 @@ def test_get_domain_records_with_multicolumn_domain(sa):
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
     df = pd.DataFrame(
         {
@@ -690,9 +690,9 @@ def test_get_domain_records_with_multicolumn_domain(sa):
         )
     ).fetchall()
 
-    assert (
-        domain_data == expected_data
-    ), "Data does not match after getting full access compute domain"
+    assert domain_data == expected_data, (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 # Ensuring functionality of compute_domain when no domain kwargs are given
@@ -746,9 +746,9 @@ def test_get_compute_domain_with_column_pair(sa):
 
     # Ensuring that with no domain nothing happens to the data itself
     assert raw_data == domain_data, "Data does not match after getting compute domain"
-    assert (
-        "column_A" not in compute_kwargs and "column_B" not in compute_kwargs
-    ), "domain kwargs should be existent"
+    assert "column_A" not in compute_kwargs and "column_B" not in compute_kwargs, (
+        "domain kwargs should be existent"
+    )
     assert accessor_kwargs == {
         "column_A": "a",
         "column_B": "b",
@@ -841,9 +841,9 @@ def test_get_compute_domain_with_unmeetable_row_condition(sa):
     # Ensuring that column domain is now an accessor kwarg, and data remains unmodified
     assert raw_data == domain_data, "Data does not match after getting compute domain"
     # Ensuring compute kwargs have not been modified
-    assert (
-        "row_condition" in compute_kwargs
-    ), "Row condition should be located within compute kwargs"
+    assert "row_condition" in compute_kwargs, (
+        "Row condition should be located within compute kwargs"
+    )
     assert accessor_kwargs == {"column": "a"}, "Accessor kwargs have been modified"
 
 
@@ -878,9 +878,9 @@ def test_get_compute_domain_with_gx_condition_parser(sa):
     assert raw_data == domain_data, "Data does not match after getting compute domain"
 
     # Ensuring compute kwargs have not been modified
-    assert (
-        "row_condition" in compute_kwargs
-    ), "Row condition should be located within compute kwargs"
+    assert "row_condition" in compute_kwargs, (
+        "Row condition should be located within compute kwargs"
+    )
     assert accessor_kwargs == {"column": "b"}, "Accessor kwargs have been modified"
 
 
@@ -1145,9 +1145,9 @@ class TestConnectionPersistence:
         with execution_engine.get_connection() as con:
             add_dataframe_to_db(df=pd_dataframe, name="test", con=con, index=False)
 
-        assert (
-            execution_engine.dialect_name == GXSqlDialect.SQLITE
-        ), "Error here means test setup failed."
+        assert execution_engine.dialect_name == GXSqlDialect.SQLITE, (
+            "Error here means test setup failed."
+        )
 
         create_temp_table = "CREATE TEMPORARY TABLE temp_table AS SELECT * FROM test;"
         execution_engine.execute_query_in_transaction(sa.text(create_temp_table))
@@ -1177,9 +1177,9 @@ class TestConnectionPersistence:
         with execution_engine.get_connection() as con:
             add_dataframe_to_db(df=pd_dataframe, name="test", con=con, index=False)
             connection = con
-        assert (
-            execution_engine.dialect_name == GXSqlDialect.SQLITE
-        ), "Error here means test setup failed."
+        assert execution_engine.dialect_name == GXSqlDialect.SQLITE, (
+            "Error here means test setup failed."
+        )
 
         create_temp_table = "CREATE TEMPORARY TABLE temp_table AS SELECT * FROM test;"
         execution_engine.execute_query_in_transaction(sa.text(create_temp_table))

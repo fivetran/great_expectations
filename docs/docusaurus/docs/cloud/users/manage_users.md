@@ -6,6 +6,10 @@ description: Manage GX Cloud users and access tokens.
 
 With Admin permissions, you can add users, edit organization roles, and delete users. You can also manage user and organization access tokens.
 
+:::tip Want to configure SSO?
+SSO is available on the Enterprise plan. Contact sales to [upgrade to Enterprise](https://greatexpectations.io/pricing/). 
+:::
+
 ## Roles and responsibilities
 
 The following table lists GX Cloud roles and responsibilities.
@@ -13,7 +17,7 @@ The following table lists GX Cloud roles and responsibilities.
 | Role          | Responsibilities                                  |
 |---------------|---------------------------------------------------|
 | Viewer        | View Validation Results           |
-| Editor        | Create Data Assets<br/>Create and edit Expectations<br/>Create access tokens |
+| Editor        | Create Data Sources<br/>Create Data Assets<br/>Create and edit Expectations<br/>Create access tokens |
 | Admin         | Full access<br/>Perform all GX Cloud administrative functions including user and role assignment |
 
 ## Invite a user

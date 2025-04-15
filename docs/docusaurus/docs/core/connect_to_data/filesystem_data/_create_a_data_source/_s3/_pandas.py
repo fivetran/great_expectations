@@ -6,7 +6,7 @@ context = gx.get_context()
 # Define the Data Source's parameters:
 # <snippet name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_data_source/_s3/_pandas.py - define Data Source parameters">
 data_source_name = "my_filesystem_data_source"
-bucket_name = "superconductive-docs-test"
+bucket_name = "great-expectations-docs-test"
 boto3_options = {}
 # </snippet>
 

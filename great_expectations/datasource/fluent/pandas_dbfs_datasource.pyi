@@ -44,7 +44,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
     type: Literal["pandas_dbfs"]  # type: ignore[assignment] # FIXME CoP
 
     @override
-    def add_csv_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_csv_asset(
         self,
         name: str,
         *,
@@ -102,7 +102,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> CSVAsset: ...
     @override
-    def add_excel_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_excel_asset(
         self,
         name: str,
         *,
@@ -133,7 +133,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> ExcelAsset: ...
     @override
-    def add_feather_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_feather_asset(
         self,
         name: str,
         *,
@@ -144,7 +144,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> FeatherAsset: ...
     @override
-    def add_hdf_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_hdf_asset(
         self,
         name: str,
         *,
@@ -162,7 +162,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         kwargs: typing.Union[dict, None] = ...,
     ) -> HDFAsset: ...
     @override
-    def add_html_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_html_asset(
         self,
         name: str,
         *,
@@ -184,7 +184,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         displayed_only: bool = ...,
     ) -> HTMLAsset: ...
     @override
-    def add_json_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_json_asset(
         self,
         name: str,
         *,
@@ -217,7 +217,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         kwargs: typing.Union[dict, None] = ...,
     ) -> ORCAsset: ...
     @override
-    def add_parquet_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_parquet_asset(
         self,
         name: str,
         *,
@@ -240,7 +240,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> PickleAsset: ...
     @override
-    def add_sas_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_sas_asset(
         self,
         name: str,
         *,
@@ -264,7 +264,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         convert_categoricals: bool = ...,
     ) -> SPSSAsset: ...
     @override
-    def add_stata_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_stata_asset(
         self,
         name: str,
         *,
@@ -283,7 +283,7 @@ class PandasDBFSDatasource(PandasFilesystemDatasource):
         storage_options: StorageOptions = ...,
     ) -> StataAsset: ...
     @override
-    def add_xml_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_xml_asset(
         self,
         name: str,
         *,

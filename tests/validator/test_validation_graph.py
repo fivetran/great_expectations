@@ -344,10 +344,7 @@ def test_populate_dependencies_with_incorrect_metric_name():
             ),
         )
 
-    assert (
-        e.value.message
-        == "No provider found for column_values.not_a_metric using PandasExecutionEngine"
-    )
+    assert e.value.message == "No metric named column_values.not_a_metric found."
 
 
 @pytest.mark.unit

@@ -8,6 +8,7 @@ import os
 import pathlib
 import random
 import shutil
+import string
 import urllib.parse
 import warnings
 from dataclasses import dataclass
@@ -130,6 +131,7 @@ REQUIRED_MARKERS: Final[set[str]] = {
     "postgresql",
     "project",
     "pyarrow",
+    "redshift",
     "snowflake",
     "spark",
     "spark_connect",
@@ -185,7 +187,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--verify-marker-coverage-and-exit",
         action="store_true",
-        help="If set, checks that all tests have one of the markers necessary " "for it to be run.",
+        help="If set, checks that all tests have one of the markers necessary for it to be run.",
     )
 
     # note: --no-spark will be deprecated in favor of --spark
@@ -1276,7 +1278,7 @@ def titanic_data_context_stats_enabled_config_version_3(tmp_path_factory, monkey
 @pytest.fixture(scope="module")
 def titanic_spark_db(tmp_path_factory, spark_warehouse_session):
     try:
-        from pyspark.sql import DataFrame  # noqa: TCH002 # FIXME CoP
+        from pyspark.sql import DataFrame  # noqa: TC002 # FIXME CoP
     except ImportError:
         raise ValueError("spark tests are requested, but pyspark is not installed")
 
@@ -2202,6 +2204,22 @@ def ephemeral_context_with_defaults() -> EphemeralDataContext:
     return get_context(project_config=project_config, mode="ephemeral")
 
 
+@pytest.fixture(
+    params=[
+        pytest.param("ephemeral_context_with_defaults", marks=pytest.mark.unit, id="ephemeral"),
+        pytest.param("empty_data_context", marks=pytest.mark.filesystem, id="file"),
+        pytest.param(
+            "empty_cloud_context_fluent",
+            marks=pytest.mark.cloud,
+            id="cloud",
+        ),
+    ]
+)
+def data_context(request: pytest.FixtureRequest) -> AbstractDataContext:
+    """Fixture to parameterize a test against each DataContext type."""
+    return request.getfixturevalue(request.param)
+
+
 @pytest.fixture
 def arbitrary_batch_definition(empty_data_context: AbstractDataContext) -> BatchDefinition:
     return (
@@ -2278,3 +2296,7 @@ def param_id(request: pytest.FixtureRequest) -> str:
     """
     raw_name: str = request.node.name
     return raw_name.split("[")[1].split("]")[0]
+
+
+def random_name() -> str:
+    return "".join([random.choice(string.ascii_letters) for _ in range(6)])

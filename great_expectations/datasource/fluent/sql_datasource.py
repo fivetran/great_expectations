@@ -288,9 +288,9 @@ class SqlPartitionerDatetimePart(_PartitionerDatetime):
     @pydantic.validator("datetime_parts", each_item=True)
     def _check_param_name_allowed(cls, v: str):
         allowed_date_parts = [part.value for part in DatePart]
-        assert (
-            v in allowed_date_parts
-        ), f"Only the following param_names are allowed: {allowed_date_parts}"
+        assert v in allowed_date_parts, (
+            f"Only the following param_names are allowed: {allowed_date_parts}"
+        )
         return v
 
 
