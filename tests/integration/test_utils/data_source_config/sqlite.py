@@ -1,5 +1,4 @@
 import pathlib
-from functools import cached_property
 from typing import Mapping, Optional
 
 import pandas as pd
@@ -70,9 +69,8 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
     def db_file_path(self) -> pathlib.Path:
         return self._base_dir / "database.db"
 
-    @cached_property
     @override
-    def asset(self) -> TableAsset:
+    def make_asset(self) -> TableAsset:
         return self.context.data_sources.add_sqlite(
             name=self._random_resource_name(),
             connection_string=self.connection_string,

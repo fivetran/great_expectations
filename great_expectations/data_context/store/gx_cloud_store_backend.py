@@ -135,9 +135,9 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             manually_initialize_store_backend_id=manually_initialize_store_backend_id,
             store_name=store_name,
         )
-        assert (
-            ge_cloud_resource_type or ge_cloud_resource_name
-        ), "Must provide either ge_cloud_resource_type or ge_cloud_resource_name"
+        assert ge_cloud_resource_type or ge_cloud_resource_name, (
+            "Must provide either ge_cloud_resource_type or ge_cloud_resource_name"
+        )
 
         self._ge_cloud_base_url = ge_cloud_base_url
 
@@ -339,7 +339,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         if not (kwarg_names <= self.allowed_set_kwargs):
             extra_kwargs = kwarg_names - self.allowed_set_kwargs
             raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f'Invalid kwargs: {(", ").join(extra_kwargs)}'
+                f"Invalid kwargs: {(', ').join(extra_kwargs)}"
             )
         return None
 

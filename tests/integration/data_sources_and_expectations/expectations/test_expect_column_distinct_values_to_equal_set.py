@@ -60,6 +60,19 @@ def test_dates(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
+    data_source_configs=DATA_SOURCES_THAT_SUPPORT_DATE_COMPARISONS,
+    data=pd.DataFrame({COL_NAME: [datetime(2024, 11, 19).date(), datetime(2024, 11, 20).date()]}),  # noqa: DTZ001 # FIXME CoP
+)
+def test_dates_with_str_value_set(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnDistinctValuesToEqualSet(
+        column=COL_NAME,
+        value_set=[str(datetime(2024, 11, 19).date()), str(datetime(2024, 11, 20).date())],  # noqa: DTZ001 # FIXME CoP
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
     data_source_configs=JUST_PANDAS_DATA_SOURCES, data=pd.DataFrame({COL_NAME: [1, 2, None]})
 )
 def test_ignores_nulls(batch_for_datasource: Batch) -> None:

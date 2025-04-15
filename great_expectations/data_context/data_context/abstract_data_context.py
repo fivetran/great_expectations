@@ -17,6 +17,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -95,6 +96,7 @@ if TYPE_CHECKING:
     from great_expectations.core.expectation_validation_result import (
         ExpectationValidationResult,
     )
+    from great_expectations.core.suite_parameters import SuiteParameterDict
     from great_expectations.data_context.data_context_variables import (
         DataContextVariables,
     )
@@ -190,18 +192,24 @@ class AbstractDataContext(ConfigPeer, ABC):
     # instance attribute type annotations
     fluent_config: GxConfig
 
-    def __init__(self, runtime_environment: Optional[dict] = None) -> None:
+    def __init__(
+        self,
+        runtime_environment: Optional[dict] = None,
+        user_agent_str: Optional[str] = None,
+    ) -> None:
         """
         Constructor for AbstractDataContext. Will handle instantiation logic that is common to all DataContext objects
 
         Args:
             runtime_environment (dict): a dictionary of config variables that
                 override those set in config_variables.yml and the environment
+            user_agent_str (str | None): UserAgent string to be used in analytics events
         """  # noqa: E501 # FIXME CoP
 
         if runtime_environment is None:
             runtime_environment = {}
         self.runtime_environment = runtime_environment
+        self._user_agent_str = user_agent_str
 
         self._config_provider = self._init_config_provider()
         self._config_variables = self._load_config_variables()
@@ -270,6 +278,8 @@ class AbstractDataContext(ConfigPeer, ABC):
             data_context_id=self._data_context_id,
             organization_id=None,
             oss_id=self._get_oss_id(),
+            mode=self.mode,
+            user_agent_str=self._user_agent_str,
         )
 
     def _determine_analytics_enabled(self) -> bool:
@@ -287,6 +297,12 @@ class AbstractDataContext(ConfigPeer, ABC):
             return env_var_enabled
         else:
             return True
+
+    @property
+    @abstractmethod
+    def mode(self) -> Literal["cloud", "file", "ephemeral"]:
+        """Context mode. Should correspond to the modes passed to `get_context`"""
+        ...
 
     def _init_config_provider(self) -> _ConfigurationProvider:
         config_provider = _ConfigurationProvider()
@@ -346,6 +362,15 @@ class AbstractDataContext(ConfigPeer, ABC):
         self.config.analytics_enabled = enable
         self._init_analytics()
         self.variables.save()
+
+    def set_user_agent_str(self, user_agent_str: Optional[str]) -> None:
+        """
+        Set the user agent string for this DataContext.
+
+        This method is used by GX internally for analytics tracking.
+        """
+        self._user_agent_str = user_agent_str
+        self._init_analytics()
 
     @public_api
     def update_project_config(
@@ -1813,7 +1838,7 @@ class AbstractDataContext(ConfigPeer, ABC):
         for kwarg_name in metric_configuration:
             if not isinstance(metric_configuration[kwarg_name], dict):
                 raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                    "Invalid metric_configuration: each key must contain a " "dictionary."
+                    "Invalid metric_configuration: each key must contain a dictionary."
                 )
             if (
                 kwarg_name == "metric_kwargs_id"
@@ -1826,7 +1851,7 @@ class AbstractDataContext(ConfigPeer, ABC):
                         )
                     if not isinstance(metric_configuration[kwarg_name][metric_kwargs_id], list):
                         raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                            "Invalid metric_configuration: each value must contain a " "list."
+                            "Invalid metric_configuration: each value must contain a list."
                         )
                     metric_configurations_list += [
                         (metric_name, {"metric_kwargs_id": metric_kwargs_id})
@@ -1837,7 +1862,7 @@ class AbstractDataContext(ConfigPeer, ABC):
                     base_kwargs.update({kwarg_name: kwarg_value})
                     if not isinstance(metric_configuration[kwarg_name][kwarg_value], list):
                         raise gx_exceptions.DataContextError(  # noqa: TRY003 # FIXME CoP
-                            "Invalid metric_configuration: each value must contain a " "list."
+                            "Invalid metric_configuration: each value must contain a list."
                         )
                     for nested_configuration in metric_configuration[kwarg_name][kwarg_value]:
                         metric_configurations_list += (
@@ -2244,13 +2269,13 @@ class AbstractDataContext(ConfigPeer, ABC):
                 URLs of the sites that *would* be built, but it does not build
                 these sites.
             build_index: a flag if False, skips building the index page
+
         Returns:
             A dictionary with the names of the updated data documentation sites as keys and the location info
             of their index.html files as values
 
         Raises:
             ClassInstantiationError: Site config in your Data Context config is not valid.
-
         """  # noqa: E501 # FIXME CoP
         return self._build_data_docs(
             site_names=site_names,
@@ -2462,3 +2487,16 @@ class AbstractDataContext(ConfigPeer, ABC):
             self.fluent_config.update_datasources(datasources=fluent_datasources)
 
         return self.fluent_config.get_datasources_as_dict()
+
+    def prepare_checkpoint_run(
+        self,
+        checkpoint: gx.Checkpoint,
+        batch_parameters: Dict[str, Any],
+        expectation_parameters: SuiteParameterDict,
+    ) -> None:
+        """Context specific preparation for a checkpoint run.
+
+        Defaults to a no-op but can be overriden for context specific checkpoint run preparation.
+        The preparation can update the input arguments in place.
+        """
+        ...

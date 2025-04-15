@@ -29,7 +29,6 @@ class TestConfig:
         return hash(
             (
                 self.__class__,
-                self.data_source_config,
                 hash_data_frame(self.data),
                 dict_to_tuple(
                     {k: hash_data_frame(self.extra_data[k]) for k in sorted(self.extra_data)}
@@ -174,7 +173,7 @@ def asset_for_datasource(
     This must be used in conjunction with `indirect=True` to defer execution
     """
     set_context(_batch_setup_for_datasource.context)
-    yield _batch_setup_for_datasource.asset
+    yield _batch_setup_for_datasource.make_asset()
 
 
 @pytest.fixture

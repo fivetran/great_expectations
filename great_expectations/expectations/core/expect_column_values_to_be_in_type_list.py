@@ -10,7 +10,7 @@ from packaging import version
 from great_expectations.compatibility import pydantic, pyspark
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001, RUF100 # FIXME CoP
+    SuiteParameterDict,  # noqa: TC001, RUF100 # FIXME CoP
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import (
     GXSqlDialect,
@@ -59,7 +59,7 @@ TYPE_LIST_DESCRIPTION = """
     A list of strings representing the data type that each column should have as entries. \
     Valid types are defined by the current backend implementation and are dynamically loaded.
     """
-SUPPORTED_DATA_SOURCES = ["Spark", "SQLite", "PostgreSQL", "MSSQL", "BigQuery"]
+SUPPORTED_DATA_SOURCES = ["Spark", "SQLite", "PostgreSQL", "MSSQL", "BigQuery", "Redshift"]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 
 

@@ -306,9 +306,9 @@ lint.ignore = [
     "UP007", # use-pep604-annotation
     # https://beta.ruff.rs/docs/rules/#flake8-type-checking-tch
     # minimal cost for standard lib imports; keep this disabled
-    "TCH003", # typing-only-standard-library-import
+    "TC003", # typing-only-standard-library-import
     # gives false positives if we use try imports and type-checking import
-    "TCH004", # runtime-import-in-type-checking-block
+    "TC004", # runtime-import-in-type-checking-block
     "TID252", # Relative imports from parent modules are banned
     # https://beta.ruff.rs/docs/rules/#flake8-use-pathlib-pth
     "PTH123", # pathlib-open - this would force pathlib usage anytime open or with open was used.
@@ -673,6 +673,7 @@ markers = [
     "postgresql: mark a test as postgresql-dependent.",
     "project: mark a test that verifies properties of the gx project",
     "pyarrow: mark a test as PyArrow-dependent.",
+    "redshift: mark a test as redshift-dependent.",
     "snowflake: mark a test as snowflake-dependent.",
     "sqlalchemy_version_compatibility: mark test as required for sqlalchemy version compatibility.",
     "sqlite: mark test requiring sqlite",

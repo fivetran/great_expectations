@@ -46,8 +46,9 @@ SUPPORTED_DATA_SOURCES = [
     "BigQuery",
     "Snowflake",
     "Databricks (SQL)",
+    "Redshift",
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value, DataQualityIssues.VALIDITY.value]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 
 
 class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
@@ -99,7 +100,6 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
-        {DATA_QUALITY_ISSUES[1]}
 
     Example Data:
                 test 	test2

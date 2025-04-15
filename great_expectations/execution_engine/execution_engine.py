@@ -31,10 +31,7 @@ from great_expectations.util import (
     convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     filter_properties_dict,
 )
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
-from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001 # FIXME CoP
-)
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.compatibility.pyspark import functions as F
@@ -47,6 +44,10 @@ if TYPE_CHECKING:
         BatchSpec,
     )
     from great_expectations.expectations.metrics.metric_provider import MetricProvider
+    from great_expectations.validator.metric_configuration import (
+        MetricConfiguration,
+        MetricConfigurationID,
+    )
     from great_expectations.validator.validator import Validator
 
 logger = logging.getLogger(__name__)
@@ -249,9 +250,9 @@ class ExecutionEngine(ABC):
     def resolve_metrics(
         self,
         metrics_to_resolve: Iterable[MetricConfiguration],
-        metrics: Optional[Dict[Tuple[str, str, str], MetricValue]] = None,
+        metrics: Optional[dict[MetricConfigurationID, MetricValue]] = None,
         runtime_configuration: Optional[dict] = None,
-    ) -> Dict[Tuple[str, str, str], MetricValue]:
+    ) -> dict[MetricConfigurationID, MetricValue]:
         """resolve_metrics is the main entrypoint for an execution engine. The execution engine will compute the value
         of the provided metrics.
 
@@ -281,7 +282,7 @@ class ExecutionEngine(ABC):
             metric_fn_bundle_configurations=metric_fn_bundle_configurations,
         )
 
-    def resolve_metric_bundle(self, metric_fn_bundle) -> Dict[Tuple[str, str, str], MetricValue]:
+    def resolve_metric_bundle(self, metric_fn_bundle) -> dict[MetricConfigurationID, MetricValue]:
         """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501 # FIXME CoP
         raise NotImplementedError
 
@@ -354,9 +355,10 @@ class ExecutionEngine(ABC):
             )
 
         new_domain_kwargs = copy.deepcopy(domain_kwargs)
-        assert (
-            "column" in domain_kwargs or column_name is not None
-        ), "No column provided: A column must be provided in domain_kwargs or in the column_name parameter"  # noqa: E501 # FIXME CoP
+        assert "column" in domain_kwargs or column_name is not None, (
+            "No column provided: A column must be provided "
+            "in domain_kwargs or in the column_name parameter"
+        )
         if column_name is not None:
             column = column_name
         else:
@@ -372,7 +374,7 @@ class ExecutionEngine(ABC):
     def _build_direct_and_bundled_metric_computation_configurations(
         self,
         metrics_to_resolve: Iterable[MetricConfiguration],
-        metrics: Optional[Dict[Tuple[str, str, str], MetricValue]] = None,
+        metrics: Optional[dict[MetricConfigurationID, MetricValue]] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> Tuple[
         List[MetricComputationConfiguration],
@@ -471,7 +473,7 @@ class ExecutionEngine(ABC):
     def _get_computed_metric_evaluation_dependencies_by_metric_name(
         self,
         metric_to_resolve: MetricConfiguration,
-        metrics: Dict[Tuple[str, str, str], MetricValue],
+        metrics: Dict[MetricConfigurationID, MetricValue],
     ) -> Dict[str, Union[MetricValue, Tuple[Any, dict, dict]]]:
         """
         Gathers resolved (already computed) evaluation dependencies of metric-to-resolve (not yet computed)
@@ -511,7 +513,7 @@ class ExecutionEngine(ABC):
         self,
         metric_fn_direct_configurations: List[MetricComputationConfiguration],
         metric_fn_bundle_configurations: List[MetricComputationConfiguration],
-    ) -> Dict[Tuple[str, str, str], MetricValue]:
+    ) -> dict[MetricConfigurationID, MetricValue]:
         """
         This method processes directly-computable and bundled "MetricComputationConfiguration" objects.
 
@@ -522,7 +524,7 @@ class ExecutionEngine(ABC):
         Returns:
             resolved_metrics (Dict): a dictionary with the values for the metrics that have just been resolved.
         """  # noqa: E501 # FIXME CoP
-        resolved_metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+        resolved_metrics: dict[MetricConfigurationID, MetricValue] = {}
 
         metric_computation_configuration: MetricComputationConfiguration
 
@@ -541,7 +543,7 @@ class ExecutionEngine(ABC):
 
         try:
             # an engine-specific way of computing metrics together
-            resolved_metric_bundle: Dict[Tuple[str, str, str], MetricValue] = (
+            resolved_metric_bundle: dict[MetricConfigurationID, MetricValue] = (
                 self.resolve_metric_bundle(metric_fn_bundle=metric_fn_bundle_configurations)
             )
             resolved_metrics.update(resolved_metric_bundle)
@@ -642,9 +644,9 @@ class ExecutionEngine(ABC):
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.TABLE
-        ), "This method only supports MetricDomainTypes.TABLE"
+        assert domain_type == MetricDomainTypes.TABLE, (
+            "This method only supports MetricDomainTypes.TABLE"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
@@ -688,9 +690,9 @@ class ExecutionEngine(ABC):
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.COLUMN
-        ), "This method only supports MetricDomainTypes.COLUMN"
+        assert domain_type == MetricDomainTypes.COLUMN, (
+            "This method only supports MetricDomainTypes.COLUMN"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
@@ -720,9 +722,9 @@ class ExecutionEngine(ABC):
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.COLUMN_PAIR
-        ), "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        assert domain_type == MetricDomainTypes.COLUMN_PAIR, (
+            "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
@@ -753,9 +755,9 @@ class ExecutionEngine(ABC):
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.MULTICOLUMN
-        ), "This method only supports MetricDomainTypes.MULTICOLUMN"
+        assert domain_type == MetricDomainTypes.MULTICOLUMN, (
+            "This method only supports MetricDomainTypes.MULTICOLUMN"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}

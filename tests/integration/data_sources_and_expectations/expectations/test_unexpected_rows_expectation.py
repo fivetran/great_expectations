@@ -235,7 +235,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
     unexpected_rows_query,
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
-        name=str(uuid4()), column=DATE_COLUMN
+        name="my-batch-def", column=DATE_COLUMN
     ).get_batch()
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect query with {batch} keyword and paritioner defined to succeed",
@@ -256,7 +256,7 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_success(
     extra_table_names_for_datasource,
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
-        name=str(uuid4()), column=DATE_COLUMN
+        name="my-batch-def", column=DATE_COLUMN
     ).get_batch()
     for join_success_query in JOIN_SUCCESS_QUERIES:
         unexpected_rows_query = join_success_query.replace(

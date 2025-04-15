@@ -7,7 +7,7 @@ name: Nightly Data Source Cleanup
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0 0,3,6,9,12,15,18,21 * * *"
 
 jobs:
   cleanup-big-query:

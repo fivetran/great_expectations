@@ -157,19 +157,19 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
         """  # noqa: E501 # FIXME CoP
         super().validate_configuration(configuration)
         try:
-            assert (
-                getattr(self, "set_", None) is not None
-            ), "set_ is required for SetBasedColumnMap Expectations"
+            assert getattr(self, "set_", None) is not None, (
+                "set_ is required for SetBasedColumnMap Expectations"
+            )
 
-            assert (
-                "column" in configuration.kwargs
-            ), "'column' parameter is required for ColumnMap expectations"
+            assert "column" in configuration.kwargs, (
+                "'column' parameter is required for ColumnMap expectations"
+            )
 
             if "mostly" in configuration.kwargs:
                 mostly = configuration.kwargs["mostly"]
-                assert isinstance(
-                    mostly, (int, float)
-                ), "'mostly' parameter must be an integer or float"
+                assert isinstance(mostly, (int, float)), (
+                    "'mostly' parameter must be an integer or float"
+                )
                 assert 0 <= mostly <= 1, "'mostly' parameter must be between 0 and 1"
 
         except AssertionError as e:

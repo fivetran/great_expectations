@@ -19,6 +19,12 @@ from great_expectations.expectations.metrics.map_metric_provider import (
 )
 
 
+class InvalidColumnTypeError(ValueError):
+    def __init__(self, column_type: str):
+        message = f"ColumnValuesBetween metrics cannot be computed on column of type {column_type}."
+        super().__init__(message)
+
+
 class ColumnValuesBetween(ColumnMapMetricProvider):
     condition_metric_name = "column_values.between"
     condition_value_keys = (
@@ -168,6 +174,35 @@ class ColumnValuesBetween(ColumnMapMetricProvider):
 
         if min_value is None and max_value is None:
             raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
+
+        # Check that the generated SQL won't raise an error.
+        # ColumnValuesBetween metrics only work on numbers/dates,
+        # so we check for common string and boolean types.
+
+        # Retrieve column types from metrics.
+        metrics = kwargs.get("_metrics", {})
+        column_types = metrics.get("table.column_types", [])
+
+        # Map column names to their types as strings.
+        type_by_column = {ct.get("name"): str(ct.get("type", "")) for ct in column_types}
+        column_type = type_by_column.get(column.name)
+
+        INVALID_COLUMN_TYPES = (
+            "VARCHAR",
+            "CHAR",
+            "NVARCHAR",
+            "NCHAR",
+            "TEXT",
+            "STRING",
+            "BOOLEAN",
+            "BOOL",
+            "BIT",
+            "TINYTEXT",
+            "MEDIUMTEXT",
+            "LONGTEXT",
+        )
+        if column_type and column_type.upper().startswith(INVALID_COLUMN_TYPES):
+            raise InvalidColumnTypeError(column_type=column_type)
 
         if min_value is None:
             if strict_max:

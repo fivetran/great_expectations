@@ -58,12 +58,16 @@ class SerializableDataContext(AbstractDataContext):
         self,
         context_root_dir: PathStr,
         runtime_environment: Optional[dict] = None,
+        user_agent_str: Optional[str] = None,
     ) -> None:
         if isinstance(context_root_dir, pathlib.Path):
             # TODO: (kilo59) 122022 should be saving and passing around `pathlib.Path` not str
             context_root_dir = str(context_root_dir)
         self._context_root_directory = context_root_dir
-        super().__init__(runtime_environment=runtime_environment)
+        super().__init__(
+            runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
+        )
 
     def _init_datasource_store(self):  # type: ignore[explicit-override] # FIXME
         raise NotImplementedError  # Required by parent ABC but this class is never instantiated
@@ -112,18 +116,13 @@ class SerializableDataContext(AbstractDataContext):
         runtime_environment: Optional[dict] = None,
     ) -> SerializableDataContext:
         """
-        Build a new great_expectations directory and DataContext object in the provided project_root_dir.
+        Build a new gx directory and DataContext object in the provided project_root_dir.
 
-        `create` will create a new "great_expectations" directory in the provided folder, provided one does not
+        `create` will create a new "gx" directory in the provided folder, provided one does not
         already exist. Then, it will initialize a new DataContext in that folder and write the resulting config.
 
-        --Public API--
-
-        --Documentation--
-            https://docs.greatexpectations.io/docs/terms/data_context
-
         Args:
-            project_root_dir: path to the root directory in which to create a new great_expectations directory
+            project_root_dir: path to the root directory in which to create a new gx directory
             usage_statistics_enabled: boolean directive specifying whether or not to gather usage statistics
             runtime_environment: a dictionary of config variables that override both those set in
                 config_variables.yml and the environment
@@ -140,13 +139,17 @@ class SerializableDataContext(AbstractDataContext):
     def _scaffold(
         cls,
         project_root_dir: Optional[PathStr] = None,
+        context_root_dir_name: Optional[str] = None,
     ) -> pathlib.Path:
         if not project_root_dir:
             project_root_dir = pathlib.Path.cwd()
         else:
             project_root_dir = pathlib.Path(project_root_dir)
 
-        gx_dir = project_root_dir / cls.GX_DIR
+        if context_root_dir_name is None:
+            context_root_dir_name = cls.GX_DIR
+
+        gx_dir = project_root_dir / context_root_dir_name
         gx_dir.mkdir(parents=True, exist_ok=True)
         cls._scaffold_directories(gx_dir)
 

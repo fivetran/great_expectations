@@ -48,6 +48,7 @@ from great_expectations.datasource.fluent.interfaces import (
     DataAsset,
     Datasource,
 )
+from great_expectations.datasource.fluent.redshift_datasource import RedshiftDsn
 from great_expectations.datasource.fluent.snowflake_datasource import (
     ConnectionDetails as SnowflakeConnectionDetails,
 )
@@ -322,6 +323,37 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
+    def add_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def update_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def add_or_update_redshift(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = None,
+        name: Optional[str] = None,
+        datasource: Optional[Datasource] = None,
+        *,
+        connection_string: Union[ConfigStr, RedshiftDsn] = ...,
+        create_temp_table: bool = True,
+    ) -> PostgresDatasource: ...
+    def delete_redshift(
+        self,
+        name: str,
+    ) -> None: ...
     def add_spark(
         self,
         name: str,
@@ -350,7 +382,7 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
-    def add_spark_filesystem(  # noqa: PLR0913 # FIXME CoP
+    def add_spark_filesystem(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -362,7 +394,7 @@ class DataSourceManager:
         base_directory: pathlib.Path = ...,
         data_context_root_directory: Union[pathlib.Path, None] = ...,
     ) -> SparkFilesystemDatasource: ...
-    def update_spark_filesystem(  # noqa: PLR0913 # FIXME CoP
+    def update_spark_filesystem(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -374,7 +406,7 @@ class DataSourceManager:
         base_directory: pathlib.Path = ...,
         data_context_root_directory: Union[pathlib.Path, None] = ...,
     ) -> SparkFilesystemDatasource: ...
-    def add_or_update_spark_filesystem(  # noqa: PLR0913 # FIXME CoP
+    def add_or_update_spark_filesystem(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -390,7 +422,7 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
-    def add_spark_dbfs(  # noqa: PLR0913 # FIXME CoP
+    def add_spark_dbfs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -402,7 +434,7 @@ class DataSourceManager:
         base_directory: pathlib.Path = ...,
         data_context_root_directory: Union[pathlib.Path, None] = ...,
     ) -> SparkDBFSDatasource: ...
-    def update_spark_dbfs(  # noqa: PLR0913 # FIXME CoP
+    def update_spark_dbfs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -414,7 +446,7 @@ class DataSourceManager:
         base_directory: pathlib.Path = ...,
         data_context_root_directory: Union[pathlib.Path, None] = ...,
     ) -> SparkDBFSDatasource: ...
-    def add_or_update_spark_dbfs(  # noqa: PLR0913 # FIXME CoP
+    def add_or_update_spark_dbfs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -430,7 +462,7 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
-    def add_spark_s3(  # noqa: PLR0913 # FIXME CoP
+    def add_spark_s3(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -442,7 +474,7 @@ class DataSourceManager:
         bucket: str = ...,
         boto3_options: dict[str, Union[ConfigStr, Any]] = ...,
     ) -> SparkS3Datasource: ...
-    def update_spark_s3(  # noqa: PLR0913 # FIXME CoP
+    def update_spark_s3(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -454,7 +486,7 @@ class DataSourceManager:
         bucket: str = ...,
         boto3_options: dict[str, Union[ConfigStr, Any]] = ...,
     ) -> SparkS3Datasource: ...
-    def add_or_update_spark_s3(  # noqa: PLR0913 # FIXME CoP
+    def add_or_update_spark_s3(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -470,7 +502,7 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
-    def add_spark_gcs(  # noqa: PLR0913 # FIXME CoP
+    def add_spark_gcs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -482,7 +514,7 @@ class DataSourceManager:
         bucket_or_name: str = ...,
         gcs_options: dict[str, Union[ConfigStr, Any]] = ...,
     ) -> SparkGoogleCloudStorageDatasource: ...
-    def update_spark_gcs(  # noqa: PLR0913 # FIXME CoP
+    def update_spark_gcs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -494,7 +526,7 @@ class DataSourceManager:
         bucket_or_name: str = ...,
         gcs_options: dict[str, Union[ConfigStr, Any]] = ...,
     ) -> SparkGoogleCloudStorageDatasource: ...
-    def add_or_update_spark_gcs(  # noqa: PLR0913 # FIXME CoP
+    def add_or_update_spark_gcs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -510,7 +542,7 @@ class DataSourceManager:
         self,
         name: str,
     ) -> None: ...
-    def add_spark_abs(  # noqa: PLR0913 # FIXME CoP
+    def add_spark_abs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -521,7 +553,7 @@ class DataSourceManager:
         persist: bool = True,
         azure_options: dict[str, Any] = ...,
     ) -> SparkAzureBlobStorageDatasource: ...
-    def update_spark_abs(  # noqa: PLR0913 # FIXME CoP
+    def update_spark_abs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,
@@ -532,7 +564,7 @@ class DataSourceManager:
         persist: bool = True,
         azure_options: dict[str, Any] = ...,
     ) -> SparkAzureBlobStorageDatasource: ...
-    def add_or_update_spark_abs(  # noqa: PLR0913 # FIXME CoP
+    def add_or_update_spark_abs(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = None,
         name: Optional[str] = None,

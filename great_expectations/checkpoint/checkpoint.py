@@ -41,6 +41,7 @@ from great_expectations.core.freshness_diagnostics import CheckpointFreshnessDia
 from great_expectations.core.result_format import DEFAULT_RESULT_FORMAT, ResultFormatUnion
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.serdes import _IdentifierBundle
+from great_expectations.core.suite_parameters import SuiteParameterDict
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.context_factory import project_manager
 from great_expectations.data_context.types.resource_identifiers import (
@@ -61,7 +62,6 @@ from great_expectations.exceptions.resource_freshness import ResourceFreshnessAg
 from great_expectations.render.renderer.renderer import Renderer
 
 if TYPE_CHECKING:
-    from great_expectations.core.suite_parameters import SuiteParameterDict
     from great_expectations.data_context.store.validation_definition_store import (
         ValidationDefinitionStore,
     )
@@ -324,7 +324,12 @@ class Checkpoint(BaseModel):
             else:
                 diagnostics.raise_for_error()
 
+        if batch_parameters is None:
+            batch_parameters = {}
+        if expectation_parameters is None:
+            expectation_parameters = SuiteParameterDict()
         run_id = run_id or RunIdentifier(run_time=dt.datetime.now(dt.timezone.utc))
+        self._prepare_checkpoint_run_for_context(batch_parameters, expectation_parameters)
         run_results = self._run_validation_definitions(
             batch_parameters=batch_parameters,
             expectation_parameters=expectation_parameters,
@@ -339,6 +344,14 @@ class Checkpoint(BaseModel):
 
         return checkpoint_result
 
+    def _prepare_checkpoint_run_for_context(
+        self,
+        batch_parameters: Dict[str, Any],
+        expectation_parameters: SuiteParameterDict,
+    ) -> None:
+        context = self.validation_definitions[0].data.data_asset.datasource.data_context
+        context.prepare_checkpoint_run(self, batch_parameters, expectation_parameters)
+
     def _submit_analytics_event(self):
         event = CheckpointRanEvent(
             checkpoint_id=self.id,
@@ -348,8 +361,8 @@ class Checkpoint(BaseModel):
 
     def _run_validation_definitions(
         self,
-        batch_parameters: Dict[str, Any] | None,
-        expectation_parameters: SuiteParameterDict | None,
+        batch_parameters: Dict[str, Any],
+        expectation_parameters: SuiteParameterDict,
         result_format: ResultFormatUnion,
         run_id: RunIdentifier,
     ) -> Dict[ValidationResultIdentifier, ExpectationSuiteValidationResult]:

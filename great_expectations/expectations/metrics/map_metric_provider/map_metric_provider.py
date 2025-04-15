@@ -587,7 +587,10 @@ class MapMetricProvider(MetricProvider):
                 )
             else:
                 dependencies["unexpected_condition"] = MetricConfiguration(
-                    metric_name=f"{metric_name[:-len(metric_suffix)]}.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+                    metric_name=(
+                        f"{metric_name[: -len(metric_suffix)]}."
+                        f"{MetricPartialFunctionTypeSuffixes.CONDITION.value}"
+                    ),
                     metric_domain_kwargs=metric.metric_domain_kwargs,
                     metric_value_kwargs=base_metric_value_kwargs,
                 )
@@ -611,7 +614,8 @@ class MapMetricProvider(MetricProvider):
             metric_suffix = unexpected_condition_dependent_metric_name_suffixes[0]
             if metric_name.endswith(metric_suffix):
                 dependencies["unexpected_condition"] = MetricConfiguration(
-                    metric_name=f"{metric_name[:-len(metric_suffix)]}.{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
+                    metric_name=f"{metric_name[: -len(metric_suffix)]}."
+                    f"{MetricPartialFunctionTypeSuffixes.CONDITION.value}",
                     metric_domain_kwargs=metric.metric_domain_kwargs,
                     metric_value_kwargs=base_metric_value_kwargs,
                 )

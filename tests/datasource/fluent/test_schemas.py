@@ -28,9 +28,9 @@ def min_supported_python() -> Version:
     return Version("3.9")
 
 
-def _models_and_schema_dirs() -> (
-    Generator[tuple[Type[Datasource | DataAsset], pathlib.Path, str], None, None]
-):
+def _models_and_schema_dirs() -> Generator[
+    tuple[Type[Datasource | DataAsset], pathlib.Path, str], None, None
+]:
     datasource: Type[Datasource] = Datasource
     ds_type_name: str = ""
 
@@ -132,9 +132,9 @@ def test_vcs_schemas_match(  # noqa: C901 # FIXME CoP
     if "Excel" in str(schema_path):
         pytest.xfail(reason="Sorting of nested anyOf key")
 
-    assert (
-        schema_as_dict == fluent_ds_or_asset_model_as_dict
-    ), "Schemas are out of sync. Run `invoke schema --sync`. Also check your pandas version."
+    assert schema_as_dict == fluent_ds_or_asset_model_as_dict, (
+        "Schemas are out of sync. Run `invoke schema --sync`. Also check your pandas version."
+    )
 
 
 @pytest.mark.big
@@ -158,7 +158,10 @@ def test_no_orphaned_schemas():
         if schema.stem not in all_schemas:
             orphans.append(schema)
 
-    assert not orphans, f"The following schemas appear to be orphaned and should be removed. Run `invoke schema --sync --clean`\n{pf(orphans)}"  # noqa: E501 # FIXME CoP
+    assert not orphans, (
+        f"The following schemas appear to be orphaned and should be removed. "
+        f"Run `invoke schema --sync --clean`\n{pf(orphans)}"
+    )
 
 
 if __name__ == "__main__":

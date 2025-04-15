@@ -216,12 +216,12 @@ class ExpectMulticolumnValuesToBeEqual(MulticolumnMapExpectation):
 
         try:
             assert "column_list" in configuration.kwargs, "column_list is required"
-            assert isinstance(
-                configuration.kwargs["column_list"], list
-            ), "column_list must be a list"
-            assert (
-                len(configuration.kwargs["column_list"]) >= 2
-            ), "column_list must have at least 2 elements"
+            assert isinstance(configuration.kwargs["column_list"], list), (
+                "column_list must be a list"
+            )
+            assert len(configuration.kwargs["column_list"]) >= 2, (
+                "column_list must have at least 2 elements"
+            )
         except AssertionError as e:
             raise InvalidExpectationConfigurationError(str(e))
 

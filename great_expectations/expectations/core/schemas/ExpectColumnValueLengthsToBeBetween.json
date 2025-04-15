@@ -206,7 +206,8 @@
                         "MSSQL",
                         "BigQuery",
                         "Snowflake",
-                        "Databricks (SQL)"
+                        "Databricks (SQL)",
+                        "Redshift"
                     ]
                 }
             }
@@ -267,6 +268,11 @@
                 },
                 "offset": {
                     "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "default": false,
+                    "type": "boolean"
                 }
             },
             "required": [

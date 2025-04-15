@@ -13,7 +13,7 @@ from great_expectations.datasource.fluent.data_asset.path.spark.spark_asset impo
     SPARK_PATH_ASSET_UNION,
 )
 from great_expectations.datasource.fluent.interfaces import (
-    DataAsset,  # noqa: TCH001  # pydantic requires this type at runtime
+    DataAsset,  # noqa: TC001  # pydantic requires this type at runtime
 )
 
 

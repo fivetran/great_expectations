@@ -70,6 +70,7 @@ from great_expectations.execution_engine import (
 from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
+from great_expectations.execution_engine.sqlite_execution_engine import SqliteExecutionEngine
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfigurationSchema,
 )
@@ -81,7 +82,6 @@ from great_expectations.util import (
     import_library_module,
 )
 from great_expectations.validator.validator import Validator
-from tests.test_utils import get_default_mssql_url
 
 SQLAlchemyError = sqlalchemy.SQLAlchemyError
 
@@ -126,12 +126,31 @@ else:
 
 
 from great_expectations.compatibility.bigquery import (
-    BIGQUERY_TYPES,
     GEOGRAPHY,
+    sqlalchemy_bigquery,
 )
 
-if GEOGRAPHY:
-    BIGQUERY_TYPES["GEOGRAPHY"] = GEOGRAPHY
+try:
+    BIGQUERY_TYPES = {
+        "INTEGER": sqlalchemy_bigquery.INTEGER,
+        "NUMERIC": sqlalchemy_bigquery.NUMERIC,
+        "STRING": sqlalchemy_bigquery.STRING,
+        "BIGNUMERIC": sqlalchemy_bigquery.BIGNUMERIC,
+        "BYTES": sqlalchemy_bigquery.BYTES,
+        "BOOL": sqlalchemy_bigquery.BOOL,
+        "BOOLEAN": sqlalchemy_bigquery.BOOLEAN,
+        "TIMESTAMP": sqlalchemy_bigquery.TIMESTAMP,
+        "TIME": sqlalchemy_bigquery.TIME,
+        "FLOAT": sqlalchemy_bigquery.FLOAT,
+        "DATE": sqlalchemy_bigquery.DATE,
+        "DATETIME": sqlalchemy_bigquery.DATETIME,
+    }
+
+    if GEOGRAPHY:
+        BIGQUERY_TYPES["GEOGRAPHY"] = GEOGRAPHY
+
+except (ImportError, AttributeError):
+    BIGQUERY_TYPES = {}
 
 try:
     import sqlalchemy.dialects.postgresql as postgresqltypes  # noqa: TID251 # FIXME CoP
@@ -429,6 +448,14 @@ BACKEND_TO_ENGINE_NAME_DICT = {
 }
 
 BACKEND_TO_ENGINE_NAME_DICT.update({name: "sqlalchemy" for name in SQL_DIALECT_NAMES})
+
+
+# The default exeuction engine is SqlAlchemyExecutionEngine so we set this and then override
+# with specific values.
+SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT = {
+    name: SqlAlchemyExecutionEngine for name in SQL_DIALECT_NAMES
+}
+SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT["sqlite"] = SqliteExecutionEngine
 
 
 def get_sqlite_connection_url(sqlite_db_path):
@@ -801,7 +828,11 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         connection_string = f"mysql+pymysql://root@{db_hostname}/test_ci"
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "mssql":
-        connection_string = get_default_mssql_url()
+        connection_string = (
+            "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
+            "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+            "&autocommit=true&TrustServerCertificate=yes"
+        )
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "bigquery":
         connection_string = _get_bigquery_connection_string()
@@ -890,7 +921,8 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
     else:
         sql_insert_method = None
 
-    execution_engine = SqlAlchemyExecutionEngine(caching=caching, engine=engine)
+    execution_engine_class = SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT[sa_engine_name]
+    execution_engine = execution_engine_class(caching=caching, engine=engine)
     batch_data = SqlAlchemyBatchData(execution_engine=execution_engine, table_name=table_name)
     with execution_engine.get_connection() as connection:
         _debug("Calling df.to_sql")
@@ -1049,9 +1081,6 @@ def build_spark_engine(
     ):
         raise ValueError("Exactly one of batch_id or batch_definition must be specified.")  # noqa: TRY003 # FIXME CoP
 
-    if batch_id is None:
-        batch_id = cast(LegacyBatchDefinition, batch_definition).id
-
     if isinstance(df, pd.DataFrame):
         if schema is None:
             data: Union[pd.DataFrame, List[tuple]] = [
@@ -1072,7 +1101,7 @@ def build_spark_engine(
     execution_engine = SparkDFExecutionEngine(
         spark_config=spark_config,
         batch_data_dict={
-            batch_id: df,
+            batch_id or cast(LegacyBatchDefinition, batch_definition).id: df,
         },
     )
     return execution_engine
@@ -1288,6 +1317,11 @@ def candidate_test_is_on_temporary_notimplemented_list_v3_api(context, expectati
     return False
 
 
+# We cache whether we can successfully connect to a test backend so we don't have to
+# validate we can connect over and over again.
+_successful_backend_connection = set()
+
+
 def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     include_pandas=True,
     include_spark=False,
@@ -1382,7 +1416,11 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
                 test_backends += ["mysql"]
 
         if include_mssql:
-            connection_string = get_default_mssql_url()
+            connection_string = (
+                "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
+                "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+                "&autocommit=true&TrustServerCertificate=yes"
+            )
             try:
                 engine = sa.create_engine(connection_string)
                 conn = engine.connect()
@@ -1480,9 +1518,11 @@ def build_test_backends_list(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME C
         if include_redshift:
             # noinspection PyUnresolvedReferences
             try:
-                engine = _create_redshift_engine()
-                conn = engine.connect()
-                conn.close()
+                if "redshift" not in _successful_backend_connection:
+                    engine = _create_redshift_engine()
+                    conn = engine.connect()
+                    conn.close()
+                    _successful_backend_connection.add("redshift")
             except (ImportError, ValueError, sa.exc.SQLAlchemyError) as e:
                 if raise_exceptions_for_backends is True:
                     raise ImportError("redshift tests are requested, but unable to connect") from e  # noqa: TRY003 # FIXME CoP
@@ -1576,11 +1616,8 @@ def generate_expectation_tests(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME
                 if _engine == "sqlalchemy" and "sqlalchemy" in engines_implemented:
                     engines_to_include[_engine] = True
                     dialects_to_include[backend] = True
-                elif (
-                    _engine == "pandas"
-                    and "pandas" in engines_implemented
-                    or _engine == "spark"
-                    and "spark" in engines_implemented
+                elif (_engine == "pandas" and "pandas" in engines_implemented) or (
+                    _engine == "spark" and "spark" in engines_implemented
                 ):
                     engines_to_include[_engine] = True
     else:
@@ -2082,15 +2119,19 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                     ],
                     rtol=RTOL,
                     atol=ATOL,
-                ), f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']} not np.allclose to {expectationValidationResultSchema.load(test['output'])['result']['observed_value']}"  # noqa: E501 # FIXME CoP
+                ), (
+                    f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']} "
+                    "not np.allclose to "
+                    f"{expectationValidationResultSchema.load(test['output'])['result']['observed_value']}"
+                )
             else:
-                assert result == expectationValidationResultSchema.load(
-                    test["output"]
-                ), f"{result} != {expectationValidationResultSchema.load(test['output'])}"
+                assert result == expectationValidationResultSchema.load(test["output"]), (
+                    f"{result} != {expectationValidationResultSchema.load(test['output'])}"
+                )
         else:
-            assert result == expectationValidationResultSchema.load(
-                test["output"]
-            ), f"{result} != {expectationValidationResultSchema.load(test['output'])}"
+            assert result == expectationValidationResultSchema.load(test["output"]), (
+                f"{result} != {expectationValidationResultSchema.load(test['output'])}"
+            )
     else:
         # Convert result to json since our tests are reading from json so cannot easily contain richer types (e.g. NaN)  # noqa: E501 # FIXME CoP
         # NOTE - 20191031 - JPC - we may eventually want to change these tests as we update our view on how  # noqa: E501 # FIXME CoP
@@ -2105,7 +2146,10 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                             value,
                             rtol=RTOL,
                             atol=ATOL,
-                        ), f"(RTOL={RTOL}, ATOL={ATOL}) {result['success']} not np.allclose to {value}"  # noqa: E501 # FIXME CoP
+                        ), (
+                            f"(RTOL={RTOL}, ATOL={ATOL}) {result['success']} "
+                            f"not np.allclose to {value}"
+                        )
                     except TypeError:
                         assert result["success"] == value, f"{result['success']} != {value}"
                 else:
@@ -2114,9 +2158,12 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
             elif key == "observed_value":
                 if "tolerance" in test:
                     if isinstance(value, dict):
-                        assert (
-                            set(result["result"]["observed_value"].keys()) == set(value.keys())
-                        ), f"{set(result['result']['observed_value'].keys())} != {set(value.keys())}"  # noqa: E501 # FIXME CoP
+                        assert set(result["result"]["observed_value"].keys()) == set(
+                            value.keys()
+                        ), (
+                            f"{set(result['result']['observed_value'].keys())} "
+                            f"!= {set(value.keys())}"
+                        )
                         for k, v in value.items():
                             assert np.allclose(
                                 result["result"]["observed_value"][k],
@@ -2137,23 +2184,30 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                                 value["values"],
                                 rtol=RTOL,
                                 atol=ATOL,
-                            ), f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']['values']} not np.allclose to {value['values']}"  # noqa: E501 # FIXME CoP
+                            ), (
+                                f"(RTOL={RTOL}, ATOL={ATOL}) "
+                                f"{result['result']['observed_value']['values']} "
+                                f"not np.allclose to {value['values']}"
+                            )
                         except TypeError as e:
                             print(e)
-                            assert (
-                                result["result"]["observed_value"] == value
-                            ), f"{result['result']['observed_value']} != {value}"
+                            assert result["result"]["observed_value"] == value, (
+                                f"{result['result']['observed_value']} != {value}"
+                            )
                     elif try_allclose:
                         assert np.allclose(
                             result["result"]["observed_value"],
                             value,
                             rtol=RTOL,
                             atol=ATOL,
-                        ), f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']} not np.allclose to {value}"  # noqa: E501 # FIXME CoP
+                        ), (
+                            f"(RTOL={RTOL}, ATOL={ATOL}) {result['result']['observed_value']} "
+                            f"not np.allclose to {value}"
+                        )
                     else:
-                        assert (
-                            result["result"]["observed_value"] == value
-                        ), f"{result['result']['observed_value']} != {value}"
+                        assert result["result"]["observed_value"] == value, (
+                            f"{result['result']['observed_value']} != {value}"
+                        )
 
             # NOTE: This is a key used ONLY for testing cases where an expectation is legitimately allowed to return  # noqa: E501 # FIXME CoP
             # any of multiple possible observed_values. expect_column_values_to_be_of_type is one such expectation.  # noqa: E501 # FIXME CoP
@@ -2164,9 +2218,9 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                 unexpected_list = result["result"].get("unexpected_index_list")
                 if pk_column and unexpected_list:
                     # Note that consistent ordering of unexpected_list is not a guarantee by ID/PK
-                    assert (
-                        sorted(unexpected_list, key=lambda d: d["pk_index"]) == value
-                    ), f"{unexpected_list} != {value}"
+                    assert sorted(unexpected_list, key=lambda d: d["pk_index"]) == value, (
+                        f"{unexpected_list} != {value}"
+                    )
 
             elif key == "unexpected_list":
                 try:
@@ -2230,9 +2284,9 @@ def check_json_test_result(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                             "expected to find " + value + " in " + value["exception_traceback"]
                         )
                 else:
-                    assert result["exception_info"][
-                        "raised_exception"
-                    ], f"{result['exception_info']['raised_exception']}"
+                    assert result["exception_info"]["raised_exception"], (
+                        f"{result['exception_info']['raised_exception']}"
+                    )
                     assert value in result["exception_info"]["exception_traceback"], (
                         "expected to find "
                         + value

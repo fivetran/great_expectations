@@ -40,12 +40,12 @@ from great_expectations.core.batch_spec import (
     S3BatchSpec,
 )
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,  # noqa: TCH001 # FIXME CoP
+    MetricDomainTypes,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.core.util import AzureUrl, GCSUrl, S3Url, sniff_s3_compression
 from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.execution_engine.execution_engine import (
-    PartitionDomainKwargs,  # noqa: TCH001 # FIXME CoP
+    PartitionDomainKwargs,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.execution_engine.pandas_batch_data import PandasBatchData
 from great_expectations.execution_engine.partition_and_sample.pandas_data_partitioner import (
@@ -58,6 +58,8 @@ from great_expectations.expectations.model_field_types import CONDITION_PARSER_P
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
+
+    from great_expectations.validator.metric_configuration import MetricConfigurationID
 
 logger = logging.getLogger(__name__)
 
@@ -479,7 +481,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
             )
 
     @override
-    def resolve_metric_bundle(self, metric_fn_bundle) -> Dict[Tuple[str, str, str], Any]:
+    def resolve_metric_bundle(self, metric_fn_bundle) -> dict[MetricConfigurationID, Any]:
         """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501 # FIXME CoP
         return {}  # This is NO-OP for "PandasExecutionEngine" (no bundling for direct execution computational backend).  # noqa: E501 # FIXME CoP
 
