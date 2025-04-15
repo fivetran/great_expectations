@@ -51,8 +51,8 @@ class RedshiftDatasource(SQLDatasource):
         connection_string: The SQLAlchemy connection string used to connect to the Redshift
             database. This will use a redshift with psycopg2. For example:
             "redshift+psycopg2://username@host.amazonaws.com:5439/database"
-        connection_details: A RedshiftConnectionDetails object defining the connection details. If connection_details
-            is used, connection_string cannot also be provided.
+        connection_details: A RedshiftConnectionDetails object defining the connection details.
+        If connection_details is used, connection_string cannot also be provided.
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose
             values are TableAsset or QueryAsset objects.
     """
@@ -67,7 +67,7 @@ class RedshiftDatasource(SQLDatasource):
         """
         connection_string, connection_details = values.get("connection_string"), values.get("connection_details")
         if connection_details is not None and connection_string is not None:
-            raise ValueError("Cannot provide both connection_details and connection_string")
+            raise ValueError("Cannot provide both connection_details and connection_string")  # noqa: TRY003
         if connection_details is not None:
             connection_string_from_details = f"redshift+psycopg2://{connection_details.username}:{connection_details.password}@{connection_details.host}:{connection_details.port}/{connection_details.database}?sslmode={connection_details.ssl_mode.value}"
             values["connection_string"] = connection_string_from_details
