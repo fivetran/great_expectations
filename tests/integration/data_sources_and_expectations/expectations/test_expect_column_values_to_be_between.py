@@ -80,7 +80,11 @@ def test_success_complete_non_sql(batch_for_datasource: Batch) -> None:
         ),
         pytest.param(
             gxe.ExpectColumnValuesToBeBetween(
-                column=NUMERIC_COLUMN, min_value=0, max_value=6, strict_min=True, strict_max=True
+                column=NUMERIC_COLUMN,
+                min_value=0,
+                max_value=6,
+                strict_min=True,
+                strict_max=True,
             ),
             id="strict_bounds",
         ),
@@ -139,6 +143,22 @@ def test_success(
                 strict_max=True,
             ),
             id="strict_bounds",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN),
+            id="both_values_are_none",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value="", max_value=""),
+            id="both_values_are_empty_string",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value="", max_value=1),
+            id="min_value_is_empty_string",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value=0, max_value=""),
+            id="max_value_is_empty_string",
         ),
     ],
 )

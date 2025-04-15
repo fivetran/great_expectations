@@ -29,9 +29,7 @@ from great_expectations.render.util import (
 )
 
 if TYPE_CHECKING:
-    from great_expectations.core import (
-        ExpectationValidationResult,
-    )
+    from great_expectations.core import ExpectationValidationResult
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
