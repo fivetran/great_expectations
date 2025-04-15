@@ -3,22 +3,30 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING, Literal, Type, Union
 
-from great_expectations.compatibility.pydantic import AnyUrl, BaseModel, ConfigDict, root_validator, StrictInt, StrictStr
+from great_expectations.compatibility.pydantic import (
+    AnyUrl,
+    BaseModel,
+    ConfigDict,
+    StrictInt,
+    StrictStr,
+    root_validator,
+)
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
 from great_expectations.execution_engine.redshift_execution_engine import RedshiftExecutionEngine
-
 
 if TYPE_CHECKING:
     from great_expectations.execution_engine.sqlalchemy_execution_engine import (
         SqlAlchemyExecutionEngine,
     )
 
+
 class RedshiftDsn(AnyUrl):
     allowed_schemes = {
         "redshift+psycopg2",
     }
+
 
 class RedshiftSSLModes(Enum):
     DISABLE = "disable"
@@ -34,6 +42,7 @@ class RedshiftConnectionDetails(BaseModel):
     Information needed to connect to a Redshift database.
     Alternative to a connection string.
     """
+
     model_config = ConfigDict(strict=True)
     username: StrictStr
     password: Union[ConfigStr, StrictStr]
@@ -65,7 +74,10 @@ class RedshiftDatasource(SQLDatasource):
         """
         If connection_details is provided, use them to construct the connection_string.
         """
-        connection_string, connection_details = values.get("connection_string"), values.get("connection_details")
+        connection_string, connection_details = (
+            values.get("connection_string"),
+            values.get("connection_details"),
+        )
         if connection_details is not None and connection_string is not None:
             raise ValueError("Cannot provide both connection_details and connection_string")  # noqa: TRY003
         if connection_details is not None:
