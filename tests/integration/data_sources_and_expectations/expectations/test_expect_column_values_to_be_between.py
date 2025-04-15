@@ -149,15 +149,15 @@ def test_success(
             id="both_values_are_none",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value="", max_value=""),
+            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value="", max_value=""),  # type: ignore[arg-type] # intentional test
             id="both_values_are_empty_string",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value="", max_value=1),
+            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value="", max_value=1),  # type: ignore[arg-type] # intentional test
             id="min_value_is_empty_string",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value=0, max_value=""),
+            gxe.ExpectColumnValuesToBeBetween(column=NUMERIC_COLUMN, min_value=0, max_value=""),  # type: ignore[arg-type] # intentional test
             id="max_value_is_empty_string",
         ),
     ],
