@@ -206,10 +206,10 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     @classmethod
     @root_validator(pre=True)
     def check_min_val_or_max_val(cls, values: dict) -> dict:
-        min_val = values.get("min_val")
-        max_val = values.get("max_val")
+        min_value = values.get("min_value")
+        max_value = values.get("max_value")
 
-        if min_val is None and max_val is None:
+        if min_value is None and max_value is None:
             raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         return values
