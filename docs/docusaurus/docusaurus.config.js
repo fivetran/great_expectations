@@ -3,13 +3,14 @@
 const remarkNamedSnippets = require('./scripts/remark-named-snippets/index')
 const remarkCodeImport = require('remark-code-import')
 
-const config = require('dotenv').config()
+require('dotenv').config()
 
 module.exports = {
   title: 'Great Expectations',
   tagline: 'Always know what to expect from your data.',
   url: 'https://docs.greatexpectations.io', // Url to your site with no trailing slash
   baseUrl: '/',
+  customFields: { posthogApiKey: process.env.POSTHOG_API_KEY },
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   favicon: '/img/gx-mark.png',
@@ -27,11 +28,12 @@ module.exports = {
     [
       'posthog-docusaurus',
       {
-        apiKey: config.parsed.POSTHOG_API_KEY,
+        apiKey: process.env.POSTHOG_API_KEY,
         enableInDevelopment: false,
+        debug: process.env.NODE_ENV === 'development',
         autocapture: {
           capture_pageview: false
-        },
+        }
       }
     ]
   ],
@@ -84,8 +86,8 @@ module.exports = {
     algolia: {
       // See: https://docusaurus.io/docs/search#connecting-algolia
       // Algolia apiKey is stored on Netlify's ENV variables
-      appId: config.parsed.ALGOLIA_ID || 'PFK639M3JK',
-      apiKey: config.parsed.ALGOLIA_API_KEY || '348b970580f56fe06a29b33485592856',
+      appId: process.env.ALGOLIA_ID || 'PFK639M3JK',
+      apiKey: process.env.ALGOLIA_API_KEY || '348b970580f56fe06a29b33485592856',
       indexName: 'greatexpectations',
       searchPagePath: 'search',
       contextualSearch: true

@@ -1,8 +1,8 @@
-import React from 'react';
-import BrowserOnly from '@docusaurus/BrowserOnly';
-import NavigationTracker from '../../components/NavigationTracker';
+import React from 'react'
+import BrowserOnly from '@docusaurus/BrowserOnly'
+import NavigationTracker from '../../components/NavigationTracker'
 
-export default function Root({children}) {
+export default function Root ({ children }) {
   return (
     <>
       {children}
@@ -10,5 +10,5 @@ export default function Root({children}) {
         {() => <NavigationTracker />}
       </BrowserOnly>
     </>
-  );
-} 
+  )
+}
