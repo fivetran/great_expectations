@@ -56,7 +56,8 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_string(
 
     context = ephemeral_context_with_defaults
     data_source = context.data_sources.add_redshift(
-        name="redshift_test", connection_string=connection_string
+        name="redshift_test",
+        connection_string=connection_string
     )
     data_source.get_engine()
 
@@ -80,7 +81,7 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
     database = "database"
     ssl_mode = RedshiftSSLModes.ALLOW
     connection_string = build_connection_string(
-        scheme, username, password, host, port, database, ssl_mode
+        scheme, username, password, host, port, database, ssl_mode.value
     )
 
     connection_details = RedshiftConnectionDetails(
@@ -100,11 +101,12 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
         host_type="int_domain",
         port=port,
         path=f"/{database}",
-        query=f"sslmode={ssl_mode}",
+        query=f"sslmode={ssl_mode.value}",
     )
     context = ephemeral_context_with_defaults
     data_source = context.data_sources.add_redshift(
-        name="redshift_test", connection_details=connection_details
+        name="redshift_test",
+        connection_details=connection_details  # type: ignore[call-arg]
     )
     data_source.get_engine()
     create_engine_spy.assert_called_once_with(expected_kwargs)
@@ -131,5 +133,5 @@ def test_value_error_raised_if_invalid_connection_detail_inputs(
             host=host,
             port=port,
             database=database,
-            ssl_mode=ssl_mode,
+            ssl_mode=ssl_mode,  # type: ignore[arg-type] # Ignore this for purpose of the test
         )
