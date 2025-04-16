@@ -23,7 +23,6 @@ def scheme():
 
 
 @pytest.mark.unit
-@pytest.mark.redshift
 def test_create_engine_is_called_with_expected_kwargs_using_connection_string(
     sa,
     mocker: MockerFixture,
@@ -64,7 +63,6 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_string(
 
 
 @pytest.mark.unit
-@pytest.mark.redshift
 def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
     sa,
     mocker: MockerFixture,
@@ -112,7 +110,6 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
 
 
 @pytest.mark.unit
-@pytest.mark.redshift
 def test_value_error_raised_if_invalid_connection_detail_inputs(
     sa,
     ephemeral_context_with_defaults: EphemeralDataContext,
