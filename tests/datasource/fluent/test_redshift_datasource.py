@@ -37,27 +37,20 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_string(
     port = 1234
     database = "database"
     ssl_mode = "allow"
+
+    context = ephemeral_context_with_defaults
     connection_string = build_connection_string(
         scheme, username, password, host, port, database, ssl_mode
     )
+    data_source = context.data_sources.add_redshift(
+        name="redshift_test", connection_string=connection_string
+    )
+    data_source.get_engine() # we will verify that the correct connection details are used when getting the engine
 
     expected_kwargs = RedshiftDsn(
         connection_string,
         scheme=scheme,
-        user=username,
-        password=password,
-        host=host,
-        host_type="int_domain",
-        port=port,
-        path=f"/{database}",
-        query=f"sslmode={ssl_mode}",
     )
-
-    context = ephemeral_context_with_defaults
-    data_source = context.data_sources.add_redshift(
-        name="redshift_test", connection_string=connection_string
-    )
-    data_source.get_engine()
 
     create_engine_spy.assert_called_once_with(expected_kwargs)
 
@@ -77,10 +70,6 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
     port = 1234
     database = "database"
     ssl_mode = RedshiftSSLModes.ALLOW
-    connection_string = build_connection_string(
-        scheme, username, password, host, port, database, ssl_mode.value
-    )
-
     connection_details = RedshiftConnectionDetails(
         username=username,
         password=password,
@@ -89,23 +78,22 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
         database=database,
         ssl_mode=ssl_mode,
     )
-    expected_kwargs = RedshiftDsn(
-        connection_string,
-        scheme=scheme,
-        user=username,
-        password=password,
-        host=host,
-        host_type="int_domain",
-        port=port,
-        path=f"/{database}",
-        query=f"sslmode={ssl_mode.value}",
-    )
+
     context = ephemeral_context_with_defaults
     data_source = context.data_sources.add_redshift(
         name="redshift_test",
         connection_details=connection_details,  # type: ignore[call-arg]
     )
-    data_source.get_engine()
+    data_source.get_engine() # we will verify that the correct connection details are used when getting the engine
+
+    connection_string = build_connection_string(
+        scheme, username, password, host, port, database, ssl_mode.value
+    )
+    expected_kwargs = RedshiftDsn(
+        connection_string,
+        scheme=scheme,
+    )
+
     create_engine_spy.assert_called_once_with(expected_kwargs)
 
 
