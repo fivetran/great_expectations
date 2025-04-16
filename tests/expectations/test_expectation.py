@@ -467,17 +467,20 @@ def test_expectation_equality_ignores_rendered_content():
     "expectation_a, expectation_b, expected_result",
     [
         pytest.param(
-            gxe.ExpectColumnValuesToBeBetween(column="foo"), {}, False, id="different_objects"
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
+            {},
+            False,
+            id="different_objects",
         ),
         pytest.param(
             gxe.ExpectColumnDistinctValuesToBeInSet(column="bar", value_set=[1, 2, 3]),
-            gxe.ExpectColumnValuesToBeBetween(column="foo"),
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
             True,
             id="different_expectation_types",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeBetween(column="foo"),
-            gxe.ExpectColumnValuesToBeBetween(column="foo"),
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
             False,
             id="equivalent_expectations",
         ),
