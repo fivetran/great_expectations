@@ -186,6 +186,7 @@ def test_failure(
         ),
     ],
 )
+@pytest.mark.integration
 def test_validation_errors(min_value: Any, max_value: Any, expected_message: str) -> None:
     """Test that appropriate validation errors are raised for invalid inputs."""
     with pytest.raises(pydantic.ValidationError) as exc:
