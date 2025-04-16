@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Literal, Type, Union
 from great_expectations.compatibility.pydantic import (
     AnyUrl,
     BaseModel,
-    ConfigDict,
     StrictInt,
     StrictStr,
     root_validator,
