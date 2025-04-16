@@ -43,7 +43,6 @@ class RedshiftConnectionDetails(BaseModel):
     Alternative to a connection string.
     """
 
-    model_config = ConfigDict(strict=True)
     username: StrictStr
     password: Union[ConfigStr, StrictStr]
     host: StrictStr
