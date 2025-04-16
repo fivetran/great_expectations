@@ -7,6 +7,7 @@ from great_expectations.data_context import EphemeralDataContext
 from great_expectations.datasource.fluent.redshift_datasource import (
     RedshiftConnectionDetails,
     RedshiftDsn,
+    RedshiftSSLModes,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -77,7 +78,7 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
     host = "host"
     port = 1234
     database = "database"
-    ssl_mode = "allow"
+    ssl_mode = RedshiftSSLModes.ALLOW
     connection_string = build_connection_string(
         scheme, username, password, host, port, database, ssl_mode
     )
