@@ -486,10 +486,10 @@ def test_expectation_equality_ignores_rendered_content():
         ),
         pytest.param(
             gxe.ExpectColumnValuesToBeBetween(
-                column="foo", id="bbbe648e-0a43-431b-81a0-04e68f1473ae"
+                column="foo", min_value=0, id="bbbe648e-0a43-431b-81a0-04e68f1473ae"
             ),
             gxe.ExpectColumnValuesToBeBetween(
-                column="foo", id="aaae648e-0a43-431b-81a0-04e68f1473ae"
+                column="foo", min_value=0, id="aaae648e-0a43-431b-81a0-04e68f1473ae"
             ),
             False,
             id="equiv_expectations_with_ids",
@@ -503,10 +503,10 @@ def test_expectations___lt__(expectation_a, expectation_b, expected_result):
 @pytest.mark.unit
 def test_expectation_sorting():
     expectation_a = gxe.ExpectColumnValuesToBeBetween(
-        column="foo", id="80b6d508-a843-426e-97c0-7ff64d35ac04"
+        column="foo", min_value=0, id="80b6d508-a843-426e-97c0-7ff64d35ac04"
     )
     expectation_b = gxe.ExpectColumnValuesToBeBetween(
-        column="foo", id="4cd1e63a-880b-46ea-93e8-c11636df18b8"
+        column="foo", min_value=0, id="4cd1e63a-880b-46ea-93e8-c11636df18b8"
     )
     expectation_c = gxe.ExpectTableColumnCountToBeBetween()
     expectation_d = gxe.ExpectColumnMaxToBeBetween(column="foo", min_value=0, max_value=10)

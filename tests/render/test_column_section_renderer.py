@@ -4,17 +4,13 @@ from collections import OrderedDict
 import pytest
 
 import great_expectations.expectations as gxe
-from great_expectations.core import (
-    ExpectationSuite,
-)
+from great_expectations.core import ExpectationSuite
 from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
     ExpectationValidationResult,
 )
 from great_expectations.data_context.util import file_relative_path
-from great_expectations.expectations.expectation import (
-    Expectation,
-)
+from great_expectations.expectations.expectation import Expectation
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
@@ -75,8 +71,10 @@ def titanic_validation_results():
 def fake_expectation_with_description() -> Expectation:
     class ExpectColumnAgesToBeLegalAdult(gxe.ExpectColumnValuesToBeBetween):
         column: str = "ages"
-        min_value: int = 18
         description: str = "column values must be a legal adult age (**18** or older)"
+
+        def __init__(self, **data):
+            super().__init__(min_value=18)
 
     return ExpectColumnAgesToBeLegalAdult()
 
