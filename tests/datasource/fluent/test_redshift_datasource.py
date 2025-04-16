@@ -45,7 +45,7 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_string(
     data_source = context.data_sources.add_redshift(
         name="redshift_test", connection_string=connection_string
     )
-    data_source.get_engine() # we will verify that the correct connection details are used when getting the engine  # noqa: E501
+    data_source.get_engine()  # we will verify that the correct connection details are used when getting the engine  # noqa: E501
 
     expected_kwargs = RedshiftDsn(
         connection_string,
@@ -84,7 +84,7 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
         name="redshift_test",
         connection_details=connection_details,  # type: ignore[call-arg]
     )
-    data_source.get_engine() # we will verify that the correct connection details are used when getting the engine  # noqa: E501
+    data_source.get_engine()  # we will verify that the correct connection details are used when getting the engine  # noqa: E501
 
     connection_string = build_connection_string(
         scheme, username, password, host, port, database, ssl_mode.value
