@@ -19,9 +19,7 @@ from great_expectations.analytics.events import (
     ExpectationSuiteExpectationDeletedEvent,
     ExpectationSuiteExpectationUpdatedEvent,
 )
-from great_expectations.core.expectation_suite import (
-    ExpectationSuite,
-)
+from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.serdes import _IdentifierBundle
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import set_context
@@ -1215,8 +1213,11 @@ class TestExpectationSuiteAnalytics:
         suite = empty_suite
 
         class ExpectColumnValuesToBeBetweenOneAndTen(gxe.ExpectColumnValuesToBeBetween):
-            min_value: int = 1
-            max_value: int = 10
+            _min_value = 1
+            _max_value = 10
+
+            def __init__(self, **kwargs):
+                super().__init__(min_value=self._min_value, max_value=self._max_value, **kwargs)
 
         expectation = ExpectColumnValuesToBeBetweenOneAndTen(column="passenger_count")
 

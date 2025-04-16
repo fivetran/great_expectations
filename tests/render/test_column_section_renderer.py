@@ -70,11 +70,16 @@ def titanic_validation_results():
 @pytest.fixture
 def fake_expectation_with_description() -> Expectation:
     class ExpectColumnAgesToBeLegalAdult(gxe.ExpectColumnValuesToBeBetween):
-        column: str = "ages"
+        _default_column = "ages"
+        _min_value = 18
         description: str = "column values must be a legal adult age (**18** or older)"
 
-        def __init__(self, **data):
-            super().__init__(min_value=18)
+        def __init__(self, **kwargs):
+            if "column" not in kwargs:
+                kwargs["column"] = self._default_column
+            if "min_value" not in kwargs:
+                kwargs["min_value"] = self._min_value
+            super().__init__(**kwargs)
 
     return ExpectColumnAgesToBeLegalAdult()
 
