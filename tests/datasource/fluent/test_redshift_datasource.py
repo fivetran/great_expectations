@@ -56,8 +56,7 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_string(
 
     context = ephemeral_context_with_defaults
     data_source = context.data_sources.add_redshift(
-        name="redshift_test",
-        connection_string=connection_string
+        name="redshift_test", connection_string=connection_string
     )
     data_source.get_engine()
 
@@ -106,7 +105,7 @@ def test_create_engine_is_called_with_expected_kwargs_using_connection_details(
     context = ephemeral_context_with_defaults
     data_source = context.data_sources.add_redshift(
         name="redshift_test",
-        connection_details=connection_details  # type: ignore[call-arg]
+        connection_details=connection_details,  # type: ignore[call-arg]
     )
     data_source.get_engine()
     create_engine_spy.assert_called_once_with(expected_kwargs)
