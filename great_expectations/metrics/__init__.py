@@ -9,6 +9,7 @@ from .column.sample_values import ColumnSampleValues
 from .column.values_match_regex_count import ColumnValuesMatchRegexCount
 from .column.values_match_regex_values import ColumnValuesMatchRegexValues
 from .column.values_non_null import ColumnValuesNonNull, ColumnValuesNonNullCount
+from .column.values_not_match_regex_count import ColumnValuesNotMatchRegexCount
 from .column_pair.values_in_set import ColumnPairValuesInSetUnexpectedCount
 from .metric import Metric
 from .multi_column.sum_equal import MultiColumnSumEqualUnexpectedCount
