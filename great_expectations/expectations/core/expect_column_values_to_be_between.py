@@ -210,7 +210,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
             raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
         # Check for empty dicts since Pydantic coerces empty strings
-        # to empty dicts during validation of Comparable field
+        # to empty dicts (SuiteParameterDict) during validation of Comparable field
         if min_value == {} or max_value == {}:
             raise ValueError("values cannot be empty strings")  # noqa: TRY003 # FIXME CoP
 
