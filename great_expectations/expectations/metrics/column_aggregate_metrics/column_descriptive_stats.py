@@ -79,8 +79,6 @@ class ColumnDescriptiveStats(ColumnAggregateMetricProvider):
         execution_engine: Optional[ExecutionEngine] = None,
         runtime_configuration: Optional[dict] = None,
     ):
-        """Returns a dictionary of given metric names and their corresponding configuration,
-        specifying the metric types and their respective domains"""
         dependencies: dict = super()._get_evaluation_dependencies(
             metric=metric,
             configuration=configuration,
