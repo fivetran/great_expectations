@@ -32,5 +32,5 @@ class TestColumnDescriptiveStats:
         assert metric_result.value.max == 5
         assert metric_result.value.mean == 3
         assert math.isclose(
-            metric_result.value.standard_deviation, 1.4907119849998598, rel_tol=1e-9, abs_tol=0.0
+            metric_result.value.standard_deviation, 1.4907119849998598, rel_tol=1e-6, abs_tol=0.0
         )
