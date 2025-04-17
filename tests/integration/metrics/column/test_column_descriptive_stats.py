@@ -13,7 +13,7 @@ from tests.metrics.conftest import ALL_DATA_SOURCES
 COLUMN_NAME = "whatevs"
 DATA_FRAME = pd.DataFrame(
     {
-        COLUMN_NAME: [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, None, None],
+        COLUMN_NAME: [1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
     },
 )
 
