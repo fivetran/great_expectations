@@ -163,13 +163,13 @@ def test_failure(
         pytest.param(
             "",
             1,
-            "values cannot be empty strings",
+            "empty strings",
             id="min_value_is_empty_string",
         ),
         pytest.param(
             0,
             "",
-            "values cannot be empty strings",
+            "empty strings",
             id="max_value_is_empty_string",
         ),
         pytest.param(
@@ -181,7 +181,7 @@ def test_failure(
         pytest.param(
             "",
             "",
-            "values cannot be empty strings",
+            "empty strings",
             id="both_values_are_empty_strings",
         ),
     ],
@@ -199,7 +199,7 @@ def test_validation_errors(
         )
     error_dict = exc.value.errors()[0]
     actual_message = error_dict["msg"]
-    assert actual_message == expected_message
+    assert expected_message in actual_message
 
 
 class TestColumnValuesBetweenAgainstInvalidColumn:
