@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NamedTuple, Optional
+from typing import TYPE_CHECKING, Optional
 
+from great_expectations.compatibility.pydantic import BaseModel
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine import (
     ExecutionEngine,
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     )
 
 
-class DescriptiveStats(NamedTuple):
+class DescriptiveStats(BaseModel):
     min: float
     max: float
     mean: float
