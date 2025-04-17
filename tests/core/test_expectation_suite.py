@@ -19,9 +19,7 @@ from great_expectations.analytics.events import (
     ExpectationSuiteExpectationDeletedEvent,
     ExpectationSuiteExpectationUpdatedEvent,
 )
-from great_expectations.core.expectation_suite import (
-    ExpectationSuite,
-)
+from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.serdes import _IdentifierBundle
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import set_context
