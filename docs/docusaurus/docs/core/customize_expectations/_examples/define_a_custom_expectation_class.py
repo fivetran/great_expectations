@@ -46,17 +46,10 @@ set_up_context_for_example(context)
 class ExpectValidPassengerCount(gx.expectations.ExpectColumnValuesToBeBetween):
     # </snippet>
     column: str = "passenger_count"
+    min_value: int = 1
+    max_value: int = 6
     # </snippet>
     description: str = "There should be between **1** and **6** passengers."
-
-    def __init__(self, **kwargs):
-        # Only set defaults if not provided in kwargs,
-        # at least one value is required for ExpectColumnValuesToBeBetween
-        if "min_value" not in kwargs:
-            kwargs["min_value"] = 1
-        if "max_value" not in kwargs:
-            kwargs["max_value"] = 6
-        super().__init__(**kwargs)
 
 
 # </snippet>

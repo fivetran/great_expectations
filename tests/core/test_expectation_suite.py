@@ -1213,11 +1213,8 @@ class TestExpectationSuiteAnalytics:
         suite = empty_suite
 
         class ExpectColumnValuesToBeBetweenOneAndTen(gxe.ExpectColumnValuesToBeBetween):
-            _min_value = 1
-            _max_value = 10
-
-            def __init__(self, **kwargs):
-                super().__init__(min_value=self._min_value, max_value=self._max_value, **kwargs)
+            min_value: int = 1
+            max_value: int = 10
 
         expectation = ExpectColumnValuesToBeBetweenOneAndTen(column="passenger_count")
 

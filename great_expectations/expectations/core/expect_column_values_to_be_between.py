@@ -201,7 +201,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
     strict_max: bool = pydantic.Field(default=False, description=MAX_VALUE_DESCRIPTION)
 
-    @root_validator(pre=True)
+    @root_validator
     def check_min_val_or_max_val(cls, values: dict) -> dict:
         min_value = values.get("min_value")
         max_value = values.get("max_value")
@@ -209,7 +209,9 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
         if min_value is None and max_value is None:
             raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
 
-        if min_value == "" or max_value == "":
+        # Check for empty dicts since Pydantic coerces empty strings
+        # to empty dicts during validation of Comparable field
+        if min_value == {} or max_value == {}:
             raise ValueError("values cannot be empty strings")  # noqa: TRY003 # FIXME CoP
 
         return values
