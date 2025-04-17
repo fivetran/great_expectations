@@ -1,6 +1,6 @@
 {
     "title": "RedshiftDatasource",
-    "description": "Adds a redshift datasource to the data context using psycopg2.\n\nArgs:\n    name: The name of this redshift datasource.\n    connection_string: The SQLAlchemy connection string used to connect to the redshift\n        database. This will use a redshift with psycopg2. For example:\n        \"redshift+psycopg2://username@host.amazonaws.com:5439/database\"\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
+    "description": "Adds a Redshift datasource to the data context using psycopg2.\n\nArgs:\n    name: The name of this Redshift datasource.\n    connection_string: The SQLAlchemy connection string used to connect to the Redshift\n        database. This will use a redshift with psycopg2. For example:\n        \"redshift+psycopg2://username@host.amazonaws.com:5439/database\"\n    connection_details: A RedshiftConnectionDetails object defining the connection details.\n    If connection_details is used, connection_string cannot also be provided.\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
     "type": "object",
     "properties": {
         "type": {
