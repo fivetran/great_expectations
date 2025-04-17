@@ -34,7 +34,6 @@ class ColumnDescriptiveStats(ColumnAggregateMetricProvider):
     @metric_value(engine=PandasExecutionEngine)
     def _pandas(
         cls,
-        metric_value_kwargs: dict[str, int],
         metrics: dict[str, int],
         **kwargs,
     ) -> DescriptiveStats:
@@ -48,7 +47,6 @@ class ColumnDescriptiveStats(ColumnAggregateMetricProvider):
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(
         cls,
-        metric_value_kwargs: dict[str, int],
         metrics: dict[str, int],
         **kwargs,
     ) -> DescriptiveStats:
@@ -62,7 +60,6 @@ class ColumnDescriptiveStats(ColumnAggregateMetricProvider):
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
         cls,
-        metric_value_kwargs: dict[str, int],
         metrics: dict[str, int],
         **kwargs,
     ) -> DescriptiveStats:
