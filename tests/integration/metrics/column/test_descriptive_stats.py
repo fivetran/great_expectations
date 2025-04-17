@@ -3,7 +3,7 @@ import math
 import pandas as pd
 
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.metrics.column.column_descriptive_stats import (
+from great_expectations.metrics.column.descriptive_stats import (
     ColumnDescriptiveStats,
     ColumnDescriptiveStatsResult,
 )
