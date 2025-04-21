@@ -82,7 +82,6 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-contrib.txt"]
         | req_set_dict["requirements-dev-lite.txt"]
         | req_set_dict["requirements-dev-api-docs-test.txt"]
-        | req_set_dict["requirements-dev-redshift.txt"]
         == req_set_dict["requirements-dev-test.txt"]
     )
 
@@ -151,7 +150,7 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-mysql.txt"]
         | req_set_dict["requirements-dev-pagerduty.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-redshift.txt"]
+        | req_set_dict["requirements-dev-gx-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]
