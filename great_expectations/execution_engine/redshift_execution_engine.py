@@ -113,10 +113,6 @@ class ColumnTypes(BaseColumnTypes):
                     message=f"Unknown Redshift column type: {data_type}"
                 )
 
-            # start with defaults
-            column_type = redshift_type()
-
-            # override where necessary
             kwargs = {}
             if character_maximum_length is not None:
                 kwargs["length"] = character_maximum_length
@@ -128,7 +124,11 @@ class ColumnTypes(BaseColumnTypes):
                 kwargs["precision"] = datetime_precision
                 kwargs["timezone"] = True
 
-            column_type = redshift_type(**kwargs)
+            # use EAFP for convenience https://docs.python.org/3/glossary.html#term-EAFP
+            try:
+                column_type = redshift_type(**kwargs)
+            except Exception:
+                column_type = redshift_type()
 
             result.append({"name": column_name, "type": column_type})
 
