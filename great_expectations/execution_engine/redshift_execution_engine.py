@@ -103,7 +103,8 @@ class ColumnTypes(BaseColumnTypes):
                 numeric_scale,
                 datetime_precision
             FROM information_schema.columns
-            WHERE table_name = '{table_name}' {schema_filter};
+            WHERE table_name = '{table_name}' {schema_filter}
+            ORDER BY ordinal_position;
             """
         )
         rows: sa.CursorResult[RedshiftColumnSchema] = execution_engine.execute_query(query)
