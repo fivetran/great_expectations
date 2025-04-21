@@ -23,3 +23,4 @@ from .column_values_between_count import ColumnValuesBetweenCount
 from .column_values_length_max import ColumnValuesLengthMax
 from .column_values_length_min import ColumnValuesLengthMin
 from .column_values_match_regex_values import ColumnValuesMatchRegexValues
+from .column_values_not_match_regex_values import ColumnValuesNotMatchRegexValues
