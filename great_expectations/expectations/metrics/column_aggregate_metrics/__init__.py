@@ -1,3 +1,4 @@
+from .column_descriptive_stats import ColumnDescriptiveStats
 from .column_distinct_values import (
     ColumnDistinctValues,
     ColumnDistinctValuesCount,

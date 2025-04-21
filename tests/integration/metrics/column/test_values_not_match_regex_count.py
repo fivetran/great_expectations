@@ -1,9 +1,9 @@
 import pandas as pd
 
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.metrics.column.column_values_match_regex_count import (
-    ColumnValuesMatchRegexCount,
-    ColumnValuesMatchRegexCountResult,
+from great_expectations.metrics.column.values_not_match_regex_count import (
+    ColumnValuesNotMatchRegexCount,
+    ColumnValuesNotMatchRegexCountResult,
 )
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import (
@@ -24,25 +24,25 @@ ALL_DATA_SOURCES_EXCEPT_SNOWFLAKE = [
 ]
 
 
-class TestColumnValuesMatchRegexCount:
+class TestColumnValuesNotMatchRegexCount:
     @parameterize_batch_for_data_sources(
         data_source_configs=ALL_DATA_SOURCES_EXCEPT_SNOWFLAKE,
         data=DATA_FRAME,
     )
     def test_partial_match_characters(self, batch_for_datasource: Batch) -> None:
-        metric = ColumnValuesMatchRegexCount(column=COLUMN_NAME, regex="ab")
+        metric = ColumnValuesNotMatchRegexCount(column=COLUMN_NAME, regex="ab")
         metric_result = batch_for_datasource.compute_metrics(metric)
 
-        assert isinstance(metric_result, ColumnValuesMatchRegexCountResult)
-        assert metric_result.value == 3
+        assert isinstance(metric_result, ColumnValuesNotMatchRegexCountResult)
+        assert metric_result.value == 2
 
     @parameterize_batch_for_data_sources(
         data_source_configs=SPARK_DATA_SOURCES + SQL_DATA_SOURCES,
         data=DATA_FRAME,
     )
     def test_special_characters(self, batch_for_datasource: Batch) -> None:
-        metric = ColumnValuesMatchRegexCount(column=COLUMN_NAME, regex="^(a|d).+")
+        metric = ColumnValuesNotMatchRegexCount(column=COLUMN_NAME, regex="^(a|d).+")
         metric_result = batch_for_datasource.compute_metrics(metric)
 
-        assert isinstance(metric_result, ColumnValuesMatchRegexCountResult)
-        assert metric_result.value == 2
+        assert isinstance(metric_result, ColumnValuesNotMatchRegexCountResult)
+        assert metric_result.value == 3
