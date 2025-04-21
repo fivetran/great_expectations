@@ -99,30 +99,14 @@ class ColumnTypes(BaseColumnTypes):
         )
         rows = execution_engine.execute_query(query)
 
-        for (
-            column_name,
-            data_type,
-            character_maximum_length,
-            numeric_precision,
-            numeric_scale,
-            datetime_precision,
-        ) in rows:
-            redshift_type = REDSHIFT_TYPES.get(data_type)
+        for row in rows:
+            redshift_type = REDSHIFT_TYPES.get(row.data_type)
             if redshift_type is None:
                 raise RedshiftExecutionEngineError(
-                    message=f"Unknown Redshift column type: {data_type}"
+                    message=f"Unknown Redshift column type: {row.data_type}"
                 )
 
-            kwargs = {}
-            if character_maximum_length is not None:
-                kwargs["length"] = character_maximum_length
-            if numeric_scale is not None:
-                kwargs["scale"] = numeric_scale
-            if numeric_precision is not None:
-                kwargs["precision"] = numeric_precision
-            if datetime_precision is not None and "with time zone" in data_type:
-                kwargs["precision"] = datetime_precision
-                kwargs["timezone"] = True
+            kwargs = cls._get_sqla_column_type_kwargs(row)
 
             # use EAFP for convenience https://docs.python.org/3/glossary.html#term-EAFP
             try:
@@ -130,7 +114,7 @@ class ColumnTypes(BaseColumnTypes):
             except Exception:
                 column_type = redshift_type()
 
-            result.append({"name": column_name, "type": column_type})
+            result.append({"name": row.column_name, "type": column_type})
 
         return result
 
@@ -171,3 +155,27 @@ class ColumnTypes(BaseColumnTypes):
             schema_name = batch_data.source_schema_name or batch_data.selectable.schema
 
         return table_selectable, schema_name
+
+    def _get_sqla_column_type_kwargs(row: tuple) -> dict:
+        """
+        Build a dict based on mapping redshift column metadata to SQLAlchemy Type named kwargs.
+        """
+        (
+            _column_name,
+            data_type,
+            character_maximum_length,
+            numeric_precision,
+            numeric_scale,
+            datetime_precision,
+        ) = row
+        result = {}
+        if character_maximum_length is not None:
+            result["length"] = character_maximum_length
+        if numeric_scale is not None:
+            result["scale"] = numeric_scale
+        if numeric_precision is not None:
+            result["precision"] = numeric_precision
+        if datetime_precision is not None and "with time zone" in data_type:
+            result["precision"] = datetime_precision
+            result["timezone"] = True
+        return result
