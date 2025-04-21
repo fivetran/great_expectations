@@ -44,8 +44,7 @@ REDSHIFT_TYPES = (
         "character": aws.redshiftdialect.CHAR,
         "character varying": aws.redshiftdialect.VARCHAR,
         "date": aws.redshiftdialect.DATE,
-        # Redshift has this type but the dialect doesn't so we map it to sa.TIME.
-        "time without time zone": sa.TIME,
+        "time without time zone": sa.TIME,  # NOTE: no equivalent in aws.redshiftdialect
         "time with time zone": aws.redshiftdialect.TIMETZ,
         "timestamp without time zone": aws.redshiftdialect.TIMESTAMP,
         "timestamp with time zone": aws.redshiftdialect.TIMESTAMPTZ,
@@ -87,22 +86,50 @@ class ColumnTypes(BaseColumnTypes):
         schema_filter: str = f"and table_schema = '{schema_name}'" if schema_name else ""
         query = sa.text(
             f"""
-            SELECT column_name, data_type, character_maximum_length
+            SELECT
+                column_name,
+                data_type,
+                character_maximum_length,
+                numeric_precision,
+                numeric_scale,
+                datetime_precision
             FROM information_schema.columns
             WHERE table_name = '{table_name}' {schema_filter};
             """
         )
         rows = execution_engine.execute_query(query)
 
-        for column_name, data_type, character_maximum_length in rows:
+        for (
+            column_name,
+            data_type,
+            character_maximum_length,
+            numeric_precision,
+            numeric_scale,
+            datetime_precision,
+        ) in rows:
             redshift_type = REDSHIFT_TYPES.get(data_type)
             if redshift_type is None:
                 raise RedshiftExecutionEngineError(
                     message=f"Unknown Redshift column type: {data_type}"
                 )
+
+            # start with defaults
             column_type = redshift_type()
+
+            # override where necessary
+            kwargs = {}
             if character_maximum_length is not None:
-                column_type = redshift_type(character_maximum_length)
+                kwargs["length"] = character_maximum_length
+            if numeric_scale is not None:
+                kwargs["scale"] = numeric_scale
+            if numeric_precision is not None:
+                kwargs["precision"] = numeric_precision
+            if datetime_precision is not None and "with time zone" in data_type:
+                kwargs["precision"] = datetime_precision
+                kwargs["timezone"] = True
+
+            column_type = redshift_type(**kwargs)
+
             result.append({"name": column_name, "type": column_type})
 
         return result
