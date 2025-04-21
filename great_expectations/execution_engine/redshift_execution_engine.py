@@ -160,22 +160,14 @@ class ColumnTypes(BaseColumnTypes):
         """
         Build a dict based on mapping redshift column metadata to SQLAlchemy Type named kwargs.
         """
-        (
-            _column_name,
-            data_type,
-            character_maximum_length,
-            numeric_precision,
-            numeric_scale,
-            datetime_precision,
-        ) = row
         result = {}
-        if character_maximum_length is not None:
-            result["length"] = character_maximum_length
-        if numeric_scale is not None:
-            result["scale"] = numeric_scale
-        if numeric_precision is not None:
-            result["precision"] = numeric_precision
-        if datetime_precision is not None and "with time zone" in data_type:
-            result["precision"] = datetime_precision
+        if row.character_maximum_length is not None:
+            result["length"] = row.character_maximum_length
+        if row.numeric_scale is not None:
+            result["scale"] = row.numeric_scale
+        if row.numeric_precision is not None:
+            result["precision"] = row.numeric_precision
+        if row.datetime_precision is not None and "with time zone" in row.data_type:
+            result["precision"] = row.datetime_precision
             result["timezone"] = True
         return result
