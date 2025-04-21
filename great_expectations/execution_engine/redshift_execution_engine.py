@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional, cast
+from typing import Any, NamedTuple, Optional, cast
 
 from great_expectations.compatibility import aws
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -16,6 +16,15 @@ from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.table_metrics.table_column_types import (
     ColumnTypes as BaseColumnTypes,
 )
+
+
+class RedshiftColumnSchema(NamedTuple):
+    character_maximum_length: int | None
+    numeric_precision: int | None
+    numeric_scale: int | None
+    datetime_precision: int | None
+    data_type: str
+    column_name: str
 
 
 class RedshiftExecutionEngine(SqlAlchemyExecutionEngine):
@@ -97,7 +106,7 @@ class ColumnTypes(BaseColumnTypes):
             WHERE table_name = '{table_name}' {schema_filter};
             """
         )
-        rows = execution_engine.execute_query(query)
+        rows: sa.CursorResult[RedshiftColumnSchema] = execution_engine.execute_query(query)
 
         for row in rows:
             redshift_type = REDSHIFT_TYPES.get(row.data_type)
@@ -156,7 +165,8 @@ class ColumnTypes(BaseColumnTypes):
 
         return table_selectable, schema_name
 
-    def _get_sqla_column_type_kwargs(row: tuple) -> dict:
+    @classmethod
+    def _get_sqla_column_type_kwargs(cls, row: sa.Row[RedshiftColumnSchema]) -> dict:
         """
         Build a dict based on mapping redshift column metadata to SQLAlchemy Type named kwargs.
         """
