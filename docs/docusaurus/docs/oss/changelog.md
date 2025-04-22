@@ -18,7 +18,7 @@ Before we completely remove the functionality in a new major release, there will
 * [FEATURE] Allow user to provide connection details to connect to Redshift ([#11105](https://github.com/great-expectations/great_expectations/pull/11105))
 * [FEATURE] Add `ColumnDescriptiveStats` metric ([#11108](https://github.com/great-expectations/great_expectations/pull/11108))
 * [BUGFIX] MicrosoftTeamsNotificationAction failing with 400 Bad Request ([#11106](https://github.com/great-expectations/great_expectations/pull/11106)) (thanks @jwalant-dattani)
-* [BUGFIX] expect_column_values_to_be_between allows both min/max values to be None or empty strings ([#11102](https://github.com/great-expectations/great_expectations/pull/11102)) (thanks @gyermich)
+* [BUGFIX] expect_column_values_to_be_between allows both min/max values to be None or empty strings ([#11102](https://github.com/great-expectations/great_expectations/pull/11102))
 * [BUGFIX] redshift: prevent runtime TypeError ([#11112](https://github.com/great-expectations/great_expectations/pull/11112))
 * [MAINTENANCE] Cleanup metrics package ([#11109](https://github.com/great-expectations/great_expectations/pull/11109))
 
