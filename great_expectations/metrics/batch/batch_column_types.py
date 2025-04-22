@@ -14,4 +14,6 @@ class BatchColumnTypesResult(MetricResult[list[ColumnType]]): ...
 
 
 class BatchColumnTypes(BatchMetric[BatchColumnTypesResult]):
+    """Table schema"""
+
     name = "table.column_types"

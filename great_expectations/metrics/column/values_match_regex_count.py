@@ -7,6 +7,8 @@ class ColumnValuesMatchRegexCountResult(MetricResult[int]): ...
 
 
 class ColumnValuesMatchRegexCount(ColumnMetric[ColumnValuesMatchRegexCountResult]):
+    """Count of values in a column that match a regex"""
+
     name = "column_values.match_regex.count"
 
     regex: StrictStr
