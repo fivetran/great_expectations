@@ -3,11 +3,10 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING, Literal, Type, Union
 
-from pydantic.v1 import validator
-
 from great_expectations.compatibility.pydantic import (
     AnyUrl,
     BaseModel,
+    validator,
 )
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.config_str import ConfigStr
