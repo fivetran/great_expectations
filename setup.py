@@ -120,7 +120,6 @@ config = {
         "great_expectations": [
             "**/py.typed",
             "**/*.pyi",
-            "**/*.py",
             "**/*.typed",
         ]
     },

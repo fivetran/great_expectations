@@ -9,7 +9,6 @@ include versioneer.cfg
 include py.typed
 
 recursive-include great_expectations/render *.j2 *.md *.py
-recursive-include great_expectations *.py
 recursive-include great_expectations *.pyi
 recursive-include great_expectations *.typed
 recursive-include great_expectations py.typed
