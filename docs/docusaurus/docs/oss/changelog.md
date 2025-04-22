@@ -14,6 +14,14 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.4.1
+* [FEATURE] Allow user to provide connection details to connect to Redshift ([#11105](https://github.com/great-expectations/great_expectations/pull/11105))
+* [FEATURE] Add `ColumnDescriptiveStats` metric ([#11108](https://github.com/great-expectations/great_expectations/pull/11108))
+* [BUGFIX] MicrosoftTeamsNotificationAction failing with 400 Bad Request ([#11106](https://github.com/great-expectations/great_expectations/pull/11106)) (thanks @jwalant-dattani)
+* [BUGFIX] expect_column_values_to_be_between allows both min/max values to be None or empty strings ([#11102](https://github.com/great-expectations/great_expectations/pull/11102))
+* [BUGFIX] redshift: prevent runtime TypeError ([#11112](https://github.com/great-expectations/great_expectations/pull/11112))
+* [MAINTENANCE] Cleanup metrics package ([#11109](https://github.com/great-expectations/great_expectations/pull/11109))
+
 ### 1.4.0
 * [FEATURE] Add `ColumnSampleValues` metric ([#11083](https://github.com/great-expectations/great_expectations/pull/11083))
 * [FEATURE] Add Redshift to SUPPORTED_DATA_SOURCES where appropriate ([#11084](https://github.com/great-expectations/great_expectations/pull/11084))
