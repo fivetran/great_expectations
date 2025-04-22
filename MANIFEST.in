@@ -5,7 +5,6 @@ include great_expectations/data_context/checkpoint_template.yml
 include great_expectations/init_notebooks/*/*.ipynb
 include versioneer.py
 include great_expectations/_version.py
-include versioneer.cfg
 include py.typed
 
 recursive-include great_expectations/render *.j2 *.md *.py
