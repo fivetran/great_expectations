@@ -67,7 +67,9 @@ class RedshiftDatasource(SQLDatasource):
     connection_string: Union[RedshiftConnectionDetails, ConfigStr, RedshiftDsn]
 
     @validator("connection_string", pre=True)
-    def _build_connection_string_from_connection_details(cls, connection_string: str | dict | RedshiftConnectionDetails) -> str:
+    def _build_connection_string_from_connection_details(
+        cls, connection_string: str | dict | RedshiftConnectionDetails
+    ) -> str:
         """
         If dict of connection details is provided, construct the connection_string.
         """
