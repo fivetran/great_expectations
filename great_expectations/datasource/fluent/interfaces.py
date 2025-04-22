@@ -113,6 +113,7 @@ if TYPE_CHECKING:
     )
 
 _T = TypeVar("_T")
+_MetricResultT = TypeVar("_MetricResultT", bound=MetricResult)
 
 
 class PartitionerSortingProtocol(Protocol):
@@ -1256,12 +1257,14 @@ class Batch:
         )
 
     @overload
-    def compute_metrics(self, metrics: Metric) -> MetricResult: ...
+    def compute_metrics(self, metrics: Metric[_MetricResultT]) -> _MetricResultT: ...
 
     @overload
     def compute_metrics(self, metrics: list[Metric]) -> list[MetricResult]: ...
 
-    def compute_metrics(self, metrics: Metric | list[Metric]) -> MetricResult | list[MetricResult]:
+    def compute_metrics(
+        self, metrics: Metric[_MetricResultT] | list[Metric]
+    ) -> _MetricResultT | list[MetricResult]:
         """Compute one or more metrics on this Batch.
 
         Args:

@@ -32,7 +32,7 @@ class MicrosoftTeamsRenderer(Renderer):
 
     _MICROSOFT_TEAMS_CONTENT_TYPE = "application/vnd.microsoft.card.adaptive"
     _MICROSOFT_TEAMS_SCHEMA_URL = "http://adaptivecards.io/schemas/adaptive-card.json"
-    _MICROSOFT_TEAMS_SCHEMA_VERSION = 1.5
+    _MICROSOFT_TEAMS_SCHEMA_VERSION = "1.5"
     _GX_LOGO_URL = "https://www.greatexpectations.io/image/gx-logo-mark-400"
     _SUCCESS_EMOJI = "✅"
     _FAILURE_EMOJI = "❌"

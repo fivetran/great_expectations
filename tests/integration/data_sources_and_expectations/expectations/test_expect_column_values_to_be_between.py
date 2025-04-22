@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from unittest.mock import ANY
 
 import pandas as pd
@@ -6,6 +7,7 @@ import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations import ExpectationSuite
+from great_expectations.compatibility import pydantic
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -80,7 +82,11 @@ def test_success_complete_non_sql(batch_for_datasource: Batch) -> None:
         ),
         pytest.param(
             gxe.ExpectColumnValuesToBeBetween(
-                column=NUMERIC_COLUMN, min_value=0, max_value=6, strict_min=True, strict_max=True
+                column=NUMERIC_COLUMN,
+                min_value=0,
+                max_value=6,
+                strict_min=True,
+                strict_max=True,
             ),
             id="strict_bounds",
         ),
@@ -149,6 +155,51 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@pytest.mark.parametrize(
+    "min_value,max_value,expected_message",
+    [
+        pytest.param(
+            "",
+            1,
+            "empty strings",
+            id="min_value_is_empty_string",
+        ),
+        pytest.param(
+            0,
+            "",
+            "empty strings",
+            id="max_value_is_empty_string",
+        ),
+        pytest.param(
+            None,
+            None,
+            "min_value and max_value cannot both be None",
+            id="both_values_are_none",
+        ),
+        pytest.param(
+            "",
+            "",
+            "empty strings",
+            id="both_values_are_empty_strings",
+        ),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_validation_errors(
+    batch_for_datasource: Batch, min_value: Any, max_value: Any, expected_message: str
+) -> None:
+    """Test that appropriate validation errors are raised for invalid inputs."""
+    with pytest.raises(pydantic.ValidationError) as exc:
+        gxe.ExpectColumnValuesToBeBetween(
+            column=NUMERIC_COLUMN,
+            min_value=min_value,
+            max_value=max_value,
+        )
+    error_dict = exc.value.errors()[0]
+    actual_message = error_dict["msg"]
+    assert expected_message in actual_message
 
 
 class TestColumnValuesBetweenAgainstInvalidColumn:
