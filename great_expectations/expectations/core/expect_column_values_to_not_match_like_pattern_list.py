@@ -45,6 +45,7 @@ DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
     "SQLite",
     "PostgreSQL",
+    "Redshift",
     "MySQL",
     "MSSQL",
     "Databricks (SQL)",

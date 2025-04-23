@@ -24,6 +24,7 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
     assert result.success
 
     result_dict = result.to_json_dict()["result"]
+    assert type(result_dict) is dict
     result_dict.pop("unexpected_index_query")
     assert result_dict == {
         "element_count": 3,
