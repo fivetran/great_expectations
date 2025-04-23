@@ -47,6 +47,7 @@ OTHER_TABLE_NAME_DESCRIPTION = (
 SUPPORTED_DATA_SOURCES = [
     "SQLite",
     "PostgreSQL",
+    "Redshift",
     "MySQL",
     "MSSQL",
     "Databricks (SQL)",
