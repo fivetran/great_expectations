@@ -61,7 +61,7 @@ class RedshiftDatasource(SQLDatasource):
     """
 
     type: Literal["redshift"] = "redshift"  # type: ignore[assignment] # This is a hardcoded constant
-    connection_string: Union[ConfigStr, dict, RedshiftConnectionDetails, RedshiftDsn]
+    connection_string: Union[ConfigStr, dict, RedshiftConnectionDetails, RedshiftDsn]  # type: ignore[assignment] # Deviation from parent class as individual args are supported for connection
 
     @validator("connection_string", pre=True)
     def _build_connection_string_from_connection_details(

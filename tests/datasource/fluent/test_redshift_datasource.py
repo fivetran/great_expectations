@@ -66,7 +66,7 @@ def test_create_engine_is_called_with_expected_kwargs(
     context = ephemeral_context_with_defaults
     data_source = context.data_sources.add_redshift(
         name="redshift_test",
-        connection_string=connection_input,  # type: ignore[arg-type]
+        connection_string=connection_input,
     )
     data_source.get_engine()  # we will verify that the correct connection details are used when getting the engine  # noqa: E501
 
