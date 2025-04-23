@@ -8,4 +8,6 @@ class ColumnDistinctValuesResult(MetricResult[set[Any]]): ...
 
 
 class ColumnDistinctValues(ColumnMetric[ColumnDistinctValuesResult]):
+    """List of distinct values in a column"""
+
     name = "column.distinct_values"
