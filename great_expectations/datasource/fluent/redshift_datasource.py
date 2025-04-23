@@ -80,7 +80,7 @@ class RedshiftDatasource(SQLDatasource):
         elif isinstance(connection_string, RedshiftConnectionDetails):
             connection_details = connection_string
         else:
-            raise ValueError("Invalid connection_string type: ", type(connection_string))
+            raise TypeError("Invalid connection_string type: ", type(connection_string))  # noqa: TRY003
         connection_string = f"redshift+psycopg2://{connection_details.user}:{connection_details.password}@{connection_details.host}:{connection_details.port}/{connection_details.database}?sslmode={connection_details.sslmode.value}"
         return connection_string
 
