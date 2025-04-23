@@ -16,6 +16,8 @@ description: Connect GX Cloud to a Redshift Data Source.
 
    - `SELECT` privileges on the table.
 
+- If you are using a [fully-hosted deployment of GX Cloud](/docs/cloud/deploy/deployment_patterns.md), your Redshift cluster or workgroup must be [publicly accessible](https://docs.aws.amazon.com/redshift/latest/mgmt/rs-security-group-public-private.html#rs-security-group-public-default).
+
 - Optional. To improve data security, GX recommends creating a separate Redshift user for your GX Cloud connection.
 
 ## Optional. Create a separate Redshift user
