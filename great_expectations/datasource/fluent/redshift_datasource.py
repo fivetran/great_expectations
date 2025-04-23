@@ -84,7 +84,6 @@ class RedshiftDatasource(SQLDatasource):
         connection_string = f"redshift+psycopg2://{connection_details.user}:{connection_details.password}@{connection_details.host}:{connection_details.port}/{connection_details.database}?sslmode={connection_details.sslmode.value}"
         return connection_string
 
-
     @property
     @override
     def execution_engine_type(self) -> Type[SqlAlchemyExecutionEngine]:
