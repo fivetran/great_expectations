@@ -37,7 +37,6 @@ class RedshiftSSLModes(Enum):
 class RedshiftConnectionDetails(BaseModel):
     """
     Information needed to connect to a Redshift database.
-    Alternative to a connection string.
     """
 
     user: str
@@ -53,9 +52,8 @@ class RedshiftDatasource(SQLDatasource):
 
     Args:
         name: The name of this Redshift datasource.
-        connection_string: The SQLAlchemy connection string used to connect to the Redshift
-            database. This will use a redshift with psycopg2. For example:
-            "redshift+psycopg2://user:password@host.amazonaws.com:5439/database?sslmode=sslmode".
+        connection_string: The SQLAlchemy connection string used to connect to the Redshift database.
+            For example: "redshift+psycopg2://user:password@host.amazonaws.com:5439/database?sslmode=sslmode".
             Alternatively, a RedshiftConnectionDetails object can be used.
         If connection_details is used, connection_string cannot also be provided.
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose
@@ -63,14 +61,14 @@ class RedshiftDatasource(SQLDatasource):
     """
 
     type: Literal["redshift"] = "redshift"  # type: ignore[assignment] # This is a hardcoded constant
-    connection_string: Union[RedshiftConnectionDetails, ConfigStr, RedshiftDsn]  # type: ignore[assignment] # Deviation from parent class as individual args are supported for connection
+    connection_string: Union[ConfigStr, dict, RedshiftConnectionDetails, RedshiftDsn]
 
     @validator("connection_string", pre=True)
     def _build_connection_string_from_connection_details(
-        cls, connection_string: str | dict | RedshiftConnectionDetails
+        cls, connection_string: dict | RedshiftConnectionDetails | str
     ) -> str:
         """
-        If dict of connection details is provided, construct the connection_string.
+        If dict or RedshiftConnectionDetails object is provided, construct the formatted connection string.
         """
         if isinstance(connection_string, str):
             return connection_string
