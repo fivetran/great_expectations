@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union
 
 import pandas as pd
 
@@ -24,17 +24,10 @@ class MetricResult(GenericModel, Generic[_MetricResultValue]):
 
 class MetricErrorResultValue(BaseModel):
     exception_message: str
-    exception_traceback: str
+    exception_traceback: Union[str, None] = None
 
 
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...
-
-
-class MetricInternalErrorResultValue(TypedDict):
-    msg: str
-
-
-class MetricInternalErrorResult(MetricResult[MetricInternalErrorResultValue]): ...
 
 
 class ConditionValuesValueError(ValueError):

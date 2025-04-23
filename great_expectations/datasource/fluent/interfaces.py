@@ -62,8 +62,6 @@ from great_expectations.metrics.metric_name import MetricNameSuffix
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
     MetricErrorResultValue,
-    MetricInternalErrorResult,
-    MetricInternalErrorResultValue,
     MetricResult,
 )
 from great_expectations.validator.metrics_calculator import (
@@ -1331,12 +1329,12 @@ class Batch:
                 results.append(MetricErrorResult(id=metric_id_for_batch, value=value))
             else:
                 results.append(
-                    MetricInternalErrorResult(
+                    MetricErrorResult(
                         id=metric_id_for_batch,
-                        value=MetricInternalErrorResultValue(
-                            msg=f"Metric {metric.name} not found in results: "
-                            "{list(metrics_calculator_results.keys())} or errors: "
-                            "{list(metrics_calculator_errors.keys())}"
+                        value=MetricErrorResultValue(
+                            exception_message=f"Metric {metric.name} not found in results: "
+                            f"{list(metrics_calculator_results.keys())} or errors: "
+                            f"{list(metrics_calculator_errors.keys())}",
                         ),
                     )
                 )
