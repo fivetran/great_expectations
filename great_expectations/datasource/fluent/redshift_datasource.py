@@ -52,9 +52,9 @@ class RedshiftDatasource(SQLDatasource):
 
     Args:
         name: The name of this Redshift datasource.
-        connection_string: The SQLAlchemy connection string used to connect to the Redshift database.
-            For example: "redshift+psycopg2://user:password@host.amazonaws.com:5439/database?sslmode=sslmode".
-            Alternatively, a RedshiftConnectionDetails object can be used.
+        connection_string: The SQLAlchemy connection string used to connect to the Redshift database
+            For example:
+            "redshift+psycopg2://user:password@host.amazonaws.com:5439/database?sslmode=sslmode".
         If connection_details is used, connection_string cannot also be provided.
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose
             values are TableAsset or QueryAsset objects.
@@ -68,7 +68,8 @@ class RedshiftDatasource(SQLDatasource):
         cls, connection_string: dict | RedshiftConnectionDetails | str
     ) -> str:
         """
-        If dict or RedshiftConnectionDetails object is provided, construct the formatted connection string.
+        If a dict or RedshiftConnectionDetails object is provided, construct the formatted
+        connection string.
         """
         if isinstance(connection_string, str):
             return connection_string
