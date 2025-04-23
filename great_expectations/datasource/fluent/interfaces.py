@@ -1261,11 +1261,11 @@ class Batch:
     ) -> _MetricResultT | MetricErrorResult: ...
 
     @overload
-    def compute_metrics(self, metrics: list[Metric]) -> list[MetricResult | MetricErrorResult]: ...
+    def compute_metrics(self, metrics: list[Metric]) -> list[MetricResult]: ...
 
     def compute_metrics(
         self, metrics: Metric[_MetricResultT] | list[Metric]
-    ) -> _MetricResultT | MetricErrorResult | list[MetricResult | MetricErrorResult]:
+    ) -> _MetricResultT | MetricErrorResult | list[MetricResult]:
         """Compute one or more metrics on this Batch.
 
         Args:
