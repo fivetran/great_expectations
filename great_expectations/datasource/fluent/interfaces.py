@@ -1281,6 +1281,7 @@ class Batch:
             For metrics without a defined MetricResult generic type,
             the base MetricResult class will be returned.
             For metrics that raise an exception, a MetricErrorResult will be returned.
+
         Examples:
             >>> batch.compute_metrics(BatchRowCount())
             BatchRowCountResult(id=..., value=1000)
