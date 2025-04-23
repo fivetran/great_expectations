@@ -10,6 +10,7 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    TypedDict,
     Union,
 )
 
@@ -23,9 +24,6 @@ from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
 )
-from great_expectations.validator.metrics_calculator import (
-    MetricsCalculatorErrorResultValue,
-)
 
 if TYPE_CHECKING:
     from great_expectations.core import IDDict
@@ -38,6 +36,12 @@ if TYPE_CHECKING:
     from great_expectations.validator.metrics_calculator import (
         _AbortedMetricsInfoDict,
     )
+
+
+class MetricsCalculatorErrorResultValue(TypedDict):
+    metric_configuration: MetricConfiguration
+    exception_info: ExceptionInfo
+    num_failures: int
 
 
 __all__ = [

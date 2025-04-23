@@ -3,7 +3,7 @@ import pandas
 from great_expectations.metrics.column.mean import ColumnMean
 from great_expectations.metrics.metric_results import MetricErrorResult
 from tests.integration.conftest import parameterize_batch_for_data_sources
-from tests.integration.test_utils.data_source_config import ALL_DATA_SOURCES
+from tests.metrics.conftest import ALL_DATA_SOURCES
 
 DATA_FRAME = pandas.DataFrame(
     {
