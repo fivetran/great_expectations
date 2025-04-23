@@ -24,6 +24,7 @@ SUPPORTED_DATA_SOURCES = [
     "Spark",
     "SQLite",
     "PostgreSQL",
+    "Redshift",
     "MySQL",
     "MSSQL",
     "BigQuery",
