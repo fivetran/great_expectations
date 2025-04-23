@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, TypedDict
 
-from great_expectations.metrics.metric_results import (
-    MetricErrorResultValue,
-)
 from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
@@ -18,15 +15,22 @@ if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
     from great_expectations.execution_engine import ExecutionEngine
+    from great_expectations.validator.exception_info import ExceptionInfo
 
 logger = logging.getLogger(__name__)
 logging.captureWarnings(True)
 
 
+class MetricsCalculatorErrorResultValue(TypedDict):
+    metric_configuration: MetricConfiguration
+    exception_info: ExceptionInfo
+    num_failures: int
+
+
 _MetricsDict: TypeAlias = Dict[MetricConfigurationID, MetricValue]
 _AbortedMetricsInfoDict: TypeAlias = Dict[
     MetricConfigurationID,
-    MetricErrorResultValue,
+    MetricsCalculatorErrorResultValue,
 ]
 
 

@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar, Union
 import pandas as pd
 
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
-from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfigurationID,
 )
@@ -23,8 +22,9 @@ class MetricResult(GenericModel, Generic[_MetricResultValue]):
         arbitrary_types_allowed = True
 
 
-class MetricErrorResultValue(TypedDict):
-    exception_info: ExceptionInfo
+class MetricErrorResultValue(BaseModel):
+    exception_message: str
+    exception_traceback: str
 
 
 class MetricErrorResult(MetricResult[MetricErrorResultValue]): ...

@@ -61,6 +61,7 @@ from great_expectations.metrics.metric import MetaMetric, Metric
 from great_expectations.metrics.metric_name import MetricNameSuffix
 from great_expectations.metrics.metric_results import (
     MetricErrorResult,
+    MetricErrorResultValue,
     MetricInternalErrorResult,
     MetricInternalErrorResultValue,
     MetricResult,
@@ -1279,7 +1280,7 @@ class Batch:
             in the same order as the input metrics were received.
             For metrics without a defined MetricResult generic type,
             the base MetricResult class will be returned.
-
+            For metrics that raise an exception, a MetricErrorResult will be returned.
         Examples:
             >>> batch.compute_metrics(BatchRowCount())
             BatchRowCountResult(id=..., value=1000)
@@ -1319,7 +1320,13 @@ class Batch:
                 )
                 results.append(MetricResultType(id=metric_id_for_batch, value=value))
             elif metric_id_for_batch in metrics_calculator_errors:
-                value = metrics_calculator_errors[metric_id_for_batch]
+                metrics_calculator_error = metrics_calculator_errors[metric_id_for_batch]
+                value = MetricErrorResultValue(
+                    exception_message=metrics_calculator_error["exception_info"].exception_message,
+                    exception_traceback=metrics_calculator_error[
+                        "exception_info"
+                    ].exception_traceback,
+                )
                 results.append(MetricErrorResult(id=metric_id_for_batch, value=value))
             else:
                 results.append(
