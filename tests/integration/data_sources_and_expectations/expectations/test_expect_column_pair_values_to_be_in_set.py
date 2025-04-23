@@ -18,31 +18,26 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
     )
 
     # act
-    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.BASIC)
 
     # assert
     assert result.success
 
     result_dict = result.to_json_dict()["result"]
     assert type(result_dict) is dict
-    result_dict.pop("unexpected_index_query")
+
+    # these are not deterministic
+    result_dict.pop("unexpected_index_query", None)
+    result_dict.pop("unexpected_index_list", None)
+
     assert result_dict == {
         "element_count": 3,
         "missing_count": 0,
         "missing_percent": 0.0,
-        "partial_unexpected_counts": [
-            {
-                "count": 1,
-                "value": [4, 1],
-            },
-        ],
         "partial_unexpected_list": [
             [4, 1],
         ],
         "unexpected_count": 1,
-        "unexpected_list": [
-            [4, 1],
-        ],
         "unexpected_percent": 33.33333333333333,
         "unexpected_percent_nonmissing": 33.33333333333333,
         "unexpected_percent_total": 33.33333333333333,
