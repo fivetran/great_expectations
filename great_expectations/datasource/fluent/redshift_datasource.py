@@ -63,7 +63,7 @@ class RedshiftDatasource(SQLDatasource):
     """
 
     type: Literal["redshift"] = "redshift"  # type: ignore[assignment] # This is a hardcoded constant
-    connection_string: Union[RedshiftConnectionDetails, ConfigStr, RedshiftDsn]
+    connection_string: Union[RedshiftConnectionDetails, ConfigStr, RedshiftDsn]  # type: ignore[assignment] # Deviation from parent class as individual args are supported for connection
 
     @validator("connection_string", pre=True)
     def _build_connection_string_from_connection_details(
@@ -77,10 +77,13 @@ class RedshiftDatasource(SQLDatasource):
 
         if isinstance(connection_string, dict):
             connection_details = RedshiftConnectionDetails(**connection_string)
-        if isinstance(connection_string, RedshiftConnectionDetails):
+        elif isinstance(connection_string, RedshiftConnectionDetails):
             connection_details = connection_string
+        else:
+            raise ValueError("Invalid connection_string type: ", type(connection_string))
         connection_string = f"redshift+psycopg2://{connection_details.user}:{connection_details.password}@{connection_details.host}:{connection_details.port}/{connection_details.database}?sslmode={connection_details.sslmode.value}"
         return connection_string
+
 
     @property
     @override
