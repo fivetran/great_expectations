@@ -29,9 +29,7 @@ from great_expectations.render.util import (
 )
 
 if TYPE_CHECKING:
-    from great_expectations.core import (
-        ExpectationValidationResult,
-    )
+    from great_expectations.core import ExpectationValidationResult
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
@@ -203,14 +201,18 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
     strict_max: bool = pydantic.Field(default=False, description=MAX_VALUE_DESCRIPTION)
 
-    @classmethod
-    @root_validator(pre=True)
+    @root_validator
     def check_min_val_or_max_val(cls, values: dict) -> dict:
-        min_val = values.get("min_val")
-        max_val = values.get("max_val")
+        min_value = values.get("min_value")
+        max_value = values.get("max_value")
 
-        if min_val is None and max_val is None:
+        if min_value is None and max_value is None:
             raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
+
+        # Check for empty dicts since Pydantic coerces empty strings
+        # to empty dicts (SuiteParameterDict) during validation of Comparable field
+        if min_value == {} or max_value == {}:
+            raise ValueError("values cannot be empty strings")  # noqa: TRY003 # FIXME CoP
 
         return values
 

@@ -1,15 +1,13 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-# uncomment to enable pep517 after versioneer problem is fixed.
-# https://github.com/python-versioneer/python-versioneer/issues/193
-# build-backend = "setuptools.build_meta"
+requires = ["setuptools", "wheel", "versioneer"]
+build-backend = "setuptools.build_meta"
 
 [tool.mypy]
 python_version = "3.9"
 plugins = [
     "pydantic.mypy",
     "sqlalchemy.ext.mypy.plugin"
-    ]
+]
 files = [
     "great_expectations",
     "docs",

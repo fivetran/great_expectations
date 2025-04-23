@@ -6,4 +6,6 @@ class ColumnNullCountResult(MetricResult[int]): ...
 
 
 class ColumnNullCount(ColumnMetric[ColumnNullCountResult]):
+    """Count of null values in a column"""
+
     name = "column_values.null.count"
