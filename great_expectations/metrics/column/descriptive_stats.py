@@ -14,4 +14,6 @@ class ColumnDescriptiveStatsResult(MetricResult[DescriptiveStats]): ...
 
 
 class ColumnDescriptiveStats(ColumnMetric[ColumnDescriptiveStatsResult]):
+    """Summary statistics for a column: min, mean, max, standard deviation"""
+
     name = "column.descriptive_stats"
