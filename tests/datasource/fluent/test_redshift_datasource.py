@@ -23,33 +23,33 @@ def scheme():
     "connection_input,expected_connection_string",
     [
         pytest.param(
-        "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
             "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
-            id="string type"
+            "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
+            id="string type",
         ),
         pytest.param(
-    {
+            {
                 "user": "user",
                 "password": "password",
                 "host": "host",
                 "port": 1234,
                 "database": "database",
-                "sslmode": RedshiftSSLModes.ALLOW
+                "sslmode": RedshiftSSLModes.ALLOW,
             },
             "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
-            id="dict type"
+            id="dict type",
         ),
         pytest.param(
-    RedshiftConnectionDetails(
+            RedshiftConnectionDetails(
                 user="user",
                 password="password",
                 host="host",
                 port=1234,
                 database="database",
-                sslmode=RedshiftSSLModes.ALLOW
+                sslmode=RedshiftSSLModes.ALLOW,
             ),
             "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
-            id="dict type"
+            id="dict type",
         ),
     ],
 )
