@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.metrics.column.column_null_count import (
+from great_expectations.metrics.column.null_count import (
     ColumnNullCount,
     ColumnNullCountResult,
 )

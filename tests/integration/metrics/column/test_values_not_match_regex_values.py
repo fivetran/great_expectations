@@ -1,7 +1,7 @@
 import pandas as pd
 
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.metrics.column.column_values_not_match_regex_values import (
+from great_expectations.metrics.column.values_not_match_regex_values import (
     ColumnValuesNotMatchRegexValues,
     ColumnValuesNotMatchRegexValuesResult,
 )
