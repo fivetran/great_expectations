@@ -13,84 +13,65 @@ from great_expectations.datasource.fluent.redshift_datasource import (
 LOGGER = logging.getLogger(__name__)
 
 
-def build_connection_string(scheme, user, password, host, port, database, sslmode):
-    return f"{scheme}://{user}:{password}@{host}:{port}/{database}?sslmode={sslmode}"
-
-
 @pytest.fixture
 def scheme():
     return "redshift+psycopg2"
 
 
 @pytest.mark.unit
-def test_create_engine_is_called_with_expected_kwargs_using_connection_string_string_type(
+@pytest.mark.parametrize(
+    "connection_input,expected_connection_string",
+    [
+        pytest.param(
+        "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
+            "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
+            id="string type"
+        ),
+        pytest.param(
+    {
+                "user": "user",
+                "password": "password",
+                "host": "host",
+                "port": 1234,
+                "database": "database",
+                "sslmode": RedshiftSSLModes.ALLOW
+            },
+            "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
+            id="dict type"
+        ),
+        pytest.param(
+    RedshiftConnectionDetails(
+                user="user",
+                password="password",
+                host="host",
+                port=1234,
+                database="database",
+                sslmode=RedshiftSSLModes.ALLOW
+            ),
+            "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
+            id="dict type"
+        ),
+    ],
+)
+def test_create_engine_is_called_with_expected_kwargs(
+    connection_input,
+    expected_connection_string,
     sa,
     mocker: MockerFixture,
     ephemeral_context_with_defaults: EphemeralDataContext,
     scheme,
 ):
     create_engine_spy = mocker.patch.object(sa, "create_engine")
-
-    user = "user"
-    password = "password"
-    host = "host"
-    port = 1234
-    database = "database"
-    sslmode = "allow"
-
-    context = ephemeral_context_with_defaults
-    connection_string = build_connection_string(
-        scheme, user, password, host, port, database, sslmode
-    )
-    data_source = context.data_sources.add_redshift(
-        name="redshift_test", connection_string=connection_string
-    )
-    data_source.get_engine()  # we will verify that the correct connection details are used when getting the engine  # noqa: E501
-
-    expected_kwargs = RedshiftDsn(
-        connection_string,
-        scheme=scheme,
-    )
-
-    create_engine_spy.assert_called_once_with(expected_kwargs)
-
-
-@pytest.mark.unit
-def test_create_engine_is_called_with_expected_kwargs_using_connection_string_object_type(
-    sa,
-    mocker: MockerFixture,
-    ephemeral_context_with_defaults: EphemeralDataContext,
-    scheme,
-):
-    create_engine_spy = mocker.patch.object(sa, "create_engine")
-
-    user = "user"
-    password = "password"
-    host = "host"
-    port = 1234
-    database = "database"
-    sslmode = RedshiftSSLModes.ALLOW
-    connection_details = RedshiftConnectionDetails(
-        user=user,
-        password=password,
-        host=host,
-        port=port,
-        database=database,
-        sslmode=sslmode,
-    )
 
     context = ephemeral_context_with_defaults
     data_source = context.data_sources.add_redshift(
         name="redshift_test",
-        connection_string=connection_details,  # type: ignore[arg-type]
+        connection_string=connection_input,  # type: ignore[arg-type]
     )
     data_source.get_engine()  # we will verify that the correct connection details are used when getting the engine  # noqa: E501
 
-    connection_string = build_connection_string(
-        scheme, user, password, host, port, database, sslmode.value
-    )
     expected_kwargs = RedshiftDsn(
-        connection_string,
+        expected_connection_string,
         scheme=scheme,
     )
 
