@@ -14,6 +14,16 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.4.2
+* [FEATURE] Changes to Redshift `connection_string` validator to support a dict type ([#11119](https://github.com/great-expectations/great_expectations/pull/11119))
+* [FEATURE] expectations: redshift support ([#11128](https://github.com/great-expectations/great_expectations/pull/11128))
+* [DOCS] make try gx core code sample match descriptive text ([#11129](https://github.com/great-expectations/great_expectations/pull/11129))
+* [DOCS] hide broken table of contents ([#11130](https://github.com/great-expectations/great_expectations/pull/11130))
+* [MAINTENANCE] Add Galina to core devs. Remove others. ([#11117](https://github.com/great-expectations/great_expectations/pull/11117))
+* [MAINTENANCE] Add metric docstrings and fix import paths ([#11118](https://github.com/great-expectations/great_expectations/pull/11118))
+* [MAINTENANCE] Update type packaging ([#11115](https://github.com/great-expectations/great_expectations/pull/11115))
+* [MAINTENANCE] Improve `MetricErrorResult` and `Batch.compute_metrics()` API typing ([#11127](https://github.com/great-expectations/great_expectations/pull/11127))
+
 ### 1.4.1
 * [FEATURE] Allow user to provide connection details to connect to Redshift ([#11105](https://github.com/great-expectations/great_expectations/pull/11105))
 * [FEATURE] Add `ColumnDescriptiveStats` metric ([#11108](https://github.com/great-expectations/great_expectations/pull/11108))
