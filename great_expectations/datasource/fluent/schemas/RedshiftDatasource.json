@@ -1,6 +1,6 @@
 {
     "title": "RedshiftDatasource",
-    "description": "Adds a Redshift datasource to the data context using psycopg2.\n\nArgs:\n    name: The name of this Redshift datasource.\n    connection_string: The SQLAlchemy connection string used to connect to the Redshift\n        database. This will use a redshift with psycopg2. For example:\n        \"redshift+psycopg2://username@host.amazonaws.com:5439/database\"\n    connection_details: A RedshiftConnectionDetails object defining the connection details.\n    If connection_details is used, connection_string cannot also be provided.\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
+    "description": "Adds a Redshift datasource to the data context using psycopg2.\n\nArgs:\n    name: The name of this Redshift datasource.\n    connection_string: The SQLAlchemy connection string used to connect to the Redshift database\n        For example:\n        \"redshift+psycopg2://user:password@host.amazonaws.com:5439/database?sslmode=sslmode\".\n    If connection_details is used, connection_string cannot also be provided.\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
     "type": "object",
     "properties": {
         "type": {
@@ -56,6 +56,12 @@
                         "hello_${NAME}",
                         "${MY_CFG_VAR}"
                     ]
+                },
+                {
+                    "type": "object"
+                },
+                {
+                    "$ref": "#/definitions/RedshiftConnectionDetails"
                 },
                 {
                     "type": "string",
@@ -535,6 +541,71 @@
                 "query"
             ],
             "additionalProperties": false
+        },
+        "RedshiftSSLModes": {
+            "title": "RedshiftSSLModes",
+            "description": "An enumeration.",
+            "enum": [
+                "disable",
+                "allow",
+                "prefer",
+                "require",
+                "verify-ca",
+                "verify-full"
+            ]
+        },
+        "RedshiftConnectionDetails": {
+            "title": "RedshiftConnectionDetails",
+            "description": "Information needed to connect to a Redshift database.",
+            "type": "object",
+            "properties": {
+                "user": {
+                    "title": "User",
+                    "type": "string"
+                },
+                "password": {
+                    "title": "Password",
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "writeOnly": true,
+                            "format": "password",
+                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
+                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
+                            "examples": [
+                                "hello_${NAME}",
+                                "${MY_CFG_VAR}"
+                            ]
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "host": {
+                    "title": "Host",
+                    "type": "string"
+                },
+                "port": {
+                    "title": "Port",
+                    "type": "integer"
+                },
+                "database": {
+                    "title": "Database",
+                    "type": "string"
+                },
+                "sslmode": {
+                    "$ref": "#/definitions/RedshiftSSLModes"
+                }
+            },
+            "required": [
+                "user",
+                "password",
+                "host",
+                "port",
+                "database",
+                "sslmode"
+            ]
         }
     }
 }

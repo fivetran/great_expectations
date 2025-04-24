@@ -14,6 +14,7 @@ from tests.integration.test_utils.data_source_config import (
     MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
@@ -37,6 +38,7 @@ SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
@@ -63,7 +65,8 @@ def test_basic_failure(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_complete_results_failure(batch_for_datasource: Batch) -> None:
     ABOUT_TWO_THIRDS = pytest.approx(2 / 3 * 100)
@@ -131,7 +134,8 @@ def test_complete_results_failure(batch_for_datasource: Batch) -> None:
     ],
 )
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_success(
     batch_for_datasource: Batch,
@@ -162,7 +166,8 @@ def test_success(
     ],
 )
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_failure(
     batch_for_datasource: Batch,
