@@ -3,6 +3,7 @@ title: Access secrets managers
 description: Access credentials that are stored in AWS Secrets Manager, GCP Secret Manager, or Azure key vault.
 hide_feedback_survey: false
 hide_title: false
+hide_table_of_contents: true
 ---
 
 import TabItem from '@theme/TabItem';
