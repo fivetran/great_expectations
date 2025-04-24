@@ -28,6 +28,10 @@ class RedshiftDsn(AnyUrl):
 
 @public_api
 class RedshiftSSLModes(Enum):
+    """
+    Enum for the different SSL modes supported by the Redshift database.
+    """
+
     DISABLE = "disable"
     ALLOW = "allow"
     PREFER = "prefer"

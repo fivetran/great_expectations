@@ -544,7 +544,7 @@
         },
         "RedshiftSSLModes": {
             "title": "RedshiftSSLModes",
-            "description": "--Public API--",
+            "description": "--Public API--\nEnum for the different SSL modes supported by the Redshift database.",
             "enum": [
                 "disable",
                 "allow",
