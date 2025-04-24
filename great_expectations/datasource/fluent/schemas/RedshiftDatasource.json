@@ -58,6 +58,12 @@
                     ]
                 },
                 {
+                    "type": "object"
+                },
+                {
+                    "$ref": "#/definitions/RedshiftConnectionDetails"
+                },
+                {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 65536,
@@ -535,6 +541,71 @@
                 "query"
             ],
             "additionalProperties": false
+        },
+        "RedshiftSSLModes": {
+            "title": "RedshiftSSLModes",
+            "description": "An enumeration.",
+            "enum": [
+                "disable",
+                "allow",
+                "prefer",
+                "require",
+                "verify-ca",
+                "verify-full"
+            ]
+        },
+        "RedshiftConnectionDetails": {
+            "title": "RedshiftConnectionDetails",
+            "description": "Information needed to connect to a Redshift database.",
+            "type": "object",
+            "properties": {
+                "user": {
+                    "title": "User",
+                    "type": "string"
+                },
+                "password": {
+                    "title": "Password",
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "writeOnly": true,
+                            "format": "password",
+                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
+                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
+                            "examples": [
+                                "hello_${NAME}",
+                                "${MY_CFG_VAR}"
+                            ]
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "host": {
+                    "title": "Host",
+                    "type": "string"
+                },
+                "port": {
+                    "title": "Port",
+                    "type": "integer"
+                },
+                "database": {
+                    "title": "Database",
+                    "type": "string"
+                },
+                "sslmode": {
+                    "$ref": "#/definitions/RedshiftSSLModes"
+                }
+            },
+            "required": [
+                "user",
+                "password",
+                "host",
+                "port",
+                "database",
+                "sslmode"
+            ]
         }
     }
 }

@@ -3,15 +3,15 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
-from great_expectations.metrics.metric_results import (
-    MetricErrorResultValue,
-)
 from great_expectations.validator.computed_metric import MetricValue
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
     MetricConfigurationID,
 )
-from great_expectations.validator.validation_graph import ValidationGraph
+from great_expectations.validator.validation_graph import (
+    MetricsCalculatorErrorResultValue,
+    ValidationGraph,
+)
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -26,7 +26,7 @@ logging.captureWarnings(True)
 _MetricsDict: TypeAlias = Dict[MetricConfigurationID, MetricValue]
 _AbortedMetricsInfoDict: TypeAlias = Dict[
     MetricConfigurationID,
-    MetricErrorResultValue,
+    MetricsCalculatorErrorResultValue,
 ]
 
 

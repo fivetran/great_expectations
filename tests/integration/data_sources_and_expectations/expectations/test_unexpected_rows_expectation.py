@@ -15,6 +15,7 @@ from tests.integration.test_utils.data_source_config import (
     # MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     # SqliteDatasourceTestConfig,
@@ -27,6 +28,7 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SparkFilesystemCsvDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
@@ -39,6 +41,7 @@ EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
 ]
@@ -50,6 +53,7 @@ PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
 ]
@@ -61,6 +65,7 @@ PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
 ]
@@ -318,7 +323,7 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_failure(
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()],
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
     data=TABLE_1,
 )
 def test_success_result_format(batch_for_datasource: Batch) -> None:
@@ -338,7 +343,7 @@ def test_success_result_format(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()],
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
     data=TABLE_1,
 )
 def test_fail_result_format(batch_for_datasource: Batch) -> None:
