@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar
+from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
 
 import pandas as pd
 import pytest
@@ -23,6 +23,8 @@ class TestConfig:
     data_source_config: DataSourceTestConfig
     data: pd.DataFrame
     extra_data: Mapping[str, pd.DataFrame]
+    secondary_source_config: Union[DataSourceTestConfig, None] = None
+    secondary_data: Union[pd.DataFrame, None] = None
 
     @override
     def __hash__(self) -> int:
@@ -64,7 +66,7 @@ def parameterize_batch_for_data_sources(
         data_source_configs: The data source configurations to test.
         data: Data to load into the asset
         extra_data: Mapping of {asset_label: data} to load into other assets. Only relevant for SQL
-                    mutli-table expectations. NOTE: This is NOT the table name. The label is used to
+                    multi-table expectations. NOTE: This is NOT the table name. The label is used to
                     correlate the data with the types passed to
                     DataSourceTestConfig.extra_column_types.
 
@@ -150,6 +152,8 @@ def _batch_setup_for_datasource(
         )
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
+        if config.secondary_source_config:
+            ...
 
     yield _cached_test_configs[config]
 
@@ -183,3 +187,40 @@ def extra_table_names_for_datasource(
     """Fixture that yields extra table names"""
     assert isinstance(_batch_setup_for_datasource, SQLBatchTestSetup)
     yield {key: t.name for key, t in _batch_setup_for_datasource.extra_table_data.items()}
+
+
+def multi_source_batch_setup(
+    primary_data_sources: list[DataSourceTestConfig],
+    primary_data: pd.DataFrame,
+    secondary_data_sources: list[DataSourceTestConfig],
+    secondary_data: pd.DataFrame,
+) -> Callable[[_F], _F]:
+    def decorator(func: _F) -> _F:
+        pytest_params = []
+        for primary_config in primary_data_sources:
+            for secondary_config in secondary_data_sources:
+                if primary_config.pytest_mark == secondary_config.pytest_mark:
+                    marks = [primary_config.pytest_mark]
+                else:
+                    marks = [primary_config.pytest_mark, secondary_config.pytest_mark]
+                pytest_params.append(
+                    pytest.param(
+                        TestConfig(
+                            data_source_config=primary_config,
+                            data=primary_data,
+                            extra_data={},
+                            secondary_source_config=secondary_config,
+                            secondary_data=secondary_data,
+                        ),
+                        id=f"{primary_config.test_id}-{secondary_config.test_id}",
+                        marks=marks,
+                    )
+                )
+        parameterize_decorator = pytest.mark.parametrize(
+            _batch_setup_for_datasource.__name__,
+            pytest_params,
+            indirect=True,
+        )
+        return parameterize_decorator(func)
+
+    return decorator
