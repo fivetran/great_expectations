@@ -153,7 +153,14 @@ def _batch_setup_for_datasource(
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
         if config.secondary_source_config:
-            ...
+            secondary_batch_setup = config.secondary_source_config.create_batch_setup(
+                request=request,
+                data=config.secondary_data,
+                extra_data={},
+                context=batch_setup.context,
+            )
+            _cached_test_configs[config] = secondary_batch_setup
+            secondary_batch_setup.setup()
 
     yield _cached_test_configs[config]
 

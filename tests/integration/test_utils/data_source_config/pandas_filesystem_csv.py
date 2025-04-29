@@ -1,11 +1,12 @@
 import pathlib
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any, Mapping, Union
 
 import pandas as pd
 import pytest
 
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.data_asset.path.pandas.generated_assets import CSVAsset
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.test_utils.data_source_config.base import (
@@ -37,6 +38,7 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: Union[AbstractDataContext, None] = None,
     ) -> BatchTestSetup:
         assert not extra_data, "extra_data is not supported for this data source."
 
@@ -47,6 +49,7 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
             data=data,
             config=self,
             base_dir=tmp_path,
+            context=context,
         )
 
 
@@ -58,8 +61,9 @@ class PandasFilesystemCsvBatchTestSetup(
         config: PandasFilesystemCsvDatasourceTestConfig,
         data: pd.DataFrame,
         base_dir: pathlib.Path,
+        context: Union[AbstractDataContext, None] = None,
     ) -> None:
-        super().__init__(config=config, data=data)
+        super().__init__(config=config, data=data, context=context)
         self._base_dir = base_dir
 
     @override

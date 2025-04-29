@@ -1,10 +1,11 @@
-from typing import Mapping, Optional
+from typing import Mapping, Optional, Union
 
 import pandas as pd
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -30,12 +31,14 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: Union[AbstractDataContext, None] = None,
     ) -> BatchTestSetup:
         return SnowflakeBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
             table_name=self.table_name,
+            context=context,
         )
 
 
@@ -80,9 +83,12 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         table_name: Optional[str] = None,
+        context: Union[AbstractDataContext, None] = None,
     ) -> None:
         self.snowflake_connection_config = SnowflakeConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
-        super().__init__(config=config, data=data, extra_data=extra_data, table_name=table_name)
+        super().__init__(
+            config=config, data=data, extra_data=extra_data, table_name=table_name, context=context
+        )
 
     @override
     def make_asset(self) -> TableAsset:

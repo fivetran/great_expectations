@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import TYPE_CHECKING, Generator, Generic, Hashable, Mapping, Optional, TypeVar
+from typing import TYPE_CHECKING, Generator, Generic, Hashable, Mapping, Optional, TypeVar, Union
 
 import pandas as pd
 
@@ -48,6 +48,7 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
         request: FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: Union[AbstractDataContext, None] = None,
     ) -> BatchTestSetup:
         """Create a batch setup object for this data source."""
 
@@ -98,7 +99,7 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
     ) -> None:
         self.config = config
         self.data = data
-        self.context = context
+        self._context = context
 
     @abstractmethod
     def make_asset(self) -> _AssetT: ...
@@ -145,8 +146,8 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
 
     @cached_property
     def context(self) -> AbstractDataContext:
-        if self.context is not None:
-            return self.context
+        if self._context is not None:
+            return self._context
         return gx.get_context(mode="ephemeral")
 
 
