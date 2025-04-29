@@ -156,7 +156,7 @@ def _batch_setup_for_datasource(
         if config.secondary_source_config:
             secondary_batch_setup = config.secondary_source_config.create_batch_setup(
                 request=request,
-                data=config.secondary_data,
+                data=config.secondary_data or config.data,
                 extra_data={},
                 context=batch_setup.context,
             )
