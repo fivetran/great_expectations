@@ -149,6 +149,7 @@ def _batch_setup_for_datasource(
             request=request,
             data=config.data,
             extra_data=config.extra_data,
+            context=None,
         )
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
