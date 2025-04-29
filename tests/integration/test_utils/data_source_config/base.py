@@ -93,9 +93,12 @@ _AssetT = TypeVar("_AssetT", bound=DataAsset)
 class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
     """ABC for classes that set up and tear down batches."""
 
-    def __init__(self, config: _ConfigT, data: pd.DataFrame) -> None:
+    def __init__(
+        self, config: _ConfigT, data: pd.DataFrame, context: Optional[AbstractDataContext] = None
+    ) -> None:
         self.config = config
         self.data = data
+        self.context = context
 
     @abstractmethod
     def make_asset(self) -> _AssetT: ...
@@ -142,6 +145,8 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
 
     @cached_property
     def context(self) -> AbstractDataContext:
+        if self.context is not None:
+            return self.context
         return gx.get_context(mode="ephemeral")
 
 
