@@ -41,7 +41,9 @@ class _ConfigurationSubstitutor:
     def __init__(self) -> None:
         # Using the @lru_cache decorator on method calls can create memory leaks - an attr is preferred here.  # noqa: E501 # FIXME CoP
         # Ref: https://stackoverflow.com/a/68550238
-        self._substitute_value_from_secret_store = lru_cache(maxsize=None)(self._substitute_value_from_secret_store)
+        self._substitute_value_from_secret_store = lru_cache(maxsize=None)(
+            self._substitute_value_from_secret_store
+        )
 
     def substitute_all_config_variables(
         self,
