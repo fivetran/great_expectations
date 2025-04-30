@@ -25,5 +25,7 @@ def test_source_to_target_example(source_to_target_batch: SourceToTargetBatch):
     # placeholder test to demo fixture
     target_data_source = source_to_target_batch.target_batch.datasource
     context = target_data_source.data_context
+    if context is None:
+        raise ValueError("DataContext cannot be None")
     source_data_source = context.data_sources.get(source_to_target_batch.source_data_source_name)
     assert target_data_source != source_data_source

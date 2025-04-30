@@ -29,6 +29,10 @@ class TestConfig:
 
     @override
     def __hash__(self) -> int:
+        if self.secondary_data is None and self.secondary_source_config is not None:
+            raise ValueError(
+                "secondary_data cannot be None when secondary_source_config is provided"
+            )
         return hash(
             (
                 self.__class__,
@@ -36,7 +40,7 @@ class TestConfig:
                 dict_to_tuple(
                     {k: hash_data_frame(self.extra_data[k]) for k in sorted(self.extra_data)}
                 ),
-                hash_data_frame(self.secondary_data),
+                hash_data_frame(self.secondary_data) if self.secondary_data is not None else None,
             )
         )
 
@@ -52,7 +56,12 @@ class TestConfig:
                 self.extra_data.keys() == value.extra_data.keys(),
                 all(self.extra_data[k].equals(value.extra_data[k]) for k in self.extra_data),
                 self.secondary_source_config == value.secondary_source_config,
-                self.secondary_data.equals(value.secondary_data),
+                (self.secondary_data is None and value.secondary_data is None)
+                or (
+                    self.secondary_data is not None
+                    and value.secondary_data is not None
+                    and self.secondary_data.equals(value.secondary_data)
+                ),
             ]
         )
 
