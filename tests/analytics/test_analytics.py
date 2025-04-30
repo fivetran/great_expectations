@@ -80,8 +80,8 @@ def test_event_identifiers(analytics_config):
 
 
 @pytest.mark.xfail(
-    reason="The mode is not necessarily set on instantiation and this is a bug. "
-    "The test may pass if depending on what other tests have run."
+    reason="The mode is not always set on instantiation. This is a bug. The test will fail if "
+    "run in isolation but may pass if another test has run first."
 )
 @pytest.mark.unit
 def test_ephemeral_context_init(monkeypatch):
