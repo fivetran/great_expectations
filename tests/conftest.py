@@ -371,12 +371,11 @@ def _verify_marker_coverage(
                 TestMarkerCoverage(path=str(test.path), name=test.name, markers=markers)
             )
         elif required_intersection_size > 1:
-            continue  # temporarily disable
-            # multiple_markers.append(
-            #     TestMarkerCoverage(
-            #         path=str(test.path), name=test.name, markers=required_intersection
-            #     )
-            # )
+            multiple_markers.append(
+                TestMarkerCoverage(
+                    path=str(test.path), name=test.name, markers=required_intersection
+                )
+            )
     return uncovered, multiple_markers
 
 
