@@ -216,19 +216,20 @@ def asset_for_datasource(
 
 
 @dataclass(frozen=True)
-class SourceToTargetBatch:
+class MultiSourceBatch:
     target_batch: Batch
     source_data_source_name: str
 
 
 @pytest.fixture
-def source_to_target_batch(
+def multi_source_batch(
     _batch_setup_for_datasource: BatchTestSetup,
     _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
-) -> Generator[SourceToTargetBatch, None, None]:
+) -> Generator[MultiSourceBatch, None, None]:
+    """Fixture that sets up multiple sources in a single data context."""
     secondary_batch_setup = _cached_secondary_test_configs[_batch_setup_for_datasource.id]
     secondary_asset = secondary_batch_setup.make_asset()
-    yield SourceToTargetBatch(
+    yield MultiSourceBatch(
         target_batch=_batch_setup_for_datasource.make_batch(),
         source_data_source_name=secondary_asset.datasource.name,
     )
