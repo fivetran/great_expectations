@@ -739,6 +739,13 @@ def build_pandas_validator_with_data(
     )
 
 
+def drop_table(table_name: str, connection_string: str) -> None:
+    engine = sa.create_engine(connection_string)
+    with engine.connect() as conn:
+        conn.execute(sa.text(f"DROP TABLE IF EXISTS {table_name}"))
+        conn.commit()
+
+
 def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME CoP
     df,
     sa_engine_name,

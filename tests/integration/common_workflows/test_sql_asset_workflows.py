@@ -19,6 +19,7 @@ from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import _SQLAsset
 from great_expectations.self_check.util import (
+    drop_table,
     get_test_validator_with_data,
 )
 from great_expectations.util import build_in_memory_runtime_context
@@ -52,6 +53,7 @@ def setup_module():
     pk_column = True
     schemas = test_config["schemas"]
     dataset = test_config["data"]
+    # We call this for the side-effect of creating TABLE_NAME and loading dataset into it
     _ = get_test_validator_with_data(
         execution_engine="postgresql",
         data=dataset,
@@ -60,8 +62,8 @@ def setup_module():
         context=build_in_memory_runtime_context(),
         pk_column=pk_column,
     )
-    # yield
-    # TODO: teardown table
+    yield
+    drop_table(TABLE_NAME, CONNECTION_STRING)
 
 
 @pytest.fixture
