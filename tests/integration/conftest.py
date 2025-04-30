@@ -4,6 +4,7 @@ from uuid import UUID
 
 import pandas as pd
 import pytest
+from _pytest.mark import MarkDecorator
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.context_factory import set_context
@@ -250,33 +251,33 @@ def _source_to_target_map() -> Mapping[UUID, UUID]:
     return {}
 
 
+@dataclass(frozen=True)
+class MultiSourceTestConfig:
+    source: DataSourceTestConfig
+    target: DataSourceTestConfig
+
+
 def multi_source_batch_setup(
-    primary_data_sources: list[DataSourceTestConfig],
-    primary_data: pd.DataFrame,
-    secondary_data_sources: list[DataSourceTestConfig],
-    secondary_data: pd.DataFrame,
+    multi_source_test_configs: list[MultiSourceTestConfig],
+    target_data: pd.DataFrame,
+    source_data: pd.DataFrame,
 ) -> Callable[[_F], _F]:
     def decorator(func: _F) -> _F:
         pytest_params = []
-        for primary_config in primary_data_sources:
-            for secondary_config in secondary_data_sources:
-                if primary_config.pytest_mark == secondary_config.pytest_mark:
-                    marks = [primary_config.pytest_mark]
-                else:
-                    marks = [primary_config.pytest_mark, secondary_config.pytest_mark]
-                pytest_params.append(
-                    pytest.param(
-                        TestConfig(
-                            data_source_config=primary_config,
-                            data=primary_data,
-                            extra_data={},
-                            secondary_source_config=secondary_config,
-                            secondary_data=secondary_data,
-                        ),
-                        id=f"{primary_config.test_id}-{secondary_config.test_id}",
-                        marks=marks,
-                    )
+        for multi_source_test_config in multi_source_test_configs:
+            pytest_params.append(
+                pytest.param(
+                    TestConfig(
+                        data_source_config=multi_source_test_config.target,
+                        data=target_data,
+                        extra_data={},
+                        secondary_source_config=multi_source_test_config.source,
+                        secondary_data=source_data,
+                    ),
+                    id=f"{multi_source_test_config.source.test_id}->{multi_source_test_config.target.test_id}",
+                    marks=_get_multi_source_marks(multi_source_test_config),
                 )
+            )
         parameterize_decorator = pytest.mark.parametrize(
             _batch_setup_for_datasource.__name__,
             pytest_params,
@@ -285,3 +286,26 @@ def multi_source_batch_setup(
         return parameterize_decorator(func)
 
     return decorator
+
+
+def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> list[MarkDecorator]:
+    if multi_source_test_config.target.pytest_mark == multi_source_test_config.source.pytest_mark:
+        return [multi_source_test_config.target.pytest_mark]
+    # our test setup restricts us to testing a single backend at a time.
+    # sqlite doesn't require any extra setup, so it's an exception.
+    marks = [
+        mark
+        for mark in [
+            multi_source_test_config.source.pytest_mark,
+            multi_source_test_config.target.pytest_mark,
+        ]
+        if mark != pytest.mark.sqlite
+    ]
+    if len(marks) == 1:
+        return marks
+    elif not marks:
+        return [pytest.mark.sqlite]
+    else:
+        raise ValueError(
+            "MultiSourceBatch tests must either use the same backend or include sqlite."
+        )

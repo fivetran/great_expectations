@@ -1,8 +1,15 @@
 import pandas as pd
 
-from tests.integration.conftest import MultiSourceBatch, multi_source_batch_setup
+from tests.integration.conftest import (
+    MultiSourceBatch,
+    MultiSourceTestConfig,
+    multi_source_batch_setup,
+)
 from tests.integration.test_utils.data_source_config import (
+    DatabricksDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
+    SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
 
@@ -10,16 +17,43 @@ DATA_FRAME = pd.DataFrame({"a": [1, 2, 3]})
 
 
 ALL_SOURCE_TO_TARGET_SOURCES = [
-    PostgreSQLDatasourceTestConfig(),
-    SqliteDatasourceTestConfig(),
+    MultiSourceTestConfig(
+        source=PostgreSQLDatasourceTestConfig(), target=PostgreSQLDatasourceTestConfig()
+    ),
+    MultiSourceTestConfig(
+        source=PostgreSQLDatasourceTestConfig(),
+        target=SqliteDatasourceTestConfig(),
+    ),
+    MultiSourceTestConfig(
+        source=SnowflakeDatasourceTestConfig(), target=SnowflakeDatasourceTestConfig()
+    ),
+    MultiSourceTestConfig(
+        source=SnowflakeDatasourceTestConfig(),
+        target=SqliteDatasourceTestConfig(),
+    ),
+    MultiSourceTestConfig(
+        source=DatabricksDatasourceTestConfig(),
+        target=DatabricksDatasourceTestConfig(),
+    ),
+    MultiSourceTestConfig(
+        source=DatabricksDatasourceTestConfig(),
+        target=SqliteDatasourceTestConfig(),
+    ),
+    MultiSourceTestConfig(
+        source=RedshiftDatasourceTestConfig(),
+        target=RedshiftDatasourceTestConfig(),
+    ),
+    MultiSourceTestConfig(
+        source=RedshiftDatasourceTestConfig(),
+        target=SqliteDatasourceTestConfig(),
+    ),
 ]
 
 
 @multi_source_batch_setup(
-    primary_data_sources=ALL_SOURCE_TO_TARGET_SOURCES,
-    primary_data=DATA_FRAME,
-    secondary_data_sources=ALL_SOURCE_TO_TARGET_SOURCES,
-    secondary_data=DATA_FRAME,
+    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
+    target_data=DATA_FRAME,
+    source_data=DATA_FRAME,
 )
 def test_source_to_target_example(multi_source_batch: MultiSourceBatch):
     # placeholder test to demo fixture
