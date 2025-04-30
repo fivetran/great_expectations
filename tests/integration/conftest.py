@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
+from uuid import UUID
 
 import pandas as pd
 import pytest
@@ -35,6 +36,7 @@ class TestConfig:
                 dict_to_tuple(
                     {k: hash_data_frame(self.extra_data[k]) for k in sorted(self.extra_data)}
                 ),
+                hash_data_frame(self.secondary_data),
             )
         )
 
@@ -49,6 +51,8 @@ class TestConfig:
                 self.data.equals(value.data),
                 self.extra_data.keys() == value.extra_data.keys(),
                 all(self.extra_data[k].equals(value.extra_data[k]) for k in self.extra_data),
+                self.secondary_source_config == value.secondary_source_config,
+                self.secondary_data.equals(value.secondary_data),
             ]
         )
 
@@ -123,12 +127,22 @@ def _cached_test_configs() -> dict[TestConfig, BatchTestSetup]:
 
 
 @pytest.fixture(scope="session")
+def _cached_secondary_test_configs() -> dict[UUID, BatchTestSetup]:
+    """Fixture to hold secondary test configurations across tests."""
+    cached_test_configs: dict[UUID, BatchTestSetup] = {}
+    return cached_test_configs
+
+
+@pytest.fixture(scope="session")
 def _cleanup(
     _cached_test_configs: Mapping[TestConfig, BatchTestSetup],
+    _cached_secondary_test_configs: Mapping[TestConfig, BatchTestSetup],
 ) -> Generator[None, None, None]:
     """Fixture to do all teardown at the end of the test session."""
     yield
     for batch_setup in _cached_test_configs.values():
+        batch_setup.teardown()
+    for batch_setup in _cached_secondary_test_configs.values():
         batch_setup.teardown()
 
 
@@ -136,6 +150,7 @@ def _cleanup(
 def _batch_setup_for_datasource(
     request: pytest.FixtureRequest,
     _cached_test_configs: dict[TestConfig, BatchTestSetup],
+    _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
     _cleanup,
 ) -> Generator[BatchTestSetup, None, None]:
     """Fixture that yields a BatchSetup for a specific data source type.
@@ -154,13 +169,16 @@ def _batch_setup_for_datasource(
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
         if config.secondary_source_config:
+            assert config.secondary_data is not None, (
+                "Secondary data is required when secondary config is provided."
+            )
             secondary_batch_setup = config.secondary_source_config.create_batch_setup(
                 request=request,
-                data=config.secondary_data or config.data,
+                data=config.secondary_data,
                 extra_data={},
                 context=batch_setup.context,
             )
-            _cached_test_configs[config] = secondary_batch_setup
+            _cached_secondary_test_configs[batch_setup.id] = secondary_batch_setup
             secondary_batch_setup.setup()
 
     yield _cached_test_configs[config]
@@ -188,6 +206,25 @@ def asset_for_datasource(
     yield _batch_setup_for_datasource.make_asset()
 
 
+@dataclass(frozen=True)
+class SourceToTargetBatch:
+    target_batch: Batch
+    source_data_source_name: str
+
+
+@pytest.fixture
+def source_to_target_batch(
+    _batch_setup_for_datasource: BatchTestSetup,
+    _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
+) -> Generator[SourceToTargetBatch, None, None]:
+    secondary_batch_setup = _cached_secondary_test_configs[_batch_setup_for_datasource.id]
+    secondary_asset = secondary_batch_setup.make_asset()
+    yield SourceToTargetBatch(
+        target_batch=_batch_setup_for_datasource.make_batch(),
+        source_data_source_name=secondary_asset.datasource.name,
+    )
+
+
 @pytest.fixture
 def extra_table_names_for_datasource(
     _batch_setup_for_datasource: BatchTestSetup,
@@ -195,6 +232,12 @@ def extra_table_names_for_datasource(
     """Fixture that yields extra table names"""
     assert isinstance(_batch_setup_for_datasource, SQLBatchTestSetup)
     yield {key: t.name for key, t in _batch_setup_for_datasource.extra_table_data.items()}
+
+
+@pytest.fixture(scope="session")
+def _source_to_target_map() -> Mapping[UUID, UUID]:
+    """Get a source BatchTestSetup ID by its target BatchTestSetup ID."""
+    return {}
 
 
 def multi_source_batch_setup(

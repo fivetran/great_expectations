@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import TYPE_CHECKING, Generator, Generic, Hashable, Mapping, Optional, TypeVar, Union
+from uuid import UUID, uuid4
 
 import pandas as pd
 
@@ -149,6 +150,10 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
         if self._context is not None:
             return self._context
         return gx.get_context(mode="ephemeral")
+
+    @cached_property
+    def id(self) -> UUID:
+        return uuid4()
 
 
 def dict_to_tuple(d: Mapping[str, Hashable]) -> tuple[tuple[str, Hashable], ...]:
