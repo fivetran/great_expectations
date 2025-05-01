@@ -42,11 +42,9 @@ EXPECTATION_SHORT_DESCRIPTION = (
 UNEXPECTED_ROWS_QUERY_DESCRIPTION = "A SQL or Spark-SQL query to be executed for validation."
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
-    SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
     SupportedDataSources.REDSHIFT.value,
     SupportedDataSources.MYSQL.value,
-    SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,
