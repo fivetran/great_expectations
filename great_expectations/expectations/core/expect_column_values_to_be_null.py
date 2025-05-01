@@ -13,7 +13,7 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.expectation_configuration import (
     parse_result_format,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -48,19 +48,19 @@ if TYPE_CHECKING:
     )
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the column values to be null."
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-    "Redshift",
-]
 DATA_QUALITY_ISSUES = [DataQualityIssues.COMPLETENESS.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 
 
 class ExpectColumnValuesToBeNull(ColumnMapExpectation):

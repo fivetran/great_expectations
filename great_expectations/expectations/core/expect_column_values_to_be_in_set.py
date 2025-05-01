@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Ty
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.expectations.model_field_types import (
     ValueSetField,  # noqa: TC001  # type needed in pydantic validation
@@ -49,16 +49,16 @@ if TYPE_CHECKING:
 EXPECTATION_SHORT_DESCRIPTION = "Expect each column value to be in a given set."
 VALUE_SET_DESCRIPTION = "A set of objects used for comparison."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-    "Redshift",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 

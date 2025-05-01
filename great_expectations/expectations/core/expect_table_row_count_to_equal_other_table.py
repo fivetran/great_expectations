@@ -9,7 +9,7 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_types import (
     ConditionParser,  # noqa: TC001 # FIXME CoP
 )
@@ -45,13 +45,13 @@ OTHER_TABLE_NAME_DESCRIPTION = (
     "The name of the other table. Other table must be located within the same database."
 )
 SUPPORTED_DATA_SOURCES = [
-    "SQLite",
-    "PostgreSQL",
-    "Redshift",
-    "MySQL",
-    "MSSQL",
-    "Databricks (SQL)",
-    "Snowflake",
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.REDSHIFT.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.SNOWFLAKE.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.VOLUME.value]
 

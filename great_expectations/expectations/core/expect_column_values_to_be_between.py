@@ -10,7 +10,7 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -45,16 +45,16 @@ STRICT_MIN_DESCRIPTION = "If True, values must be strictly larger than min_value
 STRICT_MAX_DESCRIPTION = "If True, values must be strictly smaller than max_value."
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-    "MySQL",
-    "Redshift",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 
 
