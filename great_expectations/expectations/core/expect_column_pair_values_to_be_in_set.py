@@ -27,7 +27,6 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.SNOWFLAKE.value,
-    SupportedDataSources.DATABRICKS.value,
     SupportedDataSources.REDSHIFT.value,
 ]
 

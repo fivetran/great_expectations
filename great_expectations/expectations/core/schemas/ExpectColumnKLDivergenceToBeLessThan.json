@@ -219,7 +219,6 @@
                         "MSSQL",
                         "BigQuery",
                         "Snowflake",
-                        "Databricks (SQL)",
                         "Redshift"
                     ]
                 }

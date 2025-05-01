@@ -41,7 +41,6 @@ DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.PANDAS.value,
     SupportedDataSources.SPARK.value,
-    SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,

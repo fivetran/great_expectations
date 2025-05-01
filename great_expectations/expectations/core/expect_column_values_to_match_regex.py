@@ -47,9 +47,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
     SupportedDataSources.MYSQL.value,
-    SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
-    SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,
     SupportedDataSources.REDSHIFT.value,
 ]

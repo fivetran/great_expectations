@@ -60,15 +60,11 @@ TYPE_LIST_DESCRIPTION = """
     Valid types are defined by the current backend implementation and are dynamically loaded.
     """
 SUPPORTED_DATA_SOURCES = [
-    SupportedDataSources.PANDAS.value,
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
-    SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
-    SupportedDataSources.SNOWFLAKE.value,
-    SupportedDataSources.DATABRICKS.value,
     SupportedDataSources.REDSHIFT.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
