@@ -37,7 +37,6 @@ if TYPE_CHECKING:
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the values in column A to be greater than column B."
 OR_EQUAL_DESCRIPTION = "If True, then values can be equal, not strictly greater."
-DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.PANDAS.value,
     SupportedDataSources.SPARK.value,
@@ -49,6 +48,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.DATABRICKS.value,
     SupportedDataSources.REDSHIFT.value,
 ]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnPairValuesAToBeGreaterThanB(ColumnPairMapExpectation):

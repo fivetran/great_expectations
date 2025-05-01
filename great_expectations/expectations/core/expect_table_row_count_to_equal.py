@@ -32,7 +32,7 @@ if TYPE_CHECKING:
         ExpectationConfiguration,
     )
 
-EXPECTATION_SHORT_DESCRIPTION = "Expect the number of rows in a table to equal a value."
+EXPECTATION_SHORT_DESCRIPTION = "Expect the number of rows to equal a value."
 VALUE_DESCRIPTION = "The expected number of rows."
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.PANDAS.value,
