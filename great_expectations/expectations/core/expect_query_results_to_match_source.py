@@ -42,9 +42,10 @@ DATA_QUALITY_ISSUES = [DataQualityIssues.MULTI_ASSET.value]
 class ExpectQueryResultsToMatchSource(BatchExpectation):
     __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
 
-    ExpectQueryResultsToMatchSource facilitates the execution of SQL or Spark-SQL queries \
-    across two data sources and compares their results. It validates that the results from \
-    the target query match those from the source query within a specified threshold.
+    ExpectQueryResultsToMatchSource executes one SQL query for each of \
+    two Data Sources and compares their results. It validates that the results from \
+    the current Data Asset's query matches those from the source Data Source's query \
+    above a specified threshold.
 
     Args:
         target_query (str): {TARGET_QUERY_DESCRIPTION}
