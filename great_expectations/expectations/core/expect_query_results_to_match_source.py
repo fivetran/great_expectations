@@ -21,14 +21,14 @@ logger = logging.getLogger(__name__)
 
 
 EXPECTATION_SHORT_DESCRIPTION = (
-    "This Expectation will check if the results of a target query "
-    "match the results of a source query."
+    "This Expectation will check if the results of a query "
+    "matches the results of a query against another Data Source."
 )
-TARGET_QUERY_DESCRIPTION = "A SQL or Spark-SQL query to be executed as the target for comparison."
-SOURCE_DATA_SOURCE_NAME_DESCRIPTION = "The name of the source data source to query."
-SOURCE_QUERY_DESCRIPTION = (
-    "A SQL or Spark-SQL query to be executed on the source data source for comparison."
+TARGET_QUERY_DESCRIPTION = "A SQL query to be executed for this Data Asset."
+SOURCE_DATA_SOURCE_NAME_DESCRIPTION = (
+    "The name of the source Data Source to compare this Asset against."
 )
+SOURCE_QUERY_DESCRIPTION = "A SQL query to be executed for the source Data Source."
 SUPPORTED_DATA_SOURCES = [
     "PostgreSQL",
     "BigQuery",
@@ -68,7 +68,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
     target_query: str = pydantic.Field(description=TARGET_QUERY_DESCRIPTION)
     source_data_source_name: str = pydantic.Field(description=SOURCE_DATA_SOURCE_NAME_DESCRIPTION)
     source_query: str = pydantic.Field(description=SOURCE_QUERY_DESCRIPTION)
-    mostly: MostlyField = pydantic.Field(default=1.0, description=MOSTLY_DESCRIPTION)
+    mostly: MostlyField = 1
 
     metric_dependencies: ClassVar[Tuple[str, ...]] = (
         "query.table",
