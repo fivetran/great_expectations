@@ -1,5 +1,12 @@
+import json
+import pathlib
+
 import pytest
 
+from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
+from great_expectations.render.renderer.content_block.bullet_list_content_block import (
+    ExpectationSuiteBulletListContentBlockRenderer,
+)
 from great_expectations.render.util import (
     parse_row_condition_string_pandas_engine,
     substitute_none_for_missing,
@@ -54,3 +61,21 @@ def test_parse_row_condition_string_pandas_engine():
             "row_condition__3": "PClass != '1st'",
         },
     )
+
+
+@pytest.mark.filesystem
+def test_expectations_using_expectation_definitions():
+    dir_path = pathlib.Path(__file__).parent
+    data_path = dir_path / "BulletListContentBlock.json"
+    with open(data_path) as f:
+        test_data = json.load(f)
+
+    for expectation_dict in test_data:
+        fake_expectation = ExpectationConfiguration(**expectation_dict)
+        render_result = ExpectationSuiteBulletListContentBlockRenderer.render([fake_expectation])
+        assert render_result is not None
+        render_result = render_result.to_json_dict()
+        assert isinstance(render_result, dict)
+        assert "content_block_type" in render_result
+        assert render_result["content_block_type"] in render_result
+        assert isinstance(render_result[render_result["content_block_type"]], list)
