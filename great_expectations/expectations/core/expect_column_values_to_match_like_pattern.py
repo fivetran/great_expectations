@@ -48,6 +48,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.SNOWFLAKE.value,
 ]
 
