@@ -1,0 +1,151 @@
+from __future__ import annotations
+
+import logging
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
+
+from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
+from great_expectations.expectations.expectation import BatchExpectation
+from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.model_field_descriptions import MOSTLY_DESCRIPTION
+from great_expectations.expectations.model_field_types import (
+    MostlyField,  # noqa: TC001  # pydantic needs the actual type
+)
+
+if TYPE_CHECKING:
+    from great_expectations.core import ExpectationValidationResult
+    from great_expectations.execution_engine import ExecutionEngine
+
+
+logger = logging.getLogger(__name__)
+
+
+EXPECTATION_SHORT_DESCRIPTION = (
+    "This Expectation will check if the results of a target query "
+    "match the results of a source query."
+)
+TARGET_QUERY_DESCRIPTION = "A SQL or Spark-SQL query to be executed as the target for comparison."
+SOURCE_DATA_SOURCE_NAME_DESCRIPTION = "The name of the source data source to query."
+SOURCE_QUERY_DESCRIPTION = (
+    "A SQL or Spark-SQL query to be executed on the source data source for comparison."
+)
+SUPPORTED_DATA_SOURCES = [
+    "PostgreSQL",
+    "BigQuery",
+    "Snowflake",
+    "Databricks (SQL)",
+    "Redshift",
+]
+DATA_QUALITY_ISSUES = [DataQualityIssues.MULTI_ASSET.value]
+
+
+class ExpectQueryResultsToMatchSource(BatchExpectation):
+    __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
+
+    ExpectQueryResultsToMatchSource facilitates the execution of SQL or Spark-SQL queries \
+    across two data sources and compares their results. It validates that the results from \
+    the target query match those from the source query within a specified threshold.
+
+    Args:
+        target_query (str): {TARGET_QUERY_DESCRIPTION}
+        source_data_source_name (str): {SOURCE_DATA_SOURCE_NAME_DESCRIPTION}
+        source_query (str): {SOURCE_QUERY_DESCRIPTION}
+        mostly (float): {MOSTLY_DESCRIPTION}
+
+    Returns:
+        An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
+
+    Supported Data Sources:
+        [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+    Data Quality Issues:
+        {DATA_QUALITY_ISSUES[0]}
+    """
+
+    target_query: str = pydantic.Field(description=TARGET_QUERY_DESCRIPTION)
+    source_data_source_name: str = pydantic.Field(description=SOURCE_DATA_SOURCE_NAME_DESCRIPTION)
+    source_query: str = pydantic.Field(description=SOURCE_QUERY_DESCRIPTION)
+    mostly: MostlyField = pydantic.Field(default=1.0, description=MOSTLY_DESCRIPTION)
+
+    metric_dependencies: ClassVar[Tuple[str, ...]] = (
+        "query.table",
+        "query.data_source_table",
+    )
+    success_keys: ClassVar[Tuple[str, ...]] = (
+        "target_query",
+        "source_data_source_name",
+        "source_query",
+        "mostly",
+    )
+    domain_keys: ClassVar[Tuple[str, ...]] = (
+        "batch_id",
+        "row_condition",
+        "condition_parser",
+    )
+
+    class Config:
+        title = "Expect query results to match source"
+
+        @staticmethod
+        def schema_extra(
+            schema: Dict[str, Any], model: Type[ExpectQueryResultsToMatchSource]
+        ) -> None:
+            BatchExpectation.Config.schema_extra(schema, model)
+            schema["properties"]["metadata"]["properties"].update(
+                {
+                    "data_quality_issues": {
+                        "title": "Data Quality Issues",
+                        "type": "array",
+                        "const": DATA_QUALITY_ISSUES,
+                    },
+                    "short_description": {
+                        "title": "Short Description",
+                        "type": "string",
+                        "const": EXPECTATION_SHORT_DESCRIPTION,
+                    },
+                    "supported_data_sources": {
+                        "title": "Supported Data Sources",
+                        "type": "array",
+                        "const": SUPPORTED_DATA_SOURCES,
+                    },
+                }
+            )
+
+    @override
+    def _validate(
+        self,
+        metrics: dict,
+        runtime_configuration: dict | None = None,
+        execution_engine: ExecutionEngine | None = None,
+    ) -> Union[ExpectationValidationResult, dict]:
+        target_results = metrics["query.table"]
+        source_results = metrics["query.data_source_table"]
+
+        # Convert results to sets of tuples for efficient comparison
+        target_set = {tuple(row) for row in target_results}
+        source_set = {tuple(row) for row in source_results}
+
+        # Find common rows (intersection)
+        common_rows = target_set.intersection(source_set)
+
+        # Calculate match percentage
+        total_rows = len(target_set)
+        if total_rows == 0:
+            match_percentage = 100.0  # If there are no rows, consider it a perfect match
+        else:
+            match_percentage = (len(common_rows) / total_rows) * 100.0
+
+        return {
+            "success": match_percentage >= (self.mostly * 100),
+            "result": {
+                "observed_value": match_percentage,
+                "details": {
+                    "target_row_count": len(target_set),
+                    "source_row_count": len(source_set),
+                    "matching_row_count": len(common_rows),
+                },
+            },
+        }
