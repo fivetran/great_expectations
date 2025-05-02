@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
@@ -15,9 +14,6 @@ from great_expectations.expectations.model_field_types import (
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
     from great_expectations.execution_engine import ExecutionEngine
-
-
-logger = logging.getLogger(__name__)
 
 
 EXPECTATION_SHORT_DESCRIPTION = (
@@ -125,14 +121,11 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         target_results = metrics["query.table"]
         source_results = metrics["query.data_source_table"]
 
-        # Convert results to sets of tuples for efficient comparison
         target_set = {tuple(row) for row in target_results}
         source_set = {tuple(row) for row in source_results}
 
-        # Find common rows (intersection)
         common_rows = target_set.intersection(source_set)
 
-        # Calculate match percentage
         total_rows = len(target_set)
         if total_rows == 0:
             match_percentage = 100.0  # If there are no rows, consider it a perfect match
