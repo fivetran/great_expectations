@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from great_expectations.data_context import project_manager
 from great_expectations.execution_engine import (
     SqlAlchemyExecutionEngine,
 )
@@ -25,6 +24,8 @@ class QueryDataSourceTable(QueryMetricProvider):
         metrics: Dict[str, Any],
         runtime_configuration: dict,
     ) -> list[dict]:
+        from great_expectations.data_context import project_manager
+
         # we're querying data from another data source,
         # so we need to use the execution engine of that data source.
         data_source_name = metric_value_kwargs["data_source_name"]
