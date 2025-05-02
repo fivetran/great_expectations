@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import pandas as pd
 import pytest
 
+from great_expectations import get_context
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.expectations import (
@@ -33,6 +34,7 @@ class TestSnowflakeDataTypes:
             config=SnowflakeDatasourceTestConfig(column_types={self.COLUMN: column_type}),
             data=pd.DataFrame({self.COLUMN: [1, 2, 3, 4]}),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -51,6 +53,7 @@ class TestSnowflakeDataTypes:
             config=SnowflakeDatasourceTestConfig(column_types={self.COLUMN: column_type}),
             data=pd.DataFrame({self.COLUMN: [1, 2, 3, 4]}),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -69,6 +72,7 @@ class TestSnowflakeDataTypes:
             config=SnowflakeDatasourceTestConfig(column_types={self.COLUMN: column_type}),
             data=pd.DataFrame({self.COLUMN: [1, 2, 3, 4]}),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -87,6 +91,7 @@ class TestSnowflakeDataTypes:
             config=SnowflakeDatasourceTestConfig(column_types={self.COLUMN: column_type}),
             data=pd.DataFrame({self.COLUMN: ["a", "b", "c", "d"]}),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -107,6 +112,7 @@ class TestSnowflakeDataTypes:
             config=SnowflakeDatasourceTestConfig(column_types={self.COLUMN: column_type}),
             data=pd.DataFrame({self.COLUMN: ["a", "b", "c", "d"]}),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -127,6 +133,7 @@ class TestSnowflakeDataTypes:
             config=SnowflakeDatasourceTestConfig(column_types={self.COLUMN: column_type}),
             data=pd.DataFrame({self.COLUMN: [True, False, True, True]}),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -149,6 +156,7 @@ class TestSnowflakeDataTypes:
                 }
             ),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -175,6 +183,7 @@ class TestSnowflakeDataTypes:
                 }
             ),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -201,6 +210,7 @@ class TestSnowflakeDataTypes:
                 }
             ),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -227,6 +237,7 @@ class TestSnowflakeDataTypes:
                 }
             ),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(
@@ -258,6 +269,7 @@ class TestSnowflakeDataTypes:
                 }
             ),
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
         with batch_setup.batch_test_context() as batch:
             result = batch.validate(

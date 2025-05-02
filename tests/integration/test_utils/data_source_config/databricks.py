@@ -8,6 +8,7 @@ import pytest
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -39,12 +40,14 @@ class DatabricksDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         return DatabricksBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
             table_name=self.table_name,
+            context=context,
         )
 
 
