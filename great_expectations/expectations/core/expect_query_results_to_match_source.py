@@ -132,8 +132,11 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         else:
             match_percentage = (len(common_rows) / total_rows) * 100.0
 
+        success_kwargs = self._get_success_kwargs()
+        mostly = success_kwargs.get("mostly", 1)
+
         return {
-            "success": match_percentage >= (self.mostly * 100),
+            "success": match_percentage >= (mostly * 100),
             "result": {
                 "observed_value": match_percentage,
                 "details": {
