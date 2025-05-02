@@ -221,6 +221,7 @@ def asset_for_datasource(
 class MultiSourceBatch:
     target_batch: Batch
     source_data_source_name: str
+    source_table_name: str
 
 
 @pytest.fixture
@@ -230,10 +231,15 @@ def multi_source_batch(
 ) -> Generator[MultiSourceBatch, None, None]:
     """Fixture that sets up multiple sources in a single data context."""
     secondary_batch_setup = _cached_secondary_test_configs[_batch_setup_for_datasource.id]
+    assert isinstance(secondary_batch_setup, SQLBatchTestSetup), (
+        "MultiSourceBatch requires SQLBatchTestSetup"
+    )
+    # we need a data source, so we use the make_asset API:
     secondary_asset = secondary_batch_setup.make_asset()
     yield MultiSourceBatch(
         target_batch=_batch_setup_for_datasource.make_batch(),
         source_data_source_name=secondary_asset.datasource.name,
+        source_table_name=secondary_batch_setup.table_name,
     )
 
 
