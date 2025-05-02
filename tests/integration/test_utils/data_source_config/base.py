@@ -100,7 +100,7 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
     ) -> None:
         self.config = config
         self.data = data
-        self._context = context
+        self.context = context or gx.get_context(mode="ephemeral")
 
     @abstractmethod
     def make_asset(self) -> _AssetT: ...
@@ -144,12 +144,6 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
     @staticmethod
     def _random_resource_name() -> str:
         return "".join(random.choices(string.ascii_lowercase, k=10))
-
-    @cached_property
-    def context(self) -> AbstractDataContext:
-        if self._context is not None:
-            return self._context
-        return gx.get_context(mode="ephemeral")
 
     @cached_property
     def id(self) -> UUID:
