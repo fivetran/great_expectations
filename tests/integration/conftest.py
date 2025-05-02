@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 from _pytest.mark import MarkDecorator
 
+import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
@@ -174,7 +175,7 @@ def _batch_setup_for_datasource(
             request=request,
             data=config.data,
             extra_data=config.extra_data,
-            context=None,
+            context=gx.get_context(mode="ephemeral"),
         )
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()

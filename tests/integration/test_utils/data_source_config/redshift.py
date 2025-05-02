@@ -1,4 +1,4 @@
-from typing import Mapping, Optional, Union
+from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -51,7 +51,7 @@ class RedshiftDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         return RedshiftBatchTestSetup(
             data=data,
@@ -78,8 +78,8 @@ class RedshiftBatchTestSetup(SQLBatchTestSetup[RedshiftDatasourceTestConfig]):
         config: RedshiftDatasourceTestConfig,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
         table_name: Optional[str] = None,  # Overrides random table name generation
-        context: Union[AbstractDataContext, None] = None,
     ) -> None:
         self.redshift_connection_config = RedshiftConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
         super().__init__(

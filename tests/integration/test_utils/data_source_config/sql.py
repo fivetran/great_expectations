@@ -73,8 +73,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         config: _ConfigT,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
         table_name: Optional[str] = None,  # Overrides random table name generation
-        context: Union[AbstractDataContext, None] = None,
     ) -> None:
         # self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data

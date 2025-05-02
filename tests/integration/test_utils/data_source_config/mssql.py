@@ -1,4 +1,4 @@
-from typing import Mapping, Union
+from typing import Mapping
 
 import pandas as pd
 import pytest
@@ -31,7 +31,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         return MSSQLBatchTestSetup(
             data=data,

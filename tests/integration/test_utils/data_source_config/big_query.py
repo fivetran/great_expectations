@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Mapping, Union
+from typing import TYPE_CHECKING, Mapping
 
 import pytest
 
@@ -36,7 +36,7 @@ class BigQueryDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         return BigQueryBatchTestSetup(
             data=data,

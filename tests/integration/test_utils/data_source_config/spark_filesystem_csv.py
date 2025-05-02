@@ -43,7 +43,7 @@ class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         assert not extra_data, "extra_data is not supported for this data source yet."
 
@@ -66,7 +66,7 @@ class SparkFilesystemCsvBatchTestSetup(
         config: SparkFilesystemCsvDatasourceTestConfig,
         data: pd.DataFrame,
         base_dir: pathlib.Path,
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> None:
         super().__init__(config=config, data=data, context=context)
         self._base_dir = base_dir

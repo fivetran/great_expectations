@@ -9,7 +9,7 @@ different TestConfigs; that would be caught by our regular tests.
 
 from dataclasses import dataclass
 from functools import cache
-from typing import Mapping, Union
+from typing import Mapping
 
 import pandas as pd
 import pytest
@@ -49,7 +49,7 @@ class DummyTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         return DummyBatchTestSetup(data=data, config=self, context=context)
 

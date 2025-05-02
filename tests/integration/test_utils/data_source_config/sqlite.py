@@ -1,5 +1,5 @@
 import pathlib
-from typing import Mapping, Optional, Union
+from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -31,7 +31,7 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         tmp_path = request.getfixturevalue("tmp_path")
         assert isinstance(tmp_path, pathlib.Path)
@@ -49,12 +49,12 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
 class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
     def __init__(
         self,
-        config: SqliteDatasourceTestConfig,
         data: pd.DataFrame,
-        base_dir: pathlib.Path,
+        config: SqliteDatasourceTestConfig,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        base_dir: pathlib.Path,
         table_name: Optional[str] = None,
-        context: Union[AbstractDataContext, None] = None,
     ) -> None:
         self._base_dir = base_dir
         super().__init__(

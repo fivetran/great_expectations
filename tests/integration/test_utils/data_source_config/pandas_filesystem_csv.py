@@ -1,6 +1,6 @@
 import pathlib
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Union
+from typing import Any, Mapping
 
 import pandas as pd
 import pytest
@@ -38,10 +38,9 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         assert not extra_data, "extra_data is not supported for this data source."
-
         tmp_path = request.getfixturevalue("tmp_path")
         assert isinstance(tmp_path, pathlib.Path)
 
@@ -61,7 +60,7 @@ class PandasFilesystemCsvBatchTestSetup(
         config: PandasFilesystemCsvDatasourceTestConfig,
         data: pd.DataFrame,
         base_dir: pathlib.Path,
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> None:
         super().__init__(config=config, data=data, context=context)
         self._base_dir = base_dir

@@ -1,4 +1,4 @@
-from typing import Mapping, Optional, Union
+from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -31,7 +31,7 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
-        context: Union[AbstractDataContext, None] = None,
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         return SnowflakeBatchTestSetup(
             data=data,
@@ -82,8 +82,8 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         config: SnowflakeDatasourceTestConfig,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
         table_name: Optional[str] = None,
-        context: Union[AbstractDataContext, None] = None,
     ) -> None:
         self.snowflake_connection_config = SnowflakeConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
         super().__init__(
