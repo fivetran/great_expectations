@@ -1,2 +1,3 @@
-gx-sqlalchemy-redshift
+gx-sqlalchemy-redshift; python_version > "3.9"
+gx-sqlalchemy-redshift==0.8.17; python_version == "3.9"
 psycopg2-binary>=2.7.6

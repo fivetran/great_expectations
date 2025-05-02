@@ -193,7 +193,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
     )
 
     # Polish and ratchet this number down as low as possible
-    assert len(sorted_packages_with_pins_or_upper_bounds) == 36
+    assert len(sorted_packages_with_pins_or_upper_bounds) == 39
     assert set(sorted_packages_with_pins_or_upper_bounds) == {
         (
             "requirements-dev-api-docs-test.txt",
@@ -204,9 +204,19 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev-contrib.txt", "adr-tools-python", (("==", "1.0.3"),)),
         ("requirements-dev-dremio.txt", "sqlalchemy-dremio", (("==", "1.2.1"),)),
         ("requirements-dev-excel.txt", "xlrd", (("<", "2.0.0"), (">=", "1.1.0"))),
+        (
+            "requirements-dev-gx-redshift.txt",
+            "gx-sqlalchemy-redshift",
+            (("==", "0.8.17"),),
+        ),
         ("requirements-dev-lite.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-pagerduty.txt", "pypd", (("==", "1.1.0"),)),
         ("requirements-dev-snowflake.txt", "pandas", (("<", "2.2.0"),)),
+        (
+            "requirements-dev-sqlalchemy.txt",
+            "gx-sqlalchemy-redshift",
+            (("==", "0.8.17"),),
+        ),
         ("requirements-dev-sqlalchemy.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev-sqlalchemy.txt", "pandas", (("<", "2.2.0"),)),
         (
@@ -237,6 +247,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements-dev.txt", "adr-tools-python", (("==", "1.0.3"),)),
         ("requirements-dev.txt", "altair", (("<", "5.0.0"), (">=", "4.2.1"))),
         ("requirements-dev.txt", "docstring-parser", (("==", "0.16"),)),
+        ("requirements-dev.txt", "gx-sqlalchemy-redshift", (("==", "0.8.17"),)),
         ("requirements-dev.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
         ("requirements-dev.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev.txt", "pandas", (("<", "2.2.0"),)),
