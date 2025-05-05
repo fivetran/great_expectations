@@ -10,7 +10,7 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -45,13 +45,13 @@ REGEX_LIST_DESCRIPTION = (
 )
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "PostgreSQL",
-    "Redshift",
-    "MySQL",
-    "Databricks (SQL)",
-    "SQLite",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.REDSHIFT.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.SQLITE.value,
 ]
 
 

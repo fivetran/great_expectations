@@ -12,3 +12,18 @@ class DataQualityIssues(str, Enum):
     VALIDITY = "Validity"
     SQL = "SQL"
     MULTI_ASSET = "Multi-Asset"
+
+
+class SupportedDataSources(str, Enum):
+    """Data sources supported by Core Expectations."""
+
+    PANDAS = "Pandas"
+    SPARK = "Spark"
+    SQLITE = "SQLite"
+    POSTGRESQL = "PostgreSQL"
+    MYSQL = "MySQL"
+    MSSQL = "MSSQL"
+    BIGQUERY = "BigQuery"
+    SNOWFLAKE = "Snowflake"
+    DATABRICKS = "Databricks (SQL)"
+    REDSHIFT = "Redshift"
