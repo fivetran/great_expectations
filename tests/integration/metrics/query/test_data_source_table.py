@@ -28,7 +28,7 @@ TARGET_DATA_FRAME = pd.DataFrame({"foo": [1, 2, 3], "bar": [4, 5, 6]})
 SOURCE_DATA_FRAME = pd.DataFrame(
     {
         "id": [1, 2, 3, 4],
-        "name": ["A", "B", "C", "D"],
+        "name": ["A", "B", "C", "A"],
     },
 )
 
@@ -80,19 +80,14 @@ class TestQueryRowCount:
         source_data=SOURCE_DATA_FRAME,
     )
     def test_success_sql(self, multi_source_batch: MultiSourceBatch) -> None:
-        query = f"SELECT * FROM {multi_source_batch.source_table_name} WHERE id > 0"
+        query = f"SELECT * FROM {multi_source_batch.source_table_name} WHERE name = 'A';"
         batch = multi_source_batch.target_batch
         metric = QueryDataSourceTable(
             query=query, data_source_name=multi_source_batch.source_data_source_name
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryDataSourceTableResult)
-        assert metric_result.value == [
-            {"id": 1, "name": "A"},
-            {"id": 2, "name": "B"},
-            {"id": 3, "name": "C"},
-            {"id": 4, "name": "D"},
-        ]
+        assert metric_result.value == [{"id": 1, "name": "A"}, {"id": 4, "name": "A"}]
 
     @multi_source_batch_setup(
         multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
