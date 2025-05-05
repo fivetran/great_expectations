@@ -10,7 +10,7 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     RenderedAtomicContent,
@@ -41,13 +41,13 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 UNEXPECTED_ROWS_QUERY_DESCRIPTION = "A SQL or Spark-SQL query to be executed for validation."
 SUPPORTED_DATA_SOURCES = [
-    "Spark",
-    "PostgreSQL",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
-    "MySQL",
-    "Databricks (SQL)",
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.REDSHIFT.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SQL.value]
 
