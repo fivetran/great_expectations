@@ -2,6 +2,7 @@ from typing import Sequence
 
 import pandas as pd
 
+from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.metrics import QueryDataSourceTable
 from great_expectations.metrics.query.data_source_table import QueryDataSourceTableResult
 from tests.integration.conftest import (
@@ -102,4 +103,4 @@ class TestQueryRowCount:
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryDataSourceTableResult)
-        assert len(metric_result.value) == 200
+        assert len(metric_result.value) == MAX_RESULT_RECORDS
