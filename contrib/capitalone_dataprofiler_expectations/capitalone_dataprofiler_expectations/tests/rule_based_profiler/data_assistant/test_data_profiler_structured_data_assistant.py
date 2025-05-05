@@ -68,7 +68,7 @@ def bobby_profile_data_profiler_structured_data_assistant_result_usage_stats_ena
         estimation="flag_outliers",
     )
 
-    return cast(DataProfilerStructuredDataAssistantResult, data_assistant_result)
+    return cast("DataProfilerStructuredDataAssistantResult", data_assistant_result)
 
 
 @pytest.fixture(scope="module")
@@ -107,7 +107,7 @@ def bobby_profile_data_profiler_structured_data_assistant_result(
         estimation="flag_outliers",
     )
 
-    return cast(DataProfilerStructuredDataAssistantResult, data_assistant_result)
+    return cast("DataProfilerStructuredDataAssistantResult", data_assistant_result)
 
 
 @pytest.mark.big

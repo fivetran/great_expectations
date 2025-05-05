@@ -55,7 +55,7 @@ def pandas_execution_engine_fake(
             }
 
     PandasExecutionEngineFake.__name__ = "PandasExecutionEngine"
-    return cast(ExecutionEngine, PandasExecutionEngineFake())
+    return cast("ExecutionEngine", PandasExecutionEngineFake())
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def validation_graph_with_no_edges() -> ValidationGraph:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     return ValidationGraph(execution_engine=execution_engine, edges=None)
 
@@ -81,7 +81,7 @@ def validation_graph_with_single_edge(metric_edge: MetricEdge) -> ValidationGrap
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     return ValidationGraph(execution_engine=execution_engine, edges=[metric_edge])
 
@@ -125,7 +125,7 @@ def expect_column_value_z_scores_to_be_less_than_expectation_validation_graph():
         pass
 
     PandasExecutionEngineStub.__name__ = "PandasExecutionEngine"
-    execution_engine = cast(ExecutionEngine, PandasExecutionEngineStub())
+    execution_engine = cast("ExecutionEngine", PandasExecutionEngineStub())
 
     expectation_configuration = ExpectationConfiguration(
         type="expect_column_value_z_scores_to_be_less_than",
@@ -158,7 +158,7 @@ def test_ValidationGraph_init_no_input_edges() -> None:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -173,7 +173,7 @@ def test_ValidationGraph_init_with_input_edges(
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     edges = [metric_edge]
     graph = ValidationGraph(execution_engine=execution_engine, edges=edges)
@@ -187,7 +187,7 @@ def test_ValidationGraph_add(metric_edge: MetricEdge) -> None:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -332,7 +332,7 @@ def test_populate_dependencies_with_incorrect_metric_name():
         pass
 
     PandasExecutionEngineStub.__name__ = "PandasExecutionEngine"
-    execution_engine = cast(ExecutionEngine, PandasExecutionEngineStub())
+    execution_engine = cast("ExecutionEngine", PandasExecutionEngineStub())
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -432,8 +432,8 @@ def test_progress_bar_config(
     class DummyExecutionEngine:
         pass
 
-    metric_configuration = cast(MetricConfiguration, DummyMetricConfiguration)
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    metric_configuration = cast("MetricConfiguration", DummyMetricConfiguration)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     # ValidationGraph is a complex object that requires len > 3 to not trigger tqdm
     with (

@@ -211,7 +211,7 @@ class CardinalityChecker:
                         f"Please specify a supported cardinality mode.  Supported cardinality modes are {[member.name for member in CardinalityLimitMode]}"  # noqa: E501 # FIXME CoP
                     )
         else:
-            return cast(CardinalityLimitMode, cardinality_limit_mode).value
+            return cast("CardinalityLimitMode", cardinality_limit_mode).value
 
     @staticmethod
     def _convert_to_cardinality_limit_mode(

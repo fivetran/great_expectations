@@ -81,7 +81,7 @@ def test_complete_results_failure(batch_for_datasource: Batch) -> None:
     assert isinstance(result_dict, dict)
     assert not result.success
     assert "IS NOT NULL AND basic_patterns NOT LIKE '%b%'" in cast(
-        str, result_dict.get("unexpected_index_query")
+        "str", result_dict.get("unexpected_index_query")
     )
     assert result.to_json_dict().get("result") == {
         "element_count": 3,

@@ -59,7 +59,7 @@ class ColumnTypes(TableMetricProvider):
                 )
 
         batch_data: SqlAlchemyBatchData = cast(
-            SqlAlchemyBatchData,
+            "SqlAlchemyBatchData",
             execution_engine.batch_manager.batch_data_cache.get(batch_id),
         )
         if batch_data is None:

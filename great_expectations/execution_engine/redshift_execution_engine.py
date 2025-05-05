@@ -150,7 +150,7 @@ class ColumnTypes(BaseColumnTypes):
                 message="the requested batch is not available; please load the batch into the "
                 "execution engine."
             )
-        batch_data: SqlAlchemyBatchData = cast(SqlAlchemyBatchData, possible_batch_data)
+        batch_data: SqlAlchemyBatchData = cast("SqlAlchemyBatchData", possible_batch_data)
 
         table_selectable: str | sa.TextClause
 
