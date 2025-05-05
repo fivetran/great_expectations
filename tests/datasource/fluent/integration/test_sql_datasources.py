@@ -10,7 +10,6 @@ import warnings
 from pprint import pformat as pf
 from typing import (
     TYPE_CHECKING,
-    Any,
     Final,
     Generator,
     Literal,
@@ -898,8 +897,6 @@ class TestColumnExpectations:
         all_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
-        expectation_type: str,
-        extra_exp_kwargs: dict[str, Any],
         request: pytest.FixtureRequest,
     ):
         """
@@ -919,8 +916,6 @@ class TestColumnExpectations:
         elif _fails_expectation(param_id):
             # apply marker this way so that xpasses can be seen in the report
             request.applymarker(pytest.mark.xfail(run=False))
-
-        print(f"expectations_type:\n  {expectation_type}")
 
         schema: str | None = (
             RAND_SCHEMA
@@ -958,7 +953,8 @@ class TestColumnExpectations:
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))
         suite.add_expectation_configuration(
             expectation_configuration=ExpectationConfiguration(
-                type=expectation_type, kwargs={"column": column_name, **extra_exp_kwargs}
+                type="expect_column_values_to_match_regex",
+                kwargs={"column": column_name, "regex": r".*"},
             )
         )
         suite.save()
@@ -1019,8 +1015,6 @@ class TestColumnExpectations:
         all_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
-        expectation_type: str,
-        extra_exp_kwargs: dict[str, Any],
         request: pytest.FixtureRequest,
     ):
         """
@@ -1042,8 +1036,6 @@ class TestColumnExpectations:
         if column_name.startswith('"') and column_name.endswith('"'):
             # databricks uses backticks for quoting
             column_name = quote_str(column_name[1:-1], dialect=dialect)
-
-        print(f"expectations_type:\n  {expectation_type}")
 
         schema: str | None = (
             RAND_SCHEMA
@@ -1089,7 +1081,8 @@ class TestColumnExpectations:
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))
         suite.add_expectation_configuration(
             expectation_configuration=ExpectationConfiguration(
-                type=expectation_type, kwargs={"column": column_name, **extra_exp_kwargs}
+                type="expect_column_values_to_match_regex",
+                kwargs={"column": column_name, "regex": r".*"},
             )
         )
         suite.save()
