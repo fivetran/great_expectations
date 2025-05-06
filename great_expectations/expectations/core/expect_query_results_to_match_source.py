@@ -79,11 +79,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         "source_query",
         "mostly",
     )
-    domain_keys: ClassVar[Tuple[str, ...]] = (
-        "batch_id",
-        "row_condition",
-        "condition_parser",
-    )
+    domain_keys: ClassVar[Tuple[str, ...]] = ("batch_id",)
 
     class Config:
         title = "Expect query results to match source"
