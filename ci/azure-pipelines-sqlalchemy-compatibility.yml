@@ -35,7 +35,7 @@ resources:
 stages:
   - stage: scope_check
     pool:
-      vmImage: "ubuntu-latest"
+      vmImage: "ubuntu-24.04"
     jobs:
       - job: changes
         steps:
@@ -63,7 +63,7 @@ stages:
   - stage: lint
     dependsOn: scope_check
     pool:
-      vmImage: "ubuntu-latest"
+      vmImage: "ubuntu-24.04"
 
     jobs:
       - job: lint
@@ -84,7 +84,7 @@ stages:
   - stage: import_ge
     dependsOn: scope_check
     pool:
-      vmImage: "ubuntu-latest"
+      vmImage: "ubuntu-24.04"
 
     jobs:
       - job: import_ge
@@ -106,7 +106,7 @@ stages:
   - stage: sqlalchemy_and_pandas_compatibility
     dependsOn: [scope_check, lint, import_ge]
     pool:
-      vmImage: "ubuntu-latest"
+      vmImage: "ubuntu-24.04"
 
     jobs:
       - job: compatibility_postgres
@@ -192,10 +192,14 @@ stages:
             displayName: "Update pip"
 
           - script: ./scripts/install_mssql_odbc_driver.sh
-            displayName: "Install mssql odbc driver"
+            displayName: "Install mssql odbc driver and mssql-tools"
 
           - script: |
-              sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;" -o create_db_output.txt
+              ./scripts/ls_path.sh
+            displayName: "List paths"
+
+          - script: |
+              /opt/mssql-tools18/bin/sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;" -o create_db_output.txt
             displayName: "Create mssql database"
 
           - script: |
