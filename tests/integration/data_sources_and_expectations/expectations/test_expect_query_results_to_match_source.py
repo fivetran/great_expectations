@@ -95,7 +95,7 @@ FAILURE_TEST_CASES = [
     pytest.param(
         "SELECT a FROM {batch} ORDER BY a",
         "SELECT b FROM {source_table} ORDER BY a",
-        id="column_mismatch",
+        id="column_value_mismatch",
     ),
     pytest.param(
         "SELECT * FROM {batch} LIMIT 0",
@@ -128,3 +128,20 @@ def test_expect_query_results_to_match_source_failure(
     )
     assert not result.success
     assert not result.exception_info["raised_exception"]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
+    target_data=TARGET_DATA,
+    source_data=SOURCE_DATA,
+)
+def test_expect_query_results_to_match_source_error(multi_source_batch: MultiSourceBatch):
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query="SELECT b FROM {batch}",
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT invalid_column FROM {multi_source_batch.source_table_name}",
+        )
+    )
+    assert not result.success
+    assert list(result.exception_info.values())[0]["raised_exception"]
