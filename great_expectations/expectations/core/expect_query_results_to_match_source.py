@@ -136,13 +136,16 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             # creates a hashmap with row values as key and count of duplicate rows as value
             target_results_with_dup_counts = Counter(tuple(row.values()) for row in target_results)
             source_results_with_dup_counts = Counter(tuple(row.values()) for row in source_results)
+            # decrements source row count values by target row count values
             source_results_with_dup_counts.subtract(target_results_with_dup_counts)
             missing_results = []
             unexpected_results = []
             for row, subtracted_count in source_results_with_dup_counts.items():
+                # if row was seen more in source than in target, it is missing
                 if subtracted_count > 0:
                     for _ in range(subtracted_count):
                         missing_results.append(row)
+                # if row was seen more in target than in source, it is unexpected
                 if subtracted_count < 0:
                     for _ in range(subtracted_count * -1):
                         unexpected_results.append(row)
