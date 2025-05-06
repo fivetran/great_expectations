@@ -195,7 +195,7 @@ stages:
             displayName: "Install mssql odbc driver and mssql-tools"
 
           - script: |
-              /opt/mssql-tools18/bin/sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;" -o create_db_output.txt
+              /opt/mssql-tools18/bin/sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;"
             displayName: "Create mssql database"
 
           - script: |
