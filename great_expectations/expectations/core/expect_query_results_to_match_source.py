@@ -121,8 +121,8 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         target_results = metrics["target_query.table"]
         source_results = metrics["source_query.data_source_table"]
 
-        target_set = {tuple(row.items()) for row in target_results}
-        source_set = {tuple(row.items()) for row in source_results}
+        target_set = {tuple(row.values()) for row in target_results}
+        source_set = {tuple(row.values()) for row in source_results}
 
         common_rows = target_set.intersection(source_set)
         all_rows = target_set.union(source_set)

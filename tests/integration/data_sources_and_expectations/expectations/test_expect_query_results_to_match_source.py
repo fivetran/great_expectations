@@ -32,13 +32,13 @@ from tests.integration.data_sources_and_expectations.data_sources.test_source_to
 
 SOURCE_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 
-TARGET_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+TARGET_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [4, 5, 6]})
 
 
 SUCCESS_TEST_CASES = [
     pytest.param(
-        "SELECT * FROM {batch} ORDER BY a, b",
-        "SELECT * FROM {source_table} ORDER BY a, b",
+        "SELECT a, b FROM {batch} ORDER BY a, b",
+        "SELECT a, b FROM {source_table} ORDER BY a, b",
         id="multiple_columns_multiple_rows",
     ),
     pytest.param(
@@ -50,6 +50,16 @@ SUCCESS_TEST_CASES = [
         "SELECT a, b FROM {batch} ORDER BY b LIMIT 1",
         "SELECT a, b FROM {source_table} ORDER BY b LIMIT 1",
         id="multiple_columns_one_row",
+    ),
+    pytest.param(
+        "SELECT a, b FROM {batch} LIMIT 0",
+        "SELECT a, b FROM {source_table} LIMIT 0",
+        id="both_results_are_empty",
+    ),
+    pytest.param(
+        "SELECT a, c FROM {batch} ORDER BY c",
+        "SELECT a, b FROM {source_table} ORDER BY b",
+        id="column_names_are_different",
     ),
 ]
 
@@ -86,6 +96,11 @@ FAILURE_TEST_CASES = [
         "SELECT a FROM {batch} ORDER BY a",
         "SELECT b FROM {source_table} ORDER BY a",
         id="column_mismatch",
+    ),
+    pytest.param(
+        "SELECT * FROM {batch} LIMIT 0",
+        "SELECT * FROM {source_table} ORDER BY a",
+        id="one_result_is_empty",
     ),
 ]
 
