@@ -100,13 +100,13 @@ def test_expect_query_results_to_match_source_failure_multiple_columns_multiple_
 ):
     result = multi_source_batch.target_batch.validate(
         gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT * FROM {batch} LIMIT 1",
+            target_query="SELECT * FROM {batch} LIMIT 2",
             source_data_source_name=multi_source_batch.source_data_source_name,
             source_query=f"SELECT * FROM {multi_source_batch.source_table_name}",
         )
     )
     assert not result.success
-    assert not result.exception_info
+    assert not result.exception_info["raised_exception"]
 
 
 @multi_source_batch_setup(
@@ -125,4 +125,4 @@ def test_expect_query_results_to_match_source_failure_multiple_columns_one_row(
         )
     )
     assert not result.success
-    assert result.exception_info
+    assert not result.exception_info["raised_exception"]

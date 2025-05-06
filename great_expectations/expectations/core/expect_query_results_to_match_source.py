@@ -121,16 +121,16 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         target_results = metrics["target_query.table"]
         source_results = metrics["source_query.data_source_table"]
 
-        target_set = {tuple(row) for row in target_results}
-        source_set = {tuple(row) for row in source_results}
+        target_set = {tuple(row.items()) for row in target_results}
+        source_set = {tuple(row.items()) for row in source_results}
 
         common_rows = target_set.intersection(source_set)
+        all_rows = target_set.union(source_set)
 
-        total_rows = len(target_set)
-        if total_rows == 0:
+        if len(all_rows) == 0:
             match_percentage = 100.0  # If there are no rows, consider it a perfect match
         else:
-            match_percentage = (len(common_rows) / total_rows) * 100.0
+            match_percentage = (len(common_rows) / len(all_rows)) * 100.0
 
         success_kwargs = self._get_success_kwargs()
         mostly = success_kwargs.get("mostly", 1)
