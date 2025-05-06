@@ -1,13 +1,33 @@
 import pandas as pd
 
 import great_expectations.expectations as gxe
+
+# from tests.integration.conftest import (
+#     MultiSourceBatch,
+#     multi_source_batch_setup,
+# )
+# from tests.integration.data_sources_and_expectations.data_sources.test_source_to_target import (
+#     ALL_SOURCE_TO_TARGET_SOURCES,
+# )
 from tests.integration.conftest import (
     MultiSourceBatch,
+    MultiSourceTestConfig,
     multi_source_batch_setup,
 )
-from tests.integration.data_sources_and_expectations.data_sources.test_source_to_target import (
-    ALL_SOURCE_TO_TARGET_SOURCES,
+from tests.integration.test_utils.data_source_config import (
+    PostgreSQLDatasourceTestConfig,
+    SqliteDatasourceTestConfig,
 )
+
+ALL_SOURCE_TO_TARGET_SOURCES = [
+    MultiSourceTestConfig(
+        source=PostgreSQLDatasourceTestConfig(), target=PostgreSQLDatasourceTestConfig()
+    ),
+    MultiSourceTestConfig(
+        source=PostgreSQLDatasourceTestConfig(),
+        target=SqliteDatasourceTestConfig(),
+    ),
+]
 
 SOURCE_DATA = pd.DataFrame({"a": [1, 2, 3]})
 

@@ -1,6 +1,8 @@
 from typing import ClassVar
 
-from great_expectations.expectations.metrics.query_metrics.query_row_count import QueryRowCount
+from great_expectations.expectations.metrics.query_metrics.query_row_count.query_row_count import (
+    QueryRowCount,
+)
 
 
 class UnexpectedRowsQueryRowCount(QueryRowCount):

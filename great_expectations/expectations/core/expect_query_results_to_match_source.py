@@ -68,8 +68,8 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
     mostly: MostlyField = 1
 
     metric_dependencies: ClassVar[Tuple[str, ...]] = (
-        "query.table",
-        "query.data_source_table",
+        "target_query.table",
+        "source_query.data_source_table",
     )
     success_keys: ClassVar[Tuple[str, ...]] = (
         "target_query",
@@ -118,8 +118,8 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         runtime_configuration: dict | None = None,
         execution_engine: ExecutionEngine | None = None,
     ) -> Union[ExpectationValidationResult, dict]:
-        target_results = metrics["query.table"]
-        source_results = metrics["query.data_source_table"]
+        target_results = metrics["target_query.table"]
+        source_results = metrics["source_query.data_source_table"]
 
         target_set = {tuple(row) for row in target_results}
         source_set = {tuple(row) for row in source_results}
