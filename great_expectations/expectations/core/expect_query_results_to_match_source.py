@@ -126,6 +126,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         source_result_count = len(source_results)
 
         if target_result_count + source_result_count == 0:
+            missing_count = 0
             unexpected_count = 0
             unexpected_percent = 0.0
         else:
@@ -151,8 +152,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             # a transformation occurred during copy from source to target use-case
             # e.g. if 1 row changes during table copy,
             #      there will be 1 missing row, and 1 unexpected row
-            unexpected_count = missing_count or unexpected_count
-            unexpected_percent = unexpected_count / source_result_count * 100
+            unexpected_percent = (missing_count or unexpected_count) / source_result_count * 100
 
         success_kwargs = self._get_success_kwargs()
         mostly = success_kwargs.get("mostly", 1)
@@ -164,6 +164,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             return {
                 "success": success,
                 "result": {
+                    "missing_count": missing_count,
                     "unexpected_count": unexpected_count,
                     "unexpected_percent": unexpected_percent,
                 },
