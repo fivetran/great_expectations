@@ -10,26 +10,6 @@ from tests.integration.data_sources_and_expectations.data_sources.test_source_to
     ALL_SOURCE_TO_TARGET_SOURCES,
 )
 
-# from tests.integration.conftest import (
-#     MultiSourceBatch,
-#     MultiSourceTestConfig,
-#     multi_source_batch_setup,
-# )
-# from tests.integration.test_utils.data_source_config import (
-#     PostgreSQLDatasourceTestConfig,
-#     SqliteDatasourceTestConfig,
-# )
-#
-# ALL_SOURCE_TO_TARGET_SOURCES = [
-#     MultiSourceTestConfig(
-#         source=PostgreSQLDatasourceTestConfig(), target=PostgreSQLDatasourceTestConfig()
-#     ),
-#     MultiSourceTestConfig(
-#         source=PostgreSQLDatasourceTestConfig(),
-#         target=SqliteDatasourceTestConfig(),
-#     ),
-# ]
-
 SOURCE_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 
 TARGET_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [4, 5, 6]})
