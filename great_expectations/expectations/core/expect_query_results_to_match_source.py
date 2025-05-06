@@ -138,23 +138,24 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             source_results_with_dup_counts = Counter(tuple(row.values()) for row in source_results)
             # decrements source row count values by target row count values
             source_results_with_dup_counts.subtract(target_results_with_dup_counts)
-            missing_results = []
-            unexpected_results = []
-            for row, subtracted_count in source_results_with_dup_counts.items():
+
+            missing_count = 0
+            unexpected_count = 0
+
+            for subtracted_count in source_results_with_dup_counts.values():
                 # if row was seen more in source than in target, it is missing
                 if subtracted_count > 0:
-                    for _ in range(subtracted_count):
-                        missing_results.append(row)
+                    missing_count += subtracted_count
                 # if row was seen more in target than in source, it is unexpected
-                if subtracted_count < 0:
-                    for _ in range(subtracted_count * -1):
-                        unexpected_results.append(row)
+                elif subtracted_count < 0:
+                    unexpected_count += -subtracted_count
+
             # we only consider "missing" records for failure calcs if they exist
             # this avoids double counting missing + unexpected when
             # a transformation occurred during copy from source to target use-case
             # e.g. if 1 row changes during table copy,
             #      there will be 1 missing row, and 1 unexpected row
-            unexpected_count = len(missing_results) or len(unexpected_results)
+            unexpected_count = missing_count or unexpected_count
             unexpected_percent = unexpected_count / source_result_count * 100
 
         success_kwargs = self._get_success_kwargs()
