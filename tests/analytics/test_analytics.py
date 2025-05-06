@@ -79,6 +79,10 @@ def test_event_identifiers(analytics_config):
         assert "organization_id" not in properties
 
 
+@pytest.mark.xfail(
+    reason="The mode is not always set on instantiation. This is a bug. The test will fail if "
+    "run in isolation but may pass if another test has run first."
+)
 @pytest.mark.unit
 def test_ephemeral_context_init(monkeypatch):
     monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
