@@ -1,6 +1,7 @@
 from .query_column import QueryColumn
 from .query_column_pair import QueryColumnPair
 from .query_data_source_table.source_query_data_source_table import SourceQueryDataSourceTable
+from .query_data_source_table.query_data_source_table import QueryDataSourceTable
 from .query_multiple_columns import QueryMultipleColumns
 from .query_row_count.query_row_count import QueryRowCount
 from .query_row_count.unexpected_rows_query_row_count import UnexpectedRowsQueryRowCount
