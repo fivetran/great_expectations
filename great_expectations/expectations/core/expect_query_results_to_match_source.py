@@ -126,7 +126,6 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         source_result_count = len(source_results)
 
         if target_result_count + source_result_count == 0:
-            missing_count = 0
             unexpected_count = 0
             unexpected_percent = 0.0
         else:
@@ -136,14 +135,17 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             # decrements source row count values by target row count values
             source_results_with_dup_counts.subtract(target_results_with_dup_counts)
 
+            # rows in source, but not target
+            # not the same as `missing_count` in result dict, which conflates missing with null
             missing_count = 0
+            # rows in target, but not source
             unexpected_count = 0
 
             for subtracted_count in source_results_with_dup_counts.values():
-                # if row was seen more in source than in target, it is missing
+                # if row was seen more in source than in target
                 if subtracted_count > 0:
                     missing_count += subtracted_count
-                # if row was seen more in target than in source, it is unexpected
+                # if row was seen more in target than in source
                 elif subtracted_count < 0:
                     unexpected_count += -subtracted_count
 
@@ -164,7 +166,6 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             return {
                 "success": success,
                 "result": {
-                    "missing_count": missing_count,
                     "unexpected_count": unexpected_count,
                     "unexpected_percent": unexpected_percent,
                 },
