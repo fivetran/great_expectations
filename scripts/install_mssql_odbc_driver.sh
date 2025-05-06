@@ -15,4 +15,3 @@ rm packages-microsoft-prod.deb
 
 sudo apt-get update
 sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
-sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18
