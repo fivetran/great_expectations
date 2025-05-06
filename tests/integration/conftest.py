@@ -8,6 +8,7 @@ from _pytest.mark import MarkDecorator
 
 import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 from tests.integration.test_utils.data_source_config import DataSourceTestConfig
@@ -157,12 +158,18 @@ def _cleanup(
         batch_setup.teardown()
 
 
+@pytest.fixture(scope="session")
+def _context() -> AbstractDataContext:
+    return gx.get_context(mode="ephemeral")
+
+
 @pytest.fixture
 def _batch_setup_for_datasource(
     request: pytest.FixtureRequest,
     _cached_test_configs: dict[TestConfig, BatchTestSetup],
     _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
     _cleanup,
+    _context: AbstractDataContext,
 ) -> Generator[BatchTestSetup, None, None]:
     """Fixture that yields a BatchSetup for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
@@ -175,7 +182,7 @@ def _batch_setup_for_datasource(
             request=request,
             data=config.data,
             extra_data=config.extra_data,
-            context=gx.get_context(mode="ephemeral"),
+            context=_context,
         )
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
