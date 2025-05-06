@@ -195,7 +195,7 @@ stages:
             displayName: "Install mssql odbc driver"
 
           - script: |
-              sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;"
+              sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;" -C
             displayName: "Create mssql database"
 
           - script: |
