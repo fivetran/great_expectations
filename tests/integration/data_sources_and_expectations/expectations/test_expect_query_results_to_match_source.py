@@ -137,38 +137,41 @@ def test_expect_query_results_to_match_source_failure(
     assert not result.exception_info["raised_exception"]
 
 
-DUP_FAILURE_TEST_CASES = [
-    pytest.param(
-        "SELECT * FROM {batch} ORDER BY a DESC LIMIT 3",
-        "SELECT * FROM {source_table}",
-        id="duplicate_rows_in_source",
-    ),
-]
-
-
-@pytest.mark.parametrize(
-    "target_query,source_query",
-    DUP_FAILURE_TEST_CASES,
-)
 @multi_source_batch_setup(
     multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
     target_data=TARGET_DATA_WITH_DUPS,
     source_data=SOURCE_DATA_WITH_DUPS,
 )
-def test_expect_query_results_to_match_source_dups_failure(
-    multi_source_batch: MultiSourceBatch, target_query: str, source_query: str
-):
+def test_expect_query_results_to_match_source_dups_success(multi_source_batch: MultiSourceBatch):
     result = multi_source_batch.target_batch.validate(
         gxe.ExpectQueryResultsToMatchSource(
-            target_query=target_query,
+            target_query="SELECT * FROM {batch} ORDER BY a",
             source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=source_query.replace(
-                "{source_table}", multi_source_batch.source_table_name
-            ),
+            source_query=f"SELECT * FROM {multi_source_batch.source_table_name} ORDER BY a",
+        )
+    )
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+    assert result.result["unexpected_percent"] == 0.0
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
+    target_data=TARGET_DATA_WITH_DUPS,
+    source_data=SOURCE_DATA_WITH_DUPS,
+)
+def test_expect_query_results_to_match_source_dups_failure(multi_source_batch: MultiSourceBatch):
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query="SELECT * FROM {batch} ORDER BY a DESC LIMIT 3",  # exclude one dup
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT * FROM {multi_source_batch.source_table_name}",
         )
     )
     assert not result.success
     assert not result.exception_info["raised_exception"]
+    assert result.result["unexpected_count"] == 1
+    assert result.result["unexpected_percent"] == 25.0
 
 
 @multi_source_batch_setup(

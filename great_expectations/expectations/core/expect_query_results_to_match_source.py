@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.result_format import ResultFormat
 from great_expectations.expectations.expectation import BatchExpectation
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import MOSTLY_DESCRIPTION
@@ -119,44 +120,51 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         runtime_configuration: dict | None = None,
         execution_engine: ExecutionEngine | None = None,
     ) -> Union[ExpectationValidationResult, dict]:
+        result_format: str | dict[str, Any] = self._get_result_format(
+            runtime_configuration=runtime_configuration
+        )
+
         target_results = metrics["target_query.table"]
         target_result_count = len(target_results)
         source_results = metrics["source_query.data_source_table"]
         source_result_count = len(source_results)
 
         if target_result_count + source_result_count == 0:
-            matching_row_count = 0
-            match_percentage = 100.0  # If there are no rows, consider it a perfect match
+            unexpected_count = 0
+            unexpected_percent = 0.0
         else:
             # creates a hashmap with row values as key and count of duplicate rows as value
             target_results_with_dup_counts = Counter(tuple(row.values()) for row in target_results)
             source_results_with_dup_counts = Counter(tuple(row.values()) for row in source_results)
             source_results_with_dup_counts.subtract(target_results_with_dup_counts)
-            unexpected_results = []
             missing_results = []
+            unexpected_results = []
             for row, subtracted_count in source_results_with_dup_counts.items():
                 if subtracted_count > 0:
                     for _ in range(subtracted_count):
                         missing_results.append(row)
-                elif subtracted_count < 0:
+                if subtracted_count < 0:
                     for _ in range(subtracted_count * -1):
                         unexpected_results.append(row)
-            matching_row_count = source_result_count - (
-                len(missing_results) + len(unexpected_results)
-            )
-            match_percentage = (matching_row_count / source_result_count) * 100.0
+            # we only consider "missing" records for failure calcs if they exist
+            # this avoids double counting missing + unexpected when
+            # a transformation occurred during copy from source to target use-case
+            # e.g. if 1 row changes during table copy,
+            #      there will be 1 missing row, and 1 unexpected row
+            unexpected_count = len(missing_results) or len(unexpected_results)
+            unexpected_percent = unexpected_count / source_result_count * 100
 
         success_kwargs = self._get_success_kwargs()
         mostly = success_kwargs.get("mostly", 1)
+        success = (100 - unexpected_percent) >= (mostly * 100)
 
-        return {
-            "success": match_percentage >= (mostly * 100),
-            "result": {
-                "observed_value": match_percentage,
-                "details": {
-                    "target_row_count": target_result_count,
-                    "source_row_count": source_result_count,
-                    "matching_row_count": matching_row_count,
+        if result_format == ResultFormat.BOOLEAN_ONLY:
+            return {"success": success}
+        else:
+            return {
+                "success": success,
+                "result": {
+                    "unexpected_count": unexpected_count,
+                    "unexpected_percent": unexpected_percent,
                 },
-            },
-        }
+            }
