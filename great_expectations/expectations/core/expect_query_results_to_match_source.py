@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import Counter
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
@@ -119,18 +120,31 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         execution_engine: ExecutionEngine | None = None,
     ) -> Union[ExpectationValidationResult, dict]:
         target_results = metrics["target_query.table"]
+        target_result_count = len(target_results)
         source_results = metrics["source_query.data_source_table"]
+        source_result_count = len(source_results)
 
-        target_set = {tuple(row.values()) for row in target_results}
-        source_set = {tuple(row.values()) for row in source_results}
-
-        common_rows = target_set.intersection(source_set)
-        all_rows = target_set.union(source_set)
-
-        if len(all_rows) == 0:
+        if target_result_count + source_result_count == 0:
+            matching_row_count = 0
             match_percentage = 100.0  # If there are no rows, consider it a perfect match
         else:
-            match_percentage = (len(common_rows) / len(all_rows)) * 100.0
+            # creates a hashmap with row values as key and count of duplicate rows as value
+            target_results_with_dup_counts = Counter(tuple(row.values()) for row in target_results)
+            source_results_with_dup_counts = Counter(tuple(row.values()) for row in source_results)
+            source_results_with_dup_counts.subtract(target_results_with_dup_counts)
+            unexpected_results = []
+            missing_results = []
+            for row, subtracted_count in source_results_with_dup_counts.items():
+                if subtracted_count > 0:
+                    for _ in range(subtracted_count):
+                        missing_results.append(row)
+                elif subtracted_count < 0:
+                    for _ in range(subtracted_count * -1):
+                        unexpected_results.append(row)
+            matching_row_count = source_result_count - (
+                len(missing_results) + len(unexpected_results)
+            )
+            match_percentage = (matching_row_count / source_result_count) * 100.0
 
         success_kwargs = self._get_success_kwargs()
         mostly = success_kwargs.get("mostly", 1)
@@ -140,9 +154,9 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             "result": {
                 "observed_value": match_percentage,
                 "details": {
-                    "target_row_count": len(target_set),
-                    "source_row_count": len(source_set),
-                    "matching_row_count": len(common_rows),
+                    "target_row_count": target_result_count,
+                    "source_row_count": source_result_count,
+                    "matching_row_count": matching_row_count,
                 },
             },
         }

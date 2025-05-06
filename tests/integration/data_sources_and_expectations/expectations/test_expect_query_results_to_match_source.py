@@ -34,6 +34,10 @@ SOURCE_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 
 TARGET_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [4, 5, 6]})
 
+SOURCE_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
+
+TARGET_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
+
 
 SUCCESS_TEST_CASES = [
     pytest.param(
@@ -118,6 +122,40 @@ FAILURE_TEST_CASES = [
     source_data=SOURCE_DATA,
 )
 def test_expect_query_results_to_match_source_failure(
+    multi_source_batch: MultiSourceBatch, target_query: str, source_query: str
+):
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query=target_query,
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=source_query.replace(
+                "{source_table}", multi_source_batch.source_table_name
+            ),
+        )
+    )
+    assert not result.success
+    assert not result.exception_info["raised_exception"]
+
+
+DUP_FAILURE_TEST_CASES = [
+    pytest.param(
+        "SELECT * FROM {batch} ORDER BY a DESC LIMIT 3",
+        "SELECT * FROM {source_table}",
+        id="duplicate_rows_in_source",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "target_query,source_query",
+    DUP_FAILURE_TEST_CASES,
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
+    target_data=TARGET_DATA_WITH_DUPS,
+    source_data=SOURCE_DATA_WITH_DUPS,
+)
+def test_expect_query_results_to_match_source_dups_failure(
     multi_source_batch: MultiSourceBatch, target_query: str, source_query: str
 ):
     result = multi_source_batch.target_batch.validate(
