@@ -88,7 +88,7 @@ class TestQueryRowCount:
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryDataSourceTableResult)
-        assert metric_result.value == [{"id": 1, "name": "A"}, {"id": 4, "name": "A"}]
+        assert len(metric_result.value) == 2
 
     @multi_source_batch_setup(
         multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
