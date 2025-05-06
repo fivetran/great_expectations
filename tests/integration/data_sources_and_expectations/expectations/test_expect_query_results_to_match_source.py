@@ -59,7 +59,7 @@ SUCCESS_TEST_CASES = [
     pytest.param(
         "SELECT a, c FROM {batch} ORDER BY c",
         "SELECT a, b FROM {source_table} ORDER BY b",
-        id="column_names_are_different",
+        id="column_names_different_values_the_same",
     ),
 ]
 
@@ -89,6 +89,9 @@ def test_expect_query_results_to_match_source_success(
 
 
 FAILURE_TEST_CASES = [
+    pytest.param(
+        "SELECT * FROM {batch}", "SELECT * FROM {source_table}", id="duplicate_values_across_rows"
+    ),
     pytest.param(
         "SELECT * FROM {batch} LIMIT 2", "SELECT * FROM {source_table}", id="row_count_mismatch"
     ),
