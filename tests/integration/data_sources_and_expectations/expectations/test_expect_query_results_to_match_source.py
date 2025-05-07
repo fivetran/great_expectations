@@ -4,11 +4,20 @@ import pytest
 import great_expectations.expectations as gxe
 from tests.integration.conftest import (
     MultiSourceBatch,
+    MultiSourceTestConfig,
     multi_source_batch_setup,
 )
 from tests.integration.data_sources_and_expectations.data_sources.test_source_to_target import (
     ALL_SOURCE_TO_TARGET_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import SqliteDatasourceTestConfig
+
+SQLITE_ONLY = [
+    MultiSourceTestConfig(
+        source=SqliteDatasourceTestConfig(),
+        target=SqliteDatasourceTestConfig(),
+    )
+]
 
 SOURCE_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 
@@ -17,6 +26,14 @@ TARGET_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [4, 5, 6]})
 SOURCE_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
 
 TARGET_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
+
+MAX_LENGTH_TARGET_DATA = pd.DataFrame(
+    {"a": [idx for idx in range(300)][100:], "b": [idx for idx in range(400)][200:]}
+)
+
+MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
+    {"a": [idx for idx in range(200)], "b": [idx for idx in range(300)][100:]}
+)
 
 
 @pytest.mark.parametrize(
@@ -123,7 +140,7 @@ def test_expect_query_results_to_match_source_failure(
     ],
 )
 @multi_source_batch_setup(
-    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
+    multi_source_test_configs=SQLITE_ONLY,
     target_data=TARGET_DATA,
     source_data=SOURCE_DATA,
 )
@@ -172,6 +189,92 @@ def test_expect_query_results_to_match_source_dups_failure(multi_source_batch: M
     )
     assert not result.success
     assert not result.exception_info["raised_exception"]
+
+
+@pytest.mark.parametrize(
+    "target_query,source_query,unexpected_percent,unexpected_count",
+    [
+        pytest.param(
+            "SELECT * FROM {batch} ORDER BY a LIMIT 100",  # 100 records
+            "SELECT * FROM {source_table} WHERE a >= 100 ORDER BY a",  # 100 records
+            0,
+            0,
+            id="only_match",
+        ),
+        pytest.param(
+            "SELECT * FROM {batch}",  # 200 records (half match)
+            "SELECT * FROM {source_table} WHERE a >= 100",  # 100 records
+            50,
+            100,
+            id="match_and_unexpected",
+        ),
+        pytest.param(
+            "SELECT * FROM {batch} ORDER BY a LIMIT 100",  # 100 records
+            "SELECT * FROM {source_table}",  # 200 records (half match)
+            50,
+            100,
+            id="match_and_missing",
+        ),
+        pytest.param(
+            "SELECT * FROM {batch} ORDER BY a DESC LIMIT 100",  # 100 different records
+            "SELECT * FROM {source_table} ORDER BY a LIMIT 100",  # 100 records
+            100,
+            100,
+            id="missing_and_unexpected",
+        ),
+        pytest.param(
+            "SELECT * FROM {batch}",  # 200 records (half match)
+            "SELECT * FROM {source_table}",  # 200 records
+            50,
+            100,
+            id="match_and_missing_and_unexpected",
+        ),
+        pytest.param(
+            "SELECT * FROM {batch}",  # 200 records
+            "SELECT * FROM {source_table} ORDER BY a LIMIT 100",  # 100 different records
+            100,
+            200,
+            id="only_unexpected",
+        ),
+        pytest.param(
+            "SELECT * FROM {batch} ORDER BY a DESC LIMIT 100",  # 100 records
+            "SELECT * FROM {source_table} LIMIT 0",  # 0 records
+            100,
+            100,
+            id="only_missing",
+        ),
+        pytest.param(
+            "SELECT * FROM {batch} LIMIT 0",  # 0 records
+            "SELECT * FROM {source_table} LIMIT 0",  # 0 records
+            0,
+            0,
+            id="nothing_to_compare",
+        ),
+    ],
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    target_data=MAX_LENGTH_TARGET_DATA,
+    source_data=MAX_LENGTH_SOURCE_DATA,
+)
+def test_expect_query_results_to_match_source_unexpected_percent(
+    multi_source_batch: MultiSourceBatch,
+    target_query: str,
+    source_query: str,
+    unexpected_percent: float,
+    unexpected_count: int,
+):
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query=target_query,
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=source_query.replace(
+                "{source_table}", multi_source_batch.source_table_name
+            ),
+        )
+    )
+    assert result.result["unexpected_percent"] == unexpected_percent
+    assert result.result["unexpected_count"] == unexpected_count
 
 
 @multi_source_batch_setup(
