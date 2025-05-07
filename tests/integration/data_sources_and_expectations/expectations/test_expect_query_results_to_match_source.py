@@ -29,11 +29,15 @@ SOURCE_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
 TARGET_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
 
 MAX_LENGTH_TARGET_DATA = pd.DataFrame(
-    {"a": [idx for idx in range(100, 300)], "b": [idx for idx in range(200, 400)]}
+    {
+        "a": [idx for idx in range(100, 300)],
+    }
 )
 
 MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
-    {"a": [idx for idx in range(0, 200)], "b": [idx for idx in range(100, 300)]}
+    {
+        "a": [idx for idx in range(0, 200)],
+    }
 )
 
 TOO_BIG_DATA = pd.DataFrame(
