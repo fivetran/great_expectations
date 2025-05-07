@@ -170,11 +170,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                 ):
                     match_count += source_results_frequency_map[row] - subtracted_count
 
-            # we only consider "missing" records for failure calcs if they exist
-            # this avoids double counting missing + unexpected when
-            # a transformation occurred during copy from source to target use-case
-            # e.g. if 1 row changes during table copy,
-            #      there will be 1 missing row, and 1 unexpected row
+            # see docstring for explanation of why we use max of source or target here
             unexpected_count = max(source_result_count, target_result_count) - match_count
             unexpected_percent = (
                 1 - (match_count / max(source_result_count, target_result_count))
