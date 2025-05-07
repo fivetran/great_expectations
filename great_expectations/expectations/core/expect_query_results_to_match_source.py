@@ -42,8 +42,15 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
 
     ExpectQueryResultsToMatchSource executes one SQL query for each of \
     two Data Sources and compares their results. It validates that the results from \
-    the current Data Asset's query matches those from the source Data Source's query \
+    the current Data Source's query matches those from the source Data Source's query, \
     above a specified threshold.
+
+    - Each record returned by the `target_query` will be compared to each record \
+      returned by the `source_query`.
+    - The maximum number of records that will be returned for comparison from \
+      each query is 200.
+    - The order of records returned does not matter unless \
+      the number of records returned would be greater than 200.
 
     Args:
         target_query (str): {TARGET_QUERY_DESCRIPTION}
