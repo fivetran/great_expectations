@@ -226,15 +226,15 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
             id="nothing_to_compare",
         ),
         pytest.param(
-            "SELECT has_dups FROM {batch}",
-            "SELECT has_dups FROM {source_table}",
+            "SELECT has_dups FROM {batch}",  # 4 records (2 are dups)
+            "SELECT has_dups FROM {source_table}",  # same 4 records
             0,
             0,
             id="has_dups_success",
         ),
         pytest.param(
-            "SELECT no_dups FROM {batch}",
-            "SELECT has_dups FROM {source_table}",
+            "SELECT no_dups FROM {batch}",  # 3 records (no dups)
+            "SELECT has_dups FROM {source_table}",  # same 3 records + 1 dup
             1,
             25,
             id="has_dups_failure",
