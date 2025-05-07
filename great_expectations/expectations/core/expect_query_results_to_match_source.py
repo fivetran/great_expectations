@@ -29,7 +29,6 @@ SOURCE_DATA_SOURCE_NAME_DESCRIPTION = (
 SOURCE_QUERY_DESCRIPTION = "A SQL query to be executed for the source Data Source."
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.POSTGRESQL.value,
-    SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,
     SupportedDataSources.REDSHIFT.value,
@@ -86,7 +85,6 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
-        [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
     """

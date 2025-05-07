@@ -6,7 +6,6 @@ from tests.integration.conftest import (
     multi_source_batch_setup,
 )
 from tests.integration.test_utils.data_source_config import (
-    BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
     RedshiftDatasourceTestConfig,
@@ -46,14 +45,6 @@ ALL_SOURCE_TO_TARGET_SOURCES = [
     ),
     MultiSourceTestConfig(
         source=RedshiftDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
-    ),
-    MultiSourceTestConfig(
-        source=BigQueryDatasourceTestConfig(),
-        target=BigQueryDatasourceTestConfig(),
-    ),
-    MultiSourceTestConfig(
-        source=BigQueryDatasourceTestConfig(),
         target=SqliteDatasourceTestConfig(),
     ),
 ]
