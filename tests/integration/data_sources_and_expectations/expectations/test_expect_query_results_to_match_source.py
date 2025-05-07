@@ -267,7 +267,7 @@ def test_expect_query_results_to_match_source_unexpected_percent(
     assert result.result["unexpected_count"] == unexpected_count
 
 
-TOO_BIG_DATA = pd.DataFrame({"a": list(range(0, 400)), "b": list(range(100, 500))})
+TOO_BIG_DATA = pd.DataFrame({"a": list(range(0, 500)), "b": list(range(100, 600))})
 
 
 @multi_source_batch_setup(
@@ -294,7 +294,7 @@ def test_expect_query_results_to_match_source_limit(multi_source_batch: MultiSou
         )
     )
     assert not result.success
-    assert result.result["unexpected_count"] == len(TOO_BIG_DATA) - MAX_RESULT_RECORDS
+    assert result.result["unexpected_count"] == MAX_RESULT_RECORDS
 
 
 @multi_source_batch_setup(
