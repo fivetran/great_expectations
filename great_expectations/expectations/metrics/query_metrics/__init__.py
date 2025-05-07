@@ -1,5 +1,6 @@
 from .query_column import QueryColumn
 from .query_column_pair import QueryColumnPair
+from .query_data_source_table import QueryDataSourceTable
 from .query_multiple_columns import QueryMultipleColumns
 from .query_row_count import QueryRowCount
 from .query_table import QueryTable

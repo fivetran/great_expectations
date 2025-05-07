@@ -8,5 +8,7 @@ class SampleValuesResult(MetricResult[pd.DataFrame]): ...
 
 
 class SampleValues(BatchMetric[SampleValuesResult]):
+    """Sample rows from a table"""
+
     name = "table.head"
     n_rows: int = 10

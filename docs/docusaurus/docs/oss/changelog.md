@@ -14,6 +14,39 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.4.2
+* [FEATURE] Changes to Redshift `connection_string` validator to support a dict type ([#11119](https://github.com/great-expectations/great_expectations/pull/11119))
+* [FEATURE] expectations: redshift support ([#11128](https://github.com/great-expectations/great_expectations/pull/11128))
+* [DOCS] make try gx core code sample match descriptive text ([#11129](https://github.com/great-expectations/great_expectations/pull/11129))
+* [DOCS] hide broken table of contents ([#11130](https://github.com/great-expectations/great_expectations/pull/11130))
+* [MAINTENANCE] Add Galina to core devs. Remove others. ([#11117](https://github.com/great-expectations/great_expectations/pull/11117))
+* [MAINTENANCE] Add metric docstrings and fix import paths ([#11118](https://github.com/great-expectations/great_expectations/pull/11118))
+* [MAINTENANCE] Update type packaging ([#11115](https://github.com/great-expectations/great_expectations/pull/11115))
+* [MAINTENANCE] Improve `MetricErrorResult` and `Batch.compute_metrics()` API typing ([#11127](https://github.com/great-expectations/great_expectations/pull/11127))
+
+### 1.4.1
+* [FEATURE] Allow user to provide connection details to connect to Redshift ([#11105](https://github.com/great-expectations/great_expectations/pull/11105))
+* [FEATURE] Add `ColumnDescriptiveStats` metric ([#11108](https://github.com/great-expectations/great_expectations/pull/11108))
+* [BUGFIX] MicrosoftTeamsNotificationAction failing with 400 Bad Request ([#11106](https://github.com/great-expectations/great_expectations/pull/11106)) (thanks @jwalant-dattani)
+* [BUGFIX] expect_column_values_to_be_between allows both min/max values to be None or empty strings ([#11102](https://github.com/great-expectations/great_expectations/pull/11102))
+* [BUGFIX] redshift: prevent runtime TypeError ([#11112](https://github.com/great-expectations/great_expectations/pull/11112))
+* [MAINTENANCE] Cleanup metrics package ([#11109](https://github.com/great-expectations/great_expectations/pull/11109))
+
+### 1.4.0
+* [FEATURE] Add `ColumnSampleValues` metric ([#11083](https://github.com/great-expectations/great_expectations/pull/11083))
+* [FEATURE] Add Redshift to SUPPORTED_DATA_SOURCES where appropriate ([#11084](https://github.com/great-expectations/great_expectations/pull/11084))
+* [FEATURE] Add gx-redshift extra ([#11092](https://github.com/great-expectations/great_expectations/pull/11092))
+* [FEATURE] Add `ColumnValuesMatchRegexCount` metric ([#11091](https://github.com/great-expectations/great_expectations/pull/11091))
+* [BUGFIX] Expectations fail validation when using sets/tuples as value_set due to JSON serialization ([#11082](https://github.com/great-expectations/great_expectations/pull/11082)) (thanks @gyermich)
+* [DOCS] update schedule instructions ([#11080](https://github.com/great-expectations/great_expectations/pull/11080))
+* [DOCS] Fix default gx directory in docstring ([#11077](https://github.com/great-expectations/great_expectations/pull/11077))
+* [MAINTENANCE] Improve PostHog pageview tracking in docs ([#11087](https://github.com/great-expectations/great_expectations/pull/11087))
+* [MAINTENANCE] Add ColumnDistinctValues metric ([#11081](https://github.com/great-expectations/great_expectations/pull/11081))
+* [MAINTENANCE] Type narrowing on compute_metrics with a single metric ([#11089](https://github.com/great-expectations/great_expectations/pull/11089))
+* [MAINTENANCE] Implement ColumnValuesMatchRegexValues metric ([#11088](https://github.com/great-expectations/great_expectations/pull/11088))
+* [MAINTENANCE] Implement ColumnValuesNotMatchRegexValues metric ([#11096](https://github.com/great-expectations/great_expectations/pull/11096))
+* [MAINTENANCE] Run gx-sqlalchemy-redshift tests. ([#11094](https://github.com/great-expectations/great_expectations/pull/11094))
+
 ### 1.3.14
 * [FEATURE] Fix ExpectColumnValuesToBeOfType bug and also work with sqla2 ([#11062](https://github.com/great-expectations/great_expectations/pull/11062))
 * [FEATURE] Add gx-redshift extra dependency ([#11063](https://github.com/great-expectations/great_expectations/pull/11063))

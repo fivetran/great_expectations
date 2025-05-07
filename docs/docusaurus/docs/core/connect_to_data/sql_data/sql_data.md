@@ -18,11 +18,12 @@ To connect to your SQL data, you first create a Data Source which tells GX where
 
 GX supports the following SQL dialects:
 
-- PostgreSQL
-- SQLite
-- Snowflake
-- Databricks SQL
 - BigQuery SQL
+- Databricks SQL
+- PostgreSQL
+- Redshift
+- Snowflake
+- SQLite
 
 All other SQL dialects are handled through the python module `SQLAlchemy`.  You can find more information on the dialects supported by `SQLAlchemy` on their [dialects](https://docs.sqlalchemy.org/en/20/dialects/index.html) page.
 

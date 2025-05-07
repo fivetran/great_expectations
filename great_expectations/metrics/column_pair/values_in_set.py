@@ -11,5 +11,7 @@ class ColumnPairValuesInSetUnexpectedCountResult(MetricResult[int]): ...
 class ColumnPairValuesInSetUnexpectedCount(
     ColumnPairMetric[ColumnPairValuesInSetUnexpectedCountResult]
 ):
+    """Count of values in a column pair that are not in the set of expected values"""
+
     name = f"column_pair_values.in_set.{MetricNameSuffix.UNEXPECTED_COUNT.value}"
     value_pairs_set: set[tuple[Any, Any]]

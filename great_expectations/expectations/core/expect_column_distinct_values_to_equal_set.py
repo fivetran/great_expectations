@@ -8,7 +8,7 @@ from great_expectations.expectations.expectation import (
     parse_value_to_observed_type,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     VALUE_SET_DESCRIPTION,
@@ -46,16 +46,16 @@ if TYPE_CHECKING:
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the set of distinct column values to equal a given set."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-    "Redshift",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
