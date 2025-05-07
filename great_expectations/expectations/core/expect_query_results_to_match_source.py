@@ -166,7 +166,8 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             match_count = 0
             for row, subtracted_count in count_in_source_not_target.items():
                 # if subtracted count is negative, there are more in target than source
-                # we ignore the extras by taking the max of subtracted_count and 0
+                # we ignore the extras for computing match_count
+                # by taking the max of subtracted_count and 0
                 if (
                     row in source_results_frequency_map
                     and max(subtracted_count, 0) < source_results_frequency_map[row]
