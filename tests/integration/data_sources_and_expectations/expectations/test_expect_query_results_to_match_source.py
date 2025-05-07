@@ -77,7 +77,9 @@ FAILURE_TEST_CASES = [
         "SELECT * FROM {batch}", "SELECT * FROM {source_table}", id="duplicate_values_across_rows"
     ),
     pytest.param(
-        "SELECT * FROM {batch} LIMIT 2", "SELECT * FROM {source_table}", id="row_count_mismatch"
+        "SELECT a, b FROM {batch} LIMIT 2",
+        "SELECT a, b FROM {source_table}",
+        id="row_count_mismatch",
     ),
     pytest.param(
         "SELECT a FROM {batch} ORDER BY a",
@@ -115,6 +117,35 @@ def test_expect_query_results_to_match_source_failure(
     )
     assert not result.success
     assert not result.exception_info["raised_exception"]
+
+
+MOSTLY_TEST_CASES = [
+    pytest.param(0.9, False, id="mostly_failure"),
+    pytest.param(0.5, True, id="mostly_success"),
+]
+
+
+@pytest.mark.parametrize(
+    "mostly,success",
+    MOSTLY_TEST_CASES,
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
+    target_data=TARGET_DATA,
+    source_data=SOURCE_DATA,
+)
+def test_expect_query_results_to_match_source_mostly(
+    multi_source_batch: MultiSourceBatch, mostly: float, success: bool
+):
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query="SELECT a, b FROM {batch} LIMIT 2",
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT a, b FROM {multi_source_batch.source_table_name}",
+            mostly=mostly,
+        )
+    )
+    assert result.success is success
 
 
 @multi_source_batch_setup(
