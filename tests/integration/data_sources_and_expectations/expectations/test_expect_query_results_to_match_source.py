@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from tests.integration.conftest import (
     MultiSourceBatch,
     MultiSourceTestConfig,
@@ -33,6 +34,10 @@ MAX_LENGTH_TARGET_DATA = pd.DataFrame(
 
 MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
     {"a": [idx for idx in range(200)], "b": [idx for idx in range(300)][100:]}
+)
+
+TOO_BIG_DATA = pd.DataFrame(
+    {"a": [idx for idx in range(400)], "b": [idx for idx in range(500)][100:]}
 )
 
 
@@ -275,6 +280,33 @@ def test_expect_query_results_to_match_source_unexpected_percent(
     )
     assert result.result["unexpected_percent"] == unexpected_percent
     assert result.result["unexpected_count"] == unexpected_count
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    target_data=TOO_BIG_DATA,
+    source_data=TOO_BIG_DATA,
+)
+def test_expect_query_results_to_match_source_limit(multi_source_batch: MultiSourceBatch):
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query="SELECT * FROM {batch} ORDER BY a",
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT * FROM {multi_source_batch.source_table_name} ORDER BY a",
+        )
+    )
+    assert result.success
+    assert result.result["unexpected_count"] == 0
+
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query="SELECT * FROM {batch} ORDER BY a",
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT * FROM {multi_source_batch.source_table_name} ORDER BY a DESC",
+        )
+    )
+    assert not result.success
+    assert result.result["unexpected_count"] == len(TOO_BIG_DATA) - MAX_RESULT_RECORDS
 
 
 @multi_source_batch_setup(
