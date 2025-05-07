@@ -130,18 +130,18 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             unexpected_percent = 0.0
         else:
             # creates a hashmap with row values as key and count of duplicate rows as value
-            target_results_with_dup_counts = Counter(tuple(row.values()) for row in target_results)
-            source_results_with_dup_counts = Counter(tuple(row.values()) for row in source_results)
+            target_results_frequency_map = Counter(tuple(row.values()) for row in target_results)
+            source_results_frequency_map = Counter(tuple(row.values()) for row in source_results)
             # decrements source row count values by target row count values
-            count_in_source_not_target = source_results_with_dup_counts.copy()
-            count_in_source_not_target.subtract(target_results_with_dup_counts)
+            count_in_source_not_target = source_results_frequency_map.copy()
+            count_in_source_not_target.subtract(target_results_frequency_map)
 
             match_count = 0
 
             for row, subtracted_count in count_in_source_not_target.items():
                 # if row was seen more in source than in target
                 if subtracted_count == 0:
-                    match_count += source_results_with_dup_counts[row]
+                    match_count += source_results_frequency_map[row]
 
             # we only consider "missing" records for failure calcs if they exist
             # this avoids double counting missing + unexpected when
