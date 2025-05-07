@@ -267,9 +267,7 @@ def test_expect_query_results_to_match_source_unexpected_percent(
     assert result.result["unexpected_count"] == unexpected_count
 
 
-TOO_BIG_DATA = pd.DataFrame(
-    {"a": [idx for idx in range(0, 400)], "b": [idx for idx in range(100, 500)]}
-)
+TOO_BIG_DATA = pd.DataFrame({"a": list(range(0, 400)), "b": list(range(100, 500))})
 
 
 @multi_source_batch_setup(
