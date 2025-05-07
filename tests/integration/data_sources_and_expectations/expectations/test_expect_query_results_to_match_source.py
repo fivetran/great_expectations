@@ -29,15 +29,15 @@ SOURCE_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
 TARGET_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
 
 MAX_LENGTH_TARGET_DATA = pd.DataFrame(
-    {"a": [idx for idx in range(300)][100:], "b": [idx for idx in range(400)][200:]}
+    {"a": [idx for idx in range(100, 300)], "b": [idx for idx in range(200, 400)]}
 )
 
 MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
-    {"a": [idx for idx in range(200)], "b": [idx for idx in range(300)][100:]}
+    {"a": [idx for idx in range(0, 200)], "b": [idx for idx in range(100, 300)]}
 )
 
 TOO_BIG_DATA = pd.DataFrame(
-    {"a": [idx for idx in range(400)], "b": [idx for idx in range(500)][100:]}
+    {"a": [idx for idx in range(0, 400)], "b": [idx for idx in range(100, 500)]}
 )
 
 
@@ -194,6 +194,7 @@ def test_expect_query_results_to_match_source_dups_failure(multi_source_batch: M
     )
     assert not result.success
     assert not result.exception_info["raised_exception"]
+    assert result.result["unexpected_percent"] == 25.0
 
 
 @pytest.mark.parametrize(

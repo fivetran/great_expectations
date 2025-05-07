@@ -166,9 +166,8 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             match_count = 0
 
             for row, subtracted_count in count_in_source_not_target.items():
-                # if row was seen more in source than in target
-                if subtracted_count == 0:
-                    match_count += source_results_frequency_map[row]
+                if subtracted_count < source_results_frequency_map[row]:
+                    match_count += source_results_frequency_map[row] - subtracted_count
 
             # we only consider "missing" records for failure calcs if they exist
             # this avoids double counting missing + unexpected when
