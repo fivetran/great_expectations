@@ -32,6 +32,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,
     SupportedDataSources.REDSHIFT.value,
+    SupportedDataSources.SQLITE.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.MULTI_ASSET.value]
 
@@ -85,6 +86,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
     """
