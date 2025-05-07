@@ -52,6 +52,26 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
     - The order of records returned does not matter unless \
       the number of records returned would be greater than 200.
 
+    Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
+    to determine pass/fail.
+        e.g. `unexpected_percent` = 10%, `mostly` = 80%, (100% - 10%) > 80% - pass
+             `unexpected_percent` = 10%, `mostly` = 91%, (100% - 10%) < 91% - fail
+
+
+    The Match Percentage is computed by dividing the number of matching records \
+    by the maximum number of records in either the source result or the target result.
+       e.g.
+
+    | Source Row Count | Target Row Count | Matches | Match Percentage |
+    | ---------------- | ---------------- | ------- | ---------------- |
+    | 100              | 100              | 100     | 100%             |
+    | 25               | 100              | 25      | 25%              |
+    | 100              | 25               | 1       | 1%               |
+
+    If both the target and source queries return 0 records, \
+    it is considered a successful result.
+
+
     Args:
         target_query (str): {TARGET_QUERY_DESCRIPTION}
         source_data_source_name (str): {SOURCE_DATA_SOURCE_NAME_DESCRIPTION}
