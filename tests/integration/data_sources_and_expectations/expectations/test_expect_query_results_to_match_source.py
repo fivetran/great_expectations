@@ -147,50 +147,13 @@ def test_expect_query_results_to_match_source_mostly(
     assert result.success is success
 
 
-SOURCE_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
-
-TARGET_DATA_WITH_DUPS = pd.DataFrame({"a": [1, 1, 2, 3], "b": [4, 4, 5, 6]})
-
-
-@multi_source_batch_setup(
-    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
-    target_data=TARGET_DATA_WITH_DUPS,
-    source_data=SOURCE_DATA_WITH_DUPS,
-)
-def test_expect_query_results_to_match_source_dups_success(multi_source_batch: MultiSourceBatch):
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT * FROM {batch} ORDER BY a",
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT * FROM {multi_source_batch.source_table_name} ORDER BY a",
-        )
-    )
-    assert result.success
-
-
-@multi_source_batch_setup(
-    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
-    target_data=TARGET_DATA_WITH_DUPS,
-    source_data=SOURCE_DATA_WITH_DUPS,
-)
-def test_expect_query_results_to_match_source_dups_failure(multi_source_batch: MultiSourceBatch):
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT * FROM {batch} ORDER BY a DESC LIMIT 3",  # exclude one dup
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT * FROM {multi_source_batch.source_table_name}",
-        )
-    )
-    assert not result.success
-    assert not result.exception_info["raised_exception"]
-    assert result.result["unexpected_percent"] == 25.0
-
-
 MAX_LENGTH_TARGET_DATA = pd.DataFrame(
     {
         "a": [idx for idx in range(100, 300)],
         "b": [idx for idx in range(100, 200)] + ([None] * 100),
         "c": [idx for idx in range(200, 300)] + ([None] * 100),
+        "no_dups": [1, 2, 3] + ([None] * 197),
+        "has_dups": [1, 1, 2, 3] + ([None] * 196),
     }
 )
 
@@ -198,6 +161,7 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
     {
         "a": [idx for idx in range(0, 200)],
         "b": [idx for idx in range(100, 200)] + ([None] * 100),
+        "has_dups": [1, 1, 2, 3] + ([None] * 196),
     }
 )
 
@@ -260,6 +224,20 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
             0,
             0,
             id="nothing_to_compare",
+        ),
+        pytest.param(
+            "SELECT has_dups FROM {batch}",
+            "SELECT has_dups FROM {source_table}",
+            0,
+            0,
+            id="has_dups_success",
+        ),
+        pytest.param(
+            "SELECT no_dups FROM {batch}",
+            "SELECT has_dups FROM {source_table}",
+            1,
+            25,
+            id="has_dups_failure",
         ),
     ],
 )
