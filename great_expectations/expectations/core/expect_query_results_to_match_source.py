@@ -133,28 +133,25 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             target_results_with_dup_counts = Counter(tuple(row.values()) for row in target_results)
             source_results_with_dup_counts = Counter(tuple(row.values()) for row in source_results)
             # decrements source row count values by target row count values
-            source_results_with_dup_counts.subtract(target_results_with_dup_counts)
+            count_in_source_not_target = source_results_with_dup_counts.copy()
+            count_in_source_not_target.subtract(target_results_with_dup_counts)
 
-            # rows in source, but not target
-            # not the same as `missing_count` in result dict, which conflates missing with null
-            missing_count = 0
-            # rows in target, but not source
-            unexpected_count = 0
+            match_count = 0
 
-            for subtracted_count in source_results_with_dup_counts.values():
+            for row, subtracted_count in count_in_source_not_target.items():
                 # if row was seen more in source than in target
-                if subtracted_count > 0:
-                    missing_count += subtracted_count
-                # if row was seen more in target than in source
-                elif subtracted_count < 0:
-                    unexpected_count += -subtracted_count
+                if subtracted_count == 0:
+                    match_count += source_results_with_dup_counts[row]
 
             # we only consider "missing" records for failure calcs if they exist
             # this avoids double counting missing + unexpected when
             # a transformation occurred during copy from source to target use-case
             # e.g. if 1 row changes during table copy,
             #      there will be 1 missing row, and 1 unexpected row
-            unexpected_percent = (missing_count or unexpected_count) / source_result_count * 100
+            unexpected_count = max(source_result_count, target_result_count) - match_count
+            unexpected_percent = (
+                1 - (match_count / max(source_result_count, target_result_count))
+            ) * 100
 
         success_kwargs = self._get_success_kwargs()
         mostly = success_kwargs.get("mostly", 1)

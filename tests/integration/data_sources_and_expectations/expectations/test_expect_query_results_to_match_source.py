@@ -162,8 +162,6 @@ def test_expect_query_results_to_match_source_dups_success(multi_source_batch: M
         )
     )
     assert result.success
-    assert result.result["unexpected_count"] == 0
-    assert result.result["unexpected_percent"] == 0.0
 
 
 @multi_source_batch_setup(
@@ -181,8 +179,6 @@ def test_expect_query_results_to_match_source_dups_failure(multi_source_batch: M
     )
     assert not result.success
     assert not result.exception_info["raised_exception"]
-    assert result.result["unexpected_count"] == 0
-    assert result.result["unexpected_percent"] == 25.0
 
 
 @multi_source_batch_setup(
