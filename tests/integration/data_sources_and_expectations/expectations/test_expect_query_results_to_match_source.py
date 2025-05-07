@@ -149,9 +149,9 @@ def test_expect_query_results_to_match_source_mostly(
 
 MAX_LENGTH_TARGET_DATA = pd.DataFrame(
     {
-        "a": [idx for idx in range(100, 300)],
-        "b": [idx for idx in range(100, 200)] + ([None] * 100),
-        "c": [idx for idx in range(200, 300)] + ([None] * 100),
+        "a": list(range(100, 300)),
+        "b": list(range(100, 200)) + ([None] * 100),
+        "c": list(range(200, 300)) + ([None] * 100),
         "no_dups": [1, 2, 3] + ([None] * 197),
         "has_dups": [1, 1, 2, 3] + ([None] * 196),
     }
@@ -159,8 +159,9 @@ MAX_LENGTH_TARGET_DATA = pd.DataFrame(
 
 MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
     {
-        "a": [idx for idx in range(0, 200)],
-        "b": [idx for idx in range(100, 200)] + ([None] * 100),
+        "a": list(range(0, 200)),
+        "b": list(range(100, 200)) + ([None] * 100),
+        "high_numbers": list(range(1000, 1200)),
         "has_dups": [1, 1, 2, 3] + ([None] * 196),
     }
 )
@@ -191,10 +192,10 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
             id="match_and_missing",
         ),
         pytest.param(
-            "SELECT c FROM {batch}",  # 100 different records
-            "SELECT b FROM {source_table}",  # 100 records
+            "SELECT a FROM {batch}",  # 200 low numbers
+            "SELECT high_numbers FROM {source_table}",  # 200 high numbers
             100,
-            100,
+            200,
             id="missing_and_unexpected",
         ),
         pytest.param(
@@ -207,15 +208,15 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
         pytest.param(
             "SELECT a FROM {batch}",  # 200 records
             "SELECT b FROM {source_table}",  # 100 different records
+            50,
             100,
-            200,
             id="only_unexpected",
         ),
         pytest.param(
             "SELECT c FROM {batch} ORDER BY c",  # 100 records
             "SELECT * FROM {source_table} LIMIT 0",  # 0 records
             100,
-            100,
+            200,
             id="only_missing",
         ),
         pytest.param(
@@ -235,8 +236,8 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
         pytest.param(
             "SELECT no_dups FROM {batch}",  # 3 records (no dups)
             "SELECT has_dups FROM {source_table}",  # same 3 records + 1 dup
+            1 / 200 * 100,
             1,
-            25,
             id="has_dups_failure",
         ),
     ],
@@ -262,7 +263,7 @@ def test_expect_query_results_to_match_source_unexpected_percent(
             ),
         )
     )
-    assert result.result["unexpected_percent"] == unexpected_percent
+    assert result.result["unexpected_percent"] == pytest.approx(unexpected_percent)
     assert result.result["unexpected_count"] == unexpected_count
 
 
