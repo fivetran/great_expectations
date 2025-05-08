@@ -19,7 +19,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
@@ -95,15 +95,15 @@ BUCKETIZE_DATA_DESCRIPTION = (
 MIN_VALUE_DESCRIPTION = "The minimum value for the column."
 MAX_VALUE_DESCRIPTION = "The maximum value for the column."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Redshift",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 

@@ -74,7 +74,7 @@
         },
         "mostly": {
             "title": "Mostly",
-            "description": "Successful if at least `mostly` fraction of values match the expectation.",
+            "description": "Successful if at least `mostly` fraction of values match the Expectation.",
             "default": 1,
             "anyOf": [
                 {

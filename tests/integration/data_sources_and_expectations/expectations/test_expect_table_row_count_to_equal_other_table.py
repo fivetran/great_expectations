@@ -11,6 +11,7 @@ from tests.integration.test_utils.data_source_config import (
     MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
@@ -22,6 +23,7 @@ MULTI_ASSET_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     PostgreSQLDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
 ]
 
 

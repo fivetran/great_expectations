@@ -9,7 +9,7 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -34,19 +34,19 @@ if TYPE_CHECKING:
 EXPECTATION_SHORT_DESCRIPTION = "Expect the number of columns in a table to be between two values."
 MIN_VALUE_DESCRIPTION = "The minimum number of columns, inclusive."
 MAX_VALUE_DESCRIPTION = "The maximum number of columns, inclusive."
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-    "Redshift",
-]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 
 
 class ExpectTableColumnCountToBeBetween(BatchExpectation):

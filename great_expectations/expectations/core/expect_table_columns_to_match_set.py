@@ -11,7 +11,7 @@ from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     LegacyRendererType,
@@ -44,19 +44,19 @@ EXACT_MATCH_DESCRIPTION = (
     "If True, the list of columns must exactly match the observed columns. "
     "If False, observed columns must include column_set but additional columns will pass."
 )
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-    "Redshift",
-]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 
 
 class ExpectTableColumnsToMatchSet(BatchExpectation):

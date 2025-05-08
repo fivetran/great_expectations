@@ -20,6 +20,7 @@ from great_expectations.compatibility.sqlalchemy import (
     insert,
     sqltypes,
 )
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
@@ -72,13 +73,14 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         config: _ConfigT,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
         table_name: Optional[str] = None,  # Overrides random table name generation
     ) -> None:
         # self.engine = create_engine(url=self.connection_string)
         self.extra_data = extra_data
         self.metadata = MetaData()
         self._user_specified_table_name = table_name
-        super().__init__(config, data)
+        super().__init__(config, data, context=context)
 
     @override
     def make_batch(self) -> Batch:

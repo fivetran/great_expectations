@@ -3,6 +3,7 @@ import pytest
 from great_expectations.metrics.metric_results import (
     ColumnType,
     MetricErrorResult,
+    MetricErrorResultValue,
     TableColumnsResult,
     TableColumnTypesResult,
     UnexpectedCountResult,
@@ -93,13 +94,10 @@ class TestMetricResultInstantiation:
             metric_domain_kwargs_id="8a975130e802d66f85ab0cac8d10fbec",
             metric_value_kwargs_id=(),
         )
-        metric_value = {
-            "exception_info": {
-                "exception_traceback": "Traceback (most recent call last)...",
-                "exception_message": "Error: The column does not exist.",
-                "raised_exception": True,
-            },
-        }
+        metric_value = MetricErrorResultValue(
+            exception_traceback="Traceback (most recent call last)...",
+            exception_message="Error: The column does not exist.",
+        )
         metric_result = MetricErrorResult(
             id=metric_id,
             value=metric_value,

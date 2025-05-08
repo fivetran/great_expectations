@@ -53,6 +53,7 @@ class TestColumnValuesMatchRegexValues:
         metric = ColumnValuesMatchRegexValues(column=COLUMN_NAME, regex=MATCH_ALL_REGEX)
         metric_result = batch_for_datasource.compute_metrics(metric)
 
+        assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult)
         assert len(metric_result.value) == 20
 
     @parameterize_batch_for_data_sources(
@@ -66,4 +67,5 @@ class TestColumnValuesMatchRegexValues:
         )
         metric_result = batch_for_datasource.compute_metrics(metric)
 
+        assert isinstance(metric_result, ColumnValuesMatchRegexValuesResult)
         assert len(metric_result.value) == limit

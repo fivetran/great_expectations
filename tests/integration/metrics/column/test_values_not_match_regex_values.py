@@ -56,6 +56,7 @@ class TestColumnValuesNotMatchRegexValues:
         metric = ColumnValuesNotMatchRegexValues(column=COLUMN_NAME, regex=MATCH_NONE_REGEX)
         metric_result = batch_for_datasource.compute_metrics(metric)
 
+        assert isinstance(metric_result, ColumnValuesNotMatchRegexValuesResult)
         # Should return up to the default limit (20)
         assert len(metric_result.value) == 20
         assert all(val == "A" for val in metric_result.value)
@@ -72,5 +73,6 @@ class TestColumnValuesNotMatchRegexValues:
         )
         metric_result = batch_for_datasource.compute_metrics(metric)
 
+        assert isinstance(metric_result, ColumnValuesNotMatchRegexValuesResult)
         assert len(metric_result.value) == limit
         assert all(val == "A" for val in metric_result.value)
