@@ -993,7 +993,7 @@ def test_TupleGCSStoreBackend():  # noqa: PLR0915 # FIXME CoP
         with pytest.raises(InvalidKeyError):
             my_store.get(("non_existent_key",))
 
-    run_id = RunIdentifier("my_run_id", datetime.datetime.now(datetime.timezone.utc))  # FIXME CoP
+    run_id = RunIdentifier("my_run_id", datetime.datetime.now(datetime.timezone.utc))
     key = ValidationResultIdentifier(
         ExpectationSuiteIdentifier(name="my_suite_name"),
         run_id,
