@@ -838,7 +838,7 @@ def convert_ndarray_float_to_datetime_dtype(data: np.ndarray) -> np.ndarray:
     return np.asarray(
         [
             datetime.datetime.fromtimestamp(value, datetime.timezone.utc) for value in data
-        ]  # FIXME CoP
+        ]
     )
 
 
