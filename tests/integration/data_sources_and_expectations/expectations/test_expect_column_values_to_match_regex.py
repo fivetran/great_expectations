@@ -12,6 +12,7 @@ from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
@@ -21,6 +22,7 @@ SUPPORTED_SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
 SUPPORTED_NON_SQL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
@@ -65,7 +67,8 @@ def test_basic_failure(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_postgresql_complete_results_failure(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToMatchRegex(
@@ -135,7 +138,8 @@ def test_postgresql_complete_results_failure(batch_for_datasource: Batch) -> Non
     ],
 )
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_success(
     batch_for_datasource: Batch,
@@ -173,7 +177,8 @@ def test_success(
     ],
 )
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_failure(
     batch_for_datasource: Batch,

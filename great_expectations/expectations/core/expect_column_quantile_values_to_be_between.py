@@ -12,7 +12,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
@@ -69,18 +69,18 @@ ALLOW_RELATIVE_ERROR_DESCRIPTION = (
     "Whether to allow relative error in quantile "
     "communications on backends that support or require it."
 )
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "Snowflake",
-    "BigQuery",
-    "Redshift",
-]
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 
 
 class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):

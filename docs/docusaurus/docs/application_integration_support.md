@@ -20,14 +20,14 @@ The following are the levels of support provided by GX:
 
 The following table defines the GX Cloud, GX Core, and Community Supported integrations.
 
-| Integration Type                 | GX Cloud                                                   | GX Core                                                                                    | Community            |
-| -------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ | -------------------- |
-| Data Sources<sup>1</sup>         | Snowflake<br/>Databricks (SQL)<br/> PostgreSQL<sup>2</sup> | Snowflake<br/>Databricks (SQL)<br/>PostgreSQL<br/>SQLite<br/>BigQuery<br/>Spark<br/>Pandas | MSSQL<br/>MySQL<br/> |
-| Configuration Stores<sup>3</sup> | In-app                                                     | File system                                                                                | None                 |
-| Data Doc Stores                  | In-app                                                     | File system                                                                                | None                 |
-| Actions                          | Email                                                      | Slack <br/>Email <br/>Microsoft Teams <br/>Custom<sup>4</sup>                              | None                 |
-| Credential Stores                | Environment variables                                      | Environment variables <br/> YAML<sup>5</sup>                                               | None                 |
-| Orchestrator                     | Airflow <sup>6</sup> <sup>7</sup>                          | Airflow <sup>6</sup> <sup>7</sup>                                                          | None                 |
+| Integration Type                 | GX Cloud                                                                    | GX Core                                                                                                             | Community            |
+| -------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| Data Sources<sup>1</sup>         | Databricks (SQL)<br/>PostgreSQL<br/>Redshift<br/>Snowflake<br/><sup>2</sup> | BigQuery<br/>Databricks (SQL)<br/>Pandas<br/>PostgreSQL<br/>Redshift<br/>Snowflake<br/>Spark<br/>SQLite             | MSSQL<br/>MySQL<br/> |
+| Configuration Stores<sup>3</sup> | In-app                                                                      | File system                                                                                                         | None                 |
+| Data Doc Stores                  | In-app                                                                      | File system                                                                                                         | None                 |
+| Actions                          | Email                                                                       | Slack <br/>Email <br/>Microsoft Teams <br/>Custom<sup>4</sup>                                                       | None                 |
+| Credential Stores                | Environment variables                                                       | Environment variables <br/> YAML<sup>5</sup>                                                                        | None                 |
+| Orchestrator                     | Airflow <sup>6</sup> <sup>7</sup>                                           | Airflow <sup>6</sup> <sup>7</sup>                                                                                   | None                 |
 
 <sup>1</sup> We've also seen GX work with the following data sources in the past but we can't guarantee ongoing compatibility. These data sources include Clickhouse, Vertica, Dremio, Teradata, Athena, EMR Spark, AWS Glue, Microsoft Fabric, Trino, Pandas on (S3, GCS, Azure), Databricks (Spark), and Spark on (S3, GCS, Azure).<br/>
 <sup>2</sup> Support for BigQuery in GX Cloud will be available in a future release.<br/>

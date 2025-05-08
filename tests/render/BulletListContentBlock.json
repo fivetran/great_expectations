@@ -1,0 +1,2049 @@
+[
+  {
+    "type": "expect_table_row_count_to_equal_other_table",
+    "kwargs": {
+      "other_table_name": "expect_table_row_count_to_equal_other_table_data_2"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_value_lengths_to_equal",
+    "kwargs": {
+      "column": "equal_length_string",
+      "value": 1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_value_lengths_to_equal",
+    "kwargs": {
+      "column": "equal_length_string",
+      "value": 2
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_value_lengths_to_equal",
+    "kwargs": {
+      "column": "s3",
+      "value": 4,
+      "mostly": 0.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_value_lengths_to_equal",
+    "kwargs": {
+      "column": "s1",
+      "value": 5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_value_lengths_to_equal",
+    "kwargs": {
+      "column": "s1",
+      "value": 5,
+      "mostly": 0.8
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "max_value": {
+        "$PARAMETER": "now()"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "min_value": {
+        "$PARAMETER": "now()"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "min_value": {
+        "$PARAMETER": "now()"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "min_value": {
+        "$PARAMETER": "now() - timedelta(weeks=52*100)"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "max_value": {
+        "$PARAMETER": "now() - timedelta(weeks=52*100)"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "max_value": {
+        "$PARAMETER": "now() - timedelta(weeks=52*100)"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "max_value": {
+        "$PARAMETER": "datetime(2003, 1, 1)"
+      },
+      "min_value": {
+        "$PARAMETER": "datetime(1969, 1, 1)"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "max_value": {
+        "$PARAMETER": "datetime(1969, 1, 1)"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "ts",
+      "max_value": {
+        "$PARAMETER": "datetime(1969, 1, 1)"
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_json_parseable",
+    "kwargs": {
+      "column": "a"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_json_parseable",
+    "kwargs": {
+      "column": "b",
+      "mostly": 0.75
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_json_parseable",
+    "kwargs": {
+      "column": "c"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_json_parseable",
+    "kwargs": {
+      "column": "d"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_json_parseable",
+    "kwargs": {
+      "column": "d"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_not_be_null",
+    "kwargs": {
+      "column": "no_null",
+      "result_format": "BASIC"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_regex_list",
+    "kwargs": {
+      "column": "w",
+      "regex_list": ["\\d+"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_regex_list",
+    "kwargs": {
+      "column": "w",
+      "regex_list": ["[123]+", "[456]+"],
+      "match_on": "any"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_regex_list",
+    "kwargs": {
+      "column": "w",
+      "regex_list": ["[123]+", "[456]+"],
+      "match_on": "all"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_regex_list",
+    "kwargs": {
+      "column": "x",
+      "regex_list": ["^.*a.*$"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_regex_list",
+    "kwargs": {
+      "column": "x",
+      "regex_list": ["^.*a.*$", "b.t"],
+      "match_on": "any"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_regex_list",
+    "kwargs": {
+      "column": "column_name with space",
+      "regex_list": ["^.*a.*$", "b.t"],
+      "match_on": "any"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_value_z_scores_to_be_less_than",
+    "kwargs": {
+      "column": "dist1",
+      "threshold": 1.96,
+      "double_sided": true
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 20,
+      "min_value": 0
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 20
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "min_value": null,
+      "max_value": 20
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "min_value": 0
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "min_value": 0,
+      "max_value": null
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 9,
+      "min_value": 1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 3
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1,
+      "result_format": "BOOLEAN_ONLY"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 20,
+      "min_value": 0,
+      "result_format": "BOOLEAN_ONLY"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 9,
+      "min_value": 1,
+      "result_format": "BOOLEAN_ONLY"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 3,
+      "result_format": "BOOLEAN_ONLY"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 20,
+      "min_value": 0,
+      "mostly": 0.8999
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 9,
+      "min_value": 1,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 3,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "z",
+      "max_value": 4,
+      "min_value": 1,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "z",
+      "max_value": 4,
+      "min_value": 1,
+      "mostly": 0.8
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1,
+      "strict_min": true
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1,
+      "strict_min": false
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 0,
+      "strict_max": true
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 0,
+      "strict_max": false
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 10,
+      "strict_max": false,
+      "row_condition": "y == \"abc\"",
+      "condition_parser": "pandas"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 10,
+      "strict_max": false,
+      "row_condition": "y == 9",
+      "condition_parser": "pandas"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_regex",
+    "kwargs": {
+      "column": "a",
+      "regex": "^a",
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 20,
+      "min_value": 0
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 20
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "min_value": null,
+      "max_value": 20
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "min_value": 0
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "min_value": 0,
+      "max_value": null
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 9,
+      "min_value": 1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 3
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1,
+      "result_format": "BOOLEAN_ONLY"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 20,
+      "min_value": 0,
+      "result_format": "BOOLEAN_ONLY"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 9,
+      "min_value": 1,
+      "result_format": "BOOLEAN_ONLY"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 3,
+      "result_format": "BOOLEAN_ONLY"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 20,
+      "min_value": 0,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 9,
+      "min_value": 1,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 3,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "z",
+      "max_value": 4,
+      "min_value": 1,
+      "mostly": 0.9
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "z",
+      "max_value": 4,
+      "min_value": 1,
+      "mostly": 0.8
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1,
+      "strict_min": true
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 1,
+      "strict_min": false
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 0,
+      "strict_max": true
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 0,
+      "strict_max": false
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 10,
+      "strict_max": false,
+      "row_condition": "y == \"abc\"",
+      "condition_parser": "pandas"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "max_value": 10,
+      "min_value": 10,
+      "strict_max": false,
+      "row_condition": "y == 9",
+      "condition_parser": "pandas"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_not_be_in_set",
+    "kwargs": {
+      "column": "x",
+      "value_set": [0]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_of_type",
+    "kwargs": {
+      "column": "x",
+      "type_": "int"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_in_set",
+    "kwargs": {
+      "column": "x",
+      "value_set": [1, 2, 4]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_decreasing",
+    "kwargs": {
+      "column": "w",
+      "mostly": 0.6
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_decreasing",
+    "kwargs": {
+      "column": "y"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_decreasing",
+    "kwargs": {
+      "column": "y",
+      "strictly": true
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_decreasing",
+    "kwargs": {
+      "column": "x"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_decreasing",
+    "kwargs": {
+      "column": "empty_column",
+      "catch_exceptions": false
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_not_match_regex",
+    "kwargs": {
+      "column": "a",
+      "regex": "b",
+      "mostly": 0.6
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_not_match_like_pattern_list",
+    "kwargs": {
+      "column": "w",
+      "like_pattern_list": ["[^ ]"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_dateutil_parseable",
+    "kwargs": {
+      "column": "a"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_dateutil_parseable",
+    "kwargs": {
+      "column": "b",
+      "mostly": 0.75
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_dateutil_parseable",
+    "kwargs": {
+      "column": "c",
+      "mostly": 0.75
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_not_match_like_pattern",
+    "kwargs": {
+      "column": "a",
+      "like_pattern": "[a]%",
+      "mostly": 0.3
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_not_match_regex_list",
+    "kwargs": {
+      "column": "w",
+      "regex_list": ["\\s+"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_increasing",
+    "kwargs": {
+      "column": "x"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_increasing",
+    "kwargs": {
+      "column": "y"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_increasing",
+    "kwargs": {
+      "column": "y",
+      "strictly": true
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_increasing",
+    "kwargs": {
+      "column": "w"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_increasing",
+    "kwargs": {
+      "column": "a"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_increasing",
+    "kwargs": {
+      "column": "b"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_like_pattern",
+    "kwargs": {
+      "column": "b",
+      "like_pattern": "a%",
+      "mostly": 0.75
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_value_lengths_to_be_between",
+    "kwargs": {
+      "column": "s1",
+      "min_value": 4,
+      "max_value": 5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_strftime_format",
+    "kwargs": {
+      "column": "a",
+      "strftime_format": "%Y-%m-%d"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_strftime_format",
+    "kwargs": {
+      "column": "a",
+      "strftime_format": "%Y%m%d"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_strftime_format",
+    "kwargs": {
+      "column": "b",
+      "strftime_format": "%d/%m/%Y"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_strftime_format",
+    "kwargs": {
+      "column": "c",
+      "strftime_format": "%m-%d-%Y",
+      "mostly": 0.75
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_strftime_format",
+    "kwargs": {
+      "column": "c",
+      "strftime_format": "%m-%d-%Y"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_strftime_format",
+    "kwargs": {
+      "column": "a",
+      "strftime_format": "%Y-%d-%m"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_strftime_format",
+    "kwargs": {
+      "column": "f",
+      "strftime_format": "%Y-%m-%dT%H:%M:%S"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_like_pattern_list",
+    "kwargs": {
+      "column": "w",
+      "like_pattern_list": ["%[0-9]%"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_unique",
+    "kwargs": {
+      "column": "unique"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_json_schema",
+    "kwargs": {
+      "column": "x",
+      "json_schema": {}
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_json_schema",
+    "kwargs": {
+      "column": "x",
+      "json_schema": {
+        "properties": {
+          "a": {
+            "type": "integer"
+          }
+        },
+        "required": ["a"]
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_match_json_schema",
+    "kwargs": {
+      "column": "x",
+      "json_schema": {
+        "properties": {
+          "a": {
+            "type": "integer"
+          }
+        },
+        "required": ["b"]
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_null",
+    "kwargs": {
+      "column": "all_null",
+      "result_format": "BASIC"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_values_to_be_in_type_list",
+    "kwargs": {
+      "column": "x",
+      "type_list": ["int"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_stdev_to_be_between",
+    "kwargs": {
+      "column": "dist1",
+      "min_value": 0.5,
+      "max_value": 1.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_distinct_values_to_be_in_set",
+    "kwargs": {
+      "column": "dist1",
+      "value_set": [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_most_common_value_to_be_in_set",
+    "kwargs": {
+      "column": "y",
+      "value_set": ["jello", "hello"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_quantile_values_to_be_between",
+    "kwargs": {
+      "column": "norm_0_1",
+      "quantile_ranges": {
+        "quantiles": [0.0, 1.0],
+        "value_ranges": [
+          [null, -3],
+          [3, null]
+        ]
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_quantile_values_to_be_between",
+    "kwargs": {
+      "column": "norm_0_1",
+      "quantile_ranges": {
+        "quantiles": [0.0, 0.25, 0.5, 0.75, 1.0],
+        "value_ranges": [
+          [null, -3],
+          [-0.8, -0.6],
+          [-0.1, 0.1],
+          [0.6, 0.8],
+          [3, null]
+        ]
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_quantile_values_to_be_between",
+    "kwargs": {
+      "column": "norm_0_1",
+      "quantile_ranges": {
+        "quantiles": [0.0, 0.05, 0.25, 0.5, 0.75, 0.95, 1.0],
+        "value_ranges": [
+          [null, -3],
+          [-2, -1.5],
+          [-0.8, -0.6],
+          [-0.1, 0.1],
+          [0.6, 0.8],
+          [1.5, 2],
+          [3, null]
+        ]
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_quantile_values_to_be_between",
+    "kwargs": {
+      "column": "norm_1_1",
+      "quantile_ranges": {
+        "quantiles": [0.0, 0.25, 0.5, 0.75, 1.0],
+        "value_ranges": [
+          [null, -3],
+          [-0.8, -0.6],
+          [-0.1, 0.1],
+          [0.6, 0.8],
+          [3, null]
+        ]
+      }
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_max_to_be_between",
+    "kwargs": {
+      "column": "w",
+      "result_format": "BASIC",
+      "min_value": 4,
+      "max_value": 6
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_max_to_be_between",
+    "kwargs": {
+      "column": "empty_column",
+      "min_value": 0,
+      "max_value": 0,
+      "catch_exceptions": false
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_mean_to_be_between",
+    "kwargs": {
+      "column": "x",
+      "min_value": 2,
+      "max_value": 5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_distinct_values_to_equal_set",
+    "kwargs": {
+      "column": "dist1",
+      "value_set": [1, 2, 3, 4, 5, 6, 7, 8]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_sum_to_be_between",
+    "kwargs": {
+      "column": "w",
+      "result_format": "BASIC",
+      "min_value": 30,
+      "max_value": 30
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_unique_value_count_to_be_between",
+    "kwargs": {
+      "column": "dist1",
+      "min_value": 0,
+      "max_value": 10
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_median_to_be_between",
+    "kwargs": {
+      "column": "a",
+      "min_value": 2.5,
+      "max_value": 2.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_min_to_be_between",
+    "kwargs": {
+      "column": "w",
+      "result_format": "BASIC",
+      "min_value": -10,
+      "max_value": 5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_proportion_of_unique_values_to_be_between",
+    "kwargs": {
+      "column": "dist1",
+      "min_value": 0.5,
+      "max_value": 1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_distinct_values_to_contain_set",
+    "kwargs": {
+      "column": "dist1",
+      "value_set": [1, 2, 3]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "categorical_fixed",
+      "partition_object": {
+        "weights": [0.54, 0.32, 0.14],
+        "values": ["A", "B", "C"]
+      },
+      "threshold": 0.1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "categorical_fixed",
+      "partition_object": {
+        "weights": [0.3333333333333333, 0.3333333333333333, 0.3333333333333333],
+        "values": ["A", "B", "C"]
+      },
+      "threshold": 0.1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "a",
+      "partition_object": {
+        "values": ["a", "b"],
+        "weights": [0.6, 0.4]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "a",
+      "partition_object": {
+        "values": ["a", "b"],
+        "weights": [0.6, 0.4]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "a",
+      "partition_object": {
+        "values": ["a", "b"],
+        "weights": [0.6, 0.4]
+      },
+      "threshold": 0.1
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -1.7976931348623157e308, -3.2412673400690726, -2.987910238971794,
+          -2.734553137874516, -2.481196036777238, -2.2278389356799595,
+          -1.974481834582681, -1.7211247334854027, -1.4677676323881244,
+          -1.214410531290846, -0.9610534301935676, -0.7076963290962892,
+          -0.45433922799901083, -0.2009821269017329, 0.05237497419554549,
+          0.30573207529282387, 0.5590891763901022, 0.8124462774873806,
+          1.065803378584659, 1.3191604796819374, 1.5725175807792158,
+          1.8258746818764942, 2.0792317829737725, 2.332588884071051,
+          2.5859459851683293, 2.839303086265607, 3.092660187362885,
+          3.3460172884601636, 3.599374389557442, 3.852731490654721,
+          1.7976931348623157e308
+        ],
+        "weights": [
+          0.005, 0.00099, 0.0, 0.00297, 0.00297, 0.010889999999999999, 0.01287,
+          0.028710000000000003, 0.04554, 0.052469999999999996, 0.0693,
+          0.10196999999999999, 0.08613, 0.09207, 0.1089, 0.08811, 0.08514,
+          0.06336, 0.0396, 0.03762, 0.02277, 0.01683, 0.010889999999999999,
+          0.00594, 0.00198, 0.00099, 0.0, 0.0, 0.00099, 0.005
+        ]
+      },
+      "threshold": 0.5,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -2.987910238971794, -2.734553137874516,
+          -2.481196036777238, -2.2278389356799595, -1.974481834582681,
+          -1.7211247334854027, -1.4677676323881244, -1.214410531290846,
+          -0.9610534301935676, -0.7076963290962892, -0.45433922799901083,
+          -0.2009821269017329, 0.05237497419554549, 0.30573207529282387,
+          0.5590891763901022, 0.8124462774873806, 1.065803378584659,
+          1.3191604796819374, 1.5725175807792158, 1.8258746818764942,
+          2.0792317829737725, 2.332588884071051, 2.5859459851683293,
+          2.839303086265607, 3.092660187362885, 3.3460172884601636,
+          3.599374389557442, 3.852731490654721
+        ],
+        "weights": [
+          0.00099, 0.0, 0.00297, 0.00297, 0.010889999999999999, 0.01287,
+          0.028710000000000003, 0.04554, 0.052469999999999996, 0.0693,
+          0.10196999999999999, 0.08613, 0.09207, 0.1089, 0.08811, 0.08514,
+          0.06336, 0.0396, 0.03762, 0.02277, 0.01683, 0.010889999999999999,
+          0.00594, 0.00198, 0.00099, 0.0, 0.0, 0.00099
+        ],
+        "tail_weights": [0.005, 0.005]
+      },
+      "threshold": 0.5,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -1.7976931348623157e308, -3.2412673400690726, -2.987910238971794,
+          -2.734553137874516, -2.481196036777238, -2.2278389356799595,
+          -1.974481834582681, -1.7211247334854027, -1.4677676323881244,
+          -1.214410531290846, -0.9610534301935676, -0.7076963290962892,
+          -0.45433922799901083, -0.2009821269017329, 0.05237497419554549,
+          0.30573207529282387, 0.5590891763901022, 0.8124462774873806,
+          1.065803378584659, 1.3191604796819374, 1.5725175807792158,
+          1.8258746818764942, 2.0792317829737725, 2.332588884071051,
+          2.5859459851683293, 2.839303086265607, 3.092660187362885,
+          3.3460172884601636, 3.599374389557442, 3.852731490654721,
+          1.7976931348623157e308
+        ],
+        "weights": [
+          0.005, 0.00099, 0.0, 0.00297, 0.00297, 0.010889999999999999, 0.01287,
+          0.028710000000000003, 0.04554, 0.052469999999999996, 0.0693,
+          0.10196999999999999, 0.08613, 0.09207, 0.1089, 0.08811, 0.08514,
+          0.06336, 0.0396, 0.03762, 0.02277, 0.01683, 0.010889999999999999,
+          0.00594, 0.00198, 0.00099, 0.0, 0.0, 0.00099, 0.005
+        ]
+      },
+      "threshold": 0.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -1.7976931348623157e308, -3.2412673400690726, -2.987910238971794,
+          -2.734553137874516, -2.481196036777238, -2.2278389356799595,
+          -1.974481834582681, -1.7211247334854027, -1.4677676323881244,
+          -1.214410531290846, -0.9610534301935676, -0.7076963290962892,
+          -0.45433922799901083, -0.2009821269017329, 0.05237497419554549,
+          0.30573207529282387, 0.5590891763901022, 0.8124462774873806,
+          1.065803378584659, 1.3191604796819374, 1.5725175807792158,
+          1.8258746818764942, 2.0792317829737725, 2.332588884071051,
+          2.5859459851683293, 2.839303086265607, 3.092660187362885,
+          3.3460172884601636, 3.599374389557442, 3.852731490654721,
+          1.7976931348623157e308
+        ],
+        "weights": [
+          0.005, 0.00099, 0.0, 0.00297, 0.00297, 0.010889999999999999, 0.01287,
+          0.028710000000000003, 0.04554, 0.052469999999999996, 0.0693,
+          0.10196999999999999, 0.08613, 0.09207, 0.1089, 0.08811, 0.08514,
+          0.06336, 0.0396, 0.03762, 0.02277, 0.01683, 0.010889999999999999,
+          0.00594, 0.00198, 0.00099, 0.0, 0.0, 0.00099, 0.005
+        ]
+      },
+      "threshold": null
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": null,
+      "threshold": null
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -2.987910238971794, -2.734553137874516,
+          -2.481196036777238, -2.2278389356799595, -1.974481834582681,
+          -1.7211247334854027, -1.4677676323881244, -1.214410531290846,
+          -0.9610534301935676, -0.7076963290962892, -0.45433922799901083,
+          -0.2009821269017329, 0.05237497419554549, 0.30573207529282387,
+          0.5590891763901022, 0.8124462774873806, 1.065803378584659,
+          1.3191604796819374, 1.5725175807792158, 1.8258746818764942,
+          2.0792317829737725, 2.332588884071051, 2.5859459851683293,
+          2.839303086265607, 3.092660187362885, 3.3460172884601636,
+          3.599374389557442, 3.852731490654721
+        ],
+        "weights": [
+          0.00099, 0.0, 0.00297, 0.00297, 0.010889999999999999, 0.01287,
+          0.028710000000000003, 0.04554, 0.052469999999999996, 0.0693,
+          0.10196999999999999, 0.08613, 0.09207, 0.1089, 0.08811, 0.08514,
+          0.06336, 0.0396, 0.03762, 0.02277, 0.01683, 0.010889999999999999,
+          0.00594, 0.00198, 0.00099, 0.0, 0.0, 0.00099
+        ],
+        "tail_weights": [0.005, 0.005]
+      },
+      "threshold": 0.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -2.987910238971794, -2.734553137874516,
+          -2.481196036777238, -2.2278389356799595, -1.974481834582681,
+          -1.7211247334854027, -1.4677676323881244, -1.214410531290846,
+          -0.9610534301935676, -0.7076963290962892, -0.45433922799901083,
+          -0.2009821269017329, 0.05237497419554549, 0.30573207529282387,
+          0.5590891763901022, 0.8124462774873806, 1.065803378584659,
+          1.3191604796819374, 1.5725175807792158, 1.8258746818764942,
+          2.0792317829737725, 2.332588884071051, 2.5859459851683293,
+          2.839303086265607, 3.092660187362885, 3.3460172884601636,
+          3.599374389557442, 3.852731490654721
+        ],
+        "weights": [
+          0.001, 0.0, 0.003, 0.003, 0.011, 0.013, 0.029, 0.046, 0.053, 0.07,
+          0.103, 0.087, 0.093, 0.11, 0.089, 0.086, 0.064, 0.04, 0.038, 0.023,
+          0.017, 0.011, 0.006, 0.002, 0.001, 0.0, 0.0, 0.001
+        ]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -2.531867456996693, -1.822467573924314,
+          -1.1130676908519344, -0.40366780777955524, 0.30573207529282387,
+          1.0151319583652039, 1.724531841437583, 2.433931724509962,
+          3.143331607582341, 3.852731490654721
+        ],
+        "weights": [
+          0.004, 0.022, 0.096, 0.228, 0.272, 0.226, 0.104, 0.038, 0.009, 0.001
+        ]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -1.2447631108514743, -0.8034814724483254,
+          -0.5233580988912199, -0.24068966203741293, 0.025300612234888248,
+          0.24868582526450372, 0.5139818158561709, 0.8135111522744447,
+          1.3056452018671392, 3.852731490654721
+        ],
+        "weights": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_0_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -1.2447631108514743, -0.8034814724483254,
+          -0.5233580988912199, -0.24068966203741293, 0.025300612234888248,
+          0.24868582526450372, 0.5139818158561709, 0.8135111522744447,
+          1.3056452018671392, 3.852731490654721
+        ],
+        "weights": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+      },
+      "threshold": 0.3,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_1_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -2.987910238971794, -2.734553137874516,
+          -2.481196036777238, -2.2278389356799595, -1.974481834582681,
+          -1.7211247334854027, -1.4677676323881244, -1.214410531290846,
+          -0.9610534301935676, -0.7076963290962892, -0.45433922799901083,
+          -0.2009821269017329, 0.05237497419554549, 0.30573207529282387,
+          0.5590891763901022, 0.8124462774873806, 1.065803378584659,
+          1.3191604796819374, 1.5725175807792158, 1.8258746818764942,
+          2.0792317829737725, 2.332588884071051, 2.5859459851683293,
+          2.839303086265607, 3.092660187362885, 3.3460172884601636,
+          3.599374389557442, 3.852731490654721
+        ],
+        "weights": [
+          0.001, 0.0, 0.003, 0.003, 0.011, 0.013, 0.029, 0.046, 0.053, 0.07,
+          0.103, 0.087, 0.093, 0.11, 0.089, 0.086, 0.064, 0.04, 0.038, 0.023,
+          0.017, 0.011, 0.006, 0.002, 0.001, 0.0, 0.0, 0.001
+        ]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_1_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -2.531867456996693, -1.822467573924314,
+          -1.1130676908519344, -0.40366780777955524, 0.30573207529282387,
+          1.0151319583652039, 1.724531841437583, 2.433931724509962,
+          3.143331607582341, 3.852731490654721
+        ],
+        "weights": [
+          0.004, 0.022, 0.096, 0.228, 0.272, 0.226, 0.104, 0.038, 0.009, 0.001
+        ]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_1_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -1.2447631108514743, -0.8034814724483254,
+          -0.5233580988912199, -0.24068966203741293, 0.025300612234888248,
+          0.24868582526450372, 0.5139818158561709, 0.8135111522744447,
+          1.3056452018671392, 3.852731490654721
+        ],
+        "weights": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "norm_1_1",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -1.2447631108514743, -0.8034814724483254,
+          -0.5233580988912199, -0.24068966203741293, 0.025300612234888248,
+          0.24868582526450372, 0.5139818158561709, 0.8135111522744447,
+          1.3056452018671392, 3.852731490654721
+        ],
+        "weights": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+      },
+      "threshold": 0.3,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "bimodal",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -1.6805850631140362, -0.11990278615899985,
+          1.4407794907960363, 3.001461767751073, 4.562144044706109,
+          6.122826321661146, 7.683508598616182, 9.244190875571219,
+          10.804873152526255, 12.365555429481292, 13.926237706436327
+        ],
+        "weights": [
+          0.018, 0.204, 0.235, 0.041, 0.002, 0.0, 0.004, 0.105, 0.285, 0.099,
+          0.007
+        ]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "bimodal",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -2.987910238971794, -2.734553137874516,
+          -2.481196036777238, -2.2278389356799595, -1.974481834582681,
+          -1.7211247334854027, -1.4677676323881244, -1.214410531290846,
+          -0.9610534301935676, -0.7076963290962892, -0.45433922799901083,
+          -0.2009821269017329, 0.05237497419554549, 0.30573207529282387,
+          0.5590891763901022, 0.8124462774873806, 1.065803378584659,
+          1.3191604796819374, 1.5725175807792158, 1.8258746818764942,
+          2.0792317829737725, 2.332588884071051, 2.5859459851683293,
+          2.839303086265607, 3.092660187362885, 3.3460172884601636,
+          3.599374389557442, 3.852731490654721
+        ],
+        "weights": [
+          0.001, 0.0, 0.003, 0.003, 0.011, 0.013, 0.029, 0.046, 0.053, 0.07,
+          0.103, 0.087, 0.093, 0.11, 0.089, 0.086, 0.064, 0.04, 0.038, 0.023,
+          0.017, 0.011, 0.006, 0.002, 0.001, 0.0, 0.0, 0.001
+        ]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "bimodal",
+      "partition_object": {
+        "bins": [
+          -3.2412673400690726, -2.531867456996693, -1.822467573924314,
+          -1.1130676908519344, -0.40366780777955524, 0.30573207529282387,
+          1.0151319583652039, 1.724531841437583, 2.433931724509962,
+          3.143331607582341, 3.852731490654721
+        ],
+        "weights": [
+          0.004, 0.022, 0.096, 0.228, 0.272, 0.226, 0.104, 0.038, 0.009, 0.001
+        ]
+      },
+      "threshold": 0.1,
+      "tail_weight_holdout": 0.01,
+      "internal_weight_holdout": 0.01
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "bins": [-1.7976931348623157e308, 0, 1, 2, 3],
+        "weights": [0.25, 0.25, 0.25, 0.25]
+      },
+      "threshold": 0.0
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "bins": [0, 1, 2, 3],
+        "weights": [0.25, 0.25, 0.25],
+        "tail_weights": [0.25, 0]
+      },
+      "threshold": 0.0
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "y",
+      "partition_object": {
+        "bins": [0, 1, 2, 3, 1.7976931348623157e308],
+        "weights": [0.25, 0.25, 0.25, 0.25]
+      },
+      "threshold": 0.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "y",
+      "partition_object": {
+        "bins": [0, 1, 2, 3],
+        "weights": [0.25, 0.25, 0.25],
+        "tail_weights": [0, 0.25]
+      },
+      "threshold": 0.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "z",
+      "partition_object": {
+        "bins": [-1.7976931348623157e308, 0, 1, 2, 3, 1.7976931348623157e308],
+        "weights": [0.1, 0.2, 0.4, 0.2, 0.1]
+      },
+      "threshold": 0.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "z",
+      "partition_object": {
+        "bins": [0, 1, 2, 3],
+        "weights": [0.2, 0.4, 0.2],
+        "tail_weights": [0.1, 0.1]
+      },
+      "threshold": 0.5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x1",
+      "partition_object": {
+        "weights": [0.5, 0.5],
+        "values": ["a", "b"]
+      },
+      "threshold": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x2",
+      "partition_object": {
+        "weights": [0.1, 0.4, 0, 0, 0.4, 0.1],
+        "bins": [-2, -1.5, -1, 0, 1, 1.5, 2]
+      },
+      "threshold": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x2",
+      "partition_object": {
+        "weights": [0.25, 0.25, 0.25, 0.25],
+        "bins": [-1, 0, 1, 1.5, 2]
+      },
+      "threshold": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "weights": [0.3, 0.15, 0.05, 0.05, 0.2, 0.25],
+        "bins": [
+          -1.7976931348623157e308, -2, -1, 0, 1, 2, 1.7976931348623157e308
+        ]
+      },
+      "threshold": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "weights": [0.15, 0.05, 0.05, 0.2],
+        "bins": [-2, -1, 0, 1, 2],
+        "tail_weights": [0.3, 0.25]
+      },
+      "threshold": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "weights": [0.3, 0.15, 0.05, 0.05, 0.2, 0.25],
+        "bins": [-3, -2, -1, 0, 1, 2, 3]
+      },
+      "threshold": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "weights": [0.45, 0.05, 0.05, 0.2, 0.25],
+        "bins": [-2, -1, 0, 1, 2, 3]
+      },
+      "threshold": 0.05,
+      "internal_weight_holdout": 0,
+      "tail_weight_holdout": 0
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "weights": [0.3, 0.15, 0.05, 0.05, 0.2, 0.25],
+        "bins": [-3, -2, -1, 0, 1, 2, 1.7976931348623157e308]
+      },
+      "threshold": 0.05,
+      "internal_weight_holdout": 0,
+      "tail_weight_holdout": 0.02
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "weights": [0.3, 0.15, 0.05, 0.05, 0.45],
+        "bins": [-1.7976931348623157e308, -2, -1, 0, 1, 2]
+      },
+      "threshold": 0.05,
+      "internal_weight_holdout": 0,
+      "tail_weight_holdout": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_kl_divergence_to_be_less_than",
+    "kwargs": {
+      "column": "x",
+      "partition_object": {
+        "weights": [0.3, 0.15, 0.0, 0.1, 0.45],
+        "bins": [-3, -2, -1, 0, 1, 2]
+      },
+      "threshold": 0.05,
+      "internal_weight_holdout": 0.05,
+      "tail_weight_holdout": 0.05
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_table_row_count_to_equal",
+    "kwargs": {
+      "value": 4
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_to_exist",
+    "kwargs": {
+      "column": "c1"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_table_row_count_to_be_between",
+    "kwargs": {
+      "min_value": 3,
+      "max_value": 5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_table_columns_to_match_ordered_list",
+    "kwargs": {
+      "column_list": ["c1", "c2", "c3"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_table_column_count_to_be_between",
+    "kwargs": {
+      "min_value": 3,
+      "max_value": 5
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_table_columns_to_match_set",
+    "kwargs": {
+      "column_set": ["c1", "c2", "c3"],
+      "exact_match": true
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_table_column_count_to_equal",
+    "kwargs": {
+      "value": 4
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_compound_columns_to_be_unique",
+    "kwargs": {
+      "column_list": ["a", "b"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_select_column_values_to_be_unique_within_record",
+    "kwargs": {
+      "column_list": ["a", "b"]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_multicolumn_sum_to_equal",
+    "kwargs": {
+      "column_list": ["a", "b"],
+      "sum_total": 4
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_pair_values_to_be_equal",
+    "kwargs": {
+      "column_A": "x",
+      "column_B": "x"
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_pair_values_to_be_in_set",
+    "kwargs": {
+      "column_A": "x",
+      "column_B": "x",
+      "value_pairs_set": [
+        [1, 1],
+        [2, 2],
+        [3, 3],
+        [4, 4],
+        [5, 5],
+        [6, 6],
+        [7, 7],
+        [8, 8],
+        [9, 9],
+        [10, 10]
+      ]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_pair_values_to_be_in_set",
+    "kwargs": {
+      "column_A": "x",
+      "column_B": "z",
+      "ignore_row_if": "either_value_is_missing",
+      "value_pairs_set": [
+        [1, 1],
+        [2, 2],
+        [3, 3],
+        [4, 4],
+        [5, 5]
+      ]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_pair_values_to_be_in_set",
+    "kwargs": {
+      "column_A": "x",
+      "column_B": "z",
+      "value_pairs_set": [
+        [1, 1],
+        [2, 2],
+        [3, 3],
+        [4, 4],
+        [5, 5]
+      ]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_pair_values_to_be_in_set",
+    "kwargs": {
+      "column_A": "a",
+      "column_B": "b",
+      "ignore_row_if": "both_values_are_missing",
+      "value_pairs_set": [
+        [1, 1],
+        [2, 2],
+        [2, 1],
+        [1, 2]
+      ]
+    },
+    "meta": {}
+  },
+  {
+    "type": "expect_column_pair_values_a_to_be_greater_than_b",
+    "kwargs": {
+      "column_A": "x",
+      "column_B": "w"
+    },
+    "meta": {}
+  }
+]
