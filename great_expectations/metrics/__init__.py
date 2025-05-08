@@ -15,4 +15,5 @@ from .column.values_not_match_regex_values import ColumnValuesNotMatchRegexValue
 from .column_pair.values_in_set import ColumnPairValuesInSetUnexpectedCount
 from .metric import Metric
 from .multi_column.sum_equal import MultiColumnSumEqualUnexpectedCount
+from .query.data_source_table import QueryDataSourceTable
 from .query.row_count import QueryRowCount

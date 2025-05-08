@@ -9,7 +9,7 @@ from great_expectations.core.suite_parameters import (
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -38,13 +38,13 @@ EXPECTATION_SHORT_DESCRIPTION = (
 LIKE_PATTERN_DESCRIPTION = "The SQL like pattern expression the column entries should NOT match."
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
-    "SQLite",
-    "PostgreSQL",
-    "Redshift",
-    "MySQL",
-    "MSSQL",
-    "Databricks (SQL)",
-    "Snowflake",
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.REDSHIFT.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.SNOWFLAKE.value,
 ]
 
 

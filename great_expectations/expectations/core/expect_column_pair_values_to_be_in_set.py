@@ -5,7 +5,7 @@ from typing import Any, ClassVar, Dict, List, Literal, Tuple, Type, Union
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -16,19 +16,18 @@ EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the paired values from columns A and B to belong to a set of valid pairs."
 )
 VALUE_PAIRS_SET_DESCRIPTION = "All the valid pairs to be matched."
-SUPPORTED_DATA_SOURCES = ["Snowflake", "PostgreSQL"]
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "Redshift",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 
 
