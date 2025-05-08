@@ -876,7 +876,7 @@ def test_TupleGCSStoreBackend_base_public_path():
             ("BBB",), b"bbb", content_encoding=None, content_type="image/png"
         )
 
-    run_id = RunIdentifier("my_run_id", datetime.datetime.now(datetime.timezone.utc))  # FIXME CoP
+    run_id = RunIdentifier("my_run_id", datetime.datetime.now(datetime.timezone.utc))
     key = ValidationResultIdentifier(
         ExpectationSuiteIdentifier(name="my_suite_name"),
         run_id,
