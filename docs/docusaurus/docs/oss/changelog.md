@@ -14,6 +14,21 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.4.3
+* [FEATURE] Test infra to support source to target expectations ([#11138](https://github.com/great-expectations/great_expectations/pull/11138))
+* [FEATURE] QueryDataSourceTable metric + provider ([#11149](https://github.com/great-expectations/great_expectations/pull/11149))
+* [DOCS] ExpectAI approval workflow ([#11072](https://github.com/great-expectations/great_expectations/pull/11072))
+* [DOCS] restore link checker ([#11135](https://github.com/great-expectations/great_expectations/pull/11135))
+* [DOCS] alerts for ExpectAI ([#11154](https://github.com/great-expectations/great_expectations/pull/11154))
+* [MAINTENANCE] Temporarily pin gx-redshift for python 3.9 ([#11142](https://github.com/great-expectations/great_expectations/pull/11142))
+* [MAINTENANCE] Revert "[DOCS] restore link checker" ([#11145](https://github.com/great-expectations/great_expectations/pull/11145))
+* [MAINTENANCE] Capitalize "Expectation" in mostly description ([#11147](https://github.com/great-expectations/great_expectations/pull/11147))
+* [MAINTENANCE] Add `SupportedDataSources` enum ([#11143](https://github.com/great-expectations/great_expectations/pull/11143))
+* [MAINTENANCE] Restore link checker ([#11146](https://github.com/great-expectations/great_expectations/pull/11146))
+* [MAINTENANCE] Remove slow test cases ([#11152](https://github.com/great-expectations/great_expectations/pull/11152))
+* [MAINTENANCE] Remove test_expectations_v3_api.py ([#11098](https://github.com/great-expectations/great_expectations/pull/11098))
+* [MAINTENANCE] Revert: "Temporarily pin gx-redshift for python 3.9" ([#11151](https://github.com/great-expectations/great_expectations/pull/11151))
+
 ### 1.4.2
 * [FEATURE] Changes to Redshift `connection_string` validator to support a dict type ([#11119](https://github.com/great-expectations/great_expectations/pull/11119))
 * [FEATURE] expectations: redshift support ([#11128](https://github.com/great-expectations/great_expectations/pull/11128))
