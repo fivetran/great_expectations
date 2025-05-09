@@ -171,11 +171,12 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             code_template_str=f"${query_type}_query",
             language=CodeBlockLanguage.SQL,
         )
+
         value_obj = renderedAtomicValueSchema.load(
             {
                 "template": renderer_configuration.template_str,
                 "params": renderer_configuration.params.dict(),
-                "code_block": renderer_configuration.code_block or None,
+                "code_block": renderer_configuration.code_block,
                 "meta_notes": renderer_configuration.meta_notes,
                 "schema": {"type": "com.superconductive.rendered.string"},
             }
