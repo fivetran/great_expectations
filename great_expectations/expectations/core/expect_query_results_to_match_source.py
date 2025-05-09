@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from functools import cmp_to_key
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
@@ -147,14 +148,19 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             runtime_configuration=runtime_configuration
         )
 
-        target_results = metrics["target_query.table"]
+        missing_rows: list[dict[str, Any]]
+        unexpected_rows: list[dict[str, Any]]
+
+        target_results: list[dict[str, Any]] = metrics["target_query.table"]
+        source_results: list[dict[str, Any]] = metrics["source_query.data_source_table"]
         target_result_count = len(target_results)
-        source_results = metrics["source_query.data_source_table"]
         source_result_count = len(source_results)
 
         if target_result_count + source_result_count == 0:
             unexpected_count = 0
             unexpected_percent = 0.0
+            missing_rows = []
+            unexpected_rows = []
         else:
             # creates a hashmap with row values as key and count of duplicate rows as value
             target_results_frequency_map = Counter(tuple(row.values()) for row in target_results)
@@ -180,6 +186,15 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                 1 - (match_count / max(source_result_count, target_result_count))
             ) * 100
 
+            missing_rows = self._compute_row_data(
+                col_names=self._get_column_names_from_result(source_results),
+                frequency_map=source_results_frequency_map - target_results_frequency_map,
+            )
+            unexpected_rows = self._compute_row_data(
+                col_names=self._get_column_names_from_result(target_results),
+                frequency_map=target_results_frequency_map - source_results_frequency_map,
+            )
+
         success_kwargs = self._get_success_kwargs()
         mostly = success_kwargs.get("mostly", 1)
         success = (100 - unexpected_percent) >= (mostly * 100)
@@ -192,5 +207,70 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                 "result": {
                     "unexpected_count": unexpected_count,
                     "unexpected_percent": unexpected_percent,
+                    "details": {
+                        "missing_rows": missing_rows,
+                        "unexpected_rows": unexpected_rows,
+                    },
                 },
             }
+
+    @classmethod
+    def _compute_row_data(
+        cls,
+        col_names: list[str],
+        frequency_map: Counter[tuple],
+    ) -> list[dict[str, Any]]:
+        """Given a frequency map of values and a list of their keys, compute a list of
+        column-name -> column value dictionaries.
+
+        Example:
+          - col_names: ["a", "b"]
+          - frequency_map: Counter({
+                (1, 2): 2,
+                (3, 4): 1,
+            })
+
+          -> [
+                {"a": 1, "b": 2},
+                {"a": 1, "b": 2},
+                {"a": 3, "b": 4},
+             ]
+        """
+        row_values = sorted(frequency_map.elements(), key=cmp_to_key(cls._null_safe_tuple_compare))
+
+        return [
+            {col_names[i]: row_values[i] for i in range(len(col_names))}
+            for row_values in row_values
+        ]
+
+    @classmethod
+    def _get_column_names_from_result(
+        cls,
+        results_list: list[dict[str, Any]],
+    ) -> list[str]:
+        """Get the list of columns from a result list.
+
+        NOTE: Order matters here, and we rely on python 3.7's deterministic ordering of results.
+        """
+        if results_list:
+            return list(results_list[0].keys())
+        else:
+            return []
+
+    @classmethod
+    def _null_safe_tuple_compare(
+        cls,
+        a: tuple[Any, ...],
+        b: tuple[Any, ...],
+    ):
+        for x, y in zip(a, b):
+            # Treat None as less than anything else
+            if x is None and y is not None:
+                return -1
+            if x is not None and y is None:
+                return 1
+            if x != y:
+                # Fall back to native comparison
+                return (x > y) - (x < y)
+        # If all items equal so far, compare by length
+        return (len(a) > len(b)) - (len(a) < len(b))
