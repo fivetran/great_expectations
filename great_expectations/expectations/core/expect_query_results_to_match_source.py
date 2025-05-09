@@ -1,21 +1,37 @@
 from __future__ import annotations
 
 from collections import Counter
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.result_format import ResultFormat
-from great_expectations.expectations.expectation import BatchExpectation
+from great_expectations.expectations.expectation import (
+    BatchExpectation,
+    render_suite_parameter_string,
+)
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import MOSTLY_DESCRIPTION
 from great_expectations.expectations.model_field_types import (
     MostlyField,  # noqa: TC001  # pydantic needs the actual type
 )
+from great_expectations.render import (
+    AtomicPrescriptiveRendererType,
+    RenderedAtomicContent,
+    renderedAtomicValueSchema,
+)
+from great_expectations.render.renderer.renderer import renderer
+from great_expectations.render.renderer_configuration import (
+    CodeBlock,
+    CodeBlockLanguage,
+    RendererConfiguration,
+    RendererValueType,
+)
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
     from great_expectations.execution_engine import ExecutionEngine
+    from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 
 
 EXPECTATION_SHORT_DESCRIPTION = (
@@ -136,6 +152,96 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                     },
                 }
             )
+
+    @classmethod
+    def _get_target_query_rendered_content(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ):
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        renderer_configuration.add_param(name="target_query", param_type=RendererValueType.STRING)
+        renderer_configuration.code_block = CodeBlock(
+            code_template_str="$target_query",
+            language=CodeBlockLanguage.SQL,
+        )
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "code_block": renderer_configuration.code_block or None,
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicPrescriptiveRendererType.SUMMARY,
+            value=value_obj,
+            value_type="StringValueType",
+        )
+
+    @classmethod
+    def _get_source_query_rendered_content(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ):
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        renderer_configuration.add_param(
+            name="source_data_source_name", param_type=RendererValueType.STRING
+        )
+        renderer_configuration.template_str = "Compare with Data Source: $source_data_source_name"
+        renderer_configuration.add_param(name="source_query", param_type=RendererValueType.STRING)
+        renderer_configuration.code_block = CodeBlock(
+            code_template_str="$source_query",
+            language=CodeBlockLanguage.SQL,
+        )
+        value_obj = renderedAtomicValueSchema.load(
+            {
+                "template": renderer_configuration.template_str,
+                "params": renderer_configuration.params.dict(),
+                "code_block": renderer_configuration.code_block or None,
+                "meta_notes": renderer_configuration.meta_notes,
+                "schema": {"type": "com.superconductive.rendered.string"},
+            }
+        )
+        return RenderedAtomicContent(
+            name=AtomicPrescriptiveRendererType.SUMMARY,
+            value=value_obj,
+            value_type="StringValueType",
+        )
+
+    @classmethod
+    @override
+    @renderer(renderer_type=AtomicPrescriptiveRendererType.SUMMARY)
+    @render_suite_parameter_string
+    def _prescriptive_summary(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> list[RenderedAtomicContent]:
+        target_query_block = cls._get_target_query_rendered_content(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        source_query_block = cls._get_source_query_rendered_content(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        return [target_query_block, source_query_block]
 
     @override
     def _validate(
