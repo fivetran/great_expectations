@@ -433,6 +433,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: Upgrade Docker Compose
+        uses: docker/setup-compose-action@v1
+        with:
+          version: latest
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -619,6 +624,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Upgrade Docker Compose
+        uses: docker/setup-compose-action@v1
+        with:
+          version: latest
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
