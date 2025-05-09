@@ -1,3 +1,5 @@
+from typing import Any
+
 import pandas as pd
 import pytest
 
@@ -265,6 +267,72 @@ def test_expect_query_results_to_match_source_unexpected_percent(
     )
     assert result.result["unexpected_percent"] == pytest.approx(unexpected_percent)
     assert result.result["unexpected_count"] == unexpected_count
+
+
+MISSING_AND_UNEXPECTED_DF = pd.DataFrame(
+    {
+        "source": list("AAABBC"),
+        "all_matches": list("CBBAAA"),
+        "all_matches_reversed": list("CBBAAA"),
+        "missing_and_unexpected": list("AAAAAD"),
+    }
+)
+
+
+@pytest.mark.parametrize(
+    ("target_query", "missing_rows", "unexpected_rows"),
+    [
+        pytest.param(
+            "SELECT all_matches FROM {batch}",
+            [],
+            [],
+            id="all_match",
+        ),
+        pytest.param(
+            "SELECT all_matches_reversed FROM {batch}",
+            [],
+            [],
+            id="all_match_order_agnostic",
+        ),
+        pytest.param(
+            "SELECT missing_and_unexpected FROM {batch}",
+            [
+                {"source": "B"},
+                {"source": "B"},
+                {"source": "C"},
+            ],
+            [
+                {"missing_and_unexpected": "A"},
+                {"missing_and_unexpected": "A"},
+                {"missing_and_unexpected": "D"},
+            ],
+            id="some_matches_missing_and_unexpected",
+        ),
+    ],
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    target_data=MISSING_AND_UNEXPECTED_DF,
+    source_data=MISSING_AND_UNEXPECTED_DF,
+)
+def test_expect_query_results_to_match_source_missing_and_unexpected_values(
+    multi_source_batch: MultiSourceBatch,
+    target_query: str,
+    missing_rows: list[dict[str, Any]],
+    unexpected_rows: list[dict[str, Any]],
+) -> None:
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query=target_query,
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT source FROM {multi_source_batch.source_table_name}",
+        )
+    )
+
+    assert result.result["details"] == {
+        "unexpected_rows": unexpected_rows,
+        "missing_rows": missing_rows,
+    }
 
 
 TOO_BIG_DATA = pd.DataFrame({"a": list(range(0, 500)), "b": list(range(100, 600))})
