@@ -200,7 +200,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         renderer_configuration.add_param(
             name="source_data_source_name", param_type=RendererValueType.STRING
         )
-        renderer_configuration.template_str = "Compare with Data Source: $source_data_source_name"
+        renderer_configuration.template_str = "Compare with Data Source $source_data_source_name"
         renderer_configuration.add_param(name="source_query", param_type=RendererValueType.STRING)
         renderer_configuration.code_block = CodeBlock(
             code_template_str="$source_query",
