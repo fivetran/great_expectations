@@ -836,7 +836,10 @@ def convert_ndarray_float_to_datetime_dtype(data: np.ndarray) -> np.ndarray:
     """  # noqa: E501 # FIXME CoP
     value: Any
     return np.asarray(
-        [datetime.datetime.fromtimestamp(value, datetime.timezone.utc).replace(tzinfo=None) for value in data]
+        [
+            datetime.datetime.fromtimestamp(value, datetime.timezone.utc).replace(tzinfo=None)
+            for value in data
+        ]
     )
 
 
