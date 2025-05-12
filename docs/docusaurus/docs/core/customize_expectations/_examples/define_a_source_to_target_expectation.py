@@ -30,6 +30,7 @@ def set_up_context_for_example(context):
     )
     assert batch_definition.name == batch_definition_name
 
+
 # The name of this Data Source mentions Snowflake for illustrative purposes though it is not actually a Snowflake source
 def set_up_context2_for_example(context):
     # Create the Data Source
