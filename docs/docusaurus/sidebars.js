@@ -120,8 +120,7 @@ module.exports = {
       items: [
         { type: 'doc', id: 'core/customize_expectations/expectation_conditions' },
         { type: 'doc', id: 'core/customize_expectations/define_a_custom_expectation_class' },
-        { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' },
-        { type: 'doc', id: 'core/customize_expectations/define_a_source_to_target_expectation' }
+        { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' }
       ]
     },
     {
