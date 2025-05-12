@@ -38,7 +38,7 @@ The maximum number of rows that will be returned for comparison from each query 
 
 ### Procedure
 
-To create a source-to-target Expectation, add a `ExpectQueryResultsToMatchSource` Expectation for the target Data Source.
+To create a source-to-target Expectation, add an `ExpectQueryResultsToMatchSource` Expectation for the target Data Source.
 
 <Tabs 
    queryString="procedure"
