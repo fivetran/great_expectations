@@ -8,9 +8,8 @@ import Tabs from '@theme/Tabs';
 import PrereqPythonInstalled from '../_core_components/prerequisites/_python_installation.md';
 import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installation.md';
 import PrereqPreconfiguredDataContext from '../_core_components/prerequisites/_preconfigured_data_context.md';
-import PrereqPreconfiguredDataSourceAndAsset from '../_core_components/prerequisites/_data_source_and_asset_connected_to_data.md';
 
-A source-to-target Expectation executes one SQL query for each of two Data Sources and compares their results for equality. This can be helpful for validating consistency between systems during data migration or regular data loading processes. Source-to-target Expectations can detect data drift introduced during the ETL process via discrepancies in schemas, counts, time windows, data types, and precision levels between Data Sources. Here are some examples of comparisons you can test:
+A source-to-target Expectation executes one SQL query for each of two Data Sources and compares their results for equality. This can be helpful for validating consistency between systems during data migration or regular data loading processes. Source-to-target Expectations can detect data drift introduced during the ETL process through discrepancies in schemas, counts, time windows, data types, and precision levels between Data Sources. Here are some examples of comparisons you can test:
 - Every row in table A matches every row in table B.
 - An aggregate metric of table A matches the same aggregate metric of table B.
 - An aggregate metric of table A matches a different aggregate metric of table B. (For example, the count of rows where X is true in table A matches the count of rows where Y and Z are true in table B.)
@@ -35,11 +34,11 @@ The maximum number of rows that will be returned for comparison from each query 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - <PrereqPreconfiguredDataContext/>.
-- Recommended. <PrereqPreconfiguredDataSourceAndAsset/> for [testing your customized Expectation](/core/define_expectations/test_an_expectation.md).
+- Recommended. [Preconfigured Data Sources and Data Assets connected to your data](/core/connect_to_data) for [testing your source-to-target Expectation](/core/define_expectations/test_an_expectation.md).
 
 ### Procedure
 
-To create a source-to-target Expectation, add the `ExpectQueryResultsToMatchSource` Expectation on the target Data Source.
+To create a source-to-target Expectation, add a `ExpectQueryResultsToMatchSource` Expectation for the target Data Source.
 
 <Tabs 
    queryString="procedure"
@@ -57,7 +56,7 @@ To create a source-to-target Expectation, add the `ExpectQueryResultsToMatchSour
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define source Data Source"
    ```
 
-2. Determine our source and target SQL queries. Each query should be written in the dialect of the associated Data Source.
+2. Determine your source and target SQL queries. Each query should be written in the dialect of the associated Data Source.
 
    In this example, the queries will both select any rows where the passenger count is greater than `0`:
 
