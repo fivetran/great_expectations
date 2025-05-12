@@ -34,7 +34,7 @@ The maximum number of rows that will be returned for comparison from each query 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - <PrereqPreconfiguredDataContext/>.
-- Recommended. [Preconfigured Data Sources and Data Assets connected to your data](/core/connect_to_data) for [testing your source-to-target Expectation](/core/define_expectations/test_an_expectation.md).
+- Recommended. [Preconfigured Data Sources and Data Assets connected to your data](/core/connect_to_data/connect_to_data.md) for [testing your source-to-target Expectation](/core/define_expectations/test_an_expectation.md).
 
 ### Procedure
 
