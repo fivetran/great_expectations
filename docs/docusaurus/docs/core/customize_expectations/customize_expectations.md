@@ -39,7 +39,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
       topIcon 
       label="Define a source-to-target Expectation"
       description="Create an Expectation that queries multiple Data Sources and compares the results for equality."
-      to="/core/customize_expectations/define_a_source_to_target_expectation" 
+      to="/core/customize_expectations/use_sql_to_define_a_custom_expectation" 
       icon="/img/expectation_icon.svg" 
     /> 
 </LinkCardGrid>
