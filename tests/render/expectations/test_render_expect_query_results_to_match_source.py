@@ -16,6 +16,60 @@ from great_expectations.render.renderer_configuration import CodeBlockLanguage, 
         pytest.param(
             ExpectationConfiguration(
                 type="expect_query_results_to_match_source",
+                description="Both tables should be identical",
+                kwargs={
+                    "target_query": "SELECT * FROM {batch}",
+                    "source_data_source_name": "My Data Source",
+                    "source_query": "SELECT * FROM a_table_in_source_data_source",
+                },
+            ),
+            [
+                {
+                    "name": "atomic.prescriptive.summary",
+                    "value": {
+                        "code_block": {
+                            "code_template_str": "$target_query",
+                            "language": CodeBlockLanguage.SQL,
+                        },
+                        "params": {
+                            "target_query": {
+                                "schema": {"type": RendererValueType.STRING},
+                                "value": "SELECT * FROM {batch}",
+                            }
+                        },
+                        "schema": {"type": "com.superconductive.rendered.string"},
+                        "template": "Both tables should be identical",
+                    },
+                    "value_type": "StringValueType",
+                },
+                {
+                    "name": "atomic.prescriptive.summary",
+                    "value": {
+                        "code_block": {
+                            "code_template_str": "$source_query",
+                            "language": CodeBlockLanguage.SQL,
+                        },
+                        "params": {
+                            "source_data_source_name": {
+                                "schema": {"type": RendererValueType.STRING},
+                                "value": "My Data Source",
+                            },
+                            "source_query": {
+                                "schema": {"type": RendererValueType.STRING},
+                                "value": "SELECT * FROM a_table_in_source_data_source",
+                            },
+                        },
+                        "schema": {"type": "com.superconductive.rendered.string"},
+                        "template": "Compare with Data Source $source_data_source_name",
+                    },
+                    "value_type": "StringValueType",
+                },
+            ],
+            id="with_description",
+        ),
+        pytest.param(
+            ExpectationConfiguration(
+                type="expect_query_results_to_match_source",
                 kwargs={
                     "target_query": "SELECT * FROM {batch}",
                     "source_data_source_name": "My Data Source",
@@ -63,6 +117,7 @@ from great_expectations.render.renderer_configuration import CodeBlockLanguage, 
                     "value_type": "StringValueType",
                 },
             ],
+            id="no_description",
         ),
     ],
 )

@@ -174,7 +174,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
 
         value_obj = renderedAtomicValueSchema.load(
             {
-                "template": renderer_configuration.template_str,
+                "template": template_str or renderer_configuration.template_str,
                 "params": renderer_configuration.params.dict(),
                 "code_block": renderer_configuration.code_block,
                 "meta_notes": renderer_configuration.meta_notes,
