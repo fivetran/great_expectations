@@ -57,7 +57,7 @@ To create a source-to-target Expectation, add the `ExpectQueryResultsToMatchSour
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define source Data Source"
    ```
 
-2. Determine our source and target sql queries. Each query should be written in the dialect of the associated Data Source.
+2. Determine our source and target SQL queries. Each query should be written in the dialect of the associated Data Source.
 
    In this example, the queries will both select any rows where the passenger count is greater than `0`:
 
@@ -78,9 +78,9 @@ To create a source-to-target Expectation, add the `ExpectQueryResultsToMatchSour
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - create Expectation"
    ```
 
-5. Use your custom SQL Expectation.
+5. Use your source-to-target Expectation.
 
-   Now that you've created a custom SQL Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
+   Now that you've created a source-to-target Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) for the target Data Source and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
 
 </TabItem>
 
