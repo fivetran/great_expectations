@@ -16,10 +16,11 @@ An Expectation is a verifiable assertion about your data. They make implicit ass
 
 The following table lists the available GX Cloud Expectations.
 
-| Data quality issue |                    Expectation                       |                                                               Description                                                              | Dynamic Parameters? |
-|------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-| Completeness       | **column values to be null**                         | Expect the column values to be null.                                                                                                   | Yes                 |
-| Completeness       | **column values to not be null**                     | Expect the column values to not be null.                                                                                               | Yes                 |
+| Data quality issue    |                    Expectation                    |                                                               Description                                                              | Dynamic Parameters? |
+|-----------------------|---------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| Completeness          | **column values to be null**                      | Expect the column values to be null.                                                                                                   | Yes                 |
+| Completeness          | **column values to not be null**                  | Expect the column values to not be null.                                                                                               | Yes                 |
+| Multiple Data Sources | **query results to match source**                 | Query multiple Data Sources and compare the results for equality.                                                                      | No                  |
 | Numeric            | **column max to be between**                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 |
 | Numeric            | **column mean to be between**                        | Expect the column mean to be between a minimum and a maximum value.                                                                    | Yes                 |
 | Numeric            | **column median to be between**                      | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes                 |
@@ -37,6 +38,7 @@ The following table lists the available GX Cloud Expectations.
 | Schema             | **table column count to equal**                      | Expect the number of columns in a table to equal a value.                                                                              | No                  |
 | Schema             | **table columns to match ordered list**              | Expect the columns in a table to exactly match a specified list.                                                                       | No                  |
 | Schema             | **table columns to match set**                       | Expect the columns in a table to match an unordered set.                                                                               | No                  |
+| SQL                | **custom Expectation with SQL**                      | Expect a SQL query to return no rows.                                                                                                  | No                  |
 | Uniqueness         | **column distinct values to be in set**              | Expect the set of distinct column values to be contained by a given set.                                                               | No                  |
 | Uniqueness         | **column distinct values to contain set**            | Expect the set of distinct column values to contain a given set.                                                                       | No                  |
 | Uniqueness         | **column distinct values to equal set**              | Expect the set of distinct column values to equal a given set.                                                                         | No                  |
@@ -75,6 +77,35 @@ The provided query should be written in the dialect of the Data Source in which 
 The optional `{batch}` named query references the Batch of data under test. When the Expectation is evaluated, the `{batch}` named query will be replaced with the Batch of data that is validated.
 
 :::
+
+## Source-to-target Expectations
+
+A source-to-target Expectation executes one SQL query for each of two Data Sources and compares their results for equality. This can be helpful for validating consistency between systems during data migration or regular data loading processes. Source-to-target Expectations can detect data drift introduced during the ETL process via discrepancies in schemas, counts, time windows, data types, and precision levels between Data Sources. Here are some examples of comparisons you can test:
+- Every row in table A matches every row in table B.
+- An aggregate metric of table A matches the same aggregate metric of table B.
+- An aggregate metric of table A matches a different aggregate metric of table B. (For example, the count of rows where X is true in table A matches the count of rows where Y and Z are true in table B.)
+
+To compare results for equality, each row returned by the query for the target Data Source will be compared to each row returned by the query for the source Data Source. When you configure a source-to-target Expectation, you set an **Expected percentage of identical rows**. The Expectation will fail if the percentage of identical rows between your two queries falls below this threshold.
+
+The percentage of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either the source result or the target result. Here are some example scenarios:
+
+| Source result row count | Target result row count | Matched rows | Percentage of identical rows |
+| ----------------------- | ----------------------- | ------------ | ---------------------------- |
+| 200                     | 200                     | 200          | 100%                         |
+| 25                      | 100                     | 25           | 25%                          |
+| 100                     | 25                      | 1            | 1%                           |
+
+
+The maximum number of rows that will be returned for comparison from each query is 200. The order of rows returned does not matter unless the number of rows returned would be greater than 200.
+
+To create a source-to-target Expectation, [add the **expect query results to match source** Expectation](#add-an-expectation) on the target Data Source. Each provided query should be written in the dialect of the associated Data Source.
+
+Keep the following limitations in mind when working with source-to-target Expectations:
+- The comparison is limited to the first 200 rows of each query result. 
+- If you’ve defined a time-based batch interval for your validations, it will apply to only the target Data Source where you’ve configured the expectation. It will not apply to the upstream source Data Source. 
+- The Expectation configuration and validation results are not reflected on the upstream source Data Source. The Expectation is always managed on the target Data Asset where you initially configure it.
+- Source-to-target Expectations must be added with the GX Cloud UI. Though, after you add it, you can update a source-to-target Expectation with the GX Cloud API.
+
 
 ## Dynamic Parameters
 
