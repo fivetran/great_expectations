@@ -94,7 +94,7 @@ The percentage of identical rows is computed by dividing the number of matching 
 | 200                     | 200                     | 200          | 100%                         |
 | 25                      | 100                     | 25           | 25%                          |
 | 100                     | 25                      | 1            | 1%                           |
-
+| 0                       | 0                       | 0            | 100%                           |
 
 The maximum number of rows that will be returned for comparison from each query is 200. The order of rows returned does not matter unless the number of rows returned would be greater than 200.
 
