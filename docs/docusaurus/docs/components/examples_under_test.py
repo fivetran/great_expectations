@@ -499,7 +499,7 @@ docs_examples_customize_expectations = [
         # data_context_dir="",
         backend_dependencies=[],
     ),
-        IntegrationTestFixture(
+    IntegrationTestFixture(
         # To test, run:
         # pytest --docs-tests -k "docs_example_define_a_source_to_target_expectation" tests/integration/test_script_runner.py
         name="docs_example_define_a_source_to_target_expectation",
