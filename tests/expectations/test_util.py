@@ -72,7 +72,7 @@ def get_table_columns_metric(
         metric_domain_kwargs={},
         metric_value_kwargs=None,
     )
-    table_columns_metric.metric_dependencies = {  # type: ignore[assignment]
+    table_columns_metric.metric_dependencies = {  # type: ignore[assignment] # FIXME CoP
         "table.column_types": table_column_types_metric,
     }
     results = execution_engine.resolve_metrics(
@@ -124,7 +124,7 @@ def test_prescriptive_renderer_no_decorator(
         runtime_configuration = runtime_configuration or {}
         styling = runtime_configuration.get("styling")
         params = configuration.kwargs
-        template_str = "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value"  # noqa: E501
+        template_str = "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value"  # noqa: E501 # FIXME CoP
         return [
             RenderedStringTemplateContent(
                 **{
@@ -146,7 +146,7 @@ def test_prescriptive_renderer_no_decorator(
     # string template should remain constant
     assert (
         res[0].string_template["template"]
-        == "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value"  # noqa: E501
+        == "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value"  # noqa: E501 # FIXME CoP
     )
 
     # params should contain our suite parameters
@@ -157,7 +157,7 @@ def test_prescriptive_renderer_no_decorator(
     assert res[0].to_json_dict() == {
         "content_block_type": "string_template",
         "string_template": {
-            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value",  # noqa: E501
+            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value",  # noqa: E501 # FIXME CoP
             "params": {
                 "column": "live",
                 "min_value": {"$PARAMETER": "MIN_VAL_PARAM"},
@@ -190,7 +190,7 @@ def test_prescriptive_renderer_with_decorator(
         runtime_configuration = runtime_configuration or {}
         styling = runtime_configuration.get("styling")
         params = configuration.kwargs
-        template_str = "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value"  # noqa: E501
+        template_str = "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value"  # noqa: E501 # FIXME CoP
         return [
             RenderedStringTemplateContent(
                 **{
@@ -213,7 +213,7 @@ def test_prescriptive_renderer_with_decorator(
     # string template should remain constant
     assert (
         res[0].string_template["template"]
-        == "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value"  # noqa: E501
+        == "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value"  # noqa: E501 # FIXME CoP
     )
 
     # params should contain our suite parameters
@@ -222,7 +222,7 @@ def test_prescriptive_renderer_with_decorator(
     assert res[0].to_json_dict() == {
         "content_block_type": "string_template",
         "string_template": {
-            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value",  # noqa: E501
+            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value",  # noqa: E501 # FIXME CoP
             "params": {
                 "column": "live",
                 "min_value": {"$PARAMETER": "MIN_VAL_PARAM"},
@@ -527,17 +527,17 @@ def test__TestBackend__bad_dialects():
 
 @pytest.mark.unit
 def test__TestBackend__good_backends_and_dialects():
-    tb1 = TestBackend(  # noqa: F841
+    tb1 = TestBackend(  # noqa: F841 # FIXME CoP
         backend="pandas",
         dialects=None,
     )
 
-    tb2 = TestBackend(  # noqa: F841
+    tb2 = TestBackend(  # noqa: F841 # FIXME CoP
         backend="spark",
         dialects=None,
     )
 
-    tb3 = TestBackend(  # noqa: F841
+    tb3 = TestBackend(  # noqa: F841 # FIXME CoP
         backend="sqlalchemy",
         dialects=["sqlite", "postgresql", "mysql"],
     )

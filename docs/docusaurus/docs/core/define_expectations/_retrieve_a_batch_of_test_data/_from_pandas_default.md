@@ -11,14 +11,14 @@ The `pandas_default` Data Source provides methods to read the contents of a sing
 
 Because the `pandas_default` Data Source's `.read_*(...)` methods only return a Batch and do not save configurations for reading files to the Data Context, they are less versatile than a fully configured Data Source, Data Asset, and Batch Definition. Therefore, the `pandas_default` Data Source is only intended to facilitate testing Expectations and engaging in data exploration.  The `pandas_default` Data Source's `.read_*(...)` methods are less suited for use in production and automated workflows.
 
-## Prerequisites
+## Prerequisites {#prerequisites-pandas-default}
 
 - <PrereqPython/>.
 - <PrereqGxInstallation/>.
 - <PrereqDataContext/>.  These examples assume the variable `context` contains your Data Context.
 - Data in a file format supported by pandas, such as `.csv` or `.parquet`.
 
-### Procedure
+### Procedure {#procedure-pandas-default}
 
 <Tabs 
    queryString="procedure"

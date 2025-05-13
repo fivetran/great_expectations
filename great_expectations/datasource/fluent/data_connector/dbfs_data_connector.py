@@ -26,9 +26,9 @@ class DBFSDataConnector(FilesystemDataConnector):
         data_context_root_directory: Optional GreatExpectations root directory (if installed on DBFS)
         file_path_template_map_fn: Format function mapping path to fully-qualified resource on DBFS
         get_unfiltered_batch_definition_list_fn: Function used to get the batch definition list before filtering
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_asset_name: str,
@@ -50,7 +50,7 @@ class DBFSDataConnector(FilesystemDataConnector):
 
     @classmethod
     @override
-    def build_data_connector(  # noqa: PLR0913
+    def build_data_connector(  # noqa: PLR0913 # FIXME CoP
         cls,
         datasource_name: str,
         data_asset_name: str,
@@ -73,7 +73,7 @@ class DBFSDataConnector(FilesystemDataConnector):
 
         Returns:
             Instantiated "DBFSDataConnector" object
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return DBFSDataConnector(
             datasource_name=datasource_name,
             data_asset_name=data_asset_name,
@@ -88,10 +88,10 @@ class DBFSDataConnector(FilesystemDataConnector):
     @override
     def _get_full_file_path(self, path: str) -> str:
         if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
 requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
         template_arguments: dict = {

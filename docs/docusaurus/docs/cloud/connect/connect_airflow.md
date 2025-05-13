@@ -5,7 +5,11 @@ id: connect_airflow
 description: Connect GX Cloud to an Airflow Orchestrator.
 ---
 
-In this quickstart, you'll learn how to use GX Cloud with Apache Airflow. You'll create a simple DAG that runs a Checkpoint that you have already set up in GX Cloud, and then trigger it through a local installation of an Airflow server.
+In this quickstart, you'll learn how to use GX Cloud with Apache Airflow directly. You'll create a basic DAG that runs a Checkpoint in GX Cloud, and then trigger it through a local installation of an Airflow server.
+
+:::tip Try the Great Expectations Airflow Provider
+For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider maintained by Astronomer](https://github.com/astronomer/airflow-provider-great-expectations/blob/main/docs/index.md) to validate data directly from a DAG.
+:::
 
 Apache Airflow is an orchestration tool that allows you to schedule and monitor your data pipelines. For more information about Apache Airflow, see the [Apache Airflow documentation](https://airflow.apache.org/docs/apache-airflow/stable/index.html).
 
@@ -15,22 +19,22 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
 
 - You have installed Apache Airflow and initialized the database (__airflow db init__).
 
-- You have [connected GX Cloud to a Data Asset on a Data Source](/cloud/data_assets/manage_data_assets.md#create-a-data-asset).
+- You have [connected GX Cloud to a Data Asset on a Data Source](/cloud/data_assets/manage_data_assets.md). (Note that this automatically creates the Checkpoint your DAG will run.)
 
-- You have [created an Expectation Suite](/cloud/expectation_suites/manage_expectation_suites.md) and [added Expectations](/cloud/expectations/manage_expectations.md#create-an-expectation).
+- You have [added Expectations](/cloud/expectations/manage_expectations.md#create-an-expectation).
 
 
 ## Run Airflow Standalone to create a fresh local Airflow environment
 
 1. The `airflow standalone` command initializes the database, creates a user, and starts all components.
 
-    ``` title="Terminal input"
+    ```bash title="Terminal input"
     airflow standalone
     ```
 
-    This command will eventually output a username a password for the Airflow UI like this:
+    This command will eventually output a username and password for the Airflow UI like this:
 
-    ``` title="Terminal input"
+    ```bash title="Terminal input"
     standalone | Airflow is ready
     standalone | Login with username: admin  password: Bpu6RgmPMMaDeeq5
     standalone | Airflow Standalone is for development purposes only. Do not use this in production!
@@ -54,7 +58,7 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
 
 2. Open the `gx_dag.py` DAG file and add the following code:
 
-    ```python
+    ```python title="gx_dag.py"
     import os
     import pendulum
     import great_expectations as gx
@@ -76,8 +80,12 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
             # You can also set GX_CLOUD_ACCESS_TOKEN and GX_CLOUD_ORGANIZATION_ID as environment variables
             GX_CLOUD_ACCESS_TOKEN = "<YOUR_ACCESS_TOKEN>"
             GX_CLOUD_ORGANIZATION_ID = "<YOUR_CLOUD_ORGANIZATION_ID>"
-            # Find the checkpoint name in the GX Cloud UI beside the Validate button
-            CHECKPOINT_NAME = ""
+            # Find the Checkpoint name in the GX Cloud UI. 
+            # - Go to the "Validations" tab.
+            # - Next to the "Validate" button, click the code snippet icon.
+            # - Click "Generate snippet". 
+            # - Copy the Checkpoint name from the code snippet and use it below.
+            CHECKPOINT_NAME = "my_data_asset 123ABC - Default Checkpoint"
             context = gx.get_context(
                 mode="cloud", 
                 cloud_organization_id=GX_CLOUD_ACCESS_TOKEN, 

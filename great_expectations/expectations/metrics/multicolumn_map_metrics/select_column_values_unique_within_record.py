@@ -13,7 +13,7 @@ from great_expectations.execution_engine import (
 from great_expectations.expectations.metrics.map_metric_provider import (
     MulticolumnMapMetricProvider,
 )
-from great_expectations.expectations.metrics.map_metric_provider.multicolumn_condition_partial import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.multicolumn_condition_partial import (  # noqa: E501 # FIXME CoP
     multicolumn_condition_partial,
 )
 
@@ -44,15 +44,15 @@ class SelectColumnValuesUniqueWithinRecord(MulticolumnMapMetricProvider):
         cost is O(num_columns^2).  However, until a more efficient implementation compatible with SQLAlchemy is
         available, this is the only feasible mechanism under the current architecture, where map metric providers must
         return a condition.  Nevertheless, SQL query length limit is 1GB (sufficient for most practical scenarios).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         num_columns = len(column_list)
 
         # An arbitrary "num_columns" value used for issuing an explanatory message as a warning.
-        if num_columns > 100:  # noqa: PLR2004
+        if num_columns > 100:  # noqa: PLR2004 # FIXME CoP
             logger.warning(
                 f"""Batch data with {num_columns} columns is detected.  Computing the "{cls.condition_metric_name}" \
 metric for wide tables using SQLAlchemy leads to long WHERE clauses for the underlying database engine to process.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
         conditions = sa.or_(
@@ -60,8 +60,8 @@ metric for wide tables using SQLAlchemy leads to long WHERE clauses for the unde
                 sa.or_(
                     column_list[idx_src] == column_list[idx_dest],
                     sa.and_(
-                        column_list[idx_src] == None,  # noqa: E711
-                        column_list[idx_dest] == None,  # noqa: E711
+                        column_list[idx_src] == None,  # noqa: E711 # FIXME CoP
+                        column_list[idx_dest] == None,  # noqa: E711 # FIXME CoP
                     ),
                 )
                 for idx_src in range(num_columns - 1)

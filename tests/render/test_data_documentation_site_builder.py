@@ -26,7 +26,7 @@ def assert_how_to_buttons(
 ):
     """Helper function to assert presence or non-presence of how-to buttons and related content in various
     Data Docs pages.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # these are simple checks for presence of certain page elements
     show_walkthrough_button = "Show Walkthrough"
@@ -53,7 +53,7 @@ def assert_how_to_buttons(
         "profiling_results": [action_card, show_walkthrough_button, walkthrough_modal],
     }
 
-    data_docs_site_dir = os.path.join(  # noqa: PTH118
+    data_docs_site_dir = os.path.join(  # noqa: PTH118 # FIXME CoP
         context._context_root_directory,
         context._project_config.data_docs_sites["local_site"]["store_backend"]["base_directory"],
     )
@@ -61,15 +61,15 @@ def assert_how_to_buttons(
     page_paths_dict = {
         "index_pages": [index_page_locator_info[7:]],
         "expectation_suites": [
-            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118
+            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118 # FIXME CoP
             for link_dict in index_links_dict.get("expectations_links", [])
         ],
         "validation_results": [
-            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118
+            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118 # FIXME CoP
             for link_dict in index_links_dict.get("validations_links", [])
         ],
         "profiling_results": [
-            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118
+            os.path.join(data_docs_site_dir, link_dict["filepath"])  # noqa: PTH118 # FIXME CoP
             for link_dict in index_links_dict.get("profiling_links", [])
         ],
     }
@@ -88,15 +88,15 @@ def assert_how_to_buttons(
 def test_site_builder_with_custom_site_section_builders_config(tmp_path_factory):
     """Test that site builder can handle partially specified custom site_section_builders config"""
     base_dir = str(tmp_path_factory.mktemp("project_dir"))
-    project_dir = os.path.join(base_dir, "project_path")  # noqa: PTH118
-    os.mkdir(project_dir)  # noqa: PTH102
+    project_dir = os.path.join(base_dir, "project_path")  # noqa: PTH118 # FIXME CoP
+    os.mkdir(project_dir)  # noqa: PTH102 # FIXME CoP
 
     # fixture config swaps site section builder source stores and specifies custom run_name_filters
     shutil.copy(
         file_relative_path(
             __file__, "../test_fixtures/great_expectations_custom_local_site_config.yml"
         ),
-        str(os.path.join(project_dir, FileDataContext.GX_YML)),  # noqa: PTH118
+        str(os.path.join(project_dir, FileDataContext.GX_YML)),  # noqa: PTH118 # FIXME CoP
     )
     context = get_context(context_root_dir=project_dir)
     local_site_config = context._project_config.data_docs_sites.get("local_site")

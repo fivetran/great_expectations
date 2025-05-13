@@ -54,6 +54,7 @@ from great_expectations.datasource.fluent.fabric import FabricPowerBIDatasource
 from great_expectations.datasource.fluent.postgres_datasource import (
     PostgresDatasource,
 )
+from great_expectations.datasource.fluent.redshift_datasource import RedshiftDatasource
 from great_expectations.datasource.fluent.spark_datasource import (
     _SparkDatasource,
 )

@@ -16,9 +16,9 @@ from great_expectations.expectations.metrics.map_metric_provider import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: TID251
+    import sqlalchemy as sa  # noqa: TID251 # FIXME CoP
 except ImportError:
-    sa = None  # type: ignore[assignment]
+    sa = None  # type: ignore[assignment] # FIXME CoP
 
 
 class ColumnValuesInSet(ColumnMapMetricProvider):

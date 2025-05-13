@@ -16,7 +16,7 @@ bucket_name = "my_bucket"
 boto3_options = {}
 # </snippet>
 
-bucket_name = "superconductive-docs-test"
+bucket_name = "great-expectations-docs-test"
 
 
 # Python

@@ -5,14 +5,14 @@ import InfoUsingAVirtualEnvironment from '../../_core_components/admonitions/_if
 
 GX Core uses the Python library `boto3` to access objects stored in Amazon S3 buckets, but you must configure your Amazon S3 account and credentials through AWS and the AWS command line interface (CLI).
 
-## Prerequisites
+## Prerequisites {#prerequisites-amazon}
 
 - The AWS CLI. See [Installing or updating the latest version of the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
 - AWS credentials. See [Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
 - <PrereqPythonInstalled/>
 - <RecommendedVirtualEnvironment/>
 
-## Installation
+## Installation {#installation-amazon}
 
 Python interacts with AWS through the `boto3` library. GX Core uses the library in the background when working with AWS. Although you won't use `boto3` directly, must install it in your Python environment.
 
@@ -32,7 +32,7 @@ To set up `boto3` with AWS, and use `boto3` within Python, see the [Boto3 docume
    python -m pip install boto3
    ```
 
-   :::tip
+   :::tip Tip
 
    If the `python -m pip install boto3` does not work, try:
 
@@ -40,7 +40,7 @@ To set up `boto3` with AWS, and use `boto3` within Python, see the [Boto3 docume
    python3 -m pip install boto3
    ```
    
-   If these `pip` commands work, verify that [Python is installed correctly](core/set_up_a_gx_environment/install_gx.md).
+   If these `pip` commands don't work, verify that [Python is installed correctly](core/set_up_a_gx_environment/install_gx.md).
 
    :::
 
@@ -56,7 +56,7 @@ To set up `boto3` with AWS, and use `boto3` within Python, see the [Boto3 docume
 
    Run the following terminal command to install the optional dependencies required by GX Core to work with AWS S3:
 
-   :::info
+   :::info Info
    <InfoUsingAVirtualEnvironment/>
    :::
 

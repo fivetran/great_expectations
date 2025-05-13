@@ -5,31 +5,31 @@ import warnings
 from great_expectations.compatibility.not_imported import NotImported
 
 GOOGLE_CLOUD_STORAGE_NOT_IMPORTED = NotImported(
-    "google cloud storage components are not installed, please 'pip install google-cloud-storage google-cloud-secret-manager'"  # noqa: E501
+    "google cloud storage components are not installed, please 'pip install google-cloud-storage google-cloud-secret-manager'"  # noqa: E501 # FIXME CoP
 )
 
 with warnings.catch_warnings():
     # DeprecationWarning: pkg_resources is deprecated as an API
     warnings.simplefilter(action="ignore", category=DeprecationWarning)
     try:
-        from google.cloud import secretmanager  # type: ignore[attr-defined]
+        from google.cloud import secretmanager  # type: ignore[attr-defined] # FIXME CoP
     except (ImportError, AttributeError):
         secretmanager = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED
 
 try:
     from google.api_core.exceptions import GoogleAPIError
 except (ImportError, AttributeError):
-    GoogleAPIError = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc]
+    GoogleAPIError = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
     from google.auth.exceptions import DefaultCredentialsError
 except (ImportError, AttributeError):
-    DefaultCredentialsError = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc]
+    DefaultCredentialsError = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
     from google.cloud.exceptions import NotFound
 except (ImportError, AttributeError):
-    NotFound = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc]
+    NotFound = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
 
 try:
     from google.cloud import storage
@@ -39,7 +39,7 @@ except (ImportError, AttributeError):
 try:
     from google.cloud import bigquery as python_bigquery
 except (ImportError, AttributeError):
-    python_bigquery = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment]
+    python_bigquery = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
 try:
     from google.cloud.storage import Client
 except (ImportError, AttributeError):
@@ -48,9 +48,9 @@ except (ImportError, AttributeError):
 try:
     from google.oauth2 import service_account
 except (ImportError, AttributeError):
-    service_account = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment]
+    service_account = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
 
 try:
     from google.oauth2.service_account import Credentials
 except (ImportError, AttributeError):
-    Credentials = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc]
+    Credentials = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP

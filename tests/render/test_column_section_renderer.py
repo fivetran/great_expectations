@@ -4,17 +4,13 @@ from collections import OrderedDict
 import pytest
 
 import great_expectations.expectations as gxe
-from great_expectations.core import (
-    ExpectationSuite,
-)
+from great_expectations.core import ExpectationSuite
 from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
     ExpectationValidationResult,
 )
 from great_expectations.data_context.util import file_relative_path
-from great_expectations.expectations.expectation import (
-    Expectation,
-)
+from great_expectations.expectations.expectation import Expectation
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
@@ -96,7 +92,7 @@ def test_render_profiling_results_column_section_renderer(titanic_validation_res
         except KeyError:
             pass
 
-    for column in evrs:
+    for column, evr in evrs.items():
         with open(
             file_relative_path(
                 __file__,
@@ -108,7 +104,7 @@ def test_render_profiling_results_column_section_renderer(titanic_validation_res
             "w",
         ) as outfile:
             json.dump(
-                ProfilingResultsColumnSectionRenderer().render(evrs[column]).to_json_dict(),
+                ProfilingResultsColumnSectionRenderer().render(evr).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -130,7 +126,7 @@ def test_render_expectation_suite_column_section_renderer(titanic_expectations):
         except KeyError:
             pass
 
-    for column in exp_groups:
+    for column, exp_group in exp_groups.items():
         with open(
             file_relative_path(
                 __file__,
@@ -140,7 +136,7 @@ def test_render_expectation_suite_column_section_renderer(titanic_expectations):
             "w",
         ) as outfile:
             json.dump(
-                ExpectationSuiteColumnSectionRenderer().render(exp_groups[column]).to_json_dict(),
+                ExpectationSuiteColumnSectionRenderer().render(exp_group).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -173,7 +169,7 @@ def test_ProfilingResultsColumnSectionRenderer_render_header(
         "string_template": {
             "template": "Type: None",
             "tooltip": {
-                "content": "expect_column_values_to_be_of_type <br>expect_column_values_to_be_in_type_list"  # noqa: E501
+                "content": "expect_column_values_to_be_of_type <br>expect_column_values_to_be_in_type_list"  # noqa: E501 # FIXME CoP
             },
             "tag": "h6",
             "styling": {"classes": ["mt-1", "mb-0"]},
@@ -238,7 +234,7 @@ def test_ProfilingResultsColumnSectionRenderer_render_header_with_unescaped_doll
             "string_template": {
                 "template": "Type: []",
                 "tooltip": {
-                    "content": "expect_column_values_to_be_of_type <br>expect_column_values_to_be_in_type_list"  # noqa: E501
+                    "content": "expect_column_values_to_be_of_type <br>expect_column_values_to_be_in_type_list"  # noqa: E501 # FIXME CoP
                 },
                 "tag": "h6",
                 "styling": {"classes": ["mt-1", "mb-0"]},
@@ -1130,9 +1126,9 @@ def test_ExpectationSuiteColumnSectionRenderer_render_expectation_with_descripti
 
     content_block = result.content_blocks[1]
     content = content_block.bullet_list[0]
-    markdown = content.markdown
-
-    assert markdown == expectation.description
+    assert content.string_template == {
+        "template": "column values must be a legal adult age (**18** or older)"
+    }
 
 
 @pytest.mark.unit
@@ -1246,14 +1242,14 @@ def test_ValidationResultsColumnSectionRenderer_render_table(
     assert (
         "values must not be null, at least $mostly_pct % of the time." in content_block_stringified
     )
-    assert "values must belong to this set: [ ]." in content_block_stringified
+    assert "values must belong to this set: $v__0 $v__1 $v__2." in content_block_stringified
     assert (
-        "\\n\\n$unexpected_count unexpected values found. $unexpected_percent of $element_count total rows."  # noqa: E501
+        "\\n\\n$unexpected_count unexpected values found. $unexpected_percent of $element_count total rows."  # noqa: E501 # FIXME CoP
         in content_block_stringified
     )
     assert "values must not match this regular expression: $regex." in content_block_stringified
     assert (
-        "\\n\\n$unexpected_count unexpected values found. $unexpected_percent of $element_count total rows."  # noqa: E501
+        "\\n\\n$unexpected_count unexpected values found. $unexpected_percent of $element_count total rows."  # noqa: E501 # FIXME CoP
         in content_block_stringified
     )
 
@@ -1354,7 +1350,7 @@ def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_hap
 
 # noinspection PyPep8Naming
 @pytest.mark.unit
-def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_happy_path_with_eval_parameter():  # noqa: E501
+def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_happy_path_with_eval_parameter():  # noqa: E501 # FIXME CoP
     evr = ExpectationValidationResult(
         success=True,
         result={
@@ -1426,7 +1422,7 @@ def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_hap
                     {
                         "content_block_type": "string_template",
                         "string_template": {
-                            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+                            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
                             "params": {
                                 "column": "live",
                                 "min_value": {"$PARAMETER": "MIN_VAL_PARAM * 2"},
@@ -1446,7 +1442,7 @@ def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_hap
                     {
                         "content_block_type": "string_template",
                         "string_template": {
-                            "template": "\n - $eval_param = $eval_param_value (at time of validation).",  # noqa: E501
+                            "template": "\n - $eval_param = $eval_param_value (at time of validation).",  # noqa: E501 # FIXME CoP
                             "params": {
                                 "eval_param": "MIN_VAL_PARAM",
                                 "eval_param_value": 10,
@@ -1460,7 +1456,7 @@ def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_hap
                     {
                         "content_block_type": "string_template",
                         "string_template": {
-                            "template": "\n - $eval_param = $eval_param_value (at time of validation).",  # noqa: E501
+                            "template": "\n - $eval_param = $eval_param_value (at time of validation).",  # noqa: E501 # FIXME CoP
                             "params": {
                                 "eval_param": "MAX_VAL_PARAM",
                                 "eval_param_value": 40,
@@ -1550,8 +1546,8 @@ def test_ValidationResultsTableContentBlockRenderer_generate_expectation_row_hap
                         "params": {
                             "column": "start_date",
                             "condition_parser": None,
-                            "max_value": {"$PARAMETER": "now() " "- " "timedelta(weeks=1)"},
-                            "min_value": {"$PARAMETER": "now() " "- " "timedelta(weeks=208)"},
+                            "max_value": {"$PARAMETER": "now() - timedelta(weeks=1)"},
+                            "min_value": {"$PARAMETER": "now() - timedelta(weeks=208)"},
                             "result_format": "SUMMARY",
                             "row_condition": None,
                             "strict_max": None,
@@ -1588,15 +1584,15 @@ def test_ValidationResultsTableContentBlockRenderer_render_evr_with_description(
     result = ValidationResultsColumnSectionRenderer().render([evr])
 
     content_block = result.content_blocks[1]
-    content = content_block.table[0]
-    markdown = content.markdown
-
-    assert markdown == expectation.description
+    _, description_cell, _ = content_block.table[0]
+    assert description_cell.string_template == {
+        "template": "column values must be a legal adult age (**18** or older)"
+    }
 
 
 # noinspection PyPep8Naming
 @pytest.mark.filterwarnings(
-    "ignore:Cannot get %*::great_expectations.render.renderer.profiling_results_overview_section_renderer"  # noqa: E501
+    "ignore:Cannot get %*::great_expectations.render.renderer.profiling_results_overview_section_renderer"  # noqa: E501 # FIXME CoP
 )
 @pytest.mark.unit
 def test_ProfilingResultsOverviewSectionRenderer_empty_type_list():
@@ -1608,7 +1604,7 @@ def test_ProfilingResultsOverviewSectionRenderer_empty_type_list():
             ExpectationValidationResult(
                 success=True,
                 result={
-                    "observed_value": "VARIANT",  # Note this is NOT a recognized type by many backends  # noqa: E501
+                    "observed_value": "VARIANT",  # Note this is NOT a recognized type by many backends  # noqa: E501 # FIXME CoP
                 },
                 exception_info={
                     "raised_exception": False,

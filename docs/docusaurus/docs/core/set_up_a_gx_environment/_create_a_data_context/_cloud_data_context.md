@@ -4,7 +4,7 @@ import TabItem from '@theme/TabItem'
 import PrereqPythonInstallation from '../../_core_components/prerequisites/_python_installation.md'
 import PrereqGxInstallation from '../../_core_components/prerequisites/_gx_installation.md'
 
-## Prerequisites
+## Prerequisites {#prerequisites-cloud-data-context}
 
 - <PrereqPythonInstallation/>
 - <PrereqGxInstallation/>
@@ -28,7 +28,7 @@ import PrereqGxInstallation from '../../_core_components/prerequisites/_gx_insta
    ```python title='Python input' name="core/set_up_a_gx_environment/_create_a_data_context/cloud_data_context.py import great_expectations and get a context"
    ```
 
-   When you specify `mode='cloud'`, the `get_context()` method uses the **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZATION_ID** environment variables to connect to your GX Cloud account.
+   When you specify `mode="cloud"`, the `get_context()` method uses the **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZATION_ID** environment variables to connect to your GX Cloud account.
 
 2. Optional. Run the following code to review the Cloud Data Context configuration:
 

@@ -5,13 +5,13 @@ The environment variable `GX_ANALYTICS_ENABLED` can be used to toggle the collec
 
 `GX_ANALYTICS_ENABLED` will also work to toggle analytics collection when using a GX Cloud Data Context or a File Data Context.
 
-### Prerequisites
+### Prerequisites {#prerequisites-environment-variable}
 
 - <PrereqPythonInstalled/>
 - <PrereqGxInstalled/>
 - Permissions necessary to set local Environment Variables.
 
-### Procedure
+### Procedure {#procedure-environment-variable}
 
 1. Set the environment variable `GX_ANALYTICS_ENABLED`.
 

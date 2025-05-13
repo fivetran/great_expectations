@@ -78,7 +78,7 @@ class CheckpointStore(Store):
 
     @override
     def serialize(self, value):
-        # In order to enable the custom json_encoders in Checkpoint, we need to set `models_as_dict` off  # noqa: E501
+        # In order to enable the custom json_encoders in Checkpoint, we need to set `models_as_dict` off  # noqa: E501 # FIXME CoP
         # Ref: https://docs.pydantic.dev/1.10/usage/exporting_models/#serialising-self-reference-or-other-models
         data = value.json(models_as_dict=False, indent=2, sort_keys=True, exclude_none=True)
 
@@ -107,15 +107,15 @@ class CheckpointStore(Store):
             super()._update(key=key, value=value, **kwargs)
         except gx_exceptions.StoreBackendError as e:
             name = key.to_tuple()[0]
-            raise ValueError(f"Could not update Checkpoint '{name}'") from e  # noqa: TRY003
+            raise ValueError(f"Could not update Checkpoint '{name}'") from e  # noqa: TRY003 # FIXME CoP
 
     @staticmethod
     def default_checkpoints_exist(directory_path: str) -> bool:
         if not directory_path:
             return False
 
-        checkpoints_directory_path: str = os.path.join(  # noqa: PTH118
+        checkpoints_directory_path: str = os.path.join(  # noqa: PTH118 # FIXME CoP
             directory_path,
             DataContextConfigDefaults.DEFAULT_CHECKPOINT_STORE_BASE_DIRECTORY_RELATIVE_NAME.value,
         )
-        return os.path.isdir(checkpoints_directory_path)  # noqa: PTH112
+        return os.path.isdir(checkpoints_directory_path)  # noqa: PTH112 # FIXME CoP

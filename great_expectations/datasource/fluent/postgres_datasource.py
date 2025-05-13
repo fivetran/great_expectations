@@ -18,7 +18,7 @@ class PostgresDatasource(SQLDatasource):
             For example: "postgresql+psycopg2://postgres:@localhost/test_database"
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values
             are TableAsset or QueryAsset objects.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    type: Literal["postgres"] = "postgres"  # type: ignore[assignment]
+    type: Literal["postgres"] = "postgres"  # type: ignore[assignment] # FIXME CoP
     connection_string: Union[ConfigStr, PostgresDsn]

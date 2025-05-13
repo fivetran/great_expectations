@@ -43,7 +43,9 @@ def context() -> AbstractDataContext:
     return gx.get_context(mode="ephemeral")
 
 
-EXPECT_10_ROWS = gxe.ExpectTableRowCountToEqual(value=10)
+@pytest.fixture
+def expect_10_rows():
+    return gxe.ExpectTableRowCountToEqual(value=10)
 
 
 @pytest.fixture
@@ -68,7 +70,7 @@ def pandas_filesystem_whole_table_batch_definition(
 def pandas_filesystem_monthly_batch_definition(
     pandas_file_system_asset: PandasCSVAsset,
 ) -> BatchDefinition:
-    return pandas_file_system_asset.add_batch_definition_monthly(  # type: ignore[attr-defined]
+    return pandas_file_system_asset.add_batch_definition_monthly(  # type: ignore[attr-defined] # FIXME CoP
         "monthly",
         re.compile(BATCHING_REGEX),
     )
@@ -78,7 +80,7 @@ def pandas_filesystem_monthly_batch_definition(
 def pandas_filesystem_monthly_batch_definition_descending(
     pandas_file_system_asset: PandasCSVAsset,
 ) -> BatchDefinition:
-    return pandas_file_system_asset.add_batch_definition_monthly(  # type: ignore[attr-defined]
+    return pandas_file_system_asset.add_batch_definition_monthly(  # type: ignore[attr-defined] # FIXME CoP
         "monthly",
         re.compile(BATCHING_REGEX),
         sort_ascending=False,
@@ -324,10 +326,11 @@ def test_batch_validate_expectation_suite(
     batch_definition_fixture_name: str,
     batch_parameters: Optional[Dict],
     request: pytest.FixtureRequest,
+    expect_10_rows: gxe.Expectation,
 ) -> None:
     """Ensure Batch::validate(EpectationSuite) works"""
 
-    suite = ExpectationSuite("my suite", expectations=[expectation, EXPECT_10_ROWS])
+    suite = ExpectationSuite("my suite", expectations=[expectation, expect_10_rows])
     batch_definition = request.getfixturevalue(batch_definition_fixture_name)
     batch = batch_definition.get_batch(batch_parameters=batch_parameters)
     result = batch.validate(suite)
@@ -345,12 +348,13 @@ def test_validation_definition_run(
     batch_parameters: Optional[Dict],
     context: AbstractDataContext,
     request: pytest.FixtureRequest,
+    expect_10_rows: gxe.Expectation,
 ) -> None:
     """Ensure ValidationDefinition::run works"""
 
     batch_definition = request.getfixturevalue(batch_definition_fixture_name)
     suite = context.suites.add(
-        ExpectationSuite("my suite", expectations=[expectation, EXPECT_10_ROWS])
+        ExpectationSuite("my suite", expectations=[expectation, expect_10_rows])
     )
     validation_definition = context.validation_definitions.add(
         ValidationDefinition(name="whatever", data=batch_definition, suite=suite)
@@ -370,12 +374,13 @@ def test_checkpoint_run(
     batch_parameters: Optional[Dict],
     context: AbstractDataContext,
     request: pytest.FixtureRequest,
+    expect_10_rows: gxe.Expectation,
 ) -> None:
     """Ensure Checkpoint::run works"""
 
     batch_definition = request.getfixturevalue(batch_definition_fixture_name)
     suite = context.suites.add(
-        ExpectationSuite("my suite", expectations=[expectation, EXPECT_10_ROWS])
+        ExpectationSuite("my suite", expectations=[expectation, expect_10_rows])
     )
     validation_definition = context.validation_definitions.add(
         ValidationDefinition(name="whatever", data=batch_definition, suite=suite)

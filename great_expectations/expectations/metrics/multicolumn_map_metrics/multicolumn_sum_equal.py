@@ -9,7 +9,7 @@ from great_expectations.execution_engine import (
 from great_expectations.expectations.metrics.map_metric_provider import (
     MulticolumnMapMetricProvider,
 )
-from great_expectations.expectations.metrics.map_metric_provider.multicolumn_condition_partial import (  # noqa: E501
+from great_expectations.expectations.metrics.map_metric_provider.multicolumn_condition_partial import (  # noqa: E501 # FIXME CoP
     multicolumn_condition_partial,
 )
 

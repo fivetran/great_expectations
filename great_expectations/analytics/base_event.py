@@ -15,7 +15,7 @@ class Action:
 
     Attributes:
         name: A description of what happened. For example (<object>.<verb>) "validation_result.saved" or "token.deleted"
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     name: str
 
@@ -51,6 +51,14 @@ class Event:
         return get_config().user_id
 
     @property
+    def user_agent_str(self) -> str | None:
+        return get_config().user_agent_str
+
+    @property
+    def mode(self) -> str | None:
+        return get_config().mode
+
+    @property
     def distinct_id(self) -> UUID | None:
         """The distinct_id is the primary key for identifying
         analytics events. It is the user_id if it is set
@@ -63,7 +71,7 @@ class Event:
     def __post_init__(self):
         allowed_actions = self.get_allowed_actions()
         if allowed_actions is not None and self.action not in self.get_allowed_actions():
-            raise ValueError(f"Action [{self.action}] must be one of {self.get_allowed_actions()}")  # noqa: TRY003
+            raise ValueError(f"Action [{self.action}] must be one of {self.get_allowed_actions()}")  # noqa: TRY003 # FIXME CoP
 
     @classmethod
     def get_allowed_actions(cls):
@@ -75,6 +83,8 @@ class Event:
             "oss_id": self.oss_id,
             "gx_version": gx_version,
             "service": "gx-core",
+            "user_agent_str": self.user_agent_str,
+            "mode": self.mode,
         }
         if self.user_id is not None:
             props.update({"user_id": self.user_id, "organization_id": self.organization_id})

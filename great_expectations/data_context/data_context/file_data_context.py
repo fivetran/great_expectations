@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import pathlib
-from typing import TYPE_CHECKING, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Literal, Mapping, Optional, Union
 
 from ruamel.yaml import YAML, YAMLError
 from ruamel.yaml.constructor import DuplicateKeyError
@@ -35,7 +35,7 @@ yaml.default_flow_style = False
 
 @public_api
 class FileDataContext(SerializableDataContext):
-    """Subclass of AbstractDataContext that contains functionality necessary to work in a filesystem-backed environment."""  # noqa: E501
+    """Subclass of AbstractDataContext that contains functionality necessary to work in a filesystem-backed environment."""  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -43,6 +43,7 @@ class FileDataContext(SerializableDataContext):
         context_root_dir: Optional[PathStr] = None,
         project_root_dir: Optional[PathStr] = None,
         runtime_environment: Optional[dict] = None,
+        user_agent_str: Optional[str] = None,
     ) -> None:
         """FileDataContext constructor
 
@@ -52,7 +53,7 @@ class FileDataContext(SerializableDataContext):
                 searches for the file based on conventions for project subdirectories.
             runtime_environment (Optional[dict]): a dictionary of config variables that override both those set in
                 config_variables.yml and the environment
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self._context_root_directory = self._init_context_root_directory(
             context_root_dir=context_root_dir,
             project_root_dir=project_root_dir,
@@ -63,7 +64,13 @@ class FileDataContext(SerializableDataContext):
         super().__init__(
             context_root_dir=self._context_root_directory,
             runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
         )
+
+    @property
+    @override
+    def mode(self) -> Literal["file"]:
+        return "file"
 
     def _init_context_root_directory(
         self, context_root_dir: Optional[PathStr], project_root_dir: Optional[PathStr]
@@ -91,8 +98,10 @@ class FileDataContext(SerializableDataContext):
         # The former corresponds to the root of the user's project while the latter
         # encapsulates any config (in the form of a great_expectations/ directory).
         project_root_dir = pathlib.Path(self._context_root_directory).parent
+        relative_context_dir = pathlib.Path(self._context_root_directory).name
         self._scaffold(
             project_root_dir=project_root_dir,
+            context_root_dir_name=relative_context_dir,
         )
 
     @override
@@ -123,7 +132,7 @@ class FileDataContext(SerializableDataContext):
             "root_directory": self.root_directory,
             "data_context": self,
             # By passing this value in our runtime_environment,
-            # we ensure that the same exact context (memory address and all) is supplied to the Store backend  # noqa: E501
+            # we ensure that the same exact context (memory address and all) is supplied to the Store backend  # noqa: E501 # FIXME CoP
         }
 
         datasource_store = DatasourceStore(
@@ -161,7 +170,7 @@ class FileDataContext(SerializableDataContext):
                 if fluent_datasources:
                     self.fluent_config.update_datasources(datasources=fluent_datasources)
                     logger.info(
-                        f"Saving {len(self.fluent_config.datasources)} Fluent Datasources to {config_filepath}"  # noqa: E501
+                        f"Saving {len(self.fluent_config.datasources)} Fluent Datasources to {config_filepath}"  # noqa: E501 # FIXME CoP
                     )
                     fluent_json_dict: dict[str, JSONValues] = self.fluent_config._json_dict()
                     fluent_json_dict = (
@@ -186,12 +195,12 @@ class FileDataContext(SerializableDataContext):
                 config_commented_map_from_yaml = yaml.load(data)
 
         except DuplicateKeyError:
-            raise gx_exceptions.InvalidConfigurationYamlError(  # noqa: TRY003
+            raise gx_exceptions.InvalidConfigurationYamlError(  # noqa: TRY003 # FIXME CoP
                 "Error: duplicate key found in project YAML file."
             )
         except YAMLError as err:
-            raise gx_exceptions.InvalidConfigurationYamlError(  # noqa: TRY003
-                f"Your configuration file is not a valid yml file likely due to a yml syntax error:\n\n{err}"  # noqa: E501
+            raise gx_exceptions.InvalidConfigurationYamlError(  # noqa: TRY003 # FIXME CoP
+                f"Your configuration file is not a valid yml file likely due to a yml syntax error:\n\n{err}"  # noqa: E501 # FIXME CoP
             )
         except OSError:
             raise gx_exceptions.ConfigNotFoundError()
@@ -200,7 +209,7 @@ class FileDataContext(SerializableDataContext):
             return DataContextConfig.from_commented_map(
                 commented_map=config_commented_map_from_yaml
             )
-        except gx_exceptions.InvalidDataContextConfigError:  # noqa: TRY203
+        except gx_exceptions.InvalidDataContextConfigError:  # noqa: TRY203 # FIXME CoP
             # Just to be explicit about what we intended to catch
             raise
 

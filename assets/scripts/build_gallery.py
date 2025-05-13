@@ -621,10 +621,10 @@ def build_gallery(  # noqa: C901 - 17
                 expectation_tracebacks.write(traceback.format_exc())
 
     # Iterate the gallery_info_by_backend dict and write the backend-specific files
-    for _backend in gallery_info_by_backend:
+    for _backend, gallery_info in gallery_info_by_backend.items():
         if gallery_info_by_backend[_backend]:
             with open(f"{_backend}_{backend_outfile_suffix}.json", "w") as outfile:
-                json.dump(gallery_info_by_backend[_backend], outfile, indent=4)
+                json.dump(gallery_info, outfile, indent=4)
 
     # Only attempt to combine and write to file when no Expectations are skipped
     if backend_outfile_suffix == "full":

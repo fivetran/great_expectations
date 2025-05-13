@@ -1,7 +1,6 @@
-from enum import Enum
-from typing import Sequence, Union
+from typing import List, Literal, Union, get_args
 
-from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.pydantic import Field
 from great_expectations.compatibility.typing_extensions import Annotated
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # used in pydantic validation
@@ -12,19 +11,19 @@ from great_expectations.expectations.model_field_descriptions import (
 )
 
 MostlyField = Annotated[
-    float,
-    pydantic.Field(
+    Union[float, SuiteParameterDict],
+    Field(
         description=MOSTLY_DESCRIPTION,
         ge=0.0,
         le=1.0,
         # This is just for the schema, it should not be validated on input
-        schema_overrides={"multiple_of": 0.01},
+        schema_overrides={"multipleOf": 0.01},
     ),
 ]
 
 ValueSetField = Annotated[
-    Union[Sequence, set, SuiteParameterDict, None],
-    pydantic.Field(
+    Union[List, SuiteParameterDict],
+    Field(
         title="Value Set",
         description=VALUE_SET_DESCRIPTION,
         schema_overrides={
@@ -69,10 +68,15 @@ ValueSetField = Annotated[
 ]
 
 
-class ConditionParser(str, Enum):
-    """Type of parser to be used to interpret a Row Condition."""
+# If you re-order these strings you must reorder the variable names from the `get_args`
+# call below as well or the variables will reference the wrong string
+ConditionParser = Literal[
+    "great_expectations", "great_expectations__experimental__", "pandas", "spark"
+]
 
-    GX = "great_expectations"
-    GX_DEPRECATED = "great_expectations__experimental__"
-    PANDAS = "pandas"
-    SPARK = "spark"
+(
+    CONDITION_PARSER_GREAT_EXPECTATIONS,
+    CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+    CONDITION_PARSER_PANDAS,
+    CONDITION_PARSER_SPARK,
+) = get_args(ConditionParser)

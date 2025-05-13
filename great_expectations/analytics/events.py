@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import ClassVar, List
+from dataclasses import asdict, dataclass
+from typing import ClassVar, List, Literal
 
 from great_expectations.analytics.actions import (
     CHECKPOINT_CREATED,
@@ -14,8 +14,10 @@ from great_expectations.analytics.actions import (
     EXPECTATION_SUITE_EXPECTATION_CREATED,
     EXPECTATION_SUITE_EXPECTATION_DELETED,
     EXPECTATION_SUITE_EXPECTATION_UPDATED,
+    NOTIFICATION_ACTION_RAN,
     VALIDATION_DEFINITION_CREATED,
     VALIDATION_DEFINITION_DELETED,
+    VALIDATION_DEFINITION_RAN,
 )
 from great_expectations.analytics.base_event import Action, Event
 from great_expectations.compatibility.typing_extensions import override
@@ -156,6 +158,12 @@ class _CheckpointEvent(Event):
 
 
 @dataclass
+class ActionInfo:
+    type: str
+    notify_on: Literal["all", "failure", "success"] | None
+
+
+@dataclass
 class CheckpointCreatedEvent(_CheckpointEvent):
     _allowed_actions: ClassVar[List[Action]] = [CHECKPOINT_CREATED]
 
@@ -163,8 +171,10 @@ class CheckpointCreatedEvent(_CheckpointEvent):
         self,
         checkpoint_id: str | None = None,
         validation_definition_ids: list[str | None] | None = None,
+        actions: list[ActionInfo] | None = None,
     ):
         self.validation_definition_ids = validation_definition_ids
+        self.actions = actions or []
         super().__init__(
             action=CHECKPOINT_CREATED,
             checkpoint_id=checkpoint_id,
@@ -174,6 +184,7 @@ class CheckpointCreatedEvent(_CheckpointEvent):
     def _properties(self) -> dict:
         return {
             "validation_definition_ids": self.validation_definition_ids,
+            "actions": [asdict(action) for action in self.actions],
             **super()._properties(),
         }
 
@@ -246,6 +257,31 @@ class ValidationDefinitionDeletedEvent(_ValidationDefinitionEvent):
 
 
 @dataclass
+class ValidationDefinitionRanEvent(_ValidationDefinitionEvent):
+    checkpoint_id: str | None = None
+    _allowed_actions: ClassVar[List[Action]] = [VALIDATION_DEFINITION_RAN]
+
+    @override
+    def _properties(self) -> dict:
+        return {
+            "checkpoint_id": self.checkpoint_id,
+            "validation_definition_id": self.validation_definition_id,
+        }
+
+    def __init__(
+        self,
+        *,
+        validation_definition_id: str | None = None,
+        checkpoint_id: str | None = None,
+    ):
+        self.checkpoint_id = checkpoint_id
+        super().__init__(
+            action=VALIDATION_DEFINITION_RAN,
+            validation_definition_id=validation_definition_id,
+        )
+
+
+@dataclass
 class DomainObjectAllDeserializationEvent(Event):
     _allowed_actions: ClassVar[List[Action]] = [DOMAIN_OBJECT_ALL_DESERIALIZE_ERROR]
 
@@ -262,4 +298,30 @@ class DomainObjectAllDeserializationEvent(Event):
         return {
             "error_type": self.error_type,
             "store_name": self.store_name,
+        }
+
+
+@dataclass
+class NotificationActionRanEvent(Event):
+    _allowed_actions: ClassVar[List[Action]] = [NOTIFICATION_ACTION_RAN]
+
+    def __init__(
+        self,
+        type: Literal["slack", "microsoft", "email"],
+        notify_type: Literal["all", "failure", "success"],
+        checkpoint_id: str | None,
+    ):
+        self.type = type
+        self.notify_type = notify_type
+        self.checkpoint_id = checkpoint_id
+        super().__init__(
+            action=NOTIFICATION_ACTION_RAN,
+        )
+
+    @override
+    def _properties(self) -> dict:
+        return {
+            "type": self.type,
+            "checkpoint_id": self.checkpoint_id,
+            "notify_type": self.notify_type,
         }

@@ -5,7 +5,7 @@ title: 'Manage missing data with GX'
 
 Missing data, also known as missingness, poses a significant challenge in data quality management. Missing data occurs when expected information is absent from a dataset, often appearing as `NULL` values in databases or manifesting differently across various systems. Effectively managing this issue is crucial for maintaining data integrity and reliability since unaddressed missing data can lead to disrupted calculations, skewed analyses, and compromised data analytics tasks.
 
-Great Expectations (GX) offers a robust solution for addressing missing data through a comprehensive suite of Expectations that allow users to define and enforce data quality rules. By integrating GX into your data pipelines, you can establish robust validation processes that catch issues early, ensuring your dataset remains clean, consistent, and ready for accurate reporting, predictive modeling, and other advanced analytics applications.
+Great Expectations (GX) offers a robust solution for addressing missing data through a comprehensive collection of Expectations that allow users to define and enforce data quality rules. You can automatically generate these Expectations when you add a new Data Asset in GX Cloud. By integrating GX into your data pipelines, you can establish robust validation processes that catch issues early, ensuring your dataset remains clean, consistent, and ready for accurate reporting, predictive modeling, and other advanced analytics applications.
 
 In this guide, you will learn how to leverage GX to effectively handle missing data. This includes applying Expectations and making informed decisions about managing various types of missingness. By following these steps, you can ensure your datasets maintain high quality, thus enabling more accurate and reliable data-driven insights.
 
@@ -26,20 +26,11 @@ In this dataset, you'll notice missing data in the `type` and `transfer_date` co
 
 ## Key missingness Expectations
 
-GX provides a suite of missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using the GX Cloud UI or the GX Core Python library.
+GX provides missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using the GX Cloud UI or the GX Core Python library. 
 
-![Add a missingness Expectation in GX Cloud](./missingness_resources/gx_cloud_missingness_expectations_add.gif)
-
-### Expect Column Values To Be Null
-
-Ensures that values within a column are `NULL`.
-
-**Use Case**: Handle columns where values might be left null due to specific conditions.
-
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py ExpectColumnValuesToBeNull"
-```
-
-<small>View `ExpectColumnValuesToBeNull` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_values_to_be_null).</small>
+:::tip Automate these rules
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Expectations for each column to test that column completeness doesn't change drastically between Validation runs.
+:::
 
 ### Expect Column Values To Not Be Null
 
@@ -51,6 +42,17 @@ Ensures that values within a specific column are not `NULL`.
 ```
 
 <small>View `ExpectColumnValuesToNotBeNull` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_values_to_not_be_null).</small>
+
+### Expect Column Values To Be Null
+
+Ensures that values within a column are `NULL`.
+
+**Use Case**: Handle columns where values might be left null due to specific conditions.
+
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py ExpectColumnValuesToBeNull"
+```
+
+<small>View `ExpectColumnValuesToBeNull` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_values_to_be_null).</small>
 
 <br/>
 <br/>
@@ -64,9 +66,7 @@ Ensures that values within a specific column are not `NULL`.
 
 The examples given in this section provide insight into how and when to apply missingness Expectations to identify different varieties of missing data. The focus of this guidance is on the specifics of the Expectations, rather than the overall workflow, which can be implemented using either GX Cloud or GX Core.
 
-[GX Cloud](/cloud/overview/gx_cloud_overview.md) provides a visual interface to create and run workflows for managing missing data. The GX Cloud workflow to handle data missingness is intuitive and straightforward: create a Data Asset, define Expectations for missing values, run a Validation, and review Validation Results.
-
-![Validate missingness Expectations in GX Cloud](./missingness_resources/gx_cloud_missingness_expectations_validate.gif)
+[GX Cloud](/cloud/overview/gx_cloud_overview.md) provides a visual interface and scaling conveniences to create and run workflows for managing missing data. The GX Cloud workflow to handle data missingness is: create a Data Asset with automatically generated Expectations, run a Validation, and review Validation Results.
 
 [GX Core](/core/introduction/gx_overview.md) can be used to complement and extend the capabilities of GX Cloud to programmatically implement custom workflows for handling missing data.
 
@@ -76,7 +76,7 @@ The examples given in this section provide insight into how and when to apply mi
 
 **GX solution**: Ensure critical fields are completely populated with `ExpectColumnValuesToNotBeNull`.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py missing_critical_data"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py missing_critical_data"
 ```
 
 ### Intermittent missing values
@@ -85,7 +85,7 @@ The examples given in this section provide insight into how and when to apply mi
 
 **GX solution**: Ensure values are populated a certain percentage of of the time by using `ExpectColumnValuesToNotBeNull` with the `mostly` parameter.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py intermittent_missing_values"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py intermittent_missing_values"
 ```
 
 ### Incorrectly defaulted values
@@ -94,7 +94,7 @@ The examples given in this section provide insight into how and when to apply mi
 
 **GX solution**: When `NULL` values are expected in a column, use GX to check for the presence of a small percentage of missing values following data transformation. This approach helps identify if `NULL` values have been inappropriately replaced.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py incorrectly_defaulted"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py incorrectly_defaulted"
 ```
 
 Setting a low percentage for the `mostly` parameter allows for the presence of valid `NULL` values while still catching cases where `NULL`s might have been incorrectly defaulted.
@@ -105,7 +105,7 @@ Setting a low percentage for the `mostly` parameter allows for the presence of v
 
 **GX solution**: Ensure fields that should typically be `NULL`, such as those that denote errors, remain unpopulated under normal circumstances.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py system_anomalies"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py system_anomalies"
 ```
 
 `ExpectColumnValuesToBeNull` can serve as an early warning system for potential issues in a monitored environment. If alerting is triggered when an error field is unexpectedly populated, it allows for prompt investigation and resolution of underlying system problems, going beyond traditional data quality checks.
@@ -118,7 +118,7 @@ Setting a low percentage for the `mostly` parameter allows for the presence of v
 - **Manual handling**: Manually addressing missing data can introduce errors and is unsustainable for large datasets. Automate data quality checks and remediation.
 - **Ignoring root causes**: Addressing symptoms without understanding the root causes can lead to recurring problems. Conduct root cause analyses and implement relevant Expectations early in your data stream.
 
-## Next steps: Implement missingness strategies
+## The path forward
 
 Managing missing data is a critical component of ensuring data quality and reliability. By implementing the strategies explored in this guide, you can significantly enhance your data's integrity and trustworthiness. Here's how you can build upon these practices:
 

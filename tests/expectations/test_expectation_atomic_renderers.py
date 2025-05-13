@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from pprint import pprint
 from typing import Callable, Dict, Union
 
@@ -10,6 +11,7 @@ from great_expectations.expectations.expectation_configuration import (
 )
 from great_expectations.expectations.registry import get_renderer_impl
 from great_expectations.render import RenderedAtomicContent
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 
 
 @pytest.fixture
@@ -264,7 +266,7 @@ def test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than
                         "column": {"schema": {"type": "string"}, "value": "min_event_time"},
                         "threshold": {"schema": {"type": "number"}, "value": 0.1},
                     },
-                    "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold.",  # noqa: E501
+                    "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold.",  # noqa: E501 # FIXME CoP
                 },
             },
             "schema": {"type": "GraphType"},
@@ -277,8 +279,8 @@ def test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than
 def test_atomic_diagnostic_observed_value_expect_column_kl_divergence_to_be_less_than(
     get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_kl_divergence_to_be_less_than",
         "kwargs": {
@@ -363,11 +365,11 @@ def test_atomic_diagnostic_observed_value_expect_column_kl_divergence_to_be_less
 
 
 @pytest.mark.unit
-def test_atomic_diagnostic_observed_value_with_boolean_column_expect_column_kl_divergence_to_be_less_than(  # noqa: E501
+def test_atomic_diagnostic_observed_value_with_boolean_column_expect_column_kl_divergence_to_be_less_than(  # noqa: E501 # FIXME CoP
     get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_kl_divergence_to_be_less_than",
         "kwargs": {
@@ -476,7 +478,7 @@ def test_atomic_prescriptive_summary_expect_column_max_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 1},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column maximum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column maximum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -508,7 +510,7 @@ def test_atomic_prescriptive_summary_expect_column_mean_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 3},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column mean must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column mean must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -540,7 +542,7 @@ def test_atomic_prescriptive_summary_expect_column_median_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 5},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column median must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column median must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -572,7 +574,7 @@ def test_atomic_prescriptive_summary_expect_column_min_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 1},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -606,7 +608,7 @@ def test_atomic_prescriptive_summary_expect_column_most_common_value_to_be_in_se
                 "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column most common value must belong to this set: $v__0 $v__1 $v__2. Values outside this set that are as common (but not more common) are allowed.",  # noqa: E501
+            "template": "$column most common value must belong to this set: $v__0 $v__1 $v__2. Values outside this set that are as common (but not more common) are allowed.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -665,7 +667,7 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_a_to_be_greater_t
                 "or_equal": {"schema": {"type": "boolean"}, "value": True},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -699,7 +701,7 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_to_be_equal(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -714,7 +716,7 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_to_be_in_set(
 
 
 @pytest.mark.unit
-def test_atomic_prescriptive_summary_expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than(  # noqa: E501
+def test_atomic_prescriptive_summary_expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than(  # noqa: E501 # FIXME CoP
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -746,7 +748,7 @@ def test_atomic_prescriptive_summary_expect_column_proportion_of_unique_values_t
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column fraction of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column fraction of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -831,8 +833,8 @@ def test_atomic_prescriptive_summary_expect_column_quantile_values_to_be_between
 def test_atomic_diagnostic_observed_value_expect_column_quantile_values_to_be_between(
     get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_quantile_values_to_be_between",
         "kwargs": {
@@ -929,7 +931,7 @@ def test_atomic_prescriptive_summary_expect_column_stdev_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column standard deviation must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column standard deviation must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -960,7 +962,7 @@ def test_atomic_prescriptive_summary_expect_column_sum_to_be_between(
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column sum must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501
+            "template": "$column sum must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1020,7 +1022,7 @@ def test_atomic_prescriptive_summary_expect_column_unique_value_count_to_be_betw
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column must have greater than or equal to $min_value and less than or equal to $max_value unique values.",  # noqa: E501
+            "template": "$column must have greater than or equal to $min_value and less than or equal to $max_value unique values.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1054,7 +1056,7 @@ def test_atomic_prescriptive_summary_expect_column_value_lengths_to_be_between(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value characters long, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value characters long, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1086,7 +1088,7 @@ def test_atomic_prescriptive_summary_expect_column_value_lengths_to_equal(
                 "value": {"schema": {"type": "number"}, "value": 100},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be $value characters long, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be $value characters long, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1128,7 +1130,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_between(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1158,7 +1160,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_dateutil_parseab
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be parseable by dateutil, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be parseable by dateutil, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1191,7 +1193,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_decreasing(
                 "strictly": {"schema": {"type": "boolean"}, "value": True},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be strictly less than previous values, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be strictly less than previous values, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1229,7 +1231,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_in_set(
                 "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3, 4]},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must belong to this set: $v__0 $v__1 $v__2 $v__3, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must belong to this set: $v__0 $v__1 $v__2 $v__3, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1268,7 +1270,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_in_type_list(
                 "v__2": {"schema": {"type": "string"}, "value": "type_c"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column value types must belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column value types must belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1301,7 +1303,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_increasing(
                 "strictly": {"schema": {"type": "boolean"}, "value": True},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be strictly greater than previous values, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be strictly greater than previous values, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1331,7 +1333,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_json_parseable(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be parseable as JSON, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be parseable as JSON, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1422,7 +1424,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_of_type(
                 "type_": {"schema": {"type": "string"}, "value": "my_type"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must be of type $type_, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must be of type $type_, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1488,7 +1490,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_json_schema(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json",  # noqa: E501
+            "template": "$column values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1536,7 +1538,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_regex(
                 "regex": {"schema": {"type": "string"}, "value": "^superconductive$"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1575,7 +1577,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_regex_list(
                 "v__1": {"schema": {"type": "string"}, "value": "ge|great_expectations"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must match all of the following regular expressions: $v__0 $v__1, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must match all of the following regular expressions: $v__0 $v__1, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1607,7 +1609,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_strftime_form
                 "strftime_format": {"schema": {"type": "string"}, "value": "%Y-%m"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must match the following strftime format: $strftime_format, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must match the following strftime format: $strftime_format, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1643,7 +1645,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_be_in_set(
                 "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must not belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must not belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1721,7 +1723,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_match_regex(
                 "regex": {"schema": {"type": "string"}, "value": "^superconductive$"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1756,7 +1758,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_match_regex_lis
                 "v__2": {"schema": {"type": "string"}, "value": "^c"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column values must not match any of the following regular expressions: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501
+            "template": "$column values must not match any of the following regular expressions: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1792,7 +1794,7 @@ def test_atomic_prescriptive_summary_expect_compound_columns_to_be_unique(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values for given compound columns must be unique together, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501
+            "template": "Values for given compound columns must be unique together, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1835,7 +1837,7 @@ def test_atomic_prescriptive_summary_expect_multicolumn_values_to_be_unique(
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501
+            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1875,7 +1877,7 @@ def test_atomic_prescriptive_summary_expect_select_column_values_to_be_unique_wi
                 "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1",  # noqa: E501
+            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1954,7 +1956,7 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_ordered_list(
                 "column_list_2": {"schema": {"type": "string"}, "value": "c"},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Must have these columns in this order: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501
+            "template": "Must have these columns in this order: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -1986,7 +1988,7 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_set(
                 "exact_match": {"schema": {"type": "boolean"}, "value": True},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "Must have exactly these columns (in any order): $column_set_0 $column_set_1 $column_set_2",  # noqa: E501
+            "template": "Must have exactly these columns (in any order): $column_set_0 $column_set_1 $column_set_2",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -2076,8 +2078,8 @@ def test_atomic_prescriptive_summary_expect_table_row_count_to_equal_other_table
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2092,9 +2094,9 @@ def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "--",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2104,8 +2106,8 @@ def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered
 def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
     get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2121,9 +2123,9 @@ def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "number"}, "value": 1776}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "1,776",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2131,8 +2133,8 @@ def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2148,9 +2150,9 @@ def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "foo",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2158,8 +2160,8 @@ def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2175,9 +2177,9 @@ def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "10% unexpected",
+            "template": "$observed_value",
         },
         "value_type": "StringValueType",
     }
@@ -2185,8 +2187,8 @@ def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_with_empty_result(get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -2202,9 +2204,848 @@ def test_atomic_diagnostic_observed_value_with_empty_result(get_diagnostic_rende
     assert res == {
         "name": "atomic.diagnostic.observed_value",
         "value": {
-            "params": {},
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "--",
+            "template": "$observed_value",
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "result, expected_template, expected_params",
+    [
+        (
+            {"observed_value": "foo"},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
+        ),
+        (
+            {"observed_value": False},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "boolean"}, "value": False}},
+        ),
+        (
+            {
+                "observed_value": datetime.strptime(
+                    "1999-12-31T23:59:59-00:00", "%Y-%m-%dT%H:%M:%S%z"
+                )
+            },
+            "$observed_value",
+            {
+                "observed_value": {
+                    "schema": {"type": "datetime"},
+                    "value": datetime.strptime("1999-12-31T23:59:59-00:00", "%Y-%m-%dT%H:%M:%S%z"),
+                }
+            },
+        ),
+        (
+            {"observed_value": "1999-12-31 23:59:59"},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "datetime"}, "value": "1999-12-31 23:59:59"}},
+        ),
+        (
+            {"observed_value": 1776},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "number"}, "value": 1776}},
+        ),
+        (
+            {"unexpected_percent": 10},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
+        ),
+        (
+            {"observed_value": ["%", "_"]},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "array"}, "value": ["%", "_"]}},
+        ),
+        (
+            {"observed_value": [1, 2, 3]},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "array"}, "value": [1, 2, 3]}},
+        ),
+        # when all value types are inferrable string will end up taking precendence over
+        # object otherwise object would overrride most other inference types as it
+        # is permissible to any value type
+        (
+            {"observed_value": {"foo": "bar"}},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": {"foo": "bar"}}},
+        ),
+        (
+            {"observed_value": None},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+        ),
+        (
+            {},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+        ),
+    ],
+)
+def test_atomic_diagnostic_observed_param_type_inference(
+    get_diagnostic_rendered_content, result, expected_template, expected_params
+):
+    expectation_config = {
+        "type": "expect_table_row_count_to_equal",
+        "kwargs": {},
+    }
+    update_dict = {
+        "expectation_config": ExpectationConfiguration(**expectation_config),
+        "result": result,
+    }
+    rendered_content = get_diagnostic_rendered_content(update_dict)
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": expected_params,
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": expected_template,
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, expected_value, observed_value, expected_result",
+    [
+        (
+            "happy",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "disjoint",
+            ["a", "b", "c"],
+            ["x", "y", "z"],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+                ("ov__0", "x", "unexpected"),
+                ("ov__1", "y", "unexpected"),
+                ("ov__2", "z", "unexpected"),
+            ],
+        ),
+        (
+            "transposed chars",
+            ["a", "b", "c", "d"],
+            ["a", "c", "b", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "c", "unexpected"),
+                ("ov__2", "b", "unexpected"),
+                ("ov__3", "d", "expected"),
+            ],
+        ),
+        (
+            "renamed",
+            ["a", "b", "c"],
+            ["a", "c", "b2"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "c", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "b2", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "pair transposed",
+            ["a", "b"],
+            ["b", "a"],
+            [
+                ("ov__0", "b", ObservedValueRenderState.UNEXPECTED),
+                ("ov__1", "a", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            # NOTE: this is a confusing one, but it is hard to generalize
+            "first unexpected and last missing",
+            ["a", "b"],
+            ["x", "a"],
+            [
+                ("ov__0", "x", ObservedValueRenderState.UNEXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "a", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "pair second index missing",
+            ["a", "b"],
+            ["a", "x"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "x", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "empty actual",
+            ["a", "b"],
+            [],
+            [
+                ("exp__0", "a", ObservedValueRenderState.MISSING),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "one column deleted",
+            ["a", "b", "c"],
+            ["a", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "c", ObservedValueRenderState.EXPECTED),
+            ],
+        ),
+        (
+            "last column deleted",
+            ["a", "b", "c", "d"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.EXPECTED),
+                ("exp__3", "d", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "empty expected",
+            [],
+            ["a", "b"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.UNEXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "one column added",
+            ["a", "b"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "missing bookends",
+            ["f", "a", "b", "c", "d"],
+            ["a", "b", "c"],
+            [
+                ("exp__0", "f", ObservedValueRenderState.MISSING),
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.EXPECTED),
+                ("exp__4", "d", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "mix 2",
+            ["a", "b", "c", "d"],
+            ["a", "c", "d", "b", "e"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "c", ObservedValueRenderState.UNEXPECTED),
+                ("ov__2", "d", ObservedValueRenderState.UNEXPECTED),
+                ("ov__3", "b", ObservedValueRenderState.UNEXPECTED),
+                ("ov__4", "e", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+    ],
+)
+def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_value(
+    description,
+    expected_value,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_table_columns_to_match_ordered_list",
+            kwargs={"column_list": expected_value},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "value_set, result, expected_template, expected_params",
+    [
+        (
+            ["blue", "green"],
+            {"observed_value": ["blue", "red"]},
+            "$ov__0 $ov__1",
+            {
+                "observed_value": {"schema": {"type": "array"}, "value": ["blue", "red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "blue",
+                    "render_state": "expected",
+                },
+                "ov__1": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
+            },
+        ),
+        (
+            ["blue", "green"],
+            {"observed_value": ["red"]},
+            "$ov__0",
+            {
+                "observed_value": {"schema": {"type": "array"}, "value": ["red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
+            },
+        ),
+    ],
+)
+def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed_value(
+    get_diagnostic_rendered_content, value_set, result, expected_template, expected_params
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_most_common_value_to_be_in_set",
+            kwargs={
+                "column": "color",
+                "value_set": value_set,
+                # ties_okay parameter does not affect observed value rendering
+                # the Expectation can pass and still have values with
+                # render_state "unexpected" in the observed value set
+                # if ties_okay is set to True
+            },
+        ),
+        "result": result,
+    }
+
+    # act
+    rendered_content = get_diagnostic_rendered_content(x)
+
+    # assert
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": expected_params,
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": expected_template,
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, value_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+                ("ov__3", "d", "unexpected"),
+            ],
+        ),
+    ],
+)
+def test_expect_column_distinct_values_to_be_in_set_atomic_diagnostic_observed_value(
+    description,
+    value_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_distinct_values_to_be_in_set",
+            kwargs={"value_set": value_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, value_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+                ("ov__3", "d", "expected"),
+            ],
+        ),
+    ],
+)
+def test_expect_column_distinct_values_to_contain_set_atomic_diagnostic_observed_value(
+    description,
+    value_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_distinct_values_to_contain_set",
+            kwargs={"value_set": value_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, value_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+                ("ov__3", "d", "unexpected"),
+            ],
+        ),
+        (
+            "superset observed 2",
+            ["a", "b", "c"],
+            ["a", "d", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "d", "unexpected"),
+                ("ov__2", "b", "expected"),
+                ("ov__3", "c", "expected"),
+            ],
+        ),
+    ],
+)
+def test_expect_column_distinct_values_to_equal_set_atomic_diagnostic_observed_value(
+    description,
+    value_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_distinct_values_to_equal_set",
+            kwargs={"value_set": value_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, column_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+                ("ov__3", "d", "unexpected"),
+            ],
+        ),
+        (
+            "superset observed 2",
+            ["a", "b", "c"],
+            ["a", "d", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "d", "unexpected"),
+                ("ov__2", "b", "expected"),
+                ("ov__3", "c", "expected"),
+            ],
+        ),
+    ],
+)
+def test_expect_table_columns_to_match_set_atomic_diagnostic_observed_value(
+    description,
+    column_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_table_columns_to_match_set",
+            kwargs={"column_set": column_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "observed_value, expected_template_string",
+    [
+        (
+            0,
+            "$observed_value unexpected rows",
+        ),
+        (
+            1,
+            "$observed_value unexpected row",
+        ),
+        (
+            100000,
+            "$observed_value unexpected rows",
+        ),
+    ],
+)
+def test_unexpected_rows_expectation_atomic_diagnostic_observed_value(
+    observed_value,
+    expected_template_string,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"description": "my description", "unexpected_rows_query": "valid query"},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_atomic_diagnostic_observed_value_when_description_present(
+    get_diagnostic_rendered_content,
+):
+    """Fixes regression where description overwrote the template"""
+
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"description": "my description", "unexpected_rows_query": "valid query"},
+            description="plz ignore me",
+        ),
+        "result": {"observed_value": 123},
+    }
+
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    assert res["value"]["template"] == "$observed_value unexpected rows"
+
+
+@pytest.mark.unit
+def test_atomic_prescriptive_summary_with_description(
+    get_prescriptive_rendered_content,
+):
+    description = "I should overwite"
+    update_dict = {
+        "type": "expect_column_distinct_values_to_be_in_set",
+        "description": description,
+        "kwargs": {
+            "column": "my_column",
+            "value_set": [1, 2, 3],
+        },
+    }
+    rendered_content = get_prescriptive_rendered_content(update_dict)
+
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "v__0": {"schema": {"type": "number"}, "value": 1},
+                "v__1": {"schema": {"type": "number"}, "value": 2},
+                "v__2": {"schema": {"type": "number"}, "value": 3},
+                "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": description,
         },
         "value_type": "StringValueType",
     }

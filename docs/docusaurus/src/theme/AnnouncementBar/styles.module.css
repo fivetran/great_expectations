@@ -2,7 +2,7 @@
   --docusaurus-announcement-bar-height: auto;
 }
 
-.announcementBar {
+div.announcementBar {
   display: flex;
   align-items: center;
   height: var(--docusaurus-announcement-bar-height);

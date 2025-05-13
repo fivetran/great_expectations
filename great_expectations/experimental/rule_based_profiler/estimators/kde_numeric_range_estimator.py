@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from great_expectations.core.domain import Domain
-    from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501
+    from great_expectations.experimental.rule_based_profiler.estimators.numeric_range_estimation_result import (  # noqa: E501 # FIXME CoP
         NumericRangeEstimationResult,
     )
     from great_expectations.experimental.rule_based_profiler.parameter_container import (
@@ -40,7 +40,7 @@ class KdeNumericRangeEstimator(NumericRangeEstimator):
     Implements the "kde" (kernel density estimation) estimation of parameter values from data.
 
     (Please refer to "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html" for details.)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -64,7 +64,7 @@ class KdeNumericRangeEstimator(NumericRangeEstimator):
             fuzzy=False,
         ):
             raise ProfilerExecutionError(
-                message=f'Estimator "{self.__class__.__name__}" does not support DateTime/TimeStamp data types.'  # noqa: E501
+                message=f'Estimator "{self.__class__.__name__}" does not support DateTime/TimeStamp data types.'  # noqa: E501 # FIXME CoP
             )
 
         false_positive_rate: np.float64 = get_false_positive_rate_from_rule_state(
@@ -74,7 +74,7 @@ class KdeNumericRangeEstimator(NumericRangeEstimator):
             parameters=parameters,
         )
 
-        # Obtain n_resamples override from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain n_resamples override from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         n_resamples: Optional[int] = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=self.configuration.n_resamples,
@@ -85,7 +85,7 @@ class KdeNumericRangeEstimator(NumericRangeEstimator):
         if n_resamples is None:
             n_resamples = DEFAULT_KDE_NUM_RESAMPLES
 
-        # Obtain random_seed override from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain random_seed override from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         random_seed: Optional[int] = get_parameter_value_and_validate_return_type(
             domain=domain,
             parameter_reference=self.configuration.random_seed,
@@ -94,7 +94,7 @@ class KdeNumericRangeEstimator(NumericRangeEstimator):
             parameters=parameters,
         )
 
-        quantile_statistic_interpolation_method: str = get_quantile_statistic_interpolation_method_from_rule_state(  # noqa: E501
+        quantile_statistic_interpolation_method: str = get_quantile_statistic_interpolation_method_from_rule_state(  # noqa: E501 # FIXME CoP
             quantile_statistic_interpolation_method=self.configuration.quantile_statistic_interpolation_method,
             round_decimals=self.configuration.round_decimals,
             domain=domain,
@@ -106,7 +106,7 @@ class KdeNumericRangeEstimator(NumericRangeEstimator):
                 DEFAULT_KDE_QUANTILE_STATISTIC_INTERPOLATION_METHOD
             )
 
-        # Obtain bw_method override from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501
+        # Obtain bw_method override from "rule state" (i.e., variables and parameters); from instance variable otherwise.  # noqa: E501 # FIXME CoP
         bw_method: Optional[Union[str, float, Callable]] = (
             get_parameter_value_and_validate_return_type(
                 domain=domain,

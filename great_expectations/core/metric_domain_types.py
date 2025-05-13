@@ -11,7 +11,7 @@ class MetricDomainTypes(enum.Enum):
 
     A wide variety of "Domain" types can be defined with applicable metrics associated with their respective "Domain"
     types.  The "Domain" types currently in use (`TABLE`, `COLUMN`, `COLUMN_PAIR`, and `MULTICOLUMN`) are declared here.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     TABLE = "table"
     COLUMN = "column"

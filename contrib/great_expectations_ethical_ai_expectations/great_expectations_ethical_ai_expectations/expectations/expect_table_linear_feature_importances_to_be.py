@@ -156,19 +156,19 @@ class ExpectTableLinearFeatureImportancesToBe(BatchExpectation):
         y_column = configuration.kwargs.get("y_column")
 
         try:
-            assert (
-                columns is not None or threshold is not None
-            ), "at least one of important_columns or threshold is required"
-            assert (
-                isinstance(n_features, int) or n_features is None
-            ), "n_features must be an integer"
+            assert columns is not None or threshold is not None, (
+                "at least one of important_columns or threshold is required"
+            )
+            assert isinstance(n_features, int) or n_features is None, (
+                "n_features must be an integer"
+            )
             if columns is not None:
                 assert (isinstance(columns, (tuple, list))) and all(
                     isinstance(i, str) for i in columns
                 ), "columns must be a tuple or list of string column names"
-            assert (
-                isinstance(threshold, float) and (0 <= threshold <= 1)
-            ) or threshold is None, "threshold must be a float between 0 and 1"
+            assert (isinstance(threshold, float) and (0 <= threshold <= 1)) or threshold is None, (
+                "threshold must be a float between 0 and 1"
+            )
             assert y_column is not None, "target y_column must be specified"
             assert isinstance(y_column, str), "y_column must be a string column name"
         except AssertionError as e:

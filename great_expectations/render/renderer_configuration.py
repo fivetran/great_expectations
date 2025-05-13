@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from numbers import Number
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
     Generic,
-    Iterable,
     List,
     Optional,
     Tuple,
@@ -19,7 +19,6 @@ from typing import (
 )
 
 import dateutil
-from dateutil.parser import ParserError
 from typing_extensions import TypeAlias, TypedDict
 
 from great_expectations.compatibility.pydantic import (
@@ -33,12 +32,13 @@ from great_expectations.compatibility.pydantic import (
 from great_expectations.compatibility.pydantic import generics as pydantic_generics
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
-    ExpectationValidationResult,  # noqa: TCH001
+    ExpectationValidationResult,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,  # noqa: TCH001
+    ExpectationConfiguration,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.render.exceptions import RendererConfigurationError
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 
 if TYPE_CHECKING:
     from great_expectations.compatibility.pydantic.typing import (
@@ -68,14 +68,14 @@ class RendererSchema(TypedDict):
 class _RendererValueBase(BaseModel):
     """
     _RendererValueBase is the base for renderer classes that need to override the default pydantic dict behavior.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     class Config:
         validate_assignment = True
         arbitrary_types_allowed = True
 
     @override
-    def dict(  # noqa: PLR0913
+    def dict(  # noqa: PLR0913 # FIXME CoP
         self,
         include: Optional[Union[AbstractSetIntStr, MappingIntStrAny]] = None,
         exclude: Optional[Union[AbstractSetIntStr, MappingIntStrAny]] = None,
@@ -93,7 +93,7 @@ class _RendererValueBase(BaseModel):
 
         In practice this means the renderer implementer doesn't need to use .dict(by_alias=True, exclude_none=True)
         everywhere.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return super().dict(
             include=include,
             exclude=exclude,
@@ -155,11 +155,71 @@ class CodeBlock(TypedDict):
     language: CodeBlockLanguage
 
 
+def make_exception_msg(v_type: RendererValueType, input: Any) -> str:
+    return f"Param type: <{v_type}> does not match value: <{input}>."
+
+
+def make_str_exception_msg(v_type: RendererValueType, input: Any) -> str:
+    message = f"Value was unable to be represented as a {v_type}"
+    try:
+        str(input)
+    except Exception as e:
+        message = f"{message}: {e}"
+    return message
+
+
+def safe_str(input: Any) -> bool:
+    try:
+        str(input)
+        return True
+    except Exception:
+        return False
+
+
+def safe_date(input: Any) -> bool:
+    try:
+        dateutil.parser.parse(input)
+        return True
+    except Exception:
+        return False
+
+
+PARAM_TYPE_TESTERS: Dict[
+    RendererValueType,
+    Tuple[
+        Callable[[Any], bool],
+        Callable[[RendererValueType, Any], str],
+    ],
+] = {
+    RendererValueType.ARRAY: (
+        lambda x: isinstance(x, (list, tuple, set)),
+        make_exception_msg,
+    ),
+    RendererValueType.BOOLEAN: (
+        lambda x: isinstance(x, bool),
+        make_exception_msg,
+    ),
+    RendererValueType.DATETIME: (
+        lambda x: isinstance(x, (date, datetime)) or safe_date(x),
+        make_exception_msg,
+    ),
+    RendererValueType.NUMBER: (
+        lambda x: isinstance(x, Number),
+        make_exception_msg,
+    ),
+    RendererValueType.OBJECT: (lambda x: True, make_exception_msg),
+    RendererValueType.STRING: (
+        lambda x: safe_str(x),
+        make_str_exception_msg,
+    ),
+}
+
+
 class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererParams]):
     """
     Configuration object built for each renderer. Operations to be performed strictly on this object at the renderer
         implementation-level.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     configuration: Optional[ExpectationConfiguration] = Field(None, allow_mutation=False)
     result: Optional[ExpectationValidationResult] = Field(None, allow_mutation=False)
@@ -189,7 +249,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         if ("configuration" not in values or values["configuration"] is None) and (
             "result" not in values or values["result"] is None
         ):
-            raise RendererConfigurationError(  # noqa: TRY003
+            raise RendererConfigurationError(  # noqa: TRY003 # FIXME CoP
                 "RendererConfiguration must be passed either configuration or result."
             )
         return values
@@ -199,13 +259,13 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         super().__init__(**values)
 
     class _RequiredRendererParamArgs(TypedDict):
-        """Used for building up a dictionary that is unpacked into RendererParams upon initialization."""  # noqa: E501
+        """Used for building up a dictionary that is unpacked into RendererParams upon initialization."""  # noqa: E501 # FIXME CoP
 
         schema: RendererSchema
         value: Any
 
     class _RendererParamArgs(_RequiredRendererParamArgs, total=False):
-        """Used for building up a dictionary that is unpacked into RendererParams upon initialization."""  # noqa: E501
+        """Used for building up a dictionary that is unpacked into RendererParams upon initialization."""  # noqa: E501 # FIXME CoP
 
         suite_parameter: Dict[str, Any]
 
@@ -213,54 +273,32 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         """
         _RendererParamBase is the base for a param that is added to RendererParams. It contains the validation logic,
             but it is dynamically renamed in order for the RendererParams attribute to have the same name as the param.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
-        renderer_schema: RendererSchema = Field(alias="schema")
-        value: Any
-        suite_parameter: Optional[Dict[str, Any]]
+        renderer_schema: RendererSchema = Field(alias="schema", allow_mutation=False)
+        value: Any = Field(allow_mutation=False)
+        suite_parameter: Optional[Dict[str, Any]] = Field(allow_mutation=False)
+        render_state: Optional[ObservedValueRenderState] = Field(allow_mutation=True)
 
         class Config:
             validate_assignment = True
             arbitrary_types_allowed = True
-            allow_mutation = False
 
         @root_validator(pre=True)
-        def _validate_param_type_matches_value(  # noqa: C901
-            cls, values: dict
-        ) -> dict:
+        def _validate_param_type_matches_value(cls, values: dict) -> dict:
             """
             This root_validator ensures that a value can be parsed by its RendererValueType.
             If RendererValueType.OBJECT is passed, it is treated as valid for any value.
             """
-            param_type: RendererValueType = values["schema"]["type"]
-            value: Any = values["value"]
-            if param_type == RendererValueType.STRING:
-                try:
-                    str(value)
-                except Exception as e:
-                    raise RendererConfigurationError(  # noqa: TRY003
-                        f"Value was unable to be represented as a string: {e!s}"
-                    )
-            else:
-                renderer_configuration_error = RendererConfigurationError(
-                    f"Param type: <{param_type}> does " f"not match value: <{value}>."
-                )
-                if param_type == RendererValueType.NUMBER:
-                    if not isinstance(value, Number):
-                        raise renderer_configuration_error
-                elif param_type == RendererValueType.DATETIME:
-                    if not isinstance(value, datetime):
-                        try:
-                            dateutil.parser.parse(value)
-                        except ParserError:
-                            raise renderer_configuration_error
-                elif param_type == RendererValueType.BOOLEAN:
-                    if value is not True and value is not False:
-                        raise renderer_configuration_error
-                elif param_type == RendererValueType.ARRAY:
-                    if not isinstance(value, Iterable):
-                        raise renderer_configuration_error
+            # if render_state is in values, this root_validator is being called
+            # on assignment rather than during instantiation
+            if not values.get("render_state"):
+                param_type: RendererValueType = values["schema"]["type"]
+                value: Any = values["value"]
 
+                (tester, error) = PARAM_TYPE_TESTERS[param_type]
+                if not tester(value):
+                    raise RendererConfigurationError(error(param_type, value))
             return values
 
         @override
@@ -314,9 +352,6 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             ].expectation_config
             values["expectation_type"] = expectation_configuration.type
             values["kwargs"] = expectation_configuration.kwargs
-            # description is the template_str override
-            if expectation_configuration.description:
-                values["template_str"] = expectation_configuration.description
             raw_configuration: ExpectationConfiguration = (
                 expectation_configuration.get_raw_configuration()
             )
@@ -433,9 +468,9 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         _params: Optional[Dict[str, Dict[str, Union[str, Dict[str, RendererValueType]]]]] = (
             values.get("_params")
         )
-        if not values["params"]:
-            values["params"] = _RendererValueBase()
-        if _params and _params != values["params"]:
+        # this logic loads the params that exist
+        # upon RendererConfiguration instantiation, e.g. row_condition
+        if _params and len(values["params"].__dict__) == 0:
             renderer_param_definitions: Dict[str, Any] = {}
             for name in _params:
                 renderer_param_type: Type[BaseModel] = (
@@ -445,14 +480,12 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
                     Optional[renderer_param_type],
                     ...,
                 )
-            existing_params = values["params"].__dict__
-            combined_params = {**existing_params, **_params}
             renderer_params: Type[BaseModel] = create_model(
                 "RendererParams",
                 **renderer_param_definitions,
                 __base__=_RendererValueBase,
             )
-            values["params"] = renderer_params(**combined_params)
+            values["params"] = renderer_params(**_params)
 
         return values
 
@@ -460,8 +493,8 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     def _get_row_conditions_list_from_row_condition_str(
         row_condition_str: str,
     ) -> List[str]:
-        # divide the whole condition into smaller parts
-        row_conditions_list = re.split(r"AND|OR|NOT(?! in)|\(|\)", row_condition_str)
+        # extract the variables to be substituted
+        row_conditions_list = re.split(r"AND|OR|NOT(?! in)|col\(\"|\"\)", row_condition_str)
         row_conditions_list = [
             condition.strip() for condition in row_conditions_list if condition.strip()
         ]
@@ -479,7 +512,6 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             .replace(" or ", " OR ")
             .replace("~", " NOT ")
             .replace(" not ", " NOT ")
-            .replace("==", " is ")
         )
         row_condition_str = " ".join(row_condition_str.split())
 
@@ -508,13 +540,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
 
     @validator("template_str")
     def _set_template_str(cls, v: str, values: dict) -> str:
-        if values.get("configuration") and values["configuration"].description:
-            # description always overrides other template_strs
-            v = values["configuration"].description
-        elif values.get("result") and values["result"].expectation_config.description:
-            # description always overrides other template_strs
-            v = values["result"].expectation_config.description
-        elif values.get("_row_condition"):
+        if values.get("_row_condition"):
             row_condition_str: str = RendererConfiguration._get_row_condition_string(
                 row_condition_str=values["_row_condition"]
             )
@@ -536,8 +562,8 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             except ValidationError:
                 pass
 
-        raise RendererConfigurationError(  # noqa: TRY003
-            f"None of the param_types: {[param_type.value for param_type in param_types]} match the value: {value}"  # noqa: E501
+        raise RendererConfigurationError(  # noqa: TRY003 # FIXME CoP
+            f"None of the param_types: {[param_type.value for param_type in param_types]} match the value: {value}"  # noqa: E501 # FIXME CoP
         )
 
     def add_param(
@@ -565,7 +591,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
 
         Returns:
             None
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         renderer_param: Type[BaseModel] = RendererConfiguration._get_renderer_value_base_model_type(
             name=name
         )

@@ -4,5 +4,5 @@ You can check the [Validation Results reference tables](#validation-results-refe
 
 To create a `"BASIC"` result format configuration use the following code:
 
-```python name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/choose_result_format.py - basic Result Format"
+```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/choose_result_format.py - basic Result Format"
 ```

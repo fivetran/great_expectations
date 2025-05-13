@@ -149,7 +149,7 @@ def test_unmodifiable_config_option_warning(
     with pytest.warns(RuntimeWarning):
         _ = empty_data_context.data_sources.add_spark(
             name="my_spark_datasource",
-            spark_config=spark_config,  # type: ignore[arg-type]
+            spark_config=spark_config,  # type: ignore[arg-type] # FIXME CoP
         )
 
 

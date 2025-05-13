@@ -1,15 +1,10 @@
-import glob
 import json
-import os
-from collections import defaultdict
+import pathlib
 
 import pytest
 
-from great_expectations.data_context.util import file_relative_path
-from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,
-)
-from great_expectations.render.renderer.content_block import (
+from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
+from great_expectations.render.renderer.content_block.bullet_list_content_block import (
     ExpectationSuiteBulletListContentBlockRenderer,
 )
 from great_expectations.render.util import (
@@ -58,7 +53,7 @@ def test_parse_row_condition_string_pandas_engine():
         "Survived == 1 and (SexCode not in (0, 7, x) | ~(Age > 50)) & not (PClass != '1st')"
     )
     assert parse_row_condition_string_pandas_engine(test_condition_string) == (
-        "if $row_condition__0 and ($row_condition__1 or not ($row_condition__2)) and not ($row_condition__3)",  # noqa: E501
+        "if $row_condition__0 and ($row_condition__1 or not ($row_condition__2)) and not ($row_condition__3)",  # noqa: E501 # FIXME CoP
         {
             "row_condition__0": "Survived == 1",
             "row_condition__1": "SexCode not in [0, 7, x]",
@@ -69,75 +64,18 @@ def test_parse_row_condition_string_pandas_engine():
 
 
 @pytest.mark.filesystem
-def test_all_expectations_using_test_definitions():
-    dir_path = os.path.dirname(os.path.abspath(__file__))  # noqa: PTH120, PTH100
-    pattern = os.path.join(  # noqa: PTH118
-        dir_path, "..", "..", "tests", "test_definitions", "*", "expect*.json"
-    )
-    test_files = glob.glob(pattern)  # noqa: PTH207
+def test_expectations_using_expectation_definitions():
+    dir_path = pathlib.Path(__file__).parent
+    data_path = dir_path / "BulletListContentBlock.json"
+    with open(data_path) as f:
+        test_data = json.load(f)
 
-    # Historically, collecting all the JSON tests was an issue - this step ensures we actually have test data.  # noqa: E501
-    assert (
-        len(test_files) == 61
-    ), "Something went wrong when collecting JSON Expectation test fixtures"
-
-    # Not ported over to V1 so ignore for purposes of this test
-    UNSUPPORTED_EXPECTATIONS = {
-        "expect_column_pair_cramers_phi_value_to_be_less_than",
-        "expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than",
-        "expect_column_chisquare_test_p_value_to_be_greater_than",
-    }
-
-    # Loop over all test_files, datasets, and tests:
-    test_results = defaultdict(list)
-    for filename in test_files:
-        test_definitions = json.load(open(filename))
-        if test_definitions["expectation_type"] in UNSUPPORTED_EXPECTATIONS:
-            continue
-        for dataset in test_definitions["datasets"]:
-            for test in dataset["tests"]:
-                # Construct an expectation from the test.
-                if type(test["in"]) == dict:  # noqa: E721
-                    # Skip tests with invalid configurations
-                    if test["in"].get("catch_exceptions"):
-                        continue
-                    fake_expectation = ExpectationConfiguration(
-                        type=test_definitions["expectation_type"],
-                        kwargs=test["in"],
-                    )
-                else:
-                    # This would be a good place to put a kwarg-to-arg converter
-                    continue
-
-                # Attempt to render it
-                render_result = ExpectationSuiteBulletListContentBlockRenderer.render(
-                    [fake_expectation]
-                )
-                assert render_result is not None
-                render_result = render_result.to_json_dict()
-
-                assert isinstance(render_result, dict)
-                assert "content_block_type" in render_result
-                assert render_result["content_block_type"] in render_result
-                assert isinstance(render_result[render_result["content_block_type"]], list)
-
-                # TODO: Assert that the template is renderable, with all the right arguments, etc.
-                # rendered_template = pTemplate(el["template"]).substitute(el["params"])
-
-                test_results[test_definitions["expectation_type"]].append(
-                    {
-                        test["title"]: render_result,
-                        # "rendered_template":rendered_template
-                    }
-                )
-
-    # TODO: accommodate case where multiple datasets exist within one expectation test definition
-    with open(
-        file_relative_path(
-            __file__,
-            "./output/test_render_bullet_list_content_block.json",
-            strict=False,
-        ),
-        "w",
-    ) as f:
-        json.dump(test_results, f, indent=2)
+    for expectation_dict in test_data:
+        fake_expectation = ExpectationConfiguration(**expectation_dict)
+        render_result = ExpectationSuiteBulletListContentBlockRenderer.render([fake_expectation])
+        assert render_result is not None
+        render_result = render_result.to_json_dict()
+        assert isinstance(render_result, dict)
+        assert "content_block_type" in render_result
+        assert render_result["content_block_type"] in render_result
+        assert isinstance(render_result[render_result["content_block_type"]], list)

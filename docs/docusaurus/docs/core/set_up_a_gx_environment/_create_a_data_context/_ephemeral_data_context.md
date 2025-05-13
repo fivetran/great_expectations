@@ -4,7 +4,7 @@ import TabItem from '@theme/TabItem'
 import PrereqPythonInstallation from '../../_core_components/prerequisites/_python_installation.md'
 import PrereqGxInstallation from '../../_core_components/prerequisites/_gx_installation.md'
 
-## Prerequisites
+## Prerequisites {#prerequisites-ephemeral}
 
 - <PrereqPythonInstallation/>
 - <PrereqGxInstallation/>
@@ -27,7 +27,7 @@ import PrereqGxInstallation from '../../_core_components/prerequisites/_gx_insta
    ```python title='Python input' name="core/set_up_a_gx_environment/_create_a_data_context/ephemeral_data_context.py import great_expectations and get a context"
    ```
 
-   Ephemeral Data Contexts are temporary and `get_context(mode='ephemeral')` *always* instantiates and returns a new Ephemeral Data Context.
+   Ephemeral Data Contexts are temporary and `get_context(mode="ephemeral")` *always* instantiates and returns a new Ephemeral Data Context.
 
 2. Optional. Run the following code to review the Ephemeral Data Context configuration:
 

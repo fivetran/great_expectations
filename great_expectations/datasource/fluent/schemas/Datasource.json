@@ -1,6 +1,6 @@
 {
     "title": "Datasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nA Datasource provides a standard API for accessing and interacting with data from\na wide variety of source systems.",
     "type": "object",
     "properties": {
         "type": {
@@ -529,7 +529,7 @@
         },
         "DataAsset": {
             "title": "DataAsset",
-            "description": "--Public API--",
+            "description": "--Public API--\nA Data Asset is a collection of records within a Data Source, which is usually named based\non the underlying data system and sliced to correspond to a desired specification.\n\nData Assets are used to specify how Great Expectations will organize data into Batches.",
             "type": "object",
             "properties": {
                 "name": {

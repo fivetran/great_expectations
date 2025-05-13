@@ -31,6 +31,10 @@
   border-left-width: var(--ifm-alert-border-left-width);
   box-shadow: none;
 
+  [class^="admonitionHeading"] {
+    text-transform: none;
+  }
+
   div:first-child {
     font-size: var(--p-font-size);
 

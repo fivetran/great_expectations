@@ -66,6 +66,7 @@ from docs.sphinx_api_docs_source import (
     public_api_includes,
     public_api_missing_threshold,
 )
+from docs.sphinx_api_docs_source.printable_definition import PrintableDefinition
 
 if TYPE_CHECKING:
     from docs.sphinx_api_docs_source.include_exclude_definition import (
@@ -790,11 +791,11 @@ class PublicAPIReport:
         """
         printable_definitions = self.generate_printable_definitions()
         with open(filepath, "w") as f:
-            f.write("\n".join(printable_definitions))
+            f.write("\n".join([str(d) for d in printable_definitions]))
 
     def generate_printable_definitions(
         self,
-    ) -> List[str]:
+    ) -> List[PrintableDefinition]:
         """Generate a printable (human readable) definition.
 
         Returns:
@@ -803,30 +804,30 @@ class PublicAPIReport:
         sorted_definitions_list = sorted(
             list(self.definitions), key=operator.attrgetter("filepath", "name")
         )
-        sorted_definitions_strings: List[str] = []
+        sorted_printable_definitions: List[PrintableDefinition] = []
         for definition in sorted_definitions_list:
             if definition.filepath.is_absolute():
-                filepath = str(definition.filepath.relative_to(self.repo_root))
+                filepath = definition.filepath.relative_to(self.repo_root)
             else:
-                filepath = str(definition.filepath)
-            sorted_definitions_strings.append(
-                f"File: {filepath} Name: {definition.name}"
+                filepath = definition.filepath
+
+            printable_definition = PrintableDefinition(
+                file=filepath, name=definition.name
             )
+            sorted_printable_definitions.append(printable_definition)
 
-        sorted_definitions_strings_no_dupes = self._deduplicate_strings(
-            sorted_definitions_strings
-        )
+        return self._deduplicate_definitions(sorted_printable_definitions)
 
-        return sorted_definitions_strings_no_dupes
-
-    def _deduplicate_strings(self, strings: List[str]) -> List[str]:
+    def _deduplicate_definitions(
+        self, printable_definitions: List[PrintableDefinition]
+    ) -> List[PrintableDefinition]:
         """Deduplicate a list of strings, keeping order intact."""
         seen = set()
         no_duplicates = []
-        for s in strings:
-            if s not in seen:
-                no_duplicates.append(s)
-                seen.add(s)
+        for definition in printable_definitions:
+            if definition not in seen:
+                no_duplicates.append(definition)
+                seen.add(definition)
 
         return no_duplicates
 
@@ -934,14 +935,14 @@ def generate_public_api_report(write_to_file: bool = False) -> None:
             f"Items are missing from the public API: {len(undocumented_and_unignored)}"
         )
         for item in sorted(undocumented_and_unignored):
-            logger.error(" - " + item)
+            logger.error(" - " + str(item))
         has_errors = True
     if documented_and_ignored:
         logger.error(
             f"Items that should be removed from public_api_missing_threshold.ITEMS_IGNORED_FROM_PUBLIC_API: {len(documented_and_ignored)}"
         )
         for item in sorted(documented_and_ignored):
-            logger.error(" - " + item)
+            logger.error(" - " + str(item))
         has_errors = True
 
     if has_errors:

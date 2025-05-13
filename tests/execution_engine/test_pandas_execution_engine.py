@@ -73,9 +73,9 @@ def test_get_domain_records_with_column_domain():
 
     expected_column_df = df.iloc[:3]
 
-    assert data.equals(
-        expected_column_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_column_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.unit
@@ -109,9 +109,9 @@ def test_get_domain_records_with_column_pair_domain():
         },
         index=[1, 2, 3, 5],
     )
-    assert data.equals(
-        expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     data = engine.get_domain_records(
         domain_kwargs={
@@ -128,9 +128,9 @@ def test_get_domain_records_with_column_pair_domain():
         {"a": [2, 3, 4], "b": [3, 4, 5], "c": [2, 3, 4]}, index=[1, 2, 3]
     )
 
-    assert data.equals(
-        expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     data = engine.get_domain_records(
         domain_kwargs={
@@ -150,9 +150,9 @@ def test_get_domain_records_with_column_pair_domain():
         }
     )
 
-    assert data.equals(
-        expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.unit
@@ -182,9 +182,9 @@ def test_get_domain_records_with_multicolumn_domain():
         {"a": [2, 3, 4, 5], "b": [3, 4, 5, 7], "c": [2, 3, 4, 6]}, index=[1, 2, 3, 5]
     )
 
-    assert data.equals(
-        expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     data = engine.get_domain_records(
         domain_kwargs={
@@ -200,9 +200,9 @@ def test_get_domain_records_with_multicolumn_domain():
         {"a": [1, 2, 3, 4], "b": [2, 3, 4, 5], "c": [1, 2, 3, 4]}, index=[0, 1, 2, 3]
     )
 
-    assert data.equals(
-        expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     engine = PandasExecutionEngine()
     df = pd.DataFrame(
@@ -231,9 +231,9 @@ def test_get_domain_records_with_multicolumn_domain():
         index=[0, 1, 2, 3, 4, 5],
     )
 
-    assert data.equals(
-        expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.unit
@@ -326,9 +326,9 @@ def test_get_compute_domain_with_row_condition():
     assert data["b"].equals(expected_df["b"]), "Data does not match after getting compute domain"
 
     # Ensuring compute kwargs have not been modified
-    assert (
-        "row_condition" in compute_kwargs
-    ), "Row condition should be located within compute kwargs"
+    assert "row_condition" in compute_kwargs, (
+        "Row condition should be located within compute kwargs"
+    )
     assert accessor_kwargs == {}, "Accessor kwargs have been modified"
 
 
@@ -354,9 +354,9 @@ def test_get_compute_domain_with_unmeetable_row_condition():
     assert data["b"].equals(expected_df["b"]), "Data does not match after getting compute domain"
 
     # Ensuring compute kwargs have not been modified
-    assert (
-        "row_condition" in compute_kwargs
-    ), "Row condition should be located within compute kwargs"
+    assert "row_condition" in compute_kwargs, (
+        "Row condition should be located within compute kwargs"
+    )
     assert accessor_kwargs == {"column": "a"}, "Accessor kwargs have been modified"
 
 
@@ -399,11 +399,11 @@ def test_resolve_metric_bundle():
     # Ensuring metrics have been properly resolved
     assert metrics[("column.mean", "column=a", ())] == 2.0, "mean metric not properly computed"
     assert metrics[("column.standard_deviation", "column=a", ())] == 1.0, (
-        "standard deviation " "metric not properly computed"
+        "standard deviation metric not properly computed"
     )
 
 
-# Ensuring that we can properly inform user when metric doesn't exist - should get a metric provider error  # noqa: E501
+# Ensuring that we can properly inform user when metric doesn't exist - should get a metric provider error  # noqa: E501 # FIXME CoP
 @pytest.mark.unit
 def test_resolve_metric_bundle_with_nonexistent_metric():
     df = pd.DataFrame({"a": [1, 2, 3, None]})
@@ -463,7 +463,7 @@ def test_get_batch_data(test_df):
 def test_get_batch_s3_compressed_files(test_s3_files_compressed, test_df_small):
     bucket, keys = test_s3_files_compressed
     path = keys[0]
-    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118
+    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118 # FIXME CoP
 
     batch_spec = S3BatchSpec(path=full_path, reader_method="read_csv")
     df = PandasExecutionEngine().get_batch_data(batch_spec=batch_spec)
@@ -482,7 +482,7 @@ def test_get_batch_s3_compressed_files(test_s3_files_compressed, test_df_small):
 def test_get_batch_s3_parquet(test_s3_files_parquet, test_df_small):
     bucket, keys = test_s3_files_parquet
     path = [key for key in keys if key.endswith(".parquet")][0]
-    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118
+    full_path = f"s3a://{os.path.join(bucket, path)}"  # noqa: PTH118 # FIXME CoP
 
     batch_spec = S3BatchSpec(path=full_path, reader_method="read_parquet")
     df = PandasExecutionEngine().get_batch_data(batch_spec=batch_spec)
@@ -653,9 +653,9 @@ def test_get_batch_data_with_gcs_batch_spec(
 )
 @pytest.mark.big
 def test_get_batch_data_with_gcs_batch_spec_no_credentials(gcs_batch_spec, monkeypatch):
-    # If PandasExecutionEngine contains no credentials for GCS, we will still instantiate _gcs engine,  # noqa: E501
-    # but will raise Exception when trying get_batch_data(). The only situation where it would work is if we are running in a Google Cloud container.  # noqa: E501
-    # TODO : Determine how we can test the scenario where we are running PandasExecutionEngine from within Google Cloud env.  # noqa: E501
+    # If PandasExecutionEngine contains no credentials for GCS, we will still instantiate _gcs engine,  # noqa: E501 # FIXME CoP
+    # but will raise Exception when trying get_batch_data(). The only situation where it would work is if we are running in a Google Cloud container.  # noqa: E501 # FIXME CoP
+    # TODO : Determine how we can test the scenario where we are running PandasExecutionEngine from within Google Cloud env.  # noqa: E501 # FIXME CoP
 
     monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
     with pytest.raises(gx_exceptions.ExecutionEngineError):

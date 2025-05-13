@@ -5,22 +5,25 @@ import json
 from typing import Any, Set, TypeVar, Union
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 T = TypeVar("T")
+
+
+IDDictID = Union[str, tuple[()]]
 
 
 class IDDict(dict):
     _id_ignore_keys: Set[str] = set()
 
-    def to_id(self, id_keys=None, id_ignore_keys=None):
+    def to_id(self, id_keys=None, id_ignore_keys=None) -> IDDictID:
         if id_keys is None:
             id_keys = self.keys()
         if id_ignore_keys is None:
             id_ignore_keys = self._id_ignore_keys
         id_keys = set(id_keys) - set(id_ignore_keys)
         if len(id_keys) == 0:
-            return tuple()
+            return ()
         elif len(id_keys) == 1:
             key = list(id_keys)[0]
             return f"{key}={self[key]!s}"
@@ -29,7 +32,7 @@ class IDDict(dict):
         return hashlib.md5(json.dumps(_id_dict, sort_keys=True).encode("utf-8")).hexdigest()
 
     @override
-    def __hash__(self) -> int:  # type: ignore[override]
+    def __hash__(self) -> int:  # type: ignore[override] # FIXME CoP
         """Overrides the default implementation"""
         _result_hash: int = hash(self.to_id())
         return _result_hash
@@ -41,7 +44,7 @@ def deep_convert_properties_iterable_to_id_dict(
     if isinstance(source, dict):
         return _deep_convert_properties_iterable_to_id_dict(source=IDDict(source))
 
-    # Must allow for non-dictionary source types, since their internal nested structures may contain dictionaries.  # noqa: E501
+    # Must allow for non-dictionary source types, since their internal nested structures may contain dictionaries.  # noqa: E501 # FIXME CoP
     if isinstance(source, (list, set, tuple)):
         data_type: type = type(source)
 

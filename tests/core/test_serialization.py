@@ -175,7 +175,7 @@ def test_batch_request_deepcopy():
                     }
                 },
                 "class_name": "ConfiguredAssetFilesystemDataConnector",
-                "module_name": "great_expectations.datasource.data_connector.configured_asset_filesystem_data_connector",  # noqa: E501
+                "module_name": "great_expectations.datasource.data_connector.configured_asset_filesystem_data_connector",  # noqa: E501 # FIXME CoP
             },
             id="data_connector_with_schema",
         ),
@@ -205,7 +205,7 @@ def test_batch_request_deepcopy():
                     }
                 },
                 "class_name": "ConfiguredAssetFilesystemDataConnector",
-                "module_name": "great_expectations.datasource.data_connector.configured_asset_filesystem_data_connector",  # noqa: E501
+                "module_name": "great_expectations.datasource.data_connector.configured_asset_filesystem_data_connector",  # noqa: E501 # FIXME CoP
             },
             id="data_connector_without_schema",
         ),

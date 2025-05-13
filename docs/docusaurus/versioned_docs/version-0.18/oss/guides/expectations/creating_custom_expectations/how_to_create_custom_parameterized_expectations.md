@@ -30,7 +30,7 @@ Notice that we do not need to set `default_kwarg_values` for all kwargs: it is s
 ````python title="Python" name="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/test_expect_column_mean_to_be_positive.py ExpectColumnMeanToBePositive_class_def"
 ````
 
-:::info
+:::info Info
 We could also explicitly override our parent methods to modify the behavior of our new Expectation, for example by updating the configuration validation to require the values we set as defaults not be altered.
 
 ```python title="Python" name="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/test_expect_column_mean_to_be_positive.py validate_config"
@@ -55,6 +55,6 @@ This is particularly important because ***we*** want to make sure that ***you***
 
 Additionally, you will need to implement some basic examples and test cases before your contribution can be accepted. For guidance on examples and testing, see our [guide on implementing examples and test cases](../features_custom_expectations/how_to_add_example_cases_for_an_expectation.md).
 
-:::note
+:::note Note
 For more information on our code standards and contribution, see our guide on [Levels of Maturity](/oss/contributing/contributing_maturity.md#expectation-contributions) for Expectations.
 :::

@@ -49,7 +49,7 @@ class ColumnDistinctValues(ColumnAggregateMetricProvider):
         Past implementations of column.distinct_values depended on column.value_counts.
         This was causing performance issues due to the complex query used in column.value_counts and subsequent
         in-memory operations.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         selectable: sqlalchemy.Selectable
         accessor_domain_kwargs: Dict[str, str]
         (
@@ -62,14 +62,14 @@ class ColumnDistinctValues(ColumnAggregateMetricProvider):
 
         distinct_values: List[sqlalchemy.Row]
         if hasattr(column, "is_not"):
-            distinct_values = execution_engine.execute_query(  # type: ignore[assignment]
-                sa.select(column).where(column.is_not(None)).distinct().select_from(selectable)  # type: ignore[arg-type]
+            distinct_values = execution_engine.execute_query(  # type: ignore[assignment] # FIXME CoP
+                sa.select(column).where(column.is_not(None)).distinct().select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             ).fetchall()
         else:
-            distinct_values = execution_engine.execute_query(  # type: ignore[assignment]
-                sa.select(column).where(column.isnot(None)).distinct().select_from(selectable)  # type: ignore[arg-type]
+            distinct_values = execution_engine.execute_query(  # type: ignore[assignment] # FIXME CoP
+                sa.select(column).where(column.isnot(None)).distinct().select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             ).fetchall()
-        # Vectorized operation is not faster here due to overhead of converting to and from numpy array  # noqa: E501
+        # Vectorized operation is not faster here due to overhead of converting to and from numpy array  # noqa: E501 # FIXME CoP
         return {row[0] for row in distinct_values}
 
     @metric_value(engine=SparkDFExecutionEngine)
@@ -83,7 +83,7 @@ class ColumnDistinctValues(ColumnAggregateMetricProvider):
         Past implementations of column.distinct_values depended on column.value_counts.
         This was causing performance issues due to the complex query used in column.value_counts and subsequent
         in-memory operations.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         df: pyspark.DataFrame
         accessor_domain_kwargs: Dict[str, str]
         (
@@ -119,7 +119,7 @@ class ColumnDistinctValuesCount(ColumnAggregateMetricProvider):
         Past implementations of column.distinct_values.count depended on column.value_counts and column.distinct_values.
         This was causing performance issues due to the complex query used in column.value_counts and subsequent
         in-memory operations.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return sa.func.count(sa.distinct(column))
 
     @column_aggregate_partial(engine=SparkDFExecutionEngine)  # type: ignore[misc] # untyped-decorator
@@ -132,7 +132,7 @@ class ColumnDistinctValuesCount(ColumnAggregateMetricProvider):
         Past implementations of column.distinct_values.count depended on column.value_counts and column.distinct_values.
         This was causing performance issues due to the complex query used in column.value_counts and subsequent
         in-memory operations.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return F.countDistinct(column)
 
 
