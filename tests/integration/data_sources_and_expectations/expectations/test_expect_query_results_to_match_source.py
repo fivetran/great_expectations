@@ -532,8 +532,8 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
                 table=[
                     [
                         RendererTableValue(
-                            schema=RendererSchema(type=RendererValueType.STRING),
-                            value=str(value),
+                            schema=RendererSchema(type=RendererValueType.NUMBER),
+                            value=value,
                         )
                         for _ in ["e", "f", "g", "h"]
                     ]
@@ -556,8 +556,8 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
                 table=[
                     [
                         RendererTableValue(
-                            schema=RendererSchema(type=RendererValueType.STRING),
-                            value=str(value),
+                            schema=RendererSchema(type=RendererValueType.NUMBER),
+                            value=value,
                         )
                         for _ in ["a", "b", "c", "d"]
                     ]

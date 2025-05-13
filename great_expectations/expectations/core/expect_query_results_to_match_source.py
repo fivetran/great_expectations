@@ -308,8 +308,8 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             output_rows.append(
                 [
                     RendererTableValue(
-                        schema=RendererSchema(type=RendererValueType.STRING),
-                        value=str(row[col_name]),
+                        schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
+                        value=row[col_name],
                     )
                     for col_name in col_names
                 ]

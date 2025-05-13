@@ -58,6 +58,23 @@ class RendererValueType(str, Enum):
     OBJECT = "object"
     STRING = "string"
 
+    @classmethod
+    def from_value(cls, value: Any) -> RendererValueType:
+        if isinstance(value, list):
+            return RendererValueType.ARRAY
+        elif isinstance(value, bool):
+            return RendererValueType.BOOLEAN
+        elif isinstance(value, (date, datetime)):
+            return RendererValueType.DATETIME
+        elif isinstance(value, Number):
+            return RendererValueType.NUMBER
+        elif isinstance(value, dict):
+            return RendererValueType.OBJECT
+        elif isinstance(value, str):
+            return RendererValueType.STRING
+        else:
+            raise TypeError
+
 
 class RendererSchema(TypedDict):
     """Json schema for values found in renderers."""
