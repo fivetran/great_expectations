@@ -1,6 +1,9 @@
 import pytest
 
+from great_expectations.analytics.base_event import Event
 from great_expectations.analytics.events import (
+    ActionInfo,
+    CheckpointCreatedEvent,
     DataContextInitializedEvent,
     ExpectationSuiteCreatedEvent,
     ExpectationSuiteDeletedEvent,
@@ -69,14 +72,46 @@ from great_expectations.analytics.events import (
             },
             id="ExpectationSuiteDeletedEvent",
         ),
+        pytest.param(
+            CheckpointCreatedEvent(
+                checkpoint_id="a7a0ec12-9a01-4c02-938c-975826df87d3",
+                validation_definition_ids=[
+                    "b60bed67-268c-413d-8ad2-77b549314a51",
+                    "b217cac6-1a6d-4b3f-bd63-3fd28c11add5",
+                ],
+                actions=[
+                    ActionInfo(type="email", notify_on="failure"),
+                    ActionInfo(type="microsoft", notify_on="all"),
+                ],
+            ),
+            {
+                "checkpoint_id": "a7a0ec12-9a01-4c02-938c-975826df87d3",
+                "validation_definition_ids": [
+                    "b60bed67-268c-413d-8ad2-77b549314a51",
+                    "b217cac6-1a6d-4b3f-bd63-3fd28c11add5",
+                ],
+                "actions": [
+                    {"type": "email", "notify_on": "failure"},
+                    {"type": "microsoft", "notify_on": "all"},
+                ],
+            },
+            id="CheckpointCreatedEvent",
+        ),
     ],
 )
 @pytest.mark.unit
-def test_event_properties(event, expected_properties):
+def test_event_properties(event: Event, expected_properties: dict):
     actual_properties = event.properties()
 
     # Assert that base properties are present
-    for base_property in ("data_context_id", "oss_id", "service", "gx_version"):
+    for base_property in (
+        "data_context_id",
+        "oss_id",
+        "service",
+        "gx_version",
+        "user_agent_str",
+        "mode",
+    ):
         assert base_property in actual_properties
         actual_properties.pop(base_property)
 

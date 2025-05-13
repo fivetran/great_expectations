@@ -10,7 +10,6 @@ import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
 import ConfigureCredentials from '../configure_credentials/_configure_credentials.md';
-import SecretsManagers from '../configure_credentials/_secrets_managers.md'
 import CreateSqlDataSource from './_create_a_data_source/_create_a_data_source.md';
 import CreateAsset from './_create_a_data_asset/_create_a_data_asset.md';
 import CreateBatchDefinition from './_create_a_batch_definition/_create_a_batch_definition.md'
@@ -19,11 +18,12 @@ To connect to your SQL data, you first create a Data Source which tells GX where
 
 GX supports the following SQL dialects:
 
-- PostgreSQL
-- SQLite
-- Snowflake
-- Databricks SQL
 - BigQuery SQL
+- Databricks SQL
+- PostgreSQL
+- Redshift
+- Snowflake
+- SQLite
 
 All other SQL dialects are handled through the python module `SQLAlchemy`.  You can find more information on the dialects supported by `SQLAlchemy` on their [dialects](https://docs.sqlalchemy.org/en/20/dialects/index.html) page.
 
@@ -42,5 +42,11 @@ Data Sources tell GX where your data is located and how to connect to it.  With 
 <CreateAsset/>
 
 ## Create a Batch Definition
+
+A Batch Definition allows you to request all the records from a Data Asset or a subset based on the contents of a date and time field.
+
+:::note For API-managed Expectations only
+If you use GX Cloud and GX Core together, note that Batch Definitions you create with the API apply to [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations) only.
+:::
 
 <CreateBatchDefinition/>

@@ -5,11 +5,14 @@ import os
 import uuid
 from typing import (
     TYPE_CHECKING,
+    Any,
     Dict,
+    Literal,
     Mapping,
     Optional,
     Union,
 )
+from urllib.parse import urljoin
 
 from requests import HTTPError, Response
 
@@ -62,7 +65,8 @@ from great_expectations.exceptions.exceptions import DataContextError
 
 if TYPE_CHECKING:
     from great_expectations.alias_types import PathStr
-    from great_expectations.checkpoint.checkpoint import CheckpointResult
+    from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
+    from great_expectations.core.suite_parameters import SuiteParameterDict
     from great_expectations.datasource.fluent import Datasource as FluentDatasource
     from great_expectations.render.renderer.site_builder import SiteBuilder
 
@@ -84,9 +88,9 @@ class OrganizationIdNotSpecifiedError(Exception):
 
 @public_api
 class CloudDataContext(SerializableDataContext):
-    """Subclass of AbstractDataContext that contains functionality necessary to work in a GX Cloud-backed environment."""  # noqa: E501
+    """Subclass of AbstractDataContext that contains functionality necessary to work in a GX Cloud-backed environment."""  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         project_config: Optional[Union[DataContextConfig, Mapping]] = None,
         context_root_dir: Optional[PathStr] = None,
@@ -95,6 +99,7 @@ class CloudDataContext(SerializableDataContext):
         cloud_base_url: Optional[str] = None,
         cloud_access_token: Optional[str] = None,
         cloud_organization_id: Optional[str] = None,
+        user_agent_str: Optional[str] = None,
     ) -> None:
         """
         CloudDataContext constructor
@@ -104,7 +109,7 @@ class CloudDataContext(SerializableDataContext):
             runtime_environment (dict):  a dictionary of config variables that override both those set in
                 config_variables.yml and the environment
             cloud_config (GXCloudConfig): GXCloudConfig corresponding to current CloudDataContext
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self._check_if_latest_version()
         self._cloud_config = self.get_cloud_config(
             cloud_base_url=cloud_base_url,
@@ -117,18 +122,24 @@ class CloudDataContext(SerializableDataContext):
         )
         self._project_config = self._init_project_config(project_config)
 
-        # The DataAssetStore is relevant only for CloudDataContexts and is not an explicit part of the project config.  # noqa: E501
+        # The DataAssetStore is relevant only for CloudDataContexts and is not an explicit part of the project config.  # noqa: E501 # FIXME CoP
         # As such, it must be instantiated separately.
         self._data_asset_store = self._init_data_asset_store()
 
         super().__init__(
             context_root_dir=self._context_root_directory,
             runtime_environment=runtime_environment,
+            user_agent_str=user_agent_str,
         )
 
     def _check_if_latest_version(self) -> None:
         checker = _VersionChecker(__version__)
         checker.check_if_using_latest_gx()
+
+    @property
+    @override
+    def mode(self) -> Literal["cloud"]:
+        return "cloud"
 
     @override
     def _init_analytics(self) -> None:
@@ -140,6 +151,8 @@ class CloudDataContext(SerializableDataContext):
             organization_id=uuid.UUID(organization_id) if organization_id else None,
             oss_id=self._get_oss_id(),
             cloud_mode=True,
+            mode=self.mode,
+            user_agent_str=self._user_agent_str,
         )
 
     def _get_cloud_user_id(self) -> uuid.UUID | None:
@@ -203,7 +216,7 @@ class CloudDataContext(SerializableDataContext):
 
         Returns:
             bool: Is all the information needed to build a cloud_config is available?
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         cloud_config_dict = cls._get_cloud_config_dict(
             cloud_base_url=cloud_base_url,
             cloud_access_token=cloud_access_token,
@@ -221,13 +234,13 @@ class CloudDataContext(SerializableDataContext):
             context_root_dir=context_root_dir, project_root_dir=project_root_dir
         )
         if context_root_dir is None:
-            context_root_dir = os.getcwd()  # noqa: PTH109
+            context_root_dir = os.getcwd()  # noqa: PTH109 # FIXME CoP
             logger.debug(
                 f'context_root_dir was not provided - defaulting to current working directory "'
                 f'{context_root_dir}".'
             )
-        return os.path.abspath(  # noqa: PTH100
-            os.path.expanduser(context_root_dir)  # noqa: PTH111
+        return os.path.abspath(  # noqa: PTH100 # FIXME CoP
+            os.path.expanduser(context_root_dir)  # noqa: PTH111 # FIXME CoP
         )
 
     @classmethod
@@ -243,7 +256,7 @@ class CloudDataContext(SerializableDataContext):
         over the wire.
 
         :return: the configuration object retrieved from the Cloud API
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         response = cls._request_cloud_backend(
             cloud_config=cloud_config, resource="data_context_configuration"
         )
@@ -344,7 +357,7 @@ class CloudDataContext(SerializableDataContext):
         try:
             response.raise_for_status()
         except HTTPError:
-            raise gx_exceptions.GXCloudError(  # noqa: TRY003
+            raise gx_exceptions.GXCloudError(  # noqa: TRY003 # FIXME CoP
                 f"Bad request made to GX Cloud; {response.text}", response=response
             )
 
@@ -377,7 +390,7 @@ class CloudDataContext(SerializableDataContext):
 
         Raises:
             GXCloudError if a GX Cloud variable is missing
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         cloud_config_dict = cls._get_cloud_config_dict(
             cloud_base_url=cloud_base_url,
             cloud_access_token=cloud_access_token,
@@ -391,8 +404,8 @@ class CloudDataContext(SerializableDataContext):
         if len(missing_keys) > 0:
             missing_keys_str = [f'"{key}"' for key in missing_keys]
             global_config_path_str = [f'"{path}"' for path in super().GLOBAL_CONFIG_PATHS]
-            raise DataContextError(  # noqa: TRY003
-                f"{(', ').join(missing_keys_str)} arg(s) required for ge_cloud_mode but neither provided nor found in "  # noqa: E501
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
+                f"{(', ').join(missing_keys_str)} arg(s) required for ge_cloud_mode but neither provided nor found in "  # noqa: E501 # FIXME CoP
                 f"environment or in global configs ({(', ').join(global_config_path_str)})."
             )
 
@@ -442,7 +455,7 @@ class CloudDataContext(SerializableDataContext):
     @override
     def _init_datasources(self) -> None:
         # Note that Cloud does NOT populate self._datasources with existing objects on init.
-        # Objects are retrieved only when requested and are NOT cached (this differs in ephemeral/file-backed contexts).  # noqa: E501
+        # Objects are retrieved only when requested and are NOT cached (this differs in ephemeral/file-backed contexts).  # noqa: E501 # FIXME CoP
         self._datasources = DatasourceDict(
             context=self,
             datasource_store=self._datasource_store,
@@ -510,7 +523,7 @@ class CloudDataContext(SerializableDataContext):
     @override
     def _init_variables(self) -> CloudDataContextVariables:
         ge_cloud_base_url: str = self.ge_cloud_config.base_url
-        ge_cloud_organization_id: str = self.ge_cloud_config.organization_id  # type: ignore[assignment]
+        ge_cloud_organization_id: str = self.ge_cloud_config.organization_id  # type: ignore[assignment] # FIXME CoP
         ge_cloud_access_token: str = self.ge_cloud_config.access_token
 
         variables = CloudDataContextVariables(
@@ -529,7 +542,7 @@ class CloudDataContext(SerializableDataContext):
         If not, it should choose the id stored in DataContextConfig.
         Returns:
             UUID to use as the data_context_id
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         org_id = self.ge_cloud_config.organization_id
         if org_id:
             return uuid.UUID(org_id)
@@ -544,7 +557,7 @@ class CloudDataContext(SerializableDataContext):
         in order of precedence: cloud_config (for Data Contexts in GX Cloud mode), runtime_environment,
         environment variables, config_variables, or ge_cloud_config_variable_defaults (allows certain variables to
         be optional in GX Cloud mode).
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not config:
             config = self.config
 
@@ -567,10 +580,10 @@ class CloudDataContext(SerializableDataContext):
             )
             logger.info(
                 "Config variables were not found in environment or global config ("
-                f"{self.GLOBAL_CONFIG_PATHS}). Using default values instead. {missing_config_var_repr} ;"  # noqa: E501
+                f"{self.GLOBAL_CONFIG_PATHS}). Using default values instead. {missing_config_var_repr} ;"  # noqa: E501 # FIXME CoP
                 " If you would like to "
                 "use a different value, please specify it in an environment variable or in a "
-                "great_expectations.conf file located at one of the above paths, in a section named "  # noqa: E501
+                "great_expectations.conf file located at one of the above paths, in a section named "  # noqa: E501 # FIXME CoP
                 '"ge_cloud_config".'
             )
 
@@ -619,7 +632,7 @@ class CloudDataContext(SerializableDataContext):
         Explicitly override base class implementation to retain legacy behavior.
         """
         logger.debug(
-            "CloudDataContext._save_project_config() was called. Base class impl was override to be no-op to retain "  # noqa: E501
+            "CloudDataContext._save_project_config() was called. Base class impl was override to be no-op to retain "  # noqa: E501 # FIXME CoP
             "legacy behavior."
         )
 
@@ -644,3 +657,57 @@ class CloudDataContext(SerializableDataContext):
             datasource=datasource,
             **kwargs,
         )
+
+    @override
+    def prepare_checkpoint_run(
+        self,
+        checkpoint: Checkpoint,
+        batch_parameters: Dict[str, Any],
+        expectation_parameters: SuiteParameterDict,
+    ) -> None:
+        """CloudContext specific preparation for a checkpoint run.
+
+        Actualizes windowed parameters by updating expectation_parameters in place.
+        """
+        if not self._checkpoint_has_windowed_expectations(checkpoint):
+            return
+
+        base_url = self.ge_cloud_config.base_url
+        org_id = self.ge_cloud_config.organization_id
+        expectation_parameters_url = urljoin(
+            base=base_url,
+            url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
+        )
+        with create_session(access_token=self.ge_cloud_config.access_token) as session:
+            response = session.get(url=expectation_parameters_url)
+
+        if not response.ok:
+            raise gx_exceptions.GXCloudError(
+                message="Unable to retrieve expectation_parameters for Checkpoint with "
+                f"ID={checkpoint.id}.",
+                response=response,
+            )
+        data = response.json()
+        try:
+            overlapping_keys = set(expectation_parameters.keys()) & set(
+                data["data"]["expectation_parameters"].keys()
+            )
+            if overlapping_keys:
+                logger.warning(
+                    "Passed in expectation_parameters also found in GX Cloud. Overwriting "
+                    f"passed in values with GX Cloud values for keys: {overlapping_keys}"
+                )
+            expectation_parameters.update(data["data"]["expectation_parameters"])
+        except KeyError as e:
+            raise gx_exceptions.GXCloudError(
+                message="Malformed expectation_parameters response received from GX Cloud",
+                response=response,
+            ) from e
+
+    def _checkpoint_has_windowed_expectations(self, checkpoint: Checkpoint) -> bool:
+        # Check if we have a windowed parameter
+        for validation_def in checkpoint.validation_definitions:
+            for expectation in validation_def.suite.expectations:
+                if expectation.windows is not None:
+                    return True
+        return False

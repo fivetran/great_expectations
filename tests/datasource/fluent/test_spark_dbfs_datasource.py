@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import pathlib
 import re
 from typing import TYPE_CHECKING
@@ -31,11 +30,6 @@ def spark_dbfs_datasource(fs: FakeFilesystem, test_backends) -> SparkDBFSDatasou
     for module in [boto3, botocore]:
         module_dir = pathlib.Path(module.__file__).parent
         fs.add_real_directory(module_dir, lazy_read=False)
-
-    # Copy google credentials into fake filesystem if they exist on your filesystem
-    google_cred_file = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    if google_cred_file:
-        fs.add_real_file(google_cred_file)
 
     base_directory: str = "/dbfs/great_expectations"
     fs.create_dir(base_directory)
@@ -88,7 +82,7 @@ def test_construct_csv_asset_directly():
 
 @pytest.mark.spark
 @pytest.mark.xfail(
-    reason="Accessing objects on pyfakefs.fake_filesystem.FakeFilesystem using Spark is not working (this test is conducted using Jupyter notebook manually)."  # noqa: E501
+    reason="Accessing objects on pyfakefs.fake_filesystem.FakeFilesystem using Spark is not working (this test is conducted using Jupyter notebook manually)."  # noqa: E501 # FIXME CoP
 )
 def test_get_batch_list_from_fully_specified_batch_request(
     spark_dbfs_datasource: SparkDBFSDatasource,

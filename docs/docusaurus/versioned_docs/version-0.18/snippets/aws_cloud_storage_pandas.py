@@ -76,7 +76,7 @@ expectations_store_name: expectations_S3_store
 configured_expectations_store = yaml.load(configured_expectations_store_yaml)
 configured_expectations_store["stores"]["expectations_S3_store"]["store_backend"][
     "bucket"
-] = "aws-golden-path-tests"
+] = "gx-golden-path-tests"
 configured_expectations_store["stores"]["expectations_S3_store"]["store_backend"][
     "prefix"
 ] = "metadata/expectations"
@@ -158,7 +158,7 @@ validations_store_name: validations_S3_store
 configured_validations_store = yaml.load(configured_validations_store_yaml)
 configured_validations_store["stores"]["validations_S3_store"]["store_backend"][
     "bucket"
-] = "aws-golden-path-tests"
+] = "gx-golden-path-tests"
 configured_validations_store["stores"]["validations_S3_store"]["store_backend"][
     "prefix"
 ] = "metadata/validations"
@@ -200,7 +200,7 @@ data_docs_sites:
 """
 
 data_docs_site_yaml = data_docs_site_yaml.replace(
-    "<YOUR S3 BUCKET NAME>", "demo-data-docs"
+    "<YOUR S3 BUCKET NAME>", "gx-demo-data-docs"
 )
 great_expectations_yaml_file_path = pathlib.Path(
     context.root_directory, FileDataContext.GX_YML
@@ -216,7 +216,7 @@ with open(great_expectations_yaml_file_path, "w") as f:
 
 # <snippet name="docs/docusaurus/docs/snippets/aws_cloud_storage_pandas.py add_s3_datasource">
 datasource = context.sources.add_or_update_pandas_s3(
-    name="s3_datasource", bucket="taxi-data-sample-test"
+    name="s3_datasource", bucket="gx-taxi-data-sample-test"
 )
 # </snippet>
 
@@ -279,5 +279,5 @@ context.build_data_docs()
 # </snippet>
 
 # assert docs have been built
-results = client.list_objects(Bucket="demo-data-docs")
-assert client.head_object(Bucket="demo-data-docs", Key="index.html")
+results = client.list_objects(Bucket="gx-demo-data-docs")
+assert client.head_object(Bucket="gx-demo-data-docs", Key="index.html")

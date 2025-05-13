@@ -28,7 +28,7 @@ class _ConfigurationSubstitutor:
     should be defined herein.
     """
 
-    AWS_PATTERN = r"^secret\|arn:aws:secretsmanager:([a-z\-0-9]+):([0-9]{12}):secret:([a-zA-Z0-9\/_\+=\.@\-]+)"  # noqa: E501
+    AWS_PATTERN = r"^secret\|arn:aws:secretsmanager:([a-z\-0-9]+):([0-9]{12}):secret:([a-zA-Z0-9\/_\+=\.@\-]+)"  # noqa: E501 # FIXME CoP
     AWS_SSM_PATTERN = (
         r"^secret\|arn:aws:ssm:([a-z\-0-9]+):([0-9]{12}):parameter\/([a-zA-Z0-9\/_\+=\.@\-]+)"
     )
@@ -39,7 +39,7 @@ class _ConfigurationSubstitutor:
     )
 
     def __init__(self) -> None:
-        # Using the @lru_cache decorator on method calls can create memory leaks - an attr is preferred here.  # noqa: E501
+        # Using the @lru_cache decorator on method calls can create memory leaks - an attr is preferred here.  # noqa: E501 # FIXME CoP
         # Ref: https://stackoverflow.com/a/68550238
         self._secret_store_cache = lru_cache(maxsize=None)(self._substitute_value_from_secret_store)
 
@@ -105,7 +105,7 @@ class _ConfigurationSubstitutor:
                 is not desired.
 
         :return: a string with values substituted, or the same object if template_str is not a string.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         if template_str is None:
             return template_str
@@ -127,10 +127,10 @@ class _ConfigurationSubstitutor:
                     return config_variable_value
                 template_str = template_str.replace(m.group(), config_variable_value)
             else:
-                raise gx_exceptions.MissingConfigVariableError(  # noqa: TRY003
+                raise gx_exceptions.MissingConfigVariableError(  # noqa: TRY003 # FIXME CoP
                     f"""\n\nUnable to find a match for config substitution variable: `{config_variable_name}`.
     Please add this missing variable to your `uncommitted/config_variables.yml` file or your environment variables.
-    See https://docs.greatexpectations.io/docs/guides/setup/configuring_data_contexts/how_to_configure_credentials""",  # noqa: E501
+    See https://docs.greatexpectations.io/docs/core/configure_project_settings/configure_credentials""",  # noqa: E501 # FIXME CoP
                     missing_config_variable=config_variable_name,
                 )
 
@@ -162,7 +162,7 @@ class _ConfigurationSubstitutor:
 
         :return: a string with the value substituted by the secret from the secret store,
                 or the same object if value is not a string.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if isinstance(value, str):
             if re.match(self.AWS_PATTERN, value):
                 return self._substitute_value_from_aws_secrets_manager(value)
@@ -198,21 +198,21 @@ class _ConfigurationSubstitutor:
         :return: a string with the value substituted by the secret from the AWS Secrets Manager store
 
         :raises: ImportError, ValueError
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         regex = re.compile(
             rf"{self.AWS_PATTERN}(?:\:([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}))?(?:\|([^\|]+))?$"
         )
         if not aws.boto3:
             logger.error(
-                "boto3 is not installed, please install great_expectations with aws_secrets extra > "  # noqa: E501
+                "boto3 is not installed, please install great_expectations with aws_secrets extra > "  # noqa: E501 # FIXME CoP
                 "pip install great_expectations[aws_secrets]"
             )
-            raise ImportError("Could not import boto3")  # noqa: TRY003
+            raise ImportError("Could not import boto3")  # noqa: TRY003 # FIXME CoP
 
         matches = regex.match(value)
 
         if not matches:
-            raise ValueError(f"Could not match the value with regex {regex}")  # noqa: TRY003
+            raise ValueError(f"Could not match the value with regex {regex}")  # noqa: TRY003 # FIXME CoP
 
         region_name = matches.group(1)
         secret_name = matches.group(3)
@@ -230,7 +230,7 @@ class _ConfigurationSubstitutor:
         else:
             secret_response = client.get_secret_value(SecretId=secret_name)
         # Decrypts secret using the associated KMS CMK.
-        # Depending on whether the secret is a string or binary, one of these fields will be populated.  # noqa: E501
+        # Depending on whether the secret is a string or binary, one of these fields will be populated.  # noqa: E501 # FIXME CoP
         if "SecretString" in secret_response:
             secret = secret_response["SecretString"]
         else:
@@ -263,21 +263,21 @@ class _ConfigurationSubstitutor:
         :return: a string with the value substituted by the secret from the AWS Secrets Manager store
 
         :raises: ImportError, ValueError
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         regex = re.compile(
             rf"{self.AWS_SSM_PATTERN}(?:\:([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}))?(?:\|([^\|]+))?$"
         )
         if not aws.boto3:
             logger.error(
-                "boto3 is not installed, please install great_expectations with aws_secrets extra > "  # noqa: E501
+                "boto3 is not installed, please install great_expectations with aws_secrets extra > "  # noqa: E501 # FIXME CoP
                 "pip install great_expectations[aws_secrets]"
             )
-            raise ImportError("Could not import boto3")  # noqa: TRY003
+            raise ImportError("Could not import boto3")  # noqa: TRY003 # FIXME CoP
 
         matches = regex.match(value)
 
         if not matches:
-            raise ValueError(f"Could not match the value with regex {regex}")  # noqa: TRY003
+            raise ValueError(f"Could not match the value with regex {regex}")  # noqa: TRY003 # FIXME CoP
 
         region_name = matches.group(1)
         secret_name = matches.group(3)
@@ -296,7 +296,7 @@ class _ConfigurationSubstitutor:
         else:
             secret_response = client.get_parameter(Name=secret_name, WithDecryption=True)
         # Decrypts secret using the associated KMS CMK.
-        # Depending on whether the secret is a string or binary, one of these fields will be populated.  # noqa: E501
+        # Depending on whether the secret is a string or binary, one of these fields will be populated.  # noqa: E501 # FIXME CoP
         secret = secret_response["Parameter"]["Value"]
 
         if secret_key:
@@ -324,20 +324,20 @@ class _ConfigurationSubstitutor:
 
         :return: a string with the value substituted by the secret from the GCP Secret Manager store
         :raises: ImportError, ValueError
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         regex = re.compile(rf"{self.GCP_PATTERN}(?:\/versions\/([a-z0-9]+))?(?:\|([^\|]+))?$")
         if not google.secretmanager:
             logger.error(
-                "secretmanager is not installed, please install great_expectations with gcp extra > "  # noqa: E501
+                "secretmanager is not installed, please install great_expectations with gcp extra > "  # noqa: E501 # FIXME CoP
                 "pip install great_expectations[gcp]"
             )
-            raise ImportError("Could not import secretmanager from google.cloud")  # noqa: TRY003
+            raise ImportError("Could not import secretmanager from google.cloud")  # noqa: TRY003 # FIXME CoP
 
         client = google.secretmanager.SecretManagerServiceClient()
         matches = regex.match(value)
 
         if not matches:
-            raise ValueError(f"Could not match the value with regex {regex}")  # noqa: TRY003
+            raise ValueError(f"Could not match the value with regex {regex}")  # noqa: TRY003 # FIXME CoP
 
         project_id = matches.group(1)
         secret_id = matches.group(2)
@@ -377,18 +377,18 @@ class _ConfigurationSubstitutor:
 
         :return: a string with the value substituted by the secret from the Azure Key Vault store
         :raises: ImportError, ValueError
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         regex = re.compile(rf"{self.AZURE_PATTERN}(?:\/([a-f0-9]{32}))?(?:\|([^\|]+))?$")
         if not azure.SecretClient:  # type: ignore[truthy-function] # False if NotImported
             logger.error(
-                "SecretClient is not installed, please install great_expectations with azure_secrets extra > "  # noqa: E501
+                "SecretClient is not installed, please install great_expectations with azure_secrets extra > "  # noqa: E501 # FIXME CoP
                 "pip install great_expectations[azure_secrets]"
             )
-            raise ImportError("Could not import SecretClient from azure.keyvault.secrets")  # noqa: TRY003
+            raise ImportError("Could not import SecretClient from azure.keyvault.secrets")  # noqa: TRY003 # FIXME CoP
         matches = regex.match(value)
 
         if not matches:
-            raise ValueError(f"Could not match the value with regex {regex}")  # noqa: TRY003
+            raise ValueError(f"Could not match the value with regex {regex}")  # noqa: TRY003 # FIXME CoP
 
         keyvault_uri = matches.group(1)
         secret_name = matches.group(2)

@@ -5,11 +5,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import root_validator
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -28,9 +29,7 @@ from great_expectations.render.util import (
 )
 
 if TYPE_CHECKING:
-    from great_expectations.core import (
-        ExpectationValidationResult,
-    )
+    from great_expectations.core import ExpectationValidationResult
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
@@ -44,16 +43,18 @@ MIN_VALUE_DESCRIPTION = "The minimum value for a column entry."
 MAX_VALUE_DESCRIPTION = "The maximum value for a column entry."
 STRICT_MIN_DESCRIPTION = "If True, values must be strictly larger than min_value."
 STRICT_MAX_DESCRIPTION = "If True, values must be strictly smaller than max_value."
-DATA_QUALITY_ISSUES = ["Distribution"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MSSQL",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 
 
@@ -106,7 +107,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     See Also:
         [ExpectColumnValueLengthsToBeBetween](https://greatexpectations.io/expectations/expect_column_value_lengths_to_be_between)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -115,8 +116,9 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -159,7 +161,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
         Failing Case:
             Input:
                 ExpectColumnValuesToBeBetween(
-                    column="test",
+                    column="test2",
                     min_value=1,
                     max_value=7,
                     strict_min=False,
@@ -188,7 +190,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -199,14 +201,18 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
     strict_max: bool = pydantic.Field(default=False, description=MAX_VALUE_DESCRIPTION)
 
-    @classmethod
-    @root_validator(pre=True)
+    @root_validator
     def check_min_val_or_max_val(cls, values: dict) -> dict:
-        min_val = values.get("min_val")
-        max_val = values.get("max_val")
+        min_value = values.get("min_value")
+        max_value = values.get("max_value")
 
-        if min_val is None and max_val is None:
-            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003
+        if min_value is None and max_value is None:
+            raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
+
+        # Check for empty dicts since Pydantic coerces empty strings
+        # to empty dicts (SuiteParameterDict) during validation of Comparable field
+        if min_value == {} or max_value == {}:
+            raise ValueError("values cannot be empty strings")  # noqa: TRY003 # FIXME CoP
 
         return values
 
@@ -273,7 +279,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
 
     @classmethod
     @override
-    def _prescriptive_template(  # noqa: C901 - too complex
+    def _prescriptive_template(  # noqa: C901 #  too complex
         cls,
         renderer_configuration: RendererConfiguration,
     ):
@@ -369,11 +375,11 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
             mostly_str = ""
             if params["mostly"] is not None and params["mostly"] < 1.0:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 mostly_str = ", at least $mostly_pct % of the time"
 
             if params["min_value"] is not None and params["max_value"] is not None:
-                template_str += f"values must be {at_least_str} $min_value and {at_most_str} $max_value{mostly_str}."  # noqa: E501
+                template_str += f"values must be {at_least_str} $min_value and {at_most_str} $max_value{mostly_str}."  # noqa: E501 # FIXME CoP
 
             elif params["min_value"] is None:
                 template_str += f"values must be {at_most_str} $max_value{mostly_str}."

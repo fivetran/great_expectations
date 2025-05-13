@@ -39,7 +39,7 @@ def parse_requirements_files_to_strings(
         key = abs_path.rsplit(os.path.sep, 1)[-1]
         with open(req_file) as f:
             req_set_dict[key] = {
-                f'{line.name}{",".join(["".join(spec) for spec in line.specs])}'
+                f"{line.name}{','.join([''.join(spec) for spec in line.specs])}"
                 for line in rp.parse(f)
                 if line.specs
             }
@@ -63,7 +63,7 @@ def parse_requirements_files_to_specs(
         abs_path = req_file.absolute().as_posix()
         key = abs_path.rsplit(os.path.sep, 1)[-1]
         with open(req_file) as f:
-            req_set_dict[key] = {line.name: line.specs for line in rp.parse(f) if line.specs}  # type: ignore[misc]
+            req_set_dict[key] = {line.name: line.specs for line in rp.parse(f) if line.specs}  # type: ignore[misc] # FIXME CoP
 
     return req_set_dict
 
@@ -110,7 +110,7 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-mssql.txt"]
         | req_set_dict["requirements-dev-mysql.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-redshift.txt"]
+        | req_set_dict["requirements-dev-gx-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]
@@ -150,7 +150,7 @@ def test_requirements_files():
         | req_set_dict["requirements-dev-mysql.txt"]
         | req_set_dict["requirements-dev-pagerduty.txt"]
         | req_set_dict["requirements-dev-postgresql.txt"]
-        | req_set_dict["requirements-dev-redshift.txt"]
+        | req_set_dict["requirements-dev-gx-redshift.txt"]
         | req_set_dict["requirements-dev-snowflake.txt"]
         | req_set_dict["requirements-dev-teradata.txt"]
         | req_set_dict["requirements-dev-clickhouse.txt"]
@@ -198,7 +198,7 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         (
             "requirements-dev-api-docs-test.txt",
             "docstring-parser",
-            (("==", "0.15"),),
+            (("==", "0.16"),),
         ),
         ("requirements-dev-athena.txt", "pyathena", (("<", "3"), (">=", "2.0.0"))),
         ("requirements-dev-contrib.txt", "adr-tools-python", (("==", "1.0.3"),)),
@@ -232,15 +232,15 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
             (("==", "17.0.0.5"),),
         ),
         ("requirements-dev-test.txt", "adr-tools-python", (("==", "1.0.3"),)),
-        ("requirements-dev-test.txt", "docstring-parser", (("==", "0.15"),)),
+        ("requirements-dev-test.txt", "docstring-parser", (("==", "0.16"),)),
         ("requirements-dev-test.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev.txt", "adr-tools-python", (("==", "1.0.3"),)),
         ("requirements-dev.txt", "altair", (("<", "5.0.0"), (">=", "4.2.1"))),
-        ("requirements-dev.txt", "docstring-parser", (("==", "0.15"),)),
+        ("requirements-dev.txt", "docstring-parser", (("==", "0.16"),)),
         ("requirements-dev.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
         ("requirements-dev.txt", "moto", (("<", "5.0"), (">=", "4.2.13"))),
         ("requirements-dev.txt", "pandas", (("<", "2.2.0"),)),
-        ("requirements-dev.txt", "posthog", (("<", "3"), (">=", "2.1.0"))),
+        ("requirements-dev.txt", "posthog", (("<", "4"), (">", "3"))),
         ("requirements-dev.txt", "pyathena", (("<", "3"), (">=", "2.0.0"))),
         ("requirements-dev.txt", "pypd", (("==", "1.1.0"),)),
         ("requirements-dev.txt", "sqlalchemy", (("<", "2.0.0"),)),
@@ -250,5 +250,5 @@ def test_polish_and_ratchet_pins_and_upper_bounds():
         ("requirements.txt", "altair", (("<", "5.0.0"), (">=", "4.2.1"))),
         ("requirements.txt", "marshmallow", (("<", "4.0.0"), (">=", "3.7.1"))),
         ("requirements.txt", "pandas", (("<", "2.2"),)),
-        ("requirements.txt", "posthog", (("<", "3"), (">=", "2.1.0"))),
+        ("requirements.txt", "posthog", (("<", "4"), (">", "3"))),
     }

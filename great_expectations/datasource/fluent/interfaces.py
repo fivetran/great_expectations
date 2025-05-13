@@ -57,7 +57,16 @@ from great_expectations.exceptions.exceptions import (
     DataContextError,
     MissingDataContextError,
 )
-from great_expectations.validator.metrics_calculator import MetricsCalculator
+from great_expectations.metrics.metric import MetaMetric, Metric
+from great_expectations.metrics.metric_name import MetricNameSuffix
+from great_expectations.metrics.metric_results import (
+    MetricErrorResult,
+    MetricErrorResultValue,
+    MetricResult,
+)
+from great_expectations.validator.metrics_calculator import (
+    MetricsCalculator,
+)
 
 logger = logging.getLogger(__name__)
 from great_expectations.datasource.fluent.data_connector import (
@@ -97,11 +106,13 @@ if TYPE_CHECKING:
         TypeLookup,
     )
     from great_expectations.expectations.expectation import Expectation
+    from great_expectations.validator.computed_metric import MetricValue
     from great_expectations.validator.v1_validator import (
         Validator as V1Validator,
     )
 
 _T = TypeVar("_T")
+_MetricResultT = TypeVar("_MetricResultT", bound=MetricResult)
 
 
 class PartitionerSortingProtocol(Protocol):
@@ -110,7 +121,7 @@ class PartitionerSortingProtocol(Protocol):
     sort_ascending: bool
 
     @property
-    def param_names(self) -> list[str]:
+    def param_names(self) -> Union[list[str], tuple[str, ...]]:
         """The parameter names that specify a batch derived from this partitioner
 
         For example, for PartitionerYearMonth this returns ["year", "month"]. For more
@@ -216,7 +227,7 @@ class GxContextWarning(GxDatasourceWarning):
     """
     Warning related to a Datasource with a missing context.
     Usually because the Datasource was created directly rather than using a
-    `context.sources` factory method.
+    `context.data_sources` factory method.
     """
 
 
@@ -258,7 +269,7 @@ def _sorter_from_list(sorters: SortersDefinition) -> list[Sorter]:
 
     # This should never be reached because of static typing but is necessary because
     # mypy doesn't know of the if conditions must evaluate to True.
-    raise ValueError(  # noqa: TRY003
+    raise ValueError(  # noqa: TRY003 # FIXME CoP
         f"sorters is a not a SortersDefinition but is a {type(sorters)}"
     )
 
@@ -287,7 +298,15 @@ _ExecutionEngineT = TypeVar("_ExecutionEngineT")
 DatasourceT = TypeVar("DatasourceT", bound="Datasource")
 
 
+@public_api
 class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
+    """
+    A Data Asset is a collection of records within a Data Source, which is usually named based
+    on the underlying data system and sliced to correspond to a desired specification.
+
+    Data Assets are used to specify how Great Expectations will organize data into Batches.
+    """
+
     # To subclass a DataAsset one must define `type` as a Class literal explicitly on the sublass
     # as well as implementing the methods in the `Abstract Methods` section below.
     # Some examples:
@@ -348,7 +367,7 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
         Returns:
             A BatchRequest object that can be used to obtain a batch from an asset by calling the
             get_batch method.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         raise NotImplementedError(
             """One must implement "build_batch_request" on a DataAsset subclass."""
         )
@@ -390,11 +409,11 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
         """
         batch_definition_names = {bc.name for bc in self.batch_definitions}
         if name in batch_definition_names:
-            raise ValueError(  # noqa: TRY003
-                f'"{name}" already exists (all existing batch_definition names are {", ".join(batch_definition_names)})'  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f'"{name}" already exists (all existing batch_definition names are {", ".join(batch_definition_names)})'  # noqa: E501 # FIXME CoP
             )
 
-        # Let mypy know that self.datasource is a Datasource (it is currently bound to MetaDatasource)  # noqa: E501
+        # Let mypy know that self.datasource is a Datasource (it is currently bound to MetaDatasource)  # noqa: E501 # FIXME CoP
         assert isinstance(self.datasource, Datasource)
 
         batch_definition = BatchDefinition[PartitionerT](name=name, partitioner=partitioner)
@@ -424,13 +443,13 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
             # We collect the names as a list because while we shouldn't have more than 1
             # batch definition with the same name, we want to represent it if it does occur.
             batch_definition_names = [bc.name for bc in self.batch_definitions]
-            raise ValueError(  # noqa: TRY003
-                f'"{name}" does not exist. Existing batch_definition names are {batch_definition_names})'  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f'"{name}" does not exist. Existing batch_definition names are {batch_definition_names})'  # noqa: E501 # FIXME CoP
             ) from err
         self._delete_batch_definition(batch_def)
 
     def _delete_batch_definition(self, batch_definition: BatchDefinition[PartitionerT]) -> None:
-        # Let mypy know that self.datasource is a Datasource (it is currently bound to MetaDatasource)  # noqa: E501
+        # Let mypy know that self.datasource is a Datasource (it is currently bound to MetaDatasource)  # noqa: E501 # FIXME CoP
         assert isinstance(self.datasource, Datasource)
 
         self.batch_definitions.remove(batch_definition)
@@ -444,7 +463,7 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
         self.update_batch_definition_field_set()
 
     def update_batch_definition_field_set(self) -> None:
-        """Ensure that we have __fields_set__ set correctly for batch_definitions to ensure we serialize IFF needed."""  # noqa: E501
+        """Ensure that we have __fields_set__ set correctly for batch_definitions to ensure we serialize IFF needed."""  # noqa: E501 # FIXME CoP
 
         has_batch_definitions = len(self.batch_definitions) > 0
         if "batch_definitions" in self.__fields_set__ and not has_batch_definitions:
@@ -467,13 +486,13 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
             if batch_definition.name == name
         ]
         if len(batch_definitions) == 0:
-            raise KeyError(  # noqa: TRY003
+            raise KeyError(  # noqa: TRY003 # FIXME CoP
                 f"BatchDefinition {name} not found"
             )
         elif len(batch_definitions) > 1:
             # Our add_batch_definition() method should enforce that different
             # batch definitions do not share a name.
-            raise KeyError(  # noqa: TRY003
+            raise KeyError(  # noqa: TRY003 # FIXME CoP
                 f"Multiple keys for {name} found"
             )
         return batch_definitions[0]
@@ -577,7 +596,7 @@ class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
                     reverse=reverse,
                 )
             except KeyError as e:
-                raise KeyError(  # noqa: TRY003
+                raise KeyError(  # noqa: TRY003 # FIXME CoP
                     f"Trying to sort {self.name}'s batches on key {key}, "
                     "which isn't available on all batches."
                 ) from e
@@ -612,11 +631,17 @@ def _sort_batch_identifiers_with_none_metadata_values(
 _DataAssetT = TypeVar("_DataAssetT", bound=DataAsset)
 
 
+@public_api
 class Datasource(
     FluentBaseModel,
     Generic[_DataAssetT, _ExecutionEngineT],
     metaclass=MetaDatasource,
 ):
+    """
+    A Datasource provides a standard API for accessing and interacting with data from
+    a wide variety of source systems.
+    """
+
     # To subclass Datasource one needs to define:
     # asset_types
     # type
@@ -631,7 +656,7 @@ class Datasource(
     asset_types: ClassVar[Sequence[Type[DataAsset]]] = []
     # Not all Datasources require a DataConnector
     data_connector_type: ClassVar[Optional[Type[DataConnector]]] = None
-    # Datasource sublcasses should update this set if the field should not be passed to the execution engine  # noqa: E501
+    # Datasource sublcasses should update this set if the field should not be passed to the execution engine  # noqa: E501 # FIXME CoP
     _EXTRA_EXCLUDED_EXEC_ENG_ARGS: ClassVar[Set[str]] = set()
     _type_lookup: ClassVar[TypeLookup]  # This attribute is set in `MetaDatasource.__new__`
     # Setting this in a Datasource subclass will override the execution engine type.
@@ -705,7 +730,7 @@ class Datasource(
     ) -> BatchDefinition[PartitionerT]:
         asset_name = batch_definition.data_asset.name
         if not self.data_context:
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 "Cannot save datasource without a data context."
             )
 
@@ -720,16 +745,17 @@ class Datasource(
         updated_datasource = self.data_context.update_datasource(loaded_datasource)
         assert isinstance(updated_datasource, Datasource)
 
-        output = updated_datasource.get_asset(asset_name).get_batch_definition(
-            batch_definition.name
-        )
-        output.set_data_asset(batch_definition.data_asset)
-        return output
+        updated_asset = updated_datasource.get_asset(asset_name)
+        updated_batch_definition = updated_asset.get_batch_definition(batch_definition.name)
+        if batch_definition is not updated_batch_definition:
+            # update in memory copy with the new ID
+            batch_definition.id = updated_batch_definition.id
+        return updated_batch_definition
 
     def delete_batch_definition(self, batch_definition: BatchDefinition[PartitionerT]) -> None:
         asset_name = batch_definition.data_asset.name
         if not self.data_context:
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 "Cannot save datasource without a data context."
             )
 
@@ -798,6 +824,7 @@ class Datasource(
         asset: _DataAssetT
         return {asset.name for asset in self.assets}
 
+    @public_api
     def get_asset(self, name: str) -> _DataAssetT:
         """Returns the DataAsset referred to by asset_name
 
@@ -805,7 +832,7 @@ class Datasource(
             name: name of DataAsset sought.
 
         Returns:
-            _DataAssetT -- if named "DataAsset" object exists; otherwise, exception is raised.
+            if named "DataAsset" object exists; otherwise, exception is raised.
         """
         # This default implementation will be used if protocol is inherited
         try:
@@ -816,16 +843,17 @@ class Datasource(
             found_asset._datasource = self
             return found_asset
         except IndexError as exc:
-            raise LookupError(  # noqa: TRY003
+            raise LookupError(  # noqa: TRY003 # FIXME CoP
                 f'"{name}" not found. Available assets are ({", ".join(self.get_asset_names())})'
             ) from exc
 
+    @public_api
     def delete_asset(self, name: str) -> None:
         """Removes the DataAsset referred to by asset_name from internal list of available DataAsset objects.
 
         Args:
             name: name of DataAsset to be deleted.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         from great_expectations.data_context import CloudDataContext
 
         asset: _DataAssetT
@@ -855,13 +883,13 @@ class Datasource(
 
         asset_names: Set[str] = self.get_asset_names()
         if asset.name in asset_names:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f'"{asset.name}" already exists (all existing assets are {", ".join(asset_names)})'
             )
 
         self.assets.append(asset)
 
-        # if asset was added to a cloud FDS, _update_fluent_datasource will return FDS fetched from cloud,  # noqa: E501
+        # if asset was added to a cloud FDS, _update_fluent_datasource will return FDS fetched from cloud,  # noqa: E501 # FIXME CoP
         # which will contain the new asset populated with an id
         if self._data_context:
             updated_datasource = self._data_context._update_fluent_datasource(datasource=self)
@@ -886,7 +914,7 @@ class Datasource(
         A warning is raised if a data_connector cannot be built for an asset.
         Not all users will have access to the needed dependencies (packages or credentials) for every asset.
         Missing dependencies will stop them from using the asset but should not stop them from loading it from config.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         asset_build_failure_direct_cause: dict[str, Exception | BaseException] = {}
 
         if self.data_connector_type:
@@ -897,7 +925,7 @@ class Datasource(
                     self._build_data_connector(data_asset, **connect_options)
                 except Exception as dc_build_err:
                     logger.info(
-                        f"Unable to build data_connector for {self.type} {data_asset.type} {data_asset.name}",  # noqa: E501
+                        f"Unable to build data_connector for {self.type} {data_asset.type} {data_asset.name}",  # noqa: E501 # FIXME CoP
                         exc_info=True,
                     )
                     # reveal direct cause instead of generic, unhelpful MyDatasourceError
@@ -911,7 +939,7 @@ class Datasource(
                 for (name, exc) in asset_build_failure_direct_cause.items()
             ]
             warnings.warn(
-                f"data_connector build failure for {self.name} assets - {', '.join(names_and_error)}",  # noqa: E501
+                f"data_connector build failure for {self.name} assets - {', '.join(names_and_error)}",  # noqa: E501 # FIXME CoP
                 category=RuntimeWarning,
             )
 
@@ -948,7 +976,7 @@ class Datasource(
 
         Raises:
             TestConnectionError: If the connection test fails.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         raise NotImplementedError(
             """One needs to implement "test_connection" on a Datasource subclass."""
         )
@@ -961,7 +989,7 @@ class Datasource(
         Args:
             data_asset: DataAsset using this DataConnector instance
             kwargs: Extra keyword arguments allow specification of arguments used by particular DataConnector subclasses
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         pass
 
     @classmethod
@@ -973,7 +1001,7 @@ class Datasource(
 
         Default implementation is to return the combined set of field names from `_EXTRA_EXCLUDED_EXEC_ENG_ARGS`
         and `_BASE_DATASOURCE_FIELD_NAMES`.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return cls._EXTRA_EXCLUDED_EXEC_ENG_ARGS.union(_BASE_DATASOURCE_FIELD_NAMES)
 
     # End Abstract Methods
@@ -1005,7 +1033,7 @@ class Batch:
     a spark or a sql database. An exception exists for pandas or any in-memory datastore.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource: Datasource,
         data_asset: DataAsset,
@@ -1029,7 +1057,7 @@ class Batch:
         self._batch_definition = batch_definition
 
         # Mutable Attribute
-        # metadata is any arbitrary data one wants to associate with a batch. GX will add arbitrary metadata  # noqa: E501
+        # metadata is any arbitrary data one wants to associate with a batch. GX will add arbitrary metadata  # noqa: E501 # FIXME CoP
         # to a batch so developers may want to namespace any custom metadata they add.
         self.metadata = metadata or {}
 
@@ -1075,20 +1103,22 @@ class Batch:
     def id(self) -> str:
         return self._id
 
+    def _get_metrics_calculator(self) -> MetricsCalculator:
+        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
+        return MetricsCalculator(
+            execution_engine=self.data.execution_engine,
+            show_progress_bars=True,
+        )
+
     @public_api
     @validate_arguments
     def columns(self) -> List[str]:
         """Return column names of this Batch.
 
-        Returns
-            List[str]
+        Returns:
+            list of column names.
         """
-        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(
-            execution_engine=self.data.execution_engine,
-            show_progress_bars=True,
-        )
-        return metrics_calculator.columns()
+        return self._get_metrics_calculator().columns()
 
     @public_api
     @validate_arguments
@@ -1105,18 +1135,14 @@ class Batch:
 
         If n_rows is larger than the number of rows, this method returns all rows.
 
-        Parameters
+        Args:
             n_rows: The number of rows to return from the Batch.
             fetch_all: If True, ignore n_rows and return the entire Batch.
 
-        Returns
+        Returns:
             HeadData
         """
-        self.data.execution_engine.batch_manager.load_batch_list(batch_list=[self])
-        metrics_calculator = MetricsCalculator(
-            execution_engine=self.data.execution_engine,
-            show_progress_bars=True,
-        )
+        metrics_calculator = self._get_metrics_calculator()
         table_head_df: pd.DataFrame = metrics_calculator.head(
             n_rows=n_rows,
             domain_kwargs={"batch_id": self.id},
@@ -1150,6 +1176,23 @@ class Batch:
         result_format: ResultFormatUnion = DEFAULT_RESULT_FORMAT,
         expectation_parameters: Optional[SuiteParameterDict] = None,
     ) -> ExpectationValidationResult | ExpectationSuiteValidationResult:
+        """
+        Validate the Batch using the provided Expectation or Expectation Suite.
+
+        Args:
+            expect: The Expectation or Expectation Suite to validate.
+            result_format: The format to return the validation results in.
+            expectation_parameters: A dictionary of parameters values for any
+                                    expectations using parameterized values (the $PARAMETER syntax).
+                                    The keys are the parameter names and the values are the values
+                                    to be used for this validation run.
+
+        Returns:
+            An ExpectationValidationResult or ExpectationSuiteValidationResult object.
+
+        Raises:
+            ValueError: If the expect argument is not an Expectation or an ExpectationSuite.
+        """
         from great_expectations.core import ExpectationSuite
         from great_expectations.expectations.expectation import Expectation
 
@@ -1162,10 +1205,10 @@ class Batch:
                 expect, result_format=result_format, expectation_parameters=expectation_parameters
             )
         else:
-            # If we are type checking, we should never fall through to this case. However, exploratory  # noqa: E501
+            # If we are type checking, we should never fall through to this case. However, exploratory  # noqa: E501 # FIXME CoP
             # workflows are not being type checked.
-            raise ValueError(  # noqa: TRY003, TRY004
-                f"Trying to validate something that isn't an Expectation or an ExpectationSuite: {expect}"  # noqa: E501
+            raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+                f"Trying to validate something that isn't an Expectation or an ExpectationSuite: {expect}"  # noqa: E501 # FIXME CoP
             )
 
     def _validate_expectation(
@@ -1195,7 +1238,7 @@ class Batch:
 
         context = self.datasource.data_context
         if context is None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "We can't validate batches that are attached to datasources without a data context"
             )
 
@@ -1211,3 +1254,102 @@ class Batch:
             batch_parameters=self.batch_request.options,
             result_format=result_format,
         )
+
+    @overload
+    def compute_metrics(
+        self, metrics: Metric[_MetricResultT]
+    ) -> _MetricResultT | MetricErrorResult: ...
+
+    @overload
+    def compute_metrics(self, metrics: list[Metric]) -> list[MetricResult]: ...
+
+    def compute_metrics(
+        self, metrics: Metric[_MetricResultT] | list[Metric]
+    ) -> _MetricResultT | MetricErrorResult | list[MetricResult]:
+        """Compute one or more metrics on this Batch.
+
+        Args:
+            metrics: A single Metric or list of Metrics to compute.
+                     Each Metric must be an instance of a concrete Metric subclass.
+
+        Returns:
+            If a single Metric is provided, returns a single MetricResult.
+            If a list of Metrics is provided, returns a list of MetricResults,
+            in the same order as the input metrics were received.
+            For metrics without a defined MetricResult generic type,
+            the base MetricResult class will be returned.
+            For metrics that raise an exception, a MetricErrorResult will be returned.
+
+        Examples:
+            >>> batch.compute_metrics(BatchRowCount())
+            BatchRowCountResult(id=..., value=1000)
+
+            >>> batch.compute_metrics([
+            ...     BatchRowCount(),
+            ...     ColumnMax(column="age")
+            ... ])
+            [BatchRowCountResult(id=..., value=1000), ColumnMaxResult(id=..., value=85)]
+
+        Notes:
+            Until this mypy bug is resolved, lists of Metrics are being incorrectly
+            inferred by the static type checker as list[Domain]. You can work around
+            this by adding an explicit annotation (e.g. metrics: list[Metric] = ...)
+            https://github.com/python/mypy/issues/18712
+        """
+        is_single_metric = False
+        if isinstance(metrics, Metric):
+            metrics = [metrics]
+            is_single_metric = True
+
+        metrics_calculator = self._get_metrics_calculator()
+        metrics_calculator_results, metrics_calculator_errors = metrics_calculator.compute_metrics(
+            metric_configurations=[metric.config(batch_id=self.id) for metric in metrics],
+            runtime_configuration=None,
+        )
+
+        results = []
+        for metric in metrics:
+            metric_id_for_batch = metric.metric_id_for_batch(batch_id=self.id)
+            if metric_id_for_batch in metrics_calculator_results:
+                MetricType = MetaMetric.get_registered_metric_class_from_metric_name(metric.name)
+                MetricResultType = MetricType.get_metric_result_type()
+                value = self._parse_metric_value(
+                    metric_name=metric.name,
+                    metric_calculator_result=metrics_calculator_results[metric_id_for_batch],
+                )
+                results.append(MetricResultType(id=metric_id_for_batch, value=value))
+            elif metric_id_for_batch in metrics_calculator_errors:
+                metrics_calculator_error = metrics_calculator_errors[metric_id_for_batch]
+                value = MetricErrorResultValue(
+                    exception_message=metrics_calculator_error["exception_info"].exception_message,
+                    exception_traceback=metrics_calculator_error[
+                        "exception_info"
+                    ].exception_traceback,
+                )
+                results.append(MetricErrorResult(id=metric_id_for_batch, value=value))
+            else:
+                results.append(
+                    MetricErrorResult(
+                        id=metric_id_for_batch,
+                        value=MetricErrorResultValue(
+                            exception_message=f"Metric {metric.name} not found in results: "
+                            f"{list(metrics_calculator_results.keys())} or errors: "
+                            f"{list(metrics_calculator_errors.keys())}",
+                        ),
+                    )
+                )
+
+        if is_single_metric:
+            return results[0]
+        return results
+
+    def _parse_metric_value(
+        self, metric_name: str, metric_calculator_result: MetricValue
+    ) -> MetricValue:
+        if metric_name.endswith(MetricNameSuffix.CONDITION) and isinstance(
+            metric_calculator_result, tuple
+        ):
+            value = metric_calculator_result[0]
+        else:
+            value = metric_calculator_result
+        return value

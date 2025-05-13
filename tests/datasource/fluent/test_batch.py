@@ -11,6 +11,10 @@ from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, Datasource
 from great_expectations.expectations.expectation import Expectation
+from great_expectations.metrics import BatchRowCount, ColumnValuesNonNull, Metric
+from great_expectations.metrics.batch.row_count import BatchRowCountResult
+from great_expectations.metrics.column.values_non_null import ColumnValuesNonNullResult
+from great_expectations.metrics.metric_results import MetricErrorResult
 
 DATASOURCE_NAME = "my_pandas"
 ASSET_NAME = "my_csv"
@@ -37,7 +41,7 @@ def test_batch_validate_expectation(pandas_setup: Tuple[AbstractDataContext, Bat
     # Make Expectation
     expectation = gxe.ExpectColumnValuesToNotBeNull(
         column="vendor_id",
-        mostly=0.95,  # type: ignore[arg-type] # TODO: Fix in CORE-412
+        mostly=0.95,
     )
     # Validate
     result = batch.validate(expectation)
@@ -56,7 +60,7 @@ def test_batch_validate_expectation_suite(
     suite.add_expectation(
         gxe.ExpectColumnValuesToNotBeNull(
             column="vendor_id",
-            mostly=0.95,  # type: ignore[arg-type] # TODO: Fix in CORE-412
+            mostly=0.95,
         )
     )
     # Validate
@@ -129,7 +133,7 @@ def test_batch_validate_with_updated_expectation(
     # Asserts on result
     assert result.success is False
     # Update expectation and validate
-    expectation.mostly = 0.95  # type: ignore[assignment] # TODO: Fix in CORE-412
+    expectation.mostly = 0.95
     result = batch.validate(expectation)
     assert result.success is True
 
@@ -152,7 +156,7 @@ def test_batch_validate_expectation_suite_with_updated_expectation(
 
     expectation = suite.expectations[0]
     assert isinstance(expectation, gxe.ExpectColumnValuesToNotBeNull)
-    expectation.mostly = 0.95  # type: ignore[assignment] # TODO: Fix in CORE-412
+    expectation.mostly = 0.95
 
     expectation.save()
     assert isinstance(suite.expectations[0], gxe.ExpectColumnValuesToNotBeNull)
@@ -165,7 +169,7 @@ def test_batch_validate_expectation_suite_with_updated_expectation(
 class TestBatchValidateExpectation:
     @pytest.fixture
     def expectation(self) -> Expectation:
-        return gxe.ExpectColumnValuesToNotBeNull(column="vendor_id", mostly=0.95)  # type: ignore[arg-type] # TODO: Fix in CORE-412
+        return gxe.ExpectColumnValuesToNotBeNull(column="vendor_id", mostly=0.95)
 
     @pytest.mark.filesystem
     def test_boolean_validation_result(
@@ -209,7 +213,7 @@ class TestBatchValidateExpectationSuite:
     def suite(self) -> ExpectationSuite:
         return gx.ExpectationSuite(
             name="my-suite",
-            expectations=[gxe.ExpectColumnValuesToNotBeNull(column="vendor_id", mostly=0.95)],  # type: ignore[arg-type] # TODO: Fix in CORE-412
+            expectations=[gxe.ExpectColumnValuesToNotBeNull(column="vendor_id", mostly=0.95)],
         )
 
     @pytest.mark.filesystem
@@ -260,7 +264,7 @@ def test_batch_validate_expectation_does_not_persist_a_batch_definition(
 
     expectation = gxe.ExpectColumnValuesToNotBeNull(
         column="vendor_id",
-        mostly=0.95,  # type: ignore[arg-type] # TODO: Fix in CORE-412
+        mostly=0.95,
     )
     result = batch.validate(expectation)
 
@@ -282,7 +286,7 @@ def test_batch_validate_expectation_suite_does_not_persist_a_batch_definition(
         expectations=[
             gxe.ExpectColumnValuesToNotBeNull(
                 column="vendor_id",
-                mostly=0.95,  # type: ignore[arg-type] # TODO: Fix in CORE-412
+                mostly=0.95,
             )
         ],
     )
@@ -290,3 +294,51 @@ def test_batch_validate_expectation_suite_does_not_persist_a_batch_definition(
 
     assert result.success
     assert len(asset.batch_definitions) == 0
+
+
+@pytest.mark.filesystem
+def test_batch_compute_metrics_single_metric_success(
+    pandas_setup: Tuple[AbstractDataContext, Batch],
+):
+    _, batch = pandas_setup
+    metric = ColumnValuesNonNull(
+        column="vendor_id",
+    )
+    metric_results = batch.compute_metrics(metric)
+    assert type(metric_results) is ColumnValuesNonNullResult
+
+
+@pytest.mark.filesystem
+def test_batch_compute_metrics_multiple_metrics_success(
+    pandas_setup: Tuple[AbstractDataContext, Batch],
+):
+    _, batch = pandas_setup
+    metric_1 = ColumnValuesNonNull(
+        column="passenger_count",
+    )
+    metric_2 = BatchRowCount()
+    metrics: list[Metric] = [metric_1, metric_2]
+    requested_metric_count = len(metrics)
+    metric_results = batch.compute_metrics(metrics)
+    assert isinstance(metric_results, list)
+    assert len(metric_results) == requested_metric_count
+    assert type(metric_results[0]) is ColumnValuesNonNullResult
+    assert type(metric_results[1]) is BatchRowCountResult
+
+
+@pytest.mark.filesystem
+def test_batch_compute_metrics_multiple_metrics_error(
+    pandas_setup: Tuple[AbstractDataContext, Batch],
+):
+    _, batch = pandas_setup
+    metric_1 = ColumnValuesNonNull(
+        column="not_a_column",
+    )
+    metric_2 = BatchRowCount()
+    metrics: list[Metric] = [metric_1, metric_2]
+    requested_metric_count = len(metrics)
+    metric_results = batch.compute_metrics(metrics)
+    assert isinstance(metric_results, list)
+    assert len(metric_results) == requested_metric_count
+    assert type(metric_results[0]) is MetricErrorResult
+    assert type(metric_results[1]) is BatchRowCountResult

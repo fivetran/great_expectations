@@ -10,7 +10,6 @@ from typing import Any, Sequence
 
 import pandas as pd
 
-from great_expectations._docs_decorators import public_api
 from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )
@@ -23,8 +22,7 @@ ctx = decimal.Context()
 ctx.prec = DEFAULT_PRECISION
 
 
-@public_api
-def num_to_str(  # noqa: C901
+def num_to_str(  # noqa: C901 # FIXME CoP
     f: float,
     precision: int = DEFAULT_PRECISION,
     use_locale: bool = False,
@@ -46,14 +44,14 @@ def num_to_str(  # noqa: C901
 
     Returns:
         A string representation of the input float `f`, according to the desired parameters.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     assert not (use_locale and no_scientific)
     if precision != DEFAULT_PRECISION:
         local_context = decimal.Context()
         local_context.prec = precision
     else:
         local_context = ctx
-    # We cast to string; we want to avoid precision issues, but format everything as though it were a float.  # noqa: E501
+    # We cast to string; we want to avoid precision issues, but format everything as though it were a float.  # noqa: E501 # FIXME CoP
     # So, if it's not already a float, we will append a decimal point to the string representation
     s = repr(f)
     if not isinstance(f, float):
@@ -61,7 +59,7 @@ def num_to_str(  # noqa: C901
     try:
         d = local_context.create_decimal(s)
     except decimal.InvalidOperation:
-        raise TypeError(f"num_to_str received an invalid value: {f} of type {type(f).__name__}.")  # noqa: TRY003
+        raise TypeError(f"num_to_str received an invalid value: {f} of type {type(f).__name__}.")  # noqa: TRY003 # FIXME CoP
     if no_scientific:
         result = format(d, "f")
     elif use_locale:
@@ -74,7 +72,7 @@ def num_to_str(  # noqa: C901
         result = f"≈{result}"
     decimal_char = locale.localeconv().get("decimal_point")
     if not isinstance(decimal_char, str):
-        raise TypeError(  # noqa: TRY003
+        raise TypeError(  # noqa: TRY003 # FIXME CoP
             f"Expected str but got {decimal_char} which is type {type(decimal_char).__name__}."
         )
     if "e" not in result and "E" not in result and decimal_char in result:
@@ -89,7 +87,7 @@ def ordinal(num):
     """Convert a number to ordinal"""
     # Taken from https://codereview.stackexchange.com/questions/41298/producing-ordinal-numbers/41301
     # Consider a library like num2word when internationalization comes
-    if 10 <= num % 100 <= 20:  # noqa: PLR2004
+    if 10 <= num % 100 <= 20:  # noqa: PLR2004 # FIXME CoP
         suffix = "th"
     else:
         # the second parameter is a default.
@@ -101,7 +99,7 @@ def resource_key_passes_run_name_filter(resource_key, run_name_filter):
     if type(resource_key) == ValidationResultIdentifier:  # noqa: E721 # ??
         run_name = resource_key.run_id.run_name
     else:
-        raise TypeError(  # noqa: TRY003
+        raise TypeError(  # noqa: TRY003 # FIXME CoP
             "run_name_filter filtering is only implemented for ValidationResultResources."
         )
 
@@ -121,7 +119,6 @@ def resource_key_passes_run_name_filter(resource_key, run_name_filter):
         return regex_match is not None
 
 
-@public_api
 def substitute_none_for_missing(
     kwargs: dict[str, Any], kwarg_list: Sequence[str]
 ) -> dict[str, Any]:
@@ -145,7 +142,7 @@ def substitute_none_for_missing(
 
     This is helpful for standardizing the input objects for rendering functions.
     The alternative is lots of awkward `if "some_param" not in kwargs or kwargs["some_param"] == None:` clauses in renderers.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     new_kwargs = copy.deepcopy(kwargs)
     for kwarg in kwarg_list:
@@ -155,7 +152,6 @@ def substitute_none_for_missing(
 
 
 # NOTE: the method is pretty dirty
-@public_api
 def parse_row_condition_string_pandas_engine(
     condition_string: str, with_schema: bool = False
 ) -> tuple[str, dict]:
@@ -203,7 +199,7 @@ def parse_row_condition_string_pandas_engine(
     conditions_list: list[str] = [
         condition.strip()
         for condition in re.split(r"AND|OR|NOT(?! in)|\(|\)", condition_string)
-        if condition != "" and condition != " "  # noqa: PLR1714
+        if condition != "" and condition != " "  # noqa: PLR1714 # FIXME CoP
     ]
 
     for i, condition in enumerate(conditions_list):
@@ -223,7 +219,6 @@ def parse_row_condition_string_pandas_engine(
     return template_str, params
 
 
-@public_api
 def handle_strict_min_max(params: dict) -> tuple[str, str]:
     """Utility function for the at least and at most conditions based on strictness.
 
@@ -306,7 +301,7 @@ def build_count_table(
     return header_row, table_rows
 
 
-def build_count_and_index_table(  # noqa: C901
+def build_count_and_index_table(  # noqa: C901 # FIXME CoP
     partial_unexpected_counts: list[dict],
     unexpected_index_list: list[dict],
     unexpected_count: int,
@@ -338,8 +333,8 @@ def build_count_and_index_table(  # noqa: C901
         partial_unexpected_counts=partial_unexpected_counts,
     )
     if unexpected_index_df.empty:
-        raise RenderingError(  # noqa: TRY003
-            "GX ran into an issue while building count and index table for rendering. Please check your configuration."  # noqa: E501
+        raise RenderingError(  # noqa: TRY003 # FIXME CoP
+            "GX ran into an issue while building count and index table for rendering. Please check your configuration."  # noqa: E501 # FIXME CoP
         )
 
     # using default indices for Pandas
@@ -355,7 +350,7 @@ def build_count_and_index_table(  # noqa: C901
         total_count += count
 
         if unexpected_value is not None and unexpected_value != "":
-            row_list.append(unexpected_value)  # type: ignore[arg-type]
+            row_list.append(unexpected_value)  # type: ignore[arg-type] # FIXME CoP
             row_list.append(count)
         elif unexpected_value == "":
             row_list.append("EMPTY")
@@ -410,7 +405,7 @@ def _convert_unexpected_indices_to_df(
         unexpected_list: if we are using default Pandas output.
     Returns:
         pd.DataFrame that contains indices for unexpected values
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_column_name_list: list[str]
     if unexpected_index_column_names:
         # if we have defined unexpected_index_column_names for ID/PK
@@ -422,8 +417,8 @@ def _convert_unexpected_indices_to_df(
                 set(first_unexpected_index.keys()).difference(set(unexpected_index_column_names))
             )
         else:
-            raise TypeError(  # noqa: TRY003
-                f"Expected dict but got {unexpected_index_list[0]} which is type {type(unexpected_index_list[0]).__name__}."  # noqa: E501
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
+                f"Expected dict but got {unexpected_index_list[0]} which is type {type(unexpected_index_list[0]).__name__}."  # noqa: E501 # FIXME CoP
             )
     elif unexpected_list:
         # if we are using default Pandas unexpected indices
@@ -473,7 +468,7 @@ def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> s
     Returns:
         string of indices that are joined using ` `
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if len(indices) > max_index:
         indices = indices[:max_index]
         indices.append("...")

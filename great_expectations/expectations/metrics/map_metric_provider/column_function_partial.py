@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
 
-def column_function_partial(  # noqa: C901, PLR0915
+def column_function_partial(  # noqa: C901, PLR0915 # FIXME CoP
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
     **kwargs,
@@ -54,7 +54,7 @@ def column_function_partial(  # noqa: C901, PLR0915
     Returns:
         An annotated metric_function which will be called with a simplified signature.
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_type = MetricDomainTypes.COLUMN
     if issubclass(engine, PandasExecutionEngine):
         if partial_fn_type is None:
@@ -62,9 +62,9 @@ def column_function_partial(  # noqa: C901, PLR0915
 
         partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type != MetricPartialFunctionTypes.MAP_SERIES:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""PandasExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_SERIES.value}" for \
-"column_function_partial" "partial_fn_type" property."""  # noqa: E501
+"column_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
         def wrapper(metric_fn: Callable):
@@ -75,7 +75,7 @@ def column_function_partial(  # noqa: C901, PLR0915
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: PandasExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -122,9 +122,9 @@ def column_function_partial(  # noqa: C901, PLR0915
 
         partial_fn_type = MetricPartialFunctionTypes(partial_fn_type)
         if partial_fn_type not in [MetricPartialFunctionTypes.MAP_FN]:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""SqlAlchemyExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_FN.value}" for \
-"column_function_partial" "partial_fn_type" property."""  # noqa: E501
+"column_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
         def wrapper(metric_fn: Callable):
@@ -135,7 +135,7 @@ def column_function_partial(  # noqa: C901, PLR0915
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: SqlAlchemyExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -157,7 +157,7 @@ def column_function_partial(  # noqa: C901, PLR0915
                         metric_domain_kwargs
                     )
                 else:
-                    # We do not copy here because if compute domain is different, it will be copied by get_compute_domain  # noqa: E501
+                    # We do not copy here because if compute domain is different, it will be copied by get_compute_domain  # noqa: E501 # FIXME CoP
                     compute_domain_kwargs = metric_domain_kwargs
 
                 (
@@ -194,9 +194,9 @@ def column_function_partial(  # noqa: C901, PLR0915
             MetricPartialFunctionTypes.MAP_FN,
             MetricPartialFunctionTypes.WINDOW_FN,
         ]:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""SparkDFExecutionEngine only supports "{MetricPartialFunctionTypes.MAP_FN.value}" and \
-"{MetricPartialFunctionTypes.WINDOW_FN.value}" for "column_function_partial" "partial_fn_type" property."""  # noqa: E501
+"{MetricPartialFunctionTypes.WINDOW_FN.value}" for "column_function_partial" "partial_fn_type" property."""  # noqa: E501 # FIXME CoP
             )
 
         def wrapper(metric_fn: Callable):
@@ -207,7 +207,7 @@ def column_function_partial(  # noqa: C901, PLR0915
                 **kwargs,
             )
             @wraps(metric_fn)
-            def inner_func(  # noqa: PLR0913
+            def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
                 execution_engine: SparkDFExecutionEngine,
                 metric_domain_kwargs: dict,
@@ -229,7 +229,7 @@ def column_function_partial(  # noqa: C901, PLR0915
                         metric_domain_kwargs
                     )
                 else:
-                    # We do not copy here because if compute domain is different, it will be copied by get_compute_domain  # noqa: E501
+                    # We do not copy here because if compute domain is different, it will be copied by get_compute_domain  # noqa: E501 # FIXME CoP
                     compute_domain_kwargs = metric_domain_kwargs
 
                 (
@@ -257,6 +257,6 @@ def column_function_partial(  # noqa: C901, PLR0915
         return wrapper
 
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
             'Unsupported engine for "column_function_partial" metric function decorator.'
         )

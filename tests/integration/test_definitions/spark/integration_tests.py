@@ -11,7 +11,7 @@ databricks_deployment_patterns: List[IntegrationTestFixture] = [
     # unable to mock dbfs in CI
     # IntegrationTestFixture(
     #     name="databricks_deployment_patterns_file_python_configs",
-    #     user_flow_script="docs/docusaurus/docs/snippets/databricks_deployment_patterns_file_python_configs.py",  # noqa: E501
+    #     user_flow_script="docs/docusaurus/docs/snippets/databricks_deployment_patterns_file_python_configs.py",  # noqa: E501 # FIXME CoP
     #     data_dir="tests/test_sets/taxi_yellow_tripdata_samples/first_3_files",
     #     backend_dependencies=[BackendDependencies.SPARK],
     # ),

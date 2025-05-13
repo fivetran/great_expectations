@@ -8,6 +8,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.data_context_key import DataContextKey, StringKey
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
 from great_expectations.data_context.store.store import Store
+from great_expectations.data_context.store.tuple_store_backend import TupleStoreBackend
 from great_expectations.data_context.types.resource_identifiers import (
     GXCloudIdentifier,
 )
@@ -19,8 +20,24 @@ if TYPE_CHECKING:
 class ValidationDefinitionStore(Store):
     _key_class = StringKey
 
+    def __init__(
+        self,
+        store_backend: dict | None = None,
+        runtime_environment: dict | None = None,
+        store_name: str = "no_store_name",
+    ) -> None:
+        store_backend_class = self._determine_store_backend_class(store_backend)
+        if store_backend and issubclass(store_backend_class, TupleStoreBackend):
+            store_backend["filepath_suffix"] = store_backend.get("filepath_suffix", ".json")
+
+        super().__init__(
+            store_backend=store_backend,
+            runtime_environment=runtime_environment,
+            store_name=store_name,
+        )
+
     def get_key(self, name: str, id: str | None = None) -> GXCloudIdentifier | StringKey:
-        """Given a name and optional ID, build the correct key for use in the ValidationDefinitionStore."""  # noqa: E501
+        """Given a name and optional ID, build the correct key for use in the ValidationDefinitionStore."""  # noqa: E501 # FIXME CoP
         if self.cloud_mode:
             return GXCloudIdentifier(
                 resource_type=GXCloudRESTResource.VALIDATION_DEFINITION,
@@ -55,7 +72,7 @@ class ValidationDefinitionStore(Store):
 
     @override
     def serialize(self, value):
-        # In order to enable the custom json_encoders in ValidationDefinition, we need to set `models_as_dict` off  # noqa: E501
+        # In order to enable the custom json_encoders in ValidationDefinition, we need to set `models_as_dict` off  # noqa: E501 # FIXME CoP
         # Ref: https://docs.pydantic.dev/1.10/usage/exporting_models/#serialising-self-reference-or-other-models
         output = value.json(models_as_dict=False, indent=2, sort_keys=True)
 

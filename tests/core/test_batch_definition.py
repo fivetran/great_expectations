@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 import re
 import uuid
 from typing import TYPE_CHECKING, Optional
@@ -27,6 +28,9 @@ if TYPE_CHECKING:
 
     import pytest_mock
 
+    from great_expectations.data_context.data_context.ephemeral_data_context import (
+        EphemeralDataContext,
+    )
     from great_expectations.datasource.fluent.batch_request import BatchRequest
 
 
@@ -259,3 +263,27 @@ def test_is_fresh_fails_on_batch_definition_retrieval(in_memory_runtime_context)
     assert diagnostics.success is False
     assert len(diagnostics.errors) == 1
     assert isinstance(diagnostics.errors[0], BatchDefinitionNotFoundError)
+
+
+@pytest.mark.unit
+def test_save(in_memory_runtime_context: EphemeralDataContext):
+    context = in_memory_runtime_context
+
+    ds_name = "my_pandas_ds"
+    asset_name = "my_csv_asset"
+    batch_def_name = "my_batch_def"
+
+    datasource = context.data_sources.add_pandas(name=ds_name)
+    asset = datasource.add_csv_asset(name=asset_name, filepath_or_buffer=pathlib.Path("data.csv"))
+    batch_definition = asset.add_batch_definition(name=batch_def_name)
+
+    assert batch_definition.partitioner is None
+
+    batch_definition.partitioner = FileNamePartitionerYearly(regex=re.compile("my_regex"))
+    batch_definition.save()
+
+    retrieved_datasource = context.data_sources.get(name=ds_name)
+    retrieved_asset = retrieved_datasource.get_asset(name=asset_name)
+    retrieved_batch_definition = retrieved_asset.get_batch_definition(name=batch_def_name)
+
+    assert retrieved_batch_definition.partitioner

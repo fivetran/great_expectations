@@ -411,7 +411,7 @@ Connect GX to a BigQuery SQL database to access Data Assets.
 ### Create a BigQuery Data Source.
 
 
-:::note
+:::note Note
 
 Tables that are created by BigQuery queries are automatically set to expire after one day.
 
@@ -536,7 +536,7 @@ Repeat the previous steps to add additional Data Assets.
 
 ## Related documentation
 
-- [How to organize Batches in a SQL based Data Asset](/oss/guides/connecting_to_your_data/fluent/data_assets/how_to_organize_batches_in_a_sql_based_data_asset.md)
+- [How to organize Batches in a SQL based Data Asset](/oss/guides/connecting_to_your_data/fluent/database/sql_data_assets.md)
 
 - [How to request data from a Data Asset](/oss/guides/connecting_to_your_data/fluent/batch_requests/how_to_request_data_from_a_data_asset.md)
 

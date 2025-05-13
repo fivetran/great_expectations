@@ -28,13 +28,10 @@ from great_expectations.expectations.row_conditions import (
 )
 from great_expectations.types import DictDot
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     filter_properties_dict,
 )
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001
-from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001
-)
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.compatibility.pyspark import functions as F
@@ -47,6 +44,10 @@ if TYPE_CHECKING:
         BatchSpec,
     )
     from great_expectations.expectations.metrics.metric_provider import MetricProvider
+    from great_expectations.validator.metric_configuration import (
+        MetricConfiguration,
+        MetricConfigurationID,
+    )
     from great_expectations.validator.validator import Validator
 
 logger = logging.getLogger(__name__)
@@ -68,10 +69,10 @@ class NoOpDict:
 class MetricComputationConfiguration(DictDot):
     """
     MetricComputationConfiguration is a "dataclass" object, which holds components required for metric computation.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     metric_configuration: MetricConfiguration
-    metric_fn: sa.func | F  # type: ignore[valid-type]
+    metric_fn: sa.func | F  # type: ignore[valid-type] # FIXME CoP
     metric_provider_kwargs: dict
     compute_domain_kwargs: Optional[dict] = None
     accessor_domain_kwargs: Optional[dict] = None
@@ -134,7 +135,7 @@ class ExecutionEngine(ABC):
         batch_spec_defaults: dictionary of BatchSpec overrides (useful for amending configuration at runtime).
         batch_data_dict: dictionary of Batch objects with corresponding IDs as keys supplied at initialization time
         validator: Validator object (optional) -- not utilized in V3 and later versions
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     recognized_batch_spec_defaults: Set[str] = set()
 
@@ -149,7 +150,7 @@ class ExecutionEngine(ABC):
         self.name = name
         self._validator = validator
 
-        # NOTE: using caching makes the strong assumption that the user will not modify the core data store  # noqa: E501
+        # NOTE: using caching makes the strong assumption that the user will not modify the core data store  # noqa: E501 # FIXME CoP
         # (e.g. self.spark_df) over the lifetime of the dataset instance
         self._caching = caching
         # NOTE: 20200918 - this is a naive cache; update.
@@ -182,7 +183,7 @@ class ExecutionEngine(ABC):
 
         self._load_batch_data_from_dict(batch_data_dict=batch_data_dict)
 
-        # Gather the call arguments of the present function (and add the "class_name"), filter out the Falsy values, and  # noqa: E501
+        # Gather the call arguments of the present function (and add the "class_name"), filter out the Falsy values, and  # noqa: E501 # FIXME CoP
         # set the instance "_config" variable equal to the resulting dictionary.
         self._config = {
             "name": name,
@@ -221,7 +222,7 @@ class ExecutionEngine(ABC):
         batch_id: str
         batch_data: BatchDataType
         for batch_id, batch_data in batch_data_dict.items():
-            self.load_batch_data(batch_id=batch_id, batch_data=batch_data)  # type: ignore[arg-type]
+            self.load_batch_data(batch_id=batch_id, batch_data=batch_data)  # type: ignore[arg-type] # FIXME CoP
 
     def load_batch_data(self, batch_id: str, batch_data: BatchDataUnion) -> None:
         self._batch_manager.save_batch_data(batch_id=batch_id, batch_data=batch_data)
@@ -249,9 +250,9 @@ class ExecutionEngine(ABC):
     def resolve_metrics(
         self,
         metrics_to_resolve: Iterable[MetricConfiguration],
-        metrics: Optional[Dict[Tuple[str, str, str], MetricValue]] = None,
+        metrics: Optional[dict[MetricConfigurationID, MetricValue]] = None,
         runtime_configuration: Optional[dict] = None,
-    ) -> Dict[Tuple[str, str, str], MetricValue]:
+    ) -> dict[MetricConfigurationID, MetricValue]:
         """resolve_metrics is the main entrypoint for an execution engine. The execution engine will compute the value
         of the provided metrics.
 
@@ -262,7 +263,7 @@ class ExecutionEngine(ABC):
 
         Returns:
             resolved_metrics (Dict): a dictionary with the values for the metrics that have just been resolved.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not metrics_to_resolve:
             return metrics or {}
 
@@ -281,8 +282,8 @@ class ExecutionEngine(ABC):
             metric_fn_bundle_configurations=metric_fn_bundle_configurations,
         )
 
-    def resolve_metric_bundle(self, metric_fn_bundle) -> Dict[Tuple[str, str, str], MetricValue]:
-        """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501
+    def resolve_metric_bundle(self, metric_fn_bundle) -> dict[MetricConfigurationID, MetricValue]:
+        """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501 # FIXME CoP
         raise NotImplementedError
 
     def get_domain_records(
@@ -296,7 +297,7 @@ class ExecutionEngine(ABC):
 
         Returns:
             data corresponding to the compute domain
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         raise NotImplementedError
 
@@ -327,7 +328,7 @@ class ExecutionEngine(ABC):
 
             In general, the union of the compute_domain_kwargs and accessor_domain_kwargs will be the same as the
             domain_kwargs provided to this method.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
 
         raise NotImplementedError
 
@@ -343,20 +344,21 @@ class ExecutionEngine(ABC):
                 table_domain_kwargs
             filter_null: if true, add a filter for null values
             filter_nan: if true, add a filter for nan values
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if filter_null is False and filter_nan is False:
             logger.warning("add_column_row_condition called with no filter condition requested")
             return domain_kwargs
 
         if filter_nan:
-            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003
+            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                 "Base ExecutionEngine does not support adding nan condition filters"
             )
 
         new_domain_kwargs = copy.deepcopy(domain_kwargs)
-        assert (
-            "column" in domain_kwargs or column_name is not None
-        ), "No column provided: A column must be provided in domain_kwargs or in the column_name parameter"  # noqa: E501
+        assert "column" in domain_kwargs or column_name is not None, (
+            "No column provided: A column must be provided "
+            "in domain_kwargs or in the column_name parameter"
+        )
         if column_name is not None:
             column = column_name
         else:
@@ -372,7 +374,7 @@ class ExecutionEngine(ABC):
     def _build_direct_and_bundled_metric_computation_configurations(
         self,
         metrics_to_resolve: Iterable[MetricConfiguration],
-        metrics: Optional[Dict[Tuple[str, str, str], MetricValue]] = None,
+        metrics: Optional[dict[MetricConfigurationID, MetricValue]] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> Tuple[
         List[MetricComputationConfiguration],
@@ -392,7 +394,7 @@ class ExecutionEngine(ABC):
 
         Returns:
             Tuple with two elements: directly-computable and bundled "MetricComputationConfiguration" objects
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         metric_fn_direct_configurations: List[MetricComputationConfiguration] = []
         metric_fn_bundle_configurations: List[MetricComputationConfiguration] = []
 
@@ -410,7 +412,7 @@ class ExecutionEngine(ABC):
         ]
         metric_class: MetricProvider
         metric_fn: Union[Callable, None]
-        metric_aggregate_fn: sa.func | F  # type: ignore[valid-type]
+        metric_aggregate_fn: sa.func | F  # type: ignore[valid-type] # FIXME CoP
         metric_provider_kwargs: dict
         compute_domain_kwargs: dict
         accessor_domain_kwargs: dict
@@ -442,7 +444,7 @@ class ExecutionEngine(ABC):
                     ) = resolved_metric_dependencies_by_metric_name.pop("metric_partial_fn")
                 except KeyError as e:
                     raise gx_exceptions.MetricError(
-                        message=f'Missing metric dependency: {e!s} for metric "{metric_to_resolve.metric_name}".'  # noqa: E501
+                        message=f'Missing metric dependency: {e!s} for metric "{metric_to_resolve.metric_name}".'  # noqa: E501 # FIXME CoP
                     )
 
                 metric_fn_bundle_configurations.append(
@@ -471,7 +473,7 @@ class ExecutionEngine(ABC):
     def _get_computed_metric_evaluation_dependencies_by_metric_name(
         self,
         metric_to_resolve: MetricConfiguration,
-        metrics: Dict[Tuple[str, str, str], MetricValue],
+        metrics: Dict[MetricConfigurationID, MetricValue],
     ) -> Dict[str, Union[MetricValue, Tuple[Any, dict, dict]]]:
         """
         Gathers resolved (already computed) evaluation dependencies of metric-to-resolve (not yet computed)
@@ -483,7 +485,7 @@ class ExecutionEngine(ABC):
 
         Returns:
             Dictionary keyed by "metric_name" with values as computed metric or partial bundling information tuple
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         metric_dependencies_by_metric_name: Dict[
             str, Union[MetricValue, Tuple[Any, dict, dict]]
         ] = {}
@@ -502,7 +504,7 @@ class ExecutionEngine(ABC):
                 ]
             else:
                 raise gx_exceptions.MetricError(
-                    message=f'Missing metric dependency: "{metric_name}" for metric "{metric_to_resolve.metric_name}".'  # noqa: E501
+                    message=f'Missing metric dependency: "{metric_name}" for metric "{metric_to_resolve.metric_name}".'  # noqa: E501 # FIXME CoP
                 )
 
         return metric_dependencies_by_metric_name
@@ -511,7 +513,7 @@ class ExecutionEngine(ABC):
         self,
         metric_fn_direct_configurations: List[MetricComputationConfiguration],
         metric_fn_bundle_configurations: List[MetricComputationConfiguration],
-    ) -> Dict[Tuple[str, str, str], MetricValue]:
+    ) -> dict[MetricConfigurationID, MetricValue]:
         """
         This method processes directly-computable and bundled "MetricComputationConfiguration" objects.
 
@@ -521,8 +523,8 @@ class ExecutionEngine(ABC):
 
         Returns:
             resolved_metrics (Dict): a dictionary with the values for the metrics that have just been resolved.
-        """  # noqa: E501
-        resolved_metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+        """  # noqa: E501 # FIXME CoP
+        resolved_metrics: dict[MetricConfigurationID, MetricValue] = {}
 
         metric_computation_configuration: MetricComputationConfiguration
 
@@ -541,7 +543,7 @@ class ExecutionEngine(ABC):
 
         try:
             # an engine-specific way of computing metrics together
-            resolved_metric_bundle: Dict[Tuple[str, str, str], MetricValue] = (
+            resolved_metric_bundle: dict[MetricConfigurationID, MetricValue] = (
                 self.resolve_metric_bundle(metric_fn_bundle=metric_fn_bundle_configurations)
             )
             resolved_metrics.update(resolved_metric_bundle)
@@ -579,7 +581,7 @@ class ExecutionEngine(ABC):
         Returns:
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # Extracting value from enum if it is given for future computation
         domain_type = MetricDomainTypes(domain_type)
 
@@ -641,10 +643,10 @@ class ExecutionEngine(ABC):
         Returns:
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
-        """  # noqa: E501
-        assert (
-            domain_type == MetricDomainTypes.TABLE
-        ), "This method only supports MetricDomainTypes.TABLE"
+        """  # noqa: E501 # FIXME CoP
+        assert domain_type == MetricDomainTypes.TABLE, (
+            "This method only supports MetricDomainTypes.TABLE"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
@@ -667,7 +669,7 @@ class ExecutionEngine(ABC):
                     map(lambda element: f'"{element}"', unexpected_keys)
                 )
                 logger.warning(
-                    f"""Unexpected key(s) {unexpected_keys_str} found in domain_kwargs for Domain type "{domain_type.value}"."""  # noqa: E501
+                    f"""Unexpected key(s) {unexpected_keys_str} found in domain_kwargs for Domain type "{domain_type.value}"."""  # noqa: E501 # FIXME CoP
                 )
 
         return PartitionDomainKwargs(compute_domain_kwargs, accessor_domain_kwargs)
@@ -687,16 +689,16 @@ class ExecutionEngine(ABC):
         Returns:
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
-        """  # noqa: E501
-        assert (
-            domain_type == MetricDomainTypes.COLUMN
-        ), "This method only supports MetricDomainTypes.COLUMN"
+        """  # noqa: E501 # FIXME CoP
+        assert domain_type == MetricDomainTypes.COLUMN, (
+            "This method only supports MetricDomainTypes.COLUMN"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
 
         if "column" not in compute_domain_kwargs:
-            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003
+            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                 "Column not provided in compute_domain_kwargs"
             )
 
@@ -719,16 +721,16 @@ class ExecutionEngine(ABC):
         Returns:
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
-        """  # noqa: E501
-        assert (
-            domain_type == MetricDomainTypes.COLUMN_PAIR
-        ), "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        """  # noqa: E501 # FIXME CoP
+        assert domain_type == MetricDomainTypes.COLUMN_PAIR, (
+            "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
 
         if not ("column_A" in domain_kwargs and "column_B" in domain_kwargs):
-            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003
+            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                 "column_A or column_B not found within domain_kwargs"
             )
 
@@ -752,21 +754,21 @@ class ExecutionEngine(ABC):
         Returns:
             compute_domain_kwargs, accessor_domain_kwargs from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
-        """  # noqa: E501
-        assert (
-            domain_type == MetricDomainTypes.MULTICOLUMN
-        ), "This method only supports MetricDomainTypes.MULTICOLUMN"
+        """  # noqa: E501 # FIXME CoP
+        assert domain_type == MetricDomainTypes.MULTICOLUMN, (
+            "This method only supports MetricDomainTypes.MULTICOLUMN"
+        )
 
         compute_domain_kwargs: Dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: Dict = {}
 
         if "column_list" not in domain_kwargs:
-            raise gx_exceptions.GreatExpectationsError("column_list not found within domain_kwargs")  # noqa: TRY003
+            raise gx_exceptions.GreatExpectationsError("column_list not found within domain_kwargs")  # noqa: TRY003 # FIXME CoP
 
         column_list = compute_domain_kwargs.pop("column_list")
 
-        if len(column_list) < 2:  # noqa: PLR2004
-            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003
+        if len(column_list) < 2:  # noqa: PLR2004 # FIXME CoP
+            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                 "column_list must contain at least 2 columns"
             )
 

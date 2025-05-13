@@ -4,7 +4,7 @@ import pytest
 
 from great_expectations.data_context import CloudDataContext
 from great_expectations.datasource.fluent import BatchRequest
-from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 from great_expectations.experimental.metric_repository.metric_list_metric_retriever import (
     MetricListMetricRetriever,
 )
@@ -28,6 +28,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="function")
+def mock_data_asset(mocker):
+    data_asset = mocker.Mock(spec=DataAsset)
+    data_asset.name = "some_data_asset_name"
+    return data_asset
+
+
+@pytest.fixture(scope="function")
 def mock_validator(mocker, mock_batch):
     validator = mocker.Mock(spec=Validator)
     validator.active_batch = mock_batch
@@ -42,9 +49,10 @@ def mock_context(mocker, mock_validator):
 
 
 @pytest.fixture(scope="function")
-def mock_batch(mocker):
+def mock_batch(mocker, mock_data_asset):
     batch = mocker.Mock(spec=Batch)
     batch.id = "batch_id"
+    batch.data_asset = mock_data_asset
     return batch
 
 
@@ -55,7 +63,16 @@ def metric_retriever(mock_context):
 
 @pytest.fixture(scope="function")
 def mock_batch_request(mocker):
-    return mocker.Mock(spec=BatchRequest)
+    batch_request = mocker.Mock(spec=BatchRequest)
+    batch_request.data_asset_name = "some_data_asset_name"
+    return batch_request
+
+
+@pytest.fixture(scope="function")
+def mock_batch_request_variant(mocker):
+    batch_request = mocker.Mock(spec=BatchRequest)
+    batch_request.data_asset_name = "other_data_asset_name"
+    return batch_request
 
 
 def test_get_metrics_table_metrics_only(
@@ -64,7 +81,7 @@ def test_get_metrics_table_metrics_only(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -115,7 +132,7 @@ def test_get_metrics_full_list(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -308,7 +325,7 @@ def test_get_metrics_metrics_missing(
     mock_computed_metrics = {
         # ("table.row_count", (), ()): 2, # Missing table.row_count metric
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -409,7 +426,7 @@ def test_get_metrics_with_exception(
     computed_metrics = {
         # ("table.row_count", (), ()): 2, # Error in table.row_count metric
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -480,7 +497,7 @@ def test_get_metrics_with_column_type_missing(
     computed_metrics = {
         # ("table.row_count", (), ()): 2, # Error in table.row_count metric
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {
                 "name": "col2",
@@ -553,7 +570,7 @@ def test_get_metrics_with_timestamp_columns(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["timestamp_col"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "timestamp_col", "type": "TIMESTAMP_NTZ"},
         ],
         ("column.min", "column=timestamp_col", ()): "2023-01-01T00:00:00",
@@ -631,7 +648,7 @@ def test_get_metrics_only_gets_a_validator_once(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["col1", "col2"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -652,6 +669,42 @@ def test_get_metrics_only_gets_a_validator_once(
     metric_retriever.get_metrics(batch_request=mock_batch_request, metric_list=metrics_list)
 
     mock_context.get_validator.assert_called_once_with(batch_request=mock_batch_request)
+
+
+def test_get_metrics_only_gets_new_validator_on_asset_change(
+    mocker: MockerFixture,
+    mock_context,
+    mock_validator,
+    mock_batch_request_variant,
+    metric_retriever,
+):
+    aborted_metrics = {}
+
+    computed_metrics = {
+        ("table.row_count", (), ()): 2,
+        ("table.columns", (), ()): ["col1", "col2"],
+        ("table.column_types", (), ()): [
+            {"name": "col1", "type": "float"},
+            {"name": "col2", "type": "float"},
+        ],
+    }
+    metrics_list: List[MetricTypes] = [
+        MetricTypes.TABLE_ROW_COUNT,
+        MetricTypes.TABLE_COLUMNS,
+        MetricTypes.TABLE_COLUMN_TYPES,
+    ]
+    mock_validator.compute_metrics.return_value = (
+        computed_metrics,
+        aborted_metrics,
+    )
+    mocker.patch(
+        f"{ColumnDomainBuilder.__module__}.{ColumnDomainBuilder.__name__}.get_effective_column_names",
+        return_value=["col1", "col2"],
+    )
+    metric_retriever.get_metrics(batch_request=mock_batch_request_variant, metric_list=metrics_list)
+
+    assert mock_context.get_validator.call_count == 4
+    mock_context.get_validator.assert_called_with(batch_request=mock_batch_request_variant)
 
 
 def test_get_metrics_with_no_metrics(
@@ -714,7 +767,7 @@ def test_get_table_column_types(
     mocker: MockerFixture, mock_context, mock_validator, mock_batch_request, metric_retriever
 ):
     computed_metrics = {
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "col1", "type": "float"},
             {"name": "col2", "type": "float"},
         ],
@@ -768,7 +821,7 @@ def test_get_metrics_with_timestamp_columns_exclude_time(
     computed_metrics = {
         ("table.row_count", (), ()): 2,
         ("table.columns", (), ()): ["timestamp_col", "time_col"],
-        ("table.column_types", (), "include_nested=True"): [
+        ("table.column_types", (), ()): [
             {"name": "timestamp_col", "type": "TIMESTAMP_NTZ"},
             {"name": "time_col", "type": "TIME"},
         ],

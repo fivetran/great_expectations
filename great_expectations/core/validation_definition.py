@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Optional, Union
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
+from great_expectations.analytics.client import submit as submit_event
+from great_expectations.analytics.events import ValidationDefinitionRanEvent
 from great_expectations.compatibility.pydantic import (
     BaseModel,
     Extra,
@@ -101,7 +103,7 @@ class ValidationDefinition(BaseModel):
             },
             "id": "20dna816-64c8-46cb-8f7e-03c12cea1d67"
         }
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_encoders = {
             ExpectationSuite: lambda e: e.identifier_bundle(),
             BatchDefinition: lambda b: b.identifier_bundle(),
@@ -115,11 +117,17 @@ class ValidationDefinition(BaseModel):
     @property
     @public_api
     def batch_definition(self) -> BatchDefinition:
+        """
+        The Batch Definition to validate.
+        """
         return self.data
 
     @property
     @public_api
     def asset(self) -> DataAsset:
+        """
+        The parent Data Asset of the Batch Definition.
+        """
         return self.data.data_asset
 
     @property
@@ -162,33 +170,33 @@ class ValidationDefinition(BaseModel):
 
     @validator("suite", pre=True)
     def _validate_suite(cls, v: dict | ExpectationSuite):
-        # Input will be a dict of identifiers if being deserialized or a suite object if being constructed by a user.  # noqa: E501
+        # Input will be a dict of identifiers if being deserialized or a suite object if being constructed by a user.  # noqa: E501 # FIXME CoP
         if isinstance(v, dict):
             return cls._decode_suite(v)
         elif isinstance(v, ExpectationSuite):
             return v
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             "Suite must be a dictionary (if being deserialized) or an ExpectationSuite object."
         )
 
     @validator("data", pre=True)
     def _validate_data(cls, v: dict | BatchDefinition):
-        # Input will be a dict of identifiers if being deserialized or a rich type if being constructed by a user.  # noqa: E501
+        # Input will be a dict of identifiers if being deserialized or a rich type if being constructed by a user.  # noqa: E501 # FIXME CoP
         if isinstance(v, dict):
             return cls._decode_data(v)
         elif isinstance(v, BatchDefinition):
             return v
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             "Data must be a dictionary (if being deserialized) or a BatchDefinition object."
         )
 
     @classmethod
     def _decode_suite(cls, suite_dict: dict) -> ExpectationSuite:
-        # Take in raw JSON, ensure it contains appropriate identifiers, and use them to retrieve the actual suite.  # noqa: E501
+        # Take in raw JSON, ensure it contains appropriate identifiers, and use them to retrieve the actual suite.  # noqa: E501 # FIXME CoP
         try:
             suite_identifiers = _IdentifierBundle.parse_obj(suite_dict)
         except ValidationError as e:
-            raise ValueError("Serialized suite did not contain expected identifiers") from e  # noqa: TRY003
+            raise ValueError("Serialized suite did not contain expected identifiers") from e  # noqa: TRY003 # FIXME CoP
 
         name = suite_identifiers.name
         id = suite_identifiers.id
@@ -199,7 +207,7 @@ class ValidationDefinition(BaseModel):
         try:
             config: dict = expectation_store.get(key)
         except gx_exceptions.InvalidKeyError as e:
-            raise ValueError(f"Could not find suite with name: {name} and id: {id}") from e  # noqa: TRY003
+            raise ValueError(f"Could not find suite with name: {name} and id: {id}") from e  # noqa: TRY003 # FIXME CoP
 
         suite = ExpectationSuite(**config)
         if suite._include_rendered_content:
@@ -208,11 +216,11 @@ class ValidationDefinition(BaseModel):
 
     @classmethod
     def _decode_data(cls, data_dict: dict) -> BatchDefinition:
-        # Take in raw JSON, ensure it contains appropriate identifiers, and use them to retrieve the actual data.  # noqa: E501
+        # Take in raw JSON, ensure it contains appropriate identifiers, and use them to retrieve the actual data.  # noqa: E501 # FIXME CoP
         try:
             data_identifiers = _EncodedValidationData.parse_obj(data_dict)
         except ValidationError as e:
-            raise ValueError("Serialized data did not contain expected identifiers") from e  # noqa: TRY003
+            raise ValueError("Serialized data did not contain expected identifiers") from e  # noqa: TRY003 # FIXME CoP
 
         ds_name = data_identifiers.datasource.name
         asset_name = data_identifiers.asset.name
@@ -222,20 +230,20 @@ class ValidationDefinition(BaseModel):
         try:
             ds = datasource_dict[ds_name]
         except KeyError as e:
-            raise ValueError(f"Could not find datasource named '{ds_name}'.") from e  # noqa: TRY003
+            raise ValueError(f"Could not find datasource named '{ds_name}'.") from e  # noqa: TRY003 # FIXME CoP
 
         try:
             asset = ds.get_asset(asset_name)
         except LookupError as e:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"Could not find asset named '{asset_name}' within '{ds_name}' datasource."
             ) from e
 
         try:
             batch_definition = asset.get_batch_definition(batch_definition_name)
         except KeyError as e:
-            raise ValueError(  # noqa: TRY003
-                f"Could not find batch definition named '{batch_definition_name}' within '{asset_name}' asset and '{ds_name}' datasource."  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"Could not find batch definition named '{batch_definition_name}' within '{asset_name}' asset and '{ds_name}' datasource."  # noqa: E501 # FIXME CoP
             ) from e
 
         return batch_definition
@@ -257,7 +265,6 @@ class ValidationDefinition(BaseModel):
             batch_parameters: The dictionary of parameters necessary for selecting the
               correct batch to run the validation on. The keys are strings that are determined
               by the BatchDefinition used to instantiate this ValidationDefinition. For example:
-
               - whole table -> None
               - yearly -> year
               - monthly -> year, month
@@ -275,7 +282,7 @@ class ValidationDefinition(BaseModel):
         """
         diagnostics = self.is_fresh()
         if not diagnostics.success:
-            # The validation definition itself is not added but all children are - we can add it for the user # noqa: E501
+            # The validation definition itself is not added but all children are - we can add it for the user # noqa: E501 # FIXME CoP
             if not diagnostics.parent_added and diagnostics.children_added:
                 self._add_to_store()
             else:
@@ -292,9 +299,11 @@ class ValidationDefinition(BaseModel):
 
         # NOTE: We should promote this to a top-level field of the result.
         #       Meta should be reserved for user-defined information.
-        if run_id:
-            results.meta["run_id"] = run_id
-            results.meta["validation_time"] = run_id.run_time
+        if not run_id:
+            run_id = RunIdentifier(run_time=datetime.datetime.now(datetime.timezone.utc))
+        results.meta["run_id"] = run_id
+        results.meta["validation_time"] = run_id.run_time
+
         if batch_parameters:
             batch_parameters_copy = {k: v for k, v in batch_parameters.items()}
             if "dataframe" in batch_parameters_copy:
@@ -322,6 +331,13 @@ class ValidationDefinition(BaseModel):
             results.result_url = self._validation_results_store.parse_result_url_from_gx_cloud_ref(
                 ref
             )
+
+        submit_event(
+            event=ValidationDefinitionRanEvent(
+                validation_definition_id=self.id,
+                checkpoint_id=checkpoint_id,
+            )
+        )
 
         return results
 
@@ -365,6 +381,7 @@ class ValidationDefinition(BaseModel):
 
     @public_api
     def save(self) -> None:
+        """Save the current state of this ValidationDefinition."""
         store = project_manager.get_validation_definition_store()
         key = store.get_key(name=self.name, id=self.id)
 

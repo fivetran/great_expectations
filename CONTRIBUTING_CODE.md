@@ -64,7 +64,7 @@ To submit a custom package to Great Expectations for consideration, see [CONTRIB
 
 A [virtual environment](https://peps.python.org/pep-0405) allows you to install an independent set of Python packages to their own site directory, isolated from the base/system install of Python.
 
-Great Expectations requires a Python version from 3.8 to 3.11.
+Great Expectations requires a Python version from 3.9 to 3.12.
 
 ### Python
 
@@ -107,7 +107,7 @@ Great Expectations requires a Python version from 3.8 to 3.11.
 
     To specify other dependencies, add a comma after `test` and enter the dependency name(s). **For example, ".[test, postgresql, trino]"**.
 
-    The supported extra dependencies include: `arrow`, `athena`, `aws_secrets`, `azure`, `azure_secrets`, `bigquery`, `clickhouse`, `cloud`, `dremio`, `excel`, `gcp`, `hive`, `mssql`, `mysql`, `pagerduty`, `postgresql`, `redshift`, `s3`, `snowflake`, `spark`, `teradata`, `test`, `trino`, `vertica`.
+    The supported extra dependencies include: `arrow`, `athena`, `aws_secrets`, `azure`, `azure_secrets`, `bigquery`, `clickhouse`, `cloud`, `dremio`, `excel`, `gcp`, `hive`, `mssql`, `mysql`, `postgresql`, `redshift`, `s3`, `snowflake`, `spark`, `teradata`, `test`, `trino`, `vertica`.
 
     Check below to see if any of your desired dependencies need system packages installed, **before `pip install`**.
 
@@ -521,9 +521,10 @@ Additionally, Great Expectations adds the following labels to indicate issue sta
 - `good first issue`: identifies issues that provide an introduction to the Great Expectations contribution process
 
 We also have labels to indicate the level of support you can expect for each issue. They are as follows:
-- `gx-supported`: related to a part of the code-base that is tested and actively maintained with new GX Core or GX Cloud releases
 - `community-supported`:  related to a part of the code-base that is not tested and actively maintained with new GX Core or GX Cloud releases; however, we actively welcome ongoing maintenance from the community
 - `not-supported`: an issue that we at GX will not be maintaining, and we will not support PRs or contributions from the community on the topic
+
+Issues without either a `community-supported` or `not-supported` label can be assumed to be **GX-supported**, which means they are related to a part of the code-base that is tested and actively maintained with new GX Core or GX Cloud releases.
 
 ## Contributor license agreement (CLA)
 

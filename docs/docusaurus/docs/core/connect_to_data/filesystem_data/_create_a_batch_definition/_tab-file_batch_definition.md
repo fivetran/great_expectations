@@ -5,7 +5,7 @@ import PreReqDataContext from '../../../_core_components/prerequisites/_preconfi
 
 Batch Definitions for File Data Assets can be configured to return the content of a specific file based on either a file path or a regex match for dates in the name of the file.
 
-### Prerequisites
+### Prerequisites {#prerequisites-batch-definition-file}
 - <PreReqDataContext/>.  The variable `context` is used for your Data Context in the following example code.
 - [A File Data Asset on a Filesystem Data Source](#create-a-data-asset).
 
@@ -15,14 +15,14 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
 1. Retrieve your Data Asset.
 
-   Replace the value of `data_source_name` with the name of your Data Source and the value of `asset_name` with the name of your Data Asset in the following code.  Then execute it to retrieve an existing Data Source and Data Asset from your Data Context:
+   Replace the value of `data_source_name` with the name of your Data Source and the value of `data_asset_name` with the name of your Data Asset in the following code.  Then execute it to retrieve an existing Data Source and Data Asset from your Data Context:
 
    ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_path.py - retrieve Data Asset"
    ```
 
 2. Add a Batch Definition to the Data Asset.
 
-   A path Batch Definition returns all of the records in a specific data file as a single Batch.  A partitioned Batch Definition will return the records of a single file in the Data Asset based on which file name matches a regex.
+   A path Batch Definition returns all of the records in a specific data file as a single Batch.  A partitioned Batch Definition will return the records of a single file in the Data Asset based on which file name matches a regex.  
 
    <Tabs queryString="batch_definition" groupId="batch_definition" defaultValue='path'>
 
@@ -31,7 +31,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
    To define a path Batch Definition you need to provide the following information:
 
    - `name`: A name by which you can reference the Batch Definition in the future.  This should be unique within the Data Asset.
-   - `path`: The path within the Data Asset of the data file containing the records to return.
+   - `path`: The path within the Data Asset of the data file containing the records to return. When using a Filesystem Data Source, `path` is relative to the Data Source parameter `base_directory`.
  
    Update the `batch_definition_name` and `batch_definition_path` variables and execute the following code to add a path Batch Definition to your Data Asset:
 
@@ -42,7 +42,10 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
    <TabItem value="partitioned" label="Partitioned">
    
-   GX Core currently supports partitioning File Data Assets based on dates.  The files can be returned by year, month, or day.
+   GX Core currently supports partitioning File Data Assets based on dates.  The files can be returned by year, month, or day. To define a Batch Definition, you need to provide the following information: 
+
+    - `name`: A name by which you can reference the Batch Definition in the future.  This should be unique within the Data Asset.
+    - `regex`: A regular expression used to match against file names. When using a Filesystem Data Source, `regex` is relative to the Data Source parameter `base_directory`.
 
    <Tabs queryString="partition_type" groupId="partition_type" defaultValue='yearly'>
    
@@ -64,7 +67,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
    Update the `batch_definition_name` and `batch_definition_regex` variables in the following code, then execute it to create a yearly Batch Definition:
 
-   ```python name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_yearly.py - add Batch Definition"
+   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_yearly.py - add Batch Definition"
    ```
 
    </TabItem>
@@ -87,7 +90,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
    Update the `batch_definition_name` and `batch_definition_regex` variables in the following code, then execute it to create a monthly Batch Definition:
 
-   ```python name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_monthly.py - add Batch Definition"
+   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_monthly.py - add Batch Definition"
    ```
 
    </TabItem>
@@ -110,7 +113,7 @@ Batch Definitions for File Data Assets can be configured to return the content o
 
    Update the `batch_definition_name` and `batch_definition_regex` variables in the following code, then execute it to create a daily Batch Definition:
 
-   ```python name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_daily.py - add Batch Definition"
+   ```python  title="Python" name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_file_partitioned_daily.py - add Batch Definition"
    ```
 
    </TabItem>

@@ -1,3 +1,5 @@
+from pprint import pformat as pf
+
 import pytest
 
 from great_expectations._docs_decorators import (
@@ -6,6 +8,7 @@ from great_expectations._docs_decorators import (
     new_argument,
     new_method_or_class,
     public_api,
+    public_api_introspector,
 )
 
 # @public_api
@@ -59,6 +62,41 @@ class TestPublicAPI:
     def test_public_api_decorator_no_docstring(self):
         assert _func_no_docstring_public_api.__doc__ == "--Public API--"
         assert _func_no_docstring_public_api.__name__ == "_func_no_docstring_public_api"
+
+    @pytest.mark.unit
+    def test_public_api_methods_have_decorated_parent_class(self):
+        """
+        In order for the public_api decorator to work and result in rendered docs,
+        the parent class of a decorated method must also be decorated.
+
+        Example:
+
+            # Failure to decorate this class means that `my_method` won't be rendered in the docs.
+            class MyClass:
+
+                @public_api
+                def my_method(self):
+                    pass
+        """
+        class_registry = public_api_introspector.class_registry
+        classes_that_need_public_api_decorator: dict[str, list[str]] = {}
+
+        for class_, methods in class_registry.items():
+            if public_api_introspector.CLASS_DEFINITION not in methods:
+                classes_that_need_public_api_decorator[class_] = sorted(methods)
+
+        print(f"Classes missing @public_api ->\n{pf(classes_that_need_public_api_decorator)}")
+        assert sorted(classes_that_need_public_api_decorator.keys()) == []
+
+    @pytest.mark.unit
+    def test_public_api_objects_have_docstrings(self):
+        """
+        All objects that are decorated with @public_api should have a docstring.
+        """
+        violations = public_api_introspector.docstring_violations
+        assert len(violations) == 0, (
+            f"Public API decorated objects without docstrings: {pf(violations)}"
+        )
 
 
 # @deprecated
@@ -138,13 +176,13 @@ class TestDeprecatedMethod:
     @pytest.mark.unit
     def test_deprecated_decorator_only_summary(self):
         assert _func_only_summary_deprecated.__doc__ == (
-            "My docstring.\n" "\n" ".. deprecated:: 1.2.3\n" "    This is deprecated!!\n"
+            "My docstring.\n\n.. deprecated:: 1.2.3\n    This is deprecated!!\n"
         )
 
     @pytest.mark.unit
     def test_deprecated_decorator_no_docstring(self):
         assert _func_no_docstring_deprecated.__doc__ == (
-            "\n" "\n" ".. deprecated:: 1.2.3\n" "    This is deprecated!!\n"
+            "\n\n.. deprecated:: 1.2.3\n    This is deprecated!!\n"
         )
 
 
@@ -224,13 +262,13 @@ class TestNewMethod:
     @pytest.mark.unit
     def test_new_method_decorator_only_summary(self):
         assert _func_only_summary_new_method.__doc__ == (
-            "My docstring.\n" "\n" ".. versionadded:: 1.2.3\n" "    Added in version 1.2.3\n"
+            "My docstring.\n\n.. versionadded:: 1.2.3\n    Added in version 1.2.3\n"
         )
 
     @pytest.mark.unit
     def test_new_method_decorator_no_docstring(self):
         assert _func_no_docstring_new_method.__doc__ == (
-            "\n" "\n" ".. versionadded:: 1.2.3\n" "    Added in version 1.2.3\n"
+            "\n\n.. versionadded:: 1.2.3\n    Added in version 1.2.3\n"
         )
 
 
@@ -581,7 +619,7 @@ def _func_full_docstring_all_decorators_all_sections(
 
 @pytest.mark.unit
 def test_all_decorators_full_docstring_all_sections():
-    """Makes sure that Returns and Raises are rendered correctly in the context of a full docstring."""  # noqa: E501
+    """Makes sure that Returns and Raises are rendered correctly in the context of a full docstring."""  # noqa: E501 # FIXME CoP
 
     assert _func_full_docstring_all_decorators_all_sections.__doc__ == (
         "--Public API--My docstring.\n"

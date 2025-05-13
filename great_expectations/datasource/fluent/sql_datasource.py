@@ -24,7 +24,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Never
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
@@ -69,7 +69,10 @@ from great_expectations.datasource.fluent.interfaces import (
     PartitionerProtocol,
     TestConnectionError,
 )
-from great_expectations.exceptions.exceptions import NoAvailableBatchesError
+from great_expectations.exceptions.exceptions import (
+    NoAvailableBatchesError,
+    SqlAddBatchDefinitionError,
+)
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 from great_expectations.execution_engine.partition_and_sample.data_partitioner import (
     DatePart,
@@ -81,6 +84,8 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 if TYPE_CHECKING:
     from sqlalchemy.sql import quoted_name  # noqa: TID251 # type-checking only
 
+    # We re-import sqlalchemy here to make type-checking and our compatability layer
+    # play nice with one another
     from great_expectations.compatibility import sqlalchemy
     from great_expectations.core.batch_definition import BatchDefinition
     from great_expectations.datasource.fluent import BatchParameters
@@ -206,7 +211,7 @@ class _PartitionerDatetime(FluentBaseModel):
         identifiers: Dict = {}
         for part in self.param_names:
             if part not in options:
-                raise ValueError(f"'{part}' must be specified in the batch parameters")  # noqa: TRY003
+                raise ValueError(f"'{part}' must be specified in the batch parameters")  # noqa: TRY003 # FIXME CoP
             identifiers[part] = options[part]
         return {self.column_name: identifiers}
 
@@ -283,9 +288,9 @@ class SqlPartitionerDatetimePart(_PartitionerDatetime):
     @pydantic.validator("datetime_parts", each_item=True)
     def _check_param_name_allowed(cls, v: str):
         allowed_date_parts = [part.value for part in DatePart]
-        assert (
-            v in allowed_date_parts
-        ), f"Only the following param_names are allowed: {allowed_date_parts}"
+        assert v in allowed_date_parts, (
+            f"Only the following param_names are allowed: {allowed_date_parts}"
+        )
         return v
 
 
@@ -339,7 +344,7 @@ class SqlPartitionerDividedInteger(_PartitionerOneColumnOneParam):
         self, options: BatchParameters
     ) -> Dict[str, Any]:
         if "quotient" not in options:
-            raise ValueError("'quotient' must be specified in the batch parameters")  # noqa: TRY003
+            raise ValueError("'quotient' must be specified in the batch parameters")  # noqa: TRY003 # FIXME CoP
         return {self.column_name: options["quotient"]}
 
 
@@ -362,7 +367,7 @@ class SqlPartitionerModInteger(_PartitionerOneColumnOneParam):
         self, options: BatchParameters
     ) -> Dict[str, Any]:
         if "remainder" not in options:
-            raise ValueError("'remainder' must be specified in the batch parameters")  # noqa: TRY003
+            raise ValueError("'remainder' must be specified in the batch parameters")  # noqa: TRY003 # FIXME CoP
         return {self.column_name: options["remainder"]}
 
 
@@ -384,7 +389,7 @@ class SqlPartitionerColumnValue(_PartitionerOneColumnOneParam):
         self, options: BatchParameters
     ) -> Dict[str, Any]:
         if self.column_name not in options:
-            raise ValueError(f"'{self.column_name}' must be specified in the batch parameters")  # noqa: TRY003
+            raise ValueError(f"'{self.column_name}' must be specified in the batch parameters")  # noqa: TRY003 # FIXME CoP
         return {self.column_name: options[self.column_name]}
 
     @override
@@ -416,8 +421,8 @@ class SqlPartitionerMultiColumnValue(FluentBaseModel):
         self, options: BatchParameters
     ) -> Dict[str, Any]:
         if not (set(self.column_names) <= set(options.keys())):
-            raise ValueError(  # noqa: TRY003
-                f"All column names, {self.column_names}, must be specified in the batch parameters. "  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"All column names, {self.column_names}, must be specified in the batch parameters. "  # noqa: E501 # FIXME CoP
                 f" The options provided were f{options}."
             )
         return {col: options[col] for col in self.column_names}
@@ -463,7 +468,7 @@ class SqlitePartitionerConvertedDateTime(_PartitionerOneColumnOneParam):
         self, options: BatchParameters
     ) -> Dict[str, Any]:
         if "datetime" not in options:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "'datetime' must be specified in the batch parameters to create a batch identifier"
             )
         return {self.column_name: options["datetime"]}
@@ -484,6 +489,7 @@ SqlPartitioner = Union[
 ]
 
 
+@public_api
 class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT]):
     """A _SQLAsset Mixin
 
@@ -518,8 +524,8 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
     ) -> SqlPartitioner:
         PartitionerClass = self._partitioner_implementation_map.get(type(abstract_partitioner))
         if not PartitionerClass:
-            raise ValueError(  # noqa: TRY003
-                f"Requested Partitioner `{abstract_partitioner.method_name}` is not implemented for this DataAsset. "  # noqa: E501
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
+                f"Requested Partitioner `{abstract_partitioner.method_name}` is not implemented for this DataAsset. "  # noqa: E501 # FIXME CoP
             )
         assert PartitionerClass is not None
         return PartitionerClass(**abstract_partitioner.dict())
@@ -691,13 +697,13 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         Returns:
             A BatchRequest object that can be used to obtain a batch from an Asset by calling the
             get_batch method.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if options is not None and not self._batch_parameters_are_valid(
             options=options, partitioner=partitioner
         ):
             allowed_keys = set(self.get_batch_parameters_keys(partitioner=partitioner))
             actual_keys = set(options.keys())
-            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
+            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
                 "batch parameters should only contain keys from the following set:\n"
                 f"{allowed_keys}\nbut your specified keys contain\n"
                 f"{actual_keys.difference(allowed_keys)}\nwhich is not valid.\n"
@@ -711,8 +717,83 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
             partitioner=partitioner,
         )
 
+    @override
+    def add_batch_definition(
+        self,
+        name: str,
+        partitioner: Optional[ColumnPartitioner] = None,
+        validate_partitioner: bool = True,
+    ) -> BatchDefinition[ColumnPartitioner]:
+        if validate_partitioner and partitioner:
+            self.validate_batch_definition(partitioner)
+        return super().add_batch_definition(name, partitioner)
+
+    @public_api
+    def validate_batch_definition(self, partitioner: ColumnPartitioner) -> None:
+        """Validates that the Batch Definition column is of a permissible type
+
+        This isn't meant to be called directly. This is called internally when a Batch Definition
+         is added. Data asset implementers can override this for their specific data asset.
+
+        Raises:
+            SqlAddBatchDefinitionError: The specified column to partition on is not of
+                a permissible type for batching (ie date or datetime) or no data is
+                present in this column.
+        """
+        # We only support certain partitioners for using as batch definitions.
+        assert isinstance(
+            partitioner,
+            (
+                ColumnPartitionerYearly,
+                ColumnPartitionerMonthly,
+                ColumnPartitionerDaily,
+            ),
+        )
+        # A _SQLAsset must have a SQLDatasource
+        assert isinstance(self.datasource, SQLDatasource)
+        engine: sqlalchemy.Engine = self.datasource.get_engine()
+
+        # It would be better to introspect the database types and see which ones map to date or
+        # datetime. However, 3rd party types, such as Snowflakes TIMESTAMP_NTZ haven't implemented
+        # all the sqlalchemy abstract methods such as `python_type`.
+        # To make this more concrete I would have liked to do something like:
+        # insp = sqlalchemy.inspect(self.datasource.get_engine())
+        # cols = insp.get_columns(self.table_name, self.schema_name)
+        # for col in cols:
+        #     pytype = col['type'].python_type
+        #
+        # Instead we query the db for a non-null value to see if sqlalchemy converts
+        # this value to a python date or datetime. This means we REQUIRE that data is
+        # present for this validation to work.
+        with engine.connect() as connection:
+            selectable: sqlalchemy.Selectable = self.as_selectable()
+            column: sqlalchemy.ColumnClause[Never] = sa.sql.column(partitioner.column_name)
+            try:
+                row = connection.execute(
+                    sa.select(column, selectable).limit(1)  # type: ignore[call-overload]  # sqlalchemy typing is missing variants
+                )
+            except Exception as query_error:
+                raise SqlAddBatchDefinitionError(
+                    msg=f"Attempt to read an example non-null '{column}' value from '{selectable}'"
+                    " failed so column type can't be verified to be a date or datetime."
+                ) from query_error
+
+            r = row.first()
+            if not r or not isinstance(getattr(r, partitioner.column_name), (datetime, date)):
+                raise SqlAddBatchDefinitionError(
+                    msg=f"'{column}' column from '{selectable}' is not a date or datetime type."
+                )
+
     @public_api
     def add_batch_definition_whole_table(self, name: str) -> BatchDefinition:
+        """Adds a whole table Batch Definition to this Data Asset
+
+        Args:
+            name: The name of the Batch Definition to be added
+
+        Returns:
+            The added BatchDefinition object.
+        """
         return self.add_batch_definition(
             name=name,
             partitioner=None,
@@ -720,19 +801,54 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
     @public_api
     def add_batch_definition_yearly(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
+        """Adds a yearly Batch Definition to this Data Asset
+
+        Args:
+            name: The name of the Batch Definition to be added.
+            column: The column name on which to partition the asset by year.
+            sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
+                When running a validation, we default to running the last Batch Definition
+                if one is not explicitly specified.
+
+        Returns:
+            The added BatchDefinition object.
+        """
+
         return self.add_batch_definition(
             name=name,
             partitioner=ColumnPartitionerYearly(
                 method_name="partition_on_year", column_name=column, sort_ascending=sort_ascending
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @public_api
     def add_batch_definition_monthly(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
+        """Adds a monthly Batch Definition to this Data Asset
+
+        Args:
+            name: The name of the Batch Definition to be added
+            column: The column name on which to partition the asset by month
+            sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
+                When running a validation, we default to running the last Batch Definition
+                if one is not explicitly specified.
+
+        Returns:
+            The added BatchDefinition object.
+        """
+
         return self.add_batch_definition(
             name=name,
             partitioner=ColumnPartitionerMonthly(
@@ -740,12 +856,30 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 column_name=column,
                 sort_ascending=sort_ascending,
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @public_api
     def add_batch_definition_daily(
-        self, name: str, column: str, sort_ascending: bool = True
+        self,
+        name: str,
+        column: str,
+        sort_ascending: bool = True,
+        validate_batchable: bool = True,
     ) -> BatchDefinition:
+        """Adds a daily Batch Definition to this Data Asset
+
+        Args:
+            name: The name of the Batch Definition to be added
+            column: The column name on which to partition the asset by day
+            sort_ascending: Boolean to indicate whether to sort ascending (default) or descending.
+                When running a validation, we default to running the last Batch Definition
+                if one is not explicitly specified.
+
+        Returns:
+            The added BatchDefinition object.
+        """
+
         return self.add_batch_definition(
             name=name,
             partitioner=ColumnPartitionerDaily(
@@ -753,6 +887,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 column_name=column,
                 sort_ascending=sort_ascending,
             ),
+            validate_partitioner=validate_batchable,
         )
 
     @override
@@ -778,10 +913,10 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 datasource_name=self.datasource.name,
                 data_asset_name=self.name,
                 options=options,
-                batch_slice=batch_request._batch_slice_input,  # type: ignore[attr-defined]
+                batch_slice=batch_request._batch_slice_input,  # type: ignore[attr-defined] # FIXME CoP
                 partitioner=batch_request.partitioner,
             )
-            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
+            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
                 "BatchRequest should have form:\n"
                 f"{pf(expect_batch_request_form.dict())}\n"
                 f"but actually has form:\n{pf(batch_request.dict())}\n"
@@ -794,7 +929,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
         Returns:
             A dictionary that will be passed to self._create_batch_spec(**returned_dict)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         raise NotImplementedError
 
     def _create_batch_spec(self, batch_spec_kwargs: dict) -> BatchSpec:
@@ -814,6 +949,12 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
 
 @public_api
 class QueryAsset(_SQLAsset):
+    """An asset made from a SQL query
+
+    Args:
+        query: The query to be used to construct the underlying Data Asset
+    """
+
     # Instance fields
     type: Literal["query"] = "query"
     query: str
@@ -822,7 +963,7 @@ class QueryAsset(_SQLAsset):
     def query_must_start_with_select(cls, v: str):
         query = v.lstrip()
         if not (query.upper().startswith("SELECT") and query[6].isspace()):
-            raise ValueError("query must start with 'SELECT' followed by a whitespace.")  # noqa: TRY003
+            raise ValueError("query must start with 'SELECT' followed by a whitespace.")  # noqa: TRY003 # FIXME CoP
         return v
 
     @override
@@ -849,6 +990,13 @@ class QueryAsset(_SQLAsset):
 
 @public_api
 class TableAsset(_SQLAsset):
+    """A class representing a table from a SQL database
+
+    Args:
+        table_name: The name of the database table to be added
+        schema_name: The name of the schema containing the database table to be added.
+    """
+
     # Instance fields
     type: Literal["table"] = "table"
     # TODO: quoted_name or str
@@ -865,7 +1013,7 @@ class TableAsset(_SQLAsset):
     @pydantic.validator("table_name", pre=True, always=True)
     def _default_table_name(cls, table_name: str, values: dict, **kwargs) -> str:
         if not (validated_table_name := table_name or values.get("name")):
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "table_name cannot be empty and should default to name if not provided"
             )
 
@@ -875,9 +1023,11 @@ class TableAsset(_SQLAsset):
     def _resolve_quoted_name(cls, table_name: str) -> str | quoted_name:
         table_name_is_quoted: bool = cls._is_bracketed_by_quotes(table_name)
 
+        # We reimport sqlalchemy from our compatability layer because we make
+        # quoted_name a top level import there.
         from great_expectations.compatibility import sqlalchemy
 
-        if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
+        if sqlalchemy.quoted_name:  # type: ignore[truthy-function] # FIXME CoP
             if isinstance(table_name, sqlalchemy.quoted_name):
                 return table_name
 
@@ -906,7 +1056,7 @@ class TableAsset(_SQLAsset):
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
         if self.schema_name and self.schema_name not in inspector.get_schema_names():
-            raise TestConnectionError(  # noqa: TRY003
+            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
                 f'"{self.schema_name}" does not exist.'
             )
@@ -918,9 +1068,9 @@ class TableAsset(_SQLAsset):
                 connection.execute(sa.select(1, table).limit(1))
         except Exception as query_error:
             LOGGER.info(f"{self.name} `.test_connection()` query failed: {query_error!r}")
-            raise TestConnectionError(  # noqa: TRY003
+            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                 f"Attempt to connect to table: {self.qualified_name} failed because the test query "
-                f"failed. Ensure the table exists and the user has access to select data from the table: {query_error}"  # noqa: E501
+                f"failed. Ensure the table exists and the user has access to select data from the table: {query_error}"  # noqa: E501 # FIXME CoP
             ) from query_error
 
     @override
@@ -929,7 +1079,7 @@ class TableAsset(_SQLAsset):
 
         This can be used in a from clause for a query against this data.
         """
-        return sa.text(self.qualified_name)  # type: ignore[return-value]
+        return sa.table(self.table_name, schema=self.schema_name)
 
     @override
     def _create_batch_spec_kwargs(self) -> dict[str, Any]:
@@ -981,7 +1131,7 @@ class TableAsset(_SQLAsset):
 def _warn_for_more_specific_datasource_type(connection_string: str) -> None:
     """
     Warns if a more specific datasource type may be more appropriate based on the connection string connector prefix.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     from great_expectations.datasource.fluent.sources import DataSourceManager
 
     connector: str = connection_string.split("://")[0].split("+")[0]
@@ -1008,7 +1158,7 @@ def _warn_for_more_specific_datasource_type(connection_string: str) -> None:
         )
 
 
-# This improves our error messages by providing a more specific type for pydantic to validate against  # noqa: E501
+# This improves our error messages by providing a more specific type for pydantic to validate against  # noqa: E501 # FIXME CoP
 # It also ensure the generated jsonschema has a oneOf instead of anyOf field for assets
 # https://docs.pydantic.dev/1.10/usage/types/#discriminated-unions-aka-tagged-unions
 AssetTypes = Annotated[Union[TableAsset, QueryAsset], Field(discriminator="type")]
@@ -1066,7 +1216,7 @@ class SQLDatasource(Datasource):
             try:
                 self._engine = self._create_engine()
             except Exception as e:
-                # connection_string has passed pydantic validation, but still fails to create a sqlalchemy engine  # noqa: E501
+                # connection_string has passed pydantic validation, but still fails to create a sqlalchemy engine  # noqa: E501 # FIXME CoP
                 # one possible case is a missing plugin (e.g. psycopg2)
                 raise SQLAlchemyCreateEngineError(cause=e) from e
             self._cached_connection_string = self.connection_string
@@ -1120,7 +1270,7 @@ class SQLDatasource(Datasource):
 
         Raises:
             TestConnectionError: If the connection test fails.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         try:
             engine: sqlalchemy.Engine = self.get_engine()
             engine.connect()
@@ -1151,7 +1301,7 @@ class SQLDatasource(Datasource):
             The table asset that is added to the datasource.
             The type of this object will match the necessary type for this datasource.
             eg, it could be a TableAsset or a SqliteTableAsset.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if schema_name:
             schema_name = self._TableAsset._to_lower_if_not_bracketed_by_quotes(schema_name)
         asset = self._TableAsset(
@@ -1180,7 +1330,7 @@ class SQLDatasource(Datasource):
             The query asset that is added to the datasource.
             The type of this object will match the necessary type for this datasource.
             eg, it could be a QueryAsset or a SqliteQueryAsset.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         asset = self._QueryAsset(
             name=name,
             query=query,

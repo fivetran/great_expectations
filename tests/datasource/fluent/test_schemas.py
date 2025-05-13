@@ -11,7 +11,7 @@ import pytest
 from packaging.version import Version
 
 from great_expectations.datasource.fluent import (
-    _PANDAS_SCHEMA_VERSION,  # this is the version we run in the standard test pipeline. Update as needed  # noqa: E501
+    _PANDAS_SCHEMA_VERSION,  # this is the version we run in the standard test pipeline. Update as needed  # noqa: E501 # FIXME CoP
     _SCHEMAS_DIR,
     DataAsset,
     Datasource,
@@ -28,9 +28,9 @@ def min_supported_python() -> Version:
     return Version("3.9")
 
 
-def _models_and_schema_dirs() -> (
-    Generator[tuple[Type[Datasource | DataAsset], pathlib.Path, str], None, None]
-):
+def _models_and_schema_dirs() -> Generator[
+    tuple[Type[Datasource | DataAsset], pathlib.Path, str], None, None
+]:
     datasource: Type[Datasource] = Datasource
     ds_type_name: str = ""
 
@@ -59,7 +59,7 @@ def _models_and_schema_dirs() -> (
     ["fluent_ds_or_asset_model", "schema_dir"],
     [pytest.param(t[0], t[1], id=t[2]) for t in _models_and_schema_dirs()],
 )
-def test_vcs_schemas_match(  # noqa: C901
+def test_vcs_schemas_match(  # noqa: C901 # FIXME CoP
     fluent_ds_or_asset_model: Type[Datasource | DataAsset], schema_dir: pathlib.Path
 ):
     """
@@ -93,7 +93,7 @@ def test_vcs_schemas_match(  # noqa: C901
         Args:
             schema_as_dict: source dictionary (will be modified "in-situ")
 
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         key: str
         value: Any
 
@@ -115,7 +115,7 @@ def test_vcs_schemas_match(  # noqa: C901
         pytest.xfail(reason=f"schema generated with pandas {_PANDAS_SCHEMA_VERSION}")
 
     print(f"python version: {sys.version.split()[0]}")
-    print(f"pandas version: {PANDAS_VERSION}\n")
+    print(f"pandas version: {PANDAS_VERSION}")
 
     schema_path = schema_dir.joinpath(f"{fluent_ds_or_asset_model.__name__}.json")
     print(schema_path)
@@ -124,15 +124,17 @@ def test_vcs_schemas_match(  # noqa: C901
 
     schema_as_dict = json.loads(json_str)
     _sort_lists(schema_as_dict=schema_as_dict)
-    fluent_ds_or_asset_model_as_dict = fluent_ds_or_asset_model.schema()
+    # we have tuples in our schema, which are mutated to lists when dumped to json
+    # dump and reload the schema dict to ensure we are comparing
+    fluent_ds_or_asset_model_as_dict = json.loads(fluent_ds_or_asset_model.schema_json())
     _sort_lists(schema_as_dict=fluent_ds_or_asset_model_as_dict)
 
     if "Excel" in str(schema_path):
         pytest.xfail(reason="Sorting of nested anyOf key")
 
-    assert (
-        schema_as_dict == fluent_ds_or_asset_model_as_dict
-    ), "Schemas are out of sync. Run `invoke schema --sync`. Also check your pandas version."
+    assert schema_as_dict == fluent_ds_or_asset_model_as_dict, (
+        "Schemas are out of sync. Run `invoke schema --sync`. Also check your pandas version."
+    )
 
 
 @pytest.mark.big
@@ -156,7 +158,10 @@ def test_no_orphaned_schemas():
         if schema.stem not in all_schemas:
             orphans.append(schema)
 
-    assert not orphans, f"The following schemas appear to be orphaned and should be removed. Run `invoke schema --sync --clean`\n{pf(orphans)}"  # noqa: E501
+    assert not orphans, (
+        f"The following schemas appear to be orphaned and should be removed. "
+        f"Run `invoke schema --sync --clean`\n{pf(orphans)}"
+    )
 
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ Since you want this Data Asset to only match the file `yellow_tripdata_sample_20
 ```python title="Python" name="pattern_for_single_batch_configured_data_asset_configuration"
 ```
 
-:::note
+:::note Note
 The pattern we defined contains a regex group, even though we logically don't need a group to identify the desired Batch in a Data Asset that can only return one Batch.  This is because Great Expectations currently does not permit `pattern` to be defined without also having `group_names` defined.  Thus, in the example above you are creating a group that corresponds to `01` so that there is a valid group to associate a `group_names` entry with.
 :::
 

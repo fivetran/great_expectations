@@ -44,7 +44,7 @@ PROJECT_HELP_COMMENT = f"""
 # config_version refers to the syntactic version of this config file, and is used in maintaining backwards compatibility
 # It is auto-generated and usually does not need to be changed.
 config_version: {DataContextConfigDefaults.DEFAULT_CONFIG_VERSION.value}
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
 
 CONFIG_VARIABLES_INTRO = """
 # This config file supports variable substitution which enables: 1) keeping

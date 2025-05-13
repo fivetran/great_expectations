@@ -1,0 +1,42 @@
+# Script(s) to clean up any loose data left behind from test runs.
+# These can primarily happen if CI is stopped while tests are running
+# for big query, etc.
+
+name: Nightly Data Source Cleanup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0,3,6,9,12,15,18,21 * * *"
+
+jobs:
+  cleanup-big-query:
+    runs-on: ubuntu-latest
+    env:
+      # google
+      GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
+      GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
+      GE_TEST_BIGQUERY_DATASET: ${{secrets.GE_TEST_BIGQUERY_DATASET}}
+      GOOGLE_APPLICATION_CREDENTIALS: "gcp-credentials.json"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+      - name: Create JSON file GCP
+        run: |
+          echo "$GE_TEST_GCP_CREDENTIALS" > gcp-credentials.json
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m bigquery
+          pip install -e .
+      - name: Run BigQuery cleanup script
+        run: |
+          python ./scripts/cleanup/cleanup_big_query.py

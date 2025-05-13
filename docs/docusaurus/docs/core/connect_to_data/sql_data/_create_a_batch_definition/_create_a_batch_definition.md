@@ -3,11 +3,11 @@ import Tabs from '@theme/Tabs';
 import GxData from '../../../_core_components/_data.jsx'
 import PreReqDataContext from '../../../_core_components/prerequisites/_preconfigured_data_context.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-batch-definition}
 - <PreReqDataContext/>.  The variable `context` is used for your Data Context in the following example code.
 - [A Data Asset on a SQL Data Source](#create-a-data-asset).
 
-### Procedure
+### Procedure {#procedure-batch-definition}
 
 <Tabs 
    queryString="procedure"
@@ -47,7 +47,7 @@ import PreReqDataContext from '../../../_core_components/prerequisites/_preconfi
 
    Update the `date_column` variable and `name` parameters in the following snippet, then execute it to create partitioned Batch Definitions:
 
-   ```python name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_batch_definition/_create_a_batch_definition.md daily batch definition"
+   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_batch_definition/_create_a_batch_definition.md daily batch definition"
    ```
    </TabItem>
 
@@ -65,7 +65,7 @@ import PreReqDataContext from '../../../_core_components/prerequisites/_preconfi
    </TabItem>
 
    <TabItem value="partitioned" label="Partitioned">
-   ```python name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_batch_definition/_create_a_batch_definition.md verify daily"
+   ```python  title="Python" name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_batch_definition/_create_a_batch_definition.md verify daily"
    ```
    </TabItem>
 

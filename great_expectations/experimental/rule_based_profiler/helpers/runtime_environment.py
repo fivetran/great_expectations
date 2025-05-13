@@ -10,7 +10,7 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     convert_variables_to_dict,
 )
 from great_expectations.types import SerializableDictDot
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.experimental.rule_based_profiler.rule import Rule
@@ -68,8 +68,8 @@ def build_variables_directives(
     This method makes best-effort attempt to identify directives, supplied in "kwargs", as "variables", referenced by
     components of "Rule" objects, identified by respective "rule_name" property as indicated, and return each of these
     directives as part of dedicated "RuntimeEnvironmentVariablesDirectives" typed object for every "rule_name" (string).
-    """  # noqa: E501
-    # Implementation relies on assumption that "kwargs" contains "variables"-level arguments/directives only.  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
+    # Implementation relies on assumption that "kwargs" contains "variables"-level arguments/directives only.  # noqa: E501 # FIXME CoP
     directives: Dict[
         str, Dict[str, Any]
     ]  # key is "rule_name"; value is "variables" in corresponding "Rule" object
@@ -82,7 +82,7 @@ def build_variables_directives(
             if rule.name in kwargs:
                 rule_variables_configs.update(kwargs[rule.name])
 
-            # Since "exact_estimation" is True, "estimator" value of "exact" must be set on "variables" of every "Rule".  # noqa: E501
+            # Since "exact_estimation" is True, "estimator" value of "exact" must be set on "variables" of every "Rule".  # noqa: E501 # FIXME CoP
             rule_variables_configs.update(
                 {
                     "estimator": "exact",
@@ -93,7 +93,7 @@ def build_variables_directives(
     else:
         directives = kwargs
 
-    # Convert "kwargs" ("dict"-typed) directives into interpretable "RuntimeEnvironmentVariablesDirectives" "Enum" type.  # noqa: E501
+    # Convert "kwargs" ("dict"-typed) directives into interpretable "RuntimeEnvironmentVariablesDirectives" "Enum" type.  # noqa: E501 # FIXME CoP
     rule_name: str
     return [
         RuntimeEnvironmentVariablesDirectives(
@@ -111,14 +111,14 @@ def build_domain_type_directives(
     This method makes best-effort attempt to identify directives, supplied in "kwargs", as supported properties,
     corresponnding to "DomainBuilder" classes, associated with every "MetricDomainTypes", and return each of these
     directives as part of dedicated "RuntimeEnvironmentDomainTypeDirectives" typed object for every "MetricDomainTypes".
-    """  # noqa: E501
-    # Implementation relies on assumption that "kwargs" contains "Domain"-level arguments/directives only.  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
+    # Implementation relies on assumption that "kwargs" contains "Domain"-level arguments/directives only.  # noqa: E501 # FIXME CoP
     """
     Currently, only "column_domain_type_directives" are supported; in the future, other "Domain" type directives could
     be envisioned as consideration for support (e.g., "table_domain_type_directives").  To underscore this reasoning,
     "domain_type_directives_list" is declared as "List" and a single "RuntimeEnvironmentDomainTypeDirectives" element
     is appended, instead of setting "domain_type_directives_list" to contain that element explicitly.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     domain_type_directives_list: List[RuntimeEnvironmentDomainTypeDirectives] = []
 
     column_domain_type_directives: RuntimeEnvironmentDomainTypeDirectives = (

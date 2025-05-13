@@ -1,4 +1,0 @@
-great_expectations
-pyarrow
-pyodbc>=4.0.30
-pytest

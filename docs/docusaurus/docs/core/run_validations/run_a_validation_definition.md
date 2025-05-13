@@ -10,8 +10,7 @@ import PrereqPreconfiguredDataContext from '../_core_components/prerequisites/_p
 import PrereqValidationDefinition from '../_core_components/prerequisites/_validation_definition.md';
 
 
-
-<h2>Prerequisites</h2>
+## Prerequisites
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
@@ -35,38 +34,35 @@ import PrereqValidationDefinition from '../_core_components/prerequisites/_valid
 
    If you have created a new Validation Definition you can use the object returned by your Data Context's `.validation_definitions.add(...)` method.  Alternatively, you can retrieve a previously configured Validation Definition by updating the variable `validation_definition_name` in the following code and executing it:
 
-   ```python title="Python name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - retrieve a Validation Definition"
+   ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - retrieve a Validation Definition"
    ```
 
-2. Execute the Validation Definition's `run()` method:
+2. Define a Batch of data to validate
+
+   The [Batch parameters accepted by a Validation Definition](/docs/reference/api/ValidationDefinition_class#great_expectations.ValidationDefinition.run) are determined by the Batch Definition used to instantiate it. 
+
+   ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - define batch parameters"
+   ```
+
+3. Execute the Validation Definition's `run()` method:
 
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - run a Validation Definition"
    ```
 
    Validation Results are automatically saved in your Data Context when a Validation Definition's `run()` method is called.  For convenience, the `run()` method also returns the Validation Results as an object you can review.
 
-   :::tip
+   :::tip Result verbosity
 
    You can set the level of detail returned in a Validation Definition's results by passing a Result Format configuration as the `result_format` parameter of your Validation Definition's `run(...)` method.  For more information on Result Formats, see [Choose a result format](/core/trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format.md).
 
    :::
 
-3. Review the Validation Results:
+4. Review the Validation Results:
  
    ```python title="Python" name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - review Validation Results"
    ```
    
    When you print the returned Validation Result object you will recieve a json representation of the results.  By default this will include a `"results"` list that includes each Expectation in your Validation Definition's Expectation Suite, whether the Expectation was successfully met or failed to pass, and some sumarized information explaining the why the Expectation succeeded or failed.
-
-   :::tip
-
-   GX Cloud users can view the Validation Results in the GX Cloud UI by following the url provided with:
-
-   ```python title="Python"
-   print(validation_results.result_url)
-   ```
-
-   :::
 
 </TabItem>
 

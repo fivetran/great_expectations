@@ -48,15 +48,6 @@ class ColumnStandardDeviation(ColumnAggregateMetricProvider):
         """SqlAlchemy Standard Deviation implementation"""
         if _dialect.name.lower() == GXSqlDialect.MSSQL:
             standard_deviation = sa.func.stdev(column)
-        elif _dialect.name.lower() == GXSqlDialect.SQLITE:
-            mean = _metrics["column.mean"]
-            nonnull_row_count = _metrics[
-                f"column_values.null.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
-            ]
-            standard_deviation = sa.func.sqrt(
-                sa.func.sum((1.0 * column - mean) * (1.0 * column - mean))
-                / ((1.0 * nonnull_row_count) - 1.0)
-            )
         else:
             standard_deviation = sa.func.stddev_samp(column)
 
@@ -77,7 +68,7 @@ class ColumnStandardDeviation(ColumnAggregateMetricProvider):
         runtime_configuration: Optional[dict] = None,
     ):
         """Returns a dictionary of given metric names and their corresponding configuration, specifying the metric
-        types and their respective domains"""  # noqa: E501
+        types and their respective domains"""  # noqa: E501 # FIXME CoP
         dependencies: dict = super()._get_evaluation_dependencies(
             metric=metric,
             configuration=configuration,

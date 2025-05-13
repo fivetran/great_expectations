@@ -157,7 +157,7 @@ Completeness checklist for ExpectBatchColumnsToBeUnique:
 ...
 ```
 
-:::note
+:::note Note
 For more information on tests and example cases, <br/>
 see our guide on [creating example cases for a Custom Expectation](../features_custom_expectations/how_to_add_example_cases_for_an_expectation.md).
 :::
@@ -168,7 +168,7 @@ This is the stage where you implement the actual business logic for your Expecta
 To do so, you'll need to implement a function within a <TechnicalTag tag="metric" text="Metric"/> class, and link it to your Expectation.
 By the time your Expectation is complete, your Metric will have functions for all three Execution Engines (Pandas, Spark, and SQLAlchemy) supported by Great Expectations. For now, we're only going to define one.
 
-:::note
+:::note Note
 Metrics answer questions about your data posed by your Expectation, <br/> and allow your Expectation to judge whether your data meets ***your*** expectations.
 :::
 
@@ -177,7 +177,7 @@ Your Metric function will have the `@metric_value` decorator, with the appropria
 ```python title="Python" name="docs/docusaurus/docs/oss/guides/expectations/creating_custom_expectations/expect_batch_columns_to_be_unique.py pandas"
 ```
 
-:::note
+:::note Note
 The `@metric_value` decorator allows us to explicitly structure queries and directly access our compute domain. 
 While this can result in extra roundtrips to your database in some situations, it allows for advanced functionality and customization of your Custom Expectations.
 :::
@@ -271,7 +271,7 @@ black <PATH/TO/YOUR/EXPECTATION.py>
 ruff <PATH/TO/YOUR/EXPECTATION.py> --fix
 ```
 
-:::info
+:::info Info
 If desired, you can automate this to happen at commit time. See our [guidance on linting](../../../contributing/style_guides/code_style.md#linting) for more on this process.
 :::
 
@@ -304,7 +304,7 @@ would become
 
 This is particularly important because ***we*** want to make sure that ***you*** get credit for all your hard work!
 
-:::note
+:::note Note
 For more information on our code standards and contribution, see our guide on [Levels of Maturity](/oss/contributing/contributing_maturity.md#expectation-contributions) for Expectations.
 
 To view the full script used in this page, see it on GitHub:

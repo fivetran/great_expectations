@@ -1,4 +1,4 @@
-:::info executing python commands with `python` or `python3`
+:::info Executing python commands with `python` or `python3`
 
 Depending on your installation and configuration of Python 3, you may find that executing Python commands from the terminal by calling `python` doesn't work as desired.  If a command using `python` does not work, try using `python3`.
 

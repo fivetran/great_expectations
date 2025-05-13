@@ -14,7 +14,7 @@ from great_expectations.expectations.metrics.map_metric_provider import (
     ColumnMapMetricProvider,
     column_condition_partial,
 )
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 
 class ColumnValuesMatchJsonSchema(ColumnMapMetricProvider):
@@ -41,7 +41,7 @@ class ColumnValuesMatchJsonSchema(ColumnMapMetricProvider):
 
     @column_condition_partial(engine=SparkDFExecutionEngine)
     def _spark(cls, column, json_schema, **kwargs):
-        # This step insures that Spark UDF defined can be pickled; otherwise, pickle serialization exceptions may occur.  # noqa: E501
+        # This step insures that Spark UDF defined can be pickled; otherwise, pickle serialization exceptions may occur.  # noqa: E501 # FIXME CoP
         json_schema = convert_to_json_serializable(data=json_schema)
 
         def matches_json_schema(val):

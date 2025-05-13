@@ -1,4 +1,4 @@
-from unittest.mock import Mock  # noqa: TID251
+from unittest.mock import Mock  # noqa: TID251 # FIXME CoP
 
 import pytest
 
@@ -25,4 +25,4 @@ def test_add_metric_run(mock_data_store: DataStore, mock_metric_run: MetricRun):
 
     metric_repository.add_metric_run(metric_run=mock_metric_run)
 
-    mock_data_store.add.assert_called_once_with(value=mock_metric_run)  # type: ignore[attr-defined]
+    mock_data_store.add.assert_called_once_with(value=mock_metric_run)  # type: ignore[attr-defined] # FIXME CoP

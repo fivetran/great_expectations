@@ -75,7 +75,7 @@ class DataContext:
     @validate_arguments
     def __init__(self, context_root_dir: Optional[DirectoryPath] = None) -> None:
         self.root_directory = context_root_dir
-        self._data_sources: DataSourceManager = DataSourceManager(self)  # type: ignore[arg-type]
+        self._data_sources: DataSourceManager = DataSourceManager(self)  # type: ignore[arg-type] # FIXME CoP
         self._datasources: Dict[str, Datasource] = {}
         self.config_provider: _ConfigurationProvider | None = None
         logger.info(f"Available Factories - {self._data_sources.factories}")
@@ -87,7 +87,7 @@ class DataContext:
 
     @property
     def datasources(self) -> DatasourceDict:
-        return self._datasources  # type: ignore[return-value]
+        return self._datasources  # type: ignore[return-value] # FIXME CoP
 
     def _add_fluent_datasource(self, datasource: Datasource) -> Datasource:
         self._datasources[datasource.name] = datasource
@@ -133,23 +133,23 @@ def context_sources_cleanup() -> Generator[DataSourceManager, None, None]:
     """Return the sources object and reset types/factories on teardown"""
     try:
         # setup
-        sources_copy = copy.deepcopy(DataSourceManager._DataSourceManager__crud_registry)  # type: ignore[attr-defined]
+        sources_copy = copy.deepcopy(DataSourceManager._DataSourceManager__crud_registry)  # type: ignore[attr-defined] # FIXME CoP
         type_lookup_copy = copy.deepcopy(DataSourceManager.type_lookup)
         sources = get_context().data_sources
 
-        assert (
-            "add_datasource" not in sources.factories
-        ), "Datasource base class should not be registered as a source factory"
+        assert "add_datasource" not in sources.factories, (
+            "Datasource base class should not be registered as a source factory"
+        )
 
         yield sources
     finally:
-        DataSourceManager._DataSourceManager__crud_registry = sources_copy  # type: ignore[attr-defined]
+        DataSourceManager._DataSourceManager__crud_registry = sources_copy  # type: ignore[attr-defined] # FIXME CoP
         DataSourceManager.type_lookup = type_lookup_copy
 
 
 @pytest.fixture(scope="function")
 def empty_sources(context_sources_cleanup) -> Generator[DataSourceManager, None, None]:
-    DataSourceManager._DataSourceManager__crud_registry.clear()  # type: ignore[attr-defined]
+    DataSourceManager._DataSourceManager__crud_registry.clear()  # type: ignore[attr-defined] # FIXME CoP
     DataSourceManager.type_lookup.clear()
     assert not DataSourceManager.type_lookup
     yield context_sources_cleanup
@@ -202,9 +202,9 @@ class TestMetaDatasource:
 
         ds_factory_method_final = getattr(context_sources_cleanup, expected_method_name, None)
 
-        assert (
-            ds_factory_method_final
-        ), f"{MetaDatasource.__name__}.__new__ failed to add `{expected_method_name}()` method"
+        assert ds_factory_method_final, (
+            f"{MetaDatasource.__name__}.__new__ failed to add `{expected_method_name}()` method"
+        )
 
     def test_registered_sources_factory_method_has_correct_signature(
         self, context_sources_cleanup: DataSourceManager
@@ -232,9 +232,9 @@ class TestMetaDatasource:
             print(f"{i} {param_name} ", end="")
 
             if param_name in ["type", "assets"]:
-                assert (
-                    param_name not in ds_factory_method_sig.parameters
-                ), f"{param_name} should not be part of the `add_<DATASOURCE_TYPE>` method"
+                assert param_name not in ds_factory_method_sig.parameters, (
+                    f"{param_name} should not be part of the `add_<DATASOURCE_TYPE>` method"
+                )
                 print("⏩")
                 continue
 
@@ -284,7 +284,7 @@ class TestMisconfiguredMetaDatasource:
                     return DummyExecutionEngine
 
                 @override
-                def test_connection(self) -> None: ...  # type: ignore[override]
+                def test_connection(self) -> None: ...  # type: ignore[override] # FIXME CoP
 
         # check that no types were registered
         assert len(empty_sources.type_lookup) < 1
@@ -294,7 +294,7 @@ class TestMisconfiguredMetaDatasource:
             type: str = "valid"
 
             @override
-            def test_connection(self) -> None: ...  # type: ignore[override]
+            def test_connection(self) -> None: ...  # type: ignore[override] # FIXME CoP
 
         with pytest.raises(NotImplementedError):
             MissingExecEngineTypeDatasource(name="name").get_execution_engine()
@@ -302,7 +302,7 @@ class TestMisconfiguredMetaDatasource:
     def test_ds_assets_type_field_not_set(self, empty_sources: DataSourceManager):
         with pytest.raises(
             TypeRegistrationError,
-            match="No `type` field found for `BadAssetDatasource.asset_types` -> `MissingTypeAsset` unable to register asset type",  # noqa: E501
+            match="No `type` field found for `BadAssetDatasource.asset_types` -> `MissingTypeAsset` unable to register asset type",  # noqa: E501 # FIXME CoP
         ):
 
             class MissingTypeAsset(DataAsset):
@@ -324,7 +324,7 @@ class TestMisconfiguredMetaDatasource:
                     return DummyExecutionEngine
 
                 @override
-                def test_connection(self) -> None: ...  # type: ignore[override]
+                def test_connection(self) -> None: ...  # type: ignore[override] # FIXME CoP
 
         # check that no types were registered
         assert len(empty_sources.type_lookup) < 1

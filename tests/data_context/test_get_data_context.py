@@ -21,7 +21,7 @@ from great_expectations.exceptions.exceptions import (
 from tests.test_utils import working_directory
 
 GX_CLOUD_PARAMS_ALL = {
-    "cloud_base_url": "http://hello.com",
+    "cloud_base_url": "localhost:7000",
     "cloud_organization_id": "bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
     "cloud_access_token": "i_am_a_token",
 }
@@ -33,7 +33,7 @@ GX_CLOUD_PARAMS_REQUIRED = {
 
 @pytest.fixture()
 def set_up_cloud_envs(monkeypatch):
-    monkeypatch.setenv("GX_CLOUD_BASE_URL", "http://hello.com")
+    monkeypatch.setenv("GX_CLOUD_BASE_URL", "localhost:7000")
     monkeypatch.setenv("GX_CLOUD_ORGANIZATION_ID", "bd20fead-2c31-4392-bcd1-f1e87ad5a79c")
     monkeypatch.setenv("GX_CLOUD_ACCESS_TOKEN", "i_am_a_token")
 
@@ -170,7 +170,7 @@ def test_cloud_context_with_in_memory_config_overrides(
         return_value=empty_ge_cloud_data_context_config,
     ):
         context = gx.get_context(
-            cloud_base_url="http://hello.com",
+            cloud_base_url="localhost:7000",
             cloud_organization_id="bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
             cloud_access_token="i_am_a_token",
         )
@@ -192,7 +192,7 @@ def test_cloud_context_with_in_memory_config_overrides(
         )
         context = gx.get_context(
             project_config=config,
-            cloud_base_url="http://hello.com",
+            cloud_base_url="localhost:7000",
             cloud_organization_id="bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
             cloud_access_token="i_am_a_token",
         )
@@ -250,6 +250,53 @@ def test_get_context_with_context_root_dir_scaffolds_filesystem(tmp_path: pathli
     assert isinstance(context, FileDataContext)
     assert context_root_dir.exists()
     assert (context_root_dir / FileDataContext.GITIGNORE).read_text() == "\nuncommitted/"
+
+
+@pytest.mark.filesystem
+def test_get_context_with_custom_context_root_dir_scaffolds_filesystem(tmp_path: pathlib.Path):
+    root = tmp_path / "root"
+    context_root_dir = root.joinpath("hello_world")
+    assert not context_root_dir.exists()
+
+    context = gx.get_context(context_root_dir=context_root_dir)
+
+    assert isinstance(context, FileDataContext)
+    assert context_root_dir.exists()
+    assert (context_root_dir / FileDataContext.GITIGNORE).read_text() == "\nuncommitted/"
+
+
+@pytest.mark.filesystem
+def test_get_context_with_mode_and_custom_context_root_dir_scaffolds_filesystem(
+    tmp_path: pathlib.Path,
+):
+    root = tmp_path / "root"
+    context_root_dir = root.joinpath("hello_world")
+    assert not context_root_dir.exists()
+
+    context = gx.get_context(mode="file", context_root_dir=context_root_dir)
+
+    assert isinstance(context, FileDataContext)
+    assert context_root_dir.exists()
+    assert (context_root_dir / FileDataContext.GITIGNORE).read_text() == "\nuncommitted/"
+
+
+@pytest.mark.filesystem
+def test_errors_if_context_root_dir_and_project_root_dir_are_both_provided_for_file_context(
+    tmp_path: pathlib.Path,
+):
+    root = tmp_path / "root"
+    context_root_dir = root.joinpath("hello_world")
+    assert not context_root_dir.exists()
+
+    with pytest.raises(
+        TypeError,
+        match="'project_root_dir' and 'context_root_dir' are conflicting args; please only provide one",  # noqa: E501
+    ):
+        gx.get_context(  # type: ignore[call-overload]
+            mode="file",
+            context_root_dir=context_root_dir,
+            project_root_dir=context_root_dir.parent,
+        )
 
 
 @pytest.mark.filesystem

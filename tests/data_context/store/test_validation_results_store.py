@@ -19,7 +19,7 @@ from tests import test_utils
 @freeze_time("09/26/2019 13:42:41")
 @mock_s3
 @pytest.mark.filterwarnings(
-    "ignore:String run_ids are deprecated*:DeprecationWarning:great_expectations.data_context.types.resource_identifiers"  # noqa: E501
+    "ignore:String run_ids are deprecated*:DeprecationWarning:great_expectations.data_context.types.resource_identifiers"  # noqa: E501 # FIXME CoP
 )
 @pytest.mark.aws_deps
 def test_ValidationResultsStore_with_TupleS3StoreBackend(aws_credentials):
@@ -30,7 +30,7 @@ def test_ValidationResultsStore_with_TupleS3StoreBackend(aws_credentials):
     conn = boto3.resource("s3", region_name="us-east-1")
     conn.create_bucket(Bucket=bucket)
 
-    # First, demonstrate that we pick up default configuration including from an S3TupleS3StoreBackend  # noqa: E501
+    # First, demonstrate that we pick up default configuration including from an S3TupleS3StoreBackend  # noqa: E501 # FIXME CoP
     my_store = ValidationResultsStore(
         store_backend={
             "class_name": "TupleS3StoreBackend",
@@ -168,7 +168,7 @@ def test_ValidationResultsStore_with_InMemoryStoreBackend():
 @pytest.mark.big
 @freeze_time("09/26/2019 13:42:41")
 @pytest.mark.filterwarnings(
-    "ignore:String run_ids are deprecated*:DeprecationWarning:great_expectations.data_context.types.resource_identifiers"  # noqa: E501
+    "ignore:String run_ids are deprecated*:DeprecationWarning:great_expectations.data_context.types.resource_identifiers"  # noqa: E501 # FIXME CoP
 )
 def test_ValidationResultsStore_with_TupleFileSystemStoreBackend(tmp_path_factory):
     full_test_dir = tmp_path_factory.mktemp(
@@ -264,7 +264,7 @@ def test_ValidationResultsStore_with_TupleFileSystemStoreBackend(tmp_path_factor
 
 
 @pytest.mark.filterwarnings(
-    "ignore:String run_ids are deprecated*:DeprecationWarning:great_expectations.data_context.types.resource_identifiers"  # noqa: E501
+    "ignore:String run_ids are deprecated*:DeprecationWarning:great_expectations.data_context.types.resource_identifiers"  # noqa: E501 # FIXME CoP
 )
 @pytest.mark.big
 def test_ValidationResultsStore_with_DatabaseStoreBackend(sa):

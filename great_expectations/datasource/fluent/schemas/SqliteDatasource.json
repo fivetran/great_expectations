@@ -429,7 +429,7 @@
         },
         "TableAsset": {
             "title": "TableAsset",
-            "description": "--Public API--",
+            "description": "--Public API--A class representing a table from a SQL database\n\nArgs:\n    table_name: The name of the database table to be added\n    schema_name: The name of the schema containing the database table to be added.",
             "type": "object",
             "properties": {
                 "name": {
@@ -486,7 +486,7 @@
         },
         "QueryAsset": {
             "title": "QueryAsset",
-            "description": "--Public API--",
+            "description": "--Public API--An asset made from a SQL query\n\nArgs:\n    query: The query to be used to construct the underlying Data Asset",
             "type": "object",
             "properties": {
                 "name": {

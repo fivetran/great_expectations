@@ -236,10 +236,11 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_path_succes
 ):
     # arrange
     name = "batch_def_name"
-    expected_regex = re.compile(str(path))
+    expected_regex = re.compile(f"{path}$")
     expected_batch_definition = BatchDefinition(
         name=name, partitioner=FileNamePartitionerPath(regex=expected_regex)
     )
+    assert isinstance(expected_batch_definition.partitioner, FileNamePartitionerPath)
     datasource.add_batch_definition.return_value = expected_batch_definition
     file_path_data_connector.get_matched_data_references.return_value = [PATH_NAME]
 
@@ -268,7 +269,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_path_fails_
 ):
     # arrange
     name = "batch_def_name"
-    expected_regex = re.compile(str(path))
+    expected_regex = re.compile(f"{path}$")
 
     file_path_data_connector.get_matched_data_references.return_value = []
 
@@ -294,14 +295,14 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_path_fails_
     ],
 )
 @pytest.mark.parametrize("asset", _path_asset_parameters(), indirect=["asset"])
-def test_add_batch_definition_fluent_file_path__add_batch_definition_path_fails_if_multiple_files_are_found(  # noqa: E501
+def test_add_batch_definition_fluent_file_path__add_batch_definition_path_fails_if_multiple_files_are_found(  # noqa: E501 # FIXME CoP
     datasource, asset, path: PathStr, file_path_data_connector
 ):
     """This edge case occurs if a user doesn't actually provide a path, but
     instead a regex with multiple matches."""
     # arrange
     name = "batch_def_name"
-    expected_regex = re.compile(str(path))
+    expected_regex = re.compile(f"{path}$")
     file_path_data_connector.get_matched_data_references.return_value = [
         "data_reference_one",
         "data_reference_two",
@@ -339,6 +340,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_yearly_succ
         name=name,
         partitioner=FileNamePartitionerYearly(regex=batching_regex, sort_ascending=sort),
     )
+    assert isinstance(expected_batch_definition.partitioner, FileNamePartitionerYearly)
     datasource.add_batch_definition.return_value = expected_batch_definition
 
     # act
@@ -361,7 +363,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_yearly_succ
         pytest.param(re.compile(r"data_2024.csv"), id="re.Pattern"),
     ],
 )
-def test_add_batch_definition_fluent_file_path__add_batch_definition_yearly_fails_if_required_group_is_missing(  # noqa: E501
+def test_add_batch_definition_fluent_file_path__add_batch_definition_yearly_fails_if_required_group_is_missing(  # noqa: E501 # FIXME CoP
     datasource, asset, sort, batching_regex
 ):
     # arrange
@@ -387,7 +389,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_yearly_fail
         pytest.param(re.compile(r"data_(?P<year>\d{4})-(?P<foo>\d{4}).csv"), id="re.Pattern"),
     ],
 )
-def test_add_batch_definition_fluent_file_path__add_batch_definition_yearly_fails_if_unknown_groups_are_found(  # noqa: E501
+def test_add_batch_definition_fluent_file_path__add_batch_definition_yearly_fails_if_unknown_groups_are_found(  # noqa: E501 # FIXME CoP
     datasource, asset, sort, batching_regex
 ):
     # arrange
@@ -422,6 +424,8 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_monthly_suc
         name=name,
         partitioner=FileNamePartitionerMonthly(regex=batching_regex, sort_ascending=sort),
     )
+    assert isinstance(expected_batch_definition.partitioner, FileNamePartitionerMonthly)
+
     datasource.add_batch_definition.return_value = expected_batch_definition
 
     # act
@@ -444,7 +448,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_monthly_suc
         pytest.param(re.compile(r"data_(?P<year>\d{4})-(?P<month>\d{2}).csv"), id="re.Pattern"),
     ],
 )
-def test_add_batch_definition_fluent_file_path__add_batch_definition_monthly_fails_if_required_group_is_missing(  # noqa: E501
+def test_add_batch_definition_fluent_file_path__add_batch_definition_monthly_fails_if_required_group_is_missing(  # noqa: E501 # FIXME CoP
     datasource, asset, sort, batching_regex
 ):
     # arrange
@@ -464,7 +468,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_monthly_fai
 @pytest.mark.unit
 @pytest.mark.parametrize("asset", _path_asset_parameters(), indirect=["asset"])
 @pytest.mark.parametrize("sort", [True, False])
-def test_add_batch_definition_fluent_file_path__add_batch_definition_monthly_fails_if_unknown_groups_are_found(  # noqa: E501
+def test_add_batch_definition_fluent_file_path__add_batch_definition_monthly_fails_if_unknown_groups_are_found(  # noqa: E501 # FIXME CoP
     datasource, asset, sort
 ):
     # arrange
@@ -494,6 +498,8 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_daily_succe
         name=name,
         partitioner=FileNamePartitionerDaily(regex=batching_regex, sort_ascending=sort),
     )
+    assert isinstance(expected_batch_definition.partitioner, FileNamePartitionerDaily)
+
     datasource.add_batch_definition.return_value = expected_batch_definition
 
     # act
@@ -516,7 +522,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_daily_succe
         pytest.param(re.compile(r"data_2024.csv"), id="re.Pattern"),
     ],
 )
-def test_add_batch_definition_fluent_file_path__add_batch_definition_daily_fails_if_required_group_is_missing(  # noqa: E501
+def test_add_batch_definition_fluent_file_path__add_batch_definition_daily_fails_if_required_group_is_missing(  # noqa: E501 # FIXME CoP
     datasource, asset, sort, batching_regex
 ):
     # arrange
@@ -547,7 +553,7 @@ def test_add_batch_definition_fluent_file_path__add_batch_definition_daily_fails
         ),
     ],
 )
-def test_add_batch_definition_fluent_file_path__add_batch_definition_daily_fails_if_unknown_groups_are_found(  # noqa: E501
+def test_add_batch_definition_fluent_file_path__add_batch_definition_daily_fails_if_unknown_groups_are_found(  # noqa: E501 # FIXME CoP
     datasource, asset, sort, batching_regex
 ):
     # arrange

@@ -5,11 +5,11 @@ import PreReqDataContext from '../../../_core_components/prerequisites/_preconfi
 
 Batch Definitions for a Directory Data Asset can be configured to return all of the records for the files in the Data Asset, or to subdivide the Data Asset's records on the content of a Datetime field and only return the records that correspond to a specific year, month, or day. 
 
-### Prerequisites
+### Prerequisites {#prerequisites-batch-definition-directory}
 - <PreReqDataContext/>.  The variable `context` is used for your Data Context in the following example code.
 - [A File Data Asset on a Filesystem Data Source](#create-a-data-asset).
 
-### Procedure
+### Procedure {#procedure-batch-definition-directory}
 
 <Tabs 
    queryString="procedure"
@@ -24,7 +24,7 @@ Batch Definitions for a Directory Data Asset can be configured to return all of 
 
 1. Retrieve your Data Asset.
 
-   Replace the value of `data_source_name` with the name of your Data Source and the value of `asset_name` with the name of your Data Asset in the following code.  Then execute it to retrieve an existing Data Source and Data Asset from your Data Context:
+   Replace the value of `data_source_name` with the name of your Data Source and the value of `data_asset_name` with the name of your Data Asset in the following code.  Then execute it to retrieve an existing Data Source and Data Asset from your Data Context:
 
    ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/filesystem_data/_create_a_batch_definition/_examples/_directory_whole_directory.py - retrieve Data Asset"
    ```
