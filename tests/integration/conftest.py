@@ -235,6 +235,7 @@ def multi_source_batch(
         "MultiSourceBatch requires SQLBatchTestSetup"
     )
     # we need a data source, so we use the make_asset API:
+    set_context(_batch_setup_for_datasource.context)
     secondary_asset = secondary_batch_setup.make_asset()
     yield MultiSourceBatch(
         target_batch=_batch_setup_for_datasource.make_batch(),
