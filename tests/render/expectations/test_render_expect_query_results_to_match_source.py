@@ -1,8 +1,6 @@
 import pytest
 
-from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,
-)
+from great_expectations import expectations as gxe
 from great_expectations.render import (
     RenderedAtomicContent,
     RenderedAtomicValue,
@@ -12,17 +10,14 @@ from great_expectations.render.renderer_configuration import CodeBlock, CodeBloc
 
 
 @pytest.mark.parametrize(
-    "expectation_configuration,expected_expectation_configuration_rendered_atomic_content",
+    "expectation,expected_expectation_configuration_rendered_atomic_content",
     [
         pytest.param(
-            ExpectationConfiguration(
-                type="expect_query_results_to_match_source",
+            gxe.ExpectQueryResultsToMatchSource(
                 description="Both tables should be identical",
-                kwargs={
-                    "target_query": "SELECT * FROM {batch}",
-                    "source_data_source_name": "My Data Source",
-                    "source_query": "SELECT * FROM a_table_in_source_data_source",
-                },
+                target_query="SELECT * FROM {batch}",
+                source_data_source_name="My Data Source",
+                source_query="SELECT * FROM a_table_in_source_data_source",
             ),
             [
                 RenderedAtomicContent(
@@ -67,13 +62,10 @@ from great_expectations.render.renderer_configuration import CodeBlock, CodeBloc
             id="with_description",
         ),
         pytest.param(
-            ExpectationConfiguration(
-                type="expect_query_results_to_match_source",
-                kwargs={
-                    "target_query": "SELECT * FROM {batch}",
-                    "source_data_source_name": "My Data Source",
-                    "source_query": "SELECT * FROM a_table_in_source_data_source",
-                },
+            gxe.ExpectQueryResultsToMatchSource(
+                target_query="SELECT * FROM {batch}",
+                source_data_source_name="My Data Source",
+                source_query="SELECT * FROM a_table_in_source_data_source",
             ),
             [
                 RenderedAtomicContent(
@@ -120,10 +112,10 @@ from great_expectations.render.renderer_configuration import CodeBlock, CodeBloc
 )
 @pytest.mark.unit
 def test_expectation_configuration_rendered_atomic_content(
-    expectation_configuration: ExpectationConfiguration,
+    expectation: gxe.Expectation,
     expected_expectation_configuration_rendered_atomic_content: dict,
 ):
-    inline_renderer: InlineRenderer = InlineRenderer(render_object=expectation_configuration)
+    inline_renderer: InlineRenderer = InlineRenderer(render_object=expectation.configuration)
 
     actual_expectation_configuration_rendered_atomic_content: list[RenderedAtomicContent] = (
         inline_renderer.get_rendered_content()
