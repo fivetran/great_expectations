@@ -148,13 +148,6 @@ jobs:
       AWS_DEFAULT_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
       AWS_REGION: ${{secrets.CI_AWS_DEFAULT_REGION}}
       AWS_SECRET_ACCESS_KEY: ${{secrets.CI_AWS_SECRET_ACCESS_KEY}}
-      # aws-redshift
-      REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
-      REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
-      REDSHIFT_HOST: ${{secrets.REDSHIFT_HOST}}
-      REDSHIFT_PORT: ${{secrets.REDSHIFT_PORT}}
-      REDSHIFT_DATABASE: ${{secrets.REDSHIFT_DATABASE}}
-      REDSHIFT_SSLMODE: ${{secrets.REDSHIFT_SSLMODE}}
       # azure
       AZURE_ACCESS_KEY: ${{secrets.AZURE_ACCESS_KEY}}
       AZURE_CREDENTIAL: ${{secrets.AZURE_CREDENTIAL}}
@@ -548,13 +541,7 @@ jobs:
       DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
       DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
       DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
-      # aws-redshift
-      REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
-      REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
-      REDSHIFT_HOST: ${{secrets.REDSHIFT_HOST}}
-      REDSHIFT_PORT: ${{secrets.REDSHIFT_PORT}}
-      REDSHIFT_DATABASE: ${{secrets.REDSHIFT_DATABASE}}
-      REDSHIFT_SSLMODE: ${{secrets.REDSHIFT_SSLMODE}}
+
       # snowflake
       SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
       SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
@@ -579,11 +566,9 @@ jobs:
           - bigquery
           - databricks
           - filesystem
-          - gx-redshift
           - mssql
           - mysql
           - postgresql
-          - redshift
           - snowflake
           - spark
           - spark_connect
@@ -630,6 +615,82 @@ jobs:
 
       - name: Install mssql odbc driver
         run: ./scripts/install_mssql_odbc_driver.sh
+
+      - name: Configure ECR AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::258143015559:role/github-amazonec2containerregistryreadonly
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Run the tests
+        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports
+
+      # upload coverage report to codecov
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.1.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: great-expectations/great_expectations
+          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+
+      # upload test results to codecov
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
+
+  redshift:
+    needs: [unit-tests, static-analysis, check-actor-permissions]
+    if: github.event.pull_request.draft == false
+    env:
+      # aws-redshift
+      REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
+      REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
+      REDSHIFT_HOST: ${{secrets.REDSHIFT_HOST}}
+      REDSHIFT_PORT: ${{secrets.REDSHIFT_PORT}}
+      REDSHIFT_DATABASE: ${{secrets.REDSHIFT_DATABASE}}
+      REDSHIFT_SSLMODE: ${{secrets.REDSHIFT_SSLMODE}}
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        markers:
+          # - redshift
+          - gx-redshift
+        python-version: ["3.9", "3.12"]
+        exclude:
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.9' }}
+          - python-version: ${{ github.event_name == 'merge_group' && '3.9' }}
+          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.9' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m '${{ matrix.markers }}' -r test
 
       - name: Configure ECR AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
