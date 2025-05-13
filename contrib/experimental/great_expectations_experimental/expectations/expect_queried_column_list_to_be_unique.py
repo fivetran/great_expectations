@@ -26,7 +26,10 @@ class ExpectQueriedColumnListToBeUnique(QueryExpectation):
             )
             """
 
-    success_keys = ("template_dict" "query",)
+    success_keys = (
+        "template_dict",
+        "query",
+    )
 
     domain_keys = (
         "query",
@@ -100,7 +103,7 @@ class ExpectQueriedColumnListToBeUnique(QueryExpectation):
                         "template_dict": {
                             "column_list": "duplicate_num,duplicate_str,duplicate_str2",
                             "row_condition": "1=1",
-                            "condition_parser": "great_expectations__experimental__",
+                            "condition_parser": "great_expectations",
                         }
                     },
                     "out": {"success": False},
@@ -113,7 +116,7 @@ class ExpectQueriedColumnListToBeUnique(QueryExpectation):
                         "template_dict": {
                             "column_list": "unique_num,unique_str,duplicate_str2",
                             "row_condition": 'col("duplicate_str2")!="a"',
-                            "condition_parser": "great_expectations__experimental__",
+                            "condition_parser": "great_expectations",
                         }
                     },
                     "out": {"success": True},

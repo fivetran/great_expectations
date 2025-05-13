@@ -17,6 +17,7 @@ from typing import (
     Type,
     Union,
 )
+from urllib.parse import quote
 
 from great_expectations._docs_decorators import deprecated_method_or_class, public_api
 from great_expectations.compatibility import pydantic
@@ -113,7 +114,7 @@ def _get_config_substituted_connection_string(
     warning_msg: str = "Unable to perform config substitution",
 ) -> AnyUrl | None:
     if not isinstance(datasource.connection_string, ConfigUri):
-        raise TypeError("Config substitution is only supported for `ConfigUri`")  # noqa: TRY003
+        raise TypeError("Config substitution is only supported for `ConfigUri`")  # noqa: TRY003 # FIXME CoP
     if not datasource._data_context:
         warnings.warn(
             f"{warning_msg} for {datasource.connection_string.template_str}."
@@ -189,7 +190,7 @@ class AccountIdentifier(str):
     @classmethod
     def _validate(cls, value: str) -> AccountIdentifier:
         if not value:
-            raise ValueError("Account identifier cannot be empty")  # noqa: TRY003
+            raise ValueError("Account identifier cannot be empty")  # noqa: TRY003 # FIXME CoP
         v = cls(value)
         if not v._match:
             LOGGER.info(
@@ -253,7 +254,7 @@ class AccountIdentifier(str):
         fmt2 = (self.orgname, self.account_name)
         if any(fmt2):
             return fmt2
-        raise ValueError("Account identifier does not match either expected format")  # noqa: TRY003
+        raise ValueError("Account identifier does not match either expected format")  # noqa: TRY003 # FIXME CoP
 
 
 class _UrlPasswordError(pydantic.UrlError):
@@ -409,9 +410,9 @@ class SnowflakeDatasource(SQLDatasource):
             For example: "snowflake://<user_login_name>:<password>@<account_identifier>"
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values
             are TableAsset or QueryAsset objects.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    type: Literal["snowflake"] = "snowflake"  # type: ignore[assignment]
+    type: Literal["snowflake"] = "snowflake"  # type: ignore[assignment] # FIXME CoP
     # TODO: rename this to `connection` for v1?
     connection_string: Union[ConnectionDetails, ConfigUri, SnowflakeDsn]  # type: ignore[assignment] # Deviation from parent class as individual args are supported for connection
 
@@ -524,7 +525,7 @@ class SnowflakeDatasource(SQLDatasource):
 
     @deprecated_method_or_class(
         version="1.0.0a4",
-        message="`schema_name` is deprecated." " The schema now comes from the datasource.",
+        message="`schema_name` is deprecated. The schema now comes from the datasource.",
     )
     @public_api
     @override
@@ -581,7 +582,7 @@ class SnowflakeDatasource(SQLDatasource):
         It also allows for users to continue to provide connection details in the
         `context.data_sources.add_snowflake()` factory functions without nesting it in a
         `connection_string` dict.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         connection_detail_fields: set[str] = {
             "schema",  # field name in ConnectionDetails is schema_ (with underscore)
             *ConnectionDetails.__fields__.keys(),
@@ -594,7 +595,7 @@ class SnowflakeDatasource(SQLDatasource):
         for field_name in provided_fields:
             if field_name in connection_detail_fields:
                 if connection_string:
-                    raise ValueError(  # noqa: TRY003
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
                         "Provided both connection detail keyword args and `connection_string`."
                     )
                 connection_details[field_name] = values.pop(field_name)
@@ -632,7 +633,7 @@ class SnowflakeDatasource(SQLDatasource):
             )
             if is_connection_string or has_min_connection_detail_values:
                 return values
-        raise ValueError(  # noqa: TRY003
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
             "Must provide either a connection string or"
             f" a combination of {', '.join(ConnectionDetails.required_fields())} as keyword args."
         )
@@ -721,7 +722,7 @@ class SnowflakeDatasource(SQLDatasource):
         the database to be created.
 
         For Snowflake specifically we may represent the connection_string as a dict, which is not supported by SQLAlchemy.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         gx_execution_engine_type: Type[SqlAlchemyExecutionEngine] = self.execution_engine_type
 
         connection_string: str | None = (
@@ -788,6 +789,11 @@ class SnowflakeDatasource(SQLDatasource):
         if not url:
             url_args = self._get_url_args()
             url_args.update(kwargs)
+
+            password = url_args.get("password")
+            if isinstance(password, str):
+                url_args["password"] = quote(password)
+
             url = SnowflakeURL(**url_args)
         else:
             url_args = {}
@@ -809,4 +815,4 @@ class SnowflakeDatasource(SQLDatasource):
 
         engine_kwargs["url"] = url
 
-        return sa.create_engine(**engine_kwargs)  # type: ignore[misc]
+        return sa.create_engine(**engine_kwargs)  # type: ignore[misc] # FIXME CoP

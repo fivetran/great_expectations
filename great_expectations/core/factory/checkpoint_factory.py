@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Iterable
 from great_expectations._docs_decorators import public_api
 from great_expectations.analytics.client import submit as submit_event
 from great_expectations.analytics.events import (
+    ActionInfo,
     CheckpointCreatedEvent,
     CheckpointDeletedEvent,
 )
@@ -14,6 +15,7 @@ from great_expectations.core.factory.factory import Factory
 from great_expectations.exceptions import DataContextError
 
 if TYPE_CHECKING:
+    from great_expectations import ValidationDefinition
     from great_expectations.core.data_context_key import StringKey
     from great_expectations.data_context.store.checkpoint_store import (
         CheckpointStore,
@@ -21,7 +23,12 @@ if TYPE_CHECKING:
     from great_expectations.data_context.types.resource_identifiers import GXCloudIdentifier
 
 
+@public_api
 class CheckpointFactory(Factory[Checkpoint]):
+    """
+    Responsible for basic CRUD operations on a Data Context's Checkpoints.
+    """
+
     def __init__(self, store: CheckpointStore):
         self._store = store
 
@@ -34,11 +41,11 @@ class CheckpointFactory(Factory[Checkpoint]):
             checkpoint: Checkpoint to add
 
         Raises:
-            DataContextError if Checkpoint already exists
+            DataContextError: if Checkpoint already exists
         """
         key = self._store.get_key(name=checkpoint.name, id=None)
         if self._store.has_key(key=key):
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 f"Cannot add Checkpoint with name {checkpoint.name} because it already exists."
             )
 
@@ -51,7 +58,16 @@ class CheckpointFactory(Factory[Checkpoint]):
             event=CheckpointCreatedEvent(
                 checkpoint_id=persisted_checkpoint.id,
                 validation_definition_ids=[
-                    vd.id for vd in persisted_checkpoint.validation_definitions
+                    validation_definition.id
+                    for validation_definition in checkpoint.validation_definitions
+                ],
+                actions=[
+                    ActionInfo(
+                        type=action.type,
+                        # notify_on is not a property of all Actions
+                        notify_on=getattr(action, "notify_on", None),
+                    )
+                    for action in checkpoint.actions
                 ],
             )
         )
@@ -67,12 +83,12 @@ class CheckpointFactory(Factory[Checkpoint]):
             name: The name of the Checkpoint to delete
 
         Raises:
-            DataContextError if Checkpoint doesn't exist
+            DataContextError: if Checkpoint doesn't exist
         """
         try:
             checkpoint = self.get(name=name)
         except DataContextError as e:
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 f"Cannot delete Checkpoint with name {name} because it cannot be found."
             ) from e
 
@@ -94,11 +110,11 @@ class CheckpointFactory(Factory[Checkpoint]):
             name: Name of Checkpoint to get
 
         Raises:
-            DataContextError when Checkpoint is not found.
+            DataContextError: when Checkpoint is not found.
         """
         key = self._store.get_key(name=name, id=None)
         if not self._store.has_key(key=key):
-            raise DataContextError(f"Checkpoint with name {name} was not found.")  # noqa: TRY003
+            raise DataContextError(f"Checkpoint with name {name} was not found.")  # noqa: TRY003 # FIXME CoP
 
         return self._get(key=key)
 
@@ -111,6 +127,53 @@ class CheckpointFactory(Factory[Checkpoint]):
     def _get(self, key: GXCloudIdentifier | StringKey) -> Checkpoint:
         checkpoint = self._store.get(key=key)
         if not isinstance(checkpoint, Checkpoint):
-            raise ValueError(f"Object with key {key} was found, but it is not a Checkpoint.")  # noqa: TRY003, TRY004
+            raise ValueError(f"Object with key {key} was found, but it is not a Checkpoint.")  # noqa: TRY003, TRY004 # FIXME CoP
 
         return checkpoint
+
+    @public_api
+    @override
+    def add_or_update(self, checkpoint: Checkpoint) -> Checkpoint:
+        """Add or update a Checkpoint by name.
+
+        If a Checkpoint with the same name exists, overwrite it, otherwise
+        create a new Checkpoint.
+
+        Args:
+            checkpoint: Checkpoint to add or update
+        """
+
+        try:
+            existing_checkpoint = self.get(name=checkpoint.name)
+        except DataContextError:
+            # checkpoint doesn't exist yet, so add it
+            self._add_or_update_validation_definitions(
+                validation_definitions=checkpoint.validation_definitions,
+                existing_validation_definitions=[],
+            )
+            return self.add(checkpoint=checkpoint)
+
+        # update checkpoint
+        checkpoint.id = existing_checkpoint.id
+        self._add_or_update_validation_definitions(
+            validation_definitions=checkpoint.validation_definitions,
+            existing_validation_definitions=existing_checkpoint.validation_definitions,
+        )
+        checkpoint.save()
+        return checkpoint
+
+    def _add_or_update_validation_definitions(
+        self,
+        validation_definitions: list[ValidationDefinition],
+        existing_validation_definitions: list[ValidationDefinition],
+    ):
+        from great_expectations.data_context import project_manager
+
+        val_def_ids_by_name = {
+            val_def.name: val_def.id for val_def in existing_validation_definitions
+        }
+        val_def_factory = project_manager.get_validation_definitions_factory()
+        for val_def in validation_definitions:
+            if val_def.name in val_def_ids_by_name:
+                val_def.id = val_def_ids_by_name[val_def.name]
+            val_def_factory.add_or_update(validation=val_def)

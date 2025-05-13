@@ -265,7 +265,7 @@ def delete_datasources_cb(
     LOGGER.debug(f"{request.method} {url}")
 
     parsed_url = urllib.parse.urlparse(url)
-    datasource_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment]
+    datasource_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment] # FIXME CoP
 
     datasources: dict[str, dict] = _CLOUD_API_FAKE_DB["datasources"]
     deleted_ds = datasources.pop(datasource_id, None)
@@ -287,7 +287,7 @@ def delete_data_assets_cb(
     LOGGER.debug(f"{request.method} {url}")
 
     parsed_url = urllib.parse.urlparse(url)
-    data_asset_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment]
+    data_asset_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment] # FIXME CoP
 
     datasources: dict[str, dict] = _CLOUD_API_FAKE_DB["datasources"]
     deleted_asset_idx = None
@@ -340,9 +340,9 @@ def post_datasources_cb(
             if not datasource_id:
                 datasource_id = str(uuid.uuid4())
                 payload.data.id = datasource_id
-            assert (
-                datasource_id not in _CLOUD_API_FAKE_DB["datasources"]
-            ), f"ID collision for '{datasource_name}'"
+            assert datasource_id not in _CLOUD_API_FAKE_DB["datasources"], (
+                f"ID collision for '{datasource_name}'"
+            )
 
             _CLOUD_API_FAKE_DB["datasources"][datasource_id] = payload.dict()
             _CLOUD_API_FAKE_DB["DATASOURCE_NAMES"].add(payload.data.name)
@@ -362,7 +362,7 @@ def post_datasources_cb(
 
         return result
     except pydantic.ValidationError as val_err:
-        LOGGER.exception(val_err)  # noqa: TRY401
+        LOGGER.exception(val_err)  # noqa: TRY401 # FIXME CoP
         return CallbackResult(
             400,
             headers=DEFAULT_HEADERS,
@@ -386,7 +386,7 @@ def post_datasources_cb(
         )
 
 
-def put_datasource_cb(request: PreparedRequest) -> CallbackResult:  # noqa: C901
+def put_datasource_cb(request: PreparedRequest) -> CallbackResult:  # noqa: C901 # FIXME CoP
     LOGGER.debug(f"{request.method} {request.url}")
     if not request.url:
         raise NotImplementedError("request.url should not be empty")
@@ -430,8 +430,8 @@ def get_datasources_cb(
     LOGGER.debug(f"{request.method} {url}")
 
     parsed_url = urllib.parse.urlparse(url)
-    query_params = urllib.parse.parse_qs(parsed_url.query)  # type: ignore[type-var]
-    queried_names: Sequence[str] = query_params.get("name", [])  # type: ignore[assignment]
+    query_params = urllib.parse.parse_qs(parsed_url.query)  # type: ignore[type-var] # FIXME CoP
+    queried_names: Sequence[str] = query_params.get("name", [])  # type: ignore[assignment] # FIXME CoP
 
     all_datasources: dict[str, dict] = _CLOUD_API_FAKE_DB["datasources"]
     datasources_list: list[dict] = list(all_datasources.values())
@@ -453,8 +453,8 @@ def get_expectation_suites_cb(request: PreparedRequest) -> CallbackResult:
     LOGGER.debug(f"{request.method} {url}")
 
     parsed_url = urllib.parse.urlparse(url)
-    query_params = urllib.parse.parse_qs(parsed_url.query)  # type: ignore[type-var]
-    queried_names: Sequence[str] = query_params.get("name", [])  # type: ignore[assignment]
+    query_params = urllib.parse.parse_qs(parsed_url.query)  # type: ignore[type-var] # FIXME CoP
+    queried_names: Sequence[str] = query_params.get("name", [])  # type: ignore[assignment] # FIXME CoP
 
     exp_suites: dict[str, dict] = _CLOUD_API_FAKE_DB["expectation_suites"]
     exp_suite_list: list[dict] = [d["data"] for d in exp_suites.values()]
@@ -475,7 +475,7 @@ def get_expectation_suite_by_id_cb(
     LOGGER.debug(f"{request.method} {url}")
 
     parsed_url = urllib.parse.urlparse(url)
-    expectation_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment]
+    expectation_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment] # FIXME CoP
 
     expectation_suite: dict | None = _CLOUD_API_FAKE_DB["expectation_suites"].get(expectation_id)
     if expectation_suite:
@@ -538,7 +538,7 @@ def put_expectation_suites_cb(request: PreparedRequest) -> CallbackResult:
 
     payload: dict = json.loads(request.body)
     parsed_url = urllib.parse.urlparse(request.url)
-    suite_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment]
+    suite_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment] # FIXME CoP
 
     name = payload["data"]["name"]
 
@@ -578,7 +578,7 @@ def put_expectation_suites_cb(request: PreparedRequest) -> CallbackResult:
 
 def delete_expectation_suites_cb(request: PreparedRequest) -> CallbackResult:
     parsed_url = urllib.parse.urlparse(request.url)
-    suite_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment]
+    suite_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment] # FIXME CoP
     exp_suites: dict[str, dict] = _CLOUD_API_FAKE_DB["expectation_suites"]
     old_suite = exp_suites.pop(suite_id, None)
     if not old_suite:
@@ -605,8 +605,8 @@ def get_checkpoints_cb(requests: PreparedRequest) -> CallbackResult:
     LOGGER.debug(f"{requests.method} {url}")
 
     parsed_url = urllib.parse.urlparse(url)
-    query_params = urllib.parse.parse_qs(parsed_url.query)  # type: ignore[type-var]
-    queried_names: Sequence[str] = query_params.get("name", [])  # type: ignore[assignment]
+    query_params = urllib.parse.parse_qs(parsed_url.query)  # type: ignore[type-var] # FIXME CoP
+    queried_names: Sequence[str] = query_params.get("name", [])  # type: ignore[assignment] # FIXME CoP
 
     checkpoints: dict[str, dict] = _CLOUD_API_FAKE_DB["checkpoints"]
     checkpoint_list: list[dict] = list(checkpoints.values())
@@ -625,10 +625,11 @@ def get_checkpoint_by_id_cb(request: PreparedRequest) -> CallbackResult:
     LOGGER.debug(f"{request.method} {url}")
 
     parsed_url = urllib.parse.urlparse(url)
-    checkpoint_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment]
+    checkpoint_id: str = parsed_url.path.split("/")[-1]  # type: ignore[arg-type,assignment] # FIXME CoP
 
     if checkpoint := _CLOUD_API_FAKE_DB["checkpoints"].get(checkpoint_id):
-        result = CallbackResult(200, headers=DEFAULT_HEADERS, body=json.dumps(checkpoint))
+        resp_body = json.dumps({"data": checkpoint})
+        result = CallbackResult(200, headers=DEFAULT_HEADERS, body=resp_body)
     else:
         result = CallbackResult(
             404,
@@ -684,6 +685,37 @@ def post_checkpoints_cb(request: PreparedRequest) -> CallbackResult:
     return result
 
 
+def put_checkpoint_cb(request: PreparedRequest) -> CallbackResult:
+    if not request.body:
+        raise NotImplementedError("Handling missing body")
+
+    payload: dict = json.loads(request.body)
+    name = payload["data"]["name"]
+
+    checkpoints: dict[str, dict] = _CLOUD_API_FAKE_DB["checkpoints"]
+    checkpoint_names: set[str] = _CLOUD_API_FAKE_DB["CHECKPOINT_NAMES"]
+
+    if name not in checkpoint_names:
+        result = CallbackResult(
+            404,
+            headers=DEFAULT_HEADERS,
+            body=ErrorPayloadSchema(
+                errors=[
+                    {
+                        "code": "404",
+                        "detail": f"Checkpoint '{name}' not found",
+                        "source": None,
+                    }
+                ]
+            ).json(),
+        )
+    else:
+        checkpoint_id = payload["data"]["id"]
+        checkpoints[checkpoint_id] = payload["data"]
+        result = CallbackResult(200, headers=DEFAULT_HEADERS, body=json.dumps(payload))
+    return result
+
+
 def delete_checkpoint_by_id_cb(
     request: PreparedRequest,
 ) -> CallbackResult:
@@ -714,8 +746,8 @@ def delete_checkpoint_by_name_cb(
     LOGGER.debug(f"{request.method} {url}")
 
     parsed_url = urllib.parse.urlparse(url)
-    query_params = urllib.parse.parse_qs(parsed_url.query)  # type: ignore[type-var]
-    queried_names: list[str] = query_params.get("name", [])  # type: ignore[assignment]
+    query_params = urllib.parse.parse_qs(parsed_url.query)  # type: ignore[type-var] # FIXME CoP
+    queried_names: list[str] = query_params.get("name", [])  # type: ignore[assignment] # FIXME CoP
     if not queried_names:
         raise ValueError("Must provide checkpoint name for deletion.")
 
@@ -748,9 +780,23 @@ def post_validation_results_cb(request: PreparedRequest) -> CallbackResult:
         raise NotImplementedError("Handling missing body")
 
     payload: dict = json.loads(request.body)
-    validation_id = payload["data"]["attributes"]["result"]["meta"]["validation_id"]
+    validation_id = payload["data"]["meta"]["validation_id"]
     if validation_id:
-        raise NotImplementedError("TODO: Handling the validation_id success case")
+        return CallbackResult(
+            200,
+            headers=DEFAULT_HEADERS,
+            body=json.dumps(
+                {
+                    "data": {
+                        "id": validation_id,
+                        "result_url": (
+                            f"{GX_CLOUD_MOCK_BASE_URL}organizations/{FAKE_ORG_ID}/"
+                            "validation-results/{validation_id}"
+                        ),
+                    }
+                }
+            ),
+        )
     else:
         result = CallbackResult(
             422,  # 400 in prod but this is a more informative status code
@@ -951,6 +997,11 @@ def gx_cloud_api_fake_ctx(
             responses.GET,
             re.compile(urllib.parse.urljoin(org_url_base_V1, f"checkpoints/{UUID_REGEX}")),
             get_checkpoint_by_id_cb,
+        )
+        resp_mocker.add_callback(
+            responses.PUT,
+            re.compile(urllib.parse.urljoin(org_url_base_V1, f"checkpoints/{UUID_REGEX}")),
+            put_checkpoint_cb,
         )
         resp_mocker.add_callback(
             responses.POST,

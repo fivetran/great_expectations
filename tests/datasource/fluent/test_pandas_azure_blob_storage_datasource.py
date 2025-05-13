@@ -139,7 +139,7 @@ def test_construct_pandas_abs_datasource_with_conn_str_and_credential():
     pandas_abs_datasource = PandasAzureBlobStorageDatasource(
         name="pandas_abs_datasource",
         azure_options={  # Representative of format noted in official docs
-            "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501
+            "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501 # FIXME CoP
             "credential": "my_credential",
         },
     )
@@ -167,7 +167,7 @@ def test_construct_pandas_abs_datasource_with_valid_conn_str_assigns_account_nam
     pandas_abs_datasource = PandasAzureBlobStorageDatasource(
         name="pandas_abs_datasource",
         azure_options={  # Representative of format noted in official docs
-            "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501
+            "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501 # FIXME CoP
             "credential": "my_credential",
         },
     )
@@ -178,13 +178,13 @@ def test_construct_pandas_abs_datasource_with_valid_conn_str_assigns_account_nam
 
 @pytest.mark.big
 def test_construct_pandas_abs_datasource_with_multiple_auth_methods_raises_error():
-    # Raises error in DataContext's schema validation due to having both `account_url` and `conn_str`  # noqa: E501
+    # Raises error in DataContext's schema validation due to having both `account_url` and `conn_str`  # noqa: E501 # FIXME CoP
     with pytest.raises(PandasAzureBlobStorageDatasourceError):
         pandas_abs_datasource = PandasAzureBlobStorageDatasource(
             name="pandas_abs_datasource",
             azure_options={
                 "account_url": "account.blob.core.windows.net",
-                "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501
+                "conn_str": "DefaultEndpointsProtocol=https;AccountName=storagesample;AccountKey=my_account_key",  # noqa: E501 # FIXME CoP
                 "credential": "my_credential",
             },
         )
@@ -217,7 +217,7 @@ def test_add_csv_asset_to_datasource(
 @mock.patch("azure.storage.blob.BlobServiceClient")
 def test_construct_csv_asset_directly(mock_azure_client, mock_list_keys, object_keys: List[str]):
     mock_list_keys.return_value = object_keys
-    asset = CSVAsset(  # type: ignore[call-arg]
+    asset = CSVAsset(  # type: ignore[call-arg] # FIXME CoP
         name="csv_asset",
     )
     assert asset.name == "csv_asset"

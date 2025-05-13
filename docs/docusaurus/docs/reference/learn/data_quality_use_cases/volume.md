@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 Data volume, a critical aspect of data quality, refers to the quantity of records or data points within a dataset. Managing data volume effectively is crucial for maintaining data integrity, ensuring system performance, and deriving accurate insights. Unexpected changes in data volume can signal issues in data collection, processing, or storage, potentially leading to skewed analyses or system failures. Volume management is intrinsically linked to other aspects of data quality, such as data completeness and consistency, forming a crucial part of a comprehensive data quality strategy.
 
-Great Expectations (GX) offers a powerful set of tools for monitoring and validating data volume through its volume-focused Expectations. By integrating these Expectations into your data pipelines, you can establish robust checks that ensure your datasets maintain the expected volume, catch anomalies early, and prevent downstream issues in your data workflows.
+Great Expectations (GX) offers a powerful set of tools for monitoring and validating data volume through its volume-focused Expectations. You can automatically generate some of these Expectations when you add a new Data Asset in GX Cloud. By integrating these Expectations into your data pipelines, you can establish robust checks that ensure your datasets maintain the expected volume, catch anomalies early, and prevent downstream issues in your data workflows.
 
 This guide will walk you through leveraging GX to effectively manage and validate data volume, helping you maintain high-quality, reliable datasets.
 
@@ -28,9 +28,7 @@ This dataset represents daily financial transactions. In a real-world scenario, 
 
 ## Key volume Expectations
 
-GX provides several Expectations specifically designed for managing data volume. These can be added to an Expectation Suite via the GX Cloud UI or using the GX Core Python library.
-
-![Add a volume Expectation in GX Cloud](./volume_resources/gx_cloud_volume_expectations_add.gif)
+GX provides several Expectations specifically designed for managing data volume, all of which can be added directly from the GX Cloud UI or using the GX Core Python library. Some of them can be automatically generated when you add a new Data Asset using GX Cloud.
 
 ### Expect Table Row Count To Be Between
 
@@ -38,8 +36,12 @@ Ensures that the number of rows in a dataset falls within a specified range.
 
 **Use Case**: Validate that transaction volumes are within expected bounds, alerting to unusual spikes or drops in activity.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToBeBetween"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToBeBetween"
 ```
+
+:::tip Automate this rule
+When you [create a new Data Asset with GX Cloud](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate an instance of this Expectation that detects non-increasing volume over time.
+:::
 
 <small>View `ExpectTableRowCountToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between).</small>
 
@@ -50,7 +52,7 @@ Verifies that the dataset contains exactly the specified number of records.
 
 **Use Case**: Ensure that a specific number of records are processed, useful for batch operations or reconciliation tasks.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToEqual"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToEqual"
 ```
 
 <small>View `ExpectTableRowCountToEqual` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_table_row_count_to_equal).</small>
@@ -62,7 +64,7 @@ Compares the row count of the current table to another table within the same dat
 
 **Use Case**: Verify data consistency across different stages of a pipeline or between source and target systems.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToEqualOtherTable"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToEqualOtherTable"
 ```
 
 <small>View `ExpectTableRowCountToEqualOtherTable` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_table_row_count_to_equal_other_table).</small>
@@ -83,7 +85,7 @@ Compares the row count of the current table to another table within the same dat
 **Goal**: Using the `ExpectTableRowCountToBeBetween` Expectation and either GX Core or GX Cloud, validate daily data volume by batching a single Data Asset (a Postgres table) on a time-based column, `transfer_ts`.
 
 <Tabs
-   defaultValue="gx_core"
+   defaultValue="gx_cloud"
    values={[
       {value: 'gx_core', label: 'GX Core'},
       {value: 'gx_cloud', label: 'GX Cloud'}
@@ -93,7 +95,7 @@ Compares the row count of the current table to another table within the same dat
 <TabItem value="gx_core" label="GX Core">
 Run the following GX Core workflow.
 
-```python title="" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_workflow.py full example code"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_workflow.py full example code"
 ```
 
 **Result**:
@@ -114,21 +116,23 @@ Run the following GX Core workflow.
 Use the GX Cloud UI to walk through the following steps.
 
 1. Create a Postgres Data Asset for the `volume_financial_transfers` table, using the connection string:
-   ```
+   ```python title="Connection string"
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
    ```
 
 2. Profile the Data Asset.
 3. Add an **Expect table row count to be between** Expectation to the freshly created Data Asset.
-4. Populate the Expectation:
-   * Define a **Daily** batch interval for the Expectation, using `transfer_ts` as the **Batch column**.
-   * Provide a **Min Value** of `1` and a **Max Value** of `5`.
+4. Populate the Expectation with a **Min Value** of `1` and a **Max Value** of `5`.
 5. Save the Expectation.
-6. Click the **Validate** button and define which batch to validate.
-   * **Latest Batch** validates data for the most recent batch found in the Data Asset.
-   * **Custom Batch** validates data for the batch provided.
-7. Click **Validate**.
-8. Review Validation Results.
+6. Click **Define batch**.
+7. For **Validate by**, select **Day**.
+8. Set the **Batch column** to `transfer_ts`.
+9. Click **Save**.
+10. Click the **Validate** button and define which batch to validate.
+   * **Latest** validates data for the most recent batch found in the Data Asset.
+   * **Custom** validates data for the batch provided.
+11. Click **Validate**.
+12. Review Validation Results.
 
 </TabItem>
 </Tabs>

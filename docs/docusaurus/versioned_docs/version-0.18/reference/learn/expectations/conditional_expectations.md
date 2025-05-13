@@ -2,15 +2,15 @@
 title: Conditional Expectations
 ---
 
-:::note
+:::note Note
 Conditional Expectations are **experimental**, and they are available for Pandas, Spark, and SQLAlchemy backends.
 :::
 
 You can create an Expectation for an entire dataset, or for a subset of the dataset. Some variables are dependent on the values of other variables. For example, a column that specifies that the country of origin must not be null for people of foreign descent.
 
-Great Expectations lets you express Conditional Expectations with a `row_condition` argument that can be passed to all Dataset Expectations. The `row_condition` argument should be a boolean expression string. In addition, you must provide the `condition_parser` argument which defines the syntax of conditions. When implementing conditional Expectations with Pandas, this argument must be set to `"pandas"`. When implementing conditional Expectations with Spark or SQLAlchemy, this argument must be set to `"great_expectations__experimental__"`. 
+Great Expectations lets you express Conditional Expectations with a `row_condition` argument that can be passed to all Dataset Expectations. The `row_condition` argument should be a boolean expression string. In addition, you must provide the `condition_parser` argument which defines the syntax of conditions. When implementing conditional Expectations with Pandas, this argument must be set to `"pandas"`. When implementing conditional Expectations with Spark or SQLAlchemy, this argument must be set to `"great_expectations__experimental__"`.
 
-:::note
+:::note Note
 In Pandas the `row_condition` value is passed to `pandas.DataFrame.query()` before Expectation Validation. See [pandas.DataFrame.query](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.query.html).
 
 In Spark and SQLAlchemy, the `row_condition` value is parsed as a data filter or a query before Expectation Validation.
@@ -48,7 +48,7 @@ This returns:
 }
 ```
 
-:::note
+:::note Note
 To get a Validator object, see [How to create Expectations interactively in Python](/oss/guides/expectations/how_to_create_and_edit_expectations_with_instant_feedback_from_a_sample_batch_of_data.md).
 :::
 

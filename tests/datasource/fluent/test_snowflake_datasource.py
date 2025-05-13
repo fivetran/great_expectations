@@ -12,6 +12,7 @@ import sqlalchemy as sa
 from pytest import param
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.snowflake import URL as SnowflakeURL
 from great_expectations.compatibility.snowflake import snowflake
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent import (
@@ -28,7 +29,7 @@ from great_expectations.datasource.fluent.snowflake_datasource import (
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 if TYPE_CHECKING:
-    from pytest.mark.structures import ParameterSet  # type: ignore[import-not-found]
+    from pytest.mark.structures import ParameterSet  # type: ignore[import-not-found] # FIXME CoP
     from pytest_mock import MockerFixture
 
 TEST_LOGGER: Final = logging.getLogger(__name__)
@@ -894,6 +895,54 @@ def test_create_engine_is_called_with_expected_kwargs(
     create_engine_spy.assert_called_once_with(**expected_called_with)
 
 
+@pytest.mark.snowflake
+@pytest.mark.parametrize(
+    ("password", "encoded_password"),
+    [
+        pytest.param("abc", "abc", id="no need to encode"),
+        pytest.param("a@b", "a%40b", id="encode it"),
+    ],
+)
+def test_test_connection_encoding(
+    mocker: MockerFixture,
+    ephemeral_context_with_defaults: AbstractDataContext,
+    password: str,
+    encoded_password: str,
+):
+    account = "account"
+    user = "foo"
+    role = "role"
+    warehouse = "warehouse"
+    db = "db"
+    schema = "schema"
+    create_engine_spy = mocker.patch.object(sa, "create_engine")
+
+    datasource = ephemeral_context_with_defaults.data_sources.add_snowflake(
+        name="foo",
+        account=account,
+        user=user,
+        password=password,
+        database=db,
+        schema=schema,
+        role=role,
+        warehouse=warehouse,
+    )
+    datasource.get_engine()
+
+    create_engine_spy.assert_called_with(
+        url=SnowflakeURL(
+            account=account,
+            user=user,
+            password=encoded_password,
+            database=db,
+            schema=schema,
+            role=role,
+            warehouse=warehouse,
+            application="great_expectations_core",
+        )
+    )
+
+
 @pytest.mark.unit
 @pytest.mark.parametrize("ds_config", VALID_DS_CONFIG_PARAMS)
 class TestConvenienceProperties:
@@ -908,9 +957,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.schema_
-                ), "Don't expect schema to be available without config_provider"
+                assert not datasource.schema_, (
+                    "Don't expect schema to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.schema_
@@ -928,9 +977,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.database
-                ), "Don't expect database to be available without config_provider"
+                assert not datasource.database, (
+                    "Don't expect database to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.database
@@ -948,9 +997,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.warehouse
-                ), "Don't expect warehouse to be available without config_provider"
+                assert not datasource.warehouse, (
+                    "Don't expect warehouse to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.warehouse
@@ -968,9 +1017,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.role
-                ), "Don't expect role to be available without config_provider"
+                assert not datasource.role, (
+                    "Don't expect role to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.role
@@ -988,9 +1037,9 @@ class TestConvenienceProperties:
         if isinstance(datasource.connection_string, ConfigStr):
             # expect a warning if connection string is a ConfigStr
             with pytest.warns(GxContextWarning):
-                assert (
-                    not datasource.account
-                ), "Don't expect account to be available without config_provider"
+                assert not datasource.account, (
+                    "Don't expect account to be available without config_provider"
+                )
             # attach context to enable config substitution
             datasource._data_context = ephemeral_context_with_defaults
             _ = datasource.account

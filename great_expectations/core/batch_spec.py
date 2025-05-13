@@ -20,19 +20,19 @@ logger = logging.getLogger(__name__)
 
 # TODO: <Alex>This module needs to be cleaned up.
 #  We have Batch used for the legacy design, and we also need Batch for the new design.
-#  However, right now, the Batch from the legacy design is imported into execution engines of the new design.  # noqa: E501
-#  As a result, we have multiple, inconsistent versions of BatchMarkers, extending legacy/new classes.</Alex>  # noqa: E501
+#  However, right now, the Batch from the legacy design is imported into execution engines of the new design.  # noqa: E501 # FIXME CoP
+#  As a result, we have multiple, inconsistent versions of BatchMarkers, extending legacy/new classes.</Alex>  # noqa: E501 # FIXME CoP
 # TODO: <Alex>See also "great_expectations/core/batch.py".</Alex>
 # TODO: <Alex>The following class is part of the new design.</Alex>
 class BatchMarkers(BatchSpec):
     """A BatchMarkers is a special type of BatchSpec (so that it has a batch_fingerprint) but it generally does
     NOT require specific keys and instead captures information about the OUTPUT of a datasource's fetch
-    process, such as the timestamp at which a query was executed."""  # noqa: E501
+    process, such as the timestamp at which a query was executed."""  # noqa: E501 # FIXME CoP
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if "ge_load_time" not in self:
-            raise InvalidBatchIdError("BatchMarkers requires a ge_load_time")  # noqa: TRY003
+            raise InvalidBatchIdError("BatchMarkers requires a ge_load_time")  # noqa: TRY003 # FIXME CoP
 
     @property
     def ge_load_time(self):
@@ -90,15 +90,15 @@ class PathBatchSpec(BatchSpec, metaclass=ABCMeta):
             kwargs["reader_options"] = reader_options
         super().__init__(*args, **kwargs)
         if "path" not in self:
-            raise InvalidBatchSpecError("PathBatchSpec requires a path element")  # noqa: TRY003
+            raise InvalidBatchSpecError("PathBatchSpec requires a path element")  # noqa: TRY003 # FIXME CoP
 
     @property
     def path(self) -> str:
-        return self.get("path")  # type: ignore[return-value]
+        return self.get("path")  # type: ignore[return-value] # FIXME CoP
 
     @property
     def reader_method(self) -> str:
-        return self.get("reader_method")  # type: ignore[return-value]
+        return self.get("reader_method")  # type: ignore[return-value] # FIXME CoP
 
     @property
     def reader_options(self) -> dict:
@@ -143,8 +143,8 @@ class FabricBatchSpec(PandasBatchSpecProtocol):
         try:
             return getattr(fabric, self.reader_method)
         except AttributeError:
-            raise AttributeError(  # noqa: TRY003
-                f"FabricBatchSpec reader_method {self.reader_method} not found in sempy.fabric module"  # noqa: E501
+            raise AttributeError(  # noqa: TRY003 # FIXME CoP
+                f"FabricBatchSpec reader_method {self.reader_method} not found in sempy.fabric module"  # noqa: E501 # FIXME CoP
             )
 
 
@@ -181,7 +181,7 @@ class RuntimeDataBatchSpec(BatchSpec):
         super().__init__(*args, **kwargs)
 
         if self.batch_data is None:
-            raise InvalidBatchSpecError("RuntimeDataBatchSpec batch_data cannot be None")  # noqa: TRY003
+            raise InvalidBatchSpecError("RuntimeDataBatchSpec batch_data cannot be None")  # noqa: TRY003 # FIXME CoP
 
     @property
     def batch_data(self):
@@ -197,7 +197,7 @@ class RuntimeQueryBatchSpec(BatchSpec):
         super().__init__(*args, **kwargs)
 
         if self.query is None:
-            raise InvalidBatchSpecError("RuntimeQueryBatchSpec query cannot be None")  # noqa: TRY003
+            raise InvalidBatchSpecError("RuntimeQueryBatchSpec query cannot be None")  # noqa: TRY003 # FIXME CoP
 
     @property
     def query(self):
@@ -212,9 +212,9 @@ class GlueDataCatalogBatchSpec(BatchSpec):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         if "database_name" not in self:
-            raise InvalidBatchSpecError("GlueDataCatalogBatchSpec requires a database_name")  # noqa: TRY003
+            raise InvalidBatchSpecError("GlueDataCatalogBatchSpec requires a database_name")  # noqa: TRY003 # FIXME CoP
         if "table_name" not in self:
-            raise InvalidBatchSpecError("GlueDataCatalogBatchSpec requires a table_name")  # noqa: TRY003
+            raise InvalidBatchSpecError("GlueDataCatalogBatchSpec requires a table_name")  # noqa: TRY003 # FIXME CoP
 
     @property
     def reader_method(self) -> str:

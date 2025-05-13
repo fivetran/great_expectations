@@ -254,7 +254,7 @@ class TestExcludeUnsetAssetFields:
     def test_from_gx_config(self, asset_dict: dict):
         """
         Ensure that unset fields are excluded even when being parsed by the top-level `GxConfig` class.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         # fill in required args
         asset_dict.update(
             {
@@ -866,7 +866,7 @@ def test_config_substitution_retains_original_value_on_save(
 
     print(context.fluent_config)
 
-    ds_w_subs: SqliteDatasource = context.fluent_config.get_datasource(name="my_sqlite_ds_w_subs")  # type: ignore[assignment]
+    ds_w_subs: SqliteDatasource = context.fluent_config.get_datasource(name="my_sqlite_ds_w_subs")  # type: ignore[assignment] # FIXME CoP
 
     assert str(ds_w_subs.connection_string) == r"${MY_CONN_STR}"
     assert (
@@ -909,7 +909,7 @@ def test_config_substitution_retains_original_value_on_save_w_run_time_mods(
     datasources = context.fluent_datasources
 
     assert (
-        str(datasources["my_sqlite_ds_w_subs"].connection_string)  # type: ignore[attr-defined]
+        str(datasources["my_sqlite_ds_w_subs"].connection_string)  # type: ignore[attr-defined] # FIXME CoP
         == r"${MY_CONN_STR}"
     )
 
@@ -917,7 +917,7 @@ def test_config_substitution_retains_original_value_on_save_w_run_time_mods(
     context.data_sources.add_sqlite("my_new_one", connection_string="sqlite://")
 
     # add a new asset to an existing data
-    sqlite_ds_w_subs: SqliteDatasource = context.data_sources.get(  # type: ignore[assignment]
+    sqlite_ds_w_subs: SqliteDatasource = context.data_sources.get(  # type: ignore[assignment] # FIXME CoP
         "my_sqlite_ds_w_subs"
     )
     sqlite_ds_w_subs.add_table_asset("new_asset", table_name="yellow_tripdata_sample_2019_01")

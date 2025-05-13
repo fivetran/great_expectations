@@ -27,4 +27,10 @@ To connect to your Filesystem data, you first create a Data Source which tells G
 
 ## Create a Batch Definition
 
+A Batch Definition allows you to request all the records from a Data Asset or a subset based on the contents of a date and time field.
+
+:::note For API-managed Expectations only
+If you use GX Cloud and GX Core together, note that Batch Definitions you create with the API apply to [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations) only.
+:::
+
 <CreateABatchDefinition/>

@@ -11,14 +11,14 @@ import PrereqValidationDefinition from '../_core_components/prerequisites/_valid
 
 A Checkpoint executes one or more Validation Definitions and then performs a set of Actions based on the Validation Results each Validation Definition returns.
 
-<h2>Prerequisites</h2>
+## Prerequisites
 
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - <PrereqPreconfiguredDataContext/>. In this guide the variable `context` is assumed to contain your Data Context.
 - <PrereqValidationDefinition/>.
 
-### Procedure
+## Procedure
 
 <Tabs 
    queryString="procedure"
@@ -40,11 +40,11 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
 
 2. Determine the Actions that the Checkpoint will automate.
 
-   After a Checkpoint receives Validation Results from running a Validation Definition, it executes a list of Actions. The returned Validation Results determine what task is performed for each Action. Actions can include updating Data Docs with the new Validation Results or sending alerts when validations fail.  The Actions list is executed once for each Validation Definition in a Checkpoint.
+   After a Checkpoint receives Validation Results from running a Validation Definition, it executes a list of Actions. The returned Validation Results determine what task is performed for each Action. Actions can include updating Data Docs with the new Validation Results, sending alerts when validations fail, or your own [custom logic](/core/trigger_actions_based_on_results/create_a_custom_action.md). The Actions list is executed once for each Validation Definition in a Checkpoint.
 
    Actions can be found in the `great_expectations.checkpoint` module.  All Action class names end with `*Action`.
 
-   The following is an example of how to create an Action list that will trigger a `SlackAlertAction` and an `UpdateDataDocsAction`:
+   The following is an example of how to create an Action list that will trigger a `SlackNotificationAction` and an `UpdateDataDocsAction`:
 
    ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_checkpoint_with_actions.py - define an Action list"
    ```

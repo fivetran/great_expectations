@@ -11,14 +11,14 @@ from great_expectations.render.renderer.renderer import Renderer
 
 @pytest.mark.unit
 def test__find_evr_by_type(titanic_profiled_evrs_1):
-    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501
+    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501 # FIXME CoP
     found_evr = Renderer()._find_evr_by_type(
         titanic_profiled_evrs_1.results, "expect_column_to_exist"
     )
     print(found_evr)
     assert found_evr is None
 
-    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501
+    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501 # FIXME CoP
     found_evr = Renderer()._find_evr_by_type(
         titanic_profiled_evrs_1.results, "expect_column_distinct_values_to_be_in_set"
     )
@@ -46,28 +46,28 @@ def test__find_evr_by_type(titanic_profiled_evrs_1):
         },
         expectation_config=ExpectationConfiguration(
             type="expect_column_distinct_values_to_be_in_set",
-            kwargs={"column": "PClass", "value_set": None, "result_format": "SUMMARY"},
+            kwargs={"column": "PClass", "value_set": ["a", "b", "c"], "result_format": "SUMMARY"},
         ),
     )
 
 
 @pytest.mark.unit
 def test__find_all_evrs_by_type(titanic_profiled_evrs_1):
-    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501
+    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501 # FIXME CoP
     found_evrs = Renderer()._find_all_evrs_by_type(
         titanic_profiled_evrs_1.results, "expect_column_to_exist", column_=None
     )
     print(found_evrs)
     assert found_evrs == []
 
-    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501
+    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501 # FIXME CoP
     found_evrs = Renderer()._find_all_evrs_by_type(
         titanic_profiled_evrs_1.results, "expect_column_to_exist", column_="SexCode"
     )
     print(found_evrs)
     assert found_evrs == []
 
-    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501
+    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501 # FIXME CoP
     found_evrs = Renderer()._find_all_evrs_by_type(
         titanic_profiled_evrs_1.results,
         "expect_column_distinct_values_to_be_in_set",
@@ -76,7 +76,7 @@ def test__find_all_evrs_by_type(titanic_profiled_evrs_1):
     print(found_evrs)
     assert len(found_evrs) == 4
 
-    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501
+    # TODO: _find_all_evrs_by_type should accept an ValidationResultSuite, not ValidationResultSuite.results  # noqa: E501 # FIXME CoP
     found_evrs = Renderer()._find_all_evrs_by_type(
         titanic_profiled_evrs_1.results,
         "expect_column_distinct_values_to_be_in_set",

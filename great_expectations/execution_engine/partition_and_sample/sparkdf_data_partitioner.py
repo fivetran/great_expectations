@@ -156,7 +156,7 @@ class SparkDataPartitioner(DataPartitioner):
 
         Returns:
             String representing the spark function to use for the given DatePart.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         date_part = DatePart(date_part)
 
         spark_date_part_decoder: dict = {
@@ -197,7 +197,7 @@ class SparkDataPartitioner(DataPartitioner):
 
         Returns:
             Filtered spark DataFrame.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return df.filter(F.col(column_name) == batch_identifiers[column_name])
 
     @staticmethod
@@ -260,7 +260,7 @@ class SparkDataPartitioner(DataPartitioner):
         for column_name in column_names:
             value = batch_identifiers.get(column_name)
             if not value:
-                raise ValueError(  # noqa: TRY003
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
                     f"In order for SparkDFExecutionEngine to `_partition_on_multi_column_values`, "
                     f"all values in  column_names must also exist in batch_identifiers. "
                     f"{column_name} was not found in batch_identifiers."
@@ -281,9 +281,9 @@ class SparkDataPartitioner(DataPartitioner):
             getattr(hashlib, hash_function_name)
         except (TypeError, AttributeError):
             raise (
-                gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     f"""The partitioning method used with SparkDFExecutionEngine has a reference to an invalid hash_function_name.
-                    Reference to {hash_function_name} cannot be found."""  # noqa: E501
+                    Reference to {hash_function_name} cannot be found."""  # noqa: E501 # FIXME CoP
                 )
             )
 

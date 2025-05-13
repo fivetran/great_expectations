@@ -83,7 +83,7 @@ def project_help_comment():
 # config_version refers to the syntactic version of this config file, and is used in maintaining backwards compatibility
 # It is auto-generated and usually does not need to be changed.
 config_version: 4
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
     return PROJECT_HELP_COMMENT
 
 
@@ -94,7 +94,7 @@ def test_project_optional_config_comment_matches_default(
     """
     What does this test and why?
     Make sure that the templates built on data_context.types.base.DataContextConfigDefaults match the desired default.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     assert project_optional_config_comment == templates.PROJECT_OPTIONAL_CONFIG_COMMENT
 
@@ -104,6 +104,6 @@ def test_project_help_comment_matches_default(project_help_comment):
     """
     What does this test and why?
     Make sure that the templates built on data_context.types.base.DataContextConfigDefaults match the desired default.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     assert project_help_comment == templates.PROJECT_HELP_COMMENT

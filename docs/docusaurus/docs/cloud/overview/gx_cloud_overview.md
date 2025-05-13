@@ -26,7 +26,7 @@ GX Cloud data validation workflows are created using GX Cloud components, entiti
 
 ### Standard data validation workflow
 
-A GX Cloud data validation workflow can be implemented using a short, clear set of steps:
+A GX Cloud data validation workflow can be implemented using the following steps:
 
 ![Standard GX Cloud workflow](./overview_images/gx_cloud_workflow.png)
 
@@ -46,10 +46,13 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Data Asset profiling.** GX Cloud introspects your data schema by default on Data Asset creation, and also offers one-click fetching of additional descriptive metrics including column type and statistical summaries. Data profiling results are used to suggest parameters for Expectations that you create.
 
+* **Automate rules for common issues.** GX Cloud can automatically generate Expectations that detect column changes, non-increasing data volume, and changes to the percentage of null values in each column. This option is available when [you create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source).
+
+* **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
+
 * **Schedule Validations.** GX Cloud enables you to schedule validations, so that you can test and assess your data on a regular cadence and monitor data quality over time. See [Manage schedules](/cloud/schedules/manage_schedules.md) for more detail.
 
-* **Alerting.** GX Cloud provides the ability send alerts when validations fail, enabling your organization to remain proactively aware of the health of your Data Assets. See [Manage alerts](/cloud/alerts/manage_alerts.md) for more detail.
-
+* **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your organization to remain proactively aware of the health of your Data Assets. See [Manage alerts](/cloud/alerts/manage_alerts.md) for more detail.
 
 
 
@@ -65,4 +68,4 @@ GX Cloud architecture comprises a frontend web UI, storage for entity configurat
 
 * **GX Cloud backend application**. Contains the necessary logic and compute to connect to data and run queries. The specifics of how the GX Cloud backend connects to your data is described in [Deployment patterns](/cloud/deploy/deployment_patterns.md).
 
-* **GX Core Python client**. Enables you to interact programmatically with the GX Cloud backend application. The [GX Core Python client](/core/introduction/introduction.mdx) can complement and extend your web UI-created workflows.
+* **GX Core Python client**. Enables you to interact programmatically with GX Cloud entities and workflows created via the API. The [GX Core Python client](/core/introduction/introduction.mdx) can complement and extend your web UI-created workflows.

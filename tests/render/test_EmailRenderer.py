@@ -29,11 +29,11 @@ def test_EmailRenderer_render(v1_checkpoint_result):
         "<p><strong>Data Asset Name</strong>: my_first_asset</p>",
         "<p><strong>Run ID</strong>: __no_run_id__</p>",
         "<p><strong>Batch ID</strong>: my_batch</p>",
-        "<p><strong>Summary</strong>: <strong>3</strong> of <strong>5</strong> expectations were met</p><br><p><strong><h3><u>my_good_suite</u></h3></strong></p>",  # noqa: E501
+        "<p><strong>Summary</strong>: <strong>3</strong> of <strong>5</strong> expectations were met</p><br><p><strong><h3><u>my_good_suite</u></h3></strong></p>",  # noqa: E501 # FIXME CoP
         "<p><strong>Batch Validation Status</strong>: Success 🎉</p>",
         "<p><strong>Expectation Suite Name</strong>: my_good_suite</p>",
         "<p><strong>Data Asset Name</strong>: __no_asset_name__</p>",
         "<p><strong>Run ID</strong>: my_run_id</p>",
         "<p><strong>Batch ID</strong>: my_other_batch</p>",
-        "<p><strong>Summary</strong>: <strong>1</strong> of <strong>1</strong> expectations were met</p>",  # noqa: E501
+        "<p><strong>Summary</strong>: <strong>1</strong> of <strong>1</strong> expectations were met</p>",  # noqa: E501 # FIXME CoP
     ]

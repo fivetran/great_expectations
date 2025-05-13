@@ -77,7 +77,7 @@ expectations_store_name: expectations_S3_store
 configured_expectations_store = yaml.load(configured_expectations_store_yaml)
 configured_expectations_store["stores"]["expectations_S3_store"]["store_backend"][
     "bucket"
-] = "aws-golden-path-tests"
+] = "gx-golden-path-tests"
 configured_expectations_store["stores"]["expectations_S3_store"]["store_backend"][
     "prefix"
 ] = "metadata/expectations"
@@ -159,7 +159,7 @@ validations_store_name: validations_S3_store
 configured_validations_store = yaml.load(configured_validations_store_yaml)
 configured_validations_store["stores"]["validations_S3_store"]["store_backend"][
     "bucket"
-] = "aws-golden-path-tests"
+] = "gx-golden-path-tests"
 configured_validations_store["stores"]["validations_S3_store"]["store_backend"][
     "prefix"
 ] = "metadata/validations"
@@ -201,7 +201,7 @@ data_docs_sites:
 """
 
 data_docs_site_yaml = data_docs_site_yaml.replace(
-    "<YOUR S3 BUCKET NAME>", "demo-data-docs"
+    "<YOUR S3 BUCKET NAME>", "gx-demo-data-docs"
 )
 great_expectations_yaml_file_path = pathlib.Path(
     context.root_directory, FileDataContext.GX_YML

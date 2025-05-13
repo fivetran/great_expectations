@@ -6,11 +6,13 @@ from typing import TYPE_CHECKING, ClassVar, Literal, Optional, Type
 
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.datasource.fluent import _PandasFilePathDatasource
 from great_expectations.datasource.fluent.data_connector import (
     FilesystemDataConnector,
 )
 from great_expectations.datasource.fluent.interfaces import TestConnectionError
+from great_expectations.datasource.fluent.pandas_file_path_datasource import (
+    _PandasFilePathDatasource,
+)
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.data_asset.path.file_asset import FileDataAsset
@@ -46,9 +48,9 @@ class PandasFilesystemDatasource(_PandasFilePathDatasource):
 
         Raises:
             TestConnectionError: If the connection test fails.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not self.base_directory.exists():
-            raise TestConnectionError(f"Path: {self.base_directory.resolve()} does not exist.")  # noqa: TRY003
+            raise TestConnectionError(f"Path: {self.base_directory.resolve()} does not exist.")  # noqa: TRY003 # FIXME CoP
 
         if self.assets and test_assets:
             for asset in self.assets:
@@ -60,7 +62,7 @@ class PandasFilesystemDatasource(_PandasFilePathDatasource):
     ) -> None:
         """Builds and attaches the `FilesystemDataConnector` to the asset."""
         if kwargs:
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"_build_data_connector() got unexpected keyword arguments {list(kwargs.keys())}"
             )
         data_asset._data_connector = self.data_connector_type.build_data_connector(

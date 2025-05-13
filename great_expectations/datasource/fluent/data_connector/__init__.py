@@ -18,7 +18,7 @@ from great_expectations.datasource.fluent.data_connector.s3_data_connector impor
 from great_expectations.datasource.fluent.data_connector.azure_blob_storage_data_connector import (
     AzureBlobStorageDataConnector,
 )
-from great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector import (  # noqa: E501
+from great_expectations.datasource.fluent.data_connector.google_cloud_storage_data_connector import (  # noqa: E501 # FIXME CoP
     GoogleCloudStorageDataConnector,
 )
 

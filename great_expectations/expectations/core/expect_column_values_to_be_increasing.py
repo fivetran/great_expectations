@@ -71,7 +71,7 @@ class ExpectColumnValuesToBeIncreasing(ColumnMapExpectation):
 
     See Also:
         [ExpectColumnValuesToBeDecreasing](https://greatexpectations.io/expectations/expect_column_values_to_be_decreasing)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     strictly: Union[bool, None] = None
 

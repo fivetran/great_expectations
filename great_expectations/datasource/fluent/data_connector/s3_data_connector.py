@@ -45,7 +45,7 @@ class S3DataConnector(FilePathDataConnector):
         max_keys (int): S3 max_keys (default is 1000)
         recursive_file_discovery (bool): Flag to indicate if files should be searched recursively from subfolders
         file_path_template_map_fn: Format function mapping path to fully-qualified resource on S3
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     asset_level_option_keys: ClassVar[tuple[str, ...]] = (
         "s3_prefix",
@@ -55,7 +55,7 @@ class S3DataConnector(FilePathDataConnector):
     )
     asset_options_type: ClassVar[Type[_S3Options]] = _S3Options
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         datasource_name: str,
         data_asset_name: str,
@@ -86,7 +86,7 @@ class S3DataConnector(FilePathDataConnector):
         )
 
     @classmethod
-    def build_data_connector(  # noqa: PLR0913
+    def build_data_connector(  # noqa: PLR0913 # FIXME CoP
         cls,
         datasource_name: str,
         data_asset_name: str,
@@ -113,7 +113,7 @@ class S3DataConnector(FilePathDataConnector):
 
         Returns:
             Instantiated "S3DataConnector" object
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return S3DataConnector(
             datasource_name=datasource_name,
             data_asset_name=data_asset_name,
@@ -146,8 +146,8 @@ class S3DataConnector(FilePathDataConnector):
 
         Returns:
             Customized error message
-        """  # noqa: E501
-        test_connection_error_message_template: str = 'No file in bucket "{bucket}" with prefix "{prefix}" and recursive file discovery set to "{recursive_file_discovery}" found using delimiter "{delimiter}" for DataAsset "{data_asset_name}".'  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
+        test_connection_error_message_template: str = 'No file in bucket "{bucket}" with prefix "{prefix}" and recursive file discovery set to "{recursive_file_discovery}" found using delimiter "{delimiter}" for DataAsset "{data_asset_name}".'  # noqa: E501 # FIXME CoP
         return test_connection_error_message_template.format(
             **{
                 "data_asset_name": data_asset_name,
@@ -195,10 +195,10 @@ class S3DataConnector(FilePathDataConnector):
     @override
     def _get_full_file_path(self, path: str) -> str:
         if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
 requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
             )
 
         template_arguments: dict = {
@@ -214,7 +214,7 @@ requires "file_path_template_map_fn: Callable" to be set.
         return super()._preprocess_batching_regex(regex=regex)
 
 
-def list_s3_keys(  # noqa: C901 - too complex
+def list_s3_keys(  # noqa: C901 #  too complex
     s3, query_options: dict, iterator_dict: dict, recursive: bool = False
 ) -> Generator[str, None, None]:
     """
@@ -229,7 +229,7 @@ def list_s3_keys(  # noqa: C901 - too complex
     :param iterator_dict: dictionary to manage "NextContinuationToken" (if "IsTruncated" is returned from S3)
     :param recursive: True for InferredAssetS3DataConnector and False for ConfiguredAssetS3DataConnector (see above)
     :return: string valued key representing file path on S3 (full prefix and leaf file name)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if iterator_dict is None:
         iterator_dict = {}
 
@@ -241,7 +241,7 @@ def list_s3_keys(  # noqa: C901 - too complex
     s3_objects_info: dict = s3.list_objects_v2(**query_options)
 
     if not any(key in s3_objects_info for key in ["Contents", "CommonPrefixes"]):
-        raise ValueError("S3 query may not have been configured correctly.")  # noqa: TRY003
+        raise ValueError("S3 query may not have been configured correctly.")  # noqa: TRY003 # FIXME CoP
 
     if "Contents" in s3_objects_info:
         keys: List[str] = [item["Key"] for item in s3_objects_info["Contents"] if item["Size"] > 0]

@@ -1,10 +1,9 @@
 import re
-import sys
+from datetime import datetime
 from pprint import pprint
-from typing import Callable, Dict, Final, Union
+from typing import Callable, Dict, Union
 
 import pytest
-from packaging.version import Version
 
 from great_expectations.core import ExpectationValidationResult
 from great_expectations.expectations.expectation_configuration import (
@@ -12,16 +11,7 @@ from great_expectations.expectations.expectation_configuration import (
 )
 from great_expectations.expectations.registry import get_renderer_impl
 from great_expectations.render import RenderedAtomicContent
-
-PYTHON_VERSION: Final[Version] = Version(
-    f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-)
-
-pytestmark = pytest.mark.skipif(
-    Version("3.12") <= PYTHON_VERSION,
-    reason="`snapshottest` incompatible with Python 3.12",
-)
-# https://github.com/syrusakbary/snapshottest/issues/166
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 
 
 @pytest.fixture
@@ -102,7 +92,6 @@ def get_diagnostic_rendered_content(
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_bootstrapped_ks_test_p_value_to_be_greater_than(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -111,7 +100,6 @@ def test_atomic_prescriptive_summary_expect_column_bootstrapped_ks_test_p_value_
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_chisquare_test_p_value_to_be_greater_than(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -120,7 +108,6 @@ def test_atomic_prescriptive_summary_expect_column_chisquare_test_p_value_to_be_
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_distinct_values_to_be_in_set(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -134,12 +121,25 @@ def test_atomic_prescriptive_summary_expect_column_distinct_values_to_be_in_set(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "v__0": {"schema": {"type": "number"}, "value": 1},
+                "v__1": {"schema": {"type": "number"}, "value": 2},
+                "v__2": {"schema": {"type": "number"}, "value": 3},
+                "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column distinct values must belong to this set: $v__0 $v__1 $v__2.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_distinct_values_to_contain_set(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -154,12 +154,25 @@ def test_atomic_prescriptive_summary_expect_column_distinct_values_to_contain_se
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "v__0": {"schema": {"type": "string"}, "value": "a"},
+                "v__1": {"schema": {"type": "string"}, "value": "b"},
+                "v__2": {"schema": {"type": "string"}, "value": "c"},
+                "value_set": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column distinct values must contain this set: $v__0 $v__1 $v__2.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_distinct_values_to_equal_set(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -174,12 +187,25 @@ def test_atomic_prescriptive_summary_expect_column_distinct_values_to_equal_set(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "v__0": {"schema": {"type": "string"}, "value": "a"},
+                "v__1": {"schema": {"type": "string"}, "value": "b"},
+                "v__2": {"schema": {"type": "string"}, "value": "c"},
+                "value_set": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column distinct values must match this set: $v__0 $v__1 $v__2.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -203,15 +229,58 @@ def test_atomic_prescriptive_summary_expect_column_kl_divergence_to_be_less_than
         r"v\d*\.\d*\.\d*", "v4.8.1", res["value"]["graph"]["$schema"]
     )
 
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "graph": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json",
+                "autosize": "fit",
+                "config": {"view": {"continuousHeight": 300, "continuousWidth": 400}},
+                "data": {"name": "data-1cb20570b53cc3e67cb4883fd45e64cb"},
+                "datasets": {
+                    "data-1cb20570b53cc3e67cb4883fd45e64cb": [
+                        {"bin_max": 5, "bin_min": 0, "fraction": 0.2},
+                        {"bin_max": 10, "bin_min": 5, "fraction": 0.3},
+                        {"bin_max": 30, "bin_min": 10, "fraction": 0.1},
+                        {"bin_max": 50, "bin_min": 30, "fraction": 0.4},
+                    ]
+                },
+                "encoding": {
+                    "tooltip": [
+                        {"field": "bin_min", "type": "quantitative"},
+                        {"field": "bin_max", "type": "quantitative"},
+                        {"field": "fraction", "type": "quantitative"},
+                    ],
+                    "x": {"field": "bin_min", "type": "ordinal"},
+                    "x2": {"field": "bin_max"},
+                    "y": {"field": "fraction", "type": "quantitative"},
+                },
+                "height": 400,
+                "mark": "bar",
+                "width": 250,
+            },
+            "header": {
+                "schema": {"type": "StringValueType"},
+                "value": {
+                    "params": {
+                        "column": {"schema": {"type": "string"}, "value": "min_event_time"},
+                        "threshold": {"schema": {"type": "number"}, "value": 0.1},
+                    },
+                    "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold.",  # noqa: E501 # FIXME CoP
+                },
+            },
+            "schema": {"type": "GraphType"},
+        },
+        "value_type": "GraphType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_expect_column_kl_divergence_to_be_less_than(
-    snapshot, get_diagnostic_rendered_content
+    get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_kl_divergence_to_be_less_than",
         "kwargs": {
@@ -250,15 +319,57 @@ def test_atomic_diagnostic_observed_value_expect_column_kl_divergence_to_be_less
     res["value"]["graph"]["$schema"] = re.sub(
         r"v\d*\.\d*\.\d*", "v4.8.1", res["value"]["graph"]["$schema"]
     )
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "graph": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json",
+                "autosize": "fit",
+                "config": {"view": {"continuousHeight": 300, "continuousWidth": 400}},
+                "data": {"name": "data-c49f2d3d7bdab36f9ec81f5a314a430c"},
+                "datasets": {
+                    "data-c49f2d3d7bdab36f9ec81f5a314a430c": [
+                        {"fraction": 0.3754, "values": 1},
+                        {"fraction": 0.615, "values": 2},
+                        {"fraction": 0.0096, "values": 4},
+                    ]
+                },
+                "encoding": {
+                    "tooltip": [
+                        {"field": "values", "type": "quantitative"},
+                        {"field": "fraction", "type": "quantitative"},
+                    ],
+                    "x": {"field": "values", "type": "nominal"},
+                    "y": {"field": "fraction", "type": "quantitative"},
+                },
+                "height": 400,
+                "mark": "bar",
+                "width": 250,
+            },
+            "header": {
+                "schema": {"type": "StringValueType"},
+                "value": {
+                    "params": {
+                        "observed_value": {
+                            "schema": {"type": "string"},
+                            "value": "None (-infinity, infinity, or NaN)",
+                        }
+                    },
+                    "template": "KL Divergence: $observed_value",
+                },
+            },
+            "schema": {"type": "GraphType"},
+        },
+        "value_type": "GraphType",
+    }
 
 
 @pytest.mark.unit
-def test_atomic_diagnostic_observed_value_with_boolean_column_expect_column_kl_divergence_to_be_less_than(  # noqa: E501
-    snapshot, get_diagnostic_rendered_content
+def test_atomic_diagnostic_observed_value_with_boolean_column_expect_column_kl_divergence_to_be_less_than(  # noqa: E501 # FIXME CoP
+    get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_kl_divergence_to_be_less_than",
         "kwargs": {
@@ -297,12 +408,53 @@ def test_atomic_diagnostic_observed_value_with_boolean_column_expect_column_kl_d
     res["value"]["graph"]["$schema"] = re.sub(
         r"v\d*\.\d*\.\d*", "v4.8.1", res["value"]["graph"]["$schema"]
     )
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "graph": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v4.8.1.json",
+                "autosize": "fit",
+                "config": {"view": {"continuousHeight": 300, "continuousWidth": 400}},
+                "data": {"name": "data-d8f1a1ab1f79e142d9ca399157673554"},
+                "datasets": {
+                    "data-d8f1a1ab1f79e142d9ca399157673554": [
+                        {"fraction": 0.5, "values": "True"},
+                        {"fraction": 0.5, "values": "False"},
+                    ]
+                },
+                "encoding": {
+                    "tooltip": [
+                        {"field": "values", "type": "nominal"},
+                        {"field": "fraction", "type": "quantitative"},
+                    ],
+                    "x": {"field": "values", "type": "nominal"},
+                    "y": {"field": "fraction", "type": "quantitative"},
+                },
+                "height": 400,
+                "mark": "bar",
+                "width": 250,
+            },
+            "header": {
+                "schema": {"type": "StringValueType"},
+                "value": {
+                    "params": {
+                        "observed_value": {
+                            "schema": {"type": "string"},
+                            "value": "None (-infinity, infinity, or NaN)",
+                        }
+                    },
+                    "template": "KL Divergence: $observed_value",
+                },
+            },
+            "schema": {"type": "GraphType"},
+        },
+        "value_type": "GraphType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_max_to_be_between(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_max_to_be_between",
@@ -317,12 +469,24 @@ def test_atomic_prescriptive_summary_expect_column_max_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 5},
+                "min_value": {"schema": {"type": "number"}, "value": 1},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column maximum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_mean_to_be_between(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_mean_to_be_between",
@@ -337,12 +501,24 @@ def test_atomic_prescriptive_summary_expect_column_mean_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 7},
+                "min_value": {"schema": {"type": "number"}, "value": 3},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column mean must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_median_to_be_between(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_median_to_be_between",
@@ -357,12 +533,24 @@ def test_atomic_prescriptive_summary_expect_column_median_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 10},
+                "min_value": {"schema": {"type": "number"}, "value": 5},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column median must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_min_to_be_between(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_min_to_be_between",
@@ -377,12 +565,23 @@ def test_atomic_prescriptive_summary_expect_column_min_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 5},
+                "min_value": {"schema": {"type": "number"}, "value": 1},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column minimum value must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_most_common_value_to_be_in_set(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -397,7 +596,22 @@ def test_atomic_prescriptive_summary_expect_column_most_common_value_to_be_in_se
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "ties_okay": {"schema": {"type": "boolean"}, "value": True},
+                "v__0": {"schema": {"type": "number"}, "value": 1},
+                "v__1": {"schema": {"type": "number"}, "value": 2},
+                "v__2": {"schema": {"type": "number"}, "value": 3},
+                "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column most common value must belong to this set: $v__0 $v__1 $v__2. Values outside this set that are as common (but not more common) are allowed.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
@@ -406,7 +620,6 @@ def test_atomic_prescriptive_summary_expect_column_most_common_value_to_be_in_se
     reason="ExpectColumnPairCramersPhiValueToBeLessThan is not fully implemented",
 )
 def test_atomic_prescriptive_summary_expect_column_pair_cramers_phi_value_to_be_less_than(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -420,12 +633,11 @@ def test_atomic_prescriptive_summary_expect_column_pair_cramers_phi_value_to_be_
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {}
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_pair_values_a_to_be_greater_than_b(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -443,12 +655,26 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_a_to_be_greater_t
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_A": {"schema": {"type": "string"}, "value": "foo"},
+                "column_B": {"schema": {"type": "string"}, "value": "bar"},
+                "ignore_row_if": {"schema": {"type": "string"}, "value": "baz"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "or_equal": {"schema": {"type": "boolean"}, "value": True},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Values in $column_A must be greater than or equal to those in $column_B, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_pair_values_to_be_equal(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -464,12 +690,25 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_to_be_equal(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_A": {"schema": {"type": "string"}, "value": "foo"},
+                "column_B": {"schema": {"type": "string"}, "value": "bar"},
+                "ignore_row_if": {"schema": {"type": "string"}, "value": "baz"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_pair_values_to_be_in_set(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -477,8 +716,7 @@ def test_atomic_prescriptive_summary_expect_column_pair_values_to_be_in_set(
 
 
 @pytest.mark.unit
-def test_atomic_prescriptive_summary_expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than(  # noqa: E501
-    snapshot,
+def test_atomic_prescriptive_summary_expect_column_parameterized_distribution_ks_test_p_value_to_be_greater_than(  # noqa: E501 # FIXME CoP
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -487,7 +725,6 @@ def test_atomic_prescriptive_summary_expect_column_parameterized_distribution_ks
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_proportion_of_unique_values_to_be_between(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -502,12 +739,23 @@ def test_atomic_prescriptive_summary_expect_column_proportion_of_unique_values_t
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 20},
+                "min_value": {"schema": {"type": "number"}, "value": 10},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column fraction of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_quantile_values_to_be_between(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -533,15 +781,60 @@ def test_atomic_prescriptive_summary_expect_column_quantile_values_to_be_between
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "header": {
+                "schema": {"type": "StringValueType"},
+                "value": {
+                    "params": {"column": {"schema": {"type": "string"}, "value": "Unnamed: 0"}},
+                    "template": "$column quantiles must be within the following value ranges.",
+                },
+            },
+            "header_row": [
+                {"schema": {"type": "string"}, "value": "Quantile"},
+                {"schema": {"type": "string"}, "value": "Min Value"},
+                {"schema": {"type": "string"}, "value": "Max Value"},
+            ],
+            "schema": {"type": "TableType"},
+            "table": [
+                [
+                    {"schema": {"type": "string"}, "value": "0.05"},
+                    {"schema": {"type": "number"}, "value": 66},
+                    {"schema": {"type": "number"}, "value": 68},
+                ],
+                [
+                    {"schema": {"type": "string"}, "value": "Q1"},
+                    {"schema": {"type": "number"}, "value": 328},
+                    {"schema": {"type": "number"}, "value": 330},
+                ],
+                [
+                    {"schema": {"type": "string"}, "value": "Median"},
+                    {"schema": {"type": "number"}, "value": 656},
+                    {"schema": {"type": "number"}, "value": 658},
+                ],
+                [
+                    {"schema": {"type": "string"}, "value": "Q3"},
+                    {"schema": {"type": "number"}, "value": 984},
+                    {"schema": {"type": "number"}, "value": 986},
+                ],
+                [
+                    {"schema": {"type": "string"}, "value": "0.95"},
+                    {"schema": {"type": "number"}, "value": 1246},
+                    {"schema": {"type": "number"}, "value": 1248},
+                ],
+            ],
+        },
+        "value_type": "TableType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_expect_column_quantile_values_to_be_between(
-    snapshot, get_diagnostic_rendered_content
+    get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_column_quantile_values_to_be_between",
         "kwargs": {
@@ -578,12 +871,44 @@ def test_atomic_diagnostic_observed_value_expect_column_quantile_values_to_be_be
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "header_row": [
+                {"schema": {"type": "string"}, "value": "Quantile"},
+                {"schema": {"type": "string"}, "value": "Value"},
+            ],
+            "schema": {"type": "TableType"},
+            "table": [
+                [
+                    {"schema": {"type": "string"}, "value": "0.05"},
+                    {"schema": {"type": "number"}, "value": 67},
+                ],
+                [
+                    {"schema": {"type": "string"}, "value": "Q1"},
+                    {"schema": {"type": "number"}, "value": 329},
+                ],
+                [
+                    {"schema": {"type": "string"}, "value": "Median"},
+                    {"schema": {"type": "number"}, "value": 657},
+                ],
+                [
+                    {"schema": {"type": "string"}, "value": "Q3"},
+                    {"schema": {"type": "number"}, "value": 985},
+                ],
+                [
+                    {"schema": {"type": "string"}, "value": "0.95"},
+                    {"schema": {"type": "number"}, "value": 1247},
+                ],
+            ],
+        },
+        "value_type": "TableType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_stdev_to_be_between(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_stdev_to_be_between",
@@ -597,12 +922,24 @@ def test_atomic_prescriptive_summary_expect_column_stdev_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 20},
+                "min_value": {"schema": {"type": "number"}, "value": 10},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column standard deviation must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_sum_to_be_between(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_sum_to_be_between",
@@ -616,13 +953,23 @@ def test_atomic_prescriptive_summary_expect_column_sum_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 20},
+                "min_value": {"schema": {"type": "number"}, "value": 10},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column sum must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
-def test_atomic_prescriptive_summary_expect_column_to_exist(
-    snapshot, get_prescriptive_rendered_content
-):
+def test_atomic_prescriptive_summary_expect_column_to_exist(get_prescriptive_rendered_content):
     update_dict = {
         "type": "expect_column_to_exist",
         "kwargs": {
@@ -634,12 +981,23 @@ def test_atomic_prescriptive_summary_expect_column_to_exist(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "column_index": {"schema": {"type": "number"}, "value": 5},
+                "column_indexth": {"schema": {"type": "string"}, "value": "5th"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column must be the $column_indexth field.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_unique_value_count_to_be_between(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -655,12 +1013,23 @@ def test_atomic_prescriptive_summary_expect_column_unique_value_count_to_be_betw
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 20},
+                "min_value": {"schema": {"type": "number"}, "value": 10},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column must have greater than or equal to $min_value and less than or equal to $max_value unique values.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_value_lengths_to_be_between(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -676,12 +1045,26 @@ def test_atomic_prescriptive_summary_expect_column_value_lengths_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 20},
+                "min_value": {"schema": {"type": "number"}, "value": 10},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value characters long, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_value_lengths_to_equal(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_value_lengths_to_equal",
@@ -695,12 +1078,24 @@ def test_atomic_prescriptive_summary_expect_column_value_lengths_to_equal(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "value": {"schema": {"type": "number"}, "value": 100},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be $value characters long, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_value_z_scores_to_be_less_than(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -709,7 +1104,7 @@ def test_atomic_prescriptive_summary_expect_column_value_z_scores_to_be_less_tha
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_between(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_values_to_be_between",
@@ -724,12 +1119,25 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "max_value": {"schema": {"type": "number"}, "value": 5},
+                "min_value": {"schema": {"type": "number"}, "value": 1},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be greater than or equal to $min_value and less than or equal to $max_value, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_dateutil_parseable(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -743,12 +1151,23 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_dateutil_parseab
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be parseable by dateutil, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_decreasing(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -764,12 +1183,25 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_decreasing(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "strictly": {"schema": {"type": "boolean"}, "value": True},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be strictly less than previous values, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_in_set(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_values_to_be_in_set",
@@ -785,12 +1217,28 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_in_set(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "v__0": {"schema": {"type": "number"}, "value": 1},
+                "v__1": {"schema": {"type": "number"}, "value": 2},
+                "v__2": {"schema": {"type": "number"}, "value": 3},
+                "v__3": {"schema": {"type": "number"}, "value": 4},
+                "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3, 4]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must belong to this set: $v__0 $v__1 $v__2 $v__3, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_in_type_list(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -806,12 +1254,30 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_in_type_list(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "type_list": {
+                    "schema": {"type": "array"},
+                    "value": ["type_a", "type_b", "type_c"],
+                },
+                "v__0": {"schema": {"type": "string"}, "value": "type_a"},
+                "v__1": {"schema": {"type": "string"}, "value": "type_b"},
+                "v__2": {"schema": {"type": "string"}, "value": "type_c"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column value types must belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_increasing(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -827,12 +1293,24 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_increasing(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "strictly": {"schema": {"type": "boolean"}, "value": True},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be strictly greater than previous values, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_json_parseable(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -846,12 +1324,24 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_json_parseable(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be parseable as JSON, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_null(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_values_to_be_null",
@@ -864,12 +1354,24 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_null(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be null, at least $mostly_pct % of the time.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_null_with_mostly_equals_1(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_values_to_be_null",
@@ -882,12 +1384,23 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_null_with_mostly
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 1.0},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be null.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_of_type(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_values_to_be_of_type",
@@ -901,12 +1414,25 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_of_type(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "type_": {"schema": {"type": "string"}, "value": "my_type"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be of type $type_, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_be_unique(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_values_to_be_unique",
@@ -919,12 +1445,23 @@ def test_atomic_prescriptive_summary_expect_column_values_to_be_unique(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must be unique, at least $mostly_pct % of the time.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_match_json_schema(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -939,12 +1476,28 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_json_schema(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "formatted_json": {
+                    "schema": {"type": "string"},
+                    "value": """<pre>{\n    "foo": "bar"\n}</pre>""",
+                },
+                "json_schema": {"schema": {"type": "object"}, "value": {"foo": "bar"}},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_match_like_pattern(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -953,7 +1506,6 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_like_pattern(
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_match_like_pattern_list(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -962,7 +1514,7 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_like_pattern_
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_match_regex(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_values_to_match_regex",
@@ -976,12 +1528,24 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_regex(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "regex": {"schema": {"type": "string"}, "value": "^superconductive$"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_match_regex_list(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -997,12 +1561,30 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_regex_list(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "match_on": {"schema": {"type": "string"}, "value": "all"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "regex_list": {
+                    "schema": {"type": "array"},
+                    "value": ["^superconductive$", "ge|great_expectations"],
+                },
+                "v__0": {"schema": {"type": "string"}, "value": "^superconductive$"},
+                "v__1": {"schema": {"type": "string"}, "value": "ge|great_expectations"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must match all of the following regular expressions: $v__0 $v__1, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_match_strftime_format(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1017,12 +1599,24 @@ def test_atomic_prescriptive_summary_expect_column_values_to_match_strftime_form
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "strftime_format": {"schema": {"type": "string"}, "value": "%Y-%m"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must match the following strftime format: $strftime_format, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_not_be_in_set(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1038,12 +1632,28 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_be_in_set(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "v__0": {"schema": {"type": "number"}, "value": 1},
+                "v__1": {"schema": {"type": "number"}, "value": 2},
+                "v__2": {"schema": {"type": "number"}, "value": 3},
+                "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must not belong to this set: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_not_be_null(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_column_values_to_not_be_null",
@@ -1056,12 +1666,23 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_be_null(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must not be null, at least $mostly_pct % of the time.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_not_match_like_pattern(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -1070,7 +1691,6 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_match_like_patt
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_not_match_like_pattern_list(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
@@ -1079,7 +1699,6 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_match_like_patt
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_not_match_regex(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1094,12 +1713,24 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_match_regex(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "regex": {"schema": {"type": "string"}, "value": "^superconductive$"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must not match this regular expression: $regex, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_column_values_to_not_match_regex_list(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1114,12 +1745,28 @@ def test_atomic_prescriptive_summary_expect_column_values_to_not_match_regex_lis
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+                "regex_list": {"schema": {"type": "array"}, "value": ["^a", "^b", "^c"]},
+                "v__0": {"schema": {"type": "string"}, "value": "^a"},
+                "v__1": {"schema": {"type": "string"}, "value": "^b"},
+                "v__2": {"schema": {"type": "string"}, "value": "^c"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$column values must not match any of the following regular expressions: $v__0 $v__1 $v__2, at least $mostly_pct % of the time.",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_compound_columns_to_be_unique(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_compound_columns_to_be_unique",
@@ -1132,12 +1779,30 @@ def test_atomic_prescriptive_summary_expect_compound_columns_to_be_unique(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_list": {
+                    "schema": {"type": "array"},
+                    "value": ["my_first_col", "my_second_col", "my_third_col"],
+                },
+                "column_list_0": {"schema": {"type": "string"}, "value": "my_first_col"},
+                "column_list_1": {"schema": {"type": "string"}, "value": "my_second_col"},
+                "column_list_2": {"schema": {"type": "string"}, "value": "my_third_col"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Values for given compound columns must be unique together, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_multicolumn_sum_to_equal(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     # Expectation is a stub; open to implement test once renderer method is available
     pass
@@ -1145,7 +1810,6 @@ def test_atomic_prescriptive_summary_expect_multicolumn_sum_to_equal(
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_multicolumn_values_to_be_unique(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1160,12 +1824,27 @@ def test_atomic_prescriptive_summary_expect_multicolumn_values_to_be_unique(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_list": {"schema": {"type": "array"}, "value": ["A", "B", "C"]},
+                "column_list_0": {"schema": {"type": "string"}, "value": "A"},
+                "column_list_1": {"schema": {"type": "string"}, "value": "B"},
+                "column_list_2": {"schema": {"type": "string"}, "value": "C"},
+                "ignore_row_if": {"schema": {"type": "string"}, "value": "foo"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_select_column_values_to_be_unique_within_record(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1180,12 +1859,32 @@ def test_atomic_prescriptive_summary_expect_select_column_values_to_be_unique_wi
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_list": {
+                    "schema": {"type": "array"},
+                    "value": ["my_first_column", "my_second_column"],
+                },
+                "column_list_0": {"schema": {"type": "string"}, "value": "my_first_column"},
+                "column_list_1": {
+                    "schema": {"type": "string"},
+                    "value": "my_second_column",
+                },
+                "ignore_row_if": {"schema": {"type": "string"}, "value": "foo"},
+                "mostly": {"schema": {"type": "number"}, "value": 0.8},
+                "mostly_pct": {"schema": {"type": "string"}, "value": "80"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Values must be unique across columns, at least $mostly_pct % of the time: $column_list_0 $column_list_1",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_table_column_count_to_be_between(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1199,12 +1898,20 @@ def test_atomic_prescriptive_summary_expect_table_column_count_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {"min_value": {"schema": {"type": "number"}, "value": 5}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Must have greater than or equal to $min_value columns.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_table_column_count_to_equal(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_table_column_count_to_equal",
@@ -1216,12 +1923,19 @@ def test_atomic_prescriptive_summary_expect_table_column_count_to_equal(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {"value": {"schema": {"type": "number"}, "value": 10}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Must have exactly $value columns.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_table_columns_to_match_ordered_list(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1232,12 +1946,25 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_ordered_list(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_list": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
+                "column_list_0": {"schema": {"type": "string"}, "value": "a"},
+                "column_list_1": {"schema": {"type": "string"}, "value": "b"},
+                "column_list_2": {"schema": {"type": "string"}, "value": "c"},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Must have these columns in this order: $column_list_0 $column_list_1 $column_list_2",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_table_columns_to_match_set(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_table_columns_to_match_set",
@@ -1250,12 +1977,26 @@ def test_atomic_prescriptive_summary_expect_table_columns_to_match_set(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column_set": {"schema": {"type": "array"}, "value": ["a", "b", "c"]},
+                "column_set_0": {"schema": {"type": "string"}, "value": "a"},
+                "column_set_1": {"schema": {"type": "string"}, "value": "b"},
+                "column_set_2": {"schema": {"type": "string"}, "value": "c"},
+                "exact_match": {"schema": {"type": "boolean"}, "value": True},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Must have exactly these columns (in any order): $column_set_0 $column_set_1 $column_set_2",  # noqa: E501 # FIXME CoP
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_table_row_count_to_be_between(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_table_row_count_to_be_between",
@@ -1265,12 +2006,20 @@ def test_atomic_prescriptive_summary_expect_table_row_count_to_be_between(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {"min_value": {"schema": {"type": "number"}, "value": 1}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Must have greater than or equal to $min_value rows.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_table_row_count_to_equal(
-    snapshot, get_prescriptive_rendered_content
+    get_prescriptive_rendered_content,
 ):
     update_dict = {
         "type": "expect_table_row_count_to_equal",
@@ -1280,12 +2029,19 @@ def test_atomic_prescriptive_summary_expect_table_row_count_to_equal(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {"value": {"schema": {"type": "number"}, "value": 10}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Must have exactly $value rows.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_prescriptive_summary_expect_table_row_count_to_equal_other_table(
-    snapshot,
     get_prescriptive_rendered_content,
 ):
     update_dict = {
@@ -1301,16 +2057,29 @@ def test_atomic_prescriptive_summary_expect_table_row_count_to_equal_other_table
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "other_table_name": {
+                    "schema": {"type": "string"},
+                    "value": {"schema": {"type": "string"}, "value": "other_table_name"},
+                }
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "Row count must equal the row count of table $other_table_name.",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 # "atomic.diagnostic.observed_value" tests
 
 
 @pytest.mark.unit
-def test_atomic_diagnostic_observed_value_without_result(snapshot, get_diagnostic_rendered_content):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+def test_atomic_diagnostic_observed_value_without_result(get_diagnostic_rendered_content):
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -1322,15 +2091,23 @@ def test_atomic_diagnostic_observed_value_without_result(snapshot, get_diagnosti
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$observed_value",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
 def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
-    snapshot, get_diagnostic_rendered_content
+    get_diagnostic_rendered_content,
 ):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -1343,15 +2120,21 @@ def test_atomic_diagnostic_observed_value_with_numeric_observed_value(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": {"observed_value": {"schema": {"type": "number"}, "value": 1776}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$observed_value",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
-def test_atomic_diagnostic_observed_value_with_str_observed_value(
-    snapshot, get_diagnostic_rendered_content
-):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+def test_atomic_diagnostic_observed_value_with_str_observed_value(get_diagnostic_rendered_content):
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -1364,15 +2147,21 @@ def test_atomic_diagnostic_observed_value_with_str_observed_value(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$observed_value",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
-def test_atomic_diagnostic_observed_value_with_unexpected_percent(
-    snapshot, get_diagnostic_rendered_content
-):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+def test_atomic_diagnostic_observed_value_with_unexpected_percent(get_diagnostic_rendered_content):
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -1385,15 +2174,21 @@ def test_atomic_diagnostic_observed_value_with_unexpected_percent(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$observed_value",
+        },
+        "value_type": "StringValueType",
+    }
 
 
 @pytest.mark.unit
-def test_atomic_diagnostic_observed_value_with_empty_result(
-    snapshot, get_diagnostic_rendered_content
-):
-    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501
-    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501
+def test_atomic_diagnostic_observed_value_with_empty_result(get_diagnostic_rendered_content):
+    # Please note that the vast majority of Expectations are calling `Expectation._atomic_diagnostic_observed_value()`  # noqa: E501 # FIXME CoP
+    # As such, the specific expectation_type used here is irrelevant and is simply used to trigger the parent class.  # noqa: E501 # FIXME CoP
     expectation_config = {
         "type": "expect_table_row_count_to_equal",
         "kwargs": {},
@@ -1406,4 +2201,851 @@ def test_atomic_diagnostic_observed_value_with_empty_result(
 
     res = rendered_content.to_json_dict()
     pprint(res)
-    snapshot.assert_match(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": "$observed_value",
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "result, expected_template, expected_params",
+    [
+        (
+            {"observed_value": "foo"},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "foo"}},
+        ),
+        (
+            {"observed_value": False},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "boolean"}, "value": False}},
+        ),
+        (
+            {
+                "observed_value": datetime.strptime(
+                    "1999-12-31T23:59:59-00:00", "%Y-%m-%dT%H:%M:%S%z"
+                )
+            },
+            "$observed_value",
+            {
+                "observed_value": {
+                    "schema": {"type": "datetime"},
+                    "value": datetime.strptime("1999-12-31T23:59:59-00:00", "%Y-%m-%dT%H:%M:%S%z"),
+                }
+            },
+        ),
+        (
+            {"observed_value": "1999-12-31 23:59:59"},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "datetime"}, "value": "1999-12-31 23:59:59"}},
+        ),
+        (
+            {"observed_value": 1776},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "number"}, "value": 1776}},
+        ),
+        (
+            {"unexpected_percent": 10},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "10% unexpected"}},
+        ),
+        (
+            {"observed_value": ["%", "_"]},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "array"}, "value": ["%", "_"]}},
+        ),
+        (
+            {"observed_value": [1, 2, 3]},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "array"}, "value": [1, 2, 3]}},
+        ),
+        # when all value types are inferrable string will end up taking precendence over
+        # object otherwise object would overrride most other inference types as it
+        # is permissible to any value type
+        (
+            {"observed_value": {"foo": "bar"}},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": {"foo": "bar"}}},
+        ),
+        (
+            {"observed_value": None},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+        ),
+        (
+            {},
+            "$observed_value",
+            {"observed_value": {"schema": {"type": "string"}, "value": "--"}},
+        ),
+    ],
+)
+def test_atomic_diagnostic_observed_param_type_inference(
+    get_diagnostic_rendered_content, result, expected_template, expected_params
+):
+    expectation_config = {
+        "type": "expect_table_row_count_to_equal",
+        "kwargs": {},
+    }
+    update_dict = {
+        "expectation_config": ExpectationConfiguration(**expectation_config),
+        "result": result,
+    }
+    rendered_content = get_diagnostic_rendered_content(update_dict)
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": expected_params,
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": expected_template,
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, expected_value, observed_value, expected_result",
+    [
+        (
+            "happy",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "disjoint",
+            ["a", "b", "c"],
+            ["x", "y", "z"],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+                ("ov__0", "x", "unexpected"),
+                ("ov__1", "y", "unexpected"),
+                ("ov__2", "z", "unexpected"),
+            ],
+        ),
+        (
+            "transposed chars",
+            ["a", "b", "c", "d"],
+            ["a", "c", "b", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "c", "unexpected"),
+                ("ov__2", "b", "unexpected"),
+                ("ov__3", "d", "expected"),
+            ],
+        ),
+        (
+            "renamed",
+            ["a", "b", "c"],
+            ["a", "c", "b2"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "c", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "b2", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "pair transposed",
+            ["a", "b"],
+            ["b", "a"],
+            [
+                ("ov__0", "b", ObservedValueRenderState.UNEXPECTED),
+                ("ov__1", "a", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            # NOTE: this is a confusing one, but it is hard to generalize
+            "first unexpected and last missing",
+            ["a", "b"],
+            ["x", "a"],
+            [
+                ("ov__0", "x", ObservedValueRenderState.UNEXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "a", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "pair second index missing",
+            ["a", "b"],
+            ["a", "x"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "x", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "empty actual",
+            ["a", "b"],
+            [],
+            [
+                ("exp__0", "a", ObservedValueRenderState.MISSING),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "one column deleted",
+            ["a", "b", "c"],
+            ["a", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("exp__1", "b", ObservedValueRenderState.MISSING),
+                ("ov__1", "c", ObservedValueRenderState.EXPECTED),
+            ],
+        ),
+        (
+            "last column deleted",
+            ["a", "b", "c", "d"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.EXPECTED),
+                ("exp__3", "d", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "empty expected",
+            [],
+            ["a", "b"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.UNEXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "one column added",
+            ["a", "b"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+        (
+            "missing bookends",
+            ["f", "a", "b", "c", "d"],
+            ["a", "b", "c"],
+            [
+                ("exp__0", "f", ObservedValueRenderState.MISSING),
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "b", ObservedValueRenderState.EXPECTED),
+                ("ov__2", "c", ObservedValueRenderState.EXPECTED),
+                ("exp__4", "d", ObservedValueRenderState.MISSING),
+            ],
+        ),
+        (
+            "mix 2",
+            ["a", "b", "c", "d"],
+            ["a", "c", "d", "b", "e"],
+            [
+                ("ov__0", "a", ObservedValueRenderState.EXPECTED),
+                ("ov__1", "c", ObservedValueRenderState.UNEXPECTED),
+                ("ov__2", "d", ObservedValueRenderState.UNEXPECTED),
+                ("ov__3", "b", ObservedValueRenderState.UNEXPECTED),
+                ("ov__4", "e", ObservedValueRenderState.UNEXPECTED),
+            ],
+        ),
+    ],
+)
+def test_expect_table_columns_to_match_ordered_list_atomic_diagnostic_observed_value(
+    description,
+    expected_value,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_table_columns_to_match_ordered_list",
+            kwargs={"column_list": expected_value},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "value_set, result, expected_template, expected_params",
+    [
+        (
+            ["blue", "green"],
+            {"observed_value": ["blue", "red"]},
+            "$ov__0 $ov__1",
+            {
+                "observed_value": {"schema": {"type": "array"}, "value": ["blue", "red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "blue",
+                    "render_state": "expected",
+                },
+                "ov__1": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
+            },
+        ),
+        (
+            ["blue", "green"],
+            {"observed_value": ["red"]},
+            "$ov__0",
+            {
+                "observed_value": {"schema": {"type": "array"}, "value": ["red"]},
+                "ov__0": {
+                    "schema": {"type": "string"},
+                    "value": "red",
+                    "render_state": "unexpected",
+                },
+                "value_set": {"schema": {"type": "array"}, "value": ["blue", "green"]},
+            },
+        ),
+    ],
+)
+def test_expect_column_most_common_value_to_be_in_set_atomic_diagnostic_observed_value(
+    get_diagnostic_rendered_content, value_set, result, expected_template, expected_params
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_most_common_value_to_be_in_set",
+            kwargs={
+                "column": "color",
+                "value_set": value_set,
+                # ties_okay parameter does not affect observed value rendering
+                # the Expectation can pass and still have values with
+                # render_state "unexpected" in the observed value set
+                # if ties_okay is set to True
+            },
+        ),
+        "result": result,
+    }
+
+    # act
+    rendered_content = get_diagnostic_rendered_content(x)
+
+    # assert
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.diagnostic.observed_value",
+        "value": {
+            "params": expected_params,
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": expected_template,
+        },
+        "value_type": "StringValueType",
+    }
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, value_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+                ("ov__3", "d", "unexpected"),
+            ],
+        ),
+    ],
+)
+def test_expect_column_distinct_values_to_be_in_set_atomic_diagnostic_observed_value(
+    description,
+    value_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_distinct_values_to_be_in_set",
+            kwargs={"value_set": value_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, value_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+                ("ov__3", "d", "expected"),
+            ],
+        ),
+    ],
+)
+def test_expect_column_distinct_values_to_contain_set_atomic_diagnostic_observed_value(
+    description,
+    value_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_distinct_values_to_contain_set",
+            kwargs={"value_set": value_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, value_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+                ("ov__3", "d", "unexpected"),
+            ],
+        ),
+        (
+            "superset observed 2",
+            ["a", "b", "c"],
+            ["a", "d", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "d", "unexpected"),
+                ("ov__2", "b", "expected"),
+                ("ov__3", "c", "expected"),
+            ],
+        ),
+    ],
+)
+def test_expect_column_distinct_values_to_equal_set_atomic_diagnostic_observed_value(
+    description,
+    value_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_column_distinct_values_to_equal_set",
+            kwargs={"value_set": value_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "description, column_set, observed_value, expected_result",
+    [
+        (
+            "complete set",
+            ["a", "b", "c"],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+            ],
+        ),
+        (
+            "empty input",
+            [],
+            ["a", "b", "c"],
+            [
+                ("ov__0", "a", "unexpected"),
+                ("ov__1", "b", "unexpected"),
+                ("ov__2", "c", "unexpected"),
+            ],
+        ),
+        (
+            "empty observed",
+            ["a", "b", "c"],
+            [],
+            [
+                ("exp__0", "a", "missing"),
+                ("exp__1", "b", "missing"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "empty input and observed",
+            [],
+            [],
+            [],
+        ),
+        (
+            "subset observed",
+            ["a", "b", "c"],
+            ["a", "b"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("exp__2", "c", "missing"),
+            ],
+        ),
+        (
+            "superset observed",
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "b", "expected"),
+                ("ov__2", "c", "expected"),
+                ("ov__3", "d", "unexpected"),
+            ],
+        ),
+        (
+            "superset observed 2",
+            ["a", "b", "c"],
+            ["a", "d", "b", "c"],
+            [
+                ("ov__0", "a", "expected"),
+                ("ov__1", "d", "unexpected"),
+                ("ov__2", "b", "expected"),
+                ("ov__3", "c", "expected"),
+            ],
+        ),
+    ],
+)
+def test_expect_table_columns_to_match_set_atomic_diagnostic_observed_value(
+    description,
+    column_set,
+    observed_value,
+    expected_result,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="expect_table_columns_to_match_set",
+            kwargs={"column_set": column_set},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+    for name, val, status in expected_result:
+        assert name in res["value"]["params"]
+        assert res["value"]["params"][name]["value"] == val
+        assert res["value"]["params"][name]["render_state"] == status
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "observed_value, expected_template_string",
+    [
+        (
+            0,
+            "$observed_value unexpected rows",
+        ),
+        (
+            1,
+            "$observed_value unexpected row",
+        ),
+        (
+            100000,
+            "$observed_value unexpected rows",
+        ),
+    ],
+)
+def test_unexpected_rows_expectation_atomic_diagnostic_observed_value(
+    observed_value,
+    expected_template_string,
+    get_diagnostic_rendered_content,
+):
+    # arrange
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"description": "my description", "unexpected_rows_query": "valid query"},
+        ),
+        "result": {"observed_value": observed_value},
+    }
+
+    # act
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    # assert
+    assert res["value"]["template"] == expected_template_string
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_atomic_diagnostic_observed_value_when_description_present(
+    get_diagnostic_rendered_content,
+):
+    """Fixes regression where description overwrote the template"""
+
+    x = {
+        "expectation_config": ExpectationConfiguration(
+            type="unexpected_rows_expectation",
+            kwargs={"description": "my description", "unexpected_rows_query": "valid query"},
+            description="plz ignore me",
+        ),
+        "result": {"observed_value": 123},
+    }
+
+    res = get_diagnostic_rendered_content(x).to_json_dict()
+
+    assert res["value"]["template"] == "$observed_value unexpected rows"
+
+
+@pytest.mark.unit
+def test_atomic_prescriptive_summary_with_description(
+    get_prescriptive_rendered_content,
+):
+    description = "I should overwite"
+    update_dict = {
+        "type": "expect_column_distinct_values_to_be_in_set",
+        "description": description,
+        "kwargs": {
+            "column": "my_column",
+            "value_set": [1, 2, 3],
+        },
+    }
+    rendered_content = get_prescriptive_rendered_content(update_dict)
+
+    res = rendered_content.to_json_dict()
+    pprint(res)
+    assert res == {
+        "name": "atomic.prescriptive.summary",
+        "value": {
+            "params": {
+                "column": {"schema": {"type": "string"}, "value": "my_column"},
+                "v__0": {"schema": {"type": "number"}, "value": 1},
+                "v__1": {"schema": {"type": "number"}, "value": 2},
+                "v__2": {"schema": {"type": "number"}, "value": 3},
+                "value_set": {"schema": {"type": "array"}, "value": [1, 2, 3]},
+            },
+            "schema": {"type": "com.superconductive.rendered.string"},
+            "template": description,
+        },
+        "value_type": "StringValueType",
+    }

@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from contrib.experimental.great_expectations_experimental.expectations.expect_queried_table_row_count_to_be import (  # noqa: E501
+from contrib.experimental.great_expectations_experimental.expectations.expect_queried_table_row_count_to_be import (  # noqa: E501 # FIXME CoP
     ExpectQueriedTableRowCountToBe,  # noqa: F401 # needed for expectation registration
 )
 
@@ -55,14 +55,14 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
     row_condition,
     titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled,
 ):
-    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
 
     validator: Validator = context.get_validator(batch_request=batch_request)
 
     result: ExpectationValidationResult = validator.expect_queried_table_row_count_to_be(
         value=value,
         row_condition=row_condition,
-        condition_parser="great_expectations__experimental__",
+        condition_parser="great_expectations",
     )
 
     assert result["success"] is success and result["result"]["observed_value"] == observed
@@ -100,7 +100,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
     row_condition,
     titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled,
 ):
-    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
 
     validator: Validator = context.get_validator(batch_request=batch_request)
 
@@ -108,7 +108,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
         value=value,
         query=query,
         row_condition=row_condition,
-        condition_parser="great_expectations__experimental__",
+        condition_parser="great_expectations",
     )
 
     assert result["success"] is success and result["result"]["observed_value"] == observed
@@ -145,7 +145,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_spark(
     result: ExpectationValidationResult = validator.expect_queried_table_row_count_to_be(
         value=value,
         row_condition=row_condition,
-        condition_parser="great_expectations__experimental__",
+        condition_parser="great_expectations",
     )
 
     assert result["success"] is success and result["result"]["observed_value"] == observed
@@ -188,7 +188,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
         value=value,
         query=query,
         row_condition=row_condition,
-        condition_parser="great_expectations__experimental__",
+        condition_parser="great_expectations",
     )
 
     assert result["success"] is success and result["result"]["observed_value"] == observed

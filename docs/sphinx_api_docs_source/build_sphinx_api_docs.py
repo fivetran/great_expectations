@@ -39,7 +39,10 @@ from docs.sphinx_api_docs_source.public_api_report import (
     Definition,
     get_shortest_dotted_path,
 )
-from docs.sphinx_api_docs_source.utils import apply_markdown_adjustments
+from docs.sphinx_api_docs_source.utils import (
+    apply_markdown_adjustments,
+    apply_structure_changes,
+)
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -220,6 +223,7 @@ class SphinxInvokeDocsBuilder:
         title_str = title_str.replace("#", "")
 
         apply_markdown_adjustments(soup, html_file_path, html_file_contents)
+        apply_structure_changes(soup, html_file_path, html_file_contents)
 
         sidebar_entry = self._get_sidebar_entry(html_file_path=html_file_path)
 
@@ -279,15 +283,14 @@ class SphinxInvokeDocsBuilder:
             else:
                 link_sidebar_entry = self._get_sidebar_entry(html_file_path=href_path)
 
-            relative_link = self._relative_path_between_documents(
-                sidebar_entry.mdx_relpath, link_sidebar_entry.mdx_relpath
-            )
+            relative_link = link_sidebar_entry.mdx_relpath
+
             without_extension = str(relative_link).replace(".mdx", "")
             if not without_extension.endswith("_class"):
                 raise Exception(  # noqa: TRY002, TRY003
                     f"Expected class mdx file path to end with _class; this could indicate a method link that will break: {without_extension}"
                 )
-            internal_ref["href"] = str(without_extension)
+            internal_ref["href"] = "/docs/reference/api/" + str(without_extension)
 
         doc_str = str(doc)
 
@@ -518,7 +521,7 @@ class SphinxInvokeDocsBuilder:
 .. autoclass:: {dotted_import}
    :members:
    :inherited-members:
-
+   :member-order: groupwise
 ```
 """
 
@@ -598,7 +601,7 @@ class SphinxInvokeDocsBuilder:
         Also quotes use a different quote character. This method cleans up
         these items so that the code block is rendered appropriately.
         """
-        doc = doc.replace("&lt;", "<").replace("&gt;", ">")
+        doc = doc.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;42;", "*")
         doc = (
             doc.replace("“", '"')
             .replace("”", '"')

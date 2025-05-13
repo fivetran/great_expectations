@@ -42,7 +42,7 @@ def _parse_param_from_query_string(param: str, query: str) -> str | None:
     if not path_results:
         return None
     if len(path_results) > 1:
-        raise ValueError(f"Only one `{param}` query entry is allowed")  # noqa: TRY003
+        raise ValueError(f"Only one `{param}` query entry is allowed")  # noqa: TRY003 # FIXME CoP
     return path_results[0]
 
 
@@ -143,7 +143,7 @@ class DatabricksTableAsset(SqlTableAsset):
 
         from great_expectations.compatibility import sqlalchemy
 
-        if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
+        if sqlalchemy.quoted_name:  # type: ignore[truthy-function] # FIXME CoP
             if isinstance(table_name, sqlalchemy.quoted_name):
                 return table_name
 
@@ -184,12 +184,12 @@ class DatabricksSQLDatasource(SQLDatasource):
             For example: "databricks://token:<token>@<host>:<port>?http_path=<http_path>&catalog=<catalog>&schema=<schema>""
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values
             are TableAsset or QueryAsset objects.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # class var definitions
     asset_types: ClassVar[List[Type[DataAsset]]] = [DatabricksTableAsset, SqlQueryAsset]
 
-    type: Literal["databricks_sql"] = "databricks_sql"  # type: ignore[assignment]
+    type: Literal["databricks_sql"] = "databricks_sql"  # type: ignore[assignment] # FIXME CoP
     connection_string: Union[ConfigStr, DatabricksDsn]
 
     # These are instance var because ClassVars can't contain Type variables. See
@@ -207,10 +207,10 @@ class DatabricksSQLDatasource(SQLDatasource):
 
             # Raise specific error informing how to install dependencies only if relevant
             if isinstance(nested_exception, sa.exc.NoSuchModuleError):
-                raise TestConnectionError(  # noqa: TRY003
-                    "Could not connect to Databricks - please ensure you've installed necessary dependencies with `pip install great_expectations[databricks]`."  # noqa: E501
+                raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
+                    "Could not connect to Databricks - please ensure you've installed necessary dependencies with `pip install great_expectations[databricks]`."  # noqa: E501 # FIXME CoP
                 ) from e
-            raise e  # noqa: TRY201
+            raise e  # noqa: TRY201 # FIXME CoP
 
     @override
     def _create_engine(self) -> sqlalchemy.Engine:
@@ -231,6 +231,6 @@ class DatabricksSQLDatasource(SQLDatasource):
         http_path = _parse_param_from_query_string(param="http_path", query=connection_string.query)
         assert http_path, "Presence of http_path query string is guaranteed due to prior validation"
 
-        # Databricks connection is a bit finicky - the http_path portion of the connection string needs to be passed in connect_args  # noqa: E501
+        # Databricks connection is a bit finicky - the http_path portion of the connection string needs to be passed in connect_args  # noqa: E501 # FIXME CoP
         connect_args = {"http_path": http_path}
         return sa.create_engine(connection_string, connect_args=connect_args, **kwargs)

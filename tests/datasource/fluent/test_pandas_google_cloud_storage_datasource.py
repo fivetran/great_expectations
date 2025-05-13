@@ -164,7 +164,7 @@ def test_add_csv_asset_to_datasource(
 @mock.patch("google.cloud.storage.Client")
 def test_construct_csv_asset_directly(mock_gcs_client, mock_list_keys, object_keys: List[str]):
     mock_list_keys.return_value = object_keys
-    asset = CSVAsset(  # type: ignore[call-arg]
+    asset = CSVAsset(  # type: ignore[call-arg] # FIXME CoP
         name="csv_asset",
     )
     assert asset.name == "csv_asset"

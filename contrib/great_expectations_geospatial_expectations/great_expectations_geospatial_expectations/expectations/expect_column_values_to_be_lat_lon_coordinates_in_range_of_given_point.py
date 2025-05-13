@@ -228,9 +228,9 @@ class ExpectColumnValuesToBeLatLonCoordinatesInRangeOfGivenPoint(ColumnMapExpect
         projection = configuration.kwargs["projection"]
 
         try:
-            assert (
-                center_point is not None and range is not None
-            ), "center_point and range must be specified"
+            assert center_point is not None and range is not None, (
+                "center_point and range must be specified"
+            )
             assert (isinstance(center_point, (tuple, list))) and all(
                 isinstance(n, float) for n in center_point
             ), "center_point must be a tuple or list of lat/lon floats"

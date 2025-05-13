@@ -242,7 +242,7 @@ class TestInvalidDatasource:
 
         Standard fields such as `type`, `name`, `id` etc. should be included in the InvalidDatasource instance and should
         never be sensitive.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         print(f"Datasource config:\n{pf(invalid_ds_cfg)}")
         invalid_ds = invalid_datasource_factory(invalid_ds_cfg)
 
@@ -296,7 +296,7 @@ class TestInvalidDataAsset:
             {
                 "name": "my invalid ds",
                 "type": random_ds_type,
-                "foo": "bar",  # regardless of the type this extra field should make the datasource invalid  # noqa: E501
+                "foo": "bar",  # regardless of the type this extra field should make the datasource invalid  # noqa: E501 # FIXME CoP
                 "assets": [
                     {"name": "definitely_invalid", "type": "NOT_A_VALID_TYPE"},
                     {"name": "maybe_valid", "type": "table", "table_name": "my_table"},

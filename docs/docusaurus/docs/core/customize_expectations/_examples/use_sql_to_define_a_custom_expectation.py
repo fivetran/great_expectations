@@ -35,32 +35,36 @@ def set_up_context_for_example(context):
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - full code example">
 import great_expectations as gx
 
-
-# Define a custom Expectation that uses SQL by subclassing UnexpectedRowsExpectation
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define a custom UnexpectedRowsExpectation">
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define the query for an UnexpectedRowsExpectation">
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define a more descriptive name for an UnexpectedRowsExpectation">
-class ExpectPassengerCountToBeLegal(gx.expectations.UnexpectedRowsExpectation):
-    # </snippet>
-    unexpected_rows_query: str = (
-        "SELECT * FROM {batch} WHERE passenger_count > 6 or passenger_count < 0"
-    )
-    # </snippet>
-    description: str = "There should be no more than **6** passengers."
-
-
+# Define your custom SQL query.
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define query">
+my_query = """
+    SELECT
+        *
+    FROM
+        {batch}
+    WHERE
+        passenger_count > 6 or passenger_count < 0
+    """
 # </snippet>
 
+# Customize how the Expectation renders in Data Docs.
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define description">
+my_description = "There should be no more than **6** passengers."
+# </snippet>
+
+# Create an Expectation using the UnexpectedRowsExpectation class and your parameters.
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - create Expectation">
+expect_passenger_count_to_be_legal = gx.expectations.UnexpectedRowsExpectation(
+    unexpected_rows_query=my_query,
+    description=my_description,
+)
+# </snippet>
+
+# Test the Expectation.
 context = gx.get_context()
 # Hide this
 set_up_context_for_example(context)
 
-# Instantiate the custom Expectation
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - instantiate the custom SQL Expectation">
-expectation = ExpectPassengerCountToBeLegal()
-# </snippet>
-
-# Test the Expectation
 data_source_name = "my_sql_data_source"
 data_asset_name = "my_data_asset"
 batch_definition_name = "my_batch_definition"
@@ -71,5 +75,5 @@ batch = (
     .get_batch()
 )
 
-batch.validate(expectation)
+batch.validate(expect_passenger_count_to_be_legal)
 # </snippet>

@@ -122,9 +122,9 @@ class ExpectColumnPairValuesToHaveDifferenceOfCustomPercentage(ColumnPairMapExpe
 
         # Check if both columns are provided and values of mostly and percentage are correct
         try:
-            assert (
-                "column_A" in configuration.kwargs and "column_B" in configuration.kwargs
-            ), "both columns must be provided"
+            assert "column_A" in configuration.kwargs and "column_B" in configuration.kwargs, (
+                "both columns must be provided"
+            )
             assert 0 <= mostly <= 1, "Mostly must be between 0 and 1"
             assert percentage >= 0, "Percentage must be positive"
         except AssertionError as e:

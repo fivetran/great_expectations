@@ -137,7 +137,7 @@ def _expecation_configuration_to_validation_result_pandas(
     Args:
         expectation_configuration (ExpectationConfiguration): configuration that is being tested
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     expectation = gxe.ExpectColumnValuesToBeInSet(**expectation_configuration.kwargs)
     batch_definition = LegacyBatchDefinition(
         datasource_name="pandas_datasource",
@@ -173,7 +173,7 @@ def _expecation_configuration_to_validation_result_sql(
     Args:
         expectation_configuration (ExpectationConfiguration): configuration that is being tested
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     expectation = gxe.ExpectColumnValuesToBeInSet(**expectation_configuration.kwargs)
     sqlite_path = file_relative_path(__file__, "../../test_sets/metrics_test.db")
     connection_string = f"sqlite:///{sqlite_path}"
@@ -256,7 +256,7 @@ def test_get_aggregate_count_aware_metric_dependencies(basic_spark_df_execution_
     )
     assert (
         dependencies["metric_partial_fn"].id[0]
-        == f"column_values.nonnull.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}"  # noqa: E501
+        == f"column_values.nonnull.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}.{MetricPartialFunctionTypes.AGGREGATE_FN.metric_suffix}"  # noqa: E501 # FIXME CoP
     )
 
     metric = MetricConfiguration(
@@ -403,7 +403,7 @@ def test_pandas_unexpected_rows_summary_result_format_unexpected_rows_explicitly
             "value_set": ["cat", "fish", "dog"],
             "result_format": {
                 "result_format": "SUMMARY",  # SUMMARY will include partial_unexpected* values only
-                "include_unexpected_rows": False,  # this is the default value, but making explicit for testing purposes  # noqa: E501
+                "include_unexpected_rows": False,  # this is the default value, but making explicit for testing purposes  # noqa: E501 # FIXME CoP
             },
         },
     )
@@ -538,7 +538,7 @@ def test_expectation_configuration_has_result_format(
         },
     )
     with pytest.warns(UserWarning) as config_warning:
-        result: ExpectationValidationResult = (  # noqa: F841
+        result: ExpectationValidationResult = (  # noqa: F841 # FIXME CoP
             _expecation_configuration_to_validation_result_pandas(
                 expectation_configuration=expectation_configuration,
                 dataframe=pandas_animals_dataframe_for_unexpected_rows_and_index,

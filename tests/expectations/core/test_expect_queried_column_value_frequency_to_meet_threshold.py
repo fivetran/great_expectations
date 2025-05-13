@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from contrib.experimental.great_expectations_experimental.expectations.expect_queried_column_value_frequency_to_meet_threshold import (  # noqa: E501
+from contrib.experimental.great_expectations_experimental.expectations.expect_queried_column_value_frequency_to_meet_threshold import (  # noqa: E501 # FIXME CoP
     ExpectQueriedColumnValueFrequencyToMeetThreshold,  # noqa: F401 # needed for expectation registration
 )
 
@@ -57,7 +57,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
     warns,
     titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled,
 ):
-    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
 
     validator: Validator = context.get_validator(batch_request=batch_request)
 
@@ -69,7 +69,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
                     value="male",
                     threshold=0.5,
                     row_condition=row_condition,
-                    condition_parser="great_expectations__experimental__",
+                    condition_parser="great_expectations",
                 )
             )
     else:
@@ -79,7 +79,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
                 value="male",
                 threshold=0.5,
                 row_condition=row_condition,
-                condition_parser="great_expectations__experimental__",
+                condition_parser="great_expectations",
             )
         )
     assert result["success"] == success and result["result"]["observed_value"] == observed
@@ -90,7 +90,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
     [
         (
             sqlite_batch_request,
-            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM titanic) FROM titanic GROUP BY {col}",  # noqa: E501
+            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM titanic) FROM titanic GROUP BY {col}",  # noqa: E501 # FIXME CoP
             True,
             0.6481340441736482,
             None,
@@ -98,7 +98,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
         ),
         (
             sqlite_runtime_batch_request,
-            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM titanic) FROM {batch} GROUP BY {col}",  # noqa: E501
+            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM titanic) FROM {batch} GROUP BY {col}",  # noqa: E501 # FIXME CoP
             False,
             0.04112718964204113,
             None,
@@ -106,7 +106,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
         ),
         (
             sqlite_batch_request,
-            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT(y) FROM wrong) FROM {batch} GROUP BY {col}",  # noqa: E501
+            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT(y) FROM wrong) FROM {batch} GROUP BY {col}",  # noqa: E501 # FIXME CoP
             True,
             7.091666666666667,
             None,
@@ -114,7 +114,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
         ),
         (
             sqlite_batch_request,
-            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM titanic) FROM {batch} GROUP BY {col}",  # noqa: E501
+            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM titanic) FROM {batch} GROUP BY {col}",  # noqa: E501 # FIXME CoP
             False,
             0.2338156892612338,
             'col("Age")<35',
@@ -122,7 +122,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite(
         ),
         (
             sqlite_batch_request,
-            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM {batch}) / 2 FROM {batch} GROUP BY {col}",  # noqa: E501
+            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM {batch}) / 2 FROM {batch} GROUP BY {col}",  # noqa: E501 # FIXME CoP
             False,
             0.3240670220868241,
             None,
@@ -141,7 +141,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
     warns,
     titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled,
 ):
-    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
 
     validator: Validator = context.get_validator(batch_request=batch_request)
 
@@ -154,7 +154,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
                     threshold=0.5,
                     query=query,
                     row_condition=row_condition,
-                    condition_parser="great_expectations__experimental__",
+                    condition_parser="great_expectations",
                 )
             )
     else:
@@ -165,7 +165,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
                 threshold=0.5,
                 query=query,
                 row_condition=row_condition,
-                condition_parser="great_expectations__experimental__",
+                condition_parser="great_expectations",
             )
         )
     assert result["success"] == success and result["result"]["observed_value"] == observed
@@ -208,7 +208,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_spark(
                     value="male",
                     threshold=0.5,
                     row_condition=row_condition,
-                    condition_parser="great_expectations__experimental__",
+                    condition_parser="great_expectations",
                 )
             )
     else:
@@ -218,7 +218,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_spark(
                 value="male",
                 threshold=0.5,
                 row_condition=row_condition,
-                condition_parser="great_expectations__experimental__",
+                condition_parser="great_expectations",
             )
         )
     assert result["success"] == success and result["result"]["observed_value"] == observed
@@ -229,14 +229,14 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_spark(
     "query,success,observed,row_condition,warns",
     [
         (
-            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM {batch}) / 2 FROM {batch} GROUP BY {col}",  # noqa: E501
+            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM {batch}) / 2 FROM {batch} GROUP BY {col}",  # noqa: E501 # FIXME CoP
             False,
             0.3240670220868241,
             None,
             False,
         ),
         (
-            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM {batch}) / 2 FROM {batch} GROUP BY {col}",  # noqa: E501
+            "SELECT {col}, CAST(COUNT({col}) AS float) / (SELECT COUNT({col}) FROM {batch}) / 2 FROM {batch} GROUP BY {col}",  # noqa: E501 # FIXME CoP
             False,
             0.3107287449392713,
             'col("Age")<35',
@@ -274,7 +274,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
                     threshold=0.5,
                     query=query,
                     row_condition=row_condition,
-                    condition_parser="great_expectations__experimental__",
+                    condition_parser="great_expectations",
                 )
             )
     else:
@@ -285,7 +285,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
                 threshold=0.5,
                 query=query,
                 row_condition=row_condition,
-                condition_parser="great_expectations__experimental__",
+                condition_parser="great_expectations",
             )
         )
     assert result["success"] == success and result["result"]["observed_value"] == observed
@@ -295,7 +295,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_override_query_
 def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite_multi_value(
     titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled,
 ):
-    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501
+    context = titanic_v013_multi_datasource_pandas_and_sqlalchemy_execution_engine_data_context_with_checkpoints_v1_with_empty_store_stats_enabled  # noqa: E501 # FIXME CoP
 
     validator: Validator = context.get_validator(batch_request=sqlite_batch_request)
 
@@ -306,7 +306,7 @@ def test_expect_queried_column_value_frequency_to_meet_threshold_sqlite_multi_va
                 value=["male", "female"],
                 threshold=[0.6, 0.3],
                 row_condition='col("Age")>17',
-                condition_parser="great_expectations__experimental__",
+                condition_parser="great_expectations",
             )
         )
 

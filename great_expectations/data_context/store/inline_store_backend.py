@@ -43,9 +43,9 @@ class InlineStoreBackend(StoreBackend):
 
     It performs these actions through a reference to a DataContext instance.
     Please note that is it only to be used with file-backed DataContexts (DataContext and FileDataContext).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         data_context: FileDataContext,
         resource_type: DataContextVariableSchema,
@@ -65,8 +65,8 @@ class InlineStoreBackend(StoreBackend):
         self._data_context = data_context
         self._resource_type = resource_type
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "runtime_environment": runtime_environment,
             "fixed_length_key": fixed_length_key,
@@ -116,10 +116,10 @@ class InlineStoreBackend(StoreBackend):
 
         if resource_type is DataContextVariableSchema.ALL_VARIABLES:
             config_commented_map_from_yaml = yaml.load(value)
-            # NOTE: fluent datasources may be present under both the `fluent_datasources` & `datasources` key  # noqa: E501
-            # if fluent datasource is part of `datasources` it will attempt to validate using a marshmallow Datasource schema and fail  # noqa: E501
-            for name in config_commented_map_from_yaml.get("fluent_datasources", {}):  # type: ignore[union-attr]
-                config_commented_map_from_yaml.get("datasources", {}).pop(name, None)  # type: ignore[union-attr,arg-type,call-arg]
+            # NOTE: fluent datasources may be present under both the `fluent_datasources` & `datasources` key  # noqa: E501 # FIXME CoP
+            # if fluent datasource is part of `datasources` it will attempt to validate using a marshmallow Datasource schema and fail  # noqa: E501 # FIXME CoP
+            for name in config_commented_map_from_yaml.get("fluent_datasources", {}):  # type: ignore[union-attr] # FIXME CoP
+                config_commented_map_from_yaml.get("datasources", {}).pop(name, None)  # type: ignore[union-attr,arg-type,call-arg] # FIXME CoP
             value = DataContextConfig.from_commented_map(
                 commented_map=config_commented_map_from_yaml
             )
@@ -133,8 +133,8 @@ class InlineStoreBackend(StoreBackend):
 
     @override
     def _move(self, source_key: tuple[str, ...], dest_key: tuple[str, ...], **kwargs: dict) -> None:
-        raise StoreBackendError(  # noqa: TRY003
-            "InlineStoreBackend does not support moving of keys; the DataContext's config variables schema is immutable"  # noqa: E501
+        raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+            "InlineStoreBackend does not support moving of keys; the DataContext's config variables schema is immutable"  # noqa: E501 # FIXME CoP
         )
 
     @override
@@ -148,7 +148,7 @@ class InlineStoreBackend(StoreBackend):
 
         Returns:
             A list of string keys from the user's project config.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         config_section: str | None = None
         if self._resource_type is not DataContextVariableSchema.ALL_VARIABLES:
             config_section = self._resource_type
@@ -162,7 +162,7 @@ class InlineStoreBackend(StoreBackend):
         else:
             config_values: dict = config_dict[config_section]
             if not isinstance(config_values, dict):
-                raise StoreBackendError(  # noqa: TRY003
+                raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
                     "Cannot list keys in a non-iterable section of a project config"
                 )
             keys = list((key,) for key in config_values)
@@ -178,15 +178,15 @@ class InlineStoreBackend(StoreBackend):
         resource_type = self._resource_type
 
         if resource_type is DataContextVariableSchema.ALL_VARIABLES:
-            raise StoreBackendError(  # noqa: TRY003
-                "InlineStoreBackend does not support the deletion of the overall DataContext project config"  # noqa: E501
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                "InlineStoreBackend does not support the deletion of the overall DataContext project config"  # noqa: E501 # FIXME CoP
             )
         if resource_name is None:
-            raise StoreBackendError(  # noqa: TRY003
-                "InlineStoreBackend does not support the deletion of top level keys; the DataContext's config variables schema is immutable"  # noqa: E501
+            raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
+                "InlineStoreBackend does not support the deletion of top level keys; the DataContext's config variables schema is immutable"  # noqa: E501 # FIXME CoP
             )
         elif not self._has_key(key):
-            raise StoreBackendError(f"Could not find a value associated with key `{key}`")  # noqa: TRY003
+            raise StoreBackendError(f"Could not find a value associated with key `{key}`")  # noqa: TRY003 # FIXME CoP
 
         del self._data_context.config[resource_type][resource_name]
 
@@ -198,7 +198,7 @@ class InlineStoreBackend(StoreBackend):
         id: str | None = None,
         name: str | None = None,
     ) -> DataContextVariableKey:
-        """Get the store backend specific implementation of the key. id included for super class compatibility."""  # noqa: E501
+        """Get the store backend specific implementation of the key. id included for super class compatibility."""  # noqa: E501 # FIXME CoP
         return DataContextVariableKey(
             resource_name=name,
         )

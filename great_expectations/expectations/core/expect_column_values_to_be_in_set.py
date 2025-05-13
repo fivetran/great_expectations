@@ -2,16 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
-from great_expectations.compatibility import pydantic
-from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001  # type needed in pydantic validation
-)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.expectations.model_field_types import (
-    ValueSet,  # noqa: TCH001  # type needed in pydantic validation
+    ValueSetField,  # noqa: TC001  # type needed in pydantic validation
 )
 from great_expectations.render import (
     LegacyDescriptiveRendererType,
@@ -32,7 +29,7 @@ from great_expectations.render.util import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 from great_expectations.expectations.expectation import (
@@ -52,17 +49,18 @@ if TYPE_CHECKING:
 EXPECTATION_SHORT_DESCRIPTION = "Expect each column value to be in a given set."
 VALUE_SET_DESCRIPTION = "A set of objects used for comparison."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
-DATA_QUALITY_ISSUES = ["Sets"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 
 
 class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
@@ -103,7 +101,7 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
     See Also:
         [ExpectColumnValuesToNotBeInSet](https://greatexpectations.io/expectations/expect_column_values_to_not_be_in_set)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -114,7 +112,7 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -186,11 +184,9 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    value_set: Union[Optional[ValueSet], SuiteParameterDict] = pydantic.Field(
-        description=VALUE_SET_DESCRIPTION
-    )
+    value_set: ValueSetField
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",
@@ -383,7 +379,7 @@ class ExpectColumnValuesToBeInSet(ColumnMapExpectation):
 
         classes = ["col-3", "mt-1", "pl-1", "pr-1"]
 
-        if any(len(value) > 80 for value in values):  # noqa: PLR2004
+        if any(len(value) > 80 for value in values):  # noqa: PLR2004 # FIXME CoP
             content_block_type = "bullet_list"
             content_block_class = RenderedBulletListContent
         else:

@@ -19,7 +19,12 @@ if TYPE_CHECKING:
     from great_expectations.data_context.store import ExpectationsStore
 
 
+@public_api
 class SuiteFactory(Factory[ExpectationSuite]):
+    """
+    Responsible for basic CRUD operations on a Data Context's ExpectationSuites.
+    """
+
     def __init__(self, store: ExpectationsStore):
         self._store = store
 
@@ -32,15 +37,15 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def add(self, suite: ExpectationSuite) -> ExpectationSuite:
         """Add an ExpectationSuite to the collection.
 
-        Parameters:
+        Args:
             suite: ExpectationSuite to add
 
         Raises:
-            DataContextError if ExpectationSuite already exists
+            DataContextError: if ExpectationSuite already exists
         """
         key = self._store.get_key(name=suite.name, id=None)
         if self._store.has_key(key=key):
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 f"Cannot add ExpectationSuite with name {suite.name} because it already exists."
             )
         self._store.add(key=key, value=suite)
@@ -61,16 +66,16 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def delete(self, name: str) -> None:
         """Delete an ExpectationSuite from the collection.
 
-        Parameters:
+        Args:
             name: The name of the ExpectationSuite to delete
 
         Raises:
-            DataContextError if ExpectationSuite doesn't exist
+            DataContextError: if ExpectationSuite doesn't exist
         """
         try:
             suite = self.get(name=name)
         except DataContextError as e:
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 f"Cannot delete ExpectationSuite with name {name} because it cannot be found."
             ) from e
 
@@ -88,16 +93,16 @@ class SuiteFactory(Factory[ExpectationSuite]):
     def get(self, name: str) -> ExpectationSuite:
         """Get an ExpectationSuite from the collection by name.
 
-        Parameters:
+        Args:
             name: Name of ExpectationSuite to get
 
         Raises:
-            DataContextError when ExpectationSuite is not found.
+            DataContextError: when ExpectationSuite is not found.
         """
 
         key = self._store.get_key(name=name, id=None)
         if not self._store.has_key(key=key):
-            raise DataContextError(f"ExpectationSuite with name {name} was not found.")  # noqa: TRY003
+            raise DataContextError(f"ExpectationSuite with name {name} was not found.")  # noqa: TRY003 # FIXME CoP
         suite_dict = self._store.get(key=key)
         return self._store.deserialize_suite_dict(suite_dict)
 
@@ -124,3 +129,34 @@ class SuiteFactory(Factory[ExpectationSuite]):
                 self._store.submit_all_deserialization_event(e)
                 raise
         return deserializable_suites
+
+    @public_api
+    @override
+    def add_or_update(self, suite: ExpectationSuite) -> ExpectationSuite:
+        """Add or update an ExpectationSuite by name.
+
+        If an ExpectationSuite with the same name exists, overwrite it, otherwise
+        create a new ExpectationSuite. On update, Expectations in the Suite which
+        match a previously existing Expectation maintain a stable ID, and
+        Expectations which have changed receive a new ID.
+
+        Args:
+            suite: ExpectationSuite to add or update
+        """
+        try:
+            existing_suite = self.get(name=suite.name)
+        except DataContextError:
+            return self.add(suite=suite)
+
+        # add IDs to expectations that haven't changed
+        existing_expectations = existing_suite.expectations
+        for expectation in suite.expectations:
+            try:
+                index = existing_expectations.index(expectation)
+                expectation.id = existing_expectations[index].id
+            except ValueError:
+                pass  # expectation is new or updated
+
+        suite.id = existing_suite.id
+        suite.save()
+        return suite

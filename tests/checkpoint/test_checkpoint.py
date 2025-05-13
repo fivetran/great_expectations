@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import pathlib
 import uuid
-from typing import TYPE_CHECKING, List, Type
+from typing import TYPE_CHECKING, Generator, List, Literal, Type
 from unittest import mock
 
 import pandas as pd
@@ -13,17 +13,14 @@ from requests import Session
 import great_expectations as gx
 from great_expectations import expectations as gxe
 from great_expectations.analytics.events import CheckpointRanEvent
-from great_expectations.checkpoint.actions import (
+from great_expectations.checkpoint import (
     MicrosoftTeamsNotificationAction,
-    OpsgenieAlertAction,
-    PagerdutyAlertAction,
     SlackNotificationAction,
     UpdateDataDocsAction,
-    ValidationAction,
 )
+from great_expectations.checkpoint.actions import ValidationAction
 from great_expectations.checkpoint.checkpoint import (
     Checkpoint,
-    CheckpointAction,
     CheckpointResult,
 )
 from great_expectations.compatibility.pydantic import ValidationError
@@ -62,14 +59,18 @@ from great_expectations.exceptions import (
 )
 from great_expectations.exceptions.exceptions import (
     CheckpointNotFoundError,
+    ValidationActionRegistryRetrievalError,
     ValidationDefinitionNotFoundError,
 )
 from great_expectations.exceptions.resource_freshness import ResourceFreshnessAggregateError
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
+from great_expectations.expectations.window import Offset, Window
 from tests.test_utils import working_directory
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
+
+    from great_expectations.data_context.data_context.cloud_data_context import CloudDataContext
 
 
 @pytest.mark.unit
@@ -260,7 +261,7 @@ class TestCheckpointSerialization:
                         "notify_on": "all",
                         "renderer": {
                             "class_name": "MicrosoftTeamsRenderer",
-                            "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",  # noqa: E501
+                            "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",  # noqa: E501 # FIXME CoP
                         },
                         "teams_webhook": "teams_webhook",
                         "type": "microsoft",
@@ -313,7 +314,7 @@ class TestCheckpointSerialization:
     def test_checkpoint_filesystem_round_trip_adds_ids(
         self,
         tmp_path: pathlib.Path,
-        actions: list[CheckpointAction],
+        actions: list[ValidationAction],
     ):
         with working_directory(tmp_path):
             context = gx.get_context(mode="file")
@@ -329,7 +330,7 @@ class TestCheckpointSerialization:
         cp_name = "my_checkpoint"
 
         ds = context.data_sources.add_pandas(ds_name)
-        asset = ds.add_csv_asset(asset_name, "my_file.csv")  # type: ignore[arg-type]
+        asset = ds.add_csv_asset(asset_name, "my_file.csv")  # type: ignore[arg-type] # FIXME CoP
 
         bc1 = asset.add_batch_definition(batch_definition_name_1)
         suite1 = context.suites.add(ExpectationSuite(suite_name_1))
@@ -383,7 +384,7 @@ class TestCheckpointSerialization:
                     "notify_on": "all",
                     "renderer": {
                         "class_name": "MicrosoftTeamsRenderer",
-                        "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",  # noqa: E501
+                        "module_name": "great_expectations.render.renderer.microsoft_teams_renderer",  # noqa: E501 # FIXME CoP
                     },
                     "teams_webhook": "teams_webhook",
                     "type": "microsoft",
@@ -408,7 +409,7 @@ class TestCheckpointSerialization:
         assert cp.validation_definitions[1].batch_definition.name == batch_definition_name_2
         assert cp.validation_definitions[1].suite.name == suite_name_2
 
-        # Check that all validation_definitions and nested suites have been assigned IDs during serialization  # noqa: E501
+        # Check that all validation_definitions and nested suites have been assigned IDs during serialization  # noqa: E501 # FIXME CoP
         self._assert_valid_uuid(id=cp.validation_definitions[0].id)
         self._assert_valid_uuid(id=cp.validation_definitions[1].id)
         self._assert_valid_uuid(id=cp.validation_definitions[0].suite.id)
@@ -423,6 +424,8 @@ class TestCheckpointSerialization:
         except ValueError:
             pytest.fail(f"{id} is not a valid UUID.")
 
+
+class TestCheckpointDeserialization:
     @pytest.mark.parametrize(
         "serialized_checkpoint, expected_error",
         [
@@ -467,16 +470,22 @@ class TestCheckpointSerialization:
 
         assert expected_error in str(e.value)
 
-    @pytest.mark.unit
-    def test_checkpoint_deserialization_with_actions(self, mocker: MockerFixture):
-        # Arrange
+    @pytest.fixture
+    def _set_context(self, mocker: MockerFixture) -> Generator[None, None, None]:
         context = mocker.Mock(spec=AbstractDataContext)
         context.validation_definition_store.get.return_value = mocker.Mock(
             spec=ValidationDefinition
         )
-        set_context(context)
 
-        # Act
+        set_context(context)
+        yield
+        set_context(None)
+
+    @pytest.mark.unit
+    def test_checkpoint_deserialization_with_actions_success(
+        self, _set_context: Generator[None, None, None]
+    ):
+        # Arrange
         serialized_checkpoint = {
             "actions": [
                 {"name": "my_docs_action", "site_names": [], "type": "update_data_docs"},
@@ -490,6 +499,8 @@ class TestCheckpointSerialization:
                 {"id": "3fb9ce09-a8fb-44d6-8abd-7d699443f6a1", "name": "my_validation_def"}
             ],
         }
+
+        # Act
         checkpoint = Checkpoint.parse_obj(serialized_checkpoint)
 
         # Assert
@@ -497,6 +508,69 @@ class TestCheckpointSerialization:
         assert isinstance(checkpoint.actions[0], UpdateDataDocsAction)
         assert isinstance(checkpoint.actions[1], SlackNotificationAction)
         assert isinstance(checkpoint.actions[2], MicrosoftTeamsNotificationAction)
+
+    @pytest.mark.parametrize(
+        "action_config, expected_error",
+        [
+            pytest.param(
+                {"name": "my_docs_action", "site_names": []},
+                ValidationActionRegistryRetrievalError,
+                id="no_type",
+            ),
+            pytest.param(
+                {"name": "my_custom_action", "type": "not_registered"},
+                ValidationActionRegistryRetrievalError,
+                id="not_registered",
+            ),
+        ],
+    )
+    @pytest.mark.unit
+    def test_checkpoint_deserialization_with_actions_failure(
+        self,
+        _set_context: Generator[None, None, None],
+        action_config: dict,
+        expected_error: Type[Exception],
+    ):
+        # Arrange
+        serialized_checkpoint = {
+            "actions": [
+                action_config,
+            ],
+            "id": "e7d1f462-821b-429c-8086-cca80eeea5e9",
+            "name": "my_checkpoint",
+            "validation_definitions": [
+                {"id": "3fb9ce09-a8fb-44d6-8abd-7d699443f6a1", "name": "my_validation_def"}
+            ],
+        }
+
+        # Act & Assert
+        with pytest.raises(expected_error):
+            Checkpoint.parse_obj(serialized_checkpoint)
+
+    @pytest.mark.unit
+    def test_checkpoint_deserialization_with_custom_validation_action(
+        self, _set_context: Generator[None, None, None]
+    ):
+        # Arrange
+        class CustomAction(ValidationAction):
+            type: Literal["custom"] = "custom"
+
+        serialized_checkpoint = {
+            "actions": [
+                {"name": "my_custom_action", "type": "custom"},
+            ],
+            "id": "e7d1f462-821b-429c-8086-cca80eeea5e9",
+            "name": "my_checkpoint",
+            "validation_definitions": [
+                {"id": "3fb9ce09-a8fb-44d6-8abd-7d699443f6a1", "name": "my_validation_def"}
+            ],
+        }
+
+        # Act
+        checkpoint = Checkpoint.parse_obj(serialized_checkpoint)
+
+        # Assert
+        assert isinstance(checkpoint.actions[0], CustomAction)
 
 
 class TestCheckpointResult:
@@ -651,12 +725,15 @@ class TestCheckpointResult:
         Pydantics and mocks.
         Ideally, this would be tested through the public `run()` method.
         """
-        pd_action = PagerdutyAlertAction(
-            name="my_pagerduty_action", api_key="api_key", routing_key="routing_key"
+        slack_action = SlackNotificationAction(
+            name="my_slack_action", slack_webhook="${SLACK_WEBHOOK}"
         )
-        og_action = OpsgenieAlertAction(name="my_opsgenie_action", api_key="api_key")
+        teams_action = MicrosoftTeamsNotificationAction(
+            name="my_teams_action", teams_webhook="teams_webhook"
+        )
         data_docs_action = UpdateDataDocsAction(name="my_docs_action")
-        actions: List[CheckpointAction] = [pd_action, og_action, data_docs_action]
+
+        actions: List[ValidationAction] = [slack_action, teams_action, data_docs_action]
 
         validation_definitions = [validation_definition]
         checkpoint = Checkpoint(
@@ -665,7 +742,7 @@ class TestCheckpointResult:
             actions=actions,
         )
 
-        assert checkpoint._sort_actions() == [data_docs_action, pd_action, og_action]
+        assert checkpoint._sort_actions() == [data_docs_action, slack_action, teams_action]
 
     @pytest.mark.unit
     def test_checkpoint_run_passes_through_runtime_params(
@@ -687,7 +764,7 @@ class TestCheckpointResult:
                 batch_parameters=batch_parameters, expectation_parameters=expectation_parameters
             )
 
-        validation_definition.run.assert_called_with(  # type: ignore[attr-defined]
+        validation_definition.run.assert_called_with(  # type: ignore[attr-defined] # FIXME CoP
             checkpoint_id=checkpoint_id,
             batch_parameters=batch_parameters,
             expectation_parameters=expectation_parameters,
@@ -803,7 +880,7 @@ class TestCheckpointResult:
         assert actual == expected
 
     def _build_file_backed_checkpoint(
-        self, tmp_path: pathlib.Path, actions: list[CheckpointAction] | None = None
+        self, tmp_path: pathlib.Path, actions: list[ValidationAction] | None = None
     ) -> Checkpoint:
         actions = actions or []
         with working_directory(tmp_path):
@@ -1034,8 +1111,11 @@ class TestCheckpointResult:
             {
                 "type": "section",
                 "text": {
+                    "text": "\n"
+                    "*Asset*: `my_asset`  \n"
+                    "*Expectation Suite*: `my_suite`\n"
+                    "*Summary*: *1* of *2* Expectations were met",
                     "type": "mrkdwn",
-                    "text": "*Asset*: my_asset  *Expectation Suite*: my_suite",
                 },
             },
             {"type": "divider"},
@@ -1544,3 +1624,91 @@ def test_checkpoint_expectation_parameters(
         batch_parameters={"dataframe": pd.DataFrame({col: [1, 2]})},
     )
     assert results.success
+
+
+@pytest.mark.unit
+def test_windowed_expectation_runs(
+    empty_cloud_context_fluent: CloudDataContext,
+    mocker: MockerFixture,
+) -> None:
+    # Arrange: Setup context and entities so we can run a checkpoint
+    context = empty_cloud_context_fluent
+    col_name = "my_col"
+    dataframe = pd.DataFrame({col_name: [1, 2]})
+
+    batch_def = (
+        context.data_sources.add_pandas("my_datasource")
+        .add_dataframe_asset("my_asset")
+        .add_batch_definition("my_batch_definition")
+    )
+    expectation = gx.expectations.ExpectColumnMeanToBeBetween(
+        column=col_name,
+        min_value={"$PARAMETER": "my_min"},
+        max_value={"$PARAMETER": "my_max"},
+        windows=[
+            Window(
+                constraint_fn="mean",
+                parameter_name="my_min",
+                range=3,
+                offset=Offset(positive=0.05, negative=0.05),
+                strict=False,
+            ),
+            Window(
+                constraint_fn="mean",
+                parameter_name="my_max",
+                range=3,
+                offset=Offset(positive=0.05, negative=0.05),
+                strict=False,
+            ),
+        ],
+    )
+    suite = context.suites.add(gx.ExpectationSuite("my_suite", expectations=[expectation]))
+    validation_def = context.validation_definitions.add(
+        gx.ValidationDefinition(name="my_validation_definition", suite=suite, data=batch_def)
+    )
+    checkpoint = context.checkpoints.add(
+        Checkpoint(name="my_checkpoint", validation_definitions=[validation_def])
+    )
+
+    # Patch external requests made when running a checkpoint.
+    # Since we are using mocker instead of mock, we don't need to use this as a context manager
+    (
+        mocker.patch.object(
+            Checkpoint, "is_fresh", return_value=CheckpointFreshnessDiagnostics(errors=[])
+        ),
+    )
+    # We set the returned min and max values returned by cloud
+    # This is a magic mock since it needs to support being used as a context manager
+    mock_session = mocker.MagicMock()
+    cloud_min = 0.234
+    cloud_max = 0.456
+    mock_session.__enter__.return_value.get.return_value.json.return_value = {
+        "data": {"expectation_parameters": {"my_min": cloud_min, "my_max": cloud_max}}
+    }
+    mocker.patch(
+        "great_expectations.data_context.data_context.cloud_data_context.create_session",
+        return_value=mock_session,
+    )
+
+    # Act: Run the checkpoint
+    checkpoint_result = checkpoint.run(
+        {
+            "dataframe": dataframe,
+        }
+    )
+
+    # Assert: Look at the configured expectation min and max and compare it to the returned cloud
+    # values
+    assert len(checkpoint_result.run_results) == 1
+    outer_results = list(checkpoint_result.run_results.values())[0]
+    result_list = outer_results.results
+    assert len(result_list) == 1
+    result = result_list[0]
+    assert (
+        result["expectation_config"]["rendered_content"][0].value.params["min_value"]["value"]
+        == cloud_min
+    )
+    assert (
+        result["expectation_config"]["rendered_content"][0].value.params["max_value"]["value"]
+        == cloud_max
+    )

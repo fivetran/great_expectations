@@ -1,6 +1,5 @@
 import copy
 import datetime
-import logging
 import os
 from typing import TYPE_CHECKING, Any
 
@@ -9,7 +8,6 @@ import pytest
 import great_expectations as gx
 from great_expectations.core.util import nested_update
 from great_expectations.util import (
-    convert_json_string_to_be_python_compliant,
     convert_ndarray_datetime_to_float_dtype_utc_timezone,
     convert_ndarray_float_to_datetime_tuple,
     convert_ndarray_to_datetime_dtype_best_effort,
@@ -27,7 +25,7 @@ if TYPE_CHECKING:
 def datetime_array():
     week_idx: int
     return [
-        datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001
+        datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME CoP
         for week_idx in range(4)
     ]
 
@@ -37,7 +35,7 @@ def datetime_string_array():
     week_idx: int
     return [
         (
-            datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001
+            datetime.datetime(2021, 1, 1, 0, 0, 0) + datetime.timedelta(days=(week_idx * 7))  # noqa: DTZ001 # FIXME CoP
         ).isoformat()
         for week_idx in range(4)
     ]
@@ -52,18 +50,18 @@ def numeric_array():
 @pytest.mark.unit
 def test_gen_directory_tree_str(tmpdir):
     project_dir = str(tmpdir.mkdir("project_dir"))
-    os.mkdir(os.path.join(project_dir, "BBB"))  # noqa: PTH102, PTH118
-    with open(os.path.join(project_dir, "BBB", "bbb.txt"), "w") as f:  # noqa: PTH118
+    os.mkdir(os.path.join(project_dir, "BBB"))  # noqa: PTH102, PTH118 # FIXME CoP
+    with open(os.path.join(project_dir, "BBB", "bbb.txt"), "w") as f:  # noqa: PTH118 # FIXME CoP
         f.write("hello")
-    with open(os.path.join(project_dir, "BBB", "aaa.txt"), "w") as f:  # noqa: PTH118
+    with open(os.path.join(project_dir, "BBB", "aaa.txt"), "w") as f:  # noqa: PTH118 # FIXME CoP
         f.write("hello")
 
-    os.mkdir(os.path.join(project_dir, "AAA"))  # noqa: PTH102, PTH118
+    os.mkdir(os.path.join(project_dir, "AAA"))  # noqa: PTH102, PTH118 # FIXME CoP
 
     res = gx.util.gen_directory_tree_str(project_dir)
     print(res)
 
-    # Note: files and directories are sorteds alphabetically, so that this method can be used for testing.  # noqa: E501
+    # Note: files and directories are sorteds alphabetically, so that this method can be used for testing.  # noqa: E501 # FIXME CoP
     assert (
         res
         == """\
@@ -78,7 +76,7 @@ project_dir/
 
 @pytest.mark.unit
 def test_nested_update():
-    # nested_update is useful for update nested dictionaries (such as batch_kwargs with reader_options as a dictionary)  # noqa: E501
+    # nested_update is useful for update nested dictionaries (such as batch_kwargs with reader_options as a dictionary)  # noqa: E501 # FIXME CoP
     batch_kwargs = {
         "path": "/a/path",
         "reader_method": "read_csv",
@@ -96,7 +94,7 @@ def test_nested_update():
 
 @pytest.mark.unit
 def test_nested_update_lists():
-    # nested_update is useful for update nested dictionaries (such as batch_kwargs with reader_options as a dictionary)  # noqa: E501
+    # nested_update is useful for update nested dictionaries (such as batch_kwargs with reader_options as a dictionary)  # noqa: E501 # FIXME CoP
     dependencies = {
         "suite.warning": {"metric.name": ["column=foo"]},
         "suite.failure": {"metric.blarg": [""]},
@@ -118,76 +116,6 @@ def test_nested_update_lists():
         },
         "suite.failure": {"metric.blarg": [""]},
     }
-
-
-@pytest.mark.unit
-def test_convert_json_string_to_be_python_compliant_null_replacement(caplog):
-    text = """
-    "id": null,
-    "expectation_context": {"description": null},
-    """
-    expected = """
-    "id": None,
-    "expectation_context": {"description": None},
-    """
-
-    with caplog.at_level(logging.INFO):
-        res = convert_json_string_to_be_python_compliant(text)
-
-    assert res == expected
-    assert "Replaced 'id: null' with 'id: None' before writing to file" in caplog.text
-    assert (
-        "Replaced 'description: null' with 'description: None' before writing to file"
-        in caplog.text
-    )
-
-
-@pytest.mark.unit
-def test_convert_json_string_to_be_python_compliant_bool_replacement(caplog):
-    text = """
-    "meta": {},
-    "kwargs": {
-        "column": "input_date",
-        "max_value": "2027-09-03 00:00:00",
-        "min_value": "2015-01-01 00:00:00",
-        "parse_strings_as_datetimes": true,
-        "catch_exceptions": false
-    },
-    """
-    expected = """
-    "meta": {},
-    "kwargs": {
-        "column": "input_date",
-        "max_value": "2027-09-03 00:00:00",
-        "min_value": "2015-01-01 00:00:00",
-        "parse_strings_as_datetimes": True,
-        "catch_exceptions": False
-    },
-    """
-
-    with caplog.at_level(logging.INFO):
-        res = convert_json_string_to_be_python_compliant(text)
-
-    assert res == expected
-    assert (
-        "Replaced '\"parse_strings_as_datetimes\": true' with '\"parse_strings_as_datetimes\": True' before writing to file"  # noqa: E501
-        in caplog.text
-    )
-    assert (
-        "Replaced '\"catch_exceptions\": false' with '\"catch_exceptions\": False' before writing to file"  # noqa: E501
-        in caplog.text
-    )
-
-
-@pytest.mark.unit
-def test_convert_json_string_to_be_python_compliant_no_replacement():
-    text = """
-    "kwargs": {"max_value": 10000, "min_value": 10000},
-    "expectation_type": "expect_table_row_count_to_be_between",
-    "meta": {},
-    """
-    res = convert_json_string_to_be_python_compliant(text)
-    assert res == text
 
 
 @pytest.mark.unit
@@ -621,7 +549,7 @@ def test_convert_ndarray_float_to_datetime_tuple(
     with pytest.raises(TypeError) as e:
         _ = convert_ndarray_float_to_datetime_tuple(data=datetime_array)
 
-    # Error message varies based on version but mainly looking to validate type error by not using integer  # noqa: E501
+    # Error message varies based on version but mainly looking to validate type error by not using integer  # noqa: E501 # FIXME CoP
     assert all(string in str(e.value) for string in ("datetime.datetime", "integer"))
 
 

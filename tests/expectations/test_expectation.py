@@ -2,21 +2,29 @@ from __future__ import annotations
 
 import itertools
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.expectation_validation_result import ExpectationValidationResult
 from great_expectations.exceptions import InvalidExpectationConfigurationError
+from great_expectations.execution_engine.execution_engine import ExecutionEngine
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     ColumnPairMapExpectation,
+    Expectation,
     MulticolumnMapExpectation,
     _validate_dependencies_against_available_metrics,
 )
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
+)
+from great_expectations.expectations.model_field_types import (
+    MostlyField,  # type needed in pydantic validation
+    ValueSetField,  # type needed in pydantic validation
 )
 from great_expectations.expectations.window import Offset, Window
 from great_expectations.validator.metric_configuration import MetricConfiguration
@@ -83,7 +91,9 @@ def fake_expectation_config(
     [
         (
             FakeMulticolumnExpectation,
-            fake_expectation_config("fake_multicolumn_expectation", {"column_list": ["column_2"]}),
+            fake_expectation_config(
+                "fake_multicolumn_expectation", {"column_list": ["column_1", "column_2"]}
+            ),
         ),
         (
             FakeColumnMapExpectation,
@@ -103,9 +113,9 @@ def test_multicolumn_expectation_has_default_mostly(fake_expectation_cls, config
         fake_expectation = fake_expectation_cls(**config.kwargs)
     except Exception:
         assert False, "Validate configuration threw an error when testing default mostly value"
-    assert (
-        fake_expectation._get_success_kwargs().get("mostly") == 1
-    ), "Default mostly success ratio is not 1"
+    assert fake_expectation._get_success_kwargs().get("mostly") == 1, (
+        "Default mostly success ratio is not 1"
+    )
 
 
 @pytest.mark.unit
@@ -117,7 +127,8 @@ def test_multicolumn_expectation_has_default_mostly(fake_expectation_cls, config
                 (
                     FakeMulticolumnExpectation,
                     fake_expectation_config(
-                        "fake_multicolumn_expectation", {"column_list": ["column_2"], "mostly": x}
+                        "fake_multicolumn_expectation",
+                        {"column_list": ["column_1", "column_2"], "mostly": x},
                     ),
                 )
                 for x in [0, 0.5, 1]
@@ -146,9 +157,9 @@ def test_multicolumn_expectation_has_default_mostly(fake_expectation_cls, config
 )
 def test_expectation_succeeds_with_valid_mostly(fake_expectation_cls, config):
     fake_expectation = fake_expectation_cls(**config.kwargs)
-    assert (
-        fake_expectation._get_success_kwargs().get("mostly") == config.kwargs["mostly"]
-    ), "Default mostly success ratio is not 1"
+    assert fake_expectation._get_success_kwargs().get("mostly") == config.kwargs["mostly"], (
+        "Default mostly success ratio is not 1"
+    )
 
 
 @pytest.mark.unit
@@ -158,7 +169,8 @@ def test_expectation_succeeds_with_valid_mostly(fake_expectation_cls, config):
         (
             FakeMulticolumnExpectation,
             fake_expectation_config(
-                "fake_multicolumn_expectation", {"column_list": [], "mostly": -0.5}
+                "fake_multicolumn_expectation",
+                {"column_list": ["column_1", "column_2"], "mostly": -0.5},
             ),
         ),
         (
@@ -238,6 +250,7 @@ def test_expectation_configuration_window():
                 parameter_name="b",
                 range=5,
                 offset=Offset(positive=0.2, negative=0.2),
+                strict=True,
             )
         ],
     )
@@ -254,6 +267,7 @@ def test_expectation_configuration_window():
                     "parameter_name": "b",
                     "range": 5,
                     "offset": {"positive": 0.2, "negative": 0.2},
+                    "strict": True,
                 }
             ],
         },
@@ -312,11 +326,12 @@ class TestSuiteParameterOptions:
     """Tests around the suite_parameter_options property of Expectations.
 
     Note: evaluation_parameter_options is currently a sorted tuple, but doesn't necessarily have to be
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     SUITE_PARAMETER_MIN = "my_min"
     SUITE_PARAMETER_MAX = "my_max"
     SUITE_PARAMETER_VALUE = "my_value"
+    SUITE_PARAMETER_MOSTLY = "my_mostly"
 
     @pytest.mark.unit
     def test_expectation_without_evaluation_parameter(self):
@@ -331,6 +346,13 @@ class TestSuiteParameterOptions:
             max_value={"$PARAMETER": self.SUITE_PARAMETER_MAX},
         )
         assert expectation.suite_parameter_options == (self.SUITE_PARAMETER_MAX,)
+
+    @pytest.mark.unit
+    def test_column_map_expectation_with_evaluation_parameter(self):
+        expectation = gxe.ExpectColumnValuesToBeNull(
+            column="foo", mostly={"$PARAMETER": self.SUITE_PARAMETER_MOSTLY}
+        )
+        assert expectation.suite_parameter_options == (self.SUITE_PARAMETER_MOSTLY,)
 
     @pytest.mark.unit
     def test_expectation_with_multiple_suite_parameters(self):
@@ -438,3 +460,142 @@ def test_expectation_equality_ignores_rendered_content():
     expectation_b.rendered_content = None
 
     assert expectation_a == expectation_b
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "expectation_a, expectation_b, expected_result",
+    [
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
+            {},
+            False,
+            id="different_objects",
+        ),
+        pytest.param(
+            gxe.ExpectColumnDistinctValuesToBeInSet(column="bar", value_set=[1, 2, 3]),
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
+            True,
+            id="different_expectation_types",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
+            False,
+            id="equivalent_expectations",
+        ),
+        pytest.param(
+            gxe.ExpectColumnValuesToBeBetween(
+                column="foo", min_value=0, id="bbbe648e-0a43-431b-81a0-04e68f1473ae"
+            ),
+            gxe.ExpectColumnValuesToBeBetween(
+                column="foo", min_value=0, id="aaae648e-0a43-431b-81a0-04e68f1473ae"
+            ),
+            False,
+            id="equiv_expectations_with_ids",
+        ),
+    ],
+)
+def test_expectations___lt__(expectation_a, expectation_b, expected_result):
+    assert (expectation_a < expectation_b) is expected_result
+
+
+@pytest.mark.unit
+def test_expectation_sorting():
+    expectation_a = gxe.ExpectColumnValuesToBeBetween(
+        column="foo", min_value=0, id="80b6d508-a843-426e-97c0-7ff64d35ac04"
+    )
+    expectation_b = gxe.ExpectColumnValuesToBeBetween(
+        column="foo", min_value=0, id="4cd1e63a-880b-46ea-93e8-c11636df18b8"
+    )
+    expectation_c = gxe.ExpectTableColumnCountToBeBetween()
+    expectation_d = gxe.ExpectColumnMaxToBeBetween(column="foo", min_value=0, max_value=10)
+    expectation_e = gxe.ExpectColumnMedianToBeBetween(column="foo", min_value=0, max_value=10)
+
+    expectations = [expectation_a, expectation_b, expectation_c, expectation_d, expectation_e]
+
+    assert sorted(expectations) == [
+        expectation_d,
+        expectation_e,
+        expectation_b,
+        expectation_a,
+        expectation_c,
+    ]
+
+
+class _SampleExpectation(Expectation):
+    mostly: MostlyField
+    value_set: ValueSetField
+
+    @override
+    def _validate(
+        self,
+        metrics: dict,
+        runtime_configuration: Optional[dict] = None,
+        execution_engine: Optional[ExecutionEngine] = None,
+    ) -> Union[ExpectationValidationResult, dict]:
+        # just satisfying the abc
+        return {}
+
+
+class TestCustomAnnotatedFields:
+    @pytest.mark.parametrize(
+        "mostly",
+        [
+            0,
+            0.0,
+            0.5,
+            0.55555,
+            1,
+            1.0,
+        ],
+    )
+    @pytest.mark.unit
+    def test_valid_mostly_values(self, mostly: float):
+        expectation = _SampleExpectation(mostly=mostly, value_set=[1, 2, 3])
+        assert expectation.mostly == mostly
+
+    @pytest.mark.parametrize(
+        "mostly",
+        [
+            None,
+            "one",
+            -1,
+            2,
+        ],
+    )
+    @pytest.mark.unit
+    def test_invalid_mostly_values(self, mostly: Any):
+        with pytest.raises(pydantic.ValidationError):
+            _SampleExpectation(mostly=mostly, value_set=[1, 2, 3])
+
+    @pytest.mark.parametrize(
+        "value_set,expected_value",
+        [
+            (["a"], ["a"]),
+            ([1], [1]),
+            ({"a"}, ["a"]),
+            ({1}, [1]),
+            ([1, 2, 3], [1, 2, 3]),
+            (["a", "b", "c"], ["a", "b", "c"]),
+            ({"$PARAMETER": "my_param"}, {"$PARAMETER": "my_param"}),
+        ],
+    )
+    @pytest.mark.unit
+    def test_valid_value_set_values(self, value_set: Union[Sequence, set], expected_value: Any):
+        expectation = _SampleExpectation(mostly=1, value_set=value_set)
+        assert expectation.value_set == expected_value
+
+    @pytest.mark.parametrize(
+        "input_value,expected_type",
+        [
+            ({"1", "2", "3"}, list),
+            (("1", "2", "3"), list),
+            (["1", "2", "3"], list),
+            ({"$PARAMETER": "my_param"}, dict),
+        ],
+    )
+    @pytest.mark.unit
+    def test_value_set_field_converts_to_list(self, input_value: Any, expected_type: type) -> None:
+        expectation = _SampleExpectation(mostly=1, value_set=input_value)
+        assert isinstance(expectation.value_set, expected_type)

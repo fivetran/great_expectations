@@ -58,7 +58,7 @@ def test_num_to_str():
     assert num_to_str(f, precision=10) == "100"
     assert num_to_str(f, precision=10, use_locale=True) == "100"
 
-    f = 1000  # If we have a number longer than our precision, we should still be able to correctly format  # noqa: E501
+    f = 1000  # If we have a number longer than our precision, we should still be able to correctly format  # noqa: E501 # FIXME CoP
     assert num_to_str(f, precision=4) == "1000"
     assert num_to_str(f) == "1000"
 
@@ -119,14 +119,14 @@ def test_resource_key_passes_run_name_filter():
     assert (
         resource_key_passes_run_name_filter(
             resource_key,
-            run_name_filter={"matches_regex": "(foo){2}profiling(" "foo)+"},
+            run_name_filter={"matches_regex": "(foo){2}profiling(foo)+"},
         )
         is True
     )
     assert (
         resource_key_passes_run_name_filter(
             resource_key,
-            run_name_filter={"matches_regex": "(foo){3}profiling(" "foo)+"},
+            run_name_filter={"matches_regex": "(foo){3}profiling(foo)+"},
         )
         is False
     )
@@ -498,7 +498,7 @@ def test_build_count_and_index_table_with_column_pair():
         unexpected_index_column_names=unexpected_index_column_names,
     )
     assert header_row == ["Unexpected Value", "Count", "pk_2"]
-    assert table_rows == [  # noqa: PLR1714
+    assert table_rows == [  # noqa: PLR1714 # FIXME CoP
         ["('desk', 'eraser')", 3, "three, four, five"]
     ] or table_rows == [["('eraser', 'desk')", 3, "three, four, five"]]
 

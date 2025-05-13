@@ -25,7 +25,7 @@ class MyClass(FluentBaseModel):
     normal_field: str
     secret_field: SecretStr
     config_field: ConfigStr
-    config_field_w_default: ConfigStr = r"hey-${MY_SECRET}"  # type: ignore[assignment]
+    config_field_w_default: ConfigStr = r"hey-${MY_SECRET}"  # type: ignore[assignment] # FIXME CoP
 
 
 @pytest.fixture
@@ -90,9 +90,9 @@ def test_config_substitution(monkeypatch: MonkeyPatch, env_config_provider: _Con
 
     m = MyClass(
         normal_field="normal",
-        secret_field="secret",  # type: ignore[arg-type]
-        config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type]
-        config_field_w_default=r"hello-${MY_ENV_VAR}",  # type: ignore[arg-type]
+        secret_field="secret",  # type: ignore[arg-type] # FIXME CoP
+        config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type] # FIXME CoP
+        config_field_w_default=r"hello-${MY_ENV_VAR}",  # type: ignore[arg-type] # FIXME CoP
     )
     assert m.config_field.get_config_value(env_config_provider) == "success"
     assert m.config_field_w_default.get_config_value(env_config_provider) == "hello-success"
@@ -105,8 +105,8 @@ def test_config_substitution_dict(
 
     m = MyClass(
         normal_field="normal",
-        secret_field="secret",  # type: ignore[arg-type]
-        config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type]
+        secret_field="secret",  # type: ignore[arg-type] # FIXME CoP
+        config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type] # FIXME CoP
     )
 
     d = m.dict(config_provider=env_config_provider)
@@ -127,8 +127,8 @@ def test_config_nested_substitution_dict(
         my_classes=[
             MyClass(
                 normal_field="normal",
-                secret_field="secret",  # type: ignore[arg-type]
-                config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type]
+                secret_field="secret",  # type: ignore[arg-type] # FIXME CoP
+                config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type] # FIXME CoP
             )
         ]
     )
@@ -151,8 +151,8 @@ def test_config_nested_substitution_dict_raises_error_for_missing_config_var(
         my_classes=[
             MyClass(
                 normal_field="normal",
-                secret_field="secret",  # type: ignore[arg-type]
-                config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type]
+                secret_field="secret",  # type: ignore[arg-type] # FIXME CoP
+                config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type] # FIXME CoP
             )
         ]
     )
@@ -167,8 +167,8 @@ def test_serialization_returns_original(monkeypatch: MonkeyPatch, method: str):
 
     m = MyClass(
         normal_field="normal",
-        secret_field="secret",  # type: ignore[arg-type]
-        config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type]
+        secret_field="secret",  # type: ignore[arg-type] # FIXME CoP
+        config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type] # FIXME CoP
     )
     serialize_method: Callable = getattr(m, method)
     dumped = str(serialize_method())
@@ -190,8 +190,8 @@ def test_nested_serialization_returns_original(monkeypatch: MonkeyPatch, method:
         my_classes=[
             MyClass(
                 normal_field="normal",
-                secret_field="secret",  # type: ignore[arg-type]
-                config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type]
+                secret_field="secret",  # type: ignore[arg-type] # FIXME CoP
+                config_field=r"${MY_ENV_VAR}",  # type: ignore[arg-type] # FIXME CoP
             )
         ]
     )
@@ -239,8 +239,8 @@ class TestSecretMasking:
         monkeypatch.setenv("MY_SECRET", "dont_serialize_me")
         m = MyClass(
             normal_field="normal",
-            secret_field="my_secret",  # type: ignore[arg-type]
-            config_field=r"${MY_SECRET}",  # type: ignore[arg-type]
+            secret_field="my_secret",  # type: ignore[arg-type] # FIXME CoP
+            config_field=r"${MY_SECRET}",  # type: ignore[arg-type] # FIXME CoP
         )
 
         # but it should not actually be used

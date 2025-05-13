@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, List, Optional, Union
 
 from marshmallow import Schema, fields, post_dump, post_load
 
-from great_expectations._docs_decorators import public_api
-from great_expectations.alias_types import JSONValues  # noqa: TCH001
+from great_expectations.alias_types import JSONValues  # noqa: TC001 # FIXME CoP
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.render.exceptions import InvalidRenderedContentError
 from great_expectations.types import DictDot
@@ -126,7 +125,6 @@ class LegacyDescriptiveRendererType(str, Enum):
 
 
 class RenderedContent:
-    @public_api
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedContent.
 
@@ -179,7 +177,6 @@ class RenderedComponentContent(RenderedContent):
             styling = {}
         self.styling = styling
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedComponentContent.
@@ -208,7 +205,6 @@ class RenderedHeaderContent(RenderedComponentContent):
         self.header_row = header_row
         self.subheader = subheader
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedHeaderContent.
@@ -245,7 +241,6 @@ class RenderedGraphContent(RenderedComponentContent):
         self.header = header
         self.subheader = subheader
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedGraphContent.
@@ -268,7 +263,6 @@ class RenderedGraphContent(RenderedComponentContent):
         return d
 
 
-@public_api
 class RenderedTableContent(RenderedComponentContent):
     """RenderedTableContent is RenderedComponentContent that is a table.
 
@@ -288,9 +282,9 @@ class RenderedTableContent(RenderedComponentContent):
             name and the values being a dictionary with the following form:
 
             sortable: A boolean indicating whether the column is sortable.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         table: list[RenderedContent],
         header: Optional[Union[RenderedContent, dict]] = None,
@@ -309,7 +303,6 @@ class RenderedTableContent(RenderedComponentContent):
         self.header_row = header_row
         self.header_row_options = header_row_options
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedTableContent.
@@ -347,7 +340,6 @@ class RenderedTabsContent(RenderedComponentContent):
         self.header = header
         self.subheader = subheader
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedTabsContent.
@@ -371,7 +363,7 @@ class RenderedTabsContent(RenderedComponentContent):
 
 
 class RenderedBootstrapTableContent(RenderedComponentContent):
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         table_data,
         table_columns,
@@ -390,7 +382,6 @@ class RenderedBootstrapTableContent(RenderedComponentContent):
         self.header = header
         self.subheader = subheader
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedBootstrapTableContent.
@@ -432,7 +423,6 @@ class RenderedContentBlockContainer(RenderedComponentContent):
         super().__init__(content_block_type=content_block_type, styling=styling)
         self.content_blocks = content_blocks
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedContentBlockContainer.
@@ -450,7 +440,6 @@ class RenderedMarkdownContent(RenderedComponentContent):
         super().__init__(content_block_type=content_block_type, styling=styling)
         self.markdown = markdown
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedMarkdownContent.
@@ -463,7 +452,6 @@ class RenderedMarkdownContent(RenderedComponentContent):
         return d
 
 
-@public_api
 class RenderedStringTemplateContent(RenderedComponentContent):
     """RenderedStringTemplateContent is RenderedComponentContent that represents a templated string.
 
@@ -477,7 +465,7 @@ class RenderedStringTemplateContent(RenderedComponentContent):
             styling: A dictionary containing styling information.
         styling: A dictionary containing styling information.
         content_block_type: The type of content block.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
@@ -488,7 +476,6 @@ class RenderedStringTemplateContent(RenderedComponentContent):
         super().__init__(content_block_type=content_block_type, styling=styling)
         self.string_template = string_template
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedStringTemplateContent.
@@ -525,7 +512,6 @@ class RenderedBulletListContent(RenderedComponentContent):
         self.subheader = subheader
         self.bullet_list = bullet_list
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedBulletListContent.
@@ -562,7 +548,6 @@ class ValueListContent(RenderedComponentContent):
         self.subheader = subheader
         self.value_list = value_list
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this ValueListContent.
@@ -594,7 +579,6 @@ class TextContent(RenderedComponentContent):
         self.header = header
         self.subheader = subheader
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this TextContent.
@@ -618,7 +602,6 @@ class TextContent(RenderedComponentContent):
         return d
 
 
-@public_api
 class CollapseContent(RenderedComponentContent):
     """CollapseContent is RenderedComponentContent that can be collapsed.
 
@@ -630,9 +613,9 @@ class CollapseContent(RenderedComponentContent):
         styling: A dictionary containing styling information.
         content_block_type: The type of content block.
         inline_link: Whether to include a link inline.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         collapse: Union[RenderedContent, list],
         collapse_toggle_link: Optional[Union[RenderedContent, dict]] = None,
@@ -649,7 +632,6 @@ class CollapseContent(RenderedComponentContent):
         self.collapse = collapse
         self.inline_link = inline_link
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this CollapseContent.
@@ -681,7 +663,7 @@ class CollapseContent(RenderedComponentContent):
 
 class RenderedDocumentContent(RenderedContent):
     # NOTE: JPC 20191028 - review these keys to consolidate and group
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         sections,
         data_asset_name=None,
@@ -698,8 +680,8 @@ class RenderedDocumentContent(RenderedContent):
         if not isinstance(sections, list) and all(
             isinstance(section, RenderedSectionContent) for section in sections
         ):
-            raise InvalidRenderedContentError(  # noqa: TRY003
-                "RenderedDocumentContent requires a list of RenderedSectionContent for " "sections."
+            raise InvalidRenderedContentError(  # noqa: TRY003 # FIXME CoP
+                "RenderedDocumentContent requires a list of RenderedSectionContent for sections."
             )
         self.sections = sections
         self.data_asset_name = data_asset_name
@@ -713,7 +695,6 @@ class RenderedDocumentContent(RenderedContent):
         self.batch_spec = batch_spec
         self.id = id
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedDocumentContent.
@@ -741,14 +722,13 @@ class RenderedSectionContent(RenderedContent):
         if not isinstance(content_blocks, list) and all(
             isinstance(content_block, RenderedComponentContent) for content_block in content_blocks
         ):
-            raise InvalidRenderedContentError(  # noqa: TRY003
+            raise InvalidRenderedContentError(  # noqa: TRY003 # FIXME CoP
                 "Rendered section content requires a list of RenderedComponentContent "
                 "for content blocks."
             )
         self.content_blocks = content_blocks
         self.section_name = section_name
 
-    @public_api
     @override
     def to_json_dict(self) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedSectionContent.
@@ -763,7 +743,7 @@ class RenderedSectionContent(RenderedContent):
 
 
 class RenderedAtomicValue(DictDot):
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         schema: Optional[dict] = None,
         header: Optional[RenderedAtomicValue] = None,
@@ -800,7 +780,6 @@ class RenderedAtomicValue(DictDot):
     def __str__(self) -> str:
         return json.dumps(self.to_json_dict(), indent=2)
 
-    @public_api
     def to_json_dict(self, remove_null_attrs: bool = True) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedAtomicValue.
 
@@ -836,7 +815,6 @@ class RenderedAtomicValueGraph(DictDot):
     def __str__(self) -> str:
         return json.dumps(self.to_json_dict(), indent=2)
 
-    @public_api
     def to_json_dict(self) -> Optional[dict[str, JSONValues]]:
         """Returns a JSON-serializable dict representation of this RenderedAtomicValueGraph.
 
@@ -944,7 +922,6 @@ class RenderedAtomicContent(RenderedContent):
     ):
         field_schema.update(type="object")
 
-    @public_api
     @override
     def to_json_dict(self, remove_null_attrs: bool = True) -> dict[str, JSONValues]:
         """Returns a JSON-serializable dict representation of this RenderedAtomicContent.
@@ -973,7 +950,7 @@ class RenderedAtomicContentSchema(Schema):
     @post_dump
     def clean_null_attrs(self, data: dict, **kwargs: dict) -> dict:
         """Removes the attributes in RenderedAtomicContentSchema.REMOVE_KEYS_IF_NONE during serialization if
-        their values are None."""  # noqa: E501
+        their values are None."""  # noqa: E501 # FIXME CoP
         data = deepcopy(data)
         for key in RenderedAtomicContentSchema.REMOVE_KEYS_IF_NONE:
             if key in data and data[key] is None:

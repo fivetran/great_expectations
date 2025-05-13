@@ -99,8 +99,82 @@ def test_successful_renderer_configuration_instantiation(
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    "expectation_type,kwargs, rendered_value",
+    [
+        (
+            "expect_column_values_to_be_in_set",
+            {
+                "value_set": [1, 2, 3],
+                "column": "Survived",
+                "condition_parser": "great_expectations",
+                "row_condition": 'PClass=="1st"',
+            },
+            ['PClass=="1st"'],
+        ),
+        (
+            "expect_column_values_to_be_in_set",
+            {
+                "value_set": [1, 2, 3],
+                "column": "Survived",
+                "condition_parser": "great_expectations",
+                "row_condition": 'col("foo") > 5',
+            },
+            ["foo", "> 5"],
+        ),
+        (
+            "expect_column_values_to_be_in_set",
+            {
+                "value_set": [1, 2, 3],
+                "column": "Survived",
+                "condition_parser": "great_expectations",
+                "row_condition": "foo == 1 | foo == 2",
+            },
+            ["foo == 1", "foo == 2"],
+        ),
+        (
+            "expect_column_values_to_be_in_set",
+            {
+                "value_set": [1, 2, 3],
+                "column": "Survived",
+                "condition_parser": "great_expectations",
+                "row_condition": "foo ~ 4",
+            },
+            ["foo", "4"],
+        ),
+        (
+            "expect_column_values_to_be_in_set",
+            {
+                "value_set": [1, 2, 3],
+                "column": "Survived",
+                "condition_parser": "great_expectations",
+                "row_condition": "foo > 1 & foo < 3",
+            },
+            ["foo > 1", "foo < 3"],
+        ),
+    ],
+)
+def test_successful_renderer_row_condition_params(
+    expectation_type: str,
+    kwargs: dict,
+    rendered_value: list[str],
+):
+    expectation_configuration = ExpectationConfiguration(
+        type=expectation_type,
+        kwargs=kwargs,
+    )
+    renderer_configuration = RendererConfiguration(
+        configuration=expectation_configuration,
+        runtime_configuration={},
+    )
+
+    for index, value in enumerate(rendered_value):
+        assert getattr(renderer_configuration.params, f"row_condition__{index}").value == value
+
+
+@pytest.mark.unit
 @pytest.mark.xfail(
-    reason="As of v0.15.46 test will fail until RendererConfiguration._validate_configuration_or_result is re-enabled.",  # noqa: E501
+    reason="As of v0.15.46 test will fail until RendererConfiguration._validate_configuration_or_result is re-enabled.",  # noqa: E501 # FIXME CoP
     strict=True,
 )
 def test_failed_renderer_configuration_instantiation():
@@ -142,7 +216,9 @@ def test_renderer_configuration_add_param_validation(
         renderer_configuration.add_param(name="value", param_type=param_type)
 
     if param_type is RendererValueType.STRING:
-        exception_message = "Value was unable to be represented as a string: I'm not a string"
+        exception_message = (
+            f"Value was unable to be represented as a {RendererValueType.STRING}: I'm not a string"
+        )
     else:
         exception_message = f"Param type: <{param_type}> does not match value: <{value}>."
     assert any(

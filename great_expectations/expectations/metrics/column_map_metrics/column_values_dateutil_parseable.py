@@ -16,9 +16,9 @@ class ColumnValuesDateutilParseable(ColumnMapMetricProvider):
     def _pandas(cls, column, **kwargs):
         def is_parseable(val):
             try:
-                if type(val) != str:  # noqa: E721
-                    raise TypeError(  # noqa: TRY003
-                        "Values passed to expect_column_values_to_be_dateutil_parseable must be of type string.\nIf you want to validate a column of dates or timestamps, please call the expectation before converting from string format."  # noqa: E501
+                if type(val) != str:  # noqa: E721 # FIXME CoP
+                    raise TypeError(  # noqa: TRY003 # FIXME CoP
+                        "Values passed to expect_column_values_to_be_dateutil_parseable must be of type string.\nIf you want to validate a column of dates or timestamps, please call the expectation before converting from string format."  # noqa: E501 # FIXME CoP
                     )
 
                 parse(val)
