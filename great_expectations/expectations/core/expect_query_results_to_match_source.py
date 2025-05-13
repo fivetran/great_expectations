@@ -18,7 +18,7 @@ from great_expectations.expectations.model_field_types import (
 from great_expectations.render import (
     AtomicPrescriptiveRendererType,
     RenderedAtomicContent,
-    renderedAtomicValueSchema,
+    RenderedAtomicValue,
 )
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -172,18 +172,15 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             language=CodeBlockLanguage.SQL,
         )
 
-        value_obj = renderedAtomicValueSchema.load(
-            {
-                "template": template_str or renderer_configuration.template_str,
-                "params": renderer_configuration.params.dict(),
-                "code_block": renderer_configuration.code_block,
-                "meta_notes": renderer_configuration.meta_notes,
-                "schema": {"type": "com.superconductive.rendered.string"},
-            }
-        )
         return RenderedAtomicContent(
             name=AtomicPrescriptiveRendererType.SUMMARY,
-            value=value_obj,
+            value=RenderedAtomicValue(
+                template=template_str or renderer_configuration.template_str,
+                params=renderer_configuration.params.dict(),
+                code_block=renderer_configuration.code_block,
+                meta_notes=renderer_configuration.meta_notes,
+                schema={"type": "com.superconductive.rendered.string"},
+            ),
             value_type="StringValueType",
         )
 
