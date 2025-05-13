@@ -7,7 +7,7 @@ import PrereqDataContext from '../../../../_core_components/prerequisites/_preco
 
 import PandasDefault from './_pandas_default.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-source-lon}
 - <PrereqPythonInstall/>
 - <PrereqGxInstall/>
   - Optional. To create a Spark Filesystem Data Source you will also need to [install the Spark Python dependencies](/core/set_up_a_gx_environment/install_additional_dependencies.md?dependencies=spark).
@@ -18,7 +18,7 @@ import PandasDefault from './_pandas_default.md'
 <PandasDefault/>
 :::
 
-### Procedure
+### Procedure {#procedure-data-source-lon}
 
 <Tabs 
    queryString="procedure"

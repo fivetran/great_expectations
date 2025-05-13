@@ -34,7 +34,7 @@ class TableColumnCount(TableMetricProvider):
         runtime_configuration: dict,
     ):
         columns = metrics.get("table.columns")
-        return len(columns)  # type: ignore[arg-type]
+        return len(columns)  # type: ignore[arg-type] # FIXME CoP
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(
@@ -46,7 +46,7 @@ class TableColumnCount(TableMetricProvider):
         runtime_configuration: dict,
     ):
         columns = metrics.get("table.columns")
-        return len(columns)  # type: ignore[arg-type]
+        return len(columns)  # type: ignore[arg-type] # FIXME CoP
 
     @metric_value(engine=SparkDFExecutionEngine)
     def _spark(
@@ -58,7 +58,7 @@ class TableColumnCount(TableMetricProvider):
         runtime_configuration: dict,
     ):
         columns = metrics.get("table.columns")
-        return len(columns)  # type: ignore[arg-type]
+        return len(columns)  # type: ignore[arg-type] # FIXME CoP
 
     @classmethod
     @override

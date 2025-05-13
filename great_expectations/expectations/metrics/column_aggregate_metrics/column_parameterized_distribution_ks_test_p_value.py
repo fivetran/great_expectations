@@ -26,7 +26,7 @@ class ColumnParameterizedDistributionKSTestPValue(ColumnAggregateMetricProvider)
     @column_aggregate_value(engine=PandasExecutionEngine)
     def _pandas(cls, column, distribution, p_value=0.05, params=None, **kwargs):
         if p_value <= 0 or p_value >= 1:
-            raise ValueError("p_value must be between 0 and 1 exclusive")  # noqa: TRY003
+            raise ValueError("p_value must be between 0 and 1 exclusive")  # noqa: TRY003 # FIXME CoP
 
         validate_distribution_parameters(distribution=distribution, params=params)
 

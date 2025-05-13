@@ -99,7 +99,7 @@ Evaluation Parameters are defined by expressions that are evaluated at run time 
 - Temporal values, such as "now" or "timedelta."
 - Complex values, such as lists.
 
-:::note
+:::note Note
 Although complex values like lists can be used as the value of an Evaluation Parameter, you cannot currently combine complex values with arithmetic expressions.
 :::
 
@@ -150,7 +150,7 @@ validator.expect_column_values_to_be_in_set(
 
 This Expectation will fail (the NYC taxi data allows for four types of payments), and now we are aware that what we thought we knew about the `payment_type` column wasn't accurate, and that now we need to research what those other two payment types are!
 
-:::note
+:::note Note
 - You cannot currently combine complex values with arithmetic expressions.
 :::
 

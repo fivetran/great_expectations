@@ -97,8 +97,8 @@ def config8():
 @pytest.mark.unit
 def test_expectation_configuration_equality(config1, config2, config3, config4):
     """Equality should depend on all defined properties of a configuration object, but not on whether the *instances*
-    are the same."""  # noqa: E501
-    assert config1 is config1  # no difference  # noqa: PLR0124
+    are the same."""  # noqa: E501 # FIXME CoP
+    assert config1 is config1  # no difference  # noqa: PLR0124 # FIXME CoP
     assert config1 is not config2  # different instances, but same content
     assert config1 == config2  # different instances, but same content
     assert not (config1 != config2)  # ne works properly
@@ -130,12 +130,13 @@ def test_expectation_configuration_equivalence(config1, config2, config3, config
 def test_expectation_configuration_to_domain_obj(notes: str | list[str] | None):
     expectation_type = "expect_column_values_to_be_in_set"
     column = "genre_id"
-    value_set = {1, 2, 3}
+    input_set = {1, 2, 3}
+    expected_list = list(input_set)
     meta = {"foo": "bar"}
 
     config = ExpectationConfiguration(
         type=expectation_type,
-        kwargs={"column": column, "value_set": value_set},
+        kwargs={"column": column, "value_set": input_set},
         notes=notes,
         meta=meta,
     )
@@ -144,7 +145,7 @@ def test_expectation_configuration_to_domain_obj(notes: str | list[str] | None):
     # Check that the expectation object has the same properties as the config
     assert expectation.expectation_type == expectation_type
     assert expectation.column == column
-    assert expectation.value_set == value_set
+    assert sorted(expectation.value_set) == sorted(expected_list)
     assert expectation.notes == notes
     assert expectation.meta == meta
 

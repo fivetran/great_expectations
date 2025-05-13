@@ -37,7 +37,7 @@ class ConfigPeer(ABC):
     configuration classes themselves.  Hence, as part of this change, ConfigPeer will cease being the superclass of
     business objects (such as BaseDataContext, BaseCheckpoint, and BaseRuleBasedProfiler).  Instead, every persistable
     business object will contain a reference to its corresponding peer class, supporting the ConfigPeer interfaces.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     @property
     @abstractmethod
@@ -68,7 +68,7 @@ class ConfigPeer(ABC):
         elif mode == ConfigOutputModes.JSON_DICT:
             config_kwargs = config.to_json_dict()
         else:
-            raise ValueError(f'Unknown mode {mode} in "BaseCheckpoint.get_config()".')  # noqa: TRY003
+            raise ValueError(f'Unknown mode {mode} in "BaseCheckpoint.get_config()".')  # noqa: TRY003 # FIXME CoP
 
         kwargs["inplace"] = True
         filter_properties_dict(

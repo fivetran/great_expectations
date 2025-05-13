@@ -93,7 +93,7 @@ class FileMigrator:
                 )
             else:
                 logger.warning(
-                    f"Could not migrate the contents of store {name}; only default named stores are migrated"  # noqa: E501
+                    f"Could not migrate the contents of store {name}; only default named stores are migrated"  # noqa: E501 # FIXME CoP
                 )
 
     def _migrate_datasource_store(self, target_store: DatasourceStore) -> None:

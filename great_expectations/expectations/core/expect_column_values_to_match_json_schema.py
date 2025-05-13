@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from great_expectations.render.renderer_configuration import AddParamArgs
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 
@@ -70,7 +70,7 @@ class ExpectColumnValuesToMatchJsonSchema(ColumnMapExpectation):
     See Also:
         [ExpectColumnValuesToBeJsonParseable](https://greatexpectations.io/expectations/expect_column_values_to_be_json_parseable)
         [The JSON-schema docs](https://json-schema.org)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     json_schema: dict
 
@@ -123,7 +123,7 @@ class ExpectColumnValuesToMatchJsonSchema(ColumnMapExpectation):
                 renderer_configuration = cls._add_mostly_pct_param(
                     renderer_configuration=renderer_configuration
                 )
-                template_str = "values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json"  # noqa: E501
+                template_str = "values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json"  # noqa: E501 # FIXME CoP
             else:
                 template_str = "values must match the following JSON Schema: $formatted_json"
 
@@ -160,8 +160,8 @@ class ExpectColumnValuesToMatchJsonSchema(ColumnMapExpectation):
             )
             if params["mostly"] is not None and params["mostly"] < 1.0:
                 params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501
-                template_str = "values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json"  # noqa: E501
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
+                template_str = "values must match the following JSON Schema, at least $mostly_pct % of the time: $formatted_json"  # noqa: E501 # FIXME CoP
             else:
                 template_str = "values must match the following JSON Schema: $formatted_json"
 

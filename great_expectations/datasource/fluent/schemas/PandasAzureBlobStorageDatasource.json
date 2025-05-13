@@ -1,6 +1,6 @@
 {
     "title": "PandasAzureBlobStorageDatasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nPandasAzureBlobStorageDatasource is a PandasDatasource that uses Azure Blob Storage as a\ndata store.",
     "type": "object",
     "properties": {
         "type": {

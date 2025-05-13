@@ -36,7 +36,7 @@ from great_expectations.datasource.fluent.data_connector.batch_filter import (
             },
             slice(3, None, None),
             [3, 4, 5, 6, 7, 8, 9],
-            id="batch_slice: str (without square brackets, forward traversal at start); (start, stop=None, step=None)",  # noqa: E501
+            id="batch_slice: str (without square brackets, forward traversal at start); (start, stop=None, step=None)",  # noqa: E501 # FIXME CoP
         ),
         pytest.param(
             {
@@ -124,7 +124,7 @@ from great_expectations.datasource.fluent.data_connector.batch_filter import (
             },
             slice(None, None, 2),
             [0, 2, 4, 6, 8],
-            id="batch_slice: str (full forward traversal with step=2); (start=None, stop=None, step=2)",  # noqa: E501
+            id="batch_slice: str (full forward traversal with step=2); (start=None, stop=None, step=2)",  # noqa: E501 # FIXME CoP
         ),
         pytest.param(
             {
@@ -144,7 +144,7 @@ def test_batch_filter_parse_batch_slice(
     original_list: List[int] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     batch_filter_obj: BatchFilter = build_batch_filter(
-        data_connector_query_dict=data_connector_query_dict  # type: ignore[arg-type]
+        data_connector_query_dict=data_connector_query_dict  # type: ignore[arg-type] # FIXME CoP
     )
     assert batch_filter_obj.index == parsed_batch_slice
     assert original_list[parsed_batch_slice] == sliced_list

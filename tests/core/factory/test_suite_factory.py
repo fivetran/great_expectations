@@ -1,8 +1,12 @@
 import re
+from copy import copy
 from typing import Dict
 from unittest import mock
+from unittest.mock import (
+    ANY,
+    Mock,  # noqa: TID251 # FIXME CoP
+)
 from unittest.mock import ANY as ANY_TEST_ARG
-from unittest.mock import Mock  # noqa: TID251
 
 import pytest
 from pytest_mock import MockerFixture
@@ -19,6 +23,10 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.data_context.store import ExpectationsStore
 from great_expectations.exceptions import DataContextError
+from great_expectations.expectations import (
+    ExpectColumnDistinctValuesToContainSet,
+    ExpectColumnSumToBeBetween,
+)
 from great_expectations.types import SerializableDictDot
 
 
@@ -260,7 +268,7 @@ def test_suite_factory_all_with_bad_marshmallow_config(
 
     # Put suite_2 into an invalid state, These BadExpectations are real Expectations since
     # we want them to not deserialize correctly.
-    suite_2.expectations = [BadExpectation(id=1), BadExpectation(id=2)]  # type: ignore[list-item]
+    suite_2.expectations = [BadExpectation(id=1), BadExpectation(id=2)]  # type: ignore[list-item] # FIXME CoP
     suite_2.save()
 
     # Act
@@ -325,16 +333,193 @@ def test_suite_factory_all_with_bad_pydantic_config(
     assert re.match("pydantic.*ValidationError", analytics_submit_args.error_type)
 
 
+class TestSuiteFactoryAddOrUpdate:
+    def test_add_empty_new_suite(self, data_context: AbstractDataContext) -> None:
+        # arrange
+        suite_name = "suite A"
+        suite = ExpectationSuite(name=suite_name)
+
+        # act
+        created_suite = data_context.suites.add_or_update(suite=suite)
+
+        # assert
+        assert created_suite.id
+        data_context.suites.get(suite_name)
+
+    def test_add_new_suite_with_expectations(self, data_context: AbstractDataContext) -> None:
+        # arrange
+        suite_name = "suite A"
+        expectations = [
+            ExpectColumnSumToBeBetween(
+                column="col A",
+                min_value=0,
+                max_value=10,
+            ),
+            ExpectColumnDistinctValuesToContainSet(
+                column="col B",
+                value_set=["a", "b", "c"],
+            ),
+        ]
+        suite = ExpectationSuite(
+            name=suite_name,
+            expectations=[copy(exp) for exp in expectations],
+        )
+
+        # act
+        created_suite = data_context.suites.add_or_update(suite=suite)
+
+        # assert
+        assert created_suite.id
+        data_context.suites.get(suite_name)
+        for exp, created_exp in zip(expectations, created_suite.expectations):
+            assert created_exp.id
+            exp.id = ANY
+            assert exp == created_exp
+
+    def test_update_existing_suite_adds_expectations(
+        self, data_context: AbstractDataContext
+    ) -> None:
+        # arrange
+        suite_name = "suite A"
+        expectations = [
+            ExpectColumnSumToBeBetween(
+                column="col A",
+                min_value=0,
+                max_value=10,
+            ),
+            ExpectColumnDistinctValuesToContainSet(
+                column="col B",
+                value_set=["a", "b", "c"],
+            ),
+        ]
+        suite = ExpectationSuite(
+            name=suite_name,
+            expectations=[copy(exp) for exp in expectations],
+        )
+        existing_suite = data_context.suites.add(suite=ExpectationSuite(name=suite_name))
+
+        # act
+        updated_suite = data_context.suites.add_or_update(suite=suite)
+
+        # assert
+        assert updated_suite.id == existing_suite.id
+        for exp, created_exp in zip(expectations, updated_suite.expectations):
+            assert created_exp.id
+            exp.id = ANY
+            assert exp == created_exp
+
+    def _test_update_existing_suite_updates_expectations(
+        self, data_context: AbstractDataContext
+    ) -> None:
+        # arrange
+        suite_name = "suite A"
+        expectations = [
+            ExpectColumnSumToBeBetween(
+                column="col A",
+                min_value=0,
+                max_value=10,
+            ),
+            ExpectColumnDistinctValuesToContainSet(
+                column="col B",
+                value_set=["a", "b", "c"],
+            ),
+        ]
+        existing_suite = data_context.suites.add(
+            suite=ExpectationSuite(
+                name=suite_name,
+                expectations=[copy(exp) for exp in expectations],
+            )
+        )
+        new_col_name = "col C"
+        for exp in expectations:
+            exp.column = new_col_name
+        suite = ExpectationSuite(
+            name=suite_name,
+            expectations=[copy(exp) for exp in expectations],
+        )
+
+        # act
+        updated_suite = data_context.suites.add_or_update(suite=suite)
+
+        # assert
+        assert updated_suite.id == existing_suite.id
+        for exp, created_exp in zip(expectations, updated_suite.expectations):
+            assert created_exp.id
+            exp.id = ANY
+            assert exp == created_exp
+            assert created_exp.column == new_col_name  # type: ignore[attr-defined]  # column exists
+
+        for old_exp, new_exp in zip(existing_suite.expectations, updated_suite.expectations):
+            # expectations have been deleted and re added, not updated
+            assert old_exp.id != new_exp.id
+
+    def test_update_existing_suite_deletes_expectations(
+        self, data_context: AbstractDataContext
+    ) -> None:
+        # arrange
+        suite_name = "suite A"
+        expectations = [
+            ExpectColumnSumToBeBetween(
+                column="col A",
+                min_value=0,
+                max_value=10,
+            ),
+            ExpectColumnDistinctValuesToContainSet(
+                column="col B",
+                value_set=["a", "b", "c"],
+            ),
+        ]
+        existing_suite = data_context.suites.add(
+            suite=ExpectationSuite(
+                name=suite_name,
+                expectations=[copy(exp) for exp in expectations],
+            )
+        )
+        new_col_name = "col C"
+        for exp in expectations:
+            exp.column = new_col_name
+        suite = ExpectationSuite(
+            name=suite_name,
+            expectations=[],
+        )
+
+        # act
+        updated_suite = data_context.suites.add_or_update(suite=suite)
+
+        # assert
+        assert updated_suite.id == existing_suite.id
+        assert updated_suite.expectations == []
+
+    def test_add_or_update_is_idempotent(self, data_context: AbstractDataContext) -> None:
+        # arrange
+        suite_name = "suite A"
+        expectations = [
+            ExpectColumnSumToBeBetween(
+                column="col A",
+                min_value=0,
+                max_value=10,
+            ),
+            ExpectColumnDistinctValuesToContainSet(
+                column="col B",
+                value_set=["a", "b", "c"],
+            ),
+        ]
+        suite = ExpectationSuite(
+            name=suite_name,
+            expectations=[copy(exp) for exp in expectations],
+        )
+
+        # act
+        suite_1 = data_context.suites.add_or_update(suite=suite)
+        suite_2 = data_context.suites.add_or_update(suite=suite)
+        suite_3 = data_context.suites.add_or_update(suite=suite)
+
+        # assert
+        assert suite_1 == suite_2 == suite_3
+
+
 class TestSuiteFactoryAnalytics:
-    @pytest.mark.filesystem
-    def test_suite_factory_add_emits_event_filesystem(self, empty_data_context):
-        self._test_suite_factory_add_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_suite_factory_add_emits_event_cloud(self, empty_cloud_context_fluent):
-        self._test_suite_factory_add_emits_event(empty_cloud_context_fluent)
-
-    def _test_suite_factory_add_emits_event(self, context):
+    def test_suite_factory_add_emits_event(self, data_context: AbstractDataContext) -> None:
         # Arrange
         name = "test-suite"
         suite = ExpectationSuite(name=name)
@@ -343,32 +528,24 @@ class TestSuiteFactoryAnalytics:
         with mock.patch(
             "great_expectations.core.factory.suite_factory.submit_event", autospec=True
         ) as mock_submit:
-            _ = context.suites.add(suite=suite)
+            _ = data_context.suites.add(suite=suite)
 
         # Assert
         mock_submit.assert_called_once_with(
             event=ExpectationSuiteCreatedEvent(expectation_suite_id=suite.id)
         )
 
-    @pytest.mark.filesystem
-    def test_suite_factory_delete_emits_event_filesystem(self, empty_data_context):
-        self._test_suite_factory_delete_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_suite_factory_delete_emits_event_cloud(self, empty_cloud_context_fluent):
-        self._test_suite_factory_delete_emits_event(empty_cloud_context_fluent)
-
-    def _test_suite_factory_delete_emits_event(self, context):
+    def test_suite_factory_delete_emits_event(self, data_context: AbstractDataContext) -> None:
         # Arrange
         name = "test-suite"
         suite = ExpectationSuite(name=name)
-        suite = context.suites.add(suite=suite)
+        suite = data_context.suites.add(suite=suite)
 
         # Act
         with mock.patch(
             "great_expectations.core.factory.suite_factory.submit_event", autospec=True
         ) as mock_submit:
-            context.suites.delete(name=name)
+            data_context.suites.delete(name=name)
 
         # Assert
         mock_submit.assert_called_once_with(

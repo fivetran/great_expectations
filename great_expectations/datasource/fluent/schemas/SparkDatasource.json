@@ -1,6 +1,6 @@
 {
     "title": "SparkDatasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nA SparkDatasource is a Datasource that connects to a Spark cluster and provides\naccess to Spark DataFrames.",
     "type": "object",
     "properties": {
         "type": {
@@ -562,7 +562,7 @@
         },
         "DataFrameAsset": {
             "title": "DataFrameAsset",
-            "description": "--Public API--",
+            "description": "--Public API--\nA DataAsset that represents a Spark DataFrame.",
             "type": "object",
             "properties": {
                 "name": {

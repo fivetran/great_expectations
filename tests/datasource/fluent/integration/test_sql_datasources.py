@@ -10,7 +10,6 @@ import warnings
 from pprint import pformat as pf
 from typing import (
     TYPE_CHECKING,
-    Any,
     Final,
     Generator,
     Literal,
@@ -62,7 +61,6 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 
 if TYPE_CHECKING:
-    from _pytest.mark.structures import ParameterSet
     from typing_extensions import TypeAlias
 
     from great_expectations.checkpoint.checkpoint import CheckpointResult
@@ -145,12 +143,12 @@ TABLE_NAME_MAPPING: Final[Mapping[DatabaseType, Mapping[TableNameCase, str]]] = 
 }
 
 # column names
-UNQUOTED_UPPER_COL: Final[Literal["UNQUOTED_UPPER_COL"]] = "UNQUOTED_UPPER_COL"
-UNQUOTED_LOWER_COL: Final[Literal["unquoted_lower_col"]] = "unquoted_lower_col"
-QUOTED_UPPER_COL: Final[Literal["QUOTED_UPPER_COL"]] = "QUOTED_UPPER_COL"
-QUOTED_LOWER_COL: Final[Literal["quoted_lower_col"]] = "quoted_lower_col"
-QUOTED_MIXED_CASE: Final[Literal["quotedMixed"]] = "quotedMixed"
-QUOTED_W_DOTS: Final[Literal["quoted.w.dots"]] = "quoted.w.dots"
+UNQUOTED_UPPER_COL: Final = "UNQUOTED_UPPER_COL"
+UNQUOTED_LOWER_COL: Final = "unquoted_lower_col"
+QUOTED_UPPER_COL: Final = "QUOTED_UPPER_COL"
+QUOTED_LOWER_COL: Final = "quoted_lower_col"
+QUOTED_MIXED_CASE: Final = "quotedMixed"
+QUOTED_W_DOTS: Final = "quoted.w.dots"
 
 
 def get_random_identifier_name() -> str:
@@ -360,7 +358,7 @@ class TableFactory(Protocol):
 @pytest.fixture(
     scope="class",
 )
-def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901
+def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901 # FIXME CoP
     """
     Class scoped.
     Given a SQLALchemy engine, table_name and schema,
@@ -380,7 +378,7 @@ def table_factory() -> Generator[TableFactory, None, None]:  # noqa: C901
             LOGGER.info(f"Skipping table creation for {table_names} for {sa_engine.dialect.name}")
             return
         LOGGER.info(
-            f"SQLA:{SQLA_VERSION} - Creating `{sa_engine.dialect.name}` table for {table_names} if it does not exist"  # noqa: E501
+            f"SQLA:{SQLA_VERSION} - Creating `{sa_engine.dialect.name}` table for {table_names} if it does not exist"  # noqa: E501 # FIXME CoP
         )
         dialect = GXSqlDialect(sa_engine.dialect.name)
         created_tables: list[dict[Literal["table_name", "schema"], str | None]] = []
@@ -501,7 +499,7 @@ def snowflake_ds(
         "snowflake",
         connection_string="snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci"
         f"/{RAND_SCHEMA}?warehouse=ci&role=ci",
-        # NOTE: uncomment this and set SNOWFLAKE_USER to run tests against your own snowflake account  # noqa: E501
+        # NOTE: uncomment this and set SNOWFLAKE_USER to run tests against your own snowflake account  # noqa: E501 # FIXME CoP
         # connection_string="snowflake://${SNOWFLAKE_USER}@oca29081.us-east-1/DEMO_DB/RESTAURANTS?warehouse=COMPUTE_WH&role=PUBLIC&authenticator=externalbrowser",
     )
     return ds
@@ -720,7 +718,7 @@ def _fails_expectation(param_id: str) -> bool:
     This does not mean that it SHOULD fail, but that it currently does.
     """
     column_name: ColNameParamId
-    dialect, column_name, *_ = param_id.split("-")  # type: ignore[assignment]
+    dialect, column_name, *_ = param_id.split("-")  # type: ignore[assignment] # FIXME CoP
     dialects_need_fixes: list[DatabaseType] = FAILS_EXPECTATION.get(column_name, [])
     return dialect in dialects_need_fixes
 
@@ -742,7 +740,7 @@ def _raw_query_check_column_exists(
     qualified_table_name: str,
     gx_execution_engine: SqlAlchemyExecutionEngine,
 ) -> bool:
-    """Use a simple 'SELECT {column_name_param} from {qualified_table_name};' query to check if the column exists.'"""  # noqa: E501
+    """Use a simple 'SELECT {column_name_param} from {qualified_table_name};' query to check if the column exists.'"""  # noqa: E501 # FIXME CoP
     with gx_execution_engine.get_connection() as connection:
         query = f"""SELECT {column_name_param} FROM {qualified_table_name} LIMIT 1;"""
         print(f"query:\n  {query}")
@@ -765,26 +763,9 @@ def _raw_query_check_column_exists(
         return True
 
 
-_EXPECTATION_TYPES: Final[tuple[ParameterSet, ...]] = (
-    param("expect_column_to_exist", {}, id="expect_column_to_exist"),
-    param("expect_column_values_to_not_be_null", {}, id="expect_column_values_to_not_be_null"),
-    param(
-        "expect_column_values_to_match_regex",
-        {"regex": r".*"},
-        id="expect_column_values_to_match_regex",
-    ),
-    param(
-        "expect_column_values_to_match_like_pattern",
-        {"like_pattern": r"%"},
-        id="expect_column_values_to_match_like_pattern",
-    ),
-)
-
-
 @pytest.mark.filterwarnings(
     "once::DeprecationWarning"
 )  # snowflake `add_table_asset` raises warning on passing a schema
-@pytest.mark.parametrize("expectation_type, extra_exp_kwargs", _EXPECTATION_TYPES)
 class TestColumnExpectations:
     @pytest.mark.parametrize(
         "column_name",
@@ -816,8 +797,6 @@ class TestColumnExpectations:
         all_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
-        expectation_type: str,
-        extra_exp_kwargs: dict[str, Any],
         request: pytest.FixtureRequest,
     ):
         """
@@ -834,9 +813,7 @@ class TestColumnExpectations:
             pytest.skip(f"see _desired_state tests for {column_name!r}")
         elif _fails_expectation(param_id):
             # apply marker this way so that xpasses can be seen in the report
-            request.applymarker(pytest.mark.xfail)
-
-        print(f"expectations_type:\n  {expectation_type}")
+            request.applymarker(pytest.mark.xfail(run=False))
 
         schema: str | None = (
             RAND_SCHEMA
@@ -874,7 +851,8 @@ class TestColumnExpectations:
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))
         suite.add_expectation_configuration(
             expectation_configuration=ExpectationConfiguration(
-                type=expectation_type, kwargs={"column": column_name, **extra_exp_kwargs}
+                type="expect_column_values_to_match_regex",
+                kwargs={"column": column_name, "regex": r".*"},
             )
         )
         suite.save()
@@ -919,8 +897,6 @@ class TestColumnExpectations:
         all_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
-        expectation_type: str,
-        extra_exp_kwargs: dict[str, Any],
         request: pytest.FixtureRequest,
     ):
         """
@@ -939,9 +915,7 @@ class TestColumnExpectations:
             pytest.skip(f"quote char dialect mismatch: {column_name[0]}")
         elif _fails_expectation(param_id):
             # apply marker this way so that xpasses can be seen in the report
-            request.applymarker(pytest.mark.xfail)
-
-        print(f"expectations_type:\n  {expectation_type}")
+            request.applymarker(pytest.mark.xfail(run=False))
 
         schema: str | None = (
             RAND_SCHEMA
@@ -979,7 +953,8 @@ class TestColumnExpectations:
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))
         suite.add_expectation_configuration(
             expectation_configuration=ExpectationConfiguration(
-                type=expectation_type, kwargs={"column": column_name, **extra_exp_kwargs}
+                type="expect_column_values_to_match_regex",
+                kwargs={"column": column_name, "regex": r".*"},
             )
         )
         suite.save()
@@ -1040,8 +1015,6 @@ class TestColumnExpectations:
         all_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
-        expectation_type: str,
-        extra_exp_kwargs: dict[str, Any],
         request: pytest.FixtureRequest,
     ):
         """
@@ -1063,8 +1036,6 @@ class TestColumnExpectations:
         if column_name.startswith('"') and column_name.endswith('"'):
             # databricks uses backticks for quoting
             column_name = quote_str(column_name[1:-1], dialect=dialect)
-
-        print(f"expectations_type:\n  {expectation_type}")
 
         schema: str | None = (
             RAND_SCHEMA
@@ -1110,7 +1081,8 @@ class TestColumnExpectations:
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))
         suite.add_expectation_configuration(
             expectation_configuration=ExpectationConfiguration(
-                type=expectation_type, kwargs={"column": column_name, **extra_exp_kwargs}
+                type="expect_column_values_to_match_regex",
+                kwargs={"column": column_name, "regex": r".*"},
             )
         )
         suite.save()

@@ -78,7 +78,7 @@ class CheckpointStoreSpy(CheckpointStore):
 class EphemeralDataContextSpy(EphemeralDataContext):
     """
     Simply wraps around EphemeralDataContext but keeps tabs on specific method calls around state management.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,

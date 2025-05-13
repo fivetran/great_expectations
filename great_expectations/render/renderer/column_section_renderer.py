@@ -51,8 +51,8 @@ class ColumnSectionRenderer(Renderer):
             elif isinstance(candidate_object, ExpectationValidationResult):
                 return candidate_object.expectation_config.kwargs["column"]
             else:
-                raise ValueError(  # noqa: TRY003, TRY004
-                    "Provide a column section renderer an expectation, list of expectations, evr, or list of evrs."  # noqa: E501
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+                    "Provide a column section renderer an expectation, list of expectations, evr, or list of evrs."  # noqa: E501 # FIXME CoP
                 )
         except KeyError:
             return "Table-Level Expectations"
@@ -112,12 +112,12 @@ class ProfilingResultsColumnSectionRenderer(ColumnSectionRenderer):
 An unexpected Exception occurred during data docs rendering.  Because of this error, certain parts of data docs will \
 not be rendered properly and/or may not appear altogether.  Please use the trace, included in this message, to \
 diagnose and repair the underlying issue.  Detailed information follows:
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
                 exception_traceback = traceback.format_exc()
                 exception_message += (
                     f'{type(e).__name__}: "{e!s}".  Traceback: "{exception_traceback}".'
                 )
-                logger.error(exception_message)  # noqa: TRY400
+                logger.error(exception_message)  # noqa: TRY400 # FIXME CoP
 
         # NOTE : Some render* functions return None so we filter them out
         populated_content_blocks = list(filter(None, content_blocks))
@@ -160,7 +160,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                         "string_template": {
                             "template": f"Type: {column_type}",
                             "tooltip": {
-                                "content": "expect_column_values_to_be_of_type <br>expect_column_values_to_be_in_type_list",  # noqa: E501
+                                "content": "expect_column_values_to_be_of_type <br>expect_column_values_to_be_in_type_list",  # noqa: E501 # FIXME CoP
                             },
                             "tag": "h6",
                             "styling": {"classes": ["mt-1", "mb-0"]},
@@ -221,7 +221,7 @@ diagnose and repair the underlying issue.  Detailed information follows:
                 **{
                     "content_block_type": "bullet_list",
                     "header": RenderedStringTemplateContent(
-                        **{  # type: ignore[arg-type]
+                        **{  # type: ignore[arg-type] # FIXME CoP
                             "content_block_type": "string_template",
                             "string_template": {
                                 "template": 'Expectation types <span class="mr-3 triangle"></span>',

@@ -25,7 +25,7 @@ class TableMetricProvider(MetricProvider):
 
     ---Documentation---
         - https://docs.greatexpectations.io/docs/guides/expectations/custom_expectations_lp
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     domain_keys: Tuple[str, ...] = (
         "batch_id",

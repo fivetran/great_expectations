@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from great_expectations.render.renderer_configuration import AddParamArgs
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 
@@ -66,7 +66,7 @@ class ExpectColumnValuesToBeJsonParseable(ColumnMapExpectation):
 
     See Also:
         [ExpectColumnValuesToMatchJsonSchema](https://greatexpectations.io/expectations/expect_column_values_to_match_json_schema)
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata = {

@@ -189,9 +189,9 @@ class TestDynamicPandasAssets:
             print(f"{i} {param_name} ", end="")
 
             if param_name == "type":
-                assert (
-                    param_name not in add_asset_method_sig.parameters
-                ), "type should not be part of the `add_<TYPE>_asset` method"
+                assert param_name not in add_asset_method_sig.parameters, (
+                    "type should not be part of the `add_<TYPE>_asset` method"
+                )
                 print("⏩")
                 continue
 
@@ -297,7 +297,7 @@ def test_invalid_connect_options(
     pandas_filesystem_datasource: PandasFilesystemDatasource,
 ):
     with pytest.raises(pydantic.ValidationError) as exc_info:
-        pandas_filesystem_datasource.add_csv_asset(  # type: ignore[call-arg]
+        pandas_filesystem_datasource.add_csv_asset(  # type: ignore[call-arg] # FIXME CoP
             name="csv_asset",
             glob_foobar="invalid",
         )
@@ -548,7 +548,7 @@ def datasource_test_connection_error_messages(
     request,
 ) -> tuple[PandasFilesystemDatasource, TestConnectionError]:
     _, test_connection_error = request.param(csv_path=csv_path)
-    csv_asset = CSVAsset(  # type: ignore[call-arg]
+    csv_asset = CSVAsset(  # type: ignore[call-arg] # FIXME CoP
         name="csv_asset",
     )
     csv_asset._datasource = pandas_filesystem_datasource

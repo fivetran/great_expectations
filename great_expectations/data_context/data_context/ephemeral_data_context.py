@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Literal, Mapping, Optional, Union
 
 from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.typing_extensions import override
@@ -27,12 +27,13 @@ logger = logging.getLogger(__name__)
 
 @public_api
 class EphemeralDataContext(AbstractDataContext):
-    """Subclass of AbstractDataContext that uses runtime values to generate a temporary or in-memory DataContext."""  # noqa: E501
+    """Subclass of AbstractDataContext that uses runtime values to generate a temporary or in-memory DataContext."""  # noqa: E501 # FIXME CoP
 
     def __init__(
         self,
         project_config: Union[DataContextConfig, Mapping],
         runtime_environment: Optional[dict] = None,
+        user_agent_str: str | None = None,
     ) -> None:
         """EphemeralDataContext constructor
 
@@ -42,7 +43,12 @@ class EphemeralDataContext(AbstractDataContext):
 
         """
         self._project_config = self._init_project_config(project_config)
-        super().__init__(runtime_environment=runtime_environment)
+        super().__init__(runtime_environment=runtime_environment, user_agent_str=user_agent_str)
+
+    @property
+    @override
+    def mode(self) -> Literal["ephemeral"]:
+        return "ephemeral"
 
     @override
     def _init_project_config(
@@ -82,7 +88,8 @@ class EphemeralDataContext(AbstractDataContext):
         Scaffolds a file-backed project structure in the current working directory.
 
         Returns:
-            A FileDataContext with an updated config to reflect the state of the current context.
+            A FileDataContext with an updated config to reflect the state of the
+            current context.
         """
         self._synchronize_fluent_datasources()
         migrator = FileMigrator(

@@ -48,7 +48,7 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
         try:
             return (column - mean) / std_dev
         except TypeError:
-            raise (TypeError("Cannot complete Z-score calculations on a non-numerical column."))  # noqa: TRY003
+            raise (TypeError("Cannot complete Z-score calculations on a non-numerical column."))  # noqa: TRY003 # FIXME CoP
 
     @column_condition_partial(engine=PandasExecutionEngine)  # type: ignore[misc] # untyped-decorator
     def _pandas_condition(cls, column, _metrics, threshold, double_sided, **kwargs) -> pd.Series:
@@ -63,7 +63,7 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
                 under_threshold = z_score < threshold
             return under_threshold
         except TypeError:
-            raise (TypeError("Cannot check if a string lies under a numerical threshold"))  # noqa: TRY003
+            raise (TypeError("Cannot check if a string lies under a numerical threshold"))  # noqa: TRY003 # FIXME CoP
 
     @column_function_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy_function(cls, column, _metrics, _dialect, **kwargs):
@@ -112,7 +112,7 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
         runtime_configuration: Optional[dict] = None,
     ):
         """Returns a dictionary of given metric names and their corresponding configuration, specifying the metric
-        types and their respective domains"""  # noqa: E501
+        types and their respective domains"""  # noqa: E501 # FIXME CoP
         dependencies: dict = super()._get_evaluation_dependencies(
             metric=metric,
             configuration=configuration,
@@ -122,7 +122,7 @@ class ColumnValuesZScore(ColumnMapMetricProvider):
 
         if (
             metric.metric_name
-            == f"column_values.z_score.under_threshold.{MetricPartialFunctionTypeSuffixes.CONDITION.value}"  # noqa: E501
+            == f"column_values.z_score.under_threshold.{MetricPartialFunctionTypeSuffixes.CONDITION.value}"  # noqa: E501 # FIXME CoP
         ):
             dependencies[f"column_values.z_score.{MetricPartialFunctionTypeSuffixes.MAP.value}"] = (
                 MetricConfiguration(

@@ -11,7 +11,7 @@ from great_expectations.experimental.rule_based_profiler.helpers.util import (
     convert_variables_to_dict,
 )
 from great_expectations.types import SerializableDictDot
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.experimental.rule_based_profiler.parameter_container import (
@@ -70,7 +70,7 @@ def reconcile_rule_variables(
     :param variables_config: variables configuration override, supplied in dictionary (configuration) form
     :param reconciliation_strategy: one of update, nested_update, or overwrite ways of reconciling overwrites
     :return: reconciled variables configuration, returned in dictionary (configuration) form
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     effective_variables_config: dict = convert_variables_to_dict(variables=variables)
     if variables_config:
         if reconciliation_strategy == ReconciliationStrategy.NESTED_UPDATE:

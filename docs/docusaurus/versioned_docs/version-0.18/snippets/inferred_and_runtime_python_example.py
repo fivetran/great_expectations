@@ -34,7 +34,7 @@ datasource_config = {
 # In normal usage you'd set your path directly in the yaml above.
 datasource_config["data_connectors"]["default_inferred_data_connector_name"][
     "bucket"
-] = "superconductive-docs-test"
+] = "great-expectations-docs-test"
 datasource_config["data_connectors"]["default_inferred_data_connector_name"][
     "prefix"
 ] = "data/taxi_yellow_tripdata_samples/"
@@ -60,7 +60,7 @@ batch_request = RuntimeBatchRequest(
 # In normal usage you'd set your path directly in the BatchRequest above.
 batch_request.runtime_parameters[
     "path"
-] = "s3a://superconductive-docs-test/data/taxi_yellow_tripdata_samples/yellow_tripdata_sample_2019-01.csv"
+] = "s3a://great-expectations-docs-test/data/taxi_yellow_tripdata_samples/yellow_tripdata_sample_2019-01.csv"
 
 context.add_or_update_expectation_suite(expectation_suite_name="test_suite")
 validator = context.get_validator(

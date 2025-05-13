@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List, Union
 
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.types import DictDot
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     import numpy as np
@@ -24,7 +24,7 @@ class NumericRangeEstimationResult(DictDot):
     In particular, "estimation_histogram" is "numpy.ndarray" of shape [2, NUM_HISTOGRAM_BINS + 1], containing
     [0] "histogram": (integer array of dimension [NUM_HISTOGRAM_BINS + 1] padded with 0 at right edge) histogram values;
     [1] "bin_edges": (float array of dimension [NUM_HISTOGRAM_BINS + 1]) binning edges.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     estimation_histogram: np.ndarray
     value_range: Union[np.ndarray, List[np.float64]]

@@ -34,7 +34,7 @@ class _TimeoutHTTPAdapter(HTTPAdapter):
         super().__init__(*args, **kwargs)
 
     @override
-    def send(self, request: requests.PreparedRequest, **kwargs) -> requests.Response:  # type: ignore[override]
+    def send(self, request: requests.PreparedRequest, **kwargs) -> requests.Response:  # type: ignore[override] # FIXME CoP
         kwargs["timeout"] = kwargs.get("timeout", self.timeout)
         return super().send(request, **kwargs)
 

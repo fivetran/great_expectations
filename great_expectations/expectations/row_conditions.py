@@ -11,11 +11,12 @@ from pyparsing import (
     Combine,
     Literal,
     ParseException,
+    QuotedString,
     Regex,
     Suppress,
     Word,
     alphanums,
-    alphas,
+    alphas8bit,
 )
 
 import great_expectations.exceptions as gx_exceptions
@@ -23,7 +24,7 @@ from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.types import SerializableDictDot
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark, sqlalchemy
@@ -34,11 +35,7 @@ def _set_notnull(s, l, t) -> None:  # noqa: E741 # ambiguous name `l`
 
 
 WHITESPACE_CHARS = " \t"
-column_name = Combine(
-    Suppress(Literal('col("'))
-    + Word(alphas, f"{alphanums}_-.").setResultsName("column")
-    + Suppress(Literal('")'))
-)
+column_name = Combine(Literal("col(") + QuotedString('"').setResultsName("column") + Literal(")"))
 gt = Literal(">")
 lt = Literal("<")
 ge = Literal(">=")
@@ -48,7 +45,7 @@ ne = Literal("!=")
 ops = (gt ^ lt ^ ge ^ le ^ eq ^ ne).setResultsName("op")
 fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?").setResultsName("fnumber")
 punctuation_without_apostrophe = punctuation.replace('"', "").replace("'", "")
-condition_value_chars = alphanums + punctuation_without_apostrophe + WHITESPACE_CHARS
+condition_value_chars = alphanums + alphas8bit + punctuation_without_apostrophe + WHITESPACE_CHARS
 condition_value = Suppress('"') + Word(f"{condition_value_chars}._").setResultsName(
     "condition_value"
 ) + Suppress('"') ^ Suppress("'") + Word(f"{condition_value_chars}._").setResultsName(
@@ -120,42 +117,28 @@ def _parse_great_expectations_condition(row_condition: str):
     try:
         return condition.parseString(row_condition)
     except ParseException:
-        raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003
+        raise ConditionParserError(f"unable to parse condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 
 
-# noinspection PyUnresolvedReferences
-def parse_condition_to_spark(  # type: ignore[return] # return or raise exists for all branches  # noqa: C901, PLR0911
+def parse_condition_to_spark(
     row_condition: str,
 ) -> pyspark.Column:
     parsed = _parse_great_expectations_condition(row_condition)
     column = parsed["column"]
     if "condition_value" in parsed:
-        if parsed["op"] == "==":
-            return F.col(column) == parsed["condition_value"]
-        else:
-            raise ConditionParserError(  # noqa: TRY003
-                f"Invalid operator: {parsed['op']} for string literal spark condition."
-            )
+        return generate_condition_by_operator(
+            F.col(column), parsed["op"], F.lit(parsed["condition_value"])
+        )
     elif "fnumber" in parsed:
         try:
             num: int | float = int(parsed["fnumber"])
         except ValueError:
             num = float(parsed["fnumber"])
-        op = parsed["op"]
-        if op == ">":
-            return F.col(column) > num
-        elif op == "<":
-            return F.col(column) < num
-        elif op == ">=":
-            return F.col(column) >= num
-        elif op == "<=":
-            return F.col(column) <= num
-        elif op == "==":
-            return F.col(column) == num
+        return generate_condition_by_operator(F.col(column), parsed["op"], F.lit(num))
     elif "notnull" in parsed and parsed["notnull"] is True:
         return F.col(column).isNotNull()
     else:
-        raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003
+        raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
 
 
 def generate_condition_by_operator(column, op, value):
@@ -175,12 +158,7 @@ def parse_condition_to_sqlalchemy(
 ) -> sqlalchemy.ColumnElement:
     parsed = _parse_great_expectations_condition(row_condition)
     column = parsed["column"]
-    if "date" in parsed:
-        date_value: str = parsed["condition_value"]
-        cast_as_date = f"date({date_value})"
-        return generate_condition_by_operator(sa.column(column), parsed["op"], cast_as_date)
-
-    elif "condition_value" in parsed:
+    if "condition_value" in parsed:
         return generate_condition_by_operator(
             sa.column(column), parsed["op"], parsed["condition_value"]
         )
@@ -192,4 +170,4 @@ def parse_condition_to_sqlalchemy(
     elif "notnull" in parsed and parsed["notnull"] is True:
         return sa.not_(sa.column(column).is_(None))
     else:
-        raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003
+        raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003 # FIXME CoP

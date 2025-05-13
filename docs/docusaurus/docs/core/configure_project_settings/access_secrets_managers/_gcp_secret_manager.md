@@ -1,13 +1,13 @@
 import GxData from '../../_core_components/_data.jsx'
 import PreReqFileDataContext from '../../_core_components/prerequisites/_file_data_context.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-gcp}
 
 - A [GCP Secret Manager instance with configured secrets](https://cloud.google.com/secret-manager/docs/quickstart).
 - The ability to install Python packages with `pip`.
 - <PreReqFileDataContext/>.
 
-### Procedure
+### Procedure {#prerequisites-gcp}
 
 1. Set up GCP Secret Manager support.
    
@@ -61,7 +61,7 @@ import PreReqFileDataContext from '../../_core_components/prerequisites/_file_da
 
 5. Run the following code to use the `connection_string` parameter values when you add a `datasource` to a Data Context:
 
-    ```python 
+    ```python title="Python"
     # We can use a single connection string 
     pg_datasource = context.data_sources.add_or_update_sql(
         name="my_postgres_db", connection_string="${my_gcp_creds}"

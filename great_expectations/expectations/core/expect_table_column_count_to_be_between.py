@@ -4,11 +4,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -33,18 +34,19 @@ if TYPE_CHECKING:
 EXPECTATION_SHORT_DESCRIPTION = "Expect the number of columns in a table to be between two values."
 MIN_VALUE_DESCRIPTION = "The minimum number of columns, inclusive."
 MAX_VALUE_DESCRIPTION = "The maximum number of columns, inclusive."
+DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
-DATA_QUALITY_ISSUES = ["Schema"]
 
 
 class ExpectTableColumnCountToBeBetween(BatchExpectation):
@@ -86,7 +88,7 @@ class ExpectTableColumnCountToBeBetween(BatchExpectation):
     See Also:
         [ExpectTableColumnCountToEqual](https://greatexpectations.io/expectations/expect_table_column_count_to_equal)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -97,7 +99,7 @@ class ExpectTableColumnCountToBeBetween(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -147,7 +149,7 @@ class ExpectTableColumnCountToBeBetween(BatchExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(description=MIN_VALUE_DESCRIPTION)
     max_value: Optional[Comparable] = pydantic.Field(description=MAX_VALUE_DESCRIPTION)
@@ -282,7 +284,7 @@ class ExpectTableColumnCountToBeBetween(BatchExpectation):
             elif params["max_value"] is None:
                 template_str = f"Must have {at_least_str} $min_value columns."
             else:
-                raise ValueError("unresolvable template_str")  # noqa: TRY003
+                raise ValueError("unresolvable template_str")  # noqa: TRY003 # FIXME CoP
 
         return [
             RenderedStringTemplateContent(

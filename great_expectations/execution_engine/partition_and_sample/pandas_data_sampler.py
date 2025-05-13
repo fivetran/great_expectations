@@ -112,7 +112,7 @@ class PandasDataSampler(DataSampler):
         column_name: str = self.get_sampling_kwargs_value_or_default(batch_spec, "column_name")
         value_list: int = self.get_sampling_kwargs_value_or_default(batch_spec, "value_list")
 
-        return df[df[column_name].isin(value_list)]  # type: ignore[arg-type]
+        return df[df[column_name].isin(value_list)]  # type: ignore[arg-type] # FIXME CoP
 
     def sample_using_hash(
         self,
@@ -153,9 +153,9 @@ class PandasDataSampler(DataSampler):
             hash_func = getattr(hashlib, hash_function_name)
         except (TypeError, AttributeError):
             raise (
-                gx_exceptions.ExecutionEngineError(  # noqa: TRY003
+                gx_exceptions.ExecutionEngineError(  # noqa: TRY003 # FIXME CoP
                     f"""The sampling method used with PandasExecutionEngine has a reference to an invalid hash_function_name.
-                       Reference to {hash_function_name} cannot be found."""  # noqa: E501
+                       Reference to {hash_function_name} cannot be found."""  # noqa: E501 # FIXME CoP
                 )
             )
 

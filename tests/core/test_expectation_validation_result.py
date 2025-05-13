@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
@@ -26,7 +27,7 @@ def test_expectation_validation_result_describe_returns_expected_description():
             column="passenger_count",
             min_value=0,
             max_value=6,
-            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501
+            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
         ).configuration,
         result={
             "element_count": 100000,
@@ -107,7 +108,7 @@ def test_expectation_validation_result_describe_returns_expected_description_wit
             column="passenger_count",
             min_value=0,
             max_value=6,
-            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501
+            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
         ).configuration,
         result={
             "element_count": 100000,
@@ -203,7 +204,7 @@ def test_expectation_suite_validation_result_returns_expected_shape(
                     "expectation_config": ExpectationConfiguration(
                         **{
                             "meta": {},
-                            "notes": "Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501
+                            "notes": "Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
                             "id": "9f76d0b5-9d99-4ed9-a269-339b35e60490",
                             "kwargs": {
                                 "batch_id": "default_pandas_datasource-#ephemeral_pandas_asset",
@@ -403,7 +404,7 @@ def test_render_updates_rendered_content():
             column="passenger_count",
             min_value=0,
             max_value=6,
-            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501
+            notes="Per the TLC data dictionary, this is a driver-submitted value (historically between 0 to 6)",  # noqa: E501 # FIXME CoP
         ).configuration,
         result={
             "element_count": 100000,
@@ -424,3 +425,71 @@ def test_render_updates_rendered_content():
     evr.render()
 
     assert evr.rendered_content is not None
+
+
+class TestSerialization:
+    @pytest.mark.unit
+    def test_expectation_validation_results_serializes(self) -> None:
+        evr = ExpectationValidationResult(
+            success=True,
+            expectation_config=gxe.ExpectColumnDistinctValuesToEqualSet(
+                column="passenger_count",
+                value_set=[1, 2],
+            ).configuration,
+            result={
+                "details": {
+                    "observed_value": pd.Series({"a": 1, "b": 2, "c": 4}),
+                }
+            },
+        )
+
+        # Ensure the results are serializable.
+        as_dict = evr.describe_dict()
+        from_describe_dict = json.dumps(as_dict, indent=4)
+        from_describe = evr.describe()
+
+        assert from_describe_dict == from_describe
+        assert as_dict["result"]["details"]["observed_value"] == [
+            {"index": "a", "value": 1},
+            {"index": "b", "value": 2},
+            {"index": "c", "value": 4},
+        ]
+
+    @pytest.mark.unit
+    def test_expectation_suite_validation_results_serializes(self) -> None:
+        svr = ExpectationSuiteValidationResult(
+            success=True,
+            statistics={
+                "evaluated_expectations": 2,
+                "successful_expectations": 2,
+                "unsuccessful_expectations": 0,
+                "success_percent": 100.0,
+            },
+            suite_name="whatever",
+            results=[
+                ExpectationValidationResult(
+                    success=True,
+                    expectation_config=gxe.ExpectColumnDistinctValuesToEqualSet(
+                        column="passenger_count",
+                        value_set=[1, 2],
+                    ).configuration,
+                    result={
+                        "details": {
+                            "observed_value": pd.Series({"a": 1, "b": 2, "c": 4}),
+                        }
+                    },
+                )
+            ],
+        )
+
+        # Ensure the results are serializable.
+        as_dict = svr.describe_dict()
+        from_describe_dict = json.dumps(as_dict, indent=4)
+        from_describe = svr.describe()
+
+        assert from_describe_dict == from_describe
+        assert as_dict["expectations"][0]["result"]["details"]["observed_value"] == [
+            {"index": "a", "value": 1},
+            {"index": "b", "value": 2},
+            {"index": "c", "value": 4},
+        ]

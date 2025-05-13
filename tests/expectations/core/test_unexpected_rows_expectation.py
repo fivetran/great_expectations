@@ -7,6 +7,8 @@ import pytest
 
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.expectations import UnexpectedRowsExpectation
+from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
+from great_expectations.render.renderer.content_block.content_block import ContentBlockRenderer
 
 if TYPE_CHECKING:
     from great_expectations.data_context import AbstractDataContext
@@ -60,45 +62,29 @@ def test_unexpected_rows_expectation_invalid_query_info_message(query: str, capl
 
 @pytest.mark.sqlite
 @pytest.mark.parametrize(
-    "query, expected_success, expected_observed_value, expected_unexpected_rows",
+    "query, expected_success, expected_observed_value, expected_count_unexpected_rows_returned",
     [
         pytest.param(
             "SELECT * FROM {batch} WHERE passenger_count > 7",
             True,
-            "0 unexpected rows",
-            [],
+            0,
+            0,
             id="success",
         ),
         pytest.param(
             # There is a single instance where passenger_count == 7
             "SELECT * FROM {batch} WHERE passenger_count > 6",
             False,
-            "1 unexpected row",
-            [
-                {
-                    "?": 48422,
-                    "DOLocationID": 132,
-                    "PULocationID": 132,
-                    "RatecodeID": 5.0,
-                    "VendorID": 2,
-                    "airport_fee": 0.0,
-                    "congestion_surcharge": 0.0,
-                    "extra": 0.0,
-                    "fare_amount": 70.0,
-                    "improvement_surcharge": 0.3,
-                    "mta_tax": 0.0,
-                    "passenger_count": 7.0,
-                    "payment_type": 1,
-                    "store_and_fwd_flag": "N",
-                    "tip_amount": 21.09,
-                    "tolls_amount": 0.0,
-                    "total_amount": 91.39,
-                    "tpep_dropoff_datetime": "2022-01-01 19:20:46",
-                    "tpep_pickup_datetime": "2022-01-01 19:20:43",
-                    "trip_distance": 0.0,
-                }
-            ],
+            1,
+            1,
             id="failure",
+        ),
+        pytest.param(
+            "SELECT * FROM {batch} WHERE passenger_count > 0",
+            False,
+            97853,
+            MAX_RESULT_RECORDS,
+            id="greater than MAX_RESULT_RECORDS unexpected rows",
         ),
     ],
 )
@@ -107,7 +93,7 @@ def test_unexpected_rows_expectation_validate(
     query: str,
     expected_success: bool,
     expected_observed_value: int,
-    expected_unexpected_rows: list[dict],
+    expected_count_unexpected_rows_returned: int,
 ):
     batch = sqlite_batch
 
@@ -119,8 +105,19 @@ def test_unexpected_rows_expectation_validate(
     res = result.result
     assert res["observed_value"] == expected_observed_value
 
-    unexpected_rows = res["details"]["unexpected_rows"]
-    assert unexpected_rows == expected_unexpected_rows
+    unexpected_count_rows_returned = len(res["details"]["unexpected_rows"])
+    assert unexpected_count_rows_returned == expected_count_unexpected_rows_returned
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_correctly_interprets_query(
+    sqlite_batch: Batch,
+):
+    query = "SELECT * FROM {batch}\r\n\t  ;\v\r ;"
+
+    expectation = UnexpectedRowsExpectation(unexpected_rows_query=query)
+
+    assert expectation.unexpected_rows_query == "SELECT * FROM {batch}"
 
 
 @pytest.mark.unit
@@ -159,3 +156,17 @@ def test_unexpected_rows_expectation_render(
         == "$unexpected_rows_query"
     )
     assert expectation.rendered_content[0].value.code_block.get("language") == "sql"
+
+
+@pytest.mark.unit
+def test_data_docs_rendering():
+    query = "SELECT * FROM {batch} WHERE passenger_count > 7"
+    expectation = UnexpectedRowsExpectation(unexpected_rows_query=query)
+    results = ContentBlockRenderer.render(expectation.configuration)
+    assert isinstance(results, list) and len(results) == 1
+    result = results[0]
+    assert result.string_template == {
+        "template": "Unexpected rows query: $unexpected_rows_query",
+        "params": {"unexpected_rows_query": query},
+        "styling": {},
+    }

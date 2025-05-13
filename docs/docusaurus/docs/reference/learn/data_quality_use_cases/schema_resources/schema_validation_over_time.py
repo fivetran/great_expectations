@@ -69,7 +69,8 @@ suite.add_expectation(
             "recipient_fullname",
             "transfer_amount",
             "transfer_date",
-        ]
+        ],
+        exact_match=False,
     )
 )
 suite.add_expectation(gxe.ExpectTableColumnCountToEqual(value=5))

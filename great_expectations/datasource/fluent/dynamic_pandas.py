@@ -51,17 +51,17 @@ except ImportError:
     # Types may not exist on earlier version of pandas (current min ver is v.1.1.0)
     # https://github.com/pandas-dev/pandas/blob/v1.1.0/pandas/_typing.py
     CompressionDict = Dict[str, Any]
-    CompressionOptions = Optional[  # type: ignore[misc]
+    CompressionOptions = Optional[  # type: ignore[misc] # FIXME CoP
         Union[Literal["infer", "gzip", "bz2", "zip", "xz", "zstd", "tar"], CompressionDict]
     ]
-    CSVEngine = Literal["c", "python", "pyarrow", "python-fwf"]  # type: ignore[misc]
-    StorageOptions = Optional[Dict[str, Any]]  # type: ignore[misc]
+    CSVEngine = Literal["c", "python", "pyarrow", "python-fwf"]  # type: ignore[misc] # FIXME CoP
+    StorageOptions = Optional[Dict[str, Any]]  # type: ignore[misc] # FIXME CoP
 
 try:
     from pandas._libs.lib import _NoDefault
 except ImportError:
 
-    class _NoDefault(enum.Enum):  # type: ignore[no-redef]
+    class _NoDefault(enum.Enum):  # type: ignore[no-redef] # FIXME CoP
         no_default = "NO_DEFAULT"
 
 
@@ -131,7 +131,7 @@ TYPE_SUBSTITUTIONS: Final[Dict[str, str]] = {
     "Hashable": "str",
     "Sequence[Hashable]": "Sequence[str]",
     "Iterable[Hashable]": "Iterable[str]",
-    # using builtin types as generics may causes TypeError: 'type' object is not subscriptable in python 3.8  # noqa: E501
+    # using builtin types as generics may causes TypeError: 'type' object is not subscriptable in python 3.8  # noqa: E501 # FIXME CoP
     "Sequence[tuple[int, int]]": "Sequence[Tuple[int, int]]",
     # TypeVars
     "IntStrT": "Union[int, str]",
@@ -170,7 +170,7 @@ FIELD_SUBSTITUTIONS: Final[Dict[str, Dict[str, _FieldSpec]]] = {
     # SQLTable
     "schema": {
         "schema_name": _FieldSpec(
-            Optional[str],  # type: ignore[arg-type]
+            Optional[str],  # type: ignore[arg-type] # FIXME CoP
             Field(
                 None,
                 description="'schema_name' on the instance model."
@@ -180,22 +180,22 @@ FIELD_SUBSTITUTIONS: Final[Dict[str, Dict[str, _FieldSpec]]] = {
         )
     },
     # sql
-    "con": {"con": _FieldSpec(Union[ConfigStr, str, Any], ...)},  # type: ignore[arg-type]
+    "con": {"con": _FieldSpec(Union[ConfigStr, str, Any], ...)},  # type: ignore[arg-type] # FIXME CoP
     # misc
     "filepath_or_buffer": {
-        "filepath_or_buffer": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)  # type: ignore[arg-type]
+        "filepath_or_buffer": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)  # type: ignore[arg-type] # FIXME CoP
     },
-    "io": {"io": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)},  # type: ignore[arg-type]
-    "path": {"path": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)},  # type: ignore[arg-type]
-    "path_or_buf": {"path_or_buf": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)},  # type: ignore[arg-type]
-    "path_or_buffer": {"path_or_buffer": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)},  # type: ignore[arg-type]
-    "dtype": {"dtype": _FieldSpec(Optional[dict], None)},  # type: ignore[arg-type]
-    "dialect": {"dialect": _FieldSpec(Optional[str], None)},  # type: ignore[arg-type]
-    "usecols": {"usecols": _FieldSpec(Union[int, str, Sequence[int], None], None)},  # type: ignore[arg-type]
-    "skiprows": {"skiprows": _FieldSpec(Union[Sequence[int], int, None], None)},  # type: ignore[arg-type]
+    "io": {"io": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)},  # type: ignore[arg-type] # FIXME CoP
+    "path": {"path": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)},  # type: ignore[arg-type] # FIXME CoP
+    "path_or_buf": {"path_or_buf": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)},  # type: ignore[arg-type] # FIXME CoP
+    "path_or_buffer": {"path_or_buffer": _FieldSpec(Union[FilePath, AnyUrl, Any], ...)},  # type: ignore[arg-type] # FIXME CoP
+    "dtype": {"dtype": _FieldSpec(Optional[dict], None)},  # type: ignore[arg-type] # FIXME CoP
+    "dialect": {"dialect": _FieldSpec(Optional[str], None)},  # type: ignore[arg-type] # FIXME CoP
+    "usecols": {"usecols": _FieldSpec(Union[int, str, Sequence[int], None], None)},  # type: ignore[arg-type] # FIXME CoP
+    "skiprows": {"skiprows": _FieldSpec(Union[Sequence[int], int, None], None)},  # type: ignore[arg-type] # FIXME CoP
     "kwargs": {
         "kwargs": _FieldSpec(
-            Optional[dict],  # type: ignore[arg-type]
+            Optional[dict],  # type: ignore[arg-type] # FIXME CoP
             Field(
                 None,
                 description="Extra keyword arguments that will be passed to the reader method",
@@ -204,7 +204,7 @@ FIELD_SUBSTITUTIONS: Final[Dict[str, Dict[str, _FieldSpec]]] = {
     },
     "kwds": {
         "kwargs": _FieldSpec(
-            Optional[dict],  # type: ignore[arg-type]
+            Optional[dict],  # type: ignore[arg-type] # FIXME CoP
             Field(
                 None,
                 description="Extra keyword arguments that will be passed to the reader method",
@@ -300,7 +300,7 @@ def _get_annotation_type(param: inspect.Parameter) -> Union[Type, str, object]:
         logger.debug(f"{param.name} has non-string annotations")
         # `__args__` contains the actual members of a `Union[TYPE_1, TYPE_2]` object
         union_types = getattr(annotation, "__args__", None)
-        if union_types and PANDAS_VERSION < 1.2:  # noqa: PLR2004
+        if union_types and PANDAS_VERSION < 1.2:  # noqa: PLR2004 # FIXME CoP
             # we could examine these types and only kick out certain blacklisted types
             # but once we drop python 3.7 support our min pandas version will make this
             # unneeded
@@ -312,7 +312,7 @@ def _get_annotation_type(param: inspect.Parameter) -> Union[Type, str, object]:
     union_parts = annotation.split("|")
     str_to_eval: str
     for type_str in union_parts:
-        type_str = type_str.strip()  # noqa: PLW2901
+        type_str = type_str.strip()  # noqa: PLW2901 # FIXME CoP
 
         if type_str in CAN_HANDLE:
             types.append(type_str)
@@ -357,7 +357,7 @@ def _to_pydantic_fields(
                 FIELD_SKIPPED_NO_ANNOTATION.add(param_name)  # TODO: not skipped
                 type_ = Any
             else:
-                type_ = _get_annotation_type(param)  # type: ignore[assignment]
+                type_ = _get_annotation_type(param)  # type: ignore[assignment] # FIXME CoP
                 if type_ is UNSUPPORTED_TYPE or type_ == "None":
                     logger.debug(f"`{param_name}` has no supported types. Field skipped")
                     FIELD_SKIPPED_UNSUPPORTED_TYPE.add(param_name)
@@ -373,7 +373,7 @@ def _to_pydantic_fields(
 M = TypeVar("M", bound=Type[DataAsset])
 
 
-def _create_pandas_asset_model(  # noqa: PLR0913
+def _create_pandas_asset_model(  # noqa: PLR0913 # FIXME CoP
     model_name: str,
     model_base: M,
     type_field: Tuple[Union[Type, str], str],
@@ -442,7 +442,7 @@ def _generate_pandas_data_asset_models(
             continue
         except TypeError as err:
             logger.info(
-                f"pandas {pd.__version__}  {model_name} could not be created normally - {type(err).__name__}:{err} , skipping"  # noqa: E501
+                f"pandas {pd.__version__}  {model_name} could not be created normally - {type(err).__name__}:{err} , skipping"  # noqa: E501 # FIXME CoP
             )
             logger.info(f"{model_name} fields\n{pf(fields)}")
             continue
@@ -451,8 +451,8 @@ def _generate_pandas_data_asset_models(
         try:
             asset_model.update_forward_refs(**_TYPE_REF_LOCALS)
         except TypeError as e:
-            raise DynamicAssetError(  # noqa: TRY003
-                f"Updating forward references for asset model {asset_model.__name__} raised TypeError: {e}"  # noqa: E501
+            raise DynamicAssetError(  # noqa: TRY003 # FIXME CoP
+                f"Updating forward references for asset model {asset_model.__name__} raised TypeError: {e}"  # noqa: E501 # FIXME CoP
             ) from e
 
     logger.debug(f"Needs extra handling\n{pf(dict(NEED_SPECIAL_HANDLING))}")

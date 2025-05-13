@@ -90,9 +90,7 @@ def get_store_backend_id_from_s3(bucket: str, prefix: str, key: str) -> uuid.UUI
 
     """
     s3_response_object = boto3.client("s3").get_object(Bucket=bucket, Key=f"{prefix}/{key}")
-    ge_store_backend_id_file_contents = (
-        s3_response_object["Body"].read().decode(s3_response_object.get("ContentEncoding", "utf-8"))
-    )
+    ge_store_backend_id_file_contents = s3_response_object["Body"].read().decode("utf-8")
 
     store_backend_id_file_parser = StoreBackend.STORE_BACKEND_ID_PREFIX + pp.Word(pp.hexnums + "-")
     parsed_store_backend_id = store_backend_id_file_parser.parseString(
@@ -208,7 +206,7 @@ def test_DataContext_construct_data_context_id_uses_id_of_currently_configured_e
 
 @pytest.mark.aws_deps
 @mock_s3
-def test_DataContext_construct_data_context_id_uses_id_stored_in_DataContextConfig_if_no_configured_expectations_store(  # noqa: E501
+def test_DataContext_construct_data_context_id_uses_id_stored_in_DataContextConfig_if_no_configured_expectations_store(  # noqa: E501 # FIXME CoP
     monkeypatch, aws_credentials
 ):
     """
@@ -262,7 +260,7 @@ def test_suppress_store_backend_id_is_true_for_inactive_stores():
 
     Trying to read / set the store_backend_id for inactive stores should not be attempted during DataContext initialization. This test ensures that the _suppress_store_backend_id parameter is set to True for inactive stores.
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     bucket = "leakybucket"
     expectations_store_prefix = "expectations_store_prefix"
@@ -357,7 +355,7 @@ def test_inaccessible_active_bucket_warning_messages(caplog, aws_credentials):
     e.g. Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named expectations_S3_store
     Active stores are those named in:
     "expectations_store_name", "validation_results_store_name"
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     bucket = "leakybucket"
     expectations_store_prefix = "expectations_store_prefix"
@@ -399,13 +397,13 @@ def test_inaccessible_active_bucket_warning_messages(caplog, aws_credentials):
     _ = get_context(project_config=in_code_data_context_project_config)
     assert (
         caplog.messages.count(
-            "Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named expectations_S3_store. Exception was: \n Unable to set object in s3."  # noqa: E501
+            "Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named expectations_S3_store. Exception was: \n Unable to set object in s3."  # noqa: E501 # FIXME CoP
         )
         == 1
     )
     assert (
         caplog.messages.count(
-            "Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named validation_results_S3_store. Exception was: \n Unable to set object in s3."  # noqa: E501
+            "Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named validation_results_S3_store. Exception was: \n Unable to set object in s3."  # noqa: E501 # FIXME CoP
         )
         == 1
     )
@@ -478,13 +476,13 @@ def test_inaccessible_inactive_bucket_no_warning_messages(caplog):
     _ = get_context(project_config=in_code_data_context_project_config)
     assert (
         caplog.messages.count(
-            "Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named expectations_S3_store"  # noqa: E501
+            "Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named expectations_S3_store"  # noqa: E501 # FIXME CoP
         )
         == 0
     )
     assert (
         caplog.messages.count(
-            "Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named validation_results_S3_store"  # noqa: E501
+            "Invalid store configuration: Please check the configuration of your TupleS3StoreBackend named validation_results_S3_store"  # noqa: E501 # FIXME CoP
         )
         == 0
     )

@@ -55,7 +55,7 @@ class ColumnMedian(ColumnAggregateMetricProvider):
             accessor_domain_kwargs,
         ) = execution_engine.get_compute_domain(metric_domain_kwargs, MetricDomainTypes.COLUMN)
         column_name = accessor_domain_kwargs["column"]
-        column = sa.column(column_name)  # type: ignore[var-annotated]
+        column = sa.column(column_name)  # type: ignore[var-annotated] # FIXME CoP
         """SqlAlchemy Median Implementation"""
         nonnull_count = metrics.get("column_values.nonnull.count")
         if not nonnull_count:
@@ -64,10 +64,10 @@ class ColumnMedian(ColumnAggregateMetricProvider):
         element_values = execution_engine.execute_query(
             sa.select(column)
             .order_by(column)
-            .where(column != None)  # noqa: E711
+            .where(column != None)  # noqa: E711 # FIXME CoP
             .offset(max(nonnull_count // 2 - 1, 0))
             .limit(2)
-            .select_from(selectable)  # type: ignore[arg-type]
+            .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
         )
 
         column_values = list(element_values.fetchall())
@@ -83,7 +83,7 @@ class ColumnMedian(ColumnAggregateMetricProvider):
                 )
                 / 2.0
             )  # Average center values
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             # An odd number of column values, we can just take the center value
             if len(column_values) == 1:
                 column_median = column_values[0][0]  # The only value

@@ -27,7 +27,7 @@ function codeImport () {
   // Instantiated within the import so it can be hot-reloaded
   const dirs = getDirs()
   const snippetMapsByNamespace = {}
-  for (let dir of dirs) {
+  for (const dir of dirs) {
     snippetMapsByNamespace[dir] = constructSnippetMap(dir)
   }
 
@@ -77,12 +77,12 @@ function codeImport () {
 
 /**
  * Gets what we'll call the "namespace" of the file, e.g. docs, versioned_docs/<VERSION>, etc
- * @param {VFile} file 
+ * @param {VFile} file
  * @param {string[]} namespaces
- * @returns 
+ * @returns
  */
-function getFileNamespace(file, namespaces) {
-  const relativePath = path.relative(file.cwd, file.path);
+function getFileNamespace (file, namespaces) {
+  const relativePath = path.relative(file.cwd, file.path)
 
   for (const namespace of namespaces) {
     if (relativePath.startsWith(namespace)) {

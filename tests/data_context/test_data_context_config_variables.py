@@ -36,7 +36,7 @@ def empty_data_context_with_config_variables(monkeypatch, empty_data_context):
     )
     shutil.copy(
         ge_config_path,
-        os.path.join(root_dir, FileDataContext.GX_YML),  # noqa: PTH118
+        os.path.join(root_dir, FileDataContext.GX_YML),  # noqa: PTH118 # FIXME CoP
     )
     config_variables_path = file_relative_path(
         __file__,
@@ -44,7 +44,7 @@ def empty_data_context_with_config_variables(monkeypatch, empty_data_context):
     )
     shutil.copy(
         config_variables_path,
-        os.path.join(root_dir, "uncommitted"),  # noqa: PTH118
+        os.path.join(root_dir, "uncommitted"),  # noqa: PTH118 # FIXME CoP
     )
     return get_context(context_root_dir=root_dir)
 
@@ -71,8 +71,8 @@ def test_substituted_config_variables_not_written_to_file(tmp_path_factory):
     # with substitution variables
 
     project_path = str(tmp_path_factory.mktemp("data_context"))
-    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118
-    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118
+    context_path = os.path.join(project_path, FileDataContext.GX_DIR)  # noqa: PTH118 # FIXME CoP
+    asset_config_path = os.path.join(context_path, "expectations")  # noqa: PTH118 # FIXME CoP
 
     create_data_context_files(
         context_path,
@@ -177,7 +177,7 @@ def test_substitute_config_variable():
             r"prefix$ARG4.$arg0/$aRg3:${ARG4}/\$dontsub${arg0}:${aRg3}.suffix",
             config_variables_dict,
         )
-        == "prefixval_of_ARG_4.val_of_arg_0/val_of_aRg_3:val_of_ARG_4/$dontsubval_of_arg_0:val_of_aRg_3.suffix"  # noqa: E501
+        == "prefixval_of_ARG_4.val_of_arg_0/val_of_aRg_3:val_of_ARG_4/$dontsubval_of_arg_0:val_of_aRg_3.suffix"  # noqa: E501 # FIXME CoP
     )
 
 
@@ -186,7 +186,7 @@ def test_escape_all_config_variables(empty_data_context_with_config_variables):
     """
     Make sure that all types of input to escape_all_config_variables are escaped properly: str, dict, OrderedDict, list
     Make sure that changing the escape string works as expected.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     context = empty_data_context_with_config_variables
 
     # str
@@ -302,7 +302,7 @@ def test_escape_all_config_variables_skip_substitution_vars(
     """
     What does this test and why?
     escape_all_config_variables(skip_if_substitution_variable=True/False) should function as documented.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     context = empty_data_context_with_config_variables
 
     # str
@@ -533,7 +533,7 @@ def test_create_data_context_and_config_vars_in_code(
     What does this test and why?
     Creating a DataContext via .create(), then using .save_config_variable() to save a variable that will eventually be substituted (e.g. ${SOME_VAR}) should result in the proper escaping of $.
     This is in response to issue #2196
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     project_path = str(tmp_path_factory.mktemp("data_context"))
     context = gx.get_context(

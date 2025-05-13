@@ -6,12 +6,12 @@ import SqlDialectInstallationCommands from './_sql_dialect_installation_commands
 
 To validate data stored on SQL databases with GX Core, you create your GX Python environment, install GX Core locally, and then configure the necessary dependencies.
 
-## Prerequisites
+## Prerequisites {#prerequisites-sql}
 
 - <PrereqPythonInstalled/>
 - <RecommendedVirtualEnvironment/>
 
-## Installation
+## Installation {#installation-sql}
 
 1. Run the pip command to install the dependencies for your data's SQL dialect.
 
@@ -19,11 +19,9 @@ To validate data stored on SQL databases with GX Core, you create your GX Python
    
    To install dependencies for a specific SQL dialect, use the corresponding command from the table above.
 
-   If you are not using one of the listed dialects, you can install the dependencies for SQLAlchemy with the command:
-
-   ```bash title="Terminal input"
-   python -m pip install 'great_expectations[sqlalchemy]'
-   ```
+   :::note Redshift dialects
+   If you plan to use SQLAlchemy with Redshift outside of Great Expectations, we recommend installing the default Redshift dialect with SQLAlchemy 1.4. The Redshift GX fork with SQLAlchemy 2.0 may not support SQLAlchemy functions that aren't used directly by GX.
+   :::
 
 2. Configure your SQL database credentials.
 
@@ -39,7 +37,7 @@ To validate data stored on SQL databases with GX Core, you create your GX Python
    export MY_DB_CONNECTION_STRING=<MY_CONNECTION_STRING>
    ```
 
-   :::info
+   :::info Info
 
    You can manage your credentials for all environments and Data Sources by storing them as environment variables.  To do this, enter `export ENV_VARIABLE_NAME=env_var_value` in the terminal or add the equivalent command to your `~/.bashrc` file.
 

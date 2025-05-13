@@ -88,7 +88,7 @@ class Store:
             store_backend:
             runtime_environment:
             store_name: store name given in the DataContextConfig (via either in-code or yaml configuration)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if store_backend is None:
             store_backend = {"class_name": "InMemoryStoreBackend"}
         self._store_name = store_name
@@ -107,7 +107,7 @@ class Store:
                 module_name=module_name, package_name=None, class_name=store_backend
             )
         if not isinstance(self._store_backend, StoreBackend):
-            raise DataContextError(  # noqa: TRY003
+            raise DataContextError(  # noqa: TRY003 # FIXME CoP
                 "Invalid StoreBackend configuration: expected a StoreBackend instance."
             )
         self._use_fixed_length_key = self._store_backend.fixed_length_key
@@ -135,11 +135,11 @@ class Store:
         """
         This method takes full json response from GX cloud and outputs a list of dicts appropriate for
         deserialization into a collection of GX objects
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         logger.debug(f"GE Cloud Response JSON ->\n{pf(response_json, depth=3)}")
         data = response_json["data"]
         if not isinstance(data, list):
-            raise TypeError("GX Cloud did not return a collection of Datasources when expected")  # noqa: TRY003
+            raise TypeError("GX Cloud did not return a collection of Datasources when expected")  # noqa: TRY003 # FIXME CoP
 
         return [cls._convert_raw_json_to_object_dict(d) for d in data]
 
@@ -161,7 +161,7 @@ class Store:
         if key == StoreBackend.STORE_BACKEND_ID_KEY or isinstance(key, self.key_class):
             return
         else:
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 f"key must be an instance of {self.key_class.__name__}, not {type(key)}"
             )
 
@@ -198,7 +198,7 @@ class Store:
         Report the store_backend_id of the currently-configured StoreBackend, suppressing warnings for invalid configurations.
         Returns:
             store_backend_id which is a UUID(version=4)
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self._store_backend.store_backend_id_warnings_suppressed
 
     @property
@@ -217,7 +217,7 @@ class Store:
 
     def tuple_to_key(self, tuple_: Tuple[str, ...]) -> DataContextKey:
         if tuple_ == StoreBackend.STORE_BACKEND_ID_KEY:
-            return StoreBackend.STORE_BACKEND_ID_KEY[0]  # type: ignore[return-value]
+            return StoreBackend.STORE_BACKEND_ID_KEY[0]  # type: ignore[return-value] # FIXME CoP
         if self._use_fixed_length_key:
             return self.key_class.from_fixed_length_tuple(tuple_)
         return self.key_class.from_tuple(tuple_)
@@ -348,7 +348,7 @@ class Store:
 
     def _build_key_from_config(self, config: AbstractConfig) -> DataContextKey:
         id: Optional[str] = None
-        # Chetan - 20220831 - Explicit fork in logic to cover legacy behavior (particularly around Checkpoints).  # noqa: E501
+        # Chetan - 20220831 - Explicit fork in logic to cover legacy behavior (particularly around Checkpoints).  # noqa: E501 # FIXME CoP
         if hasattr(config, "id"):
             id = config.id
 
@@ -366,7 +366,7 @@ class Store:
         runtime_environment: Optional[dict] = None,
     ) -> Store:
         if config is None or module_name is None:
-            raise gx_exceptions.StoreConfigurationError(  # noqa: TRY003
+            raise gx_exceptions.StoreConfigurationError(  # noqa: TRY003 # FIXME CoP
                 "Cannot build a store without both a store_config and a module_name"
             )
 
