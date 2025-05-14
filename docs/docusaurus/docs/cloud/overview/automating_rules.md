@@ -1,6 +1,6 @@
 ---
 title: 'Automating data quality rules'
-description: Generate AI-recommended data quality rules and use Anomaly Detection and to more quickly achieve test coverage for your data.
+description: Generate AI-recommended data quality rules and use Anomaly Detection to more quickly achieve test coverage for your data.
 ---
 
 With GX Cloud, you can automatically generate data quality rules to more quickly achieve test coverage for your data. This page provides an overview of the following options:
