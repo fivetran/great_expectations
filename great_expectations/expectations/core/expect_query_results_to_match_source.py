@@ -354,7 +354,6 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             return RenderedAtomicContent(
                 name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
                 value=RenderedAtomicValue(
-                    schema={"type": "StringValueType"},
                     template=template,
                     params=params,
                 ),
@@ -364,7 +363,6 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         return RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
-                schema={"type": "TableType"},
                 template=template,
                 params=params,
                 header_row=table[0],

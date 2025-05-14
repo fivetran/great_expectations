@@ -482,7 +482,6 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
         RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
-                schema={"type": "StringValueType"},
                 template="Unexpected records: $row_count",
                 params={
                     "row_count": {
@@ -491,12 +490,11 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
                     }
                 },
             ),
-            value_type="StringValueType",
+            value_type="TableType",
         ),
         RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
-                schema={"type": "StringValueType"},
                 template="Missing records: $row_count",
                 params={
                     "row_count": {
@@ -505,7 +503,7 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
                     }
                 },
             ),
-            value_type="StringValueType",
+            value_type="TableType",
         ),
     ]
 
@@ -540,7 +538,6 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
                         "value": 3,
                     }
                 },
-                schema={"type": "TableType"},
                 header_row=[
                     RendererTableValue(
                         schema=RendererSchema(type=RendererValueType.STRING),
@@ -564,7 +561,6 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
         RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
-                schema={"type": "TableType"},
                 template="Missing records: $row_count",
                 params={
                     "row_count": {
