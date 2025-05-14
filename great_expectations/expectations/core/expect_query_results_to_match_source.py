@@ -2,21 +2,38 @@ from __future__ import annotations
 
 from collections import Counter
 from functools import cmp_to_key
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.result_format import ResultFormat
-from great_expectations.expectations.expectation import BatchExpectation
+from great_expectations.expectations.expectation import (
+    BatchExpectation,
+    render_suite_parameter_string,
+)
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import MOSTLY_DESCRIPTION
 from great_expectations.expectations.model_field_types import (
     MostlyField,  # noqa: TC001  # pydantic needs the actual type
 )
+from great_expectations.render import (
+    AtomicPrescriptiveRendererType,
+    RenderedAtomicContent,
+    RenderedAtomicValue,
+)
+from great_expectations.render.renderer.renderer import renderer
+from great_expectations.render.renderer_configuration import (
+    AddParamArgs,
+    CodeBlock,
+    CodeBlockLanguage,
+    RendererConfiguration,
+    RendererValueType,
+)
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
     from great_expectations.execution_engine import ExecutionEngine
+    from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 
 
 EXPECTATION_SHORT_DESCRIPTION = (
@@ -52,6 +69,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
       each query is 200.
     - The order of records returned does not matter unless \
       the number of records returned would be greater than 200.
+    - Column names do not matter, but the order of the columns does.
 
     Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
     to determine pass/fail.
@@ -136,6 +154,71 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                     },
                 }
             )
+
+    @classmethod
+    def _get_query_rendered_content(
+        cls,
+        renderer_configuration: RendererConfiguration,
+        query_type: Literal["source", "target"],
+        add_param_args: AddParamArgs,
+        template_str: Optional[str] = None,
+    ) -> RenderedAtomicContent:
+        for name, param_type in add_param_args:
+            renderer_configuration.add_param(name=name, param_type=param_type)
+
+        renderer_configuration.template_str = template_str
+
+        renderer_configuration.code_block = CodeBlock(
+            code_template_str=f"${query_type}_query",
+            language=CodeBlockLanguage.SQL,
+        )
+
+        return RenderedAtomicContent(
+            name=AtomicPrescriptiveRendererType.SUMMARY,
+            value=RenderedAtomicValue(
+                template=template_str or renderer_configuration.template_str,
+                params=renderer_configuration.params.dict(),
+                code_block=renderer_configuration.code_block,
+                meta_notes=renderer_configuration.meta_notes,
+                schema={"type": "com.superconductive.rendered.string"},
+            ),
+            value_type="StringValueType",
+        )
+
+    @classmethod
+    @override
+    @renderer(renderer_type=AtomicPrescriptiveRendererType.SUMMARY)
+    @render_suite_parameter_string
+    def _prescriptive_summary(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> list[RenderedAtomicContent]:
+        target_query_block = cls._get_query_rendered_content(
+            query_type="target",
+            add_param_args=(("target_query", RendererValueType.STRING),),
+            template_str=None,  # `description` should override this
+            renderer_configuration=RendererConfiguration(
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+            ),
+        )
+        source_query_block = cls._get_query_rendered_content(
+            query_type="source",
+            add_param_args=(
+                ("source_data_source_name", RendererValueType.STRING),
+                ("source_query", RendererValueType.STRING),
+            ),
+            template_str="Compare with Data Source $source_data_source_name",
+            renderer_configuration=RendererConfiguration(
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+            ),
+        )
+        return [target_query_block, source_query_block]
 
     @override
     def _validate(
