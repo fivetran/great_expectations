@@ -55,7 +55,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.REDSHIFT.value,
     SupportedDataSources.SQLITE.value,
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.MULTIPLE_DATA_SOURCES.value]
+DATA_QUALITY_ISSUES = [DataQualityIssues.MULTI_SOURCE.value]
 
 
 class ExpectQueryResultsToMatchSource(BatchExpectation):
