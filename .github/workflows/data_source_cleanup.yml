@@ -40,3 +40,34 @@ jobs:
       - name: Run BigQuery cleanup script
         run: |
           python ./scripts/cleanup/cleanup_big_query.py
+
+  cleanup-redshift:
+    runs-on: ubuntu-latest
+    env:
+      # aws-redshift
+      REDSHIFT_USERNAME: ${{secrets.REDSHIFT_USERNAME}}
+      REDSHIFT_PASSWORD: ${{secrets.REDSHIFT_PASSWORD}}
+      REDSHIFT_HOST: ${{secrets.REDSHIFT_HOST}}
+      REDSHIFT_PORT: ${{secrets.REDSHIFT_PORT}}
+      REDSHIFT_DATABASE: ${{secrets.REDSHIFT_DATABASE}}
+      REDSHIFT_SSLMODE: ${{secrets.REDSHIFT_SSLMODE}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m redshift
+          pip install -e .
+      - name: Run Redshift cleanup script
+        run: |
+          python ./scripts/cleanup/cleanup_redshift.py

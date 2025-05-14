@@ -51,6 +51,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
       each query is 200.
     - The order of records returned does not matter unless \
       the number of records returned would be greater than 200.
+    - Column names do not matter, but the order of the columns does.
 
     Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
     to determine pass/fail.
