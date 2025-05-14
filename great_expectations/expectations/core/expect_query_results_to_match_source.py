@@ -358,7 +358,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                     template=template,
                     params=params,
                 ),
-                value_type="StringValueType",
+                value_type="TableType",
             )
 
         return RenderedAtomicContent(
