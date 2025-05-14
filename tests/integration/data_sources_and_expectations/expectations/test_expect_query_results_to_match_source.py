@@ -483,7 +483,8 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
                 schema={"type": "StringValueType"},
-                template="No unexpected rows",
+                template="Unexpected records: $row_count",
+                params={"row_count": {"schema": {"type": "number"}, "value": 0}},
             ),
             value_type="StringValueType",
         ),
@@ -491,7 +492,8 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
                 schema={"type": "StringValueType"},
-                template="No missing rows",
+                template="Missing records: $row_count",
+                params={"row_count": {"schema": {"type": "number"}, "value": 0}},
             ),
             value_type="StringValueType",
         ),
@@ -521,6 +523,8 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
         RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
+                template="Unexpected records: $row_count",
+                params={"row_count": {"schema": {"type": "number"}, "value": 3}},
                 schema={"type": "TableType"},
                 header_row=[
                     RendererTableValue(
@@ -546,6 +550,8 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
                 schema={"type": "TableType"},
+                template="Missing records: $row_count",
+                params={"row_count": {"schema": {"type": "number"}, "value": 3}},
                 header_row=[
                     RendererTableValue(
                         schema=RendererSchema(type=RendererValueType.STRING),

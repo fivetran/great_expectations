@@ -318,11 +318,11 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         return [
             cls._create_table_rendered_atomic_content(
                 unexpected_rows_table,
-                no_table_msg="No unexpected rows",
+                label="Unexpected records",
             ),
             cls._create_table_rendered_atomic_content(
                 missing_rows_table,
-                no_table_msg="No missing rows",
+                label="Missing records",
             ),
         ]
 
@@ -339,14 +339,19 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
     def _create_table_rendered_atomic_content(
         cls,
         table: list[list[RendererTableValue]],
-        no_table_msg: str,
+        label: str,
     ) -> RenderedAtomicContent:
+        rows = table[1:]
+        template = f"{label}: $row_count"
+        params = {"row_count": {"schema": {"type": "number"}, "value": len(rows)}}
+
         if not table:
             return RenderedAtomicContent(
                 name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
                 value=RenderedAtomicValue(
                     schema={"type": "StringValueType"},
-                    template=no_table_msg,
+                    template=template,
+                    params=params,
                 ),
                 value_type="StringValueType",
             )
@@ -355,6 +360,8 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
                 schema={"type": "TableType"},
+                template=template,
+                params=params,
                 header_row=table[0],
                 table=table[1:],
             ),
