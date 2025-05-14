@@ -368,7 +368,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                 template=template,
                 params=params,
                 header_row=table[0],
-                table=table[1:],
+                table=rows,
             ),
             value_type="TableType",
         )
