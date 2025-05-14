@@ -317,12 +317,12 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
 
         return [
             cls._create_table_rendered_atomic_content(
-                missing_rows_table,
-                no_table_msg="No missing rows",
-            ),
-            cls._create_table_rendered_atomic_content(
                 unexpected_rows_table,
                 no_table_msg="No unexpected rows",
+            ),
+            cls._create_table_rendered_atomic_content(
+                missing_rows_table,
+                no_table_msg="No missing rows",
             ),
         ]
 

@@ -483,7 +483,7 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
                 schema={"type": "StringValueType"},
-                template="No missing rows",
+                template="No unexpected rows",
             ),
             value_type="StringValueType",
         ),
@@ -491,7 +491,7 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
                 schema={"type": "StringValueType"},
-                template="No unexpected rows",
+                template="No missing rows",
             ),
             value_type="StringValueType",
         ),
@@ -527,7 +527,7 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
                         schema=RendererSchema(type=RendererValueType.STRING),
                         value=col_name,
                     )
-                    for col_name in ["e", "f", "g", "h"]
+                    for col_name in ["a", "b", "c", "d"]
                 ],
                 table=[
                     [
@@ -535,9 +535,9 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
                             schema=RendererSchema(type=RendererValueType.NUMBER),
                             value=value,
                         )
-                        for _ in ["e", "f", "g", "h"]
+                        for _ in ["a", "b", "c", "d"]
                     ]
-                    for value in [4, 5, 6]
+                    for value in [1, 2, 3]
                 ],
             ),
             value_type="TableType",
@@ -551,7 +551,7 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
                         schema=RendererSchema(type=RendererValueType.STRING),
                         value=col_name,
                     )
-                    for col_name in ["a", "b", "c", "d"]
+                    for col_name in ["e", "f", "g", "h"]
                 ],
                 table=[
                     [
@@ -559,9 +559,9 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
                             schema=RendererSchema(type=RendererValueType.NUMBER),
                             value=value,
                         )
-                        for _ in ["a", "b", "c", "d"]
+                        for _ in ["e", "f", "g", "h"]
                     ]
-                    for value in [1, 2, 3]
+                    for value in [4, 5, 6]
                 ],
             ),
             value_type="TableType",
