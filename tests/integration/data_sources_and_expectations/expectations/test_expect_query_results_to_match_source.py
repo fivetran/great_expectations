@@ -10,7 +10,9 @@ from great_expectations.render.components import (
     RenderedAtomicContent,
     RenderedAtomicValue,
 )
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 from great_expectations.render.renderer_configuration import (
+    MetaNotesFormat,
     RendererSchema,
     RendererTableValue,
     RendererValueType,
@@ -588,4 +590,73 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
             ),
             value_type="TableType",
         ),
+    ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    source_data=pd.DataFrame({"foo": [1, 2, 3, 3]}),
+    target_data=pd.DataFrame({"bar": [1, 4, 5, 5]}),
+)
+def test_rendering_with_one_column(multi_source_batch: MultiSourceBatch):
+    source_table = multi_source_batch.source_table_name
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT foo FROM {source_table}",
+            target_query="SELECT bar FROM {batch}",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                meta_notes={"format": MetaNotesFormat.STRING, "content": []},
+                template="$ov__0 $ov__1 $ov__2 $exp__0 $exp__1 $exp__2",
+                params={
+                    "expected_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [2, 3, 3],
+                    },
+                    "observed_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [4, 5, 5],
+                    },
+                    "exp__0": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 2,
+                    },
+                    "exp__1": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 3,
+                    },
+                    "exp__2": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 3,
+                    },
+                    "ov__0": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 4,
+                    },
+                    "ov__1": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 5,
+                    },
+                    "ov__2": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 5,
+                    },
+                },
+            ),
+        )
     ]
