@@ -484,7 +484,12 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
             value=RenderedAtomicValue(
                 schema={"type": "StringValueType"},
                 template="Unexpected records: $row_count",
-                params={"row_count": {"schema": {"type": "number"}, "value": 0}},
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 0,
+                    }
+                },
             ),
             value_type="StringValueType",
         ),
@@ -493,7 +498,12 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
             value=RenderedAtomicValue(
                 schema={"type": "StringValueType"},
                 template="Missing records: $row_count",
-                params={"row_count": {"schema": {"type": "number"}, "value": 0}},
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 0,
+                    }
+                },
             ),
             value_type="StringValueType",
         ),
@@ -524,7 +534,12 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
                 template="Unexpected records: $row_count",
-                params={"row_count": {"schema": {"type": "number"}, "value": 3}},
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 3,
+                    }
+                },
                 schema={"type": "TableType"},
                 header_row=[
                     RendererTableValue(
@@ -551,7 +566,12 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
             value=RenderedAtomicValue(
                 schema={"type": "TableType"},
                 template="Missing records: $row_count",
-                params={"row_count": {"schema": {"type": "number"}, "value": 3}},
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 3,
+                    }
+                },
                 header_row=[
                     RendererTableValue(
                         schema=RendererSchema(type=RendererValueType.STRING),

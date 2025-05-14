@@ -343,7 +343,12 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
     ) -> RenderedAtomicContent:
         rows = table[1:]
         template = f"{label}: $row_count"
-        params = {"row_count": {"schema": {"type": "number"}, "value": len(rows)}}
+        params = {
+            "row_count": {
+                "schema": RendererSchema(type=RendererValueType.NUMBER),
+                "value": len(rows),
+            }
+        }
 
         if not table:
             return RenderedAtomicContent(
