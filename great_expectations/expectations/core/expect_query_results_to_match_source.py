@@ -309,7 +309,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
-    ) -> list[RenderedAtomicContent]:
+    ) -> list[RenderedAtomicContent] | RenderedAtomicContent:
         details = cls._get_details_from_results(result)
 
         missing_rows: list[dict[str, Any]] = details["missing_rows"]
