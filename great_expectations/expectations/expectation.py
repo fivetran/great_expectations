@@ -1058,7 +1058,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
-    ) -> RenderedAtomicContent:
+    ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,

@@ -14,6 +14,30 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.4.4
+* [FEATURE] Compute missing/unexpected rows for ExpectQueryResultsToMatchSource ([#11161](https://github.com/great-expectations/great_expectations/pull/11161))
+* [FEATURE] ExpectQueryResultsToMatchSource table diagnostic renderer ([#11168](https://github.com/great-expectations/great_expectations/pull/11168))
+* [FEATURE] ExpectQueryResultsToMatchSource renderer for single-column … ([#11173](https://github.com/great-expectations/great_expectations/pull/11173))
+* [DOCS] remove link checker ([#11162](https://github.com/great-expectations/great_expectations/pull/11162))
+* [MAINTENANCE] Fix dying mssql compatibility tests. ([#11153](https://github.com/great-expectations/great_expectations/pull/11153))
+* [MAINTENANCE] Bump prismjs from 1.29.0 to 1.30.0 in /docs/docusaurus ([#11126](https://github.com/great-expectations/great_expectations/pull/11126))
+* [MAINTENANCE] Breakout redshift tests into own job. ([#11167](https://github.com/great-expectations/great_expectations/pull/11167))
+* [MAINTENANCE] Bring back redshift creds for docs tests ([#11169](https://github.com/great-expectations/great_expectations/pull/11169))
+* [MAINTENANCE] Improve `ExpectQueryResultsToMatchSource` docstring ([#11158](https://github.com/great-expectations/great_expectations/pull/11158))
+* [MAINTENANCE] Nightly redshift cleanup ([#11166](https://github.com/great-expectations/great_expectations/pull/11166))
+* [MAINTENANCE] Bump image-size from 1.2.0 to 1.2.1 in /docs/docusaurus ([#11125](https://github.com/great-expectations/great_expectations/pull/11125))
+* [MAINTENANCE] Add prescriptive atomic renderer to `ExpectQueryResultsToMatchSource` ([#11160](https://github.com/great-expectations/great_expectations/pull/11160))
+* [MAINTENANCE] Resolve datetime deprecation warnings ([#11134](https://github.com/great-expectations/great_expectations/pull/11134)) (thanks @emmanuel-ferdman)
+* [MAINTENANCE] Bump http-proxy-middleware from 2.0.7 to 2.0.9 in /docs/docusaurus ([#11120](https://github.com/great-expectations/great_expectations/pull/11120))
+* [MAINTENANCE] Bump @babel/runtime from 7.26.9 to 7.27.0 in /docs/docusaurus ([#11124](https://github.com/great-expectations/great_expectations/pull/11124))
+* [MAINTENANCE] Bump estree-util-value-to-estree from 3.3.2 to 3.3.3 in /docs/docusaurus ([#11121](https://github.com/great-expectations/great_expectations/pull/11121))
+* [MAINTENANCE] ensure latest docker compose ([#11156](https://github.com/great-expectations/great_expectations/pull/11156))
+* [MAINTENANCE] Fix flakey test and simplify another assertion ([#11163](https://github.com/great-expectations/great_expectations/pull/11163))
+* [MAINTENANCE] Update `ExpectQueryResultsToMatchSource` DQI ([#11164](https://github.com/great-expectations/great_expectations/pull/11164))
+* [MAINTENANCE] Bump @babel/helpers from 7.26.9 to 7.27.0 in /docs/docusaurus ([#11123](https://github.com/great-expectations/great_expectations/pull/11123))
+* [MAINTENANCE] Change DQ issue for `ExpectQueryResultsToMatchSource` ([#11174](https://github.com/great-expectations/great_expectations/pull/11174))
+* [CONTRIB] Update ruff badge ([#10905](https://github.com/great-expectations/great_expectations/pull/10905)) (thanks @esadek)
+
 ### 1.4.3
 * [FEATURE] Test infra to support source to target expectations ([#11138](https://github.com/great-expectations/great_expectations/pull/11138))
 * [FEATURE] QueryDataSourceTable metric + provider ([#11149](https://github.com/great-expectations/great_expectations/pull/11149))

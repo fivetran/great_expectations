@@ -9,6 +9,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.expectations.expectation import (
     BatchExpectation,
+    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -16,17 +17,21 @@ from great_expectations.expectations.model_field_descriptions import MOSTLY_DESC
 from great_expectations.expectations.model_field_types import (
     MostlyField,  # noqa: TC001  # pydantic needs the actual type
 )
-from great_expectations.render import (
+from great_expectations.render.components import (
+    AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
     RenderedAtomicContent,
     RenderedAtomicValue,
 )
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     AddParamArgs,
     CodeBlock,
     CodeBlockLanguage,
     RendererConfiguration,
+    RendererSchema,
+    RendererTableValue,
     RendererValueType,
 )
 
@@ -52,7 +57,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.REDSHIFT.value,
     SupportedDataSources.SQLITE.value,
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.MULTIPLE_DATA_SOURCES.value]
+DATA_QUALITY_ISSUES = [DataQualityIssues.MULTI_SOURCE.value]
 
 
 class ExpectQueryResultsToMatchSource(BatchExpectation):
@@ -295,6 +300,216 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                     },
                 },
             }
+
+    @override
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> list[RenderedAtomicContent] | RenderedAtomicContent:
+        details = cls._get_details_from_results(result)
+
+        missing_rows: list[dict[str, Any]] = details["missing_rows"]
+        unexpected_rows: list[dict[str, Any]] = details["unexpected_rows"]
+        missing_rows_cols = cls._get_column_names_from_result(missing_rows)
+        unexpected_rows_cols = cls._get_column_names_from_result(unexpected_rows)
+        missing_rows_table = cls._create_observed_values_table(missing_rows)
+        unexpected_rows_table = cls._create_observed_values_table(unexpected_rows)
+
+        if len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
+            return cls._create_observed_values_set(
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+                source_col_name=missing_rows_cols[0],
+                target_col_name=unexpected_rows_cols[0],
+            )
+        else:
+            return [
+                cls._create_table_rendered_atomic_content(
+                    unexpected_rows_table,
+                    label="Unexpected records",
+                ),
+                cls._create_table_rendered_atomic_content(
+                    missing_rows_table,
+                    label="Missing records",
+                ),
+            ]
+
+    @classmethod
+    def _create_observed_values_set(
+        cls,
+        source_col_name: str,
+        target_col_name: str,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        result_details = cls._get_details_from_results(result)
+        source_values = [row[source_col_name] for row in result_details["missing_rows"]]
+        target_values = [row[target_col_name] for row in result_details["unexpected_rows"]]
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        source_param_name = "expected_value"
+        target_param_name = "observed_value"
+        expected_param_prefix = "exp__"
+        ov_param_prefix = "ov__"
+
+        renderer_configuration.add_param(
+            name=source_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=source_values,
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=source_param_name,
+            param_prefix=expected_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        renderer_configuration.add_param(
+            name=target_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=target_values,
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=target_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+        observed_value_set = set(target_values)
+        sample_observed_value = next(iter(observed_value_set)) if observed_value_set else None
+        expected_value_set = {
+            parse_value_to_observed_type(observed_value=sample_observed_value, value=value)
+            for value in source_values
+        }
+
+        observed_values = (
+            (name, schema)
+            for name, schema in renderer_configuration.params
+            if name.startswith(ov_param_prefix)
+        )
+
+        expected_values = (
+            (name, schema)
+            for name, schema in renderer_configuration.params
+            if name.startswith(expected_param_prefix)
+        )
+
+        template_str_list = []
+        for name, schema in observed_values:
+            render_state = (
+                ObservedValueRenderState.EXPECTED.value
+                if schema.value in expected_value_set
+                else ObservedValueRenderState.UNEXPECTED.value
+            )
+            renderer_configuration.params.__dict__[name].render_state = render_state
+            template_str_list.append(f"${name}")
+
+        for name, schema in expected_values:
+            coerced_value = parse_value_to_observed_type(
+                observed_value=sample_observed_value,
+                value=schema.value,
+            )
+            if coerced_value not in observed_value_set:
+                renderer_configuration.params.__dict__[
+                    name
+                ].render_state = ObservedValueRenderState.MISSING.value
+                template_str_list.append(f"${name}")
+
+        renderer_configuration.template_str = " ".join(template_str_list)
+
+        value_obj = RenderedAtomicValue(
+            template=renderer_configuration.template_str,
+            params=renderer_configuration.params.dict(),
+            meta_notes=renderer_configuration.meta_notes,
+            schema={"type": "com.superconductive.rendered.string"},
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )
+
+    @classmethod
+    def _get_details_from_results(
+        cls, result: Optional[ExpectationValidationResult]
+    ) -> dict[str, Any]:
+        assert result and result.result, "Must have result"
+        details = result.result.get("details")
+        assert isinstance(details, dict), "Details must exist and be a dict"
+        return details
+
+    @classmethod
+    def _create_table_rendered_atomic_content(
+        cls,
+        table: list[list[RendererTableValue]],
+        label: str,
+    ) -> RenderedAtomicContent:
+        rows = table[1:]
+        template = f"{label}: $row_count"
+        params = {
+            "row_count": {
+                "schema": RendererSchema(type=RendererValueType.NUMBER),
+                "value": len(rows),
+            }
+        }
+
+        if not table:
+            return RenderedAtomicContent(
+                name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+                value=RenderedAtomicValue(
+                    template=template,
+                    params=params,
+                ),
+                value_type="TableType",
+            )
+
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template=template,
+                params=params,
+                header_row=table[0],
+                table=rows,
+            ),
+            value_type="TableType",
+        )
+
+    @classmethod
+    def _create_observed_values_table(
+        cls,
+        rows: list[dict[str, Any]],
+    ) -> list[list[RendererTableValue]]:
+        if not rows:
+            return []
+
+        col_names = cls._get_column_names_from_result(rows)
+        header_row = [
+            RendererTableValue(
+                schema=RendererSchema(type=RendererValueType.STRING),
+                value=col_name,
+            )
+            for col_name in col_names
+        ]
+        output_rows: list[list[RendererTableValue]] = []
+        for row in rows:
+            output_rows.append(
+                [
+                    RendererTableValue(
+                        schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
+                        value=row[col_name],
+                    )
+                    for col_name in col_names
+                ]
+            )
+
+        return [header_row, *output_rows]
 
     @classmethod
     def _compute_row_data(
