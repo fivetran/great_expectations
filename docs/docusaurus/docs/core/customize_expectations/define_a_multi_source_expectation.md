@@ -14,9 +14,9 @@ A Multi-source Expectation executes one SQL query for each of two Data Sources a
 - An aggregate metric of table A matches the same aggregate metric of table B.
 - An aggregate metric of table A matches a different aggregate metric of table B. (For example, the count of rows where X is true in table A matches the count of rows where Y and Z are true in table B.)
 
-To compare results for equality, each row returned by the query for the target Data Source will be compared to each row returned by the query for the source Data Source. When you configure a Multi-source Expectation, you set a failure threshold with `mostly`. The Expectation will fail if the portion of identical rows between your two queries falls below this threshold.
+To compare results for equality, each row returned by the query for the Data Source the Expectation is configured on will be compared to each row returned by the query for the comparison Data Source. When you configure a Multi-source Expectation, you set a failure threshold with `mostly`. The Expectation will fail if the portion of identical rows between your two queries falls below this threshold.
 
-The portion of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either the source result or the target result. Here are some example scenarios:
+The portion of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either result. Here are some example scenarios:
 
 | Source result row count | Target result row count | Matched rows | Portion of identical rows |
 | ----------------------- | ----------------------- | ------------ | ------------------------- |
