@@ -30,6 +30,7 @@ def set_up_context_for_example(context):
     )
     assert batch_definition.name == batch_definition_name
 
+
 def set_up_context2_for_example(context):
     # Create the Data Source
     connection_string2 = "sqlite:///data/yellow_tripdata.db"
