@@ -529,6 +529,12 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path(
+            "great_expectations/expectations/core/expect_query_results_to_match_source.py"
+        ),
+        name="ExpectQueryResultsToMatchSource",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
             "great_expectations/expectations/core/expect_select_column_values_to_be_unique_within_record.py"
         ),
         name="ExpectSelectColumnValuesToBeUniqueWithinRecord",
