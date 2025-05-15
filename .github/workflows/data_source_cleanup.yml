@@ -66,7 +66,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
-          invoke deps --gx-install -m redshift
+          invoke deps --gx-install -m gx-redshift
           pip install -e .
       - name: Run Redshift cleanup script
         run: |
