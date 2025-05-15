@@ -501,9 +501,9 @@ docs_examples_customize_expectations = [
     ),
     IntegrationTestFixture(
         # To test, run:
-        # pytest --docs-tests -k "docs_example_define_a_source_to_target_expectation" tests/integration/test_script_runner.py
-        name="docs_example_define_a_source_to_target_expectation",
-        user_flow_script="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py",
+        # pytest --docs-tests -k "docs_example_define_a_multi_source_expectation" tests/integration/test_script_runner.py
+        name="docs_example_define_a_multi_source_expectation",
+        user_flow_script="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py",
         data_dir="tests/test_sets/taxi_yellow_tripdata_samples/sqlite",
         # data_context_dir="",
         backend_dependencies=[],

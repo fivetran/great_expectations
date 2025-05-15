@@ -1,5 +1,5 @@
 ---
-title: Define a source-to-target Expectation
+title: Define a Multi-source Expectation
 description: Query multiple Data Sources and compare the results for equality.
 ---
 import TabItem from '@theme/TabItem';
@@ -9,12 +9,12 @@ import PrereqPythonInstalled from '../_core_components/prerequisites/_python_ins
 import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installation.md';
 import PrereqPreconfiguredDataContext from '../_core_components/prerequisites/_preconfigured_data_context.md';
 
-A source-to-target Expectation executes one SQL query for each of two Data Sources and compares their results for equality. This can be helpful for validating consistency between systems during data migration or regular data loading processes. Source-to-target Expectations can detect data drift introduced during the ETL process through discrepancies in schemas, counts, time windows, data types, and precision levels between Data Sources. Here are some examples of comparisons you can test:
+A Multi-source Expectation executes one SQL query for each of two Data Sources and compares their results for equality. This can be helpful for validating consistency between systems during data migration or regular data loading processes. Multi-source Expectations can detect data drift introduced during the ETL process through discrepancies in schemas, counts, time windows, data types, and precision levels between Data Sources. Here are some examples of comparisons you can test:
 - Every row in table A matches every row in table B.
 - An aggregate metric of table A matches the same aggregate metric of table B.
 - An aggregate metric of table A matches a different aggregate metric of table B. (For example, the count of rows where X is true in table A matches the count of rows where Y and Z are true in table B.)
 
-To compare results for equality, each row returned by the query for the target Data Source will be compared to each row returned by the query for the source Data Source. When you configure a source-to-target Expectation, you set a failure threshold with `mostly`. The Expectation will fail if the portion of identical rows between your two queries falls below this threshold.
+To compare results for equality, each row returned by the query for the target Data Source will be compared to each row returned by the query for the source Data Source. When you configure a Multi-source Expectation, you set a failure threshold with `mostly`. The Expectation will fail if the portion of identical rows between your two queries falls below this threshold.
 
 The portion of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either the source result or the target result. Here are some example scenarios:
 
@@ -30,11 +30,11 @@ The portion of identical rows is computed by dividing the number of matching row
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - <PrereqPreconfiguredDataContext/>.
-- Recommended. [Preconfigured Data Sources and Data Assets connected to your data](/core/connect_to_data/connect_to_data.md) for [testing your source-to-target Expectation](/core/define_expectations/test_an_expectation.md).
+- Recommended. [Preconfigured Data Sources and Data Assets connected to your data](/core/connect_to_data/connect_to_data.md) for [testing your Multi-source Expectation](/core/define_expectations/test_an_expectation.md).
 
 ### Procedure
 
-To create a source-to-target Expectation, add an `ExpectQueryResultsToMatchSource` Expectation for the target Data Source.
+To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchSource` Expectation for the target Data Source.
 
 <Tabs 
    queryString="procedure"
@@ -49,39 +49,39 @@ To create a source-to-target Expectation, add an `ExpectQueryResultsToMatchSourc
 
 1. Define your source Data Source.
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define source Data Source"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define source Data Source"
    ```
 
 2. Determine your source and target SQL queries. Each query should be written in the dialect of the associated Data Source.
 
    In this example, the queries will both select any rows where the passenger count is greater than `0`:
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define queries"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define queries"
    ```
 
 3. Customize how the Expectation renders in Data Docs.
 
    As with other Expectations, the `description` attribute contains the text describing the Expectation when your results are rendered into Data Docs. You can format the `description` string with Markdown syntax:
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define description"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define description"
    ```
 
 4. Create a new Expectation using the `ExpectQueryResultsToMatchSource` class and your parameters.
   
    The class name `ExpectQueryResultsToMatchSource` describes the functionality of the Expectation: it queries multiple Data Sources and compares the results for equality.  When you create your Expectation, you can use a name that is more indicative of your specific use case.  In this example, the source-to-target Expectation will be used to validate that two tables both have the same rows with passengers.
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - create Expectation"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - create Expectation"
    ```
 
-5. Use your source-to-target Expectation.
+5. Use your Multi-source Expectation.
 
-   Now that you've created a source-to-target Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) for the target Data Source and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
+   Now that you've created a Multi-source Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) for the target Data Source and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
 
 </TabItem>
 
 <TabItem value="sample_code" label="Sample code">
 
-```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - full code example"
+```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - full code example"
 ```
 
 </TabItem>
@@ -90,7 +90,7 @@ To create a source-to-target Expectation, add an `ExpectQueryResultsToMatchSourc
 
 ## Limitations
 
-Keep the following limitations in mind when working with source-to-target Expectations:
+Keep the following limitations in mind when working with Multi-source Expectations:
 - The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
 - If you’ve defined a time-based batch interval for your validations, it will apply to only the target Data Source where you’ve configured the Expectation. It will not apply to the upstream source Data Source. 
 - The Expectation configuration and validation results are not reflected on the upstream source Data Source. The Expectation is always managed on the target Data Asset where you initially configure it.

@@ -1,8 +1,8 @@
 """
-This is an example script for how to define a source-to-target Expectation.
+This is an example script for how to define a Multi-source Expectation.
 
 To test, run:
-pytest --docs-tests -k "docs_example_define_a_source_to_target_expectation" tests/integration/test_script_runner.py
+pytest --docs-tests -k "docs_example_define_a_multi_source_expectation" tests/integration/test_script_runner.py
 """
 
 
@@ -49,17 +49,17 @@ def set_up_context2_for_example(context):
 
 
 # EXAMPLE SCRIPT STARTS HERE:
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - full code example">
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - full code example">
 import great_expectations as gx
 
 # Define your source Data Source.
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define source Data Source">
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define source Data Source">
 my_upstream_source = "my_source_data_source"
 # </snippet>
 
 
 # Define your source and target SQL queries.
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define queries">
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define queries">
 my_source_query = """
     SELECT
         *
@@ -80,12 +80,12 @@ my_target_query = """
 # </snippet>
 
 # Customize how the Expectation renders in Data Docs.
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define description">
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define description">
 my_description = "Both tables should have the same rows with passengers."
 # </snippet>
 
 # Create an Expectation using the ExpectQueryResultsToMatchSource class and your parameters.
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - create Expectation">
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - create Expectation">
 expect_passenger_rows_to_match = gx.expectations.ExpectQueryResultsToMatchSource(
     target_query=my_target_query,
     source_data_source_name=my_upstream_source,

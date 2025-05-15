@@ -37,9 +37,9 @@ import OverviewCard from '@site/src/components/OverviewCard';
     /> 
     <LinkCard 
       topIcon 
-      label="Define a source-to-target Expectation"
+      label="Define a Multi-source Expectation"
       description="Create an Expectation that queries multiple Data Sources and compares the results for equality."
-      to="/core/customize_expectations/define_a_source_to_target_expectation" 
+      to="/core/customize_expectations/define_a_multi_source_expectation" 
       icon="/img/expectation_icon.svg" 
     /> 
 </LinkCardGrid>
