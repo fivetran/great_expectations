@@ -94,14 +94,12 @@ The percentage of identical rows is computed by dividing the number of matching 
 | 200                     | 200                     | 200          | 100%                         |
 | 25                      | 100                     | 25           | 25%                          |
 | 100                     | 25                      | 1            | 1%                           |
-| 0                       | 0                       | 0            | 100%                           |
-
-The maximum number of rows that will be returned for comparison from each query is 200. The order of rows returned does not matter unless the number of rows returned would be greater than 200.
+| 0                       | 0                       | 0            | 100%                         |
 
 To create a source-to-target Expectation, [add the **expect query results to match source** Expectation](#add-an-expectation) on the target Data Source. Each provided query should be written in the dialect of the associated Data Source.
 
 Keep the following limitations in mind when working with source-to-target Expectations:
-- The comparison is limited to the first 200 rows of each query result. 
+- The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
 - If you’ve defined a time-based batch interval for your validations, it will apply to only the target Data Source where you’ve configured the Expectation. It will not apply to the upstream source Data Source. 
 - The Expectation configuration and validation results are not reflected on the upstream source Data Source. The Expectation is always managed on the target Data Asset where you initially configure it.
 - Source-to-target Expectations must be added with the GX Cloud UI. Though, after you add it through the web UI, you can update a source-to-target Expectation with the GX Cloud API.

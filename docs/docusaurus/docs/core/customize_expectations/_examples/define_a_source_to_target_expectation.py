@@ -9,7 +9,7 @@ pytest --docs-tests -k "docs_example_define_a_source_to_target_expectation" test
 def set_up_context_for_example(context):
     # Create the Data Source
     connection_string = "sqlite:///data/yellow_tripdata.db"
-    data_source_name = "my_sql_data_source"
+    data_source_name = "my_target_data_source"
     data_source = context.data_sources.add_sqlite(
         name=data_source_name, connection_string=connection_string
     )
@@ -30,12 +30,10 @@ def set_up_context_for_example(context):
     )
     assert batch_definition.name == batch_definition_name
 
-
-# The name of this Data Source mentions Snowflake for illustrative purposes though it is not actually a Snowflake source
 def set_up_context2_for_example(context):
     # Create the Data Source
     connection_string2 = "sqlite:///data/yellow_tripdata.db"
-    data_source_name2 = "my_snowflake_data_source"
+    data_source_name2 = "my_source_data_source"
     data_source2 = context.data_sources.add_sqlite(
         name=data_source_name2, connection_string=connection_string2
     )
@@ -56,7 +54,7 @@ import great_expectations as gx
 
 # Define your source Data Source.
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_source_to_target_expectation.py - define source Data Source">
-my_upstream_source = "my_snowflake_data_source"
+my_upstream_source = "my_source_data_source"
 # </snippet>
 
 
@@ -104,7 +102,7 @@ set_up_context_for_example(context)
 # Hide this
 set_up_context2_for_example(context)
 
-data_source_name = "my_sql_data_source"
+data_source_name = "my_target_data_source"
 data_asset_name = "my_data_asset"
 batch_definition_name = "my_batch_definition"
 batch = (
