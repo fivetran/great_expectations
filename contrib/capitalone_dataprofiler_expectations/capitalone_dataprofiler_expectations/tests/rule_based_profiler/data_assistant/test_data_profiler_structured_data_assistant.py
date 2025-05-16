@@ -8,9 +8,6 @@ from capitalone_dataprofiler_expectations.metrics import *  # noqa: F403
 from capitalone_dataprofiler_expectations.rule_based_profiler.data_assistant.data_profiler_structured_data_assistant import (  # noqa: F401  # registers this DataAssistant and prevents removal of "unused" import
     DataProfilerStructuredDataAssistant,
 )
-from capitalone_dataprofiler_expectations.rule_based_profiler.data_assistant_result import (
-    DataProfilerStructuredDataAssistantResult,
-)
 
 from great_expectations.core import ExpectationSuite
 from great_expectations.core.domain import Domain
@@ -24,6 +21,10 @@ from great_expectations.experimental.rule_based_profiler.parameter_container imp
 )
 
 if TYPE_CHECKING:
+    from capitalone_dataprofiler_expectations.rule_based_profiler.data_assistant_result import (
+        DataProfilerStructuredDataAssistantResult,
+    )
+
     from great_expectations.data_context import FileDataContext
 
 

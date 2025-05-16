@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, NamedTuple, Optional, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, Optional, cast
 
 from great_expectations.compatibility import aws
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
@@ -8,7 +8,6 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.exceptions.exceptions import (
     RedshiftExecutionEngineError,
 )
-from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
 from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
 )
@@ -16,6 +15,9 @@ from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.table_metrics.table_column_types import (
     ColumnTypes as BaseColumnTypes,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
 
 
 class RedshiftColumnSchema(NamedTuple):
