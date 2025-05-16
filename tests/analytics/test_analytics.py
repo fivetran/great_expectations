@@ -338,10 +338,10 @@ def test_user_agent_str_after_setting_explicitly(
     )
 
 
-@pytest.mark.parametrize("anonymize_events", [True, False])
+@pytest.mark.parametrize("remove_profile", [True, False])
 @pytest.mark.unit
-def test_anonymize_events_setting(anonymize_events: bool, monkeypatch):
-    # Test that anonymize_events flag correctly controls the $process_person_profile property.
+def test_remove_profile_setting(remove_profile: bool, monkeypatch):
+    # Test that remove_profile flag correctly controls the $process_person_profile property.
     # https://posthog.com/docs/libraries/python#person-profiles-and-properties
 
     monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
@@ -354,7 +354,7 @@ def test_anonymize_events_setting(anonymize_events: bool, monkeypatch):
             enable=True,
             mode="ephemeral",
             data_context_id=TESTING_UUID,
-            anonymize_events=anonymize_events,
+            remove_profile=remove_profile,
         )
         event = DataContextInitializedEvent()
 
@@ -365,7 +365,7 @@ def test_anonymize_events_setting(anonymize_events: bool, monkeypatch):
         args = mock_submit.call_args.args
         properties = args[2]
 
-        if anonymize_events:
+        if remove_profile:
             assert properties.get("$process_person_profile") is False
         else:
             assert properties.get("$process_person_profile") is True

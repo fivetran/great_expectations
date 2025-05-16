@@ -87,7 +87,7 @@ class Event:
             "user_agent_str": self.user_agent_str,
             "mode": self.mode,
             # https://posthog.com/docs/libraries/python#person-profiles-and-properties
-            "$process_person_profile": not get_config().anonymize_events,
+            "$process_person_profile": not get_config().remove_profile,
         }
 
         if self.user_id is not None:

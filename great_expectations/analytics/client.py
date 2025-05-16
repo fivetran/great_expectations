@@ -52,7 +52,7 @@ def init(  # noqa: PLR0913 # FIXME CoP
     oss_id: Optional[UUID] = None,
     cloud_mode: bool = False,
     user_agent_str: Optional[str] = None,
-    anonymize_events: bool = True,
+    remove_profile: bool = True,
 ):
     """Initializes the analytics platform client."""
     conf = {}
@@ -69,7 +69,7 @@ def init(  # noqa: PLR0913 # FIXME CoP
             cloud_mode=cloud_mode,
             user_agent_str=user_agent_str,
             mode=mode,
-            anonymize_events=anonymize_events,
+            remove_profile=remove_profile,
             **conf,
         )
     )
