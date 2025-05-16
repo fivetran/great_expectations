@@ -85,9 +85,9 @@ my_target_query = """
 my_description = "Both tables should have the same rows with passengers."
 # </snippet>
 
-# Create an Expectation using the ExpectQueryResultsToMatchSource class and your parameters.
+# Create an Expectation using the ExpectQueryResultsToMatchComparison class and your parameters.
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - create Expectation">
-expect_passenger_rows_to_match = gx.expectations.ExpectQueryResultsToMatchSource(
+expect_passenger_rows_to_match = gx.expectations.ExpectQueryResultsToMatchComparison(
     target_query=my_target_query,
     source_data_source_name=my_upstream_source,
     source_query=my_source_query,

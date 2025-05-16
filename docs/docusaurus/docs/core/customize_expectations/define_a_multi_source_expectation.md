@@ -34,7 +34,7 @@ The portion of identical rows is computed by dividing the number of matching row
 
 ### Procedure
 
-To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchSource` Expectation for the target Data Source.
+To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchComparison` Expectation for the target Data Source.
 
 <Tabs 
    queryString="procedure"
@@ -66,9 +66,9 @@ To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchSource` E
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define description"
    ```
 
-4. Create a new Expectation using the `ExpectQueryResultsToMatchSource` class and your parameters.
+4. Create a new Expectation using the `ExpectQueryResultsToMatchComparison` class and your parameters.
   
-   The class name `ExpectQueryResultsToMatchSource` describes the functionality of the Expectation: it queries multiple Data Sources and compares the results for equality.  When you create your Expectation, you can use a name that is more indicative of your specific use case.  In this example, the source-to-target Expectation will be used to validate that two tables both have the same rows with passengers.
+   The class name `ExpectQueryResultsToMatchComparison` describes the functionality of the Expectation: it queries multiple Data Sources and compares the results for equality.  When you create your Expectation, you can use a name that is more indicative of your specific use case.  In this example, the source-to-target Expectation will be used to validate that two tables both have the same rows with passengers.
 
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - create Expectation"
    ```
