@@ -70,8 +70,13 @@ class Event:
 
     def __post_init__(self):
         allowed_actions = self.get_allowed_actions()
-        if allowed_actions is not None and self.action not in self.get_allowed_actions():
-            raise ValueError(f"Action [{self.action}] must be one of {self.get_allowed_actions()}")  # noqa: TRY003 # FIXME CoP
+        if (
+            allowed_actions is not None
+            and self.action not in self.get_allowed_actions()
+        ):
+            raise ValueError(
+                f"Action [{self.action}] must be one of {self.get_allowed_actions()}"
+            )  # noqa: TRY003 # FIXME CoP
 
     @classmethod
     def get_allowed_actions(cls):
@@ -86,8 +91,14 @@ class Event:
             "user_agent_str": self.user_agent_str,
             "mode": self.mode,
         }
+
         if self.user_id is not None:
-            props.update({"user_id": self.user_id, "organization_id": self.organization_id})
+            props.update(
+                {"user_id": self.user_id, "organization_id": self.organization_id}
+            )
+
+        if get_config().anonymize_events:
+            props["$process_person_profile"] = False
 
         return {**props, **self._properties()}
 

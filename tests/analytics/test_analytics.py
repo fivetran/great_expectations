@@ -189,7 +189,12 @@ def test_cloud_context_init(
 
 
 @pytest.mark.parametrize(
-    ("environment_variable", "constructor_variable", "expected_value", "user_agent_str"),
+    (
+        "environment_variable",
+        "constructor_variable",
+        "expected_value",
+        "user_agent_str",
+    ),
     [
         (False, None, False, None),
         (False, False, False, None),
@@ -330,3 +335,37 @@ def test_user_agent_str_after_setting_explicitly(
         user_agent_str=new_user_agent_str,
         mode="ephemeral",
     )
+
+
+@pytest.mark.parametrize("anonymize_events", [True, False])
+@pytest.mark.unit
+def test_anonymize_events_setting(anonymize_events: bool, monkeypatch):
+    # Test that anonymize_events flag correctly controls the $process_person_profile property.
+    # https://posthog.com/docs/libraries/python#person-profiles-and-properties
+
+    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
+
+    with mock.patch("posthog.capture") as mock_submit:
+        from great_expectations.analytics.client import init
+        from great_expectations.analytics.events import DataContextInitializedEvent
+        from great_expectations.analytics.client import submit
+
+        init(
+            enable=True,
+            mode="ephemeral",
+            data_context_id=TESTING_UUID,
+            anonymize_events=anonymize_events,
+        )
+        event = DataContextInitializedEvent()
+
+        submit(event)
+
+        mock_submit.assert_called_once()
+
+        args = mock_submit.call_args.args
+        properties = args[2]
+
+        if anonymize_events:
+            assert properties.get("$process_person_profile") is False
+        else:
+            assert "$process_person_profile" not in properties

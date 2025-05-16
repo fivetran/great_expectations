@@ -6,7 +6,12 @@ from uuid import UUID
 
 import posthog
 
-from great_expectations.analytics.config import ENV_CONFIG, Config, update_config
+from great_expectations.analytics.config import (
+    ENV_CONFIG,
+    Config,
+    get_config,
+    update_config,
+)
 
 if TYPE_CHECKING:
     from great_expectations.analytics.base_event import Event
@@ -23,7 +28,8 @@ def submit(event: Event) -> None:
         groups = {
             "data_context": event.data_context_id,
         }
-        if event.organization_id:
+
+        if event.organization_id and not get_config().anonymize_events:
             groups.update({"organization": event.organization_id})
 
         posthog.capture(
@@ -47,6 +53,7 @@ def init(  # noqa: PLR0913 # FIXME CoP
     oss_id: Optional[UUID] = None,
     cloud_mode: bool = False,
     user_agent_str: Optional[str] = None,
+    anonymize_events: bool = True,
 ):
     """Initializes the analytics platform client."""
     conf = {}
@@ -63,6 +70,7 @@ def init(  # noqa: PLR0913 # FIXME CoP
             cloud_mode=cloud_mode,
             user_agent_str=user_agent_str,
             mode=mode,
+            anonymize_events=anonymize_events,
             **conf,
         )
     )
