@@ -14,16 +14,16 @@ A Multi-source Expectation executes one SQL query for each of two Data Sources a
 - An aggregate metric of table A matches the same aggregate metric of table B.
 - An aggregate metric of table A matches a different aggregate metric of table B. (For example, the count of rows where X is true in table A matches the count of rows where Y and Z are true in table B.)
 
-To compare results for equality, each row returned by the query for the Data Source the Expectation is configured on will be compared to each row returned by the query for the comparison Data Source. When you configure a Multi-source Expectation, you set a failure threshold with `mostly`. The Expectation will fail if the portion of identical rows between your two queries falls below this threshold.
+To compare results for equality, each row returned by the query for the base Data Source will be compared to each row returned by the query for the comparison Data Source. When you configure a Multi-source Expectation, you set a failure threshold with `mostly`. The Expectation will fail if the portion of identical rows between your two queries falls below this threshold.
 
 The portion of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either result. Here are some example scenarios:
 
-| Source result row count | Target result row count | Matched rows | Portion of identical rows |
-| ----------------------- | ----------------------- | ------------ | ------------------------- |
-| 200                     | 200                     | 200          | 1                         |
-| 25                      | 100                     | 25           | .25                       |
-| 100                     | 25                      | 1            | .01                       |
-| 0                       | 0                       | 0            | 1                         |
+| Base result row count | Comparison result row count | Matched rows | Portion of identical rows |
+| --------------------- | --------------------------- | ------------ | ------------------------- |
+| 200                   | 200                         | 200          | 1                         |
+| 25                    | 100                         | 25           | .25                       |
+| 100                   | 25                          | 1            | .01                       |
+| 0                     | 0                           | 0            | 1                         |
 
 ## Prerequisites
 
@@ -34,7 +34,7 @@ The portion of identical rows is computed by dividing the number of matching row
 
 ### Procedure
 
-To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchComparison` Expectation for the target Data Source.
+To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchComparison` Expectation for the base Data Source.
 
 <Tabs 
    queryString="procedure"
@@ -52,7 +52,7 @@ To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchCompariso
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define source Data Source"
    ```
 
-2. Determine your source and target SQL queries. Each query should be written in the dialect of the associated Data Source.
+2. Determine your base and comparison SQL queries. Each query should be written in the dialect of the associated Data Source.
 
    In this example, the queries will both select any rows where the passenger count is greater than `0`:
 
@@ -68,14 +68,14 @@ To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchCompariso
 
 4. Create a new Expectation using the `ExpectQueryResultsToMatchComparison` class and your parameters.
   
-   The class name `ExpectQueryResultsToMatchComparison` describes the functionality of the Expectation: it queries multiple Data Sources and compares the results for equality.  When you create your Expectation, you can use a name that is more indicative of your specific use case.  In this example, the source-to-target Expectation will be used to validate that two tables both have the same rows with passengers.
+   The class name `ExpectQueryResultsToMatchComparison` describes the functionality of the Expectation: it queries multiple Data Sources and compares the results for equality.  When you create your Expectation, you can use a name that is more indicative of your specific use case.  In this example, the multi-source Expectation will be used to validate that two tables both have the same rows with passengers.
 
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - create Expectation"
    ```
 
 5. Use your Multi-source Expectation.
 
-   Now that you've created a Multi-source Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) for the target Data Source and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
+   Now that you've created a Multi-source Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) for the base Data Source and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
 
 </TabItem>
 
@@ -92,5 +92,5 @@ To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchCompariso
 
 Keep the following limitations in mind when working with Multi-source Expectations:
 - The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
-- If you’ve defined a time-based batch interval for your validations, it will apply to only the target Data Source where you’ve configured the Expectation. It will not apply to the upstream source Data Source. 
-- The Expectation configuration and validation results are not reflected on the upstream source Data Source. The Expectation is always managed on the target Data Asset where you initially configure it.
+- If you’ve defined a time-based batch interval for your validations, it will apply to only the base Data Source where you’ve configured the Expectation. It will not apply to the upstream comparison Data Source. 
+- The Expectation configuration and validation results are not reflected on the upstream comparison Data Source. The Expectation is always managed on the Data Asset where you initially configure it.

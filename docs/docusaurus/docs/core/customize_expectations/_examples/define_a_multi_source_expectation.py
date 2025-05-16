@@ -9,7 +9,7 @@ pytest --docs-tests -k "docs_example_define_a_multi_source_expectation" tests/in
 def set_up_context_for_example(context):
     # Create the Data Source
     connection_string = "sqlite:///data/yellow_tripdata.db"
-    data_source_name = "my_target_data_source"
+    data_source_name = "my_base_data_source"
     data_source = context.data_sources.add_sqlite(
         name=data_source_name, connection_string=connection_string
     )
@@ -59,22 +59,22 @@ my_upstream_source = "my_source_data_source"
 # </snippet>
 
 
-# Define your source and target SQL queries.
+# Define your base and comparison SQL queries.
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define queries">
-my_comparison_query = """
-    SELECT
-        *
-    FROM
-        my_upstream_table
-    WHERE
-        passenger_count > 0
-    """
-
 my_base_query = """
     SELECT
         *
     FROM
         my_downstream_table
+    WHERE
+        passenger_count > 0
+    """
+
+my_comparison_query = """
+    SELECT
+        *
+    FROM
+        my_upstream_table
     WHERE
         passenger_count > 0
     """
@@ -103,7 +103,7 @@ set_up_context_for_example(context)
 # Hide this
 set_up_context2_for_example(context)
 
-data_source_name = "my_target_data_source"
+data_source_name = "my_base_data_source"
 data_asset_name = "my_data_asset"
 batch_definition_name = "my_batch_definition"
 batch = (

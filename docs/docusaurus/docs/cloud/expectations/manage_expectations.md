@@ -85,24 +85,23 @@ A Multi-source Expectation executes one SQL query for each of two Data Sources a
 - An aggregate metric of table A matches the same aggregate metric of table B.
 - An aggregate metric of table A matches a different aggregate metric of table B. (For example, the count of rows where X is true in table A matches the count of rows where Y and Z are true in table B.)
 
-To compare results for equality, each row returned by the query for the target Data Source will be compared to each row returned by the query for the source Data Source. When you configure a Multi-source Expectation, you set an **Expected percentage of identical rows**. The Expectation will fail if the percentage of identical rows between your two queries falls below this threshold.
+To compare results for equality, each row returned by the query for the base Data Source will be compared to each row returned by the query for the comparison Data Source. When you configure a Multi-source Expectation, you set an **Expected percentage of identical rows**. The Expectation will fail if the percentage of identical rows between your two queries falls below this threshold.
 
-The percentage of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either the source result or the target result. Here are some example scenarios:
+The percentage of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either the result. Here are some example scenarios:
 
-| Source result row count | Target result row count | Matched rows | Percentage of identical rows |
-| ----------------------- | ----------------------- | ------------ | ---------------------------- |
-| 200                     | 200                     | 200          | 100%                         |
-| 25                      | 100                     | 25           | 25%                          |
-| 100                     | 25                      | 1            | 1%                           |
-| 0                       | 0                       | 0            | 100%                         |
+| Base result row count | Comparison result row count | Matched rows | Percentage of identical rows |
+| --------------------- | --------------------------- | ------------ | ---------------------------- |
+| 200                   | 200                         | 200          | 100%                         |
+| 25                    | 100                         | 25           | 25%                          |
+| 100                   | 25                          | 1            | 1%                           |
+| 0                     | 0                           | 0            | 100%                         |
 
-To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](#add-an-expectation) on the target Data Source. Each provided query should be written in the dialect of the associated Data Source.
+To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](#add-an-expectation) on the base Data Source. Each provided query should be written in the dialect of the associated Data Source.
 
 Keep the following limitations in mind when working with Multi-source Expectations:
 - The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
-- If you’ve defined a time-based batch interval for your validations, it will apply to only the target Data Source where you’ve configured the Expectation. It will not apply to the upstream source Data Source. 
-- The Expectation configuration and validation results are not reflected on the upstream source Data Source. The Expectation is always managed on the target Data Asset where you initially configure it.
-- Multi-source Expectations must be added with the GX Cloud UI. Though, after you add it through the web UI, you can update a Multi-source Expectation with the GX Cloud API.
+- If you’ve defined a time-based batch interval for your validations, it will apply to only the base Data Source where you’ve configured the Expectation. It will not apply to the comparison Data Source. 
+- The Expectation configuration and validation results are not reflected on the comparison Data Source. The Expectation is always managed on the Data Asset where you initially configure it.
 
 
 ## Dynamic Parameters
