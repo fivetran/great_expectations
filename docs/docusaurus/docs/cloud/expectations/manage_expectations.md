@@ -87,7 +87,7 @@ A Multi-source Expectation executes one SQL query for each of two Data Sources a
 
 To compare results for equality, each row returned by the query for the base Data Source will be compared to each row returned by the query for the comparison Data Source. When you configure a Multi-source Expectation, you set an **Expected percentage of identical rows**. The Expectation will fail if the percentage of identical rows between your two queries falls below this threshold.
 
-The percentage of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either the result. Here are some example scenarios:
+The percentage of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either result. Here are some example scenarios:
 
 | Base result row count | Comparison result row count | Matched rows | Percentage of identical rows |
 | --------------------- | --------------------------- | ------------ | ---------------------------- |
