@@ -120,7 +120,7 @@ class InlineRenderer(Renderer):
             ]
         ]
 
-        renderer_rendered_content: RenderedAtomicContent
+        renderer_rendered_content: RenderedAtomicContent | list[RenderedAtomicContent]
         rendered_content: List[RenderedAtomicContent] = []
         for renderer_name in try_renderer_names:
             renderer_rendered_content = self._get_renderer_atomic_rendered_content(
@@ -128,7 +128,10 @@ class InlineRenderer(Renderer):
                 renderer_name=renderer_name,
                 expectation_type=expectation_type,
             )
-            rendered_content.append(renderer_rendered_content)
+            if isinstance(renderer_rendered_content, list):
+                rendered_content.extend(renderer_rendered_content)
+            else:
+                rendered_content.append(renderer_rendered_content)
 
         return rendered_content
 
@@ -137,7 +140,7 @@ class InlineRenderer(Renderer):
         render_object: ExpectationConfiguration | ExpectationValidationResult,
         renderer_name: str | AtomicDiagnosticRendererType | AtomicPrescriptiveRendererType,
         expectation_type: str,
-    ) -> RenderedAtomicContent:
+    ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
         renderer_impl: Optional[RendererImpl]
         try:
             renderer_impl = get_renderer_impl(
@@ -153,9 +156,10 @@ class InlineRenderer(Renderer):
                     f"renderer_name: {renderer_name} was not found in the registry for expectation_type: {expectation_type}"  # noqa: E501 # FIXME CoP
                 )
 
-            assert isinstance(renderer_rendered_content, RenderedAtomicContent), (
+            assert isinstance(renderer_rendered_content, (RenderedAtomicContent, list)), (
                 f"The renderer: {renderer_name} for expectation: "
-                f"{expectation_type} should return RenderedAtomicContent."
+                f"{expectation_type} should return RenderedAtomicContent "
+                "or list[RenderedAtomicContent]."
             )
         except Exception as e:
             error_message = f'Renderer "{renderer_name}" failed to render Expectation "{expectation_type} with exception message: {e!s}".'  # noqa: E501 # FIXME CoP
@@ -182,7 +186,11 @@ class InlineRenderer(Renderer):
                     renderer_impl=renderer_impl,
                     render_object=render_object,
                 )
-                renderer_rendered_content.exception = error_message
+                if isinstance(renderer_rendered_content, list):
+                    for failure_rendered_content in renderer_rendered_content:
+                        failure_rendered_content.exception = error_message
+                else:
+                    renderer_rendered_content.exception = error_message
             else:
                 raise InlineRendererError(  # noqa: TRY003 # FIXME CoP
                     f'Renderer "{failure_renderer}" was not found in the registry.'
@@ -194,13 +202,16 @@ class InlineRenderer(Renderer):
     def _get_rendered_content_from_renderer_impl(
         renderer_impl: RendererImpl,
         render_object: ExpectationConfiguration | ExpectationValidationResult,
-    ) -> RenderedAtomicContent:
-        renderer_fn: Callable[..., RenderedAtomicContent | RenderedContent] = renderer_impl.renderer
+    ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
+        renderer_fn: Callable[
+            ..., RenderedAtomicContent | list[RenderedAtomicContent] | RenderedContent
+        ] = renderer_impl.renderer
         if isinstance(render_object, ExpectationConfiguration):
             renderer_rendered_content = renderer_fn(configuration=render_object)
         else:
             renderer_rendered_content = renderer_fn(result=render_object)
-        assert isinstance(renderer_rendered_content, RenderedAtomicContent)
+
+        assert isinstance(renderer_rendered_content, (RenderedAtomicContent, list))
         return renderer_rendered_content
 
     def get_rendered_content(

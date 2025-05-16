@@ -1,8 +1,22 @@
+from typing import Any
+
 import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
+from great_expectations.render.components import (
+    AtomicDiagnosticRendererType,
+    RenderedAtomicContent,
+    RenderedAtomicValue,
+)
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
+from great_expectations.render.renderer_configuration import (
+    MetaNotesFormat,
+    RendererSchema,
+    RendererTableValue,
+    RendererValueType,
+)
 from tests.integration.conftest import (
     MultiSourceBatch,
     MultiSourceTestConfig,
@@ -267,6 +281,135 @@ def test_expect_query_results_to_match_source_unexpected_percent(
     assert result.result["unexpected_count"] == unexpected_count
 
 
+MISSING_AND_UNEXPECTED_DF = pd.DataFrame(
+    {
+        "id": [1, 1, 1, 2, 2, 3],
+        "incorrect_id": [1, 1, 1, 2, 2, 4],
+        "source": list("AAABBC"),
+        "all_matches": list("CBBAAA"),
+        "all_matches_reversed": list("CBBAAA"),
+        "missing_and_unexpected": list("AAAAAD"),
+    }
+)
+
+
+@pytest.mark.parametrize(
+    ("target_query", "missing_rows", "unexpected_rows"),
+    [
+        pytest.param(
+            "SELECT all_matches FROM {batch}",
+            [],
+            [],
+            id="all_match",
+        ),
+        pytest.param(
+            "SELECT all_matches_reversed FROM {batch}",
+            [],
+            [],
+            id="all_match_order_agnostic",
+        ),
+        pytest.param(
+            "SELECT missing_and_unexpected FROM {batch}",
+            [
+                {"source": "B"},
+                {"source": "B"},
+                {"source": "C"},
+            ],
+            [
+                {"missing_and_unexpected": "A"},
+                {"missing_and_unexpected": "A"},
+                {"missing_and_unexpected": "D"},
+            ],
+            id="some_matches_missing_and_unexpected",
+        ),
+    ],
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    target_data=MISSING_AND_UNEXPECTED_DF,
+    source_data=MISSING_AND_UNEXPECTED_DF,
+)
+def test_expect_query_results_to_match_source_missing_and_unexpected_values(
+    multi_source_batch: MultiSourceBatch,
+    target_query: str,
+    missing_rows: list[dict[str, Any]],
+    unexpected_rows: list[dict[str, Any]],
+) -> None:
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query=target_query,
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT source FROM {multi_source_batch.source_table_name}",
+        )
+    )
+
+    assert result.result["details"] == {
+        "unexpected_rows": unexpected_rows,
+        "missing_rows": missing_rows,
+    }
+
+
+@pytest.mark.parametrize(
+    ("target_query", "source_query", "missing_rows", "unexpected_rows"),
+    [
+        pytest.param(
+            "SELECT incorrect_id, source FROM {batch}",
+            "SELECT id, source FROM {source_table}",
+            [{"source": "C", "id": 3}],
+            [{"source": "C", "incorrect_id": 4}],
+            id="One bad row, but others match despite col names",
+        ),
+        pytest.param(
+            "SELECT id, source FROM {batch}",
+            "SELECT source, id FROM {source_table}",
+            [
+                {"source": "A", "id": 1},
+                {"source": "A", "id": 1},
+                {"source": "A", "id": 1},
+                {"source": "B", "id": 2},
+                {"source": "B", "id": 2},
+                {"source": "C", "id": 3},
+            ],
+            [
+                {"source": "A", "id": 1},
+                {"source": "A", "id": 1},
+                {"source": "A", "id": 1},
+                {"source": "B", "id": 2},
+                {"source": "B", "id": 2},
+                {"source": "C", "id": 3},
+            ],
+            id="Same data, but cols in the wrong order",
+        ),
+    ],
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    target_data=MISSING_AND_UNEXPECTED_DF,
+    source_data=MISSING_AND_UNEXPECTED_DF,
+)
+def test_column_ordering(
+    multi_source_batch: MultiSourceBatch,
+    target_query: str,
+    source_query: str,
+    missing_rows: list[dict[str, Any]],
+    unexpected_rows: list[dict[str, Any]],
+) -> None:
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query=target_query,
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=source_query.replace(
+                "{source_table}", multi_source_batch.source_table_name
+            ),
+        )
+    )
+
+    assert result.result["details"] == {
+        "unexpected_rows": unexpected_rows,
+        "missing_rows": missing_rows,
+    }
+
+
 TOO_BIG_DATA = pd.DataFrame({"a": list(range(0, 500)), "b": list(range(100, 600))})
 
 
@@ -312,3 +455,208 @@ def test_expect_query_results_to_match_source_error(multi_source_batch: MultiSou
     )
     assert not result.success
     assert list(result.exception_info.values())[0]["raised_exception"]
+
+
+DATA_WITH_MANY_COLUMNS = pd.DataFrame({ch: [1, 2, 3] for ch in "abcdefgh"})
+OTHER_DATA_WITH_MANY_COLUMNS = pd.DataFrame({ch: [4, 5, 6] for ch in "abcdefgh"})
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    target_data=DATA_WITH_MANY_COLUMNS,
+    source_data=DATA_WITH_MANY_COLUMNS,
+)
+def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
+    """NOTE: the queries here use kinda weird ordering to ensure that our output table
+    actually reflects the right order.
+    """
+    source_table = multi_source_batch.source_table_name
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query="SELECT e, a, d, g, b, e FROM {batch} ORDER BY e",
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT g, d, g, c, e, a  FROM {source_table} ORDER BY g",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template="Unexpected records: $row_count",
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 0,
+                    }
+                },
+            ),
+            value_type="TableType",
+        ),
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template="Missing records: $row_count",
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 0,
+                    }
+                },
+            ),
+            value_type="TableType",
+        ),
+    ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    target_data=DATA_WITH_MANY_COLUMNS,
+    source_data=OTHER_DATA_WITH_MANY_COLUMNS,
+)
+def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBatch):
+    """NOTE: the queries here use kinda weird ordering to ensure that our output table
+    actually reflects the right order.
+    """
+    source_table = multi_source_batch.source_table_name
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            target_query="SELECT a, b, c, d FROM {batch} ORDER BY e",
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT e, f, g, h  FROM {source_table} ORDER BY g",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template="Unexpected records: $row_count",
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 3,
+                    }
+                },
+                header_row=[
+                    RendererTableValue(
+                        schema=RendererSchema(type=RendererValueType.STRING),
+                        value=col_name,
+                    )
+                    for col_name in ["a", "b", "c", "d"]
+                ],
+                table=[
+                    [
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.NUMBER),
+                            value=value,
+                        )
+                        for _ in ["a", "b", "c", "d"]
+                    ]
+                    for value in [1, 2, 3]
+                ],
+            ),
+            value_type="TableType",
+        ),
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template="Missing records: $row_count",
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 3,
+                    }
+                },
+                header_row=[
+                    RendererTableValue(
+                        schema=RendererSchema(type=RendererValueType.STRING),
+                        value=col_name,
+                    )
+                    for col_name in ["e", "f", "g", "h"]
+                ],
+                table=[
+                    [
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.NUMBER),
+                            value=value,
+                        )
+                        for _ in ["e", "f", "g", "h"]
+                    ]
+                    for value in [4, 5, 6]
+                ],
+            ),
+            value_type="TableType",
+        ),
+    ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    source_data=pd.DataFrame({"foo": [1, 2, 3, 3]}),
+    target_data=pd.DataFrame({"bar": [1, 4, 5, 5]}),
+)
+def test_rendering_with_one_column(multi_source_batch: MultiSourceBatch):
+    source_table = multi_source_batch.source_table_name
+    result = multi_source_batch.target_batch.validate(
+        gxe.ExpectQueryResultsToMatchSource(
+            source_data_source_name=multi_source_batch.source_data_source_name,
+            source_query=f"SELECT foo FROM {source_table}",
+            target_query="SELECT bar FROM {batch}",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                meta_notes={"format": MetaNotesFormat.STRING, "content": []},
+                template="$ov__0 $ov__1 $ov__2 $exp__0 $exp__1 $exp__2",
+                params={
+                    "expected_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [2, 3, 3],
+                    },
+                    "observed_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [4, 5, 5],
+                    },
+                    "exp__0": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 2,
+                    },
+                    "exp__1": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 3,
+                    },
+                    "exp__2": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 3,
+                    },
+                    "ov__0": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 4,
+                    },
+                    "ov__1": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 5,
+                    },
+                    "ov__2": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 5,
+                    },
+                },
+            ),
+        )
+    ]

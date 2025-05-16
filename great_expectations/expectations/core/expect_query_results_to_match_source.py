@@ -1,21 +1,44 @@
 from __future__ import annotations
 
 from collections import Counter
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Tuple, Type, Union
+from functools import cmp_to_key
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.result_format import ResultFormat
-from great_expectations.expectations.expectation import BatchExpectation
+from great_expectations.expectations.expectation import (
+    BatchExpectation,
+    parse_value_to_observed_type,
+    render_suite_parameter_string,
+)
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import MOSTLY_DESCRIPTION
 from great_expectations.expectations.model_field_types import (
     MostlyField,  # noqa: TC001  # pydantic needs the actual type
 )
+from great_expectations.render.components import (
+    AtomicDiagnosticRendererType,
+    AtomicPrescriptiveRendererType,
+    RenderedAtomicContent,
+    RenderedAtomicValue,
+)
+from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
+from great_expectations.render.renderer.renderer import renderer
+from great_expectations.render.renderer_configuration import (
+    AddParamArgs,
+    CodeBlock,
+    CodeBlockLanguage,
+    RendererConfiguration,
+    RendererSchema,
+    RendererTableValue,
+    RendererValueType,
+)
 
 if TYPE_CHECKING:
     from great_expectations.core import ExpectationValidationResult
     from great_expectations.execution_engine import ExecutionEngine
+    from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 
 
 EXPECTATION_SHORT_DESCRIPTION = (
@@ -34,7 +57,7 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.REDSHIFT.value,
     SupportedDataSources.SQLITE.value,
 ]
-DATA_QUALITY_ISSUES = [DataQualityIssues.MULTI_ASSET.value]
+DATA_QUALITY_ISSUES = [DataQualityIssues.MULTI_SOURCE.value]
 
 
 class ExpectQueryResultsToMatchSource(BatchExpectation):
@@ -51,6 +74,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
       each query is 200.
     - The order of records returned does not matter unless \
       the number of records returned would be greater than 200.
+    - Column names do not matter, but the order of the columns does.
 
     Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
     to determine pass/fail.
@@ -136,6 +160,71 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                 }
             )
 
+    @classmethod
+    def _get_query_rendered_content(
+        cls,
+        renderer_configuration: RendererConfiguration,
+        query_type: Literal["source", "target"],
+        add_param_args: AddParamArgs,
+        template_str: Optional[str] = None,
+    ) -> RenderedAtomicContent:
+        for name, param_type in add_param_args:
+            renderer_configuration.add_param(name=name, param_type=param_type)
+
+        renderer_configuration.template_str = template_str
+
+        renderer_configuration.code_block = CodeBlock(
+            code_template_str=f"${query_type}_query",
+            language=CodeBlockLanguage.SQL,
+        )
+
+        return RenderedAtomicContent(
+            name=AtomicPrescriptiveRendererType.SUMMARY,
+            value=RenderedAtomicValue(
+                template=template_str or renderer_configuration.template_str,
+                params=renderer_configuration.params.dict(),
+                code_block=renderer_configuration.code_block,
+                meta_notes=renderer_configuration.meta_notes,
+                schema={"type": "com.superconductive.rendered.string"},
+            ),
+            value_type="StringValueType",
+        )
+
+    @classmethod
+    @override
+    @renderer(renderer_type=AtomicPrescriptiveRendererType.SUMMARY)
+    @render_suite_parameter_string
+    def _prescriptive_summary(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> list[RenderedAtomicContent]:
+        target_query_block = cls._get_query_rendered_content(
+            query_type="target",
+            add_param_args=(("target_query", RendererValueType.STRING),),
+            template_str=None,  # `description` should override this
+            renderer_configuration=RendererConfiguration(
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+            ),
+        )
+        source_query_block = cls._get_query_rendered_content(
+            query_type="source",
+            add_param_args=(
+                ("source_data_source_name", RendererValueType.STRING),
+                ("source_query", RendererValueType.STRING),
+            ),
+            template_str="Compare with Data Source $source_data_source_name",
+            renderer_configuration=RendererConfiguration(
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+            ),
+        )
+        return [target_query_block, source_query_block]
+
     @override
     def _validate(
         self,
@@ -147,21 +236,23 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             runtime_configuration=runtime_configuration
         )
 
-        target_results = metrics["target_query.table"]
+        missing_rows: list[dict[str, Any]]
+        unexpected_rows: list[dict[str, Any]]
+
+        target_results: list[dict[str, Any]] = metrics["target_query.table"]
+        source_results: list[dict[str, Any]] = metrics["source_query.data_source_table"]
         target_result_count = len(target_results)
-        source_results = metrics["source_query.data_source_table"]
         source_result_count = len(source_results)
 
         if target_result_count + source_result_count == 0:
             unexpected_count = 0
             unexpected_percent = 0.0
+            missing_rows = []
+            unexpected_rows = []
         else:
             # creates a hashmap with row values as key and count of duplicate rows as value
             target_results_frequency_map = Counter(tuple(row.values()) for row in target_results)
             source_results_frequency_map = Counter(tuple(row.values()) for row in source_results)
-            # decrements source row count values by target row count values
-            count_in_source_not_target = source_results_frequency_map.copy()
-            count_in_source_not_target.subtract(target_results_frequency_map)
 
             # Get the matches: if we see a value X times in source, and Y times in target, min(X, Y)
             # is the number of matches.
@@ -180,6 +271,17 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                 1 - (match_count / max(source_result_count, target_result_count))
             ) * 100
 
+            # NOTE: counter_a - counter_b reduces the numbers in counter_a to as low as 0,
+            # but will not go negative
+            missing_rows = self._compute_row_data(
+                col_names=self._get_column_names_from_result(source_results),
+                frequency_map=source_results_frequency_map - target_results_frequency_map,
+            )
+            unexpected_rows = self._compute_row_data(
+                col_names=self._get_column_names_from_result(target_results),
+                frequency_map=target_results_frequency_map - source_results_frequency_map,
+            )
+
         success_kwargs = self._get_success_kwargs()
         mostly = success_kwargs.get("mostly", 1)
         success = (100 - unexpected_percent) >= (mostly * 100)
@@ -192,5 +294,296 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                 "result": {
                     "unexpected_count": unexpected_count,
                     "unexpected_percent": unexpected_percent,
+                    "details": {
+                        "missing_rows": missing_rows,
+                        "unexpected_rows": unexpected_rows,
+                    },
                 },
             }
+
+    @override
+    @classmethod
+    @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
+    def _atomic_diagnostic_observed_value(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> list[RenderedAtomicContent] | RenderedAtomicContent:
+        details = cls._get_details_from_results(result)
+
+        missing_rows: list[dict[str, Any]] = details["missing_rows"]
+        unexpected_rows: list[dict[str, Any]] = details["unexpected_rows"]
+        missing_rows_cols = cls._get_column_names_from_result(missing_rows)
+        unexpected_rows_cols = cls._get_column_names_from_result(unexpected_rows)
+        missing_rows_table = cls._create_observed_values_table(missing_rows)
+        unexpected_rows_table = cls._create_observed_values_table(unexpected_rows)
+
+        if len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
+            return cls._create_observed_values_set(
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+                source_col_name=missing_rows_cols[0],
+                target_col_name=unexpected_rows_cols[0],
+            )
+        else:
+            return [
+                cls._create_table_rendered_atomic_content(
+                    unexpected_rows_table,
+                    label="Unexpected records",
+                ),
+                cls._create_table_rendered_atomic_content(
+                    missing_rows_table,
+                    label="Missing records",
+                ),
+            ]
+
+    @classmethod
+    def _create_observed_values_set(
+        cls,
+        source_col_name: str,
+        target_col_name: str,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> RenderedAtomicContent:
+        result_details = cls._get_details_from_results(result)
+        source_values = [row[source_col_name] for row in result_details["missing_rows"]]
+        target_values = [row[target_col_name] for row in result_details["unexpected_rows"]]
+        renderer_configuration: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        source_param_name = "expected_value"
+        target_param_name = "observed_value"
+        expected_param_prefix = "exp__"
+        ov_param_prefix = "ov__"
+
+        renderer_configuration.add_param(
+            name=source_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=source_values,
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=source_param_name,
+            param_prefix=expected_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+
+        renderer_configuration.add_param(
+            name=target_param_name,
+            param_type=RendererValueType.ARRAY,
+            value=target_values,
+        )
+        renderer_configuration = cls._add_array_params(
+            array_param_name=target_param_name,
+            param_prefix=ov_param_prefix,
+            renderer_configuration=renderer_configuration,
+        )
+        observed_value_set = set(target_values)
+        sample_observed_value = next(iter(observed_value_set)) if observed_value_set else None
+        expected_value_set = {
+            parse_value_to_observed_type(observed_value=sample_observed_value, value=value)
+            for value in source_values
+        }
+
+        observed_values = (
+            (name, schema)
+            for name, schema in renderer_configuration.params
+            if name.startswith(ov_param_prefix)
+        )
+
+        expected_values = (
+            (name, schema)
+            for name, schema in renderer_configuration.params
+            if name.startswith(expected_param_prefix)
+        )
+
+        template_str_list = []
+        for name, schema in observed_values:
+            render_state = (
+                ObservedValueRenderState.EXPECTED.value
+                if schema.value in expected_value_set
+                else ObservedValueRenderState.UNEXPECTED.value
+            )
+            renderer_configuration.params.__dict__[name].render_state = render_state
+            template_str_list.append(f"${name}")
+
+        for name, schema in expected_values:
+            coerced_value = parse_value_to_observed_type(
+                observed_value=sample_observed_value,
+                value=schema.value,
+            )
+            if coerced_value not in observed_value_set:
+                renderer_configuration.params.__dict__[
+                    name
+                ].render_state = ObservedValueRenderState.MISSING.value
+                template_str_list.append(f"${name}")
+
+        renderer_configuration.template_str = " ".join(template_str_list)
+
+        value_obj = RenderedAtomicValue(
+            template=renderer_configuration.template_str,
+            params=renderer_configuration.params.dict(),
+            meta_notes=renderer_configuration.meta_notes,
+            schema={"type": "com.superconductive.rendered.string"},
+        )
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=value_obj,
+            value_type="StringValueType",
+        )
+
+    @classmethod
+    def _get_details_from_results(
+        cls, result: Optional[ExpectationValidationResult]
+    ) -> dict[str, Any]:
+        assert result and result.result, "Must have result"
+        details = result.result.get("details")
+        assert isinstance(details, dict), "Details must exist and be a dict"
+        return details
+
+    @classmethod
+    def _create_table_rendered_atomic_content(
+        cls,
+        table: list[list[RendererTableValue]],
+        label: str,
+    ) -> RenderedAtomicContent:
+        rows = table[1:]
+        template = f"{label}: $row_count"
+        params = {
+            "row_count": {
+                "schema": RendererSchema(type=RendererValueType.NUMBER),
+                "value": len(rows),
+            }
+        }
+
+        if not table:
+            return RenderedAtomicContent(
+                name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+                value=RenderedAtomicValue(
+                    template=template,
+                    params=params,
+                ),
+                value_type="TableType",
+            )
+
+        return RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value=RenderedAtomicValue(
+                template=template,
+                params=params,
+                header_row=table[0],
+                table=rows,
+            ),
+            value_type="TableType",
+        )
+
+    @classmethod
+    def _create_observed_values_table(
+        cls,
+        rows: list[dict[str, Any]],
+    ) -> list[list[RendererTableValue]]:
+        if not rows:
+            return []
+
+        col_names = cls._get_column_names_from_result(rows)
+        header_row = [
+            RendererTableValue(
+                schema=RendererSchema(type=RendererValueType.STRING),
+                value=col_name,
+            )
+            for col_name in col_names
+        ]
+        output_rows: list[list[RendererTableValue]] = []
+        for row in rows:
+            output_rows.append(
+                [
+                    RendererTableValue(
+                        schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
+                        value=row[col_name],
+                    )
+                    for col_name in col_names
+                ]
+            )
+
+        return [header_row, *output_rows]
+
+    @classmethod
+    def _compute_row_data(
+        cls,
+        col_names: list[str],
+        frequency_map: Counter[tuple],
+    ) -> list[dict[str, Any]]:
+        """Given a frequency map of values and a list of their keys, compute a list of
+        column-name -> column value dictionaries.
+
+        Example:
+          - col_names: ["a", "b"]
+          - frequency_map: Counter({
+                (1, 2): 2,
+                (3, 4): 1,
+            })
+
+          -> [
+                {"a": 1, "b": 2},
+                {"a": 1, "b": 2},
+                {"a": 3, "b": 4},
+             ]
+        """
+        # Convert the frequency map to an iterator of row values,
+        # so we'll have multiple of anything that has a count > 1.
+        # Then ensure we're sorted (deterministic output).
+        # We define our own comparator for the sorting so that we can handle tuples
+        # with None values, since e.g. `(1, None) < (1, 2)` fails with a TypeError.
+        all_elements = frequency_map.elements()
+        row_values = sorted(all_elements, key=cmp_to_key(cls._null_safe_tuple_compare))
+
+        return [
+            {col_names[i]: row_values[i] for i in range(len(col_names))}
+            for row_values in row_values
+        ]
+
+    @classmethod
+    def _get_column_names_from_result(
+        cls,
+        results_list: list[dict[str, Any]],
+    ) -> list[str]:
+        """Get the list of columns from a result list.
+
+        NOTE: Order matters here, and we rely on python 3.7's deterministic ordering of results.
+        """
+        if results_list:
+            return list(results_list[0].keys())
+        else:
+            return []
+
+    @classmethod
+    def _null_safe_tuple_compare(
+        cls,
+        a: tuple[Any, ...],
+        b: tuple[Any, ...],
+    ) -> int:
+        """
+        Compare two tuples, treating None as less than anything else.
+
+        This satisfies the requirements of
+        `sorted(<TUPLES>, key=cmp_to_key(cls._null_safe_tuple_compare))`.
+        None is treated as less than anything else.
+        """
+        for x, y in zip(a, b):
+            if x == y:
+                # elements match; go on to next element
+                continue
+            if x is None:
+                return -1
+            if y is None:
+                return 1
+            if x > y:
+                return 1
+            if x < y:
+                return -1
+        # If all items equal so far, compare by length
+        return len(a) > len(b)

@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Union
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Union
 
 import pytest
 
@@ -295,3 +296,19 @@ def test_add_array_params():
     )
 
     assert array_string == "$like_pattern_list_0 $like_pattern_list_1"
+
+
+@pytest.mark.parametrize(
+    ("value", "type"),
+    [
+        ([1, 2, 3], RendererValueType.ARRAY),
+        (True, RendererValueType.BOOLEAN),
+        (datetime.now(tz=timezone.utc), RendererValueType.DATETIME),
+        (3.14, RendererValueType.NUMBER),
+        ({"foo": "bar"}, RendererValueType.OBJECT),
+        ("hello world!", RendererValueType.STRING),
+    ],
+)
+@pytest.mark.unit
+def test_from_value(value: Any, type: RendererValueType) -> None:
+    assert RendererValueType.from_value(value) == type
