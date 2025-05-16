@@ -17,7 +17,7 @@ To automate data quality checks for [API-managed Expectations](/cloud/expectatio
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Next to the current schedule, click **Edit schedule** (<img src="/img/pencil.png" alt="pencil icon" width="20" height="20">).
+3. Next to the current schedule, click **Edit schedule** (<img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/>).
 
 4. Change the **Frequency** and/or the **Start time** for the first run of the new schedule.
 
