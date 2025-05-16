@@ -61,8 +61,14 @@ def test_event_identifiers(analytics_config):
     distinct_id, base_properties = analytics_config
     event = DataContextInitializedEvent()
     properties = event.properties()
+    filtered_base_properties = base_properties.copy()
     # All base properties should be in the event properties
-    assert base_properties.items() <= properties.items()
+    if properties.get("$process_person_profile") is False:
+        filtered_base_properties.pop("user_id", None)
+        filtered_base_properties.pop("organization_id", None)
+
+    assert filtered_base_properties.items() <= properties.items()
+
     # Service should be set to gx-core
     assert properties["service"] == "gx-core"
     # The distinct_id should be the user_id if it is set, otherwise the oss_id
@@ -73,9 +79,14 @@ def test_event_identifiers(analytics_config):
         assert event.distinct_id == base_properties["oss_id"]
 
     # The user_id and organization_id should only be set if they are in the config
-    if "user_id" not in base_properties:
+    # AND $process_person_profile is not False
+    if "user_id" not in base_properties or properties.get("$process_person_profile") is False:
         assert "user_id" not in properties
-    if "organization_id" not in base_properties:
+
+    if (
+        "organization_id" not in base_properties
+        or properties.get("$process_person_profile") is False
+    ):
         assert "organization_id" not in properties
 
 
@@ -368,4 +379,4 @@ def test_anonymize_events_setting(anonymize_events: bool, monkeypatch):
         if anonymize_events:
             assert properties.get("$process_person_profile") is False
         else:
-            assert "$process_person_profile" not in properties
+            assert properties.get("$process_person_profile") is True

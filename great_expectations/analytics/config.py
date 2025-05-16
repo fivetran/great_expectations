@@ -43,7 +43,7 @@ class Config(GenericModel):
     cloud_mode: bool = False
     user_agent_str: Optional[str] = None
     mode: Literal["ephemeral", "file", "cloud", None] = None
-    anonymize_events: bool = False
+    anonymize_events: bool = True
 
 
 ENV_CONFIG = _EnvConfig()

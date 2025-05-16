@@ -86,13 +86,12 @@ class Event:
             "service": "gx-core",
             "user_agent_str": self.user_agent_str,
             "mode": self.mode,
+            # https://posthog.com/docs/libraries/python#person-profiles-and-properties
+            "$process_person_profile": not get_config().anonymize_events,
         }
 
-        if self.user_id is not None:
+        if self.user_id is not None and not get_config().anonymize_events:
             props.update({"user_id": self.user_id, "organization_id": self.organization_id})
-
-        if get_config().anonymize_events:
-            props["$process_person_profile"] = False
 
         return {**props, **self._properties()}
 

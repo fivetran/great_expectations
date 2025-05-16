@@ -9,7 +9,6 @@ import posthog
 from great_expectations.analytics.config import (
     ENV_CONFIG,
     Config,
-    get_config,
     update_config,
 )
 
@@ -29,7 +28,7 @@ def submit(event: Event) -> None:
             "data_context": event.data_context_id,
         }
 
-        if event.organization_id and not get_config().anonymize_events:
+        if event.organization_id:
             groups.update({"organization": event.organization_id})
 
         posthog.capture(
