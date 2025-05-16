@@ -34,7 +34,7 @@ def set_up_context_for_example(context):
 def set_up_context2_for_example(context):
     # Create the Data Source
     connection_string2 = "sqlite:///data/yellow_tripdata.db"
-    data_source_name2 = "my_source_data_source"
+    data_source_name2 = "my_comparison_data_source"
     data_source2 = context.data_sources.add_sqlite(
         name=data_source_name2, connection_string=connection_string2
     )
@@ -53,9 +53,9 @@ def set_up_context2_for_example(context):
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - full code example">
 import great_expectations as gx
 
-# Define your source Data Source.
-# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define source Data Source">
-my_upstream_source = "my_source_data_source"
+# Define your comparison Data Source.
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define comparison Data Source">
+my_upstream_source = "my_comparison_data_source"
 # </snippet>
 
 

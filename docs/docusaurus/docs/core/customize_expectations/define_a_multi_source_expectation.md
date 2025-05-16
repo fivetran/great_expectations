@@ -47,9 +47,9 @@ To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchCompariso
 
 <TabItem value="instructions" label="Instructions">
 
-1. Define your source Data Source.
+1. Define your comparison Data Source.
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define source Data Source"
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py - define comparison Data Source"
    ```
 
 2. Determine your base and comparison SQL queries. Each query should be written in the dialect of the associated Data Source.
@@ -92,5 +92,5 @@ To create a Multi-source Expectation, add an `ExpectQueryResultsToMatchCompariso
 
 Keep the following limitations in mind when working with Multi-source Expectations:
 - The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
-- If you’ve defined a time-based batch interval for your validations, it will apply to only the base Data Source where you’ve configured the Expectation. It will not apply to the upstream comparison Data Source. 
-- The Expectation configuration and validation results are not reflected on the upstream comparison Data Source. The Expectation is always managed on the Data Asset where you initially configure it.
+- If you’ve defined a time-based batch interval for your validations, it will apply to only the base Data Source where you’ve configured the Expectation. It will not apply to the comparison Data Source. 
+- The Expectation configuration and validation results are not reflected on the comparison Data Source. The Expectation is always managed on the Data Asset where you initially configure it.
