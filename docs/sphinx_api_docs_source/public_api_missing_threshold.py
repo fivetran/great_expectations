@@ -531,7 +531,7 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         file=pathlib.Path(
             "great_expectations/expectations/core/expect_query_results_to_match_source.py"
         ),
-        name="ExpectQueryResultsToMatchSource",
+        name="ExpectQueryResultsToMatchComparison",
     ),
     PrintableDefinition(
         file=pathlib.Path(

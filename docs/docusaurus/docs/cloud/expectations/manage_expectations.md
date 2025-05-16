@@ -20,7 +20,7 @@ The following table lists the available GX Cloud Expectations.
 |-----------------------|---------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------|
 | Completeness          | **column values to be null**                      | Expect the column values to be null.                                                                                                   | Yes                 |
 | Completeness          | **column values to not be null**                  | Expect the column values to not be null.                                                                                               | Yes                 |
-| Multi-source | **query results to match source**                 | Query multiple Data Sources and compare the results for equality.                                                                      | No                  |
+| Multi-source | **query results to match comparison**                 | Query multiple Data Sources and compare the results for equality.                                                                      | No                  |
 | Numeric            | **column max to be between**                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 |
 | Numeric            | **column mean to be between**                        | Expect the column mean to be between a minimum and a maximum value.                                                                    | Yes                 |
 | Numeric            | **column median to be between**                      | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes                 |
@@ -96,7 +96,7 @@ The percentage of identical rows is computed by dividing the number of matching 
 | 100                     | 25                      | 1            | 1%                           |
 | 0                       | 0                       | 0            | 100%                         |
 
-To create a Multi-source Expectation, [add the **expect query results to match source** Expectation](#add-an-expectation) on the target Data Source. Each provided query should be written in the dialect of the associated Data Source.
+To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](#add-an-expectation) on the target Data Source. Each provided query should be written in the dialect of the associated Data Source.
 
 Keep the following limitations in mind when working with Multi-source Expectations:
 - The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
