@@ -138,7 +138,7 @@ def test_ephemeral_context_init_with_optional_fields(monkeypatch):
             "gx_version": mock.ANY,
             "user_agent_str": user_agent_str,
             "mode": "ephemeral",
-            "$process_person_profile": False,
+            "$process_person_profile": True,
         },
         groups={"data_context": mock.ANY},
     )
