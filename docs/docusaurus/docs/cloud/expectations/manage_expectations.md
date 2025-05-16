@@ -166,7 +166,7 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Next to the current batch configuration, click **Edit batch** (![pencil icon](/img/pencil.png)).
+3. Next to the current batch configuration, click **Edit batch** (<img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/>).
 
 4. Choose how to **Validate by**. Select the **Entire Asset** tab to provide all Data Asset records to your Expectations and validations, or select one of the **Year**/**Month**/**Day** tabs to use subsets of Data Asset records for your Expectations and validations. **Year** partitions Data Asset records by year, **Month** partitions Data Asset records by year and month, **Day** partitions Data Asset records by year, month, and day.
 
