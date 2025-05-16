@@ -10,7 +10,6 @@ pytest --postgresql --docs-tests -k "data_quality_use_case_integrity_workflow" t
 """
 
 
-# ruff: noqa: I001
 # Adding noqa rule so two import sections can be used for two examples.
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_workflow.py business logic workflow">

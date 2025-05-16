@@ -82,7 +82,7 @@ def test_postgresql_complete_results_failure(batch_for_datasource: Batch) -> Non
     assert isinstance(result_dict, dict)
     assert not result.success
     assert "WHERE basic_strings IS NOT NULL AND NOT (basic_strings ~ '^xyz.*')" in cast(
-        str, result_dict.get("unexpected_index_query")
+        "str", result_dict.get("unexpected_index_query")
     )
     assert result_dict == {
         "element_count": 3,

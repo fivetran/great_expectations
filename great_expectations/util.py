@@ -723,7 +723,7 @@ def isclose(
         operand_b = operand_b.total_seconds()  # type: ignore[assignment] # FIXME CoP
 
     return cast(
-        bool,
+        "bool",
         np.isclose(
             a=np.float64(operand_a),  # type: ignore[arg-type] # FIXME CoP
             b=np.float64(operand_b),  # type: ignore[arg-type] # FIXME CoP
