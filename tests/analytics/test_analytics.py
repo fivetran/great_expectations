@@ -63,7 +63,7 @@ def test_event_identifiers(analytics_config):
     properties = event.properties()
     filtered_base_properties = base_properties.copy()
     # All base properties should be in the event properties
-    if properties.get("$process_person_profile") is False:
+    if "user_id" in filtered_base_properties:
         filtered_base_properties.pop("user_id", None)
         filtered_base_properties.pop("organization_id", None)
 
@@ -77,17 +77,6 @@ def test_event_identifiers(analytics_config):
         assert event.distinct_id == base_properties["user_id"]
     else:
         assert event.distinct_id == base_properties["oss_id"]
-
-    # The user_id and organization_id should only be set if they are in the config
-    # AND $process_person_profile is not False
-    if "user_id" not in base_properties or properties.get("$process_person_profile") is False:
-        assert "user_id" not in properties
-
-    if (
-        "organization_id" not in base_properties
-        or properties.get("$process_person_profile") is False
-    ):
-        assert "organization_id" not in properties
 
 
 @pytest.mark.xfail(

@@ -90,7 +90,7 @@ class Event:
             "$process_person_profile": not get_config().anonymize_events,
         }
 
-        if self.user_id is not None and not get_config().anonymize_events:
+        if self.user_id is not None:
             props.update({"user_id": self.user_id, "organization_id": self.organization_id})
 
         return {**props, **self._properties()}
