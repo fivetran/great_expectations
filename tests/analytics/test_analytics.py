@@ -346,9 +346,8 @@ def test_anonymize_events_setting(anonymize_events: bool, monkeypatch):
     monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
 
     with mock.patch("posthog.capture") as mock_submit:
-        from great_expectations.analytics.client import init
+        from great_expectations.analytics.client import init, submit
         from great_expectations.analytics.events import DataContextInitializedEvent
-        from great_expectations.analytics.client import submit
 
         init(
             enable=True,
