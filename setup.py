@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 # https://setuptools.pypa.io/en/latest/pkg_resources.html
-# Import pkg_resources with noqa: TID251 since we're planning to migrate to poetry eventually
+import pkg_resources  # noqa: TID251  # TODO: switch to poetry
 from setuptools import find_packages, setup
 
 import versioneer
@@ -72,12 +72,7 @@ def get_extras_require():
         if key in ignore_keys:
             continue
         with open(file_path) as f:
-            # Parse requirements manually instead of using pkg_resources
-            parsed = []
-            for line_raw in f:
-                line = line_raw.strip()
-                if line and not line.startswith("#"):
-                    parsed.append(line)
+            parsed = [str(req) for req in pkg_resources.parse_requirements(f)]
             results[key] = parsed
 
     lite = results.pop("lite")
