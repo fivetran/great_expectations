@@ -571,7 +571,7 @@ def test_data_context_create_does_not_overwrite_existing_config_variables_yml(
 def test_scaffold_directories(tmp_path_factory):
     empty_directory = str(tmp_path_factory.mktemp("test_scaffold_directories"))
     empty_directory_path = Path(empty_directory)
-    FileDataContext._scaffold_directories(empty_directory)
+    FileDataContext._scaffold_directories(empty_directory_path)
 
     assert {p.name for p in empty_directory_path.iterdir()} == {
         "plugins",
