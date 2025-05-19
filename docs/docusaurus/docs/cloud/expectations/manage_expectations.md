@@ -166,7 +166,7 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 2. In the **Data Assets** list, click the Data Asset name.
 
-3. Next to the current batch configuration, click **Edit batch** (<img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/>).
+3. Next to the current batch configuration, click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit batch**.
 
 4. Choose how to **Validate by**. Select the **Entire Asset** tab to provide all Data Asset records to your Expectations and validations, or select one of the **Year**/**Month**/**Day** tabs to use subsets of Data Asset records for your Expectations and validations. **Year** partitions Data Asset records by year, **Month** partitions Data Asset records by year and month, **Day** partitions Data Asset records by year, month, and day.
 
@@ -180,7 +180,7 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 3. Find the Expectation that you want to edit.
 
-4. Click **Edit Expectation** for the Expectation that you want to edit.
+4. Click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit Expectation** for the Expectation that you want to edit.
 
 5. Edit the Expectation configuration.
 
@@ -194,13 +194,13 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 3. Find the Expectation that you want to delete.
 
-4. Click **Delete Expectation** for the Expectation that you want to delete.
+4. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Delete Expectation** for the Expectation that you want to delete.
 
    :::tip You can delete Expectations in bulk
-    If you want to delete all Expectations that test for a certain data quality issue, you can instead click **Bulk-delete Expectations** for the relevant category.
+    If you want to delete all Expectations that test for a certain data quality issue, you can instead click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Bulk-delete Expectations** for the relevant category.
     :::
 
-5. Click **Yes, delete Expectation**.
+5. Click **Delete**.
 
 
 
