@@ -1152,34 +1152,30 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
 
         return f"https://{self._container_client.account_name}.blob.core.windows.net/{az_blob_path}"
 
-    def _has_key(self, key):  # type: ignore[explicit-override] # FIXME
-        all_keys = self.list_keys()
-        return key in all_keys
-
-    @override
-    def _move(self, source_key, dest_key, **kwargs) -> None:
-        source_blob_path = self._convert_key_to_filepath(source_key)
-        if not source_blob_path.startswith(self.prefix):
-            source_blob_path = os.path.join(  # noqa: PTH118 # FIXME CoP
-                self.prefix, source_blob_path
-            )
-        dest_blob_path = self._convert_key_to_filepath(dest_key)
-        if not dest_blob_path.startswith(self.prefix):
-            dest_blob_path = os.path.join(self.prefix, dest_blob_path)  # noqa: PTH118 # FIXME CoP
-
-        # azure storage sdk does not have _move method
-        source_blob = self._container_client.get_blob_client(source_blob_path)
-        dest_blob = self._container_client.get_blob_client(dest_blob_path)
-
-        dest_blob.start_copy_from_url(source_blob.url, requires_sync=True)
-        copy_properties = dest_blob.get_blob_properties().copy
-
-        if copy_properties.status != "success":
-            dest_blob.abort_copy(copy_properties.id)
+    def get_public_url_for_key(self, key, protocol=None):
+        if not self.base_public_path:
             raise StoreBackendError(  # noqa: TRY003 # FIXME CoP
-                f"Unable to copy blob {source_blob_path} with status {copy_properties.status}"
+                """Error: No base_public_path was configured!
+                    - A public URL was requested base_public_path was not configured for the
+                """
             )
-        source_blob.delete_blob()
+        path = self._convert_key_to_filepath(key)
+        path_url = self._get_path_url(path)
+        public_url = self.base_public_path + path_url
+        return public_url
+
+    def _get_path_url(self, path):
+        if self.prefix:
+            path_url = "/".join((self.bucket, self.prefix, path))
+        else:  # noqa: PLR5501 # FIXME CoP
+            if self.base_public_path:
+                if self.base_public_path[-1] != "/":
+                    path_url = f"/{path}"
+                else:
+                    path_url = path
+            else:
+                path_url = "/".join((self.bucket, path))
+        return path_url
 
     def remove_key(self, key):  # type: ignore[explicit-override] # FIXME
         if not isinstance(key, tuple):
