@@ -78,19 +78,17 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
 
     Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
     to determine pass/fail.
-        e.g. `unexpected_percent` = 10%, `mostly` = 80%, (100% - 10%) > 80% - pass
-             `unexpected_percent` = 10%, `mostly` = 91%, (100% - 10%) < 91% - fail
+        e.g.
+    `unexpected_percent` = 10%, `mostly` = 80%, (100% - 10%) > 80% - pass
+    `unexpected_percent` = 10%, `mostly` = 91%, (100% - 10%) < 91% - fail
 
 
     The Match Percentage is computed by dividing the number of matching records \
     by the maximum number of records in either the comparison result or the base result.
        e.g.
-
-    | Comparison Row Count | Base Row Count | Matches | Match Percentage |
-    | ---------------- | ---------------- | ------- | ---------------- |
-    | 100              | 100              | 100     | 100%             |
-    | 25               | 100              | 25      | 25%              |
-    | 100              | 25               | 1       | 1%               |
+    Comparison Row Count: 100  Base Row Count: 100  Matches: 100  Match Percentage: 100%
+    Comparison Row Count: 25   Base Row Count: 100  Matches: 25   Match Percentage: 25%
+    Comparison Row Count: 100  Base Row Count: 25   Matches: 1    Match Percentage: 1%
 
     If both the base and comparison queries return 0 records, \
     it is considered a successful result.
