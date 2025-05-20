@@ -42,34 +42,34 @@ BIG_COMPARISON_DATA_FRAME = pd.DataFrame(
 
 ALL_COMPARISON_TO_BASE_SOURCES = [
     MultiSourceTestConfig(
-        source=PostgreSQLDatasourceTestConfig(), target=PostgreSQLDatasourceTestConfig()
+        comparison=PostgreSQLDatasourceTestConfig(), base=PostgreSQLDatasourceTestConfig()
     ),
     MultiSourceTestConfig(
-        source=PostgreSQLDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=PostgreSQLDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=SnowflakeDatasourceTestConfig(), target=SnowflakeDatasourceTestConfig()
+        comparison=SnowflakeDatasourceTestConfig(), base=SnowflakeDatasourceTestConfig()
     ),
     MultiSourceTestConfig(
-        source=SnowflakeDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=SnowflakeDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=DatabricksDatasourceTestConfig(),
-        target=DatabricksDatasourceTestConfig(),
+        comparison=DatabricksDatasourceTestConfig(),
+        base=DatabricksDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=DatabricksDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=DatabricksDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=RedshiftDatasourceTestConfig(),
-        target=RedshiftDatasourceTestConfig(),
+        comparison=RedshiftDatasourceTestConfig(),
+        base=RedshiftDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=RedshiftDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=RedshiftDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     ),
 ]
 
