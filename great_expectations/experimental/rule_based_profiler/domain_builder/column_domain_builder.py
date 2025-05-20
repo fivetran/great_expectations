@@ -234,7 +234,7 @@ class ColumnDomainBuilder(DomainBuilder):
         This method returns list of column names, filtered according to directives supplied via instance attributes.
         """  # noqa: E501 # FIXME CoP
         include_column_names: List[str] = cast(
-            List[str],
+            "List[str]",
             self._resolve_list_type_property(
                 property_name="include_column_names",
                 property_value_type=list,
@@ -245,7 +245,7 @@ class ColumnDomainBuilder(DomainBuilder):
         filtered_column_names: List[str] = include_column_names or column_names
 
         exclude_column_names: List[str] = cast(
-            List[str],
+            "List[str]",
             self._resolve_list_type_property(
                 property_name="exclude_column_names",
                 property_value_type=list,
@@ -268,7 +268,7 @@ class ColumnDomainBuilder(DomainBuilder):
                 )
 
         include_column_name_suffixes: List[str] = cast(
-            List[str],
+            "List[str]",
             self._resolve_list_type_property(
                 property_name="include_column_name_suffixes",
                 property_value_type=(str, Iterable, list),
@@ -286,7 +286,7 @@ class ColumnDomainBuilder(DomainBuilder):
             )
 
         exclude_column_name_suffixes: List[str] = cast(
-            List[str],
+            "List[str]",
             self._resolve_list_type_property(
                 property_name="exclude_column_name_suffixes",
                 property_value_type=(str, Iterable, list),
@@ -344,7 +344,7 @@ class ColumnDomainBuilder(DomainBuilder):
         self._semantic_type_filter = semantic_type_filter  # type: ignore[assignment] # could be None
 
         include_semantic_types: List[Union[str, SemanticDomainTypes]] = cast(
-            List[Union[str, SemanticDomainTypes]],
+            "List[Union[str, SemanticDomainTypes]]",
             self._resolve_list_type_property(
                 property_name="include_semantic_types",
                 property_value_type=(str, SemanticDomainTypes, list),
@@ -367,7 +367,7 @@ class ColumnDomainBuilder(DomainBuilder):
             )
 
         exclude_semantic_types: List[Union[str, SemanticDomainTypes]] = cast(
-            List[Union[str, SemanticDomainTypes]],
+            "List[Union[str, SemanticDomainTypes]]",
             self._resolve_list_type_property(
                 property_name="exclude_semantic_types",
                 property_value_type=(str, SemanticDomainTypes, list),

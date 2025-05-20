@@ -5,6 +5,7 @@ import os
 import sys
 from dataclasses import asdict, dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
 import pkg_resources
@@ -264,9 +265,7 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
     def _identify_user_package() -> str:
         # Guaranteed to have a dir named '<MY_PACKAGE>_expectations' through Cookiecutter validation
         packages = [
-            d
-            for d in os.listdir()
-            if os.path.isdir(d) and d.endswith("_expectations")  # noqa: PTH112
+            d.name for d in Path().iterdir() if d.is_dir() and d.name.endswith("_expectations")
         ]
 
         # A sanity check in case the user modifies the Cookiecutter template in unexpected ways
