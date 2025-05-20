@@ -161,7 +161,7 @@ def test_expect_query_results_to_match_comparison_mostly(
     assert result.success is success
 
 
-MAX_LENGTH_TARGET_DATA = pd.DataFrame(
+MAX_LENGTH_BASE_DATA = pd.DataFrame(
     {
         "a": list(range(100, 300)),
         "b": list(range(100, 200)) + ([None] * 100),
@@ -171,7 +171,7 @@ MAX_LENGTH_TARGET_DATA = pd.DataFrame(
     }
 )
 
-MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
+MAX_LENGTH_COMPARISON_DATA = pd.DataFrame(
     {
         "a": list(range(0, 200)),
         "b": list(range(100, 200)) + ([None] * 100),
@@ -258,8 +258,8 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
 )
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    base_data=BASE_DATA,
-    comparison_data=COMPARISON_DATA,
+    base_data=MAX_LENGTH_BASE_DATA,
+    comparison_data=MAX_LENGTH_COMPARISON_DATA,
 )
 def test_expect_query_results_to_match_comparison_unexpected_percent(
     multi_source_batch: MultiSourceBatch,
