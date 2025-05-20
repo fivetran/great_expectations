@@ -84,7 +84,7 @@ class TestQueryRowCount:
         query = f"SELECT * FROM {multi_source_batch.source_table_name} WHERE name = 'A';"
         batch = multi_source_batch.target_batch
         metric = QueryDataSourceTable(
-            query=query, data_source_name=multi_source_batch.source_data_source_name
+            query=query, data_source_name=multi_source_batch.comparison_data_source_name
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryDataSourceTableResult)
@@ -99,7 +99,7 @@ class TestQueryRowCount:
         query = f"SELECT * FROM {multi_source_batch.source_table_name} WHERE id > 0"
         batch = multi_source_batch.target_batch
         metric = QueryDataSourceTable(
-            query=query, data_source_name=multi_source_batch.source_data_source_name
+            query=query, data_source_name=multi_source_batch.comparison_data_source_name
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryDataSourceTableResult)

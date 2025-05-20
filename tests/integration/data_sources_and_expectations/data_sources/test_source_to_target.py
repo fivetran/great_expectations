@@ -61,5 +61,5 @@ def test_source_to_target_example(multi_source_batch: MultiSourceBatch):
     context = target_data_source.data_context
     if context is None:
         raise ValueError("DataContext cannot be None")
-    source_data_source = context.data_sources.get(multi_source_batch.source_data_source_name)
+    source_data_source = context.data_sources.get(multi_source_batch.comparison_data_source_name)
     assert target_data_source != source_data_source

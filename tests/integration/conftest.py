@@ -220,7 +220,7 @@ def asset_for_datasource(
 @dataclass(frozen=True)
 class MultiSourceBatch:
     target_batch: Batch
-    source_data_source_name: str
+    comparison_data_source_name: str
     source_table_name: str
 
 
@@ -239,7 +239,7 @@ def multi_source_batch(
     secondary_asset = secondary_batch_setup.make_asset()
     yield MultiSourceBatch(
         target_batch=_batch_setup_for_datasource.make_batch(),
-        source_data_source_name=secondary_asset.datasource.name,
+        comparison_data_source_name=secondary_asset.datasource.name,
         source_table_name=secondary_batch_setup.table_name,
     )
 
