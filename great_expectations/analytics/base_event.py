@@ -71,7 +71,8 @@ class Event:
     def __post_init__(self):
         allowed_actions = self.get_allowed_actions()
         if allowed_actions is not None and self.action not in self.get_allowed_actions():
-            raise ValueError(f"Action [{self.action}] must be one of {self.get_allowed_actions()}")  # noqa: TRY003 # FIXME CoP
+            error_msg = f"Action [{self.action}] must be one of {self.get_allowed_actions()}"
+            raise ValueError(error_msg)  # FIXME CoP
 
     @classmethod
     def get_allowed_actions(cls):
@@ -85,7 +86,10 @@ class Event:
             "service": "gx-core",
             "user_agent_str": self.user_agent_str,
             "mode": self.mode,
+            # https://posthog.com/docs/libraries/python#person-profiles-and-properties
+            "$process_person_profile": not get_config().remove_profile,
         }
+
         if self.user_id is not None:
             props.update({"user_id": self.user_id, "organization_id": self.organization_id})
 

@@ -9,6 +9,7 @@ import random
 import re
 import shutil
 from abc import ABCMeta
+from pathlib import Path
 from typing import Any, List, Tuple
 
 from great_expectations.compatibility import aws
@@ -382,7 +383,7 @@ class TupleFilesystemStoreBackend(TupleStoreBackend):
         """
         try:
             while (
-                not os.listdir(curpath)
+                not Path(curpath).iterdir()
                 and os.path.exists(curpath)  # noqa: PTH110 # FIXME CoP
                 and mroot != curpath
             ):

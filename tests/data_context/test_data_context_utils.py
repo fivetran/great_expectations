@@ -61,7 +61,7 @@ def test_mask_db_url__does_not_mask_config_strings():
 @pytest.mark.filterwarnings(
     "ignore:SQLAlchemy is not installed*:UserWarning:great_expectations.data_context.util"
 )
-def test_password_masker_mask_db_url(  # noqa: PLR0915, C901- 11 # FIXME CoP
+def test_password_masker_mask_db_url(  # noqa: PLR0915, C901 # 11 complexity
     monkeypatch, tmp_path
 ):
     """
