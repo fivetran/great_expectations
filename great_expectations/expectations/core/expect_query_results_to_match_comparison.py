@@ -123,8 +123,8 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     mostly: MostlyField = 1
 
     metric_dependencies: ClassVar[Tuple[str, ...]] = (
-        "target_query.table",
-        "source_query.data_source_table",
+        "base_query.table",
+        "comparison_query.data_source_table",
     )
     success_keys: ClassVar[Tuple[str, ...]] = (
         "base_query",
@@ -241,8 +241,8 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         missing_rows: list[dict[str, Any]]
         unexpected_rows: list[dict[str, Any]]
 
-        base_results: list[dict[str, Any]] = metrics["target_query.table"]
-        comparison_results: list[dict[str, Any]] = metrics["source_query.data_source_table"]
+        base_results: list[dict[str, Any]] = metrics["base_query.table"]
+        comparison_results: list[dict[str, Any]] = metrics["comparison_query.data_source_table"]
         base_result_count = len(base_results)
         comparison_result_count = len(comparison_results)
 

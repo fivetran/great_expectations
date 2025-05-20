@@ -74,7 +74,7 @@ BASE_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [4, 5, 6]})
     base_data=BASE_DATA,
     comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_success(
+def test_expect_query_results_to_match_comparison_success(
     multi_source_batch: MultiSourceBatch, base_query: str, comparison_query: str
 ):
     result = multi_source_batch.base_batch.validate(
@@ -119,7 +119,7 @@ def test_expect_query_results_to_match_source_success(
     base_data=BASE_DATA,
     comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_failure(
+def test_expect_query_results_to_match_comparison_failure(
     multi_source_batch: MultiSourceBatch, base_query: str, comparison_query: str
 ):
     result = multi_source_batch.base_batch.validate(
@@ -147,7 +147,7 @@ def test_expect_query_results_to_match_source_failure(
     base_data=BASE_DATA,
     comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_mostly(
+def test_expect_query_results_to_match_comparison_mostly(
     multi_source_batch: MultiSourceBatch, mostly: float, success: bool
 ):
     result = multi_source_batch.base_batch.validate(
@@ -261,7 +261,7 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
     base_data=BASE_DATA,
     comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_unexpected_percent(
+def test_expect_query_results_to_match_comparison_unexpected_percent(
     multi_source_batch: MultiSourceBatch,
     base_query: str,
     comparison_query: str,
@@ -329,7 +329,7 @@ MISSING_AND_UNEXPECTED_DF = pd.DataFrame(
     base_data=MISSING_AND_UNEXPECTED_DF,
     comparison_data=MISSING_AND_UNEXPECTED_DF,
 )
-def test_expect_query_results_to_match_source_missing_and_unexpected_values(
+def test_expect_query_results_to_match_comparison_missing_and_unexpected_values(
     multi_source_batch: MultiSourceBatch,
     base_query: str,
     missing_rows: list[dict[str, Any]],
@@ -418,7 +418,7 @@ TOO_BIG_DATA = pd.DataFrame({"a": list(range(0, 500)), "b": list(range(100, 600)
     base_data=TOO_BIG_DATA,
     comparison_data=TOO_BIG_DATA,
 )
-def test_expect_query_results_to_match_source_limit(multi_source_batch: MultiSourceBatch):
+def test_expect_query_results_to_match_comparison_limit(multi_source_batch: MultiSourceBatch):
     result = multi_source_batch.base_batch.validate(
         gxe.ExpectQueryResultsToMatchComparison(
             base_query="SELECT * FROM {batch} ORDER BY a",
@@ -446,7 +446,7 @@ def test_expect_query_results_to_match_source_limit(multi_source_batch: MultiSou
     base_data=BASE_DATA,
     comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_error(multi_source_batch: MultiSourceBatch):
+def test_expect_query_results_to_match_comparison_error(multi_source_batch: MultiSourceBatch):
     result = multi_source_batch.base_batch.validate(
         gxe.ExpectQueryResultsToMatchComparison(
             base_query="SELECT b FROM {batch}",
