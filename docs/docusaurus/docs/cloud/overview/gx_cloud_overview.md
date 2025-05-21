@@ -62,7 +62,7 @@ GX Cloud architecture comprises a frontend web UI, storage for entity configurat
 
 ![GX Cloud architecture](./overview_images/gx_cloud_architecture.png)
 
-* **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history. The GX Cloud web UI is browser- and platform-independent.
+* **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history.
 
 * **GX Cloud data storage**. Stores the configurations for your organization's Data Sources, Data Assets, Expectations, and Validations alongside your organization's Validation Result histories and Data Asset descriptive metrics.
 
