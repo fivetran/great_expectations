@@ -219,9 +219,9 @@ def asset_for_datasource(
 
 @dataclass(frozen=True)
 class MultiSourceBatch:
-    target_batch: Batch
-    source_data_source_name: str
-    source_table_name: str
+    base_batch: Batch
+    comparison_data_source_name: str
+    comparison_table_name: str
 
 
 @pytest.fixture
@@ -238,9 +238,9 @@ def multi_source_batch(
     set_context(_batch_setup_for_datasource.context)
     secondary_asset = secondary_batch_setup.make_asset()
     yield MultiSourceBatch(
-        target_batch=_batch_setup_for_datasource.make_batch(),
-        source_data_source_name=secondary_asset.datasource.name,
-        source_table_name=secondary_batch_setup.table_name,
+        base_batch=_batch_setup_for_datasource.make_batch(),
+        comparison_data_source_name=secondary_asset.datasource.name,
+        comparison_table_name=secondary_batch_setup.table_name,
     )
 
 
@@ -254,21 +254,21 @@ def extra_table_names_for_datasource(
 
 
 @pytest.fixture(scope="session")
-def _source_to_target_map() -> Mapping[UUID, UUID]:
-    """Get a source BatchTestSetup ID by its target BatchTestSetup ID."""
+def _base_to_comparison_map() -> Mapping[UUID, UUID]:
+    """Get a comparison BatchTestSetup ID by its base BatchTestSetup ID."""
     return {}
 
 
 @dataclass(frozen=True)
 class MultiSourceTestConfig:
-    source: DataSourceTestConfig
-    target: DataSourceTestConfig
+    comparison: DataSourceTestConfig
+    base: DataSourceTestConfig
 
 
 def multi_source_batch_setup(
     multi_source_test_configs: list[MultiSourceTestConfig],
-    target_data: pd.DataFrame,
-    source_data: pd.DataFrame,
+    base_data: pd.DataFrame,
+    comparison_data: pd.DataFrame,
 ) -> Callable[[_F], _F]:
     def decorator(func: _F) -> _F:
         pytest_params = []
@@ -276,13 +276,13 @@ def multi_source_batch_setup(
             pytest_params.append(
                 pytest.param(
                     TestConfig(
-                        data_source_config=multi_source_test_config.target,
-                        data=target_data,
+                        data_source_config=multi_source_test_config.base,
+                        data=base_data,
                         extra_data={},
-                        secondary_source_config=multi_source_test_config.source,
-                        secondary_data=source_data,
+                        secondary_source_config=multi_source_test_config.comparison,
+                        secondary_data=comparison_data,
                     ),
-                    id=f"{multi_source_test_config.source.test_id}->{multi_source_test_config.target.test_id}",
+                    id=f"{multi_source_test_config.comparison.test_id}->{multi_source_test_config.base.test_id}",
                     marks=_get_multi_source_marks(multi_source_test_config),
                 )
             )
@@ -297,15 +297,15 @@ def multi_source_batch_setup(
 
 
 def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> list[MarkDecorator]:
-    if multi_source_test_config.target.pytest_mark == multi_source_test_config.source.pytest_mark:
-        return [multi_source_test_config.target.pytest_mark]
+    if multi_source_test_config.base.pytest_mark == multi_source_test_config.comparison.pytest_mark:
+        return [multi_source_test_config.base.pytest_mark]
     # our test setup restricts us to testing a single backend at a time.
     # sqlite doesn't require any extra setup, so it's an exception.
     marks = [
         mark
         for mark in [
-            multi_source_test_config.source.pytest_mark,
-            multi_source_test_config.target.pytest_mark,
+            multi_source_test_config.comparison.pytest_mark,
+            multi_source_test_config.base.pytest_mark,
         ]
         if mark != pytest.mark.sqlite
     ]

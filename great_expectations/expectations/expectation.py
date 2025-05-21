@@ -1066,26 +1066,12 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         )
 
         name = "observed_value"
-        param_types = sorted(
-            RendererValueType,
-            key=lambda x: (
-                # in order to infer type correctly
-                # object must be last in the list
-                # as it is permissive to any value
-                x.value == "object",
-                # and string must be second to last
-                # as it is permissive to string-able value
-                x.value == "string",
-                x.value,
-            ),
-        )
         value = result.result.get(name) if result is not None else None
         if value is None:
             value = cls._get_observed_value_from_evr(result=result)
 
         renderer_configuration.add_param(
             name=name,
-            param_type=param_types,
             value=value,
         )
 

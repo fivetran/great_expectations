@@ -22,25 +22,25 @@ from tests.integration.conftest import (
     MultiSourceTestConfig,
     multi_source_batch_setup,
 )
-from tests.integration.data_sources_and_expectations.data_sources.test_source_to_target import (
-    ALL_SOURCE_TO_TARGET_SOURCES,
+from tests.integration.data_sources_and_expectations.data_sources.test_comparison_to_base import (
+    ALL_COMPARISON_TO_BASE_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import SqliteDatasourceTestConfig
 
 SQLITE_ONLY = [
     MultiSourceTestConfig(
-        source=SqliteDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=SqliteDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     )
 ]
 
-SOURCE_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+COMPARISON_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 
-TARGET_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [4, 5, 6]})
+BASE_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [4, 5, 6]})
 
 
 @pytest.mark.parametrize(
-    "target_query,source_query",
+    "base_query,comparison_query",
     [
         pytest.param(
             "SELECT a, b FROM {batch} ORDER BY a, b",
@@ -70,19 +70,19 @@ TARGET_DATA = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [4, 5, 6]})
     ],
 )
 @multi_source_batch_setup(
-    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
-    target_data=TARGET_DATA,
-    source_data=SOURCE_DATA,
+    multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+    base_data=BASE_DATA,
+    comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_success(
-    multi_source_batch: MultiSourceBatch, target_query: str, source_query: str
+def test_expect_query_results_to_match_comparison_success(
+    multi_source_batch: MultiSourceBatch, base_query: str, comparison_query: str
 ):
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query=target_query,
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=source_query.replace(
-                "{source_table}", multi_source_batch.source_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query=base_query,
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=comparison_query.replace(
+                "{source_table}", multi_source_batch.comparison_table_name
             ),
         )
     )
@@ -90,7 +90,7 @@ def test_expect_query_results_to_match_source_success(
 
 
 @pytest.mark.parametrize(
-    "target_query,source_query",
+    "base_query,comparison_query",
     [
         pytest.param(
             "SELECT * FROM {batch}",
@@ -115,19 +115,19 @@ def test_expect_query_results_to_match_source_success(
     ],
 )
 @multi_source_batch_setup(
-    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
-    target_data=TARGET_DATA,
-    source_data=SOURCE_DATA,
+    multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+    base_data=BASE_DATA,
+    comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_failure(
-    multi_source_batch: MultiSourceBatch, target_query: str, source_query: str
+def test_expect_query_results_to_match_comparison_failure(
+    multi_source_batch: MultiSourceBatch, base_query: str, comparison_query: str
 ):
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query=target_query,
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=source_query.replace(
-                "{source_table}", multi_source_batch.source_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query=base_query,
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=comparison_query.replace(
+                "{source_table}", multi_source_batch.comparison_table_name
             ),
         )
     )
@@ -144,24 +144,24 @@ def test_expect_query_results_to_match_source_failure(
 )
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    target_data=TARGET_DATA,
-    source_data=SOURCE_DATA,
+    base_data=BASE_DATA,
+    comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_mostly(
+def test_expect_query_results_to_match_comparison_mostly(
     multi_source_batch: MultiSourceBatch, mostly: float, success: bool
 ):
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT a, b FROM {batch} LIMIT 2",
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT a, b FROM {multi_source_batch.source_table_name}",
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query="SELECT a, b FROM {batch} LIMIT 2",
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT a, b FROM {multi_source_batch.comparison_table_name}",
             mostly=mostly,
         )
     )
     assert result.success is success
 
 
-MAX_LENGTH_TARGET_DATA = pd.DataFrame(
+MAX_LENGTH_BASE_DATA = pd.DataFrame(
     {
         "a": list(range(100, 300)),
         "b": list(range(100, 200)) + ([None] * 100),
@@ -171,7 +171,7 @@ MAX_LENGTH_TARGET_DATA = pd.DataFrame(
     }
 )
 
-MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
+MAX_LENGTH_COMPARISON_DATA = pd.DataFrame(
     {
         "a": list(range(0, 200)),
         "b": list(range(100, 200)) + ([None] * 100),
@@ -182,7 +182,7 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
 
 
 @pytest.mark.parametrize(
-    "target_query,source_query,unexpected_percent,unexpected_count",
+    "base_query,comparison_query,unexpected_percent,unexpected_count",
     [
         pytest.param(
             "SELECT b FROM {batch} ORDER BY b",  # 100 records
@@ -258,22 +258,22 @@ MAX_LENGTH_SOURCE_DATA = pd.DataFrame(
 )
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    target_data=MAX_LENGTH_TARGET_DATA,
-    source_data=MAX_LENGTH_SOURCE_DATA,
+    base_data=MAX_LENGTH_BASE_DATA,
+    comparison_data=MAX_LENGTH_COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_unexpected_percent(
+def test_expect_query_results_to_match_comparison_unexpected_percent(
     multi_source_batch: MultiSourceBatch,
-    target_query: str,
-    source_query: str,
+    base_query: str,
+    comparison_query: str,
     unexpected_percent: float,
     unexpected_count: int,
 ):
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query=target_query,
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=source_query.replace(
-                "{source_table}", multi_source_batch.source_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query=base_query,
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=comparison_query.replace(
+                "{source_table}", multi_source_batch.comparison_table_name
             ),
         )
     )
@@ -294,7 +294,7 @@ MISSING_AND_UNEXPECTED_DF = pd.DataFrame(
 
 
 @pytest.mark.parametrize(
-    ("target_query", "missing_rows", "unexpected_rows"),
+    ("base_query", "missing_rows", "unexpected_rows"),
     [
         pytest.param(
             "SELECT all_matches FROM {batch}",
@@ -326,20 +326,20 @@ MISSING_AND_UNEXPECTED_DF = pd.DataFrame(
 )
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    target_data=MISSING_AND_UNEXPECTED_DF,
-    source_data=MISSING_AND_UNEXPECTED_DF,
+    base_data=MISSING_AND_UNEXPECTED_DF,
+    comparison_data=MISSING_AND_UNEXPECTED_DF,
 )
-def test_expect_query_results_to_match_source_missing_and_unexpected_values(
+def test_expect_query_results_to_match_comparison_missing_and_unexpected_values(
     multi_source_batch: MultiSourceBatch,
-    target_query: str,
+    base_query: str,
     missing_rows: list[dict[str, Any]],
     unexpected_rows: list[dict[str, Any]],
 ) -> None:
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query=target_query,
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT source FROM {multi_source_batch.source_table_name}",
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query=base_query,
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT source FROM {multi_source_batch.comparison_table_name}",
         )
     )
 
@@ -350,7 +350,7 @@ def test_expect_query_results_to_match_source_missing_and_unexpected_values(
 
 
 @pytest.mark.parametrize(
-    ("target_query", "source_query", "missing_rows", "unexpected_rows"),
+    ("base_query", "comparison_query", "missing_rows", "unexpected_rows"),
     [
         pytest.param(
             "SELECT incorrect_id, source FROM {batch}",
@@ -384,22 +384,22 @@ def test_expect_query_results_to_match_source_missing_and_unexpected_values(
 )
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    target_data=MISSING_AND_UNEXPECTED_DF,
-    source_data=MISSING_AND_UNEXPECTED_DF,
+    base_data=MISSING_AND_UNEXPECTED_DF,
+    comparison_data=MISSING_AND_UNEXPECTED_DF,
 )
 def test_column_ordering(
     multi_source_batch: MultiSourceBatch,
-    target_query: str,
-    source_query: str,
+    base_query: str,
+    comparison_query: str,
     missing_rows: list[dict[str, Any]],
     unexpected_rows: list[dict[str, Any]],
 ) -> None:
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query=target_query,
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=source_query.replace(
-                "{source_table}", multi_source_batch.source_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query=base_query,
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=comparison_query.replace(
+                "{source_table}", multi_source_batch.comparison_table_name
             ),
         )
     )
@@ -415,25 +415,26 @@ TOO_BIG_DATA = pd.DataFrame({"a": list(range(0, 500)), "b": list(range(100, 600)
 
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    target_data=TOO_BIG_DATA,
-    source_data=TOO_BIG_DATA,
+    base_data=TOO_BIG_DATA,
+    comparison_data=TOO_BIG_DATA,
 )
-def test_expect_query_results_to_match_source_limit(multi_source_batch: MultiSourceBatch):
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT * FROM {batch} ORDER BY a",
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT * FROM {multi_source_batch.source_table_name} ORDER BY a",
+def test_expect_query_results_to_match_comparison_limit(multi_source_batch: MultiSourceBatch):
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query="SELECT * FROM {batch} ORDER BY a",
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT * FROM {multi_source_batch.comparison_table_name} ORDER BY a",
         )
     )
     assert result.success
     assert result.result["unexpected_count"] == 0
 
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT * FROM {batch} ORDER BY a",
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT * FROM {multi_source_batch.source_table_name} ORDER BY a DESC",
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query="SELECT * FROM {batch} ORDER BY a",
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT * FROM {multi_source_batch.comparison_table_name} "
+            "ORDER BY a DESC",
         )
     )
     assert not result.success
@@ -441,16 +442,17 @@ def test_expect_query_results_to_match_source_limit(multi_source_batch: MultiSou
 
 
 @multi_source_batch_setup(
-    multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
-    target_data=TARGET_DATA,
-    source_data=SOURCE_DATA,
+    multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+    base_data=BASE_DATA,
+    comparison_data=COMPARISON_DATA,
 )
-def test_expect_query_results_to_match_source_error(multi_source_batch: MultiSourceBatch):
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT b FROM {batch}",
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT invalid_column FROM {multi_source_batch.source_table_name}",
+def test_expect_query_results_to_match_comparison_error(multi_source_batch: MultiSourceBatch):
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query="SELECT b FROM {batch}",
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query="SELECT invalid_column FROM "
+            f"{multi_source_batch.comparison_table_name}",
         )
     )
     assert not result.success
@@ -463,19 +465,19 @@ OTHER_DATA_WITH_MANY_COLUMNS = pd.DataFrame({ch: [4, 5, 6] for ch in "abcdefgh"}
 
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    target_data=DATA_WITH_MANY_COLUMNS,
-    source_data=DATA_WITH_MANY_COLUMNS,
+    base_data=DATA_WITH_MANY_COLUMNS,
+    comparison_data=DATA_WITH_MANY_COLUMNS,
 )
 def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
     """NOTE: the queries here use kinda weird ordering to ensure that our output table
     actually reflects the right order.
     """
-    source_table = multi_source_batch.source_table_name
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT e, a, d, g, b, e FROM {batch} ORDER BY e",
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT g, d, g, c, e, a  FROM {source_table} ORDER BY g",
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query="SELECT e, a, d, g, b, e FROM {batch} ORDER BY e",
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT g, d, g, c, e, a  FROM {source_table} ORDER BY g",
         )
     )
     result.render()
@@ -512,19 +514,19 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
 
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    target_data=DATA_WITH_MANY_COLUMNS,
-    source_data=OTHER_DATA_WITH_MANY_COLUMNS,
+    base_data=DATA_WITH_MANY_COLUMNS,
+    comparison_data=OTHER_DATA_WITH_MANY_COLUMNS,
 )
 def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBatch):
     """NOTE: the queries here use kinda weird ordering to ensure that our output table
     actually reflects the right order.
     """
-    source_table = multi_source_batch.source_table_name
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            target_query="SELECT a, b, c, d FROM {batch} ORDER BY e",
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT e, f, g, h  FROM {source_table} ORDER BY g",
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            base_query="SELECT a, b, c, d FROM {batch} ORDER BY e",
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT e, f, g, h  FROM {source_table} ORDER BY g",
         )
     )
     result.render()
@@ -595,16 +597,16 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
 
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    source_data=pd.DataFrame({"foo": [1, 2, 3, 3]}),
-    target_data=pd.DataFrame({"bar": [1, 4, 5, 5]}),
+    comparison_data=pd.DataFrame({"foo": [1, 2, 3, 3]}),
+    base_data=pd.DataFrame({"bar": [1, 4, 5, 5]}),
 )
 def test_rendering_with_one_column(multi_source_batch: MultiSourceBatch):
-    source_table = multi_source_batch.source_table_name
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT foo FROM {source_table}",
-            target_query="SELECT bar FROM {batch}",
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT foo FROM {source_table}",
+            base_query="SELECT bar FROM {batch}",
         )
     )
     result.render()
@@ -659,4 +661,52 @@ def test_rendering_with_one_column(multi_source_batch: MultiSourceBatch):
                 },
             ),
         )
+    ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    comparison_data=pd.DataFrame({"foo": [1]}),
+    base_data=pd.DataFrame({"bar": [2]}),
+)
+def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT foo FROM {source_table}",
+            base_query="SELECT bar FROM {batch}",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                template="Observed value: $base_value",
+                params={
+                    "base_value": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 2,
+                    },
+                },
+            ),
+        ),
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                template="Expected value: $comparison_value",
+                params={
+                    "comparison_value": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 1,
+                    },
+                },
+            ),
+        ),
     ]

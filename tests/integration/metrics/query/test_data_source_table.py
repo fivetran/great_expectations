@@ -24,82 +24,82 @@ SPARK_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     SparkFilesystemCsvDatasourceTestConfig(),
 ]
 
-TARGET_DATA_FRAME = pd.DataFrame({"foo": [1, 2, 3], "bar": [4, 5, 6]})
+BASE_DATA_FRAME = pd.DataFrame({"foo": [1, 2, 3], "bar": [4, 5, 6]})
 
-SOURCE_DATA_FRAME = pd.DataFrame(
+COMPARISON_DATA_FRAME = pd.DataFrame(
     {
         "id": [1, 2, 3, 4],
         "name": ["A", "B", "C", "A"],
     },
 )
 
-BIG_SOURCE_DATA_FRAME = pd.DataFrame(
+BIG_COMPARISON_DATA_FRAME = pd.DataFrame(
     {
         "id": [i for i in range(300)],
         "name": ["A" for _ in range(300)],
     }
 )
 
-ALL_SOURCE_TO_TARGET_SOURCES = [
+ALL_COMPARISON_TO_BASE_SOURCES = [
     MultiSourceTestConfig(
-        source=PostgreSQLDatasourceTestConfig(), target=PostgreSQLDatasourceTestConfig()
+        comparison=PostgreSQLDatasourceTestConfig(), base=PostgreSQLDatasourceTestConfig()
     ),
     MultiSourceTestConfig(
-        source=PostgreSQLDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=PostgreSQLDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=SnowflakeDatasourceTestConfig(), target=SnowflakeDatasourceTestConfig()
+        comparison=SnowflakeDatasourceTestConfig(), base=SnowflakeDatasourceTestConfig()
     ),
     MultiSourceTestConfig(
-        source=SnowflakeDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=SnowflakeDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=DatabricksDatasourceTestConfig(),
-        target=DatabricksDatasourceTestConfig(),
+        comparison=DatabricksDatasourceTestConfig(),
+        base=DatabricksDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=DatabricksDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=DatabricksDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=RedshiftDatasourceTestConfig(),
-        target=RedshiftDatasourceTestConfig(),
+        comparison=RedshiftDatasourceTestConfig(),
+        base=RedshiftDatasourceTestConfig(),
     ),
     MultiSourceTestConfig(
-        source=RedshiftDatasourceTestConfig(),
-        target=SqliteDatasourceTestConfig(),
+        comparison=RedshiftDatasourceTestConfig(),
+        base=SqliteDatasourceTestConfig(),
     ),
 ]
 
 
 class TestQueryRowCount:
     @multi_source_batch_setup(
-        multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
-        target_data=TARGET_DATA_FRAME,
-        source_data=SOURCE_DATA_FRAME,
+        multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+        base_data=BASE_DATA_FRAME,
+        comparison_data=COMPARISON_DATA_FRAME,
     )
     def test_success_sql(self, multi_source_batch: MultiSourceBatch) -> None:
-        query = f"SELECT * FROM {multi_source_batch.source_table_name} WHERE name = 'A';"
-        batch = multi_source_batch.target_batch
+        query = f"SELECT * FROM {multi_source_batch.comparison_table_name} WHERE name = 'A';"
+        batch = multi_source_batch.base_batch
         metric = QueryDataSourceTable(
-            query=query, data_source_name=multi_source_batch.source_data_source_name
+            query=query, data_source_name=multi_source_batch.comparison_data_source_name
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryDataSourceTableResult)
         assert len(metric_result.value) == 2
 
     @multi_source_batch_setup(
-        multi_source_test_configs=ALL_SOURCE_TO_TARGET_SOURCES,
-        target_data=TARGET_DATA_FRAME,
-        source_data=BIG_SOURCE_DATA_FRAME,
+        multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+        base_data=BASE_DATA_FRAME,
+        comparison_data=BIG_COMPARISON_DATA_FRAME,
     )
     def test_result_is_limited_to_200_rows(self, multi_source_batch: MultiSourceBatch) -> None:
-        query = f"SELECT * FROM {multi_source_batch.source_table_name} WHERE id > 0"
-        batch = multi_source_batch.target_batch
+        query = f"SELECT * FROM {multi_source_batch.comparison_table_name} WHERE id > 0"
+        batch = multi_source_batch.base_batch
         metric = QueryDataSourceTable(
-            query=query, data_source_name=multi_source_batch.source_data_source_name
+            query=query, data_source_name=multi_source_batch.comparison_data_source_name
         )
         metric_result = batch.compute_metrics(metric)
         assert isinstance(metric_result, QueryDataSourceTableResult)

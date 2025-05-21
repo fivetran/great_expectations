@@ -45,11 +45,11 @@ EXPECTATION_SHORT_DESCRIPTION = (
     "This Expectation will check if the results of a query "
     "matches the results of a query against another Data Source."
 )
-TARGET_QUERY_DESCRIPTION = "A SQL query to be executed for this Data Asset."
-SOURCE_DATA_SOURCE_NAME_DESCRIPTION = (
+BASE_QUERY_DESCRIPTION = "A SQL query to be executed for this Data Asset."
+COMPARISON_DATA_SOURCE_NAME_DESCRIPTION = (
     "The name of the source Data Source to compare this Asset against."
 )
-SOURCE_QUERY_DESCRIPTION = "A SQL query to be executed for the source Data Source."
+COMPARISON_QUERY_DESCRIPTION = "A SQL query to be executed for the source Data Source."
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.POSTGRESQL.value,
     SupportedDataSources.SNOWFLAKE.value,
@@ -60,16 +60,16 @@ SUPPORTED_DATA_SOURCES = [
 DATA_QUALITY_ISSUES = [DataQualityIssues.MULTI_SOURCE.value]
 
 
-class ExpectQueryResultsToMatchSource(BatchExpectation):
+class ExpectQueryResultsToMatchComparison(BatchExpectation):
     __doc__ = f"""{EXPECTATION_SHORT_DESCRIPTION}
 
-    ExpectQueryResultsToMatchSource executes one SQL query for each of \
+    ExpectQueryResultsToMatchComparison executes one SQL query for each of \
     two Data Sources and compares their results. It validates that the results from \
-    the current Data Source's query matches those from the source Data Source's query, \
+    the current Data Source's query matches those from the comparison Data Source's query, \
     above a specified threshold.
 
-    - Each record returned by the `target_query` will be compared to each record \
-      returned by the `source_query`.
+    - Each record returned by the `base_query` will be compared to each record \
+      returned by the `comparison_query`.
     - The maximum number of records that will be returned for comparison from \
       each query is 200.
     - The order of records returned does not matter unless \
@@ -78,28 +78,26 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
 
     Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
     to determine pass/fail.
-        e.g. `unexpected_percent` = 10%, `mostly` = 80%, (100% - 10%) > 80% - pass
-             `unexpected_percent` = 10%, `mostly` = 91%, (100% - 10%) < 91% - fail
+        e.g.
+    `unexpected_percent` = 10%, `mostly` = 80%, (100% - 10%) > 80% - pass
+    `unexpected_percent` = 10%, `mostly` = 91%, (100% - 10%) < 91% - fail
 
 
     The Match Percentage is computed by dividing the number of matching records \
-    by the maximum number of records in either the source result or the target result.
+    by the maximum number of records in either the comparison result or the base result.
        e.g.
+    Comparison Row Count: 100  Base Row Count: 100  Matches: 100  Match Percentage: 100%
+    Comparison Row Count: 25   Base Row Count: 100  Matches: 25   Match Percentage: 25%
+    Comparison Row Count: 100  Base Row Count: 25   Matches: 1    Match Percentage: 1%
 
-    | Source Row Count | Target Row Count | Matches | Match Percentage |
-    | ---------------- | ---------------- | ------- | ---------------- |
-    | 100              | 100              | 100     | 100%             |
-    | 25               | 100              | 25      | 25%              |
-    | 100              | 25               | 1       | 1%               |
-
-    If both the target and source queries return 0 records, \
+    If both the base and comparison queries return 0 records, \
     it is considered a successful result.
 
 
     Args:
-        target_query (str): {TARGET_QUERY_DESCRIPTION}
-        source_data_source_name (str): {SOURCE_DATA_SOURCE_NAME_DESCRIPTION}
-        source_query (str): {SOURCE_QUERY_DESCRIPTION}
+        base_query (str): {BASE_QUERY_DESCRIPTION}
+        comparison_data_source_name (str): {COMPARISON_DATA_SOURCE_NAME_DESCRIPTION}
+        comparison_query (str): {COMPARISON_QUERY_DESCRIPTION}
         mostly (float): {MOSTLY_DESCRIPTION}
 
     Returns:
@@ -115,29 +113,31 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         {DATA_QUALITY_ISSUES[0]}
     """
 
-    target_query: str = pydantic.Field(description=TARGET_QUERY_DESCRIPTION)
-    source_data_source_name: str = pydantic.Field(description=SOURCE_DATA_SOURCE_NAME_DESCRIPTION)
-    source_query: str = pydantic.Field(description=SOURCE_QUERY_DESCRIPTION)
+    base_query: str = pydantic.Field(description=BASE_QUERY_DESCRIPTION)
+    comparison_data_source_name: str = pydantic.Field(
+        description=COMPARISON_DATA_SOURCE_NAME_DESCRIPTION
+    )
+    comparison_query: str = pydantic.Field(description=COMPARISON_QUERY_DESCRIPTION)
     mostly: MostlyField = 1
 
     metric_dependencies: ClassVar[Tuple[str, ...]] = (
-        "target_query.table",
-        "source_query.data_source_table",
+        "base_query.table",
+        "comparison_query.data_source_table",
     )
     success_keys: ClassVar[Tuple[str, ...]] = (
-        "target_query",
-        "source_data_source_name",
-        "source_query",
+        "base_query",
+        "comparison_data_source_name",
+        "comparison_query",
         "mostly",
     )
     domain_keys: ClassVar[Tuple[str, ...]] = ("batch_id",)
 
     class Config:
-        title = "Expect query results to match source"
+        title = "Expect query results to match comparison"
 
         @staticmethod
         def schema_extra(
-            schema: Dict[str, Any], model: Type[ExpectQueryResultsToMatchSource]
+            schema: Dict[str, Any], model: Type[ExpectQueryResultsToMatchComparison]
         ) -> None:
             BatchExpectation.Config.schema_extra(schema, model)
             schema["properties"]["metadata"]["properties"].update(
@@ -164,7 +164,7 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
     def _get_query_rendered_content(
         cls,
         renderer_configuration: RendererConfiguration,
-        query_type: Literal["source", "target"],
+        query_type: Literal["base", "comparison"],
         add_param_args: AddParamArgs,
         template_str: Optional[str] = None,
     ) -> RenderedAtomicContent:
@@ -200,9 +200,9 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> list[RenderedAtomicContent]:
-        target_query_block = cls._get_query_rendered_content(
-            query_type="target",
-            add_param_args=(("target_query", RendererValueType.STRING),),
+        base_query_block = cls._get_query_rendered_content(
+            query_type="base",
+            add_param_args=(("base_query", RendererValueType.STRING),),
             template_str=None,  # `description` should override this
             renderer_configuration=RendererConfiguration(
                 configuration=configuration,
@@ -210,20 +210,20 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                 runtime_configuration=runtime_configuration,
             ),
         )
-        source_query_block = cls._get_query_rendered_content(
-            query_type="source",
+        comparison_query_block = cls._get_query_rendered_content(
+            query_type="comparison",
             add_param_args=(
-                ("source_data_source_name", RendererValueType.STRING),
-                ("source_query", RendererValueType.STRING),
+                ("comparison_data_source_name", RendererValueType.STRING),
+                ("comparison_query", RendererValueType.STRING),
             ),
-            template_str="Compare with Data Source $source_data_source_name",
+            template_str="Compare with Data Source $comparison_data_source_name",
             renderer_configuration=RendererConfiguration(
                 configuration=configuration,
                 result=result,
                 runtime_configuration=runtime_configuration,
             ),
         )
-        return [target_query_block, source_query_block]
+        return [base_query_block, comparison_query_block]
 
     @override
     def _validate(
@@ -239,47 +239,50 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         missing_rows: list[dict[str, Any]]
         unexpected_rows: list[dict[str, Any]]
 
-        target_results: list[dict[str, Any]] = metrics["target_query.table"]
-        source_results: list[dict[str, Any]] = metrics["source_query.data_source_table"]
-        target_result_count = len(target_results)
-        source_result_count = len(source_results)
+        base_results: list[dict[str, Any]] = metrics["base_query.table"]
+        comparison_results: list[dict[str, Any]] = metrics["comparison_query.data_source_table"]
+        base_result_count = len(base_results)
+        comparison_result_count = len(comparison_results)
 
-        if target_result_count + source_result_count == 0:
+        if base_result_count + comparison_result_count == 0:
             unexpected_count = 0
             unexpected_percent = 0.0
             missing_rows = []
             unexpected_rows = []
         else:
             # creates a hashmap with row values as key and count of duplicate rows as value
-            target_results_frequency_map = Counter(tuple(row.values()) for row in target_results)
-            source_results_frequency_map = Counter(tuple(row.values()) for row in source_results)
+            base_results_frequency_map = Counter(tuple(row.values()) for row in base_results)
+            comparison_results_frequency_map = Counter(
+                tuple(row.values()) for row in comparison_results
+            )
 
-            # Get the matches: if we see a value X times in source, and Y times in target, min(X, Y)
+            # Get the matches: if we see a value X times in comparison,
+            # and Y times in base, min(X, Y)
             # is the number of matches.
             matching_counts = {
                 k: min(
-                    target_results_frequency_map.get(k, 0),
-                    source_results_frequency_map.get(k, 0),
+                    base_results_frequency_map.get(k, 0),
+                    comparison_results_frequency_map.get(k, 0),
                 )
-                for k in source_results_frequency_map
+                for k in comparison_results_frequency_map
             }
             match_count = sum(matching_counts.values())
 
-            # see docstring for explanation of why we use max of source or target here
-            unexpected_count = max(source_result_count, target_result_count) - match_count
+            # see docstring for explanation of why we use max of comparison or base here
+            unexpected_count = max(comparison_result_count, base_result_count) - match_count
             unexpected_percent = (
-                1 - (match_count / max(source_result_count, target_result_count))
+                1 - (match_count / max(comparison_result_count, base_result_count))
             ) * 100
 
             # NOTE: counter_a - counter_b reduces the numbers in counter_a to as low as 0,
             # but will not go negative
             missing_rows = self._compute_row_data(
-                col_names=self._get_column_names_from_result(source_results),
-                frequency_map=source_results_frequency_map - target_results_frequency_map,
+                col_names=self._get_column_names_from_result(comparison_results),
+                frequency_map=comparison_results_frequency_map - base_results_frequency_map,
             )
             unexpected_rows = self._compute_row_data(
-                col_names=self._get_column_names_from_result(target_results),
-                frequency_map=target_results_frequency_map - source_results_frequency_map,
+                col_names=self._get_column_names_from_result(base_results),
+                frequency_map=base_results_frequency_map - comparison_results_frequency_map,
             )
 
         success_kwargs = self._get_success_kwargs()
@@ -319,13 +322,26 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         missing_rows_table = cls._create_observed_values_table(missing_rows)
         unexpected_rows_table = cls._create_observed_values_table(unexpected_rows)
 
-        if len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
+        if (
+            len(missing_rows) == 1
+            and len(unexpected_rows) == 1
+            and len(missing_rows_cols) == 1
+            and len(unexpected_rows_cols) == 1
+        ):
+            return cls._create_single_value(
+                comparison_col_name=missing_rows_cols[0],
+                base_col_name=unexpected_rows_cols[0],
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
+            )
+        elif len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
             return cls._create_observed_values_set(
                 configuration=configuration,
                 result=result,
                 runtime_configuration=runtime_configuration,
-                source_col_name=missing_rows_cols[0],
-                target_col_name=unexpected_rows_cols[0],
+                comparison_col_name=missing_rows_cols[0],
+                base_col_name=unexpected_rows_cols[0],
             )
         else:
             return [
@@ -340,53 +356,109 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             ]
 
     @classmethod
+    def _create_single_value(
+        cls,
+        comparison_col_name: str,
+        base_col_name: str,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+    ) -> list[RenderedAtomicContent]:
+        result_details = cls._get_details_from_results(result)
+
+        renderer_configuration_base: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        base_value = result_details["unexpected_rows"][0][base_col_name]
+        renderer_configuration_base.add_param(
+            name="base_value",
+            value=base_value,
+        )
+        renderer_configuration_base.template_str = "Observed value: $base_value"
+
+        renderer_configuration_comparison: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        comparison_value = result_details["missing_rows"][0][comparison_col_name]
+        renderer_configuration_comparison.add_param(
+            name="comparison_value",
+            value=comparison_value,
+        )
+        renderer_configuration_comparison.template_str = "Expected value: $comparison_value"
+
+        return [
+            RenderedAtomicContent(
+                name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+                value=RenderedAtomicValue(
+                    template=renderer_configuration_base.template_str,
+                    params=renderer_configuration_base.params.dict(),
+                    schema={"type": "com.superconductive.rendered.string"},
+                ),
+                value_type="StringValueType",
+            ),
+            RenderedAtomicContent(
+                name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+                value=RenderedAtomicValue(
+                    template=renderer_configuration_comparison.template_str,
+                    params=renderer_configuration_comparison.params.dict(),
+                    schema={"type": "com.superconductive.rendered.string"},
+                ),
+                value_type="StringValueType",
+            ),
+        ]
+
+    @classmethod
     def _create_observed_values_set(
         cls,
-        source_col_name: str,
-        target_col_name: str,
+        comparison_col_name: str,
+        base_col_name: str,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
         result_details = cls._get_details_from_results(result)
-        source_values = [row[source_col_name] for row in result_details["missing_rows"]]
-        target_values = [row[target_col_name] for row in result_details["unexpected_rows"]]
+        comparison_values = [row[comparison_col_name] for row in result_details["missing_rows"]]
+        base_values = [row[base_col_name] for row in result_details["unexpected_rows"]]
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
             runtime_configuration=runtime_configuration,
         )
-        source_param_name = "expected_value"
-        target_param_name = "observed_value"
+        comparison_param_name = "expected_value"
+        base_param_name = "observed_value"
         expected_param_prefix = "exp__"
         ov_param_prefix = "ov__"
 
         renderer_configuration.add_param(
-            name=source_param_name,
+            name=comparison_param_name,
             param_type=RendererValueType.ARRAY,
-            value=source_values,
+            value=comparison_values,
         )
         renderer_configuration = cls._add_array_params(
-            array_param_name=source_param_name,
+            array_param_name=comparison_param_name,
             param_prefix=expected_param_prefix,
             renderer_configuration=renderer_configuration,
         )
 
         renderer_configuration.add_param(
-            name=target_param_name,
+            name=base_param_name,
             param_type=RendererValueType.ARRAY,
-            value=target_values,
+            value=base_values,
         )
         renderer_configuration = cls._add_array_params(
-            array_param_name=target_param_name,
+            array_param_name=base_param_name,
             param_prefix=ov_param_prefix,
             renderer_configuration=renderer_configuration,
         )
-        observed_value_set = set(target_values)
+        observed_value_set = set(base_values)
         sample_observed_value = next(iter(observed_value_set)) if observed_value_set else None
         expected_value_set = {
             parse_value_to_observed_type(observed_value=sample_observed_value, value=value)
-            for value in source_values
+            for value in comparison_values
         }
 
         observed_values = (

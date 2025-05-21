@@ -586,7 +586,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     def add_param(
         self,
         name: str,
-        param_type: RendererValueTypes,
+        param_type: Optional[RendererValueTypes] = None,
         value: Optional[Any] = None,
     ) -> None:
         """Adds a param that can be substituted into a template string during rendering.
@@ -594,8 +594,8 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         Attributes:
             name (str): A name for the attribute to be added to the params of this RendererConfiguration instance.
             param_type (one or a list of RendererValueTypes): The possible types for the value being substituted. If
-                more than one param_type is passed, inference based on param value will be performed, and the first
-                param_type to match the value will be selected.
+                zero or more than one param_type is passed, inference based on param value will be performed,
+                and the first param_type to match the value will be selected.
                     One of:
                      - array
                      - boolean
@@ -615,6 +615,21 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
 
         if value is None:
             value = self.kwargs.get(name)
+
+        if param_type is None:
+            param_type = sorted(
+                RendererValueType,
+                key=lambda x: (
+                    # in order to infer type correctly
+                    # object must be last in the list
+                    # as it is permissive to any value
+                    x.value == "object",
+                    # and string must be second to last
+                    # as it is permissive to string-able value
+                    x.value == "string",
+                    x.value,
+                ),
+            )
 
         if isinstance(value, dict) and "$PARAMETER" in value:
             param_type = RendererValueType.OBJECT
