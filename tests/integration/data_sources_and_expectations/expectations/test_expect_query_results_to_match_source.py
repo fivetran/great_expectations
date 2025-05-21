@@ -687,7 +687,7 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
                 template="Observed value: $base_value",
                 params={
                     "base_value": {
-                        "schema": RendererSchema(type=RendererValueType.STRING),
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
                         "value": 2,
                     },
                 },
@@ -701,7 +701,7 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
                 template="Expected value: $comparison_value",
                 params={
                     "comparison_value": {
-                        "schema": RendererSchema(type=RendererValueType.STRING),
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
                         "value": 1,
                     },
                 },

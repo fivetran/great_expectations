@@ -26,6 +26,7 @@ from great_expectations.render.components import (
 from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
+    INFER_PARAM_TYPES,
     AddParamArgs,
     CodeBlock,
     CodeBlockLanguage,
@@ -326,9 +327,11 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             and len(unexpected_rows_cols) == 1
         ):
             return cls._create_single_value(
-                result=result,
                 comparison_col_name=missing_rows_cols[0],
                 base_col_name=unexpected_rows_cols[0],
+                configuration=configuration,
+                result=result,
+                runtime_configuration=runtime_configuration,
             )
         elif len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
             return cls._create_observed_values_set(
@@ -355,22 +358,44 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         cls,
         comparison_col_name: str,
         base_col_name: str,
+        configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
     ) -> list[RenderedAtomicContent]:
         result_details = cls._get_details_from_results(result)
-        comparison_value = result_details["missing_rows"][0][comparison_col_name]
+
+        renderer_configuration_base: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
         base_value = result_details["unexpected_rows"][0][base_col_name]
+        renderer_configuration_base.add_param(
+            name="base_value",
+            param_type=INFER_PARAM_TYPES,
+            value=base_value,
+        )
+        renderer_configuration_base.template_str = "Observed value: $base_value"
+
+        renderer_configuration_comparison: RendererConfiguration = RendererConfiguration(
+            configuration=configuration,
+            result=result,
+            runtime_configuration=runtime_configuration,
+        )
+        comparison_value = result_details["missing_rows"][0][comparison_col_name]
+        renderer_configuration_comparison.add_param(
+            name="comparison_value",
+            param_type=INFER_PARAM_TYPES,
+            value=comparison_value,
+        )
+        renderer_configuration_comparison.template_str = "Expected value: $comparison_value"
+
         return [
             RenderedAtomicContent(
                 name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
                 value=RenderedAtomicValue(
-                    template="Observed value: $base_value",
-                    params={
-                        "base_value": {
-                            "schema": RendererSchema(type=RendererValueType.STRING),
-                            "value": base_value,
-                        },
-                    },
+                    template=renderer_configuration_base.template_str,
+                    params=renderer_configuration_base.params.dict(),
                     schema={"type": "com.superconductive.rendered.string"},
                 ),
                 value_type="StringValueType",
@@ -378,13 +403,8 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             RenderedAtomicContent(
                 name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
                 value=RenderedAtomicValue(
-                    template="Expected value: $comparison_value",
-                    params={
-                        "comparison_value": {
-                            "schema": RendererSchema(type=RendererValueType.STRING),
-                            "value": comparison_value,
-                        },
-                    },
+                    template=renderer_configuration_comparison.template_str,
+                    params=renderer_configuration_comparison.params.dict(),
                     schema={"type": "com.superconductive.rendered.string"},
                 ),
                 value_type="StringValueType",
