@@ -319,7 +319,18 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         missing_rows_table = cls._create_observed_values_table(missing_rows)
         unexpected_rows_table = cls._create_observed_values_table(unexpected_rows)
 
-        if len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
+        if (
+            len(missing_rows) == 1
+            and len(unexpected_rows) == 1
+            and len(missing_rows_cols) == 1
+            and len(unexpected_rows_cols) == 1
+        ):
+            return cls._create_single_value(
+                result=result,
+                comparison_col_name=missing_rows_cols[0],
+                base_col_name=unexpected_rows_cols[0],
+            )
+        elif len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
             return cls._create_observed_values_set(
                 configuration=configuration,
                 result=result,
@@ -338,6 +349,33 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
                     label="Missing records",
                 ),
             ]
+
+    @classmethod
+    def _create_single_value(
+        cls,
+        comparison_col_name: str,
+        base_col_name: str,
+        result: Optional[ExpectationValidationResult] = None,
+    ) -> list[RenderedAtomicContent]:
+        result_details = cls._get_details_from_results(result)
+        comparison_value = result_details["missing_rows"][0][comparison_col_name]
+        base_value = result_details["unexpected_rows"][0][base_col_name]
+        return [
+            RenderedAtomicContent(
+                name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+                value=RenderedAtomicValue(
+                    template=f"Observed value: ${base_value}",
+                ),
+                value_type="StringValueType",
+            ),
+            RenderedAtomicContent(
+                name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+                value=RenderedAtomicValue(
+                    template=f"Expected value: ${comparison_value}",
+                ),
+                value_type="StringValueType",
+            ),
+        ]
 
     @classmethod
     def _create_observed_values_set(
