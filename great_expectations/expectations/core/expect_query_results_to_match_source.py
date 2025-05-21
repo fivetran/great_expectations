@@ -364,14 +364,28 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
             RenderedAtomicContent(
                 name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
                 value=RenderedAtomicValue(
-                    template=f"Observed value: ${base_value}",
+                    template="Observed value: $base_value",
+                    params={
+                        "base_value": {
+                            "schema": RendererSchema(type=RendererValueType.STRING),
+                            "value": base_value,
+                        },
+                    },
+                    schema={"type": "com.superconductive.rendered.string"},
                 ),
                 value_type="StringValueType",
             ),
             RenderedAtomicContent(
                 name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
                 value=RenderedAtomicValue(
-                    template=f"Expected value: ${comparison_value}",
+                    template="Expected value: $comparison_value",
+                    params={
+                        "comparison_value": {
+                            "schema": RendererSchema(type=RendererValueType.STRING),
+                            "value": comparison_value,
+                        },
+                    },
+                    schema={"type": "com.superconductive.rendered.string"},
                 ),
                 value_type="StringValueType",
             ),
