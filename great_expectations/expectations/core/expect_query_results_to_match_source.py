@@ -26,7 +26,6 @@ from great_expectations.render.components import (
 from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
-    INFER_PARAM_TYPES,
     AddParamArgs,
     CodeBlock,
     CodeBlockLanguage,
@@ -372,7 +371,6 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         base_value = result_details["unexpected_rows"][0][base_col_name]
         renderer_configuration_base.add_param(
             name="base_value",
-            param_type=INFER_PARAM_TYPES,
             value=base_value,
         )
         renderer_configuration_base.template_str = "Observed value: $base_value"
@@ -385,7 +383,6 @@ class ExpectQueryResultsToMatchSource(BatchExpectation):
         comparison_value = result_details["missing_rows"][0][comparison_col_name]
         renderer_configuration_comparison.add_param(
             name="comparison_value",
-            param_type=INFER_PARAM_TYPES,
             value=comparison_value,
         )
         renderer_configuration_comparison.template_str = "Expected value: $comparison_value"

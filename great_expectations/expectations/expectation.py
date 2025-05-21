@@ -91,7 +91,6 @@ from great_expectations.render import (
 from great_expectations.render.exceptions import RendererConfigurationError
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
-    INFER_PARAM_TYPES,
     RendererConfiguration,
     RendererValueType,
 )
@@ -1073,7 +1072,6 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
         renderer_configuration.add_param(
             name=name,
-            param_type=INFER_PARAM_TYPES,
             value=value,
         )
 
