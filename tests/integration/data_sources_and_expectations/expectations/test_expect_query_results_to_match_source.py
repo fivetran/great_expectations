@@ -684,7 +684,6 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
             value_type="StringValueType",
             value=RenderedAtomicValue(
                 schema={"type": "com.superconductive.rendered.string"},
-                meta_notes={"format": MetaNotesFormat.STRING, "content": []},
                 template="Observed value: $base_value",
                 params={
                     "base_value": {
@@ -699,7 +698,6 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
             value_type="StringValueType",
             value=RenderedAtomicValue(
                 schema={"type": "com.superconductive.rendered.string"},
-                meta_notes={"format": MetaNotesFormat.STRING, "content": []},
                 template="Expected value: $comparison_value",
                 params={
                     "comparison_value": {
