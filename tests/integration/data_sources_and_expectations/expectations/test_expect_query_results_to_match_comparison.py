@@ -666,16 +666,16 @@ def test_rendering_with_one_column(multi_source_batch: MultiSourceBatch):
 
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    source_data=pd.DataFrame({"foo": [1]}),
-    target_data=pd.DataFrame({"bar": [2]}),
+    comparison_data=pd.DataFrame({"foo": [1]}),
+    base_data=pd.DataFrame({"bar": [2]}),
 )
 def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
-    source_table = multi_source_batch.source_table_name
-    result = multi_source_batch.target_batch.validate(
-        gxe.ExpectQueryResultsToMatchSource(
-            source_data_source_name=multi_source_batch.source_data_source_name,
-            source_query=f"SELECT foo FROM {source_table}",
-            target_query="SELECT bar FROM {batch}",
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT foo FROM {source_table}",
+            base_query="SELECT bar FROM {batch}",
         )
     )
     result.render()
