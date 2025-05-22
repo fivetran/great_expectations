@@ -6,6 +6,7 @@ import pathlib
 import re
 import tempfile
 from mimetypes import guess_type
+from pathlib import Path
 from typing import Optional
 from zipfile import ZipFile, is_zipfile
 
@@ -388,31 +389,30 @@ class HtmlSiteStore:
             if unzipped_ok:
                 return self.copy_static_assets(unzip_destdir)
 
-        for item in os.listdir(static_assets_source_dir):
+        for item in Path(static_assets_source_dir).iterdir():
+            item_name = item.name
             # Directory
-            if os.path.isdir(  # noqa: PTH112 # FIXME CoP
-                os.path.join(static_assets_source_dir, item)  # noqa: PTH118 # FIXME CoP
-            ):
-                if item in dir_exclusions:
+            if item.is_dir():
+                if item_name in dir_exclusions:
                     continue
                 # Recurse
                 new_source_dir = os.path.join(  # noqa: PTH118 # FIXME CoP
-                    static_assets_source_dir, item
+                    static_assets_source_dir, item_name
                 )
                 self.copy_static_assets(new_source_dir)
             # File
             else:
                 # Copy file over using static assets store backend
-                if item in file_exclusions:
+                if item_name in file_exclusions:
                     continue
                 source_name = os.path.join(  # noqa: PTH118 # FIXME CoP
-                    static_assets_source_dir, item
+                    static_assets_source_dir, item_name
                 )
                 with open(source_name, "rb") as f:
                     # Only use path elements starting from static/ for key
                     store_key: tuple[str, ...] = pathlib.Path(source_name).parts
                     store_key = store_key[store_key.index("static") :]
-                    content_type, content_encoding = guess_type(item, strict=False)
+                    content_type, content_encoding = guess_type(item_name, strict=False)
 
                     if content_type is None:
                         # Use GX-known content-type if possible

@@ -162,7 +162,7 @@ class _ConfigurationVariablesConfigurationProvider(_AbstractConfigurationProvide
 
             variables = dict(yaml.load(contents)) or {}
             return cast(
-                Dict[str, str],
+                "Dict[str, str]",
                 self._substitutor.substitute_all_config_variables(variables, env_vars),
             )
 

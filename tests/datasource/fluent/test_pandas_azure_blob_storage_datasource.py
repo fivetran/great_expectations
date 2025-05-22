@@ -52,13 +52,13 @@ class MockContainerClient:
 
 class MockBlobServiceClient:
     def get_container_client(self, container: str) -> azure.ContainerClient:
-        return cast(azure.ContainerClient, MockContainerClient())
+        return cast("azure.ContainerClient", MockContainerClient())
 
 
 def _build_pandas_abs_datasource(
     azure_options: Dict[str, Any] | None = None,
 ) -> PandasAzureBlobStorageDatasource:
-    azure_client: azure.BlobServiceClient = cast(azure.BlobServiceClient, MockBlobServiceClient())
+    azure_client: azure.BlobServiceClient = cast("azure.BlobServiceClient", MockBlobServiceClient())
     pandas_abs_datasource = PandasAzureBlobStorageDatasource(
         name="pandas_abs_datasource",
         azure_options=azure_options or {},

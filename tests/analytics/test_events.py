@@ -111,6 +111,7 @@ def test_event_properties(event: Event, expected_properties: dict):
         "gx_version",
         "user_agent_str",
         "mode",
+        "$process_person_profile",
     ):
         assert base_property in actual_properties
         actual_properties.pop(base_property)

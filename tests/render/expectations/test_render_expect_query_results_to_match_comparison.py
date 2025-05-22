@@ -13,11 +13,11 @@ from great_expectations.render.renderer_configuration import CodeBlock, CodeBloc
     "expectation,expected_expectation_configuration_rendered_atomic_content",
     [
         pytest.param(
-            gxe.ExpectQueryResultsToMatchSource(
+            gxe.ExpectQueryResultsToMatchComparison(
                 description="Both tables should be identical",
-                target_query="SELECT * FROM {batch}",
-                source_data_source_name="My Data Source",
-                source_query="SELECT * FROM a_table_in_source_data_source",
+                base_query="SELECT * FROM {batch}",
+                comparison_data_source_name="My Data Source",
+                comparison_query="SELECT * FROM a_table_in_source_data_source",
             ),
             [
                 RenderedAtomicContent(
@@ -25,10 +25,10 @@ from great_expectations.render.renderer_configuration import CodeBlock, CodeBloc
                     value=RenderedAtomicValue(
                         template="Both tables should be identical",
                         code_block=CodeBlock(
-                            code_template_str="$target_query", language=CodeBlockLanguage.SQL
+                            code_template_str="$base_query", language=CodeBlockLanguage.SQL
                         ),
                         params={
-                            "target_query": {
+                            "base_query": {
                                 "schema": {"type": "string"},
                                 "value": "SELECT * FROM {batch}",
                             }
@@ -40,16 +40,16 @@ from great_expectations.render.renderer_configuration import CodeBlock, CodeBloc
                 RenderedAtomicContent(
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
-                        template="Compare with Data Source $source_data_source_name",
+                        template="Compare with Data Source $comparison_data_source_name",
                         code_block=CodeBlock(
-                            code_template_str="$source_query", language=CodeBlockLanguage.SQL
+                            code_template_str="$comparison_query", language=CodeBlockLanguage.SQL
                         ),
                         params={
-                            "source_data_source_name": {
+                            "comparison_data_source_name": {
                                 "schema": {"type": "string"},
                                 "value": "My Data Source",
                             },
-                            "source_query": {
+                            "comparison_query": {
                                 "schema": {"type": "string"},
                                 "value": "SELECT * FROM a_table_in_source_data_source",
                             },
@@ -62,20 +62,20 @@ from great_expectations.render.renderer_configuration import CodeBlock, CodeBloc
             id="with_description",
         ),
         pytest.param(
-            gxe.ExpectQueryResultsToMatchSource(
-                target_query="SELECT * FROM {batch}",
-                source_data_source_name="My Data Source",
-                source_query="SELECT * FROM a_table_in_source_data_source",
+            gxe.ExpectQueryResultsToMatchComparison(
+                base_query="SELECT * FROM {batch}",
+                comparison_data_source_name="My Data Source",
+                comparison_query="SELECT * FROM a_table_in_source_data_source",
             ),
             [
                 RenderedAtomicContent(
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         code_block=CodeBlock(
-                            code_template_str="$target_query", language=CodeBlockLanguage.SQL
+                            code_template_str="$base_query", language=CodeBlockLanguage.SQL
                         ),
                         params={
-                            "target_query": {
+                            "base_query": {
                                 "schema": {"type": "string"},
                                 "value": "SELECT * FROM {batch}",
                             }
@@ -87,16 +87,16 @@ from great_expectations.render.renderer_configuration import CodeBlock, CodeBloc
                 RenderedAtomicContent(
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
-                        template="Compare with Data Source $source_data_source_name",
+                        template="Compare with Data Source $comparison_data_source_name",
                         code_block=CodeBlock(
-                            code_template_str="$source_query", language=CodeBlockLanguage.SQL
+                            code_template_str="$comparison_query", language=CodeBlockLanguage.SQL
                         ),
                         params={
-                            "source_data_source_name": {
+                            "comparison_data_source_name": {
                                 "schema": {"type": "string"},
                                 "value": "My Data Source",
                             },
-                            "source_query": {
+                            "comparison_query": {
                                 "schema": {"type": "string"},
                                 "value": "SELECT * FROM a_table_in_source_data_source",
                             },
