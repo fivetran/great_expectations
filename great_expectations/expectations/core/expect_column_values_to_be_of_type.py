@@ -413,18 +413,29 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
 
         if expected_type is None:
             success = True
+            # Default result for None expected_type;
+            # observed_value might be the type name or actual_column_type itself
+            return {
+                "success": success,
+                "result": {
+                    "observed_value": type(actual_column_type).__name__
+                    if not isinstance(actual_column_type, str)
+                    else actual_column_type
+                },
+            }
         elif execution_engine.dialect_name in [
             GXSqlDialect.DATABRICKS,
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
         ]:
-            success = (
-                isinstance(actual_column_type, str)
-                and actual_column_type.lower() == expected_type.lower()
-            )
+            # actual_column_type is a SQLAlchemy type object, e.g., sa.Integer(), sa.TIMESTAMP()
+            # str(actual_column_type) typically gives the SQL name, e.g., "INTEGER", "TIMESTAMP"
+            actual_type_name_str = str(actual_column_type)
+
+            success = actual_type_name_str.lower() == expected_type.lower()
             return {
                 "success": success,
-                "result": {"observed_value": actual_column_type},
+                "result": {"observed_value": actual_type_name_str},
             }
         else:
             types = _get_potential_sqlalchemy_types(
