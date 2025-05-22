@@ -101,7 +101,7 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
 
 7. Click **Add x Asset(s)**.
 
-8. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** issues. You can de-select recommendations you'd like to opt out of.
+8. Decide which [Anomaly Detection](/docs/cloud/overview/automating_rules.md#anomaly-detection) options you want to enable. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
 
 9. Click **Start monitoring** or **Finish**.
 

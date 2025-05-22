@@ -474,8 +474,12 @@ jobs:
           docker compose -f assets/docker/mercury/docker-compose.yml logs
 
       - name: Run the tests
-        run:
-          invoke ci-tests 'cloud' --up-services --verbose  --reports -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
+        run: invoke ci-tests 'cloud' --up-services --verbose  --reports -W default::great_expectations.datasource.fluent.GxInvalidDatasourceWarning
+
+      - name: Show cloud logs on test failure
+        if: failure()
+        run: |
+          docker compose -f assets/docker/mercury/docker-compose.yml logs
 
           # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
