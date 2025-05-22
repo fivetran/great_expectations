@@ -122,9 +122,16 @@ def test_expect_column_values_to_be_in_set_render_performance():
     assert duration_s < 1, f"Rendering took {duration_s} seconds"
 
 
-@pytest.mark.databricks
-@pytest.mark.external_sqldialect
-def test_expect_column_values_to_be_of_type_databricks_case_insensitivity(sa):
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "dialect_name",
+    [
+        GXSqlDialect.DATABRICKS,
+        GXSqlDialect.POSTGRESQL,
+        GXSqlDialect.SNOWFLAKE,
+    ],
+)
+def test_expect_column_values_to_be_of_type_case_insensitivity(sa, dialect_name):
     df = pd.DataFrame(
         {
             "datetime_col": pd.Series(
@@ -138,17 +145,15 @@ def test_expect_column_values_to_be_of_type_databricks_case_insensitivity(sa):
     validator = build_sa_validator_with_data(
         df=df,
         sa_engine_name="sqlite",  # Using sqlite as base, will mock dialect
-        table_name="databricks_type_test_table_parametrized",
+        table_name="type_test_table_parametrized",
     )
 
-    # Monkey-patch dialect to simulate Databricks
-    # validator.execution_engine.dialect_name = GXSqlDialect.DATABRICKS # Old, caused AttributeError
-    # New way: Mock the dialect_name property
+    # Mock the dialect_name property to test different SQL dialects
     with unittest.mock.patch.object(
         type(validator.execution_engine),
         "dialect_name",
         new_callable=PropertyMock,
-        return_value=GXSqlDialect.DATABRICKS,
+        return_value=dialect_name,
     ):
         column_test_configs = [
             {"col_name": "datetime_col", "canonical_type": "DATETIME", "wrong_type": "INTEGER"},
@@ -174,7 +179,8 @@ def test_expect_column_values_to_be_of_type_databricks_case_insensitivity(sa):
                 type_str = cap_func(canonical_type)
                 result = validator.expect_column_values_to_be_of_type(col_name, type_=type_str)
                 assert result.success is True, (
-                    f"Expected success=True for type='{type_str}' on column '{col_name}', "
+                    f"Expected success=True for type='{type_str}' on column '{col_name}' "
+                    f"with dialect '{dialect_name}', "
                     f"but got success={result.success}. "
                     f"Observed value: {result.result.get('observed_value')}"
                 )
@@ -182,7 +188,8 @@ def test_expect_column_values_to_be_of_type_databricks_case_insensitivity(sa):
             # Test incorrect type
             result = validator.expect_column_values_to_be_of_type(col_name, type_=wrong_type)
             assert result.success is False, (
-                f"Expected success=False for wrong_type='{wrong_type}' on column '{col_name}', "
+                f"Expected success=False for wrong_type='{wrong_type}' on column '{col_name}' "
+                f"with dialect '{dialect_name}', "
                 f"but got success={result.success}. "
                 f"Observed value: {result.result.get('observed_value')}"
             )

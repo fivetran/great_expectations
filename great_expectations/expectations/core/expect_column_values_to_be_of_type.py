@@ -413,29 +413,25 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
 
         if expected_type is None:
             success = True
-            # Default result for None expected_type;
-            # observed_value might be the type name or actual_column_type itself
-            return {
-                "success": success,
-                "result": {
-                    "observed_value": type(actual_column_type).__name__
-                    if not isinstance(actual_column_type, str)
-                    else actual_column_type
-                },
-            }
         elif execution_engine.dialect_name in [
             GXSqlDialect.DATABRICKS,
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
         ]:
-            # actual_column_type is a SQLAlchemy type object, e.g., sa.Integer(), sa.TIMESTAMP()
-            # str(actual_column_type) typically gives the SQL name, e.g., "INTEGER", "TIMESTAMP"
-            actual_type_name_str = str(actual_column_type)
+            # For these dialects, actual_column_type should be a string or CaseInsensitiveString
+            if isinstance(actual_column_type, str):
+                # CaseInsensitiveString objects will automatically do case-insensitive comparison
+                success = actual_column_type == expected_type
+            else:
+                # Handle the case where it's not a string type
+                # This should never happen, but we'll handle it just in case
+                # the column type should be converted to a CaseInsensitiveString
+                # for these three dialects in metrics/util.py:get_sqlalchemy_column_metadata
+                success = str(actual_column_type).lower() == expected_type.lower()
 
-            success = actual_type_name_str.lower() == expected_type.lower()
             return {
                 "success": success,
-                "result": {"observed_value": actual_type_name_str},
+                "result": {"observed_value": actual_column_type},
             }
         else:
             types = _get_potential_sqlalchemy_types(
