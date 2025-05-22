@@ -2,7 +2,9 @@ from typing import Any
 
 import pandas as pd
 import pytest
+from frozendict import frozendict
 
+import great_expectations.compatibility.postgresql as postgresql_dialect
 import great_expectations.expectations as gxe
 from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.render.components import (
@@ -26,6 +28,7 @@ from tests.integration.data_sources_and_expectations.data_sources.test_compariso
     ALL_COMPARISON_TO_BASE_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import SqliteDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.postgres import PostgreSQLDatasourceTestConfig
 
 SQLITE_ONLY = [
     MultiSourceTestConfig(
@@ -710,3 +713,31 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
             ),
         ),
     ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=[
+        MultiSourceTestConfig(
+            comparison=PostgreSQLDatasourceTestConfig(
+                column_types={"json_data": postgresql_dialect.postgresqltypes.JSONB}
+            ),
+            base=PostgreSQLDatasourceTestConfig(
+                column_types={"json_data": postgresql_dialect.postgresqltypes.JSONB}
+            ),
+        )
+    ],
+    # NOTE: we need to use frozendict to get the data into pandas; it comes out of the db as
+    #       a mutable dict.
+    comparison_data=pd.DataFrame({"json_data": [frozendict({"foo": "bar"})]}),
+    base_data=pd.DataFrame({"json_data": [frozendict({"foo": "bar"})]}),
+)
+def test_unhashable_data_types(multi_source_batch: MultiSourceBatch):
+    source_table = multi_source_batch.comparison_table_name
+    expectation = gxe.ExpectQueryResultsToMatchComparison(
+        comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+        comparison_query=f"SELECT * FROM {source_table}",
+        base_query="SELECT * FROM {batch}",
+    )
+
+    result = multi_source_batch.base_batch.validate(expectation)
+    assert result.exception_info["exception_message"] == "Unhashable column: json_data"
