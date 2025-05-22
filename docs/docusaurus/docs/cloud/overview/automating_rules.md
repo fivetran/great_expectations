@@ -1,16 +1,16 @@
 ---
 title: 'Automating data quality rules'
-description: Generate data quality rules to more quickly achieve test coverage for your data.
+description: Generate AI-recommended data quality rules and use Anomaly Detection to more quickly achieve test coverage for your data.
 ---
 
 With GX Cloud, you can automatically generate data quality rules to more quickly achieve test coverage for your data. This page provides an overview of the following options:
 
-- Automating [standard rules](#monitoring-common-issues) as part of adding a new Data Asset.
-- Generating [personalized AI-recommended rules](#personalizing-recommendations-with-expectai-beta) for an existing Data Asset.
+- Automating [Anomaly Detection](#anomaly-detection) rules as part of adding a new Data Asset.
+- Generating [personalized AI-recommended rules](#personalized-recommendations-with-expectai-beta) for an existing Data Asset.
 
-## Monitoring common issues
+## Anomaly Detection
 
-When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cloud by default generates Expectations to test the following common data quality issues:
+When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cloud by default generates Expectations to detect anomalies in the following:
 - [Schema](#schema)
 - [Volume](#volume)
 - [Completeness](#completeness)
@@ -19,7 +19,7 @@ When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cl
 
 ### Schema
 
-To detect schema changes, we automatically generate a rule to [**expect table columns to match set**](/reference/learn/data_quality_use_cases/schema.md#expect-table-columns-to-match-set) using the Data Asset’s initial columns as the set to match. If the number or names of columns in the Data Asset change, this Expectation will fail.
+To detect schema anomalies, we automatically generate a rule to [**expect table columns to match set**](/reference/learn/data_quality_use_cases/schema.md#expect-table-columns-to-match-set) using the Data Asset’s initial columns as the set to match. If the number or names of columns in the Data Asset change, this Expectation will fail.
 
 ### Volume
 
@@ -27,7 +27,7 @@ To detect non-increasing volume, we automatically generate a rule to [**expect t
 
 ### Completeness
 
-To detect completeness changes, we automatically generate rules for every column to [**expect column values to not be null**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-values-to-not-be-null) and/or [**expect column values to be null**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-values-to-be-null). The Expectation(s) and parameters for a column depend on the column's initial null percentage.
+To detect completeness anomalies, we automatically generate rules for every column to [**expect column values to not be null**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-values-to-not-be-null) and/or [**expect column values to be null**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-values-to-be-null). The Expectation(s) and parameters for a column depend on the column's initial null percentage.
 
 - If a column initially has no null values, GX generates one completeness Expectation to test that the column continues to have 100% non-null values.
 - If a column initially has all null values, GX generates one completeness Expectation to test that the column continues to have 100% null values.
@@ -37,7 +37,7 @@ If the null percentage changes at all for a column that started with all null va
 
 
 
-## Personalizing recommendations with ExpectAI <span class="beta">Beta</span>
+## Personalized recommendations with ExpectAI <span class="beta">Beta</span>
 
 [ExpectAI (BETA)](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) performs deep analysis on a given Data Asset to set Expectations based on patterns in the data. These AI-recommended data quality rules are sometimes based on anomalies detected in the data, so they may fail on the first validation to bring your attention to potential problems.  
 

@@ -14,6 +14,18 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.4.5
+* [DOCS] ExpectAI for all Data Sources ([#11178](https://github.com/great-expectations/great_expectations/pull/11178))
+* [MAINTENANCE] Fix nightly data source cleanup action setup ([#11176](https://github.com/great-expectations/great_expectations/pull/11176))
+* [MAINTENANCE] pre-commit autoupdate ([#10480](https://github.com/great-expectations/great_expectations/pull/10480))
+* [MAINTENANCE] Do not fail tests on snowflake ssl connection warning. ([#11180](https://github.com/great-expectations/great_expectations/pull/11180))
+* [MAINTENANCE] Upgrade ruff ([#11182](https://github.com/great-expectations/great_expectations/pull/11182))
+* [MAINTENANCE] Update Posthog analytics events ([#11179](https://github.com/great-expectations/great_expectations/pull/11179))
+* [MAINTENANCE] Rename multi-source Expectation and parameters ([#11185](https://github.com/great-expectations/great_expectations/pull/11185))
+* [MAINTENANCE] Add single value rendering path to multi-source Expectation ([#11186](https://github.com/great-expectations/great_expectations/pull/11186))
+* [CONTRIB] use existing LRU cache for secrets store ([#11184](https://github.com/great-expectations/great_expectations/pull/11184)) (thanks @ThiloSchneider-fraport)
+* [CONTRIB] add GEOMETRY, and SUPER types to REDSHIFT_TYPES ([#11183](https://github.com/great-expectations/great_expectations/pull/11183)) (thanks @VolkovGeoPhy)
+
 ### 1.4.4
 * [FEATURE] Compute missing/unexpected rows for ExpectQueryResultsToMatchSource ([#11161](https://github.com/great-expectations/great_expectations/pull/11161))
 * [FEATURE] ExpectQueryResultsToMatchSource table diagnostic renderer ([#11168](https://github.com/great-expectations/great_expectations/pull/11168))
