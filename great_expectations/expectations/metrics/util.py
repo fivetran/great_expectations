@@ -325,6 +325,10 @@ class CaseInsensitiveString(str):
 
     @override
     def __eq__(self, other: CaseInsensitiveString | str | object):
+        # Handle mock ANY or similar objects that would claim equality with anything
+        if hasattr(other, "__eq__") and other.__eq__(self):
+            return True
+
         if self.is_quoted():
             return self._original == str(other)
         if isinstance(other, CaseInsensitiveString):
