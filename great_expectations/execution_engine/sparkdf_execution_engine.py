@@ -271,7 +271,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
 
         spark_session: pyspark.SparkSession
         try:
-            spark_session = pyspark.SparkConnectSession.builder.getOrCreate()
+            spark_session = pyspark.SparkConnectSession.builder.getOrCreate()  # type: ignore [assignment]
         except (ModuleNotFoundError, ValueError, KeyError):
             spark_session = pyspark.SparkSession.builder.getOrCreate()
 
