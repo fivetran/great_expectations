@@ -320,7 +320,9 @@ class CaseInsensitiveString(str):
     def __init__(self, string: str):
         # TODO: check if string is already a CaseInsensitiveString?
         self._original = string
-        self._lower = string.lower()
+        self._folded = (
+            string.casefold()
+        )  # Using casefold instead of lower for better Unicode handling
         self._quote_string = '"'
 
     @override
@@ -332,14 +334,14 @@ class CaseInsensitiveString(str):
         if self.is_quoted():
             return self._original == str(other)
         if isinstance(other, CaseInsensitiveString):
-            return self._lower == other._lower
+            return self._folded == other._folded
         elif isinstance(other, str):
-            return self._lower == other.lower()
+            return self._folded == other.casefold()
         else:
             return False
 
     def __hash__(self):  # type: ignore[explicit-override] # FIXME
-        return hash(self._lower)
+        return hash(self._folded)
 
     @override
     def __str__(self) -> str:
