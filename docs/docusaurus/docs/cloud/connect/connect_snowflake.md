@@ -11,9 +11,9 @@ import Tabs from '@theme/Tabs';
 
 - You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
 
-- You have a Snowflake database, schema, and table.
+- You have a Snowflake database, schema, and table or view.
 
-- You have a [Snowflake account](https://docs.snowflake.com/en/user-guide-admin) with USAGE privileges on the table, database, and schema you are validating, and you have SELECT privileges on the table you are validating.
+- You have a [Snowflake account](https://docs.snowflake.com/en/user-guide-admin) with USAGE privileges on the table or view, database, and schema you are validating, and you have SELECT privileges on the table or view you are validating.
    - Optional. To improve data security, GX recommends using a separate Snowflake user service account to connect to GX Cloud.
    - Optional. To streamline automations and improve security, you can connect to Snowflake with key-pair authentication instead of a password. Note that this requires using GX Core in combination with GX Cloud.
 
@@ -47,12 +47,15 @@ Depending on your Snowflake permissions, you may need to ask an admin on your te
    grant usage on database <YOUR_DATABASE> to role gx_role;
    grant usage on schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;
    grant select on all tables in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;
+   grant select on all views in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;
    grant select on future tables in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role; 
-   -- Gives the user with the gx_role role access to all future tables in the defined schema.
+   grant select on future views in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role; 
+   -- Gives the user with the gx_role role access to all future tables and views in the defined schema.
    ```
 
    - Replace `YOUR_PASSWORD` with your value and `YOUR_DATABASE` and `YOUR_SCHEMA` with the names of the database and schema you want to access in GX Cloud.
    - `grant select on future tables in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;` is optional and gives the user with the `gx_role` role access to all future tables in the defined schema.
+   - `grant select on future views in schema <YOUR_DATABASE>.<YOUR_SCHEMA> to role gx_role;` is optional and gives the user with the `gx_role` role access to all future views in the defined schema.
    - The settings in the code example optimize cost and performance. Adjust them to suit your business requirements.
 
 3. Select **Run All** to define your user password, create a new GX role (`gx_role`), assign the password and role to a new user (`gx_user`), create a new warehouse (`gx_wh`), and allow the user with the `gx_role` role to access data on the Snowflake database and schema.
@@ -91,7 +94,7 @@ Then, you can use GX Cloud to [add a Data Asset](/cloud/data_assets/manage_data_
 
       - **Database**: Enter the name of the Snowflake database where the data you want to validate is stored. In Snowsight, click **Data** > **Databases**. In the Snowflake Classic Console, click **Databases**.
  
-      - **Schema**: Enter the name of the Snowflake schema (table) where the data you want to validate is stored.
+      - **Schema**: Enter the name of the Snowflake schema where the data you want to validate is stored.
 
       - **Warehouse**: Enter the name of your Snowflake database warehouse. In Snowsight, click **Admin** > **Warehouses**. In the Snowflake Classic Console, click **Warehouses**.
 
@@ -105,7 +108,7 @@ Then, you can use GX Cloud to [add a Data Asset](/cloud/data_assets/manage_data_
    
 5. Click **Connect**.
 
-6. Select one or more tables to import as Data Assets.
+6. Select one or more tables or views to import as Data Assets.
 
 7. Click **Add x Asset(s)**.
 
