@@ -16,8 +16,8 @@ An Expectation is a verifiable assertion about your data. They make implicit ass
 
 The following table lists the available GX Cloud Expectations.
 
-| Data quality issue |                    Expectation                       |                                                               Description                                                              | Dynamic Parameters? |
-|------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+| Data quality issue |                    Expectation                       | Description                                                                                                                            | Dynamic Parameters? |
+|------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|-------------------|
 | Completeness       | **column values to be null**                         | Expect the column values to be null.                                                                                                   | Yes                 |
 | Completeness       | **column values to not be null**                     | Expect the column values to not be null.                                                                                               | Yes                 |
 | Numeric            | **column max to be between**                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 |
@@ -30,13 +30,13 @@ The following table lists the available GX Cloud Expectations.
 | Numeric            | **column values to be between**                      | Expect the column entries to be between a minimum value and a maximum value.                                                           | No                  |
 | Numeric            | **column z scores to be less than**                  | Expect the Z-scores of a column's values to be less than a given threshold.                                                            | No                  |
 | Numeric            | **multicolumn sum to equal**                         | Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.             | No                  |
-| Schema             | **column to exist**                                  | Checks for the existence of a specified column within a table.                                                                         | No                  |
+| Schema             | **column to exist**                                  | Checks for the existence of a specified column within a table or view.                                                                 | No                  |
 | Schema             | **column values to be in type list**                 | Expect a column to contain values from a specified type list.                                                                          | No                  |
 | Schema             | **column values to be of type**                      | Expect a column to contain values of a specified data type.                                                                            | No                  |
-| Schema             | **table column count to be between**                 | Expect the number of columns in a table to be between two values.                                                                      | Yes                 |
-| Schema             | **table column count to equal**                      | Expect the number of columns in a table to equal a value.                                                                              | No                  |
-| Schema             | **table columns to match ordered list**              | Expect the columns in a table to exactly match a specified list.                                                                       | No                  |
-| Schema             | **table columns to match set**                       | Expect the columns in a table to match an unordered set.                                                                               | No                  |
+| Schema             | **table column count to be between**                 | Expect the number of columns in a table or view to be between two values.                                                              | Yes                 |
+| Schema             | **table column count to equal**                      | Expect the number of columns in a table or view to equal a value.                                                                      | No                  |
+| Schema             | **table columns to match ordered list**              | Expect the columns in a table or view to exactly match a specified list.                                                               | No                  |
+| Schema             | **table columns to match set**                       | Expect the columns in a table or view to match an unordered set.                                                                       | No                  |
 | Uniqueness         | **column distinct values to be in set**              | Expect the set of distinct column values to be contained by a given set.                                                               | No                  |
 | Uniqueness         | **column distinct values to contain set**            | Expect the set of distinct column values to contain a given set.                                                                       | No                  |
 | Uniqueness         | **column distinct values to equal set**              | Expect the set of distinct column values to equal a given set.                                                                         | No                  |
@@ -61,7 +61,7 @@ The following table lists the available GX Cloud Expectations.
 | Validity           | **column values to not match regex list**            | Expect the column entries to be strings that do not match any of a list of regular expressions. Matches can be anywhere in the string. | No                  |
 | Volume             | **table row count to be between**                    | Expect the number of rows to be between two values.                                                                                    | Yes                 |
 | Volume             | **table row count to equal**                         | Expect the number of rows to equal a value.                                                                                            | No                  |
-| Volume             | **table row count to equal other table**             | Expect the number of rows to equal the number in another table within the same database.                                               | No                  |
+| Volume             | **table row count to equal other table**             | Expect the number of rows to equal the number in another table or view within the same database.                                       | No                  |
 
 
 ## Custom SQL Expectations
