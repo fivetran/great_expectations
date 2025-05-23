@@ -47,6 +47,8 @@ class SqlAlchemyDataSampler(DataSampler):
         if where_clause is None:
             if execution_engine.dialect_name == GXSqlDialect.SQLITE:
                 where_clause = sa.text("1 = 1")  # type: ignore[assignment] # FIXME CoP
+            elif execution_engine.dialect_name == GXSqlDialect.MSSQL:
+                where_clause = sa.text("1 = 1") # fix for {batch} error
             else:
                 where_clause = sa.true()  # type: ignore[assignment] # FIXME CoP
 
