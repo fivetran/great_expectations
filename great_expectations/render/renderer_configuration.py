@@ -58,7 +58,6 @@ class RendererValueType(str, Enum):
     NUMBER = "number"
     OBJECT = "object"
     STRING = "string"
-    UUID = "uuid"
 
     @classmethod
     def from_value(cls, value: Any) -> RendererValueType:  # noqa: PLR0911
