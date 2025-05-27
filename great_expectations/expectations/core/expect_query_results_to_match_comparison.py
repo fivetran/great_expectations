@@ -4,6 +4,7 @@ from collections import Counter
 from functools import cmp_to_key
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Optional, Tuple, Type, Union
 
+from great_expectations import exceptions
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.result_format import ResultFormat
@@ -251,10 +252,8 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
             unexpected_rows = []
         else:
             # creates a hashmap with row values as key and count of duplicate rows as value
-            base_results_frequency_map = Counter(tuple(row.values()) for row in base_results)
-            comparison_results_frequency_map = Counter(
-                tuple(row.values()) for row in comparison_results
-            )
+            base_results_frequency_map = self._rows_to_frequency_map(base_results)
+            comparison_results_frequency_map = self._rows_to_frequency_map(comparison_results)
 
             # Get the matches: if we see a value X times in comparison,
             # and Y times in base, min(X, Y)
@@ -303,6 +302,25 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
                     },
                 },
             }
+
+    def _rows_to_frequency_map(self, rows: list[dict[str, Any]]) -> Counter[tuple]:
+        try:
+            return Counter(tuple(row.values()) for row in rows)
+        except TypeError as e:
+            if "unhashable type" in str(e):
+                col_name = self._get_first_unhashable_column(rows)
+                raise exceptions.UnhashableColumnError(col_name) from e
+            else:
+                raise e from e
+
+    def _get_first_unhashable_column(self, rows: list[dict[str, Any]]) -> str:
+        for row in rows:
+            for col, value in row.items():
+                try:
+                    hash(value)
+                except TypeError:
+                    return col
+        raise ValueError
 
     @override
     @classmethod
