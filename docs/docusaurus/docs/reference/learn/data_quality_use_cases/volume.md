@@ -145,7 +145,7 @@ The scenarios in this section outline common real-world use cases for data volum
 
 ### Data reconciliation across systems
 
-**Context**: In many organizations, data is often stored and processed across multiple systems, such as source systems, data warehouses, and reporting databases. Ensuring data consistency across these systems is crucial for accurate reporting and decision-making. For example, in a banking environment, data might be stored in core banking platforms, data warehouses, and reporting databases, and ensuring consistency across these systems is essential for regulatory compliance and accurate financial reporting.
+**Context**: In many organizations, data is often stored and processed across multiple systems, such as source systems, data warehouses, and reporting databases. Ensuring data consistency across these systems is crucial for accurate reporting and decision-making. For example, in a banking environment, data might be stored in banking platforms, data warehouses, and reporting databases, and ensuring consistency across these systems is essential for regulatory compliance and accurate financial reporting.
 
 **GX solution**: Implement checks using `ExpectTableRowCountToEqualOtherTable` to ensure data volume consistency between source and target systems in a data reconciliation process.
 
