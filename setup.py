@@ -2,8 +2,9 @@ import os
 import re
 from pathlib import Path
 
+import packaging.requirements
+
 # https://setuptools.pypa.io/en/latest/pkg_resources.html
-import pkg_resources  # noqa: TID251  # TODO: switch to poetry
 from setuptools import find_packages, setup
 
 import versioneer
@@ -72,7 +73,7 @@ def get_extras_require():
         if key in ignore_keys:
             continue
         with open(file_path) as f:
-            parsed = [str(req) for req in pkg_resources.parse_requirements(f)]
+            parsed = [str(packaging.requirements.Requirement(req)) for req in f]
             results[key] = parsed
 
     lite = results.pop("lite")
