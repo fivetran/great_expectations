@@ -607,18 +607,16 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         ]
         output_rows: list[list[RendererTableValue]] = []
         for row in rows:
+            output_row_values = []
             for col_name in col_names:
                 if row[col_name] is not None:
-                    output_rows.append(
-                        [
-                            RendererTableValue(
-                                schema=RendererSchema(
-                                    type=RendererValueType.from_value(row[col_name])
-                                ),
-                                value=row[col_name],
-                            )
-                        ]
+                    output_row_values.append(
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
+                            value=row[col_name],
+                        )
                     )
+            output_rows.append(output_row_values)
 
         return [header_row, *output_rows]
 
