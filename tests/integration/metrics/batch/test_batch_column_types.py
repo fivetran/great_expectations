@@ -99,8 +99,8 @@ def test_snowflake_success(batch_for_datasource: Batch) -> None:
     metric_result = batch.compute_metrics(metric)
     assert isinstance(metric_result, BatchColumnTypesResult)
     assert metric_result.value == [
-        {"name": "numbers", "type": "NUMBER"},
-        {"name": "strings", "type": "VARCHAR"},
+        {"name": "numbers", "type": "DECIMAL(38, 0)"},
+        {"name": "strings", "type": "VARCHAR(16777216)"},
     ]
 
 
