@@ -527,7 +527,7 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         ),
         name="ExpectMulticolumnSumToEqual",
     ),
-        PrintableDefinition(
+    PrintableDefinition(
         file=pathlib.Path(
             "great_expectations/expectations/core/expect_query_results_to_match_comparison.py"
         ),
