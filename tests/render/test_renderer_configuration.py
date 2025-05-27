@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Union
 
@@ -307,6 +308,8 @@ def test_add_array_params():
         (3.14, RendererValueType.NUMBER),
         ({"foo": "bar"}, RendererValueType.OBJECT),
         ("hello world!", RendererValueType.STRING),
+        (uuid.uuid4(), RendererValueType.STRING),
+        (None, RendererValueType.STRING),
     ],
 )
 @pytest.mark.unit
