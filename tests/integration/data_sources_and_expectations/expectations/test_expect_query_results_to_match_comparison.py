@@ -488,34 +488,7 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
     )
     result.render()
 
-    assert result.rendered_content == [
-        RenderedAtomicContent(
-            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
-            value=RenderedAtomicValue(
-                template="Unexpected records: $row_count",
-                params={
-                    "row_count": {
-                        "schema": RendererSchema(type=RendererValueType.NUMBER),
-                        "value": 0,
-                    }
-                },
-            ),
-            value_type="TableType",
-        ),
-        RenderedAtomicContent(
-            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
-            value=RenderedAtomicValue(
-                template="Missing records: $row_count",
-                params={
-                    "row_count": {
-                        "schema": RendererSchema(type=RendererValueType.NUMBER),
-                        "value": 0,
-                    }
-                },
-            ),
-            value_type="TableType",
-        ),
-    ]
+    assert result.rendered_content == []
 
 
 @multi_source_batch_setup(
@@ -715,6 +688,116 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
                 },
             ),
         ),
+    ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    comparison_data=pd.DataFrame({"foo": [1, 2, 3]}),
+    base_data=pd.DataFrame({"bar": []}),
+)
+def test_rendering_only_missing_rows_single_column(multi_source_batch: MultiSourceBatch):
+    """Test rendering when only missing_rows exist with single column."""
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT foo FROM {source_table}",
+            base_query="SELECT bar FROM {batch}",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                meta_notes={"format": MetaNotesFormat.STRING, "content": []},
+                template="$exp__0 $exp__1 $exp__2",
+                params={
+                    "expected_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [1, 2, 3],
+                    },
+                    "observed_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [],
+                    },
+                    "exp__0": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 1,
+                    },
+                    "exp__1": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 2,
+                    },
+                    "exp__2": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 3,
+                    },
+                },
+            ),
+        )
+    ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    comparison_data=pd.DataFrame({"foo": []}),
+    base_data=pd.DataFrame({"bar": [1, 2, 3]}),
+)
+def test_rendering_only_unexpected_rows_single_column(multi_source_batch: MultiSourceBatch):
+    """Test rendering when only unexpected_rows exist with single column."""
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT foo FROM {source_table}",
+            base_query="SELECT bar FROM {batch}",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                meta_notes={"format": MetaNotesFormat.STRING, "content": []},
+                template="$ov__0 $ov__1 $ov__2",
+                params={
+                    "expected_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [],
+                    },
+                    "observed_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [1, 2, 3],
+                    },
+                    "ov__0": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 1,
+                    },
+                    "ov__1": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 2,
+                    },
+                    "ov__2": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 3,
+                    },
+                },
+            ),
+        )
     ]
 
 

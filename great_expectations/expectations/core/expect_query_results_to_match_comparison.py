@@ -340,7 +340,9 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         missing_rows_table = cls._create_observed_values_table(missing_rows)
         unexpected_rows_table = cls._create_observed_values_table(unexpected_rows)
 
-        if (
+        if len(missing_rows) == 0 and len(unexpected_rows) == 0:
+            return []
+        elif (
             len(missing_rows) == 1
             and len(unexpected_rows) == 1
             and len(missing_rows_cols) == 1
@@ -353,13 +355,13 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
                 result=result,
                 runtime_configuration=runtime_configuration,
             )
-        elif len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
+        elif len(missing_rows_cols) <= 1 and len(unexpected_rows_cols) <= 1:
             return cls._create_observed_values_set(
+                comparison_col_name=missing_rows_cols[0] if missing_rows_cols else None,
+                base_col_name=unexpected_rows_cols[0] if unexpected_rows_cols else None,
                 configuration=configuration,
                 result=result,
                 runtime_configuration=runtime_configuration,
-                comparison_col_name=missing_rows_cols[0],
-                base_col_name=unexpected_rows_cols[0],
             )
         else:
             return [
@@ -432,15 +434,31 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     @classmethod
     def _create_observed_values_set(
         cls,
-        comparison_col_name: str,
-        base_col_name: str,
+        comparison_col_name: Optional[str] = None,
+        base_col_name: Optional[str] = None,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
         result_details = cls._get_details_from_results(result)
-        comparison_values = [row[comparison_col_name] for row in result_details["missing_rows"]]
-        base_values = [row[base_col_name] for row in result_details["unexpected_rows"]]
+        comparison_values = (
+            [
+                row[comparison_col_name]
+                for row in result_details["missing_rows"]
+                if row[comparison_col_name] is not None
+            ]
+            if comparison_col_name
+            else []
+        )
+        base_values = (
+            [
+                row[base_col_name]
+                for row in result_details["unexpected_rows"]
+                if row[base_col_name] is not None
+            ]
+            if base_col_name
+            else []
+        )
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
@@ -589,15 +607,16 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         ]
         output_rows: list[list[RendererTableValue]] = []
         for row in rows:
-            output_rows.append(
-                [
-                    RendererTableValue(
-                        schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
-                        value=row[col_name],
+            output_row_values = []
+            for col_name in col_names:
+                if row[col_name] is not None:
+                    output_row_values.append(
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
+                            value=row[col_name],
+                        )
                     )
-                    for col_name in col_names
-                ]
-            )
+            output_rows.append(output_row_values)
 
         return [header_row, *output_rows]
 
