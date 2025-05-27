@@ -56,7 +56,7 @@ import Tabs from '@theme/Tabs';
 
 4. Click **Connect**.
 
-5. Select one or more tables to import as Data Assets.
+5. Select one or more tables or views to import as Data Assets.
 
 6. Click **Add x Asset(s)**.
 
