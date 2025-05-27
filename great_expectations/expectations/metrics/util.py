@@ -327,14 +327,19 @@ class CaseInsensitiveString(str):
 
     @override
     def __eq__(self, other: CaseInsensitiveString | str | object):
+        # First check if it's another CaseInsensitiveString to avoid recursion
+        if isinstance(other, CaseInsensitiveString):
+            if self.is_quoted() or other.is_quoted():
+                return self._original == other._original
+            return self._folded == other._folded
+
         # Handle mock ANY or similar objects that would claim equality with anything
-        if hasattr(other, "__eq__") and other.__eq__(self):
+        # Only for non-CaseInsensitiveString objects to avoid recursion
+        if hasattr(other, "__eq__") and not isinstance(other, str) and other.__eq__(self):
             return True
 
         if self.is_quoted():
             return self._original == str(other)
-        if isinstance(other, CaseInsensitiveString):
-            return self._folded == other._folded
         elif isinstance(other, str):
             return self._folded == other.casefold()
         else:
