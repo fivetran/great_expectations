@@ -688,7 +688,7 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
     comparison_data=pd.DataFrame({"foo": [1, 2, 3]}),
-    base_data=pd.DataFrame({"bar": []}),  # Empty base data
+    base_data=pd.DataFrame({"bar": []}),
 )
 def test_rendering_only_missing_rows_single_column(multi_source_batch: MultiSourceBatch):
     """Test rendering when only missing_rows exist with single column."""
@@ -697,7 +697,7 @@ def test_rendering_only_missing_rows_single_column(multi_source_batch: MultiSour
         gxe.ExpectQueryResultsToMatchComparison(
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
             comparison_query=f"SELECT foo FROM {source_table}",
-            base_query="SELECT bar FROM {batch} WHERE 1=0",  # Force empty result
+            base_query="SELECT bar FROM {batch}",
         )
     )
     result.render()
@@ -742,7 +742,7 @@ def test_rendering_only_missing_rows_single_column(multi_source_batch: MultiSour
 
 @multi_source_batch_setup(
     multi_source_test_configs=SQLITE_ONLY,
-    comparison_data=pd.DataFrame({"foo": []}),  # Empty comparison data
+    comparison_data=pd.DataFrame({"foo": []}),
     base_data=pd.DataFrame({"bar": [1, 2, 3]}),
 )
 def test_rendering_only_unexpected_rows_single_column(multi_source_batch: MultiSourceBatch):
@@ -751,7 +751,7 @@ def test_rendering_only_unexpected_rows_single_column(multi_source_batch: MultiS
     result = multi_source_batch.base_batch.validate(
         gxe.ExpectQueryResultsToMatchComparison(
             comparison_data_source_name=multi_source_batch.comparison_data_source_name,
-            comparison_query=f"SELECT foo FROM {source_table} WHERE 1=0",  # Force empty result
+            comparison_query=f"SELECT foo FROM {source_table}",
             base_query="SELECT bar FROM {batch}",
         )
     )
