@@ -482,34 +482,7 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
     )
     result.render()
 
-    assert result.rendered_content == [
-        RenderedAtomicContent(
-            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
-            value=RenderedAtomicValue(
-                template="Unexpected records: $row_count",
-                params={
-                    "row_count": {
-                        "schema": RendererSchema(type=RendererValueType.NUMBER),
-                        "value": 0,
-                    }
-                },
-            ),
-            value_type="TableType",
-        ),
-        RenderedAtomicContent(
-            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
-            value=RenderedAtomicValue(
-                template="Missing records: $row_count",
-                params={
-                    "row_count": {
-                        "schema": RendererSchema(type=RendererValueType.NUMBER),
-                        "value": 0,
-                    }
-                },
-            ),
-            value_type="TableType",
-        ),
-    ]
+    assert result.rendered_content == []
 
 
 @multi_source_batch_setup(
@@ -710,27 +683,6 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
             ),
         ),
     ]
-
-
-@multi_source_batch_setup(
-    multi_source_test_configs=SQLITE_ONLY,
-    comparison_data=pd.DataFrame({"foo": [1, 2, 3]}),
-    base_data=pd.DataFrame({"foo": [1, 2, 3]}),
-)
-def test_rendering_empty_missing_and_unexpected(multi_source_batch: MultiSourceBatch):
-    """Test rendering when both missing_rows and unexpected_rows are empty."""
-    source_table = multi_source_batch.comparison_table_name
-    result = multi_source_batch.base_batch.validate(
-        gxe.ExpectQueryResultsToMatchComparison(
-            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
-            comparison_query=f"SELECT foo FROM {source_table}",
-            base_query="SELECT foo FROM {batch}",
-        )
-    )
-    result.render()
-
-    # When both missing_rows and unexpected_rows are empty, should return empty list
-    assert result.rendered_content == []
 
 
 @multi_source_batch_setup(
