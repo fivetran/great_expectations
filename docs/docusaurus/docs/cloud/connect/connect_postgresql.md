@@ -32,7 +32,6 @@ import Tabs from '@theme/Tabs';
     GRANT CONNECT ON DATABASE <your_database> TO gx_role;
     GRANT USAGE ON SCHEMA public TO gx_role;
     GRANT SELECT ON ALL TABLES in SCHEMA public TO gx_role;
-    GRANT SELECT ON ALL VIEWS in SCHEMA public TO gx_role;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO gx_role
    ```
 
