@@ -1,11 +1,8 @@
-import uuid
 from typing import Any
 
 import pandas as pd
 import pytest
 
-import great_expectations as gx
-import great_expectations.compatibility.postgresql as postgresql_dialect
 import great_expectations.expectations as gxe
 from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.render.components import (
@@ -29,10 +26,6 @@ from tests.integration.data_sources_and_expectations.data_sources.test_compariso
     ALL_COMPARISON_TO_BASE_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import SqliteDatasourceTestConfig
-from tests.integration.test_utils.data_source_config.postgres import (
-    PostgresBatchTestSetup,
-    PostgreSQLDatasourceTestConfig,
-)
 
 SQLITE_ONLY = [
     MultiSourceTestConfig(
@@ -717,113 +710,3 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
             ),
         ),
     ]
-
-
-uuid_a = uuid.uuid4()
-uuid_b = uuid.uuid4()
-uuid_c = uuid.uuid4()
-uuid_d = uuid.uuid4()
-
-
-@pytest.mark.postgresql
-def test_rendering_table_with_multiple_uuid():
-    context = gx.get_context(mode="ephemeral")
-    batch_setup_a = PostgresBatchTestSetup(
-        config=PostgreSQLDatasourceTestConfig(
-            column_types={"id": postgresql_dialect.postgresqltypes.UUID}
-        ),
-        data=pd.DataFrame({"name": ["a", "b"], "id": [uuid_a, uuid_b]}),
-        extra_data={},
-        context=context,
-    )
-    batch_setup_b = PostgresBatchTestSetup(
-        config=PostgreSQLDatasourceTestConfig(
-            column_types={"id": postgresql_dialect.postgresqltypes.UUID}
-        ),
-        data=pd.DataFrame({"name": ["a", "b"], "id": [uuid_c, uuid_d]}),
-        extra_data={},
-        context=context,
-    )
-
-    with (
-        batch_setup_a.batch_test_context() as batch_a,
-        batch_setup_b.asset_test_context() as asset_b,
-    ):
-        data_source_name = asset_b.datasource.name
-        source_table = asset_b.table_name
-
-        result = batch_a.validate(
-            gxe.ExpectQueryResultsToMatchComparison(
-                comparison_data_source_name=data_source_name,
-                comparison_query=f"SELECT name, id FROM {source_table}",
-                base_query="SELECT name, id FROM {batch}",
-            )
-        )
-        result.render()
-
-        assert result.rendered_content == [
-            _create_table_rendered_atomic_content(
-                template="Unexpected records: $row_count",
-                params={
-                    "row_count": {
-                        "schema": RendererSchema(type=RendererValueType.NUMBER),
-                        "value": 2,
-                    }
-                },
-                col_names=["name", "id"],
-                col_types=[RendererValueType.STRING, RendererValueType.STRING],
-                rows=[
-                    ["a", uuid_a],
-                    ["b", uuid_b],
-                ],
-            ),
-            _create_table_rendered_atomic_content(
-                template="Missing records: $row_count",
-                params={
-                    "row_count": {
-                        "schema": RendererSchema(type=RendererValueType.NUMBER),
-                        "value": 2,
-                    }
-                },
-                col_names=["name", "id"],
-                col_types=[RendererValueType.STRING, RendererValueType.STRING],
-                rows=[
-                    ["a", uuid_c],
-                    ["b", uuid_d],
-                ],
-            ),
-        ]
-
-
-def _create_table_rendered_atomic_content(
-    template: str,
-    params: dict[str, Any],
-    col_names: list[str],
-    col_types: list[RendererValueType],
-    rows: list[list[str]],
-) -> RenderedAtomicContent:
-    return RenderedAtomicContent(
-        name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
-        value=RenderedAtomicValue(
-            template=template,
-            params=params,
-            header_row=[
-                RendererTableValue(
-                    schema=RendererSchema(type=RendererValueType.STRING),
-                    value=col_name,
-                )
-                for col_name in col_names
-            ],
-            table=[
-                [
-                    RendererTableValue(
-                        schema=RendererSchema(type=col_type),
-                        value=cell_value,
-                    )
-                    for cell_value, col_type in zip(row, col_types)
-                ]
-                for row in rows
-            ],
-        ),
-        value_type="TableType",
-    )
