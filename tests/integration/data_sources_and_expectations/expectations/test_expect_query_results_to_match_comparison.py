@@ -773,8 +773,8 @@ def test_rendering_table_with_multiple_uuid():
                 col_names=["name", "id"],
                 col_types=[RendererValueType.STRING, RendererValueType.STRING],
                 rows=[
-                    ["a", str(uuid_a)],
-                    ["b", str(uuid_b)],
+                    ["a", uuid_a],
+                    ["b", uuid_b],
                 ],
             ),
             _create_table_rendered_atomic_content(
@@ -788,8 +788,8 @@ def test_rendering_table_with_multiple_uuid():
                 col_names=["name", "id"],
                 col_types=[RendererValueType.STRING, RendererValueType.STRING],
                 rows=[
-                    ["a", str(uuid_c)],
-                    ["b", str(uuid_d)],
+                    ["a", uuid_c],
+                    ["b", uuid_d],
                 ],
             ),
         ]
