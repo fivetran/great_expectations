@@ -451,6 +451,7 @@ filterwarnings = [
     # https://setuptools.pypa.io/en/latest/pkg_resources.html
     "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore: pkg_resources is deprecated as an API:UserWarning",
+
     # ruamel, google, etc.
     "once:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
 
