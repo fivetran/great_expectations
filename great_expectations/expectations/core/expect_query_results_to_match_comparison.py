@@ -47,9 +47,9 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 BASE_QUERY_DESCRIPTION = "A SQL query to be executed for this Data Asset."
 COMPARISON_DATA_SOURCE_NAME_DESCRIPTION = (
-    "The name of the source Data Source to compare this Asset against."
+    "The name of the comparison Data Source to compare this Asset against."
 )
-COMPARISON_QUERY_DESCRIPTION = "A SQL query to be executed for the source Data Source."
+COMPARISON_QUERY_DESCRIPTION = "A SQL query to be executed for the comparison Data Source."
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.POSTGRESQL.value,
     SupportedDataSources.SNOWFLAKE.value,
