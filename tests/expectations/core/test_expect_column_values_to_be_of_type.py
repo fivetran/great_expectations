@@ -1,4 +1,6 @@
 import timeit
+import unittest
+from unittest.mock import PropertyMock
 
 import pandas as pd
 import pytest
@@ -7,6 +9,7 @@ from great_expectations.compatibility import aws
 from great_expectations.core.expectation_validation_result import (
     ExpectationValidationResult,
 )
+from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.expectations import (
     ExpectColumnValuesToBeInSet,
 )
@@ -117,3 +120,76 @@ def test_expect_column_values_to_be_in_set_render_performance():
 
     duration_s = timeit.timeit(x.render, number=1)
     assert duration_s < 1, f"Rendering took {duration_s} seconds"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "dialect_name",
+    [
+        GXSqlDialect.DATABRICKS,
+        GXSqlDialect.POSTGRESQL,
+        GXSqlDialect.SNOWFLAKE,
+    ],
+)
+def test_expect_column_values_to_be_of_type_case_insensitivity(sa, dialect_name):
+    df = pd.DataFrame(
+        {
+            "datetime_col": pd.Series(
+                [pd.Timestamp("2023-01-01"), pd.Timestamp("2023-01-02")], dtype="datetime64[ns]"
+            ),
+            "int_col": pd.Series([1, 2, None], dtype=pd.Int64Dtype()),
+            "string_col": pd.Series(["apple", "banana", "cherry"], dtype=pd.StringDtype()),
+            "bool_col": pd.Series([True, False, None], dtype=pd.BooleanDtype()),
+        }
+    )
+    validator = build_sa_validator_with_data(
+        df=df,
+        sa_engine_name="sqlite",  # Using sqlite as base, will mock dialect
+        table_name="type_test_table_parametrized",
+    )
+
+    # Mock the dialect_name property to test different SQL dialects
+    with unittest.mock.patch.object(
+        type(validator.execution_engine),
+        "dialect_name",
+        new_callable=PropertyMock,
+        return_value=dialect_name,
+    ):
+        column_test_configs = [
+            {"col_name": "datetime_col", "canonical_type": "DATETIME", "wrong_type": "INTEGER"},
+            {"col_name": "int_col", "canonical_type": "BIGINT", "wrong_type": "STRING"},
+            # For SQLite, pandas StringDtype typically maps to TEXT
+            {"col_name": "string_col", "canonical_type": "TEXT", "wrong_type": "BOOLEAN"},
+            {"col_name": "bool_col", "canonical_type": "BOOLEAN", "wrong_type": "DATE"},
+        ]
+
+        capitalization_variations = [
+            lambda t: t.lower(),
+            lambda t: t.upper(),
+            lambda t: t.capitalize(),
+        ]
+
+        for config in column_test_configs:
+            col_name = config["col_name"]
+            canonical_type = config["canonical_type"]
+            wrong_type = config["wrong_type"]
+
+            # Test correct types with different capitalizations
+            for cap_func in capitalization_variations:
+                type_str = cap_func(canonical_type)
+                result = validator.expect_column_values_to_be_of_type(col_name, type_=type_str)
+                assert result.success is True, (
+                    f"Expected success=True for type='{type_str}' on column '{col_name}' "
+                    f"with dialect '{dialect_name}', "
+                    f"but got success={result.success}. "
+                    f"Observed value: {result.result.get('observed_value')}"
+                )
+
+            # Test incorrect type
+            result = validator.expect_column_values_to_be_of_type(col_name, type_=wrong_type)
+            assert result.success is False, (
+                f"Expected success=False for wrong_type='{wrong_type}' on column '{col_name}' "
+                f"with dialect '{dialect_name}', "
+                f"but got success={result.success}. "
+                f"Observed value: {result.result.get('observed_value')}"
+            )
