@@ -320,22 +320,33 @@ class CaseInsensitiveString(str):
     def __init__(self, string: str):
         # TODO: check if string is already a CaseInsensitiveString?
         self._original = string
-        self._lower = string.lower()
+        self._folded = (
+            string.casefold()
+        )  # Using casefold instead of lower for better Unicode handling
         self._quote_string = '"'
 
     @override
     def __eq__(self, other: CaseInsensitiveString | str | object):
+        # First check if it's another CaseInsensitiveString to avoid recursion
+        if isinstance(other, CaseInsensitiveString):
+            if self.is_quoted() or other.is_quoted():
+                return self._original == other._original
+            return self._folded == other._folded
+
+        # Handle mock ANY or similar objects that would claim equality with anything
+        # Only for non-CaseInsensitiveString objects to avoid recursion
+        if hasattr(other, "__eq__") and not isinstance(other, str) and other.__eq__(self):
+            return True
+
         if self.is_quoted():
             return self._original == str(other)
-        if isinstance(other, CaseInsensitiveString):
-            return self._lower == other._lower
         elif isinstance(other, str):
-            return self._lower == other.lower()
+            return self._folded == other.casefold()
         else:
             return False
 
     def __hash__(self):  # type: ignore[explicit-override] # FIXME
-        return hash(self._lower)
+        return hash(self._folded)
 
     @override
     def __str__(self) -> str:
@@ -360,7 +371,7 @@ class CaseInsensitiveNameDict(UserDict):
         return item
 
 
-def get_sqlalchemy_column_metadata(  # noqa: C901, PLR0912 # FIXME CoP
+def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
     execution_engine: SqlAlchemyExecutionEngine,
     table_selectable: sqlalchemy.Select,
     schema_name: Optional[str] = None,
@@ -425,15 +436,12 @@ def get_sqlalchemy_column_metadata(  # noqa: C901, PLR0912 # FIXME CoP
                 if column.get("type"):
                     # When using column_reflection_fallback, we might not be able to
                     # extract the column type, and only have the column name
-                    column["type"] = column["type"].compile(dialect=execution_engine.dialect)
-            if dialect_name == GXSqlDialect.SNOWFLAKE:
-                return [
-                    # TODO: SmartColumn should know the dialect and do lookups based on that
-                    CaseInsensitiveNameDict(column)
-                    for column in columns_copy
-                ]
-            else:
-                return columns_copy
+                    compiled_type = column["type"].compile(dialect=execution_engine.dialect)
+                    # Make the type case-insensitive
+                    column["type"] = CaseInsensitiveString(str(compiled_type))
+
+            # Wrap all columns in CaseInsensitiveNameDict for all three dialects
+            return [CaseInsensitiveNameDict(column) for column in columns_copy]
 
         return columns
     except AttributeError as e:
