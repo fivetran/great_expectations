@@ -2,17 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from functools import cmp_to_key
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    ClassVar,
-    Dict,
-    Literal,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
