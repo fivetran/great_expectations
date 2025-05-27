@@ -11,7 +11,7 @@ import Tabs from '@theme/Tabs';
 
 - You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
 
-- You have a PostgreSQL database, schema, and table.
+- You have a PostgreSQL database, schema, and table or view.
 
 - Optional. To improve data security, GX recommends creating a separate PostgreSQL user for your GX Cloud connection.
 
@@ -23,11 +23,11 @@ import Tabs from '@theme/Tabs';
 
 2. Click **Tools** > **Query Tool**.
 
-3. Paste the following code into the **Query** pane to create and assign the `gx_role` role and allow GX Cloud to access all `public` schemas and tables on a specific database.
+3. Paste the following code into the **Query** pane to create and assign the `gx_role` role and allow GX Cloud to access all `public` schemas, tables, and views on a specific database.
 
    ```sql title="pgAdmin"
     -- Create and assign the gx_role role and allow GX Cloud 
-    -- to access all public schemas and tables on a specific database
+    -- to access all public schemas, tables, and views on a specific database
     CREATE ROLE gx_role WITH LOGIN PASSWORD '<your_password>';
     GRANT CONNECT ON DATABASE <your_database> TO gx_role;
     GRANT USAGE ON SCHEMA public TO gx_role;
@@ -36,7 +36,7 @@ import Tabs from '@theme/Tabs';
    ```
 
    - Replace `<your_password>` and `<your_database>` with your own values.
-   - `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO gx_role;` is optional and gives the `gx_role` user access to all future tables in the defined schema.
+   - `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO gx_role;` is optional and gives the `gx_role` user access to all future tables and views in the defined schema.
 
 4. Click **Execute/Refresh**.
 
@@ -56,7 +56,7 @@ import Tabs from '@theme/Tabs';
 
 4. Click **Connect**.
 
-5. Select one or more tables to import as Data Assets.
+5. Select one or more tables or views to import as Data Assets.
 
 6. Click **Add x Asset(s)**.
 
