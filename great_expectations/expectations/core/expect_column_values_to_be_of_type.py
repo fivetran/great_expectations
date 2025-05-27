@@ -418,10 +418,17 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
         ]:
-            success = (
-                isinstance(actual_column_type, str)
-                and actual_column_type.lower() == expected_type.lower()
-            )
+            # For these dialects, actual_column_type should be a string or CaseInsensitiveString
+            if isinstance(actual_column_type, str):
+                # CaseInsensitiveString objects will automatically do case-insensitive comparison
+                success = actual_column_type == expected_type
+            else:
+                # Handle the case where it's not a string type
+                # This should never happen, but we'll handle it just in case
+                # the column type should be converted to a CaseInsensitiveString
+                # for these three dialects in metrics/util.py:get_sqlalchemy_column_metadata
+                success = str(actual_column_type).lower() == expected_type.lower()
+
             return {
                 "success": success,
                 "result": {"observed_value": actual_column_type},
