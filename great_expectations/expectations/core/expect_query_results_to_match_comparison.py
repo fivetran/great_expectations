@@ -442,12 +442,20 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     ) -> RenderedAtomicContent:
         result_details = cls._get_details_from_results(result)
         comparison_values = (
-            [row[comparison_col_name] for row in result_details["missing_rows"]]
+            [
+                row[comparison_col_name]
+                for row in result_details["missing_rows"]
+                if row[comparison_col_name] is not None
+            ]
             if comparison_col_name
             else []
         )
         base_values = (
-            [row[base_col_name] for row in result_details["unexpected_rows"]]
+            [
+                row[base_col_name]
+                for row in result_details["unexpected_rows"]
+                if row[base_col_name] is not None
+            ]
             if base_col_name
             else []
         )
@@ -599,15 +607,18 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         ]
         output_rows: list[list[RendererTableValue]] = []
         for row in rows:
-            output_rows.append(
-                [
-                    RendererTableValue(
-                        schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
-                        value=row[col_name],
+            for col_name in col_names:
+                if row[col_name] is not None:
+                    output_rows.append(
+                        [
+                            RendererTableValue(
+                                schema=RendererSchema(
+                                    type=RendererValueType.from_value(row[col_name])
+                                ),
+                                value=row[col_name],
+                            )
+                        ]
                     )
-                    for col_name in col_names
-                ]
-            )
 
         return [header_row, *output_rows]
 
