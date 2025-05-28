@@ -110,12 +110,12 @@ def _is_databricks_dialect(dialect: ModuleType | sa.Dialect | Type[sa.Dialect]) 
     return False
 
 
-def get_dialect_regex_expression(
-    column: sqlalchemy.Column,
+def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIXME CoP
+    column: sa.Column,
     regex: str,
+    dialect: ModuleType | Type[sa.Dialect] | sa.Dialect,
     positive: bool = True,
-    dialect: sqlalchemy.Dialect | None = None,
-) -> sqlalchemy.BinaryExpression:
+) -> sa.SQLColumnExpression | None:
     """
     Returns a sqlalchemy expression object for a regex match.
 
@@ -126,7 +126,7 @@ def get_dialect_regex_expression(
         dialect: A sqlalchemy Dialect
 
     Returns:
-        A sqlalchemy BinaryExpression
+        A sqlalchemy Expression
     """
     try:
         # Bigquery
@@ -172,6 +172,32 @@ def get_dialect_regex_expression(
     except AttributeError:
         pass
 
+    # databricks sql
+    if _is_databricks_dialect(dialect):
+        if positive:
+            return sa.func.regexp_like(column, sqlalchemy.literal(regex))
+        else:
+            return sa.not_(sa.func.regexp_like(column, sqlalchemy.literal(regex)))
+
+    # redshift (additional check)
+    # noinspection PyUnresolvedReferences
+    try:
+        if hasattr(dialect, "RedshiftDialect") or (
+            aws.redshiftdialect and issubclass(dialect.dialect, aws.redshiftdialect.RedshiftDialect)  # type: ignore[union-attr] # FIXME CoP
+        ):
+            if positive:
+                return sqlalchemy.BinaryExpression(
+                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("~")
+                )
+            else:
+                return sqlalchemy.BinaryExpression(
+                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("!~")
+                )
+        else:
+            pass
+    except AttributeError:
+        pass
+
     try:
         # MySQL
         if issubclass(dialect.dialect, sa.dialects.mysql.dialect):
@@ -184,50 +210,6 @@ def get_dialect_regex_expression(
                     column, sqlalchemy.literal(regex), sqlalchemy.custom_op("NOT REGEXP")
                 )
     except AttributeError:
-        pass
-
-    try:
-        # Snowflake
-        if issubclass(dialect.dialect, snowflake.sqlalchemy.snowdialect.SnowflakeDialect):
-            if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
-                )
-            else:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("NOT REGEXP")
-                )
-    except (AttributeError, NameError):
-        pass
-
-    try:
-        # Trino
-        if issubclass(dialect.dialect, trino.sqlalchemy.dialect.TrinoDialect):
-            if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP_LIKE")
-                )
-            else:
-                return sqlalchemy.not_(
-                    sqlalchemy.BinaryExpression(
-                        column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP_LIKE")
-                    )
-                )
-    except (AttributeError, NameError):
-        pass
-
-    try:
-        # Spark
-        if issubclass(dialect.dialect, pyspark.sql.types.StructType):
-            if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("RLIKE")
-                )
-            else:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("NOT RLIKE")
-                )
-    except (AttributeError, NameError):
         pass
 
     try:
@@ -273,6 +255,124 @@ def get_dialect_regex_expression(
         pass
 
     try:
+        # Snowflake
+        if issubclass(
+            dialect.dialect,  # type: ignore[union-attr] # FIXME CoP
+            snowflake.sqlalchemy.snowdialect.SnowflakeDialect,
+        ):
+            if positive:
+                return sqlalchemy.BinaryExpression(
+                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
+                )
+            else:
+                return sqlalchemy.BinaryExpression(
+                    column,
+                    sqlalchemy.literal(regex),
+                    sqlalchemy.custom_op("NOT REGEXP"),
+                )
+    except (
+        AttributeError,
+        TypeError,
+    ):  # TypeError can occur if the driver was not installed and so is None
+        pass
+
+    try:
+        # Bigquery (alternate check)
+        if hasattr(dialect, "BigQueryDialect"):
+            if positive:
+                return sa.func.REGEXP_CONTAINS(column, sqlalchemy.literal(regex))
+            else:
+                return sa.not_(sa.func.REGEXP_CONTAINS(column, sqlalchemy.literal(regex)))
+    except (
+        AttributeError,
+        TypeError,
+    ):  # TypeError can occur if the driver was not installed and so is None
+        logger.debug(
+            "Unable to load BigQueryDialect dialect while running get_dialect_regex_expression in expectations.metrics.util",  # noqa: E501 # FIXME CoP
+            exc_info=True,
+        )
+        pass
+
+    try:
+        # Trino
+        # noinspection PyUnresolvedReferences
+        if hasattr(dialect, "TrinoDialect") or (
+            trino.trinodialect and isinstance(dialect, trino.trinodialect.TrinoDialect)
+        ):
+            if positive:
+                return sa.func.regexp_like(column, sqlalchemy.literal(regex))
+            else:
+                return sa.not_(sa.func.regexp_like(column, sqlalchemy.literal(regex)))
+    except (
+        AttributeError,
+        TypeError,
+    ):  # TypeError can occur if the driver was not installed and so is None
+        pass
+
+    try:
+        # Spark
+        if issubclass(dialect.dialect, pyspark.sql.types.StructType):
+            if positive:
+                return sqlalchemy.BinaryExpression(
+                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("RLIKE")
+                )
+            else:
+                return sqlalchemy.BinaryExpression(
+                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("NOT RLIKE")
+                )
+    except (AttributeError, NameError):
+        pass
+
+    try:
+        # Clickhouse
+        # noinspection PyUnresolvedReferences
+        if hasattr(dialect, "ClickHouseDialect") or isinstance(
+            dialect, clickhouse_sqlalchemy.drivers.base.ClickHouseDialect
+        ):
+            if positive:
+                return sa.func.regexp_like(column, sqlalchemy.literal(regex))
+            else:
+                return sa.not_(sa.func.regexp_like(column, sqlalchemy.literal(regex)))
+    except (
+        AttributeError,
+        TypeError,
+    ):  # TypeError can occur if the driver was not installed and so is None
+        pass
+
+    try:
+        # Dremio
+        if hasattr(dialect, "DremioDialect"):
+            if positive:
+                return sa.func.REGEXP_MATCHES(column, sqlalchemy.literal(regex))
+            else:
+                return sa.not_(sa.func.REGEXP_MATCHES(column, sqlalchemy.literal(regex)))
+    except (
+        AttributeError,
+        TypeError,
+    ):  # TypeError can occur if the driver was not installed and so is None
+        pass
+
+    try:
+        # Teradata
+        if issubclass(dialect.dialect, teradatasqlalchemy.dialect.TeradataDialect):  # type: ignore[union-attr] # FIXME CoP
+            if positive:
+                return (
+                    sa.func.REGEXP_SIMILAR(
+                        column, sqlalchemy.literal(regex), sqlalchemy.literal("i")
+                    )
+                    == 1
+                )
+            else:
+                return (
+                    sa.func.REGEXP_SIMILAR(
+                        column, sqlalchemy.literal(regex), sqlalchemy.literal("i")
+                    )
+                    == 0
+                )
+    except (AttributeError, TypeError):
+        pass
+
+    try:
         # SQLite
         if issubclass(dialect.dialect, sa.dialects.sqlite.dialect):
             if positive:
@@ -286,11 +386,29 @@ def get_dialect_regex_expression(
     except AttributeError:
         pass
 
+    try:
+        # sqlite (alternate check with version check)
+        # regex_match for sqlite introduced in sqlalchemy v1.4
+        if issubclass(dialect.dialect, sa.dialects.sqlite.dialect) and version.parse(  # type: ignore[union-attr] # FIXME CoP
+            sa.__version__
+        ) >= version.parse("1.4"):
+            if positive:
+                return column.regexp_match(sqlalchemy.literal(regex))
+            else:
+                return sa.not_(column.regexp_match(sqlalchemy.literal(regex)))
+        else:
+            logger.debug(
+                "regex_match is only enabled for sqlite when SQLAlchemy version is >= 1.4",
+                exc_info=True,
+            )
+            pass
+    except AttributeError:
+        pass
+
     raise NotImplementedError(
         f"Regex is not supported for dialect {dialect.name!r}. "
         "Please add a regex function for your dialect."
     )
-
 
 
 def attempt_allowing_relative_error(dialect):
@@ -490,7 +608,6 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                 )
                 .alias("sys_tables_and_views_subquery")
             )
-
 
             columns_table_clause: sqlalchemy.TableClause = sa.table(  # type: ignore[assignment] # FIXME CoP
                 "columns",
@@ -1213,7 +1330,6 @@ def sql_statement_with_post_compile_to_string(
 
     query_as_string += ";"
     return query_as_string
-
 
 
 def get_sqlalchemy_source_table_and_schema(
