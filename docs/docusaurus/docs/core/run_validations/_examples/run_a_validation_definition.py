@@ -74,11 +74,3 @@ validation_results = validation_definition.run(batch_parameters=batch_parameters
 print(validation_results)
 # </snippet>
 # </snippet>
-
-
-# TODO: Set up the example script to use a GX Cloud Data Context and then
-# add this portion back in.
-# # Get the URL for Validation Results in GX Cloud
-# # <snippet name="docs/docusaurus/docs/core/run_validations/_examples/run_a_validation_definition.py - get GX Cloud Validation Result URL">
-# print(validation_results.results_url)
-# # </snippet>
