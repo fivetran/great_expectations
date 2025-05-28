@@ -22,7 +22,7 @@ from great_expectations.expectations.metrics.column_aggregate_metric_provider im
     ColumnAggregateMetricProvider,
 )
 from great_expectations.expectations.metrics.metric_provider import metric_value
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -68,7 +68,7 @@ class ColumnHistogram(ColumnAggregateMetricProvider):
         Args:
             column: the name of the column for which to get the histogram
             bins: tuple of bin edges for which to get histogram values; *must* be tuple to support caching
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         selectable, _, accessor_domain_kwargs = execution_engine.get_compute_domain(
             domain_kwargs=metric_domain_kwargs, domain_type=MetricDomainTypes.COLUMN
         )
@@ -99,7 +99,7 @@ class ColumnHistogram(ColumnAggregateMetricProvider):
                 == get_sql_dialect_floating_point_infinity_value(schema="api_cast", negative=False)
             )
         ):
-            # Single-valued column data are modeled using "impulse" (or "sample") distributions (on open interval).  # noqa: E501
+            # Single-valued column data are modeled using "impulse" (or "sample") distributions (on open interval).  # noqa: E501 # FIXME CoP
             case_conditions.append(
                 sa.func.sum(
                     sa.case(
@@ -117,14 +117,14 @@ class ColumnHistogram(ColumnAggregateMetricProvider):
             query = (
                 sa.select(*case_conditions)
                 .where(
-                    sa.column(column) != None,  # noqa: E711
+                    sa.column(column) != None,  # noqa: E711 # FIXME CoP
                 )
-                .select_from(selectable)  # type: ignore[arg-type]
+                .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
             )
 
-            # Run the data through convert_to_json_serializable to ensure we do not have Decimal types  # noqa: E501
+            # Run the data through convert_to_json_serializable to ensure we do not have Decimal types  # noqa: E501 # FIXME CoP
             return convert_to_json_serializable(
-                list(execution_engine.execute_query(query).fetchone())  # type: ignore[arg-type]
+                list(execution_engine.execute_query(query).fetchone())  # type: ignore[arg-type] # FIXME CoP
             )
 
         idx = 0
@@ -199,16 +199,16 @@ class ColumnHistogram(ColumnAggregateMetricProvider):
         query = (
             sa.select(*case_conditions)
             .where(
-                sa.column(column) != None,  # noqa: E711
+                sa.column(column) != None,  # noqa: E711 # FIXME CoP
             )
-            .select_from(selectable)  # type: ignore[arg-type]
+            .select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
         )
 
         # Run the data through convert_to_json_serializable to ensure we do not have Decimal types
-        return convert_to_json_serializable(list(execution_engine.execute_query(query).fetchone()))  # type: ignore[arg-type]
+        return convert_to_json_serializable(list(execution_engine.execute_query(query).fetchone()))  # type: ignore[arg-type] # FIXME CoP
 
     @metric_value(engine=SparkDFExecutionEngine)
-    def _spark(  # noqa: C901
+    def _spark(  # noqa: C901 # FIXME CoP
         cls,
         execution_engine: SparkDFExecutionEngine,
         metric_domain_kwargs: dict,

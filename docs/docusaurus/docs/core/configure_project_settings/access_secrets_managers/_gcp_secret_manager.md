@@ -1,13 +1,13 @@
 import GxData from '../../_core_components/_data.jsx'
 import PreReqFileDataContext from '../../_core_components/prerequisites/_file_data_context.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-gcp}
 
 - A [GCP Secret Manager instance with configured secrets](https://cloud.google.com/secret-manager/docs/quickstart).
 - The ability to install Python packages with `pip`.
 - <PreReqFileDataContext/>.
 
-### Procedure
+### Procedure {#prerequisites-gcp}
 
 1. Set up GCP Secret Manager support.
    

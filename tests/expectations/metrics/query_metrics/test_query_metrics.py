@@ -23,7 +23,7 @@ from tests.expectations.metrics.conftest import MockSqlAlchemyExecutionEngine
 
 @pytest.mark.unit
 def test_query_template_get_query_function_with_int():
-    """Simple test to ensure that the `get_query()` method for QueryTemplateValue can handle integer value"""  # noqa: E501
+    """Simple test to ensure that the `get_query()` method for QueryTemplateValue can handle integer value"""  # noqa: E501 # FIXME CoP
     query: str = """
             SELECT {column_to_check}
             FROM {batch}
@@ -47,7 +47,7 @@ def test_query_template_get_query_function_with_int():
 
 @pytest.mark.unit
 def test_query_template_get_query_function_with_float():
-    """Simple test to ensure that the `get_query()` method for QueryTemplateValue can handle float value"""  # noqa: E501
+    """Simple test to ensure that the `get_query()` method for QueryTemplateValue can handle float value"""  # noqa: E501 # FIXME CoP
     query: str = """
             SELECT {column_to_check}
             FROM {batch}

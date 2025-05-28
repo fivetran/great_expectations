@@ -95,18 +95,18 @@ def sqlachemy_execution_engine_mock_cls(
         partitioner_query_response: An optional list of dictionaries. Each dictionary is a row returned
             from the partitioner query. The keys are the column names and the value is the column values,
             eg: [{'year': 2021, 'month': 1}, {'year': 2021, 'month': 2}]
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     class MockSqlAlchemyExecutionEngine(SqlAlchemyExecutionEngine):
         def __init__(self, create_temp_table: bool = True, *args, **kwargs):
-            # We should likely let the user pass in an engine. In a SqlAlchemyExecutionEngine used in  # noqa: E501
+            # We should likely let the user pass in an engine. In a SqlAlchemyExecutionEngine used in  # noqa: E501 # FIXME CoP
             # non-mocked code the engine property is of the type:
             # from sqlalchemy.engine import Engine as SaEngine
-            self.engine = MockSaEngine(dialect=Dialect(dialect))  # type: ignore[assignment]
+            self.engine = MockSaEngine(dialect=Dialect(dialect))  # type: ignore[assignment] # FIXME CoP
             self._create_temp_table = create_temp_table
 
         @override
-        def get_batch_data_and_markers(  # type: ignore[override]
+        def get_batch_data_and_markers(  # type: ignore[override] # FIXME CoP
             self, batch_spec: SqlAlchemyDatasourceBatchSpec
         ) -> tuple[BatchData, BatchMarkers]:
             validate_batch_spec(batch_spec)
@@ -121,7 +121,7 @@ def sqlachemy_execution_engine_mock_cls(
             # We know that partitioner_query_response is non-empty because of validation
             # at the top of the outer function.
             # In some cases, such as in the datetime partitioners,
-            # a dictionary is returned our from out partitioner query with the key as the parameter_name.  # noqa: E501
+            # a dictionary is returned our from out partitioner query with the key as the parameter_name.  # noqa: E501 # FIXME CoP
             # Otherwise, a list of values is returned.
             if isinstance(partitioner_query_response[0], dict):
                 return [Row(row_dict) for row_dict in partitioner_query_response]
@@ -135,7 +135,7 @@ class ExecutionEngineDouble(ExecutionEngine):
         pass
 
     @override
-    def get_batch_data_and_markers(self, batch_spec) -> tuple[BatchData, BatchMarkers]:  # type: ignore[override]
+    def get_batch_data_and_markers(self, batch_spec) -> tuple[BatchData, BatchMarkers]:  # type: ignore[override] # FIXME CoP
         return BatchData(self), BatchMarkers(ge_load_time=None)
 
 
@@ -466,9 +466,9 @@ def _source(
         dialect=dialect,
         partitioner_query_response=partitioner_response,
     )
-    original_override = PostgresDatasource.execution_engine_override  # type: ignore[misc]
+    original_override = PostgresDatasource.execution_engine_override  # type: ignore[misc] # FIXME CoP
     try:
-        PostgresDatasource.execution_engine_override = execution_eng_cls  # type: ignore[misc]
+        PostgresDatasource.execution_engine_override = execution_eng_cls  # type: ignore[misc] # FIXME CoP
         postgres_datasource = PostgresDatasource(
             name="my_datasource",
             connection_string=connection_string,
@@ -478,14 +478,14 @@ def _source(
             postgres_datasource._data_context = data_context
         yield postgres_datasource
     finally:
-        PostgresDatasource.execution_engine_override = original_override  # type: ignore[misc]
+        PostgresDatasource.execution_engine_override = original_override  # type: ignore[misc] # FIXME CoP
 
 
 # We may be able to parameterize this fixture so we can instantiate _source in the fixture.
 # This would reduce the `with ...` boilerplate in the individual tests.
 @pytest.fixture
 def create_source() -> ContextManager:
-    return _source  # type: ignore[return-value]
+    return _source  # type: ignore[return-value] # FIXME CoP
 
 
 @pytest.fixture

@@ -7,6 +7,7 @@ from great_expectations.compatibility import pydantic
 from great_expectations.expectations.expectation import (
     MulticolumnMapExpectation,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_LIST_DESCRIPTION,
     IGNORE_ROW_IF_DESCRIPTION,
@@ -40,19 +41,19 @@ EXPECTATION_SHORT_DESCRIPTION = (
     "is the same for each row, and equal to a specified sum total."
 )
 SUM_TOTAL_DESCRIPTION = "Expected sum of columns"
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
-DATA_QUALITY_ISSUES = ["Data integrity"]
 
 
 class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
@@ -91,7 +92,7 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -102,7 +103,7 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -180,7 +181,7 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     sum_total: float = pydantic.Field(description=SUM_TOTAL_DESCRIPTION)
     ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (
@@ -303,7 +304,7 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
         if params["mostly"] is not None:
             params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
         mostly_str = "" if params.get("mostly") is None else ", at least $mostly_pct % of the time"
-        sum_total = params.get("sum_total")  # noqa: F841
+        sum_total = params.get("sum_total")  # noqa: F841 # FIXME CoP
 
         column_list_str = ""
         for idx in range(len(params["column_list"]) - 1):

@@ -23,7 +23,7 @@ When using a dictionary, `result_format` can include the following keys:
 
 - `include_unexpected_rows`: When running validations, this returns the entire row for each unexpected value in dictionary form. When using `include_unexpected_rows`, you must explicitly specify `result_format` and `result_format` must be more verbose than `BOOLEAN_ONLY`.
 
-:::note
+:::note Note
 `include_unexpected_rows` returns EVERY row for each unexpected value. In large tables, this could result in an unmanageable amount of data.
 :::
 
@@ -49,7 +49,7 @@ Your Checkpoint configuration is defined below the `runtime_configuration` key.
 
 The results are stored in the Validation Result after running the Checkpoint.
 
-:::note
+:::note Note
 The `unexpected_index_list`, as represented by primary key (PK) columns, is 
 rendered in Data Docs when `COMPLETE` is selected. 
 

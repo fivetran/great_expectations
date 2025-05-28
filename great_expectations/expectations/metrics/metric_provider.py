@@ -59,9 +59,9 @@ def metric_value(
         def inner_func(*args: P.args, **kwargs: P.kwargs):
             return metric_fn(*args, **kwargs)
 
-        inner_func.metric_engine = engine  # type: ignore[attr-defined]
-        inner_func.metric_fn_type = MetricFunctionTypes(metric_fn_type)  # type: ignore[attr-defined]
-        inner_func.metric_definition_kwargs = kwargs  # type: ignore[attr-defined]
+        inner_func.metric_engine = engine  # type: ignore[attr-defined] # FIXME CoP
+        inner_func.metric_fn_type = MetricFunctionTypes(metric_fn_type)  # type: ignore[attr-defined] # FIXME CoP
+        inner_func.metric_definition_kwargs = kwargs  # type: ignore[attr-defined] # FIXME CoP
         return inner_func
 
     return wrapper
@@ -98,12 +98,12 @@ def metric_partial(
         def inner_func(*args: P.args, **kwargs: P.kwargs):
             return metric_fn(*args, **kwargs)
 
-        inner_func.metric_engine = engine  # type: ignore[attr-defined]
-        inner_func.metric_fn_type = MetricPartialFunctionTypes(  # type: ignore[attr-defined]
+        inner_func.metric_engine = engine  # type: ignore[attr-defined] # FIXME CoP
+        inner_func.metric_fn_type = MetricPartialFunctionTypes(  # type: ignore[attr-defined] # FIXME CoP
             partial_fn_type
         )  # raises ValueError if unknown type
-        inner_func.domain_type = MetricDomainTypes(domain_type)  # type: ignore[attr-defined]
-        inner_func.metric_definition_kwargs = kwargs  # type: ignore[attr-defined]
+        inner_func.domain_type = MetricDomainTypes(domain_type)  # type: ignore[attr-defined] # FIXME CoP
+        inner_func.metric_definition_kwargs = kwargs  # type: ignore[attr-defined] # FIXME CoP
         return inner_func
 
     return wrapper
@@ -134,14 +134,14 @@ class MetricProvider(metaclass=MetaMetricProvider):
         1. Data Docs rendering methods decorated with the @renderer decorator. See the guide
         "How to create renderers for custom expectations" for more information.
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     domain_keys: Tuple[str, ...] = tuple()
     value_keys: Tuple[str, ...] = tuple()
     default_kwarg_values: dict = {}
 
     @classmethod
-    def _register_metric_functions(cls) -> None:  # noqa: C901 - too complex
+    def _register_metric_functions(cls) -> None:  # noqa: C901 #  too complex
         metric_name = getattr(cls, "metric_name", None)
         if not metric_name:
             # No metric name has been defined
@@ -158,7 +158,7 @@ class MetricProvider(metaclass=MetaMetricProvider):
 
             if engine := getattr(attr_obj, "metric_engine", None):
                 if not issubclass(engine, ExecutionEngine):
-                    raise ValueError("metric functions must be defined with an Execution Engine")  # noqa: TRY003
+                    raise ValueError("metric functions must be defined with an Execution Engine")  # noqa: TRY003 # FIXME CoP
 
                 metric_fn = attr_obj
                 metric_definition_kwargs = getattr(metric_fn, "metric_definition_kwargs", {})
@@ -196,15 +196,15 @@ class MetricProvider(metaclass=MetaMetricProvider):
                 of "resolved_metric_dependencies_by_metric_name" using previously declared "metric_partial_fn" key (as
                 described above), composes full metric execution configuration structure, and adds this configuration
                 to list of metrics to be resolved as one bundle (specifics pertaining to "ExecutionEngine" subclasses).
-                """  # noqa: E501
+                """  # noqa: E501 # FIXME CoP
                 if metric_fn_type not in [
                     MetricFunctionTypes.VALUE,
                     MetricPartialFunctionTypes.AGGREGATE_FN,
                 ]:
-                    raise ValueError(  # noqa: TRY003
+                    raise ValueError(  # noqa: TRY003 # FIXME CoP
                         f"""Basic metric implementations (defined by specifying "metric_name" class variable) only \
 support "{MetricFunctionTypes.VALUE.value}" and "{MetricPartialFunctionTypes.AGGREGATE_FN.value}" for "metric_value" \
-"metric_fn_type" property."""  # noqa: E501
+"metric_fn_type" property."""  # noqa: E501 # FIXME CoP
                     )
 
                 if metric_fn_type == MetricFunctionTypes.VALUE:

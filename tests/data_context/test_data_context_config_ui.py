@@ -24,7 +24,7 @@ from great_expectations.util import filter_properties_dict
 What does this test and why?
 
 This file will hold various tests to ensure that the UI functions as expected when creating a DataContextConfig object. It will ensure that the appropriate defaults are used, including when the store_backend_defaults parameter is set.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
 
 _DEFAULT_CONFIG_VERSION: Final[float] = float(
     DataContextConfigDefaults.DEFAULT_CONFIG_VERSION.value
@@ -42,8 +42,8 @@ def construct_data_context_config():
     def _construct_data_context_config(
         data_context_id: str,
         config_version: float = _DEFAULT_CONFIG_VERSION,
-        expectations_store_name: str = DataContextConfigDefaults.DEFAULT_EXPECTATIONS_STORE_NAME.value,  # noqa: E501
-        validation_results_store_name: str = DataContextConfigDefaults.DEFAULT_VALIDATIONS_STORE_NAME.value,  # noqa: E501
+        expectations_store_name: str = DataContextConfigDefaults.DEFAULT_EXPECTATIONS_STORE_NAME.value,  # noqa: E501 # FIXME CoP
+        validation_results_store_name: str = DataContextConfigDefaults.DEFAULT_VALIDATIONS_STORE_NAME.value,  # noqa: E501 # FIXME CoP
         checkpoint_store_name: str = DataContextConfigDefaults.DEFAULT_CHECKPOINT_STORE_NAME.value,
         fluent_datasources: Optional[Dict] = None,
         plugins_directory: Optional[str] = None,
@@ -306,7 +306,7 @@ def test_DataContextConfig_with_FilesystemStoreBackendDefaults_and_simple_defaul
     What does this test and why?
     Ensure that a very simple DataContextConfig setup using FilesystemStoreBackendDefaults is created accurately
     This test sets the root_dir parameter
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     test_root_directory = "test_root_dir"
 
@@ -353,14 +353,14 @@ def test_DataContextConfig_with_FilesystemStoreBackendDefaults_and_simple_defaul
 
 
 @pytest.mark.unit
-def test_DataContextConfig_with_FilesystemStoreBackendDefaults_and_simple_defaults_no_root_directory(  # noqa: E501
+def test_DataContextConfig_with_FilesystemStoreBackendDefaults_and_simple_defaults_no_root_directory(  # noqa: E501 # FIXME CoP
     construct_data_context_config,
 ):
     """
     What does this test and why?
     Ensure that a very simple DataContextConfig setup using FilesystemStoreBackendDefaults is created accurately
     This test does not set the optional root_directory parameter
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     store_backend_defaults = FilesystemStoreBackendDefaults()
     data_context_config = DataContextConfig(
@@ -604,7 +604,7 @@ def test_DataContextConfig_with_DatabaseStoreBackendDefaults(construct_data_cont
     What does this test and why?
     Make sure that using DatabaseStoreBackendDefaults as the store_backend_defaults applies appropriate
     defaults, including default_credentials getting propagated to stores and not data_docs
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     store_backend_defaults = DatabaseStoreBackendDefaults(
         default_credentials={
@@ -874,7 +874,7 @@ def test_override_general_defaults(
     """
     What does this test and why?
     A DataContextConfig should be able to be created by passing items into the constructor that override any defaults.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     data_context_config = DataContextConfig(
         config_version=999,

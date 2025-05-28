@@ -24,7 +24,8 @@
   height: unset;
   padding: 0;
 
-  &:has(.non-versioned-section.navbar__link--active) {
+  &:has(.non-versioned-section.navbar__link--active),
+  &:has(.non-versioned-section.dropdown__link--active) {
     .navbar__items:first-child .dropdown {
       visibility: hidden;
     }

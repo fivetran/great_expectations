@@ -20,14 +20,14 @@ A dataframe is a set of data that resides in-memory and is represented in your c
 
 Because the dataframes reside in memory you do not need to specify the location of the data when you create your Data Source.  Instead, the type of Data Source you create depends on the type of dataframe containing your data. Great Expectations has methods for connecting to both pandas and Spark dataframes.  
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-source} 
 
 - <PrereqPythonInstalled/>
 - <PrereqGxInstalled/>
   - Optional. <PrereqSparkIfNecessary/>.
 - <PrereqDataContext/>.  These examples assume the variable `context` contains your Data Context.
 
-### Procedure
+### Procedure {#procedure-data-source}
 
 <Tabs 
    queryString="procedure"
@@ -107,7 +107,7 @@ Because the dataframes reside in memory you do not need to specify the location 
 
 A dataframe Data Asset is used to group your Validation Results.  For instance, if you have a data pipeline with three stages and you wanted the Validation Results for each stage to be grouped together, you would create a Data Asset with a unique name representing each stage.
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-asset}
 
 - <PrereqPythonInstalled/>
 - <PrereqGxInstalled/>
@@ -115,7 +115,7 @@ A dataframe Data Asset is used to group your Validation Results.  For instance, 
 - <PrereqDataContext/>.  These examples assume the variable `context` contains your Data Context.
 - A [pandas or Spark dataframe Data Source](#create-a-data-source).
 
-### Procedure
+### Procedure {#procedure-data-asset}
 
 <Tabs 
    queryString="procedure"
@@ -170,8 +170,10 @@ Typically, a Batch Definition is used to describe how the data within a Data Ass
 
 This means that Batch Definitions for dataframe Data Assets don't work to subdivide the data returned for validation.  Instead, they serve as an additional layer of organization and allow you to further group your Validation Results.  For example, if you have already used your dataframe Data Assets to group your Validation Results by pipeline stage, you could use two Batch Definitions to further group those results by having all automated validations use one Batch Definition and all manually executed validations use the other.
 
-
-### Prerequisites
+:::note For API-managed Expectations only
+If you use GX Cloud and GX Core together, note that Batch Definitions you create with the API apply to [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations) only.
+:::
+### Prerequisites {#prerequisites-batch-definition}
 
 - <PrereqPythonInstalled/>
 - <PrereqGxInstalled/>
@@ -179,7 +181,7 @@ This means that Batch Definitions for dataframe Data Assets don't work to subdiv
 - <PrereqDataContext/>.  These examples assume the variable `context` contains your Data Context.
 - A [pandas or Spark dataframe Data Asset](#create-a-data-asset).
 
-### Procedure
+### Procedure {#procedure-batch-definition}
 
 <Tabs 
    queryString="procedure"
@@ -234,7 +236,7 @@ This means that Batch Definitions for dataframe Data Assets don't work to subdiv
 
 Because dataframes exist in memory and cease to exist when a Python session ends the dataframe itself is not saved as part of a Data Assset or Batch Definition.  Instead, a dataframe created in the current Python session is passed in at runtime as a Batch Parameter dictionary.
 
-### Prerequisites
+### Prerequisites {#prerequisites-dataframes}
 
 - <PrereqPythonInstalled/>
 - <PrereqGxInstalled/>
@@ -244,7 +246,7 @@ Because dataframes exist in memory and cease to exist when a Python session ends
 - Data in a pandas or Spark dataframe.  These examples assume the variable `dataframe` contains your pandas or Spark dataframe.
 - Optional. A Validation Definition.
 
-### Procedure
+### Procedure {#procedure-dataframes}
 
 1. Define the Batch Parameter dictionary.
 

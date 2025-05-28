@@ -35,7 +35,7 @@ class ColumnPairValuesEqual(ColumnPairMapMetricProvider):
     def _sqlalchemy(cls, column_A, column_B, **kwargs):
         row_wise_cond = sa.and_(
             column_A == column_B,
-            sa.not_(sa.or_(column_A == None, column_B == None)),  # noqa: E711
+            sa.not_(sa.or_(column_A == None, column_B == None)),  # noqa: E711 # FIXME CoP
         )
         return row_wise_cond
 

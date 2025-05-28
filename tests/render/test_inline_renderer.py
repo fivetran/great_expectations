@@ -39,10 +39,10 @@ def test_inline_renderer_instantiation_error_message(
 ):
     expectation_suite: ExpectationSuite = basic_expectation_suite
     with pytest.raises(InlineRendererError) as e:
-        InlineRenderer(render_object=expectation_suite)  # type: ignore
+        InlineRenderer(render_object=expectation_suite)  # type: ignore # FIXME CoP
     assert (
         str(e.value)
-        == "InlineRenderer can only be used with an ExpectationConfiguration or ExpectationValidationResult, but <class 'great_expectations.core.expectation_suite.ExpectationSuite'> was used."  # noqa: E501
+        == "InlineRenderer can only be used with an ExpectationConfiguration or ExpectationValidationResult, but <class 'great_expectations.core.expectation_suite.ExpectationSuite'> was used."  # noqa: E501 # FIXME CoP
     )
 
 
@@ -255,7 +255,7 @@ def test_inline_renderer_instantiation_error_message(
                             },
                         },
                         "schema": {"type": "com.superconductive.rendered.string"},
-                        "template": "$column values must belong to this set: $v__0 $v__1 " "$v__2.",
+                        "template": "$column values must belong to this set: $v__0 $v__1 $v__2.",
                     },
                     "value_type": "StringValueType",
                 },
@@ -549,7 +549,7 @@ def test_inline_renderer_expectation_validation_result_serialization(
                             },
                         },
                         "schema": {"type": "com.superconductive.rendered.string"},
-                        "template": "$column values must belong to this set: $v__0 $v__1 " "$v__2.",
+                        "template": "$column values must belong to this set: $v__0 $v__1 $v__2.",
                     },
                     "value_type": "StringValueType",
                 }

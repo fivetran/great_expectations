@@ -51,36 +51,30 @@ class SlackRenderer(Renderer):
         validation_result: ExpectationSuiteValidationResult,
         validation_result_urls: list[str],
     ) -> dict:
-        status = "Failed :x:"
-        if validation_result.success:
-            status = "Success :tada:"
-
         validation_link = None
         summary_text = ""
         if validation_result_urls:
             if len(validation_result_urls) == 1:
                 validation_link = validation_result_urls[0]
-            else:
-                title_hlink = "*Validation Results*"
-                batch_validation_status_hlinks = "".join(
-                    f"*<{validation_result_url} | {status}>*"
-                    for validation_result_url in validation_result_urls
-                )
-                summary_text += f"""{title_hlink}
-    {batch_validation_status_hlinks}
-                """
+
+        n_checks_succeeded = validation_result.statistics["successful_expectations"]
+        n_checks = validation_result.statistics["evaluated_expectations"]
+        check_details_text = f"*{n_checks_succeeded}* of *{n_checks}* Expectations were met"
 
         expectation_suite_name = validation_result.suite_name
         data_asset_name = validation_result.asset_name or "__no_data_asset_name__"
-        summary_text += f"*Asset*: {data_asset_name}  "
+
+        summary_text += f"\n*Asset*: `{data_asset_name}`  "
         # Slack does not allow links to local files due to security risks
         # DataDocs links will be added in a block after this summary text when applicable
         if validation_link and "file://" not in validation_link:
             summary_text += (
-                f"*Expectation Suite*: {expectation_suite_name}  <{validation_link}|View Results>"
+                f"\n*Expectation Suite*: {expectation_suite_name}  <{validation_link}|View Results>"
             )
         else:
-            summary_text += f"*Expectation Suite*: {expectation_suite_name}"
+            summary_text += f"\n*Expectation Suite*: `{expectation_suite_name}`"
+
+        summary_text += f"\n*Summary*: {check_details_text}"
 
         return {
             "type": "section",
@@ -112,7 +106,10 @@ class SlackRenderer(Renderer):
         status = "Success :white_check_mark:" if success else "Failure :no_entry:"
         return {
             "type": "header",
-            "text": {"type": "plain_text", "text": f"{name} - {checkpoint_name} - {status}"},
+            "text": {
+                "type": "plain_text",
+                "text": f"{name} - {checkpoint_name} - {status}",
+            },
         }
 
     def _build_run_time_block(self, run_id: RunIdentifier) -> dict:
@@ -134,7 +131,7 @@ class SlackRenderer(Renderer):
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": f"Learn how to review validation results in Data Docs: {documentation_url}",  # noqa: E501
+                    "text": f"Learn how to review validation results in Data Docs: {documentation_url}",  # noqa: E501 # FIXME CoP
                 }
             ],
         }
@@ -149,7 +146,7 @@ class SlackRenderer(Renderer):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*DataDocs* can be found here: `{docs_link}` \n (Please copy and paste link into "  # noqa: E501
+                            "text": f"*DataDocs* can be found here: `{docs_link}` \n (Please copy and paste link into "  # noqa: E501 # FIXME CoP
                             f"a browser to view)\n",
                         },
                     }
@@ -165,7 +162,7 @@ class SlackRenderer(Renderer):
                 logger.warning(
                     f"""SlackRenderer had a problem with generating the docs link.
                     link used to generate the docs link is: {docs_link} and is of type: {type(docs_link)}.
-                    Error: {e}"""  # noqa: E501
+                    Error: {e}"""  # noqa: E501 # FIXME CoP
                 )
                 return
         else:
@@ -186,14 +183,14 @@ class SlackRenderer(Renderer):
                 else:
                     logger.critical(
                         f"*ERROR*: Slack is trying to provide a link to the following DataDocs: `"
-                        f"{docs_link_key!s}`, but it is not configured under `data_docs_sites` in the "  # noqa: E501
+                        f"{docs_link_key!s}`, but it is not configured under `data_docs_sites` in the "  # noqa: E501 # FIXME CoP
                         f"`great_expectations.yml`\n"
                     )
                     report_element = {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*ERROR*: Slack is trying to provide a link to the following DataDocs: "  # noqa: E501
+                            "text": f"*ERROR*: Slack is trying to provide a link to the following DataDocs: "  # noqa: E501 # FIXME CoP
                             f"`{docs_link_key!s}`, but it is not configured under "
                             f"`data_docs_sites` in the `great_expectations.yml`\n",
                         },
@@ -201,10 +198,9 @@ class SlackRenderer(Renderer):
                 if report_element:
                     return report_element
         else:
-            for docs_link_key in data_docs_page:
+            for docs_link_key, docs_link in data_docs_page.items():
                 if docs_link_key == "class":
                     continue
-                docs_link = data_docs_page[docs_link_key]
                 report_element = self._get_report_element(docs_link)
                 return report_element
 

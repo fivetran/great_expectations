@@ -8,7 +8,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/expectgreatdata?style=social)](https://twitter.com/expectgreatdata)
 [![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://greatexpectations.io/slack)
 [![Contributors](https://img.shields.io/github/contributors/great-expectations/great_expectations)](https://github.com/great-expectations/great_expectations/graphs/contributors)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v1.json)](https://github.com/charliermarsh/ruff)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 <!-- <<<Super-quickstart links go here>>> -->
 
@@ -16,7 +16,7 @@
 
 ## About GX Core
 
-GX Core is the engine of the GX platform. It combines the collective wisdom of thousands of community members with a proven track record in data quality deployments worldwide, wrapped into a super-simple package for data teams.
+GX Core combines the collective wisdom of thousands of community members with a proven track record in data quality deployments worldwide, wrapped into a super-simple package for data teams.
 
 Its powerful technical tools start with Expectations: expressive and extensible unit tests for your data. Expectations foster collaboration by giving teams a common language to express data quality tests in an intuitive way. You can automatically generate documentation for each set of validation results, making it easy for everyone to stay on the same page. This not only simplifies your data quality processes, but helps preserve your organization’s institutional knowledge about its data.
 
@@ -57,7 +57,7 @@ They are listed in the order in which GX is prioritizing the support issues:
 ## Contribute
 We deeply value the contributions of our community. We're now accepting PRs for bug fixes.
 
-To ensure the long-term quality of the GX Core codebase, we're not yet ready to accept feature contributions to the parts of the codebase that don't have clear APIs for extensions. We're actively working to increase the surface area for contributions. Thank you being a crucial part of GX's data quality platform!
+To ensure the long-term quality of the GX Core codebase, we're not yet ready to accept feature contributions to the parts of the codebase that don't have clear APIs for extensions. We're actively working to increase the surface area for contributions. Thank you for being a crucial part of GX Core!
 
 ### Levels of contribution readiness
 🟢 Ready. Have a clear and public API for extensions.
@@ -70,7 +70,7 @@ To ensure the long-term quality of the GX Core codebase, we're not yet ready to 
 | -------------------- | ------------------ | ----- |
 | CredentialStore      | 🟢 Ready           |       |
 | BatchDefinition      | 🟡 Partially ready | Formerly known as splitters |
-| Action               | 🔴 Not ready       |       |
+| Action               | 🟢 Ready           |       |
 | DataSource           | 🔴 Not ready       | Includes MetricProvider and ExecutionEngine |
 | DataContext          | 🔴 Not ready       | Also known as Configuration Stores |
 | DataAsset            | 🔴 Not ready       |       |

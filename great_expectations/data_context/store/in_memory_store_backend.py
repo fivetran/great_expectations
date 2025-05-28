@@ -38,8 +38,8 @@ class InMemoryStoreBackend(StoreBackend):
         if not self._suppress_store_backend_id:
             _ = self.store_backend_id
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "runtime_environment": runtime_environment,
             "fixed_length_key": fixed_length_key,
@@ -88,13 +88,13 @@ class InMemoryStoreBackend(StoreBackend):
         return self._config
 
     @override
-    def build_key(  # type: ignore[override]
+    def build_key(  # type: ignore[override] # FIXME CoP
         self,
         resource_type: Optional[DataContextVariableSchema] = None,
         id: Optional[str] = None,
         name: Optional[str] = None,
     ) -> DataContextVariableKey:
-        """Get the store backend specific implementation of the key. id included for super class compatibility."""  # noqa: E501
+        """Get the store backend specific implementation of the key. id included for super class compatibility."""  # noqa: E501 # FIXME CoP
         return DataContextVariableKey(
             resource_name=name,
         )

@@ -1,6 +1,6 @@
 {
     "title": "SparkAzureBlobStorageDatasource",
-    "description": "--Public API--",
+    "description": "--Public API--\nSparkAzureBlobStorageDatasource is a subclass of SparkDatasource which connects to\nAzure Blob Storage.",
     "type": "object",
     "properties": {
         "type": {

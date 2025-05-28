@@ -1,6 +1,6 @@
 {
     "title": "TableAsset",
-    "description": "--Public API--",
+    "description": "--Public API--A class representing a table from a SQL database\n\nArgs:\n    table_name: The name of the database table to be added\n    schema_name: The name of the schema containing the database table to be added.",
     "type": "object",
     "properties": {
         "name": {

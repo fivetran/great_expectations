@@ -103,7 +103,7 @@ def test_render_profiling_results_column_section_renderer(titanic_profiled_evrs_
         except KeyError:
             pass
 
-    for column in evrs:
+    for column, evr in evrs.items():
         with open(
             file_relative_path(
                 __file__,
@@ -115,7 +115,7 @@ def test_render_profiling_results_column_section_renderer(titanic_profiled_evrs_
             "w",
         ) as outfile:
             json.dump(
-                ProfilingResultsColumnSectionRenderer().render(evrs[column]).to_json_dict(),
+                ProfilingResultsColumnSectionRenderer().render(evr).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -147,7 +147,7 @@ def test_render_validation_results_column_section_renderer(titanic_profiler_evrs
         except KeyError:
             pass
 
-    for column in evrs:
+    for column, evr in evrs.items():
         with open(
             file_relative_path(
                 __file__,
@@ -159,7 +159,7 @@ def test_render_validation_results_column_section_renderer(titanic_profiler_evrs
             "w",
         ) as outfile:
             json.dump(
-                ValidationResultsColumnSectionRenderer().render(evrs[column]).to_json_dict(),
+                ValidationResultsColumnSectionRenderer().render(evr).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -179,7 +179,7 @@ def test_render_expectation_suite_column_section_renderer(
         except KeyError:
             pass
 
-    for column in exp_groups:
+    for column, exp_group in exp_groups.items():
         with open(
             file_relative_path(
                 __file__,
@@ -189,7 +189,7 @@ def test_render_expectation_suite_column_section_renderer(
             "w",
         ) as outfile:
             json.dump(
-                ExpectationSuiteColumnSectionRenderer().render(exp_groups[column]).to_json_dict(),
+                ExpectationSuiteColumnSectionRenderer().render(exp_group).to_json_dict(),
                 outfile,
                 indent=2,
             )
@@ -321,7 +321,7 @@ def test_render_validation_results(titanic_profiled_evrs_1):
         'Must have greater than or equal to <span class="badge badge-secondary" >0</span> rows.'
         in rendered_page
     )
-    # assert 'This table should have a list of columns in a specific order, but that order is not specified.' \  # noqa: E501
+    # assert 'This table should have a list of columns in a specific order, but that order is not specified.' \  # noqa: E501 # FIXME CoP
     #        in rendered_page
 
 
@@ -348,7 +348,7 @@ def test_smoke_render_profiling_results_page_renderer_with_exception(
 
 def test_render_string_template():
     template = {
-        "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold: $sparklines_histogram",  # noqa: E501
+        "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold: $sparklines_histogram",  # noqa: E501 # FIXME CoP
         "params": {
             "column": "categorical_fixed",
             "partition_object": {
@@ -374,14 +374,14 @@ def test_render_string_template():
     expected = (
         """<span>
                 <span class="badge badge-secondary" >categorical_fixed</span> Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than <span class="badge badge-secondary" >0.1</span>: <span style="font-family:serif;" >█▄▁</span>
-            </span>""".replace(" ", "")  # noqa: E501
+            </span>""".replace(" ", "")  # noqa: E501 # FIXME CoP
         .replace("\t", "")
         .replace("\n", "")
     )
     assert res == expected
 
     template = {
-        "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold: $sparklines_histogram",  # noqa: E501
+        "template": "$column Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than $threshold: $sparklines_histogram",  # noqa: E501 # FIXME CoP
         "params": {
             "column": "categorical_fixed",
             "partition_object": {
@@ -407,7 +407,7 @@ def test_render_string_template():
     expected = (
         """<span>
                 <span class="badge badge-secondary" >categorical_fixed</span> Kullback-Leibler (KL) divergence with respect to the following distribution must be lower than <span class="badge badge-secondary" >0.1</span>: <span style="font-family:serif;" >▃▆▁█</span>
-            </span>""".replace(" ", "")  # noqa: E501
+            </span>""".replace(" ", "")  # noqa: E501 # FIXME CoP
         .replace("\t", "")
         .replace("\n", "")
     )

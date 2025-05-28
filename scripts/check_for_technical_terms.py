@@ -229,7 +229,7 @@ def scan_file(file_path, phrases):  # noqa: C901, PLR0912, PLR0915
                 else:
                     # Phrase does not exist in line.
                     pass
-            if len(valid_lines):
+            if valid_lines:
                 output.append("")
                 if tag_found:
                     output.append(f"- [X] {'/'.join(phrase.one_of_these)}")

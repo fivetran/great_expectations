@@ -13,7 +13,7 @@ from great_expectations.experimental.rule_based_profiler.config.base import (
     expectationConfigurationBuilderConfigSchema,
     parameterBuilderConfigSchema,
 )
-from great_expectations.experimental.rule_based_profiler.helpers.configuration_reconciliation import (  # noqa: E501
+from great_expectations.experimental.rule_based_profiler.helpers.configuration_reconciliation import (  # noqa: E501 # FIXME CoP
     DEFAULT_RECONCILATION_DIRECTIVES,
     ReconciliationDirectives,
     reconcile_rule_variables,
@@ -28,7 +28,7 @@ from great_expectations.experimental.rule_based_profiler.parameter_container imp
 from great_expectations.experimental.rule_based_profiler.rule.rule_state import RuleState
 from great_expectations.types import SerializableDictDot
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     deep_filter_properties_iterable,
     measure_execution_time,
 )
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from great_expectations.experimental.rule_based_profiler.domain_builder import (
         DomainBuilder,
     )
-    from great_expectations.experimental.rule_based_profiler.expectation_configuration_builder import (  # noqa: E501
+    from great_expectations.experimental.rule_based_profiler.expectation_configuration_builder import (  # noqa: E501 # FIXME CoP
         ExpectationConfigurationBuilder,
     )
     from great_expectations.experimental.rule_based_profiler.parameter_builder import (
@@ -65,7 +65,7 @@ class Rule(SerializableDictDot):
             domain_builder: A Domain Builder object used to build rule data domain
             parameter_builders: A Parameter Builder list used to configure necessary rule suite parameters
             expectation_configuration_builders: A list of Expectation Configuration Builders
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         self._name = name
 
         if variables is None:
@@ -89,7 +89,7 @@ class Rule(SerializableDictDot):
         execution_time_property_name="rule_execution_time",
         pretty_print=False,
     )
-    def run(  # noqa: PLR0913
+    def run(  # noqa: PLR0913 # FIXME CoP
         self,
         variables: Optional[ParameterContainer] = None,
         batch_list: Optional[List[Batch]] = None,
@@ -112,7 +112,7 @@ class Rule(SerializableDictDot):
 
         Returns:
             RuleState representing effect of executing Rule
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if not reconciliation_directives:
             reconciliation_directives = DEFAULT_RECONCILATION_DIRECTIVES
 
@@ -194,7 +194,7 @@ class Rule(SerializableDictDot):
 
     @property
     def variables(self) -> ParameterContainer:
-        # Returning a copy of the "self._variables" state variable in order to prevent write-before-read hazard.  # noqa: E501
+        # Returning a copy of the "self._variables" state variable in order to prevent write-before-read hazard.  # noqa: E501 # FIXME CoP
         return copy.deepcopy(self._variables)
 
     @variables.setter
@@ -260,7 +260,7 @@ class Rule(SerializableDictDot):
         reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,
         due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules
         make this refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         dict_obj: dict = self.to_dict()
         variables_dict: Optional[Dict[str, Any]] = convert_variables_to_dict(
             variables=self.variables
@@ -277,7 +277,7 @@ class Rule(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -293,7 +293,7 @@ class Rule(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()
 
     def _get_parameter_builders_as_dict(self) -> Dict[str, ParameterBuilder]:

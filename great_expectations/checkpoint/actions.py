@@ -2,7 +2,7 @@
 An action is a way to take an arbitrary method and make it configurable and runnable within a Data Context.
 
 The only requirement from an action is for it to have a take_action method.
-"""  # noqa: E501
+"""  # noqa: E501 # FIXME CoP
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ from typing import (
 )
 
 import requests
-from typing_extensions import Annotated
+from typing_extensions import dataclass_transform
 
 from great_expectations._docs_decorators import public_api
 from great_expectations.analytics.client import submit as submit_event
@@ -35,6 +35,7 @@ from great_expectations.compatibility.pydantic import (
     BaseModel,
     Extra,
     Field,
+    ModelMetaclass,
     root_validator,
     validator,
 )
@@ -50,6 +51,10 @@ from great_expectations.data_context.types.resource_identifiers import (
 from great_expectations.data_context.util import instantiate_class_from_config
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.exceptions import ClassInstantiationError
+from great_expectations.exceptions.exceptions import (
+    ValidationActionAlreadyRegisteredError,
+    ValidationActionRegistryRetrievalError,
+)
 from great_expectations.render.renderer import (
     EmailRenderer,
     MicrosoftTeamsRenderer,
@@ -57,7 +62,7 @@ from great_expectations.render.renderer import (
     SlackRenderer,
 )
 from great_expectations.render.renderer.renderer import Renderer
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251
+from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import CheckpointResult
@@ -83,10 +88,11 @@ def _build_renderer(config: dict) -> Renderer:
     return renderer
 
 
+@public_api
 class ActionContext:
     """
-    Shared context for all actions in a checkpoint run.
-    Note that order matters in the action list, as the context is updated with each action's result.
+    Shared context for all Actions in a Checkpoint run.
+    Note that order matters in the Action list, as the context is updated with each Action's result.
     """
 
     def __init__(self) -> None:
@@ -99,18 +105,99 @@ class ActionContext:
     def update(self, action: ValidationAction, action_result: dict) -> None:
         self._data.append((action, action_result))
 
+    @public_api
     def filter_results(self, class_: Type[ValidationAction]) -> list[dict]:
+        """
+        Filter the results of the actions in the context by class.
+
+        Args:
+            class_: The class to filter by.
+
+        Returns:
+            A list of action results.
+        """
         return [action_result for action, action_result in self._data if isinstance(action, class_)]
 
 
-@public_api
-class ValidationAction(BaseModel):
+class ValidationActionRegistry:
     """
-    ValidationActions define a set of steps to be run after a validation result is produced.
+    Registers ValidationActions to enable deserialization based on their configuration.
+
+    Uses the `type` key from the action configuration to determine which registered class
+    to instantiate.
+    """
+
+    def __init__(self):
+        self._registered_actions: dict[str, Type[ValidationAction]] = {}
+
+    def register(self, action_type: str, action_class: Type[ValidationAction]) -> None:
+        """
+        Register a ValidationAction class with the registry.
+
+        Args:
+            action_type: The type of the action to register.
+            action_class: The ValidationAction class to register.
+
+        Raises:
+            ValidationActionAlreadyRegisteredError: If the action type is already registered.
+        """
+        if action_type in self._registered_actions:
+            raise ValidationActionAlreadyRegisteredError(action_type)
+
+        self._registered_actions[action_type] = action_class
+
+    def get(self, action_type: str | None) -> Type[ValidationAction]:
+        """
+        Return a ValidationAction class based on its type.
+        Used when instantiating actions from a checkpoint configuration.
+
+        Args:
+            action_type: The 'type' key from the action configuration.
+
+        Returns:
+            The ValidationAction class corresponding to the configuration.
+
+        Raises:
+            ValidationActionRegistryRetrievalError: If the action type is not registered.
+        """
+        if action_type not in self._registered_actions:
+            raise ValidationActionRegistryRetrievalError(action_type)
+
+        return self._registered_actions[action_type]
+
+
+_VALIDATION_ACTION_REGISTRY = ValidationActionRegistry()
+
+
+@dataclass_transform(kw_only_default=True, field_specifiers=(Field,))  # Enables type hinting
+class MetaValidationAction(ModelMetaclass):
+    """MetaValidationAction registers ValidationAction as they are defined, adding them to
+    the registry.
+
+    Any class inheriting from ValidationAction will be registered based on the value of the
+    "type" class attribute.
+    """
+
+    def __new__(cls, clsname, bases, attrs):
+        newclass = super().__new__(cls, clsname, bases, attrs)
+
+        action_type = newclass.__fields__.get("type")
+        if action_type and action_type.default:  # Excludes base classes
+            _VALIDATION_ACTION_REGISTRY.register(
+                action_type=action_type.default, action_class=newclass
+            )
+
+        return newclass
+
+
+@public_api
+class ValidationAction(BaseModel, metaclass=MetaValidationAction):
+    """
+    Actions define a set of steps to run after a Validation Result is produced. Subclass `ValidationAction` to create a [custom Action](/docs/core/trigger_actions_based_on_results/create_a_custom_action).
 
     Through a Checkpoint, one can orchestrate the validation of data and configure notifications, data documentation updates,
-    and other actions to take place after the validation result is produced.
-    """  # noqa: E501
+    and other actions to take place after the Validation Result is produced.
+    """  # noqa: E501 # FIXME CoP
 
     class Config:
         extra = Extra.forbid
@@ -125,9 +212,20 @@ class ValidationAction(BaseModel):
     def _using_cloud_context(self) -> bool:
         return project_manager.is_using_cloud()
 
+    @public_api
     def run(
         self, checkpoint_result: CheckpointResult, action_context: ActionContext | None = None
     ) -> dict:
+        """
+        Run the action.
+
+        Args:
+            checkpoint_result: The result of the checkpoint run.
+            action_context: The context in which the action is run.
+
+        Returns:
+            A dictionary containing the result of the action.
+        """
         raise NotImplementedError
 
     def _get_data_docs_pages_from_prior_action(
@@ -156,10 +254,8 @@ class ValidationAction(BaseModel):
 def _should_notify(success: bool, notify_on: Literal["all", "failure", "success"]) -> bool:
     return (
         notify_on == "all"
-        or notify_on == "success"
-        and success
-        or notify_on == "failure"
-        and not success
+        or (notify_on == "success" and success)
+        or (notify_on == "failure" and not success)
     )
 
 
@@ -209,20 +305,24 @@ class SlackNotificationAction(DataDocsAction):
     ```
 
     Args:
-        renderer: Specifies the Renderer used to generate a query consumable by Slack API, e.g.:
-            ```python
-            {
-               "module_name": "great_expectations.render.renderer.slack_renderer",
-               "class_name": "SlackRenderer",
-           }
-           ```
+        renderer: Specifies the Renderer used to generate a query consumable by Slack API.
         slack_webhook: The incoming Slack webhook to which to send notification.
         slack_token: Token from Slack app. Used when not using slack_webhook.
         slack_channel: Slack channel to receive notification. Used when not using slack_webhook.
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
         notify_with: List of DataDocs site names to display  in Slack messages. Defaults to all.
         show_failed_expectations: Shows a list of failed expectation types.
-    """  # noqa: E501
+
+    Examples:
+        **renderer:**
+
+            ```python
+            {
+               "module_name": "great_expectations.render.renderer.slack_renderer",
+               "class_name": "SlackRenderer",
+           }
+           ```
+    """  # noqa: E501 # FIXME CoP
 
     type: Literal["slack"] = "slack"
 
@@ -239,7 +339,7 @@ class SlackNotificationAction(DataDocsAction):
         if isinstance(renderer, dict):
             _renderer = _build_renderer(config=renderer)
             if not isinstance(_renderer, SlackRenderer):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "renderer must be a SlackRenderer or a valid configuration for one."
                 )
             renderer = _renderer
@@ -256,7 +356,7 @@ class SlackNotificationAction(DataDocsAction):
             else:
                 assert slack_token and slack_channel
         except AssertionError:
-            raise ValueError("Please provide either slack_webhook or slack_token and slack_channel")  # noqa: TRY003
+            raise ValueError("Please provide either slack_webhook or slack_token and slack_channel")  # noqa: TRY003 # FIXME CoP
 
         return values
 
@@ -355,7 +455,7 @@ class SlackNotificationAction(DataDocsAction):
             headers = {"Authorization": f"Bearer {slack_token}"}
 
         if not url:
-            raise ValueError("No Slack webhook URL provided.")  # noqa: TRY003
+            raise ValueError("No Slack webhook URL provided.")  # noqa: TRY003 # FIXME CoP
 
         try:
             response = session.post(url=url, headers=headers, json=payload)
@@ -365,8 +465,7 @@ class SlackNotificationAction(DataDocsAction):
             return {"slack_notification_result": None}
         except requests.HTTPError:
             logger.warning(
-                "Request to Slack webhook "
-                f"returned error {response.status_code}: {response.text}"  # type: ignore[possibly-undefined] # ok for httperror
+                f"Request to Slack webhook returned error {response.status_code}: {response.text}"  # type: ignore[possibly-undefined] # ok for httperror
             )
             return {"slack_notification_result": None}
 
@@ -391,7 +490,7 @@ class PagerdutyAlertAction(ValidationAction):
         routing_key: The 32 character Integration Key for an integration on a service or on a global ruleset.
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
         severity: The PagerDuty severity levels determine the level of urgency. One of "critical", "error", "warning", or "info".
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     type: Literal["pagerduty"] = "pagerduty"
 
@@ -442,7 +541,7 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
     Args:
         teams_webhook: Incoming Microsoft Teams webhook to which to send notifications.
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     type: Literal["microsoft"] = "microsoft"
 
@@ -455,7 +554,7 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
         if isinstance(renderer, dict):
             _renderer = _build_renderer(config=renderer)
             if not isinstance(_renderer, MicrosoftTeamsRenderer):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "renderer must be a MicrosoftTeamsRenderer or a valid configuration for one."
                 )
             renderer = _renderer
@@ -489,7 +588,7 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
     def _send_microsoft_teams_notifications(self, payload: dict) -> str | None:
         webhook = self._substitute_config_str_if_needed(self.teams_webhook)
         if not webhook:  # Necessary to appease mypy; this is guaranteed.
-            raise ValueError("No Microsoft Teams webhook URL provided.")  # noqa: TRY003
+            raise ValueError("No Microsoft Teams webhook URL provided.")  # noqa: TRY003 # FIXME CoP
 
         session = requests.Session()
         try:
@@ -528,7 +627,7 @@ class OpsgenieAlertAction(ValidationAction):
         priority: Specifies the priority of the alert (P1 - P5).
         notify_on: Specifies validation status that triggers notification. One of "all", "failure", "success".
         tags: Tags to include in the alert
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     type: Literal["opsgenie"] = "opsgenie"
 
@@ -544,7 +643,7 @@ class OpsgenieAlertAction(ValidationAction):
         if isinstance(renderer, dict):
             _renderer = _build_renderer(config=renderer)
             if not isinstance(_renderer, OpsgenieRenderer):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "renderer must be a OpsgenieRenderer or a valid configuration for one."
                 )
             renderer = _renderer
@@ -640,13 +739,7 @@ class EmailAction(ValidationAction):
     ```
 
     Args:
-        renderer: Specifies the renderer used to generate an email, for example:
-            ```python
-            {
-               "module_name": "great_expectations.render.renderer.email_renderer",
-               "class_name": "EmailRenderer",
-            }
-            ```
+        renderer: Specifies the renderer used to generate an email.
         smtp_address: Address of the SMTP server used to send the email.
         smtp_address: Port of the SMTP server used to send the email.
         sender_login: Login used send the email.
@@ -657,7 +750,17 @@ class EmailAction(ValidationAction):
         use_ssl: Optional. Use of SSL to send the email (using either TLS or SSL is highly recommended).
         notify_on: "Specifies validation status that triggers notification. One of "all", "failure", "success".
         notify_with: Optional list of DataDocs site names to display  in Slack messages. Defaults to all.
-    """  # noqa: E501
+
+    Examples:
+        **renderer:**
+
+        ```python
+        {
+           "module_name": "great_expectations.render.renderer.email_renderer",
+           "class_name": "EmailRenderer",
+        }
+        ```
+    """  # noqa: E501 # FIXME CoP
 
     type: Literal["email"] = "email"
 
@@ -678,7 +781,7 @@ class EmailAction(ValidationAction):
         if isinstance(renderer, dict):
             _renderer = _build_renderer(config=renderer)
             if not isinstance(_renderer, EmailRenderer):
-                raise ValueError(  # noqa: TRY003, TRY004
+                raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
                     "renderer must be a EmailRenderer or a valid configuration for one."
                 )
             renderer = _renderer
@@ -738,7 +841,7 @@ class EmailAction(ValidationAction):
         # sending payload back as dictionary
         return {"email_result": email_result}
 
-    def _send_email(  # noqa: C901
+    def _send_email(  # noqa: C901 # FIXME CoP
         self,
         title,
         html,
@@ -777,11 +880,11 @@ class EmailAction(ValidationAction):
             mailserver.sendmail(sender_alias, receiver_emails_list, msg.as_string())
             mailserver.quit()
         except smtplib.SMTPConnectError:
-            logger.error(f"Failed to connect to the SMTP server at address: {smtp_address}")  # noqa: TRY400
+            logger.error(f"Failed to connect to the SMTP server at address: {smtp_address}")  # noqa: TRY400 # FIXME CoP
         except smtplib.SMTPAuthenticationError:
-            logger.error(f"Failed to authenticate to the SMTP server at address: {smtp_address}")  # noqa: TRY400
+            logger.error(f"Failed to authenticate to the SMTP server at address: {smtp_address}")  # noqa: TRY400 # FIXME CoP
         except Exception as e:
-            logger.error(str(e))  # noqa: TRY400
+            logger.error(str(e))  # noqa: TRY400 # FIXME CoP
         else:
             return "success"
 
@@ -811,7 +914,7 @@ class UpdateDataDocsAction(DataDocsAction):
 
     Args:
         site_names: Optional. A list of the names of sites to update.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     type: Literal["update_data_docs"] = "update_data_docs"
 
@@ -854,7 +957,7 @@ class UpdateDataDocsAction(DataDocsAction):
 
         if validation_result_suite is None:
             logger.warning(
-                f"No validation_result_suite was passed to {type(self).__name__} action. Skipping action."  # noqa: E501
+                f"No validation_result_suite was passed to {type(self).__name__} action. Skipping action."  # noqa: E501 # FIXME CoP
             )
             return
 
@@ -862,13 +965,13 @@ class UpdateDataDocsAction(DataDocsAction):
             validation_result_suite_identifier,
             (ValidationResultIdentifier, GXCloudIdentifier),
         ):
-            raise TypeError(  # noqa: TRY003
+            raise TypeError(  # noqa: TRY003 # FIXME CoP
                 "validation_result_id must be of type ValidationResultIdentifier or"
                 f" GeCloudIdentifier, not {type(validation_result_suite_identifier)}"
             )
 
         # TODO Update for RenderedDataDocs
-        # build_data_docs will return the index page for the validation results, but we want to return the url for the validation result using the code below  # noqa: E501
+        # build_data_docs will return the index page for the validation results, but we want to return the url for the validation result using the code below  # noqa: E501 # FIXME CoP
         self._build_data_docs(
             site_names=self.site_names,
             resource_identifiers=[
@@ -910,7 +1013,7 @@ class SNSNotificationAction(ValidationAction):
     Args:
         sns_topic_arn: The SNS Arn to publish messages to.
         sns_subject: Optional. The SNS Message Subject - defaults to expectation_suite_identifier.name.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     type: Literal["sns"] = "sns"
 
@@ -959,7 +1062,7 @@ class SNSNotificationAction(ValidationAction):
             response = sns.publish(**message_dict)
         except sns.exceptions.InvalidParameterException:
             error_msg = f"Received invalid for message: {validation_results}"
-            logger.error(error_msg)  # noqa: TRY400
+            logger.error(error_msg)  # noqa: TRY400 # FIXME CoP
             return error_msg
         else:
             return (
@@ -998,7 +1101,7 @@ class APINotificationAction(ValidationAction):
             return requests.post(self.url, headers=headers, data=payload)
         except Exception as e:
             print(f"Exception when sending data to API - {e}")
-            raise e  # noqa: TRY201
+            raise e  # noqa: TRY201 # FIXME CoP
 
     @staticmethod
     def create_payload(data_asset_name, suite_name, validation_results_serializable) -> dict:
@@ -1007,14 +1110,3 @@ class APINotificationAction(ValidationAction):
             "data_asset_name": data_asset_name,
             "validation_results": validation_results_serializable,
         }
-
-
-CheckpointAction = Annotated[
-    Union[
-        EmailAction,
-        MicrosoftTeamsNotificationAction,
-        SlackNotificationAction,
-        UpdateDataDocsAction,
-    ],
-    Field(discriminator="type"),
-]

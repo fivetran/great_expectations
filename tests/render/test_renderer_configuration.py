@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING, Union
+import uuid
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Union
 
 import pytest
 
@@ -174,7 +176,7 @@ def test_successful_renderer_row_condition_params(
 
 @pytest.mark.unit
 @pytest.mark.xfail(
-    reason="As of v0.15.46 test will fail until RendererConfiguration._validate_configuration_or_result is re-enabled.",  # noqa: E501
+    reason="As of v0.15.46 test will fail until RendererConfiguration._validate_configuration_or_result is re-enabled.",  # noqa: E501 # FIXME CoP
     strict=True,
 )
 def test_failed_renderer_configuration_instantiation():
@@ -295,3 +297,21 @@ def test_add_array_params():
     )
 
     assert array_string == "$like_pattern_list_0 $like_pattern_list_1"
+
+
+@pytest.mark.parametrize(
+    ("value", "type"),
+    [
+        ([1, 2, 3], RendererValueType.ARRAY),
+        (True, RendererValueType.BOOLEAN),
+        (datetime.now(tz=timezone.utc), RendererValueType.DATETIME),
+        (3.14, RendererValueType.NUMBER),
+        ({"foo": "bar"}, RendererValueType.OBJECT),
+        ("hello world!", RendererValueType.STRING),
+        (uuid.uuid4(), RendererValueType.STRING),
+        (None, RendererValueType.STRING),
+    ],
+)
+@pytest.mark.unit
+def test_from_value(value: Any, type: RendererValueType) -> None:
+    assert RendererValueType.from_value(value) == type

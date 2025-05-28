@@ -30,8 +30,8 @@ from great_expectations.compatibility.sqlalchemy import (
 )
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine import (
-    PandasExecutionEngine,  # noqa: TCH001
-    SqlAlchemyExecutionEngine,  # noqa: TCH001
+    PandasExecutionEngine,  # noqa: TC001 # FIXME CoP
+    SqlAlchemyExecutionEngine,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
@@ -42,10 +42,10 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
 from great_expectations.execution_engine.util import check_sql_engine_dialect
 
 try:
-    import psycopg2  # noqa: F401
-    import sqlalchemy.dialects.postgresql.psycopg2 as sqlalchemy_psycopg2  # noqa: TID251
+    import psycopg2  # noqa: F401 # FIXME CoP
+    import sqlalchemy.dialects.postgresql.psycopg2 as sqlalchemy_psycopg2  # noqa: TID251 # FIXME CoP
 except (ImportError, KeyError):
-    sqlalchemy_psycopg2 = None  # type: ignore[assignment]
+    sqlalchemy_psycopg2 = None  # type: ignore[assignment] # FIXME CoP
 
 try:
     import snowflake
@@ -70,12 +70,10 @@ except ImportError:
 try:
     import databricks.sqlalchemy as sqla_databricks
 except (ImportError, AttributeError):
-    sqla_databricks = None  # type: ignore[assignment]
+    sqla_databricks = None  # type: ignore[assignment] # FIXME CoP
 
 _BIGQUERY_MODULE_NAME = "sqlalchemy_bigquery"
 
-from great_expectations.compatibility import bigquery as sqla_bigquery
-from great_expectations.compatibility.bigquery import bigquery_types_tuple
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -105,22 +103,22 @@ def _is_databricks_dialect(dialect: ModuleType | sa.Dialect | Type[sa.Dialect]) 
             return True
         if hasattr(dialect, "DatabricksDialect"):
             return True
-        if issubclass(dialect, sqla_databricks.DatabricksDialect):  # type: ignore[arg-type]
+        if issubclass(dialect, sqla_databricks.DatabricksDialect):  # type: ignore[arg-type] # FIXME CoP
             return True
     except Exception:
         pass
     return False
 
 
-def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
-    column: sa.Column,
+def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIXME CoP
+    column: sa.Column | sa.ColumnClause,
     regex: str,
     dialect: ModuleType | Type[sa.Dialect] | sa.Dialect,
     positive: bool = True,
 ) -> sa.SQLColumnExpression | None:
     try:
         # postgres
-        if issubclass(dialect.dialect, sa.dialects.postgresql.dialect):  # type: ignore[union-attr]
+        if issubclass(dialect.dialect, sa.dialects.postgresql.dialect):  # type: ignore[union-attr] # FIXME CoP
             if positive:
                 return sqlalchemy.BinaryExpression(
                     column, sqlalchemy.literal(regex), sqlalchemy.custom_op("~")
@@ -143,7 +141,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
     # noinspection PyUnresolvedReferences
     try:
         if hasattr(dialect, "RedshiftDialect") or (
-            aws.redshiftdialect and issubclass(dialect.dialect, aws.redshiftdialect.RedshiftDialect)  # type: ignore[union-attr]
+            aws.redshiftdialect and issubclass(dialect.dialect, aws.redshiftdialect.RedshiftDialect)  # type: ignore[union-attr] # FIXME CoP
         ):
             if positive:
                 return sqlalchemy.BinaryExpression(
@@ -160,7 +158,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
 
     try:
         # MySQL
-        if issubclass(dialect.dialect, sa.dialects.mysql.dialect):  # type: ignore[union-attr]
+        if issubclass(dialect.dialect, sa.dialects.mysql.dialect):  # type: ignore[union-attr] # FIXME CoP
             if positive:
                 return sqlalchemy.BinaryExpression(
                     column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
@@ -177,7 +175,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
     try:
         # Snowflake
         if issubclass(
-            dialect.dialect,  # type: ignore[union-attr]
+            dialect.dialect,  # type: ignore[union-attr] # FIXME CoP
             snowflake.sqlalchemy.snowdialect.SnowflakeDialect,
         ):
             if positive:
@@ -208,7 +206,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
         TypeError,
     ):  # TypeError can occur if the driver was not installed and so is None
         logger.debug(
-            "Unable to load BigQueryDialect dialect while running get_dialect_regex_expression in expectations.metrics.util",  # noqa: E501
+            "Unable to load BigQueryDialect dialect while running get_dialect_regex_expression in expectations.metrics.util",  # noqa: E501 # FIXME CoP
             exc_info=True,
         )
         pass
@@ -259,7 +257,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
 
     try:
         # Teradata
-        if issubclass(dialect.dialect, teradatasqlalchemy.dialect.TeradataDialect):  # type: ignore[union-attr]
+        if issubclass(dialect.dialect, teradatasqlalchemy.dialect.TeradataDialect):  # type: ignore[union-attr] # FIXME CoP
             if positive:
                 return (
                     sa.func.REGEXP_SIMILAR(
@@ -280,7 +278,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
     try:
         # sqlite
         # regex_match for sqlite introduced in sqlalchemy v1.4
-        if issubclass(dialect.dialect, sa.dialects.sqlite.dialect) and version.parse(  # type: ignore[union-attr]
+        if issubclass(dialect.dialect, sa.dialects.sqlite.dialect) and version.parse(  # type: ignore[union-attr] # FIXME CoP
             sa.__version__
         ) >= version.parse("1.4"):
             if positive:
@@ -297,50 +295,6 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915
         pass
 
     return None
-
-
-def _get_dialect_type_module(
-    dialect: ModuleType | Type[sa.Dialect] | sa.Dialect | None = None,
-) -> ModuleType | Type[sa.Dialect] | sa.Dialect:
-    if dialect is None:
-        logger.warning("No sqlalchemy dialect found; relying in top-level sqlalchemy types.")
-        return sa
-
-    # Redshift does not (yet) export types to top level; only recognize base SA types
-    # noinspection PyUnresolvedReferences
-    if aws.redshiftdialect and isinstance(
-        dialect,
-        aws.redshiftdialect.RedshiftDialect,
-    ):
-        return dialect.sa
-
-    # Bigquery works with newer versions, but use a patch if we had to define bigquery_types_tuple
-    try:
-        if (
-            isinstance(
-                dialect,
-                sqla_bigquery.BigQueryDialect,  # type: ignore[attr-defined]
-            )
-            and bigquery_types_tuple is not None
-        ):
-            return bigquery_types_tuple
-    except (TypeError, AttributeError):
-        pass
-
-    # Teradata types module
-    try:
-        if (
-            issubclass(
-                dialect,  # type: ignore[arg-type]
-                teradatasqlalchemy.dialect.TeradataDialect,
-            )
-            and teradatatypes is not None
-        ):
-            return teradatatypes
-    except (TypeError, AttributeError):
-        pass
-
-    return dialect
 
 
 def attempt_allowing_relative_error(dialect):
@@ -366,22 +320,33 @@ class CaseInsensitiveString(str):
     def __init__(self, string: str):
         # TODO: check if string is already a CaseInsensitiveString?
         self._original = string
-        self._lower = string.lower()
+        self._folded = (
+            string.casefold()
+        )  # Using casefold instead of lower for better Unicode handling
         self._quote_string = '"'
 
     @override
     def __eq__(self, other: CaseInsensitiveString | str | object):
+        # First check if it's another CaseInsensitiveString to avoid recursion
+        if isinstance(other, CaseInsensitiveString):
+            if self.is_quoted() or other.is_quoted():
+                return self._original == other._original
+            return self._folded == other._folded
+
+        # Handle mock ANY or similar objects that would claim equality with anything
+        # Only for non-CaseInsensitiveString objects to avoid recursion
+        if hasattr(other, "__eq__") and not isinstance(other, str) and other.__eq__(self):
+            return True
+
         if self.is_quoted():
             return self._original == str(other)
-        if isinstance(other, CaseInsensitiveString):
-            return self._lower == other._lower
         elif isinstance(other, str):
-            return self._lower == other.lower()
+            return self._folded == other.casefold()
         else:
             return False
 
     def __hash__(self):  # type: ignore[explicit-override] # FIXME
-        return hash(self._lower)
+        return hash(self._folded)
 
     @override
     def __str__(self) -> str:
@@ -406,7 +371,7 @@ class CaseInsensitiveNameDict(UserDict):
         return item
 
 
-def get_sqlalchemy_column_metadata(
+def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
     execution_engine: SqlAlchemyExecutionEngine,
     table_selectable: sqlalchemy.Select,
     schema_name: Optional[str] = None,
@@ -418,7 +383,7 @@ def get_sqlalchemy_column_metadata(
         inspector = execution_engine.get_inspector()
         try:
             # if a custom query was passed
-            if sqlalchemy.TextClause and isinstance(table_selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
+            if sqlalchemy.TextClause and isinstance(table_selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
                 if hasattr(table_selectable, "selected_columns"):
                     # New in version 1.4.
                     columns = table_selectable.selected_columns.columns
@@ -427,11 +392,11 @@ def get_sqlalchemy_column_metadata(
                     # We must explicitly create a subquery
                     columns = table_selectable.columns().subquery().columns
             else:
-                # TODO: remove cast to a string once [this](https://github.com/snowflakedb/snowflake-sqlalchemy/issues/157) issue is resovled  # noqa: E501
+                # TODO: remove cast to a string once [this](https://github.com/snowflakedb/snowflake-sqlalchemy/issues/157) issue is resovled  # noqa: E501 # FIXME CoP
                 table_name = str(table_selectable)
                 if execution_engine.dialect_name == GXSqlDialect.SNOWFLAKE:
                     table_name = table_name.lower()
-                columns = inspector.get_columns(  # type: ignore[assignment]
+                columns = inspector.get_columns(  # type: ignore[assignment] # FIXME CoP
                     table_name=table_name,
                     schema=schema_name,
                 )
@@ -451,7 +416,7 @@ def get_sqlalchemy_column_metadata(
                 sqlalchemy_engine=engine,
             )
 
-        # Use fallback because for mssql and trino reflection mechanisms do not throw an error but return an empty list  # noqa: E501
+        # Use fallback because for mssql and trino reflection mechanisms do not throw an error but return an empty list  # noqa: E501 # FIXME CoP
         if len(columns) == 0:
             columns = column_reflection_fallback(
                 selectable=table_selectable,
@@ -460,12 +425,23 @@ def get_sqlalchemy_column_metadata(
             )
 
         dialect_name = execution_engine.dialect.name
-        if dialect_name == GXSqlDialect.SNOWFLAKE:
-            return [
-                # TODO: SmartColumn should know the dialect and do lookups based on that
-                CaseInsensitiveNameDict(column)
-                for column in columns
-            ]
+        if dialect_name in [
+            GXSqlDialect.DATABRICKS,
+            GXSqlDialect.POSTGRESQL,
+            GXSqlDialect.SNOWFLAKE,
+        ]:
+            # WARNING: Do not alter columns in place, as they are cached on the inspector
+            columns_copy = [column.copy() for column in columns]
+            for column in columns_copy:
+                if column.get("type"):
+                    # When using column_reflection_fallback, we might not be able to
+                    # extract the column type, and only have the column name
+                    compiled_type = column["type"].compile(dialect=execution_engine.dialect)
+                    # Make the type case-insensitive
+                    column["type"] = CaseInsensitiveString(str(compiled_type))
+
+            # Wrap all columns in CaseInsensitiveNameDict for all three dialects
+            return [CaseInsensitiveNameDict(column) for column in columns_copy]
 
         return columns
     except AttributeError as e:
@@ -473,7 +449,7 @@ def get_sqlalchemy_column_metadata(
         return None
 
 
-def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
+def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     selectable: sqlalchemy.Select,
     dialect: sqlalchemy.Dialect,
     sqlalchemy_engine: sqlalchemy.Engine,
@@ -492,7 +468,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
         if dialect.name.lower() == "mssql":
             # Get column names and types from the database
             # Reference: https://dataedo.com/kb/query/sql-server/list-table-columns-in-database
-            tables_table_clause: sqlalchemy.TableClause = sa.table(  # type: ignore[assignment]
+            tables_table_clause: sqlalchemy.TableClause = sa.table(  # type: ignore[assignment] # FIXME CoP
                 "tables",
                 sa.column("object_id"),
                 sa.column("schema_id"),
@@ -500,7 +476,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 schema="sys",
             ).alias("sys_tables_table_clause")
             tables_table_query: sqlalchemy.Select = (
-                sa.select(  # type: ignore[assignment]
+                sa.select(  # type: ignore[assignment] # FIXME CoP
                     tables_table_clause.columns.object_id.label("object_id"),
                     sa.func.schema_name(tables_table_clause.columns.schema_id).label("schema_name"),
                     tables_table_clause.columns.name.label("table_name"),
@@ -508,7 +484,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 .select_from(tables_table_clause)
                 .alias("sys_tables_table_subquery")
             )
-            columns_table_clause: sqlalchemy.TableClause = sa.table(  # type: ignore[assignment]
+            columns_table_clause: sqlalchemy.TableClause = sa.table(  # type: ignore[assignment] # FIXME CoP
                 "columns",
                 sa.column("object_id"),
                 sa.column("user_type_id"),
@@ -519,7 +495,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 schema="sys",
             ).alias("sys_columns_table_clause")
             columns_table_query: sqlalchemy.Select = (
-                sa.select(  # type: ignore[assignment]
+                sa.select(  # type: ignore[assignment] # FIXME CoP
                     columns_table_clause.columns.object_id.label("object_id"),
                     columns_table_clause.columns.user_type_id.label("user_type_id"),
                     columns_table_clause.columns.column_id.label("column_id"),
@@ -530,24 +506,24 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 .select_from(columns_table_clause)
                 .alias("sys_columns_table_subquery")
             )
-            types_table_clause: sqlalchemy.TableClause = sa.table(  # type: ignore[assignment]
+            types_table_clause: sqlalchemy.TableClause = sa.table(  # type: ignore[assignment] # FIXME CoP
                 "types",
                 sa.column("user_type_id"),
                 sa.column("name"),
                 schema="sys",
             ).alias("sys_types_table_clause")
             types_table_query: sqlalchemy.Select = (
-                sa.select(  # type: ignore[assignment]
+                sa.select(  # type: ignore[assignment] # FIXME CoP
                     types_table_clause.columns.user_type_id.label("user_type_id"),
                     types_table_clause.columns.name.label("column_data_type"),
                 )
                 .select_from(types_table_clause)
                 .alias("sys_types_table_subquery")
             )
-            inner_join_conditions: sqlalchemy.BinaryExpression = sa.and_(  # type: ignore[assignment]
+            inner_join_conditions: sqlalchemy.BinaryExpression = sa.and_(  # type: ignore[assignment] # FIXME CoP
                 *(tables_table_query.c.object_id == columns_table_query.c.object_id,)
             )
-            outer_join_conditions: sqlalchemy.BinaryExpression = sa.and_(  # type: ignore[assignment]
+            outer_join_conditions: sqlalchemy.BinaryExpression = sa.and_(  # type: ignore[assignment] # FIXME CoP
                 *(
                     columns_table_query.columns.user_type_id
                     == types_table_query.columns.user_type_id,
@@ -564,7 +540,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                     columns_table_query.c.column_precision,
                 )
                 .select_from(
-                    tables_table_query.join(  # type: ignore[call-arg,arg-type]
+                    tables_table_query.join(  # type: ignore[call-arg,arg-type] # FIXME CoP
                         right=columns_table_query,
                         onclause=inner_join_conditions,
                         isouter=False,
@@ -574,26 +550,25 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                         isouter=True,
                     )
                 )
-                .where(tables_table_query.c.table_name == selectable.name)  # type: ignore[attr-defined]
+                .where(tables_table_query.c.table_name == selectable.name)  # type: ignore[attr-defined] # FIXME CoP
                 .order_by(
                     tables_table_query.c.schema_name.asc(),
                     tables_table_query.c.table_name.asc(),
                     columns_table_query.c.column_id.asc(),
                 )
             )
-            col_info_tuples_list: List[tuple] = connection.execute(col_info_query).fetchall()  # type: ignore[assignment]
-            # type_module = _get_dialect_type_module(dialect=dialect)
+            col_info_tuples_list: List[tuple] = connection.execute(col_info_query).fetchall()  # type: ignore[assignment] # FIXME CoP
             col_info_dict_list = [
                 {
                     "name": column_name,
                     # "type": getattr(type_module, column_data_type.upper())(),
                     "type": column_data_type.upper(),
                 }
-                for schema_name, table_name, column_id, column_name, column_data_type, column_max_length, column_precision in col_info_tuples_list  # noqa: E501
+                for schema_name, table_name, column_id, column_name, column_data_type, column_max_length, column_precision in col_info_tuples_list  # noqa: E501 # FIXME CoP
             ]
         elif dialect.name.lower() == "trino":
             try:
-                table_name = selectable.name  # type: ignore[attr-defined]
+                table_name = selectable.name  # type: ignore[attr-defined] # FIXME CoP
             except AttributeError:
                 table_name = selectable
                 if str(table_name).lower().startswith("select"):
@@ -609,7 +584,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 schema="information_schema",
             )
             tables_table_query = (
-                sa.select(  # type: ignore[assignment]
+                sa.select(  # type: ignore[assignment] # FIXME CoP
                     sa.column("table_schema").label("schema_name"),
                     sa.column("table_name").label("table_name"),
                 )
@@ -622,7 +597,7 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 schema="information_schema",
             )
             columns_table_query = (
-                sa.select(  # type: ignore[assignment]
+                sa.select(  # type: ignore[assignment] # FIXME CoP
                     sa.column("column_name").label("column_name"),
                     sa.column("table_name").label("table_name"),
                     sa.column("table_schema").label("schema_name"),
@@ -638,14 +613,14 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
                 )
             )
             col_info_query = (
-                sa.select(  # type: ignore[assignment]
+                sa.select(  # type: ignore[assignment] # FIXME CoP
                     tables_table_query.c.schema_name,
                     tables_table_query.c.table_name,
                     columns_table_query.c.column_name,
                     columns_table_query.c.column_data_type,
                 )
                 .select_from(
-                    tables_table_query.join(  # type: ignore[call-arg,arg-type]
+                    tables_table_query.join(  # type: ignore[call-arg,arg-type] # FIXME CoP
                         right=columns_table_query, onclause=conditions, isouter=False
                     )
                 )
@@ -667,10 +642,9 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
 
             # in sqlalchemy > 2.0.0 this is a Subquery, which we need to convert into a Selectable
             if not col_info_query.supports_execution:
-                col_info_query = sa.select(col_info_query)  # type: ignore[call-overload]
+                col_info_query = sa.select(col_info_query)  # type: ignore[call-overload] # FIXME CoP
 
-            col_info_tuples_list = connection.execute(col_info_query).fetchall()  # type: ignore[assignment]
-            # type_module = _get_dialect_type_module(dialect=dialect)
+            col_info_tuples_list = connection.execute(col_info_query).fetchall()  # type: ignore[assignment] # FIXME CoP
             col_info_dict_list = [
                 {
                     "name": column_name,
@@ -680,21 +654,21 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915
             ]
         else:
             # if a custom query was passed
-            if sqlalchemy.TextClause and isinstance(selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
+            if sqlalchemy.TextClause and isinstance(selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
                 query: sqlalchemy.TextClause = selectable
-            elif sqlalchemy.Table and isinstance(selectable, sqlalchemy.Table):  # type: ignore[truthy-function]
+            elif sqlalchemy.Table and isinstance(selectable, sqlalchemy.Table):  # type: ignore[truthy-function] # FIXME CoP
                 query = sa.select(sa.text("*")).select_from(selectable).limit(1)
-            else:  # noqa: PLR5501
+            else:  # noqa: PLR5501 # FIXME CoP
                 # noinspection PyUnresolvedReferences
                 if dialect.name.lower() == GXSqlDialect.REDSHIFT:
                     # Redshift needs temp tables to be declared as text
-                    query = sa.select(sa.text("*")).select_from(sa.text(selectable)).limit(1)  # type: ignore[assignment,arg-type]
+                    query = sa.select(sa.text("*")).select_from(sa.text(selectable)).limit(1)  # type: ignore[assignment,arg-type] # FIXME CoP
                 else:
-                    query = sa.select(sa.text("*")).select_from(sa.text(selectable)).limit(1)  # type: ignore[assignment,arg-type]
+                    query = sa.select(sa.text("*")).select_from(sa.text(selectable)).limit(1)  # type: ignore[assignment,arg-type] # FIXME CoP
 
             result_object = connection.execute(query)
             # noinspection PyProtectedMember
-            col_names: List[str] = result_object._metadata.keys  # type: ignore[assignment]
+            col_names: List[str] = result_object._metadata.keys  # type: ignore[assignment] # FIXME CoP
             col_info_dict_list = [{"name": col_name} for col_name in col_names]
         return col_info_dict_list
 
@@ -713,7 +687,7 @@ def get_dbms_compatible_metric_domain_kwargs(
 
     Returns:
         metric_domain_kwargs: Updated "metric_domain_kwargs" dictionary with quoted column names, where appropriate.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     column_names: List[str | sqlalchemy.quoted_name]
     if "column" in metric_domain_kwargs:
         column_name: str | sqlalchemy.quoted_name = get_dbms_compatible_column_names(
@@ -766,7 +740,7 @@ def get_dbms_compatible_column_names(
 def get_dbms_compatible_column_names(
     column_names: List[str] | str,
     batch_columns_list: Sequence[str | sqlalchemy.quoted_name],
-    error_message_template: str = 'Error: The column "{column_name:s}" in BatchData does not exist.',  # noqa: E501
+    error_message_template: str = 'Error: The column "{column_name:s}" in BatchData does not exist.',  # noqa: E501 # FIXME CoP
 ) -> List[str | sqlalchemy.quoted_name] | str | sqlalchemy.quoted_name:
     """
     Case non-sensitivity is expressed in upper case by common DBMS backends and in lower case by SQLAlchemy, with any
@@ -784,7 +758,7 @@ def get_dbms_compatible_column_names(
 
     Returns:
         Single property-typed column name object or list of property-typed column name objects (depending on input).
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     normalized_typed_batch_columns_mappings: List[Tuple[str, str | sqlalchemy.quoted_name]] = (
         _verify_column_names_exist_and_get_normalized_typed_column_names_map(
             column_names=column_names,
@@ -807,7 +781,7 @@ def get_dbms_compatible_column_names(
 def verify_column_names_exist(
     column_names: List[str] | str,
     batch_columns_list: List[str | sqlalchemy.quoted_name],
-    error_message_template: str = 'Error: The column "{column_name:s}" in BatchData does not exist.',  # noqa: E501
+    error_message_template: str = 'Error: The column "{column_name:s}" in BatchData does not exist.',  # noqa: E501 # FIXME CoP
 ) -> None:
     _ = _verify_column_names_exist_and_get_normalized_typed_column_names_map(
         column_names=column_names,
@@ -817,10 +791,10 @@ def verify_column_names_exist(
     )
 
 
-def _verify_column_names_exist_and_get_normalized_typed_column_names_map(  # noqa: C901
+def _verify_column_names_exist_and_get_normalized_typed_column_names_map(  # noqa: C901 # FIXME CoP
     column_names: List[str] | str,
     batch_columns_list: Sequence[str | sqlalchemy.quoted_name],
-    error_message_template: str = 'Error: The column "{column_name:s}" in BatchData does not exist.',  # noqa: E501
+    error_message_template: str = 'Error: The column "{column_name:s}" in BatchData does not exist.',  # noqa: E501 # FIXME CoP
     verify_only: bool = False,
 ) -> List[Tuple[str, str | sqlalchemy.quoted_name]] | None:
     """
@@ -834,7 +808,7 @@ def _verify_column_names_exist_and_get_normalized_typed_column_names_map(  # noq
 
     Returns:
         List of tuples having mapping from string-valued column name to typed column name; None if "verify_only" is set.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     column_names_list: List[str]
     if isinstance(column_names, list):
         column_names_list = column_names
@@ -847,7 +821,7 @@ def _verify_column_names_exist_and_get_normalized_typed_column_names_map(  # noq
         typed_column_name_cursor: str | sqlalchemy.quoted_name
         for typed_column_name_cursor in batch_columns_list:
             if (
-                (type(typed_column_name_cursor) == str)  # noqa: E721
+                (type(typed_column_name_cursor) == str)  # noqa: E721 # FIXME CoP
                 and (column_name.casefold() == typed_column_name_cursor.casefold())
             ) or (column_name == str(typed_column_name_cursor)):
                 return column_name, typed_column_name_cursor
@@ -874,7 +848,7 @@ def _verify_column_names_exist_and_get_normalized_typed_column_names_map(  # noq
             raise gx_exceptions.InvalidMetricAccessorDomainKwargsKeyError(
                 message=error_message_template.format(column_name=column_name)
             )
-        else:  # noqa: PLR5501
+        else:  # noqa: PLR5501 # FIXME CoP
             if not verify_only:
                 normalized_batch_columns_mappings.append(normalized_column_name_mapping)
 
@@ -886,7 +860,7 @@ def parse_value_set(value_set: Iterable) -> list:
     return parsed_value_set
 
 
-def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915
+def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     column: sa.Column, dialect: ModuleType, like_pattern: str, positive: bool = True
 ) -> sa.BinaryExpression | None:
     dialect_supported: bool = False
@@ -985,7 +959,7 @@ def get_dialect_like_pattern_expression(  # noqa: C901, PLR0912, PLR0915
     return None
 
 
-def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
+def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     distribution, params
 ):
     """Ensures that necessary parameters for a distribution are present and that all parameters are sensical.
@@ -1007,14 +981,14 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
            ValueError: \
                With an informative description, usually when necessary parameters are omitted or are invalid.
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     norm_msg = "norm distributions require 0 parameters and optionally 'mean', 'std_dev'."
-    beta_msg = "beta distributions require 2 positive parameters 'alpha', 'beta' and optionally 'loc', 'scale'."  # noqa: E501
+    beta_msg = "beta distributions require 2 positive parameters 'alpha', 'beta' and optionally 'loc', 'scale'."  # noqa: E501 # FIXME CoP
     gamma_msg = (
         "gamma distributions require 1 positive parameter 'alpha' and optionally 'loc','scale'."
     )
-    # poisson_msg = "poisson distributions require 1 positive parameter 'lambda' and optionally 'loc'."  # noqa: E501
+    # poisson_msg = "poisson distributions require 1 positive parameter 'lambda' and optionally 'loc'."  # noqa: E501 # FIXME CoP
     uniform_msg = "uniform distributions require 0 parameters and optionally 'loc', 'scale'."
     chi2_msg = "chi2 distributions require 1 positive parameter 'df' and optionally 'loc', 'scale'."
     expon_msg = "expon distributions require 0 parameters and optionally 'loc', 'scale'."
@@ -1028,20 +1002,20 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
         "chi2",
         "expon",
     ]:
-        raise AttributeError(f"Unsupported  distribution provided: {distribution}")  # noqa: TRY003
+        raise AttributeError(f"Unsupported  distribution provided: {distribution}")  # noqa: TRY003 # FIXME CoP
 
     if isinstance(params, dict):
         # `params` is a dictionary
         if params.get("std_dev", 1) <= 0 or params.get("scale", 1) <= 0:
-            raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003
+            raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003 # FIXME CoP
 
         # alpha and beta are required and positive
         if distribution == "beta" and (params.get("alpha", -1) <= 0 or params.get("beta", -1) <= 0):
-            raise ValueError(f"Invalid parameters: {beta_msg}")  # noqa: TRY003
+            raise ValueError(f"Invalid parameters: {beta_msg}")  # noqa: TRY003 # FIXME CoP
 
         # alpha is required and positive
         elif distribution == "gamma" and params.get("alpha", -1) <= 0:
-            raise ValueError(f"Invalid parameters: {gamma_msg}")  # noqa: TRY003
+            raise ValueError(f"Invalid parameters: {gamma_msg}")  # noqa: TRY003 # FIXME CoP
 
         # lambda is a required and positive
         # elif distribution == 'poisson' and params.get('lambda', -1) <= 0:
@@ -1049,37 +1023,37 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
 
         # df is necessary and required to be positive
         elif distribution == "chi2" and params.get("df", -1) <= 0:
-            raise ValueError(f"Invalid parameters: {chi2_msg}:")  # noqa: TRY003
+            raise ValueError(f"Invalid parameters: {chi2_msg}:")  # noqa: TRY003 # FIXME CoP
 
     elif isinstance(params, (tuple, list)):
         scale = None
 
         # `params` is a tuple or a list
         if distribution == "beta":
-            if len(params) < 2:  # noqa: PLR2004
-                raise ValueError(f"Missing required parameters: {beta_msg}")  # noqa: TRY003
+            if len(params) < 2:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Missing required parameters: {beta_msg}")  # noqa: TRY003 # FIXME CoP
             if params[0] <= 0 or params[1] <= 0:
-                raise ValueError(f"Invalid parameters: {beta_msg}")  # noqa: TRY003
-            if len(params) == 4:  # noqa: PLR2004
+                raise ValueError(f"Invalid parameters: {beta_msg}")  # noqa: TRY003 # FIXME CoP
+            if len(params) == 4:  # noqa: PLR2004 # FIXME CoP
                 scale = params[3]
-            elif len(params) > 4:  # noqa: PLR2004
-                raise ValueError(f"Too many parameters provided: {beta_msg}")  # noqa: TRY003
+            elif len(params) > 4:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many parameters provided: {beta_msg}")  # noqa: TRY003 # FIXME CoP
 
         elif distribution == "norm":
-            if len(params) > 2:  # noqa: PLR2004
-                raise ValueError(f"Too many parameters provided: {norm_msg}")  # noqa: TRY003
-            if len(params) == 2:  # noqa: PLR2004
+            if len(params) > 2:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many parameters provided: {norm_msg}")  # noqa: TRY003 # FIXME CoP
+            if len(params) == 2:  # noqa: PLR2004 # FIXME CoP
                 scale = params[1]
 
         elif distribution == "gamma":
             if len(params) < 1:
-                raise ValueError(f"Missing required parameters: {gamma_msg}")  # noqa: TRY003
-            if len(params) == 3:  # noqa: PLR2004
+                raise ValueError(f"Missing required parameters: {gamma_msg}")  # noqa: TRY003 # FIXME CoP
+            if len(params) == 3:  # noqa: PLR2004 # FIXME CoP
                 scale = params[2]
-            if len(params) > 3:  # noqa: PLR2004
-                raise ValueError(f"Too many parameters provided: {gamma_msg}")  # noqa: TRY003
+            if len(params) > 3:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many parameters provided: {gamma_msg}")  # noqa: TRY003 # FIXME CoP
             elif params[0] <= 0:
-                raise ValueError(f"Invalid parameters: {gamma_msg}")  # noqa: TRY003
+                raise ValueError(f"Invalid parameters: {gamma_msg}")  # noqa: TRY003 # FIXME CoP
 
         # elif distribution == 'poisson':
         #    if len(params) < 1:
@@ -1090,33 +1064,33 @@ def validate_distribution_parameters(  # noqa: C901, PLR0912, PLR0915
         #        raise ValueError("Invalid parameters: %s" %poisson_msg)
 
         elif distribution == "uniform":
-            if len(params) == 2:  # noqa: PLR2004
+            if len(params) == 2:  # noqa: PLR2004 # FIXME CoP
                 scale = params[1]
-            if len(params) > 2:  # noqa: PLR2004
-                raise ValueError(f"Too many arguments provided: {uniform_msg}")  # noqa: TRY003
+            if len(params) > 2:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many arguments provided: {uniform_msg}")  # noqa: TRY003 # FIXME CoP
 
         elif distribution == "chi2":
             if len(params) < 1:
-                raise ValueError(f"Missing required parameters: {chi2_msg}")  # noqa: TRY003
-            elif len(params) == 3:  # noqa: PLR2004
+                raise ValueError(f"Missing required parameters: {chi2_msg}")  # noqa: TRY003 # FIXME CoP
+            elif len(params) == 3:  # noqa: PLR2004 # FIXME CoP
                 scale = params[2]
-            elif len(params) > 3:  # noqa: PLR2004
-                raise ValueError(f"Too many arguments provided: {chi2_msg}")  # noqa: TRY003
+            elif len(params) > 3:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many arguments provided: {chi2_msg}")  # noqa: TRY003 # FIXME CoP
             if params[0] <= 0:
-                raise ValueError(f"Invalid parameters: {chi2_msg}")  # noqa: TRY003
+                raise ValueError(f"Invalid parameters: {chi2_msg}")  # noqa: TRY003 # FIXME CoP
 
         elif distribution == "expon":
-            if len(params) == 2:  # noqa: PLR2004
+            if len(params) == 2:  # noqa: PLR2004 # FIXME CoP
                 scale = params[1]
-            if len(params) > 2:  # noqa: PLR2004
-                raise ValueError(f"Too many arguments provided: {expon_msg}")  # noqa: TRY003
+            if len(params) > 2:  # noqa: PLR2004 # FIXME CoP
+                raise ValueError(f"Too many arguments provided: {expon_msg}")  # noqa: TRY003 # FIXME CoP
 
         if scale is not None and scale <= 0:
-            raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003
+            raise ValueError("std_dev and scale must be positive.")  # noqa: TRY003 # FIXME CoP
 
     else:
-        raise ValueError(  # noqa: TRY003, TRY004
-            "params must be a dict or list, or use great_expectations.dataset.util.infer_distribution_parameters(data, distribution)"  # noqa: E501
+        raise ValueError(  # noqa: TRY003, TRY004 # FIXME CoP
+            "params must be a dict or list, or use great_expectations.dataset.util.infer_distribution_parameters(data, distribution)"  # noqa: E501 # FIXME CoP
         )
 
 
@@ -1136,7 +1110,7 @@ def _scipy_distribution_positional_args_from_dict(distribution, params):
        Raises:
            AttributeError: \
                If an unsupported distribution is provided.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     params["loc"] = params.get("loc", 0)
     if "scale" not in params:
@@ -1163,7 +1137,7 @@ def is_valid_continuous_partition_object(partition_object):
 
     :param partition_object: The partition_object to evaluate
     :return: Boolean
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if (
         (partition_object is None)
         or ("weights" not in partition_object)
@@ -1172,17 +1146,17 @@ def is_valid_continuous_partition_object(partition_object):
         return False
 
     if "tail_weights" in partition_object:
-        if len(partition_object["tail_weights"]) != 2:  # noqa: PLR2004
+        if len(partition_object["tail_weights"]) != 2:  # noqa: PLR2004 # FIXME CoP
             return False
         comb_weights = partition_object["tail_weights"] + partition_object["weights"]
     else:
         comb_weights = partition_object["weights"]
 
-    ## TODO: Consider adding this check to migrate to the tail_weights structure of partition objects  # noqa: E501
+    ## TODO: Consider adding this check to migrate to the tail_weights structure of partition objects  # noqa: E501 # FIXME CoP
     # if (partition_object['bins'][0] == -np.inf) or (partition_object['bins'][-1] == np.inf):
     #     return False
 
-    # Expect one more bin edge than weight; all bin edges should be monotonically increasing; weights should sum to one  # noqa: E501
+    # Expect one more bin edge than weight; all bin edges should be monotonically increasing; weights should sum to one  # noqa: E501 # FIXME CoP
     return (
         (len(partition_object["bins"]) == (len(partition_object["weights"]) + 1))
         and np.all(np.diff(partition_object["bins"]) > 0)
@@ -1208,8 +1182,8 @@ def sql_statement_with_post_compile_to_string(
     Returns:
         String representation of select_statement
 
-    """  # noqa: E501
-    sqlalchemy_connection: sa.engine.base.Connection = engine.engine  # type: ignore[assignment]
+    """  # noqa: E501 # FIXME CoP
+    sqlalchemy_connection: sa.engine.base.Connection = engine.engine  # type: ignore[assignment] # FIXME CoP
     compiled = select_statement.compile(
         sqlalchemy_connection,
         compile_kwargs={"render_postcompile": True},
@@ -1218,7 +1192,7 @@ def sql_statement_with_post_compile_to_string(
     dialect_name: str = engine.dialect_name
 
     if dialect_name in ["sqlite", "trino", "mssql"]:
-        params = (repr(compiled.params[name]) for name in compiled.positiontup)  # type: ignore[union-attr]
+        params = (repr(compiled.params[name]) for name in compiled.positiontup)  # type: ignore[union-attr] # FIXME CoP
         query_as_string = re.sub(r"\?", lambda m: next(params), str(compiled))
 
     else:
@@ -1242,10 +1216,10 @@ def get_sqlalchemy_source_table_and_schema(
         engine (SqlAlchemyExecutionEngine): Engine that is currently being used to calculate the Metrics
     Returns:
         SqlAlchemy Table that is the source table and schema.
-    """  # noqa: E501
-    assert isinstance(
-        engine.batch_manager.active_batch_data, SqlAlchemyBatchData
-    ), "`active_batch_data` not SqlAlchemyBatchData"
+    """  # noqa: E501 # FIXME CoP
+    assert isinstance(engine.batch_manager.active_batch_data, SqlAlchemyBatchData), (
+        "`active_batch_data` not SqlAlchemyBatchData"
+    )
 
     schema_name = engine.batch_manager.active_batch_data.source_schema_name
     table_name = engine.batch_manager.active_batch_data.source_table_name
@@ -1259,7 +1233,7 @@ def get_sqlalchemy_source_table_and_schema(
         return engine.batch_manager.active_batch_data.selectable
 
 
-def get_unexpected_indices_for_multiple_pandas_named_indices(  # noqa: C901
+def get_unexpected_indices_for_multiple_pandas_named_indices(  # noqa: C901 # FIXME CoP
     domain_records_df: pd.DataFrame,
     unexpected_index_column_names: List[str],
     expectation_domain_column_list: List[str],
@@ -1275,10 +1249,10 @@ def get_unexpected_indices_for_multiple_pandas_named_indices(  # noqa: C901
 
     Returns:
         List of Dicts that contain ID/PK values
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if not expectation_domain_column_list:
         raise gx_exceptions.MetricResolutionError(
-            message="Error: The list of domain columns is currently empty. Please check your configuration.",  # noqa: E501
+            message="Error: The list of domain columns is currently empty. Please check your configuration.",  # noqa: E501 # FIXME CoP
             failed_metrics=["unexpected_index_list"],
         )
 
@@ -1339,7 +1313,7 @@ def get_unexpected_indices_for_single_pandas_named_index(
     Returns:
         List of Dicts that contain ID/PK values
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     if not expectation_domain_column_list:
         return []
     unexpected_index_values_by_named_index: List[int | str] = list(domain_records_df.index)
@@ -1349,7 +1323,7 @@ def get_unexpected_indices_for_single_pandas_named_index(
         and unexpected_index_column_names[0] == domain_records_df.index.name
     ):
         raise gx_exceptions.MetricResolutionError(
-            message=f"Error: The column {unexpected_index_column_names[0] if unexpected_index_column_names else '<no column specified>'} does not exist in the named indices. Please check your configuration",  # noqa: E501
+            message=f"Error: The column {unexpected_index_column_names[0] if unexpected_index_column_names else '<no column specified>'} does not exist in the named indices. Please check your configuration",  # noqa: E501 # FIXME CoP
             failed_metrics=["unexpected_index_list"],
         )
 
@@ -1371,7 +1345,7 @@ def get_unexpected_indices_for_single_pandas_named_index(
     return unexpected_index_list
 
 
-def compute_unexpected_pandas_indices(  # noqa: C901
+def compute_unexpected_pandas_indices(  # noqa: C901 # FIXME CoP
     domain_records_df: pd.DataFrame,
     expectation_domain_column_list: List[str],
     result_format: Dict[str, Any],
@@ -1392,7 +1366,7 @@ def compute_unexpected_pandas_indices(  # noqa: C901
     Returns:
         list of unexpected_index_list values. It can either be a list of dicts or a list of numbers (if using default index).
 
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     unexpected_index_column_names: List[str]
     unexpected_index_list: UnexpectedIndexList
     exclude_unexpected_values: bool = result_format.get("exclude_unexpected_values", False)
@@ -1434,10 +1408,10 @@ def compute_unexpected_pandas_indices(  # noqa: C901
             }
             for index in unexpected_indices:
                 for column_name in unexpected_index_column_names:
-                    column_name = get_dbms_compatible_column_names(  # noqa: PLW2901
+                    column_name = get_dbms_compatible_column_names(  # noqa: PLW2901 # FIXME CoP
                         column_names=column_name,
                         batch_columns_list=metrics["table.columns"],
-                        error_message_template='Error: The unexpected_index_column "{column_name:s}" does not exist in Dataframe. Please check your configuration and try again.',  # noqa: E501
+                        error_message_template='Error: The unexpected_index_column "{column_name:s}" does not exist in Dataframe. Please check your configuration and try again.',  # noqa: E501 # FIXME CoP
                     )
                     primary_key_dict_list[column_name].append(
                         domain_records_df.at[index, column_name]
@@ -1447,18 +1421,18 @@ def compute_unexpected_pandas_indices(  # noqa: C901
         else:
             for index in unexpected_indices:
                 primary_key_dict: Dict[str, Any] = dict()
-                assert (
-                    expectation_domain_column_list
-                ), "`expectation_domain_column_list` was not provided"
+                assert expectation_domain_column_list, (
+                    "`expectation_domain_column_list` was not provided"
+                )
                 for domain_column_name in expectation_domain_column_list:
                     primary_key_dict[domain_column_name] = domain_records_df.at[
                         index, domain_column_name
                     ]
                     for column_name in unexpected_index_column_names:
-                        column_name = get_dbms_compatible_column_names(  # noqa: PLW2901
+                        column_name = get_dbms_compatible_column_names(  # noqa: PLW2901 # FIXME CoP
                             column_names=column_name,
                             batch_columns_list=metrics["table.columns"],
-                            error_message_template='Error: The unexpected_index_column "{column_name:s}" does not exist in Dataframe. Please check your configuration and try again.',  # noqa: E501
+                            error_message_template='Error: The unexpected_index_column "{column_name:s}" does not exist in Dataframe. Please check your configuration and try again.',  # noqa: E501 # FIXME CoP
                         )
                         primary_key_dict[column_name] = domain_records_df.at[index, column_name]
                 unexpected_index_list.append(primary_key_dict)

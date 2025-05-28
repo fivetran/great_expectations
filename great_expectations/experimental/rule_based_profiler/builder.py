@@ -15,7 +15,7 @@ from great_expectations.experimental.rule_based_profiler.exceptions import (
 )
 from great_expectations.types import SerializableDictDot, safe_deep_copy
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     deep_filter_properties_iterable,
 )
 
@@ -50,7 +50,7 @@ class Builder(SerializableDictDot):
 
     """
     Full getter/setter accessors for "batch_request" and "batch_list" are for configuring Builder dynamically.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     @property
     def batch_list(self) -> Optional[List[Batch]]:
@@ -83,7 +83,7 @@ class Builder(SerializableDictDot):
         """
         If "batch_request" is already set on "Builder" object, then it is not overwritten.  However, if "batch_request"
         is absent, then "batch_list" is accepted to support scenarios, where "Validator" already loaded "Batch" objects.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         if self.batch_request is None:
             self.set_batch_data(
                 batch_list=batch_list,
@@ -104,8 +104,8 @@ class Builder(SerializableDictDot):
             )
         )
         if num_supplied_batch_specification_args > 1:
-            raise ProfilerConfigurationError(  # noqa: TRY003
-                f'Please pass at most one of "batch_list" and "batch_request" arguments (you passed {num_supplied_batch_specification_args} arguments).'  # noqa: E501
+            raise ProfilerConfigurationError(  # noqa: TRY003 # FIXME CoP
+                f'Please pass at most one of "batch_list" and "batch_request" arguments (you passed {num_supplied_batch_specification_args} arguments).'  # noqa: E501 # FIXME CoP
             )
 
         if batch_list is None:
@@ -132,7 +132,7 @@ class Builder(SerializableDictDot):
         reference implementation in the "SerializableDictDot" class itself.  However, the circular import dependencies,
         due to the location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules
         make this refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         dict_obj: dict = self.to_dict()
         serializeable_dict: dict = convert_to_json_serializable(data=dict_obj)
         return serializeable_dict
@@ -157,7 +157,7 @@ class Builder(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         json_dict: dict = self.to_json_dict()
         deep_filter_properties_iterable(
             properties=json_dict,
@@ -173,5 +173,5 @@ class Builder(SerializableDictDot):
         implementation in the "SerializableDictDot" class.  However, the circular import dependencies, due to the
         location of the "great_expectations/types/__init__.py" and "great_expectations/core/util.py" modules make this
         refactoring infeasible at the present time.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         return self.__repr__()

@@ -9,7 +9,7 @@ toc_max_heading_level: 2
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-:::info
+:::info Info
 
 For access to the GX Agent, reach out to Support at support@greatexpectations.io.
 

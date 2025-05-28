@@ -40,13 +40,13 @@ def pandas_execution_engine_fake(
             appropriate exception to be raised, while its dependencies resolve to actual values ("my_value" is used here
             as placeholder).  This makes "ValidationGraph.resolve()" -- method under test -- evaluate every
             "MetricConfiguration" of parsed "ValidationGraph" successfully, except "failed" "MetricConfiguration".
-            """  # noqa: E501
+            """  # noqa: E501 # FIXME CoP
             metric_configuration: MetricConfiguration
             if failed_metric_config.id in [
                 metric_configuration.id for metric_configuration in metrics_to_resolve
             ]:
                 raise gx_exceptions.MetricResolutionError(
-                    message=f'Error: The column "not_in_table" in BatchData does not exist.{uuid.uuid4()}',  # Randomizing the message to assert that only one exception is kept  # noqa: E501
+                    message=f'Error: The column "not_in_table" in BatchData does not exist.{uuid.uuid4()}',  # Randomizing the message to assert that only one exception is kept  # noqa: E501 # FIXME CoP
                     failed_metrics=[failed_metric_config],
                 )
 
@@ -55,7 +55,7 @@ def pandas_execution_engine_fake(
             }
 
     PandasExecutionEngineFake.__name__ = "PandasExecutionEngine"
-    return cast(ExecutionEngine, PandasExecutionEngineFake())
+    return cast("ExecutionEngine", PandasExecutionEngineFake())
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def validation_graph_with_no_edges() -> ValidationGraph:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     return ValidationGraph(execution_engine=execution_engine, edges=None)
 
@@ -81,7 +81,7 @@ def validation_graph_with_single_edge(metric_edge: MetricEdge) -> ValidationGrap
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     return ValidationGraph(execution_engine=execution_engine, edges=[metric_edge])
 
@@ -125,7 +125,7 @@ def expect_column_value_z_scores_to_be_less_than_expectation_validation_graph():
         pass
 
     PandasExecutionEngineStub.__name__ = "PandasExecutionEngine"
-    execution_engine = cast(ExecutionEngine, PandasExecutionEngineStub())
+    execution_engine = cast("ExecutionEngine", PandasExecutionEngineStub())
 
     expectation_configuration = ExpectationConfiguration(
         type="expect_column_value_z_scores_to_be_less_than",
@@ -158,7 +158,7 @@ def test_ValidationGraph_init_no_input_edges() -> None:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -173,7 +173,7 @@ def test_ValidationGraph_init_with_input_edges(
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     edges = [metric_edge]
     graph = ValidationGraph(execution_engine=execution_engine, edges=edges)
@@ -187,7 +187,7 @@ def test_ValidationGraph_add(metric_edge: MetricEdge) -> None:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -213,7 +213,7 @@ def test_ExpectationValidationGraph_constructor(
         )
 
     assert ve.value.args == (
-        'Instantiation of "ExpectationValidationGraph" requires valid "ExpectationConfiguration" object.',  # noqa: E501
+        'Instantiation of "ExpectationValidationGraph" requires valid "ExpectationConfiguration" object.',  # noqa: E501 # FIXME CoP
     )
 
     with pytest.raises(ValueError) as ve:
@@ -296,7 +296,7 @@ def test_parse_validation_graph(
 ):
     available_metrics: Dict[Tuple[str, str, str], MetricValue]
 
-    # Parse input "ValidationGraph" object and confirm the numbers of ready and still needed metrics.  # noqa: E501
+    # Parse input "ValidationGraph" object and confirm the numbers of ready and still needed metrics.  # noqa: E501 # FIXME CoP
     available_metrics = {}
     (
         ready_metrics,
@@ -306,7 +306,7 @@ def test_parse_validation_graph(
     )
     assert len(ready_metrics) == 2 and len(needed_metrics) == 9
 
-    # Show that including "nonexistent" metric in dictionary of resolved metrics does not increase ready_metrics count.  # noqa: E501
+    # Show that including "nonexistent" metric in dictionary of resolved metrics does not increase ready_metrics count.  # noqa: E501 # FIXME CoP
     available_metrics = {("nonexistent", "nonexistent", "nonexistent"): "NONE"}
     (
         ready_metrics,
@@ -332,7 +332,7 @@ def test_populate_dependencies_with_incorrect_metric_name():
         pass
 
     PandasExecutionEngineStub.__name__ = "PandasExecutionEngine"
-    execution_engine = cast(ExecutionEngine, PandasExecutionEngineStub())
+    execution_engine = cast("ExecutionEngine", PandasExecutionEngineStub())
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -344,10 +344,7 @@ def test_populate_dependencies_with_incorrect_metric_name():
             ),
         )
 
-    assert (
-        e.value.message
-        == "No provider found for column_values.not_a_metric using PandasExecutionEngine"
-    )
+    assert e.value.message == "No metric named column_values.not_a_metric found."
 
 
 @pytest.mark.unit
@@ -427,7 +424,7 @@ def test_progress_bar_config(
     """
     This test creates mocked environment for progress bar tests; it then executes the method under test that utilizes
     the progress bar, "ValidationGraph.resolve()", with composed arguments, and verifies result.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     class DummyMetricConfiguration:
         pass
@@ -435,8 +432,8 @@ def test_progress_bar_config(
     class DummyExecutionEngine:
         pass
 
-    metric_configuration = cast(MetricConfiguration, DummyMetricConfiguration)
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    metric_configuration = cast("MetricConfiguration", DummyMetricConfiguration)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     # ValidationGraph is a complex object that requires len > 3 to not trigger tqdm
     with (

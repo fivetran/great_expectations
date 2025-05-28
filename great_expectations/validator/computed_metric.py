@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 MetricValue = Union[
-    Any,  # Encompasses deferred-query/execution plans ("SQLAlchemy" and "Spark") conditions and aggregation functions.  # noqa: E501
+    Any,  # Encompasses deferred-query/execution plans ("SQLAlchemy" and "Spark") conditions and aggregation functions.  # noqa: E501 # FIXME CoP
     List[Any],
     Set[Any],
     Tuple[Any, ...],

@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
@@ -14,6 +15,7 @@ from tests.integration.test_utils.data_source_config import (
     # MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     # SqliteDatasourceTestConfig,
@@ -26,6 +28,7 @@ ALL_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SparkFilesystemCsvDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
@@ -38,6 +41,7 @@ EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
 ]
@@ -49,6 +53,7 @@ PARTITIONER_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
 ]
@@ -60,6 +65,7 @@ PARTITIONER_AND_EXTRA_DATA_SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig
     # MSSQLDatasourceTestConfig(),  # fix me
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     # SqliteDatasourceTestConfig(),  # fix me
 ]
@@ -234,7 +240,7 @@ def test_unexpected_rows_expectation_batch_keyword_partitioner_success(
     unexpected_rows_query,
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
-        name=str(uuid4()), column=DATE_COLUMN
+        name="my-batch-def", column=DATE_COLUMN
     ).get_batch()
     expectation = gxe.UnexpectedRowsExpectation(
         description="Expect query with {batch} keyword and paritioner defined to succeed",
@@ -255,7 +261,7 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_success(
     extra_table_names_for_datasource,
 ) -> None:
     batch = asset_for_datasource.add_batch_definition_monthly(
-        name=str(uuid4()), column=DATE_COLUMN
+        name="my-batch-def", column=DATE_COLUMN
     ).get_batch()
     for join_success_query in JOIN_SUCCESS_QUERIES:
         unexpected_rows_query = join_success_query.replace(
@@ -314,3 +320,51 @@ def test_unexpected_rows_expectation_join_keyword_partitioner_failure(
         result = batch.validate(expectation)
         assert result.success is False
         assert result.exception_info.get("raised_exception") is False
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=TABLE_1,
+)
+def test_success_result_format(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE entity_id = 123"
+        )
+    )
+
+    assert result.success
+    assert result.result == {
+        "observed_value": 0,
+        "details": {
+            "unexpected_rows": [],
+        },
+    }
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=TABLE_1,
+)
+def test_fail_result_format(batch_for_datasource: Batch) -> None:
+    result = batch_for_datasource.validate(
+        gxe.UnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE entity_id = 2"
+        )
+    )
+
+    assert not result.success
+    assert result.result == {
+        "observed_value": 1,
+        "details": {
+            "unexpected_rows": [
+                {
+                    "entity_id": 2,
+                    "created_at": datetime(year=2024, month=11, day=30, tzinfo=timezone.utc).date(),
+                    "quantity": 2,
+                    "temperature": 92,
+                    "color": "red",
+                }
+            ],
+        },
+    }

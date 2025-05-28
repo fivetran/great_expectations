@@ -5,14 +5,16 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
+    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     VALUE_SET_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
-    ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
+    ValueSetField,  # noqa: TC001  # type needed in pydantic validation
 )
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
@@ -44,18 +46,18 @@ if TYPE_CHECKING:
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the set of distinct column values to contain a given set."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
-DATA_QUALITY_ISSUES = ["Sets"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
 
 class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
@@ -94,7 +96,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         [ExpectColumnDistinctValuesToBeInSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_be_in_set)
         [ExpectColumnDistinctValuesToEqualSet](https://greatexpectations.io/expectations/expect_column_distinct_values_to_equal_set)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -105,7 +107,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -186,7 +188,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
                 "meta": {{}},
                 "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     value_set: ValueSetField
 
@@ -202,7 +204,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
 
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.value_counts",)
     success_keys = ("value_set",)
 
@@ -298,7 +300,7 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
             runtime_configuration=runtime_configuration,
         )
         if renderer_configuration.configuration is None:
-            raise ValueError("renderer_configuration.configuration is None.")  # noqa: TRY003
+            raise ValueError("renderer_configuration.configuration is None.")  # noqa: TRY003 # FIXME CoP
         params = substitute_none_for_missing(
             renderer_configuration.configuration.kwargs,
             [
@@ -350,18 +352,26 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         runtime_configuration: Optional[dict] = None,
         execution_engine: Optional[ExecutionEngine] = None,
     ):
-        observed_value_counts = metrics.get("column.value_counts")
+        observed_value_counts = metrics["column.value_counts"]
+        observed_value_set = set(observed_value_counts.index)
         value_set = self._get_success_kwargs()["value_set"]
 
-        parsed_value_set = value_set
+        # Try to coerce string values to match the type of observed values
+        if observed_value_set and value_set:
+            first_observed = next(iter(observed_value_set))
+            expected_value_set = {
+                parse_value_to_observed_type(first_observed, value) for value in value_set
+            }
+        else:
+            expected_value_set = set(value_set)
 
-        if observed_value_counts is None:
-            raise ValueError("observed_value_counts None, but is required")  # noqa: TRY003
-        observed_value_set = set(observed_value_counts.index)
-        expected_value_set = set(parsed_value_set)
+        if not expected_value_set:
+            success = True
+        else:
+            success = expected_value_set.issubset(observed_value_set)
 
         return {
-            "success": observed_value_set.issuperset(expected_value_set),
+            "success": success,
             "result": {
                 "observed_value": sorted(list(observed_value_set)),
                 "details": {"value_counts": observed_value_counts},
@@ -432,7 +442,16 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
             template_str_list.append(f"${name}")
 
         for name, schema in expected_values:
-            if schema.value not in observed_value_set:
+            # try to coerce the expected value to a type that can be compared with observed values
+            if observed_value_set:
+                sample_observed_value = next(iter(observed_value_set))
+                expected_value = parse_value_to_observed_type(
+                    observed_value=sample_observed_value, value=schema.value
+                )
+            else:
+                expected_value = schema.value
+
+            if expected_value not in observed_value_set:
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value

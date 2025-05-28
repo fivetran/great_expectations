@@ -22,7 +22,7 @@ from great_expectations.datasource.fluent.batch_request import (
     BatchRequest,
 )
 from great_expectations.datasource.fluent.data_connector import (
-    FilePathDataConnector,  # noqa: TCH001  # pydantic uses type at runtime
+    FilePathDataConnector,  # noqa: TC001  # pydantic uses type at runtime
 )
 from great_expectations.datasource.fluent.interfaces import (
     Batch,
@@ -61,7 +61,7 @@ class PathDataAsset(DataAsset, Generic[DatasourceT, PartitionerT], ABC):
 
     connect_options: Mapping = pydantic.Field(
         default_factory=dict,
-        description="Optional filesystem specific advanced parameters for connecting to data assets",  # noqa: E501
+        description="Optional filesystem specific advanced parameters for connecting to data assets",  # noqa: E501 # FIXME CoP
     )
 
     # `_data_connector`` should be set inside `_build_data_connector()`
@@ -101,15 +101,15 @@ class PathDataAsset(DataAsset, Generic[DatasourceT, PartitionerT], ABC):
             )
         ):
             valid_options = self.get_batch_parameters_keys(partitioner=batch_request.partitioner)
-            options = {option: None for option in valid_options}
+            options = dict.fromkeys(valid_options)
             expect_batch_request_form = BatchRequest(
                 datasource_name=self.datasource.name,
                 data_asset_name=self.name,
                 options=options,
-                batch_slice=batch_request._batch_slice_input,  # type: ignore[attr-defined]
+                batch_slice=batch_request._batch_slice_input,  # type: ignore[attr-defined] # FIXME CoP
                 partitioner=batch_request.partitioner,
             )
-            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003
+            raise gx_exceptions.InvalidBatchRequestError(  # noqa: TRY003 # FIXME CoP
                 "BatchRequest should have form:\n"
                 f"{pf(expect_batch_request_form.dict())}\n"
                 f"but actually has form:\n{pf(batch_request.dict())}\n"
@@ -197,8 +197,8 @@ class PathDataAsset(DataAsset, Generic[DatasourceT, PartitionerT], ABC):
             if self._data_connector.test_connection():
                 return None
         except Exception as e:
-            raise TestConnectionError(  # noqa: TRY003
-                f"Could not connect to asset using {type(self._data_connector).__name__}: Got {type(e).__name__}"  # noqa: E501
+            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
+                f"Could not connect to asset using {type(self._data_connector).__name__}: Got {type(e).__name__}"  # noqa: E501 # FIXME CoP
             ) from e
         raise TestConnectionError(self._test_connection_error_message)
 

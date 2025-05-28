@@ -46,8 +46,8 @@ class InlineRenderer(Renderer):
         if isinstance(render_object, (ExpectationConfiguration, ExpectationValidationResult)):
             self._render_object = render_object
         else:
-            raise InlineRendererError(  # noqa: TRY003
-                f"InlineRenderer can only be used with an ExpectationConfiguration or ExpectationValidationResult, but {type(render_object)} was used."  # noqa: E501
+            raise InlineRendererError(  # noqa: TRY003 # FIXME CoP
+                f"InlineRenderer can only be used with an ExpectationConfiguration or ExpectationValidationResult, but {type(render_object)} was used."  # noqa: E501 # FIXME CoP
             )
 
     def _get_atomic_rendered_content_for_object(
@@ -61,7 +61,7 @@ class InlineRenderer(Renderer):
 
         Returns:
             A list of RenderedAtomicContent objects for a given ExpectationConfiguration or ExpectationValidationResult.
-        """  # noqa: E501
+        """  # noqa: E501 # FIXME CoP
         expectation_type: str
         renderer_types: List[AtomicRendererType]
         if isinstance(render_object, ExpectationConfiguration):
@@ -71,16 +71,16 @@ class InlineRenderer(Renderer):
             if render_object.expectation_config:
                 expectation_type = render_object.expectation_config.type
             else:
-                raise InlineRendererError(  # noqa: TRY003
-                    "ExpectationValidationResult passed to InlineRenderer._get_atomic_rendered_content_for_object is missing an expectation_config."  # noqa: E501
+                raise InlineRendererError(  # noqa: TRY003 # FIXME CoP
+                    "ExpectationValidationResult passed to InlineRenderer._get_atomic_rendered_content_for_object is missing an expectation_config."  # noqa: E501 # FIXME CoP
                 )
             renderer_types = [
                 AtomicRendererType.DIAGNOSTIC,
                 AtomicRendererType.PRESCRIPTIVE,
             ]
         else:
-            raise InlineRendererError(  # noqa: TRY003
-                f"InlineRenderer._get_atomic_rendered_content_for_object can only be used with an ExpectationConfiguration or ExpectationValidationResult, but {type(render_object)} was used."  # noqa: E501
+            raise InlineRendererError(  # noqa: TRY003 # FIXME CoP
+                f"InlineRenderer._get_atomic_rendered_content_for_object can only be used with an ExpectationConfiguration or ExpectationValidationResult, but {type(render_object)} was used."  # noqa: E501 # FIXME CoP
             )
 
         renderer_names: List[
@@ -120,7 +120,7 @@ class InlineRenderer(Renderer):
             ]
         ]
 
-        renderer_rendered_content: RenderedAtomicContent
+        renderer_rendered_content: RenderedAtomicContent | list[RenderedAtomicContent]
         rendered_content: List[RenderedAtomicContent] = []
         for renderer_name in try_renderer_names:
             renderer_rendered_content = self._get_renderer_atomic_rendered_content(
@@ -128,7 +128,10 @@ class InlineRenderer(Renderer):
                 renderer_name=renderer_name,
                 expectation_type=expectation_type,
             )
-            rendered_content.append(renderer_rendered_content)
+            if isinstance(renderer_rendered_content, list):
+                rendered_content.extend(renderer_rendered_content)
+            else:
+                rendered_content.append(renderer_rendered_content)
 
         return rendered_content
 
@@ -137,7 +140,7 @@ class InlineRenderer(Renderer):
         render_object: ExpectationConfiguration | ExpectationValidationResult,
         renderer_name: str | AtomicDiagnosticRendererType | AtomicPrescriptiveRendererType,
         expectation_type: str,
-    ) -> RenderedAtomicContent:
+    ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
         renderer_impl: Optional[RendererImpl]
         try:
             renderer_impl = get_renderer_impl(
@@ -149,15 +152,17 @@ class InlineRenderer(Renderer):
                     render_object=render_object,
                 )
             else:
-                raise InlineRendererError(  # noqa: TRY003, TRY301
-                    f"renderer_name: {renderer_name} was not found in the registry for expectation_type: {expectation_type}"  # noqa: E501
+                raise InlineRendererError(  # noqa: TRY003, TRY301 # FIXME CoP
+                    f"renderer_name: {renderer_name} was not found in the registry for expectation_type: {expectation_type}"  # noqa: E501 # FIXME CoP
                 )
 
-            assert isinstance(
-                renderer_rendered_content, RenderedAtomicContent
-            ), f"The renderer: {renderer_name} for expectation: {expectation_type} should return RenderedAtomicContent."  # noqa: E501
+            assert isinstance(renderer_rendered_content, (RenderedAtomicContent, list)), (
+                f"The renderer: {renderer_name} for expectation: "
+                f"{expectation_type} should return RenderedAtomicContent "
+                "or list[RenderedAtomicContent]."
+            )
         except Exception as e:
-            error_message = f'Renderer "{renderer_name}" failed to render Expectation "{expectation_type} with exception message: {e!s}".'  # noqa: E501
+            error_message = f'Renderer "{renderer_name}" failed to render Expectation "{expectation_type} with exception message: {e!s}".'  # noqa: E501 # FIXME CoP
             logger.info(error_message)
 
             failure_renderer: AtomicPrescriptiveRendererType | AtomicDiagnosticRendererType
@@ -181,9 +186,13 @@ class InlineRenderer(Renderer):
                     renderer_impl=renderer_impl,
                     render_object=render_object,
                 )
-                renderer_rendered_content.exception = error_message
+                if isinstance(renderer_rendered_content, list):
+                    for failure_rendered_content in renderer_rendered_content:
+                        failure_rendered_content.exception = error_message
+                else:
+                    renderer_rendered_content.exception = error_message
             else:
-                raise InlineRendererError(  # noqa: TRY003
+                raise InlineRendererError(  # noqa: TRY003 # FIXME CoP
                     f'Renderer "{failure_renderer}" was not found in the registry.'
                 )
 
@@ -193,13 +202,16 @@ class InlineRenderer(Renderer):
     def _get_rendered_content_from_renderer_impl(
         renderer_impl: RendererImpl,
         render_object: ExpectationConfiguration | ExpectationValidationResult,
-    ) -> RenderedAtomicContent:
-        renderer_fn: Callable[..., RenderedAtomicContent | RenderedContent] = renderer_impl.renderer
+    ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
+        renderer_fn: Callable[
+            ..., RenderedAtomicContent | list[RenderedAtomicContent] | RenderedContent
+        ] = renderer_impl.renderer
         if isinstance(render_object, ExpectationConfiguration):
             renderer_rendered_content = renderer_fn(configuration=render_object)
         else:
             renderer_rendered_content = renderer_fn(result=render_object)
-        assert isinstance(renderer_rendered_content, RenderedAtomicContent)
+
+        assert isinstance(renderer_rendered_content, (RenderedAtomicContent, list))
         return renderer_rendered_content
 
     def get_rendered_content(

@@ -82,7 +82,7 @@ class BatchDefinitionNotFreshError(ResourceFreshnessError):
 class ValidationDefinitionNotAddedError(ResourceFreshnessError):
     def __init__(self, name: str) -> None:
         super().__init__(
-            f"ValidationDefinition '{name}' must be added to the DataContext before it can be updated. "  # noqa: E501
+            f"ValidationDefinition '{name}' must be added to the DataContext before it can be updated. "  # noqa: E501 # FIXME CoP
             "Please call `context.validation_definitions.add(<VALIDATION_DEFINITION_OBJECT>)`, "
             "then try your action again."
         )
@@ -92,7 +92,7 @@ class ValidationDefinitionNotFreshError(ResourceFreshnessError):
     def __init__(self, name: str) -> None:
         super().__init__(
             f"ValidationDefinition '{name}' has changed since it has last been saved. "
-            "Please update with `<VALIDATION_DEFINITION_OBJECT>.save()`, then try your action again."  # noqa: E501
+            "Please update with `<VALIDATION_DEFINITION_OBJECT>.save()`, then try your action again."  # noqa: E501 # FIXME CoP
         )
 
 

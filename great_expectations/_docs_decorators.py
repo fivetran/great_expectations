@@ -40,6 +40,7 @@ class _PublicApiIntrospector:
 
     # Only used for testing
     _class_registry: dict[str, set[str]] = defaultdict(set)
+    _docstring_violations: set[str] = set()
 
     # This is a special key that is used to indicate that a class definition
     # is being added to the registry.
@@ -49,8 +50,14 @@ class _PublicApiIntrospector:
     def class_registry(self) -> dict[str, set[str]]:
         return self._class_registry
 
+    @property
+    def docstring_violations(self) -> set[str]:
+        return self._docstring_violations
+
     def add(self, func: F) -> None:
+        self._add_to_docstring_violations(func)
         self._add_to_class_registry(func)
+
         try:
             # We use an if statement instead of a ternary to work around
             # mypy's inability to type narrow inside a ternary.
@@ -72,6 +79,11 @@ class _PublicApiIntrospector:
         except Exception:
             logger.exception(f"Could not add this function to the public API list: {func}")
             raise
+
+    def _add_to_docstring_violations(self, func: F) -> None:
+        name = f"{func.__module__}.{func.__qualname__}"
+        if not func.__doc__ and name.startswith("great_expectations"):
+            self._docstring_violations.add(name)
 
     def _add_to_class_registry(self, func: F) -> None:
         if isinstance(func, type):
@@ -135,7 +147,7 @@ def public_api(func: F) -> F:
     This tag is added at import time.
     """
     public_api_introspector.add(func)
-    existing_docstring = func.__doc__ if func.__doc__ else ""
+    existing_docstring = func.__doc__ or ""
     func.__doc__ = WHITELISTED_TAG + existing_docstring
     return func
 
@@ -163,7 +175,7 @@ def deprecated_method_or_class(
         message: Optional deprecation message.
     """
 
-    text = f".. deprecated:: {version}" "\n" f"    {message}"
+    text = f".. deprecated:: {version}\n    {message}"
 
     def wrapper(func: F) -> F:
         """Wrapper method that accepts func, so we can modify the docstring."""
@@ -198,7 +210,7 @@ def new_method_or_class(
         message: Optional message.
     """
 
-    text = f".. versionadded:: {version}" "\n" f"    {message}"
+    text = f".. versionadded:: {version}\n    {message}"
 
     def wrapper(func: Callable[P, T]) -> Callable[P, T]:
         """Wrapper method that accepts func, so we can modify the docstring."""
@@ -235,9 +247,9 @@ def deprecated_argument(
         argument_name: Name of the argument to associate with the deprecation note.
         version: Version number when the method was deprecated.
         message: Optional deprecation message.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
-    text = f".. deprecated:: {version}" "\n" f"    {message}"
+    text = f".. deprecated:: {version}\n    {message}"
 
     def wrapper(func: F) -> F:
         """Wrapper method that accepts func, so we can modify the docstring."""
@@ -280,7 +292,7 @@ def new_argument(
         message: Optional message.
     """
 
-    text = f".. versionadded:: {version}" "\n" f"    {message}"
+    text = f".. versionadded:: {version}\n    {message}"
 
     def wrapper(func: F) -> F:
         """Wrapper method that accepts func, so we can modify the docstring."""
@@ -314,12 +326,12 @@ def _add_text_to_function_docstring_after_summary(func: F, text: str) -> F:
     split_docstring = existing_docstring.split("\n", 1)
 
     docstring = ""
-    if len(split_docstring) == 2:  # noqa: PLR2004
+    if len(split_docstring) == 2:  # noqa: PLR2004 # FIXME CoP
         short_description, docstring = split_docstring
-        docstring = f"{short_description.strip()}\n" "\n" f"{text}\n" "\n" f"{dedent(docstring)}"
+        docstring = f"{short_description.strip()}\n\n{text}\n\n{dedent(docstring)}"
     elif len(split_docstring) == 1:
         short_description = split_docstring[0]
-        docstring = f"{short_description.strip()}\n" "\n" f"{text}\n"
+        docstring = f"{short_description.strip()}\n\n{text}\n"
     elif len(split_docstring) == 0:
         docstring = f"{text}\n"
 
@@ -372,7 +384,7 @@ def _add_text_below_string_docstring_argument(docstring: str, argument_name: str
 
     arg_list = list(param.arg_name for param in parsed_docstring.params)
     if argument_name not in arg_list:
-        raise ValueError(f"Please specify an existing argument, you specified {argument_name}.")  # noqa: TRY003
+        raise ValueError(f"Please specify an existing argument, you specified {argument_name}.")  # noqa: TRY003 # FIXME CoP
 
     for param in parsed_docstring.params:
         if param.arg_name == argument_name:

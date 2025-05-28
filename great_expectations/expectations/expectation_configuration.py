@@ -33,8 +33,8 @@ from great_expectations.expectations.registry import get_expectation_impl
 from great_expectations.render import RenderedAtomicContent, RenderedAtomicContentSchema
 from great_expectations.types import SerializableDictDot
 from great_expectations.util import (
-    convert_to_json_serializable,  # noqa: TID251
-    ensure_json_serializable,  # noqa: TID251
+    convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
+    ensure_json_serializable,  # noqa: TID251 # FIXME CoP
 )
 
 if TYPE_CHECKING:
@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 def parse_result_format(result_format: Union[str, dict]) -> dict:
     """This is a simple helper utility that can be used to parse a string result_format into the dict format used
     internally by great_expectations. It is not necessary but allows shorthand for result_format in cases where
-    there is no need to specify a custom partial_unexpected_count."""  # noqa: E501
+    there is no need to specify a custom partial_unexpected_count."""  # noqa: E501 # FIXME CoP
     if isinstance(result_format, str):
         result_format = {
             "result_format": result_format,
@@ -56,7 +56,7 @@ def parse_result_format(result_format: Union[str, dict]) -> dict:
         }
     else:
         if "include_unexpected_rows" in result_format and "result_format" not in result_format:
-            raise ValueError(  # noqa: TRY003
+            raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "When using `include_unexpected_rows`, `result_format` must be explicitly specified"
             )
 
@@ -117,14 +117,14 @@ class ExpectationConfiguration(SerializableDictDot):
         InvalidExpectationConfigurationError: If `kwargs` arg is not a dict.
         InvalidExpectationKwargsError: If domain kwargs are missing.
         ValueError: If a `domain_type` cannot be determined.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     runtime_kwargs: ClassVar[tuple[str, ...]] = (
         "result_format",
         "catch_exceptions",
     )
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
         type: str,
         kwargs: dict,
@@ -137,10 +137,10 @@ class ExpectationConfiguration(SerializableDictDot):
         rendered_content: Optional[List[RenderedAtomicContent]] = None,
     ) -> None:
         if not isinstance(type, str):
-            raise InvalidExpectationConfigurationError("expectation_type must be a string")  # noqa: TRY003
+            raise InvalidExpectationConfigurationError("expectation_type must be a string")  # noqa: TRY003 # FIXME CoP
         self._type = type
         if not isinstance(kwargs, dict):
-            raise InvalidExpectationConfigurationError(  # noqa: TRY003
+            raise InvalidExpectationConfigurationError(  # noqa: TRY003 # FIXME CoP
                 "expectation configuration kwargs must be a dict."
             )
         self._kwargs = kwargs
@@ -278,7 +278,7 @@ class ExpectationConfiguration(SerializableDictDot):
         }
         missing_kwargs = set(domain_keys) - set(domain_kwargs.keys())
         if missing_kwargs:
-            raise InvalidExpectationKwargsError(f"Missing domain kwargs: {list(missing_kwargs)}")  # noqa: TRY003
+            raise InvalidExpectationKwargsError(f"Missing domain kwargs: {list(missing_kwargs)}")  # noqa: TRY003 # FIXME CoP
 
         return domain_kwargs
 
@@ -349,7 +349,7 @@ class ExpectationConfiguration(SerializableDictDot):
         other: Union[dict, ExpectationConfiguration],
         match_type: str = "success",
     ) -> bool:
-        """ExpectationConfiguration equivalence does not include meta, and relies on *equivalence* of kwargs."""  # noqa: E501
+        """ExpectationConfiguration equivalence does not include meta, and relies on *equivalence* of kwargs."""  # noqa: E501 # FIXME CoP
         if not isinstance(other, self.__class__):
             if isinstance(other, dict):
                 try:
@@ -357,7 +357,7 @@ class ExpectationConfiguration(SerializableDictDot):
                     other = expectationConfigurationSchema.load(other)
                 except ValidationError:
                     logger.debug(
-                        "Unable to evaluate equivalence of ExpectationConfiguration object with dict because "  # noqa: E501
+                        "Unable to evaluate equivalence of ExpectationConfiguration object with dict because "  # noqa: E501 # FIXME CoP
                         "dict other could not be instantiated as an ExpectationConfiguration"
                     )
                     return NotImplemented
@@ -427,11 +427,11 @@ class ExpectationConfiguration(SerializableDictDot):
             A JSON-serializable dict representation of this ExpectationConfiguration.
         """
         myself = expectationConfigurationSchema.dump(self)
-        # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501
+        # NOTE - JPC - 20191031: migrate to expectation-specific schemas that subclass result with properly-typed  # noqa: E501 # FIXME CoP
         # schemas to get serialization all-the-way down via dump
         myself["kwargs"] = convert_to_json_serializable(myself["kwargs"])
 
-        # Post dump hook removes this value if null so we need to ensure applicability before conversion  # noqa: E501
+        # Post dump hook removes this value if null so we need to ensure applicability before conversion  # noqa: E501 # FIXME CoP
         if "expectation_context" in myself:
             myself["expectation_context"] = convert_to_json_serializable(
                 myself["expectation_context"]
@@ -475,8 +475,8 @@ class ExpectationConfiguration(SerializableDictDot):
         if "column_list" in self.kwargs:
             return MetricDomainTypes.MULTICOLUMN
 
-        raise ValueError(  # noqa: TRY003
-            'Unable to determine "domain_type" of this "ExpectationConfiguration" object from "kwargs" and heuristics.'  # noqa: E501
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
+            'Unable to determine "domain_type" of this "ExpectationConfiguration" object from "kwargs" and heuristics.'  # noqa: E501 # FIXME CoP
         )
 
     def _get_expectation_class_defaults(self) -> dict[str, Any]:
@@ -536,7 +536,7 @@ class ExpectationConfigurationSchema(Schema):
     @post_dump
     def clean_null_attrs(self, data: dict, **kwargs: dict) -> dict:
         """Removes the attributes in ExpectationConfigurationSchema.REMOVE_KEYS_IF_NONE during serialization if
-        their values are None."""  # noqa: E501
+        their values are None."""  # noqa: E501 # FIXME CoP
         data = copy.deepcopy(data)
         for key in ExpectationConfigurationSchema.REMOVE_KEYS_IF_NONE:
             if key in data and data[key] is None:

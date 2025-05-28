@@ -14,6 +14,7 @@ from tests.integration.test_utils.data_source_config import (
     MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
@@ -39,6 +40,7 @@ SUPPORTED_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     MSSQLDatasourceTestConfig(),
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]
@@ -65,7 +67,8 @@ def test_basic_failure(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_complete_results_failure(batch_for_datasource: Batch) -> None:
     ABOUT_TWO_THIRDS = pytest.approx(2 / 3 * 100)
@@ -80,7 +83,7 @@ def test_complete_results_failure(batch_for_datasource: Batch) -> None:
     assert isinstance(result_dict, dict)
     assert not result.success
     assert "IS NOT NULL AND basic_patterns NOT LIKE '%b%'" in cast(
-        str, result_dict.get("unexpected_index_query")
+        "str", result_dict.get("unexpected_index_query")
     )
     assert result.to_json_dict().get("result") == {
         "element_count": 3,
@@ -156,7 +159,8 @@ def test_complete_results_failure(batch_for_datasource: Batch) -> None:
     ],
 )
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_success(
     batch_for_datasource: Batch,
@@ -197,7 +201,8 @@ def test_success(
     ],
 )
 @parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    data_source_configs=[PostgreSQLDatasourceTestConfig(), RedshiftDatasourceTestConfig()],
+    data=DATA,
 )
 def test_failure(
     batch_for_datasource: Batch,

@@ -52,11 +52,6 @@ _PTY_HELP_DESC = "Whether or not to use a pseudo terminal"
         "check": _CHECK_HELP_DESC,
         "exclude": _EXCLUDE_HELP_DESC,
         "path": _PATH_HELP_DESC,
-        "isort": "Use `isort` to sort packages. Default behavior.",
-        "ruff": (
-            "Use `ruff` instead of `isort` to sort imports."
-            " This will eventually become the default."
-        ),
         "pty": _PTY_HELP_DESC,
     }
 )
@@ -65,29 +60,18 @@ def sort(
     path: str = ".",
     check: bool = False,
     exclude: str | None = None,
-    ruff: bool = False,  # isort is the current default
-    isort: bool = False,
     pty: bool = True,
 ):
     """Sort module imports."""
-    if ruff and isort:
-        raise invoke.Exit("cannot use both `--ruff` and `--isort`", code=1)  # noqa: TRY003
-    if not isort:
-        cmds = [
-            "ruff",
-            "check",
-            path,
-            "--select I",
-            "--diff" if check else "--fix",
-        ]
-        if exclude:
-            cmds.extend(["--extend-exclude", exclude])
-    else:
-        cmds = ["isort", path]
-        if check:
-            cmds.append("--check-only")
-        if exclude:
-            cmds.extend(["--skip", exclude])
+    cmds = [
+        "ruff",
+        "check",
+        path,
+        "--select I",
+        "--diff" if check else "--fix",
+    ]
+    if exclude:
+        cmds.extend(["--extend-exclude", exclude])
     ctx.run(" ".join(cmds), echo=True, pty=pty)
 
 
@@ -639,6 +623,7 @@ def type_schema(  # noqa: C901 - too complex
         core.ExpectColumnValuesToNotMatchRegex,
         core.ExpectColumnValuesToNotMatchRegexList,
         core.UnexpectedRowsExpectation,
+        core.ExpectQueryResultsToMatchComparison,
     ]
     for x in supported_expectations:
         schema_path = expectation_dir.joinpath(f"{x.__name__}.json")
@@ -776,31 +761,6 @@ def _exit_with_error_if_not_run_from_correct_dir(
 
 
 @invoke.task(
-    aliases=("links",),
-    help={"skip_external": "Skip external link checks (is slow), default is True"},
-)
-def link_checker(ctx: Context, skip_external: bool = True):
-    """Checks the Docusaurus docs for broken links"""
-    import docs.checks.docs_link_checker as checker
-
-    path = pathlib.Path("docs/docusaurus/docs")
-    docs_root = pathlib.Path("docs/docusaurus/docs")
-    static_root = pathlib.Path("docs/docusaurus/static")
-    site_prefix: str = "docs"
-    static_prefix: str = "static"
-
-    code, message = checker.scan_docs(
-        path=path,
-        docs_root=docs_root,
-        static_root=static_root,
-        site_prefix=site_prefix,
-        static_prefix=static_prefix,
-        skip_external=skip_external,
-    )
-    raise invoke.Exit(message, code)
-
-
-@invoke.task(
     aliases=("automerge",),
 )
 def show_automerges(ctx: Context):
@@ -910,6 +870,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         services=("spark",),
         extra_pytest_args=("--spark", "--docs-tests"),
     ),
+    "gx-redshift": TestDependencies(
+        requirement_files=("reqs/requirements-dev-gx-redshift.txt",),
+    ),
     "mssql": TestDependencies(
         ("reqs/requirements-dev-mssql.txt",),
         services=("mssql",),
@@ -925,6 +888,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ("reqs/requirements-dev-postgresql.txt",),
         services=("postgresql",),
         extra_pytest_args=("--postgresql",),
+    ),
+    "redshift": TestDependencies(
+        requirement_files=("reqs/requirements-dev-redshift.txt",),
     ),
     "snowflake": TestDependencies(
         requirement_files=("reqs/requirements-dev-snowflake.txt",),
@@ -950,16 +916,21 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
 }
 
 
-def _add_all_backends_marker(marker_string: str) -> bool:
-    # We should generalize this, possibly leveraging MARKER_DEPENDENCY_MAP, but for now
-    # right I've hardcoded all the containerized backend services we support in testing.
-    return marker_string in [
+def _marker_statement(marker: str) -> str:
+    # Perhaps we should move this configuration to the MARKER_DEPENDENCY_MAP instead of
+    # doing the mapping here.
+    if marker in [
         "postgresql",
         "mssql",
         "mysql",
         "spark",
         "trino",
-    ]
+    ]:
+        return f"'all_backends or {marker}'"
+    elif marker == "gx-redshift":
+        return "'redshift'"
+    else:
+        return f"'{marker}'"
 
 
 def _tokenize_marker_string(marker_string: str) -> Generator[str, None, None]:
@@ -1003,15 +974,19 @@ def _get_marker_dependencies(markers: str | Sequence[str]) -> list[TestDependenc
         "markers": "Optional marker to install dependencies for. Can be specified multiple times.",
         "requirements_dev": "Short name of `requirements-dev-*.txt` file to install, e.g. test, spark, cloud, etc. Can be specified multiple times.",  # noqa: E501
         "constraints": "Optional flag to install dependencies with constraints, default True",
+        "gx_install": "Install the local version of Great Expectations.",
+        "editable_install": "Install an editable local version of Great Expectations.",
+        "force_reinstall": "Force re-installation of dependencies.",
     },
 )
-def deps(
+def deps(  # noqa: C901 - too complex
     ctx: Context,
     markers: list[str],
     requirements_dev: list[str],
     constraints: bool = True,
     gx_install: bool = False,
     editable_install: bool = False,
+    force_reinstall: bool = False,
 ):
     """
     Install dependencies for development and testing.
@@ -1033,6 +1008,9 @@ def deps(
         cmds.append("-e .")
     elif gx_install:
         cmds.append(".")
+
+    if force_reinstall:
+        cmds.append("--force-reinstall")
 
     req_files: list[str] = ["requirements.txt"]
 
@@ -1153,11 +1131,7 @@ def ci_tests(  # noqa: C901 - too complex (9)
         for extra_pytest_arg in test_deps.extra_pytest_args:
             pytest_options.append(extra_pytest_arg)
 
-    marker_statement = (
-        f"'all_backends or {marker}'" if _add_all_backends_marker(marker) else f"'{marker}'"
-    )
-
-    pytest_cmd = ["pytest", "-m", marker_statement] + pytest_options
+    pytest_cmd = ["pytest", "-m", _marker_statement(marker)] + pytest_options
     ctx.run(" ".join(pytest_cmd), echo=True, pty=pty)
 
 

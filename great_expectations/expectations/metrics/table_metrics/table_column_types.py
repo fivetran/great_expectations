@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, Optional, cast
 
 from great_expectations.compatibility import pyspark, sqlalchemy
 from great_expectations.core.metric_domain_types import MetricDomainTypes
@@ -10,14 +10,14 @@ from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
-from great_expectations.execution_engine.sqlalchemy_batch_data import (
-    SqlAlchemyBatchData,
-)
 from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.table_metric_provider import (
     TableMetricProvider,
 )
 from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
+
+if TYPE_CHECKING:
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
 
 
 class ColumnTypes(TableMetricProvider):
@@ -53,18 +53,18 @@ class ColumnTypes(TableMetricProvider):
             if execution_engine.batch_manager.active_batch_data_id is not None:
                 batch_id = execution_engine.batch_manager.active_batch_data_id
             else:
-                raise GreatExpectationsError(  # noqa: TRY003
-                    "batch_id could not be determined from domain kwargs and no active_batch_data is loaded into the "  # noqa: E501
+                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                    "batch_id could not be determined from domain kwargs and no active_batch_data is loaded into the "  # noqa: E501 # FIXME CoP
                     "execution engine"
                 )
 
         batch_data: SqlAlchemyBatchData = cast(
-            SqlAlchemyBatchData,
+            "SqlAlchemyBatchData",
             execution_engine.batch_manager.batch_data_cache.get(batch_id),
         )
         if batch_data is None:
-            raise GreatExpectationsError(  # noqa: TRY003
-                "the requested batch is not available; please load the batch into the execution engine."  # noqa: E501
+            raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                "the requested batch is not available; please load the batch into the execution engine."  # noqa: E501 # FIXME CoP
             )
 
         return _get_sqlalchemy_column_metadata(execution_engine, batch_data)
@@ -92,12 +92,12 @@ def _get_sqlalchemy_column_metadata(
 ):
     table_selectable: str | sqlalchemy.TextClause
 
-    if sqlalchemy.Table and isinstance(batch_data.selectable, sqlalchemy.Table):  # type: ignore[truthy-function]
+    if sqlalchemy.Table and isinstance(batch_data.selectable, sqlalchemy.Table):  # type: ignore[truthy-function] # FIXME CoP
         table_selectable = batch_data.source_table_name or batch_data.selectable.name
         schema_name = batch_data.source_schema_name or batch_data.selectable.schema
 
     # if custom query was passed in
-    elif sqlalchemy.TextClause and isinstance(batch_data.selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
+    elif sqlalchemy.TextClause and isinstance(batch_data.selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
         table_selectable = batch_data.selectable
         schema_name = None
     else:
@@ -106,12 +106,12 @@ def _get_sqlalchemy_column_metadata(
 
     return get_sqlalchemy_column_metadata(
         execution_engine=execution_engine,
-        table_selectable=table_selectable,  # type: ignore[arg-type]
+        table_selectable=table_selectable,  # type: ignore[arg-type] # FIXME CoP
         schema_name=schema_name,
     )
 
 
-def _get_spark_column_metadata(field, parent_name="", include_nested=True):  # noqa: C901 - too complex
+def _get_spark_column_metadata(field, parent_name="", include_nested=True):  # noqa: C901 #  too complex
     cols = []
     if parent_name != "":
         parent_name = f"{parent_name}."
@@ -146,6 +146,6 @@ def _get_spark_column_metadata(field, parent_name="", include_nested=True):  # n
                     include_nested=include_nested,
                 )
     else:
-        raise ValueError("unrecognized field type")  # noqa: TRY003
+        raise ValueError("unrecognized field type")  # noqa: TRY003 # FIXME CoP
 
     return cols

@@ -54,7 +54,7 @@ def test_basic_instantiation(mock_list_keys):
         "alpha-3.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     my_data_connector: DataConnector = GoogleCloudStorageDataConnector(
         datasource_name="my_file_path_datasource",
         data_asset_name="my_google_cloud_storage_data_asset",
@@ -91,7 +91,7 @@ def test_instantiation_batching_regex_does_not_match_paths(mock_list_keys):
         "alpha-3.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     my_data_connector: DataConnector = GoogleCloudStorageDataConnector(
         datasource_name="my_file_path_datasource",
         data_asset_name="my_google_cloud_storage_data_asset",
@@ -135,7 +135,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
         "will_20200810_1001.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     my_data_connector: DataConnector = GoogleCloudStorageDataConnector(
         datasource_name="my_file_path_datasource",
         data_asset_name="my_google_cloud_storage_data_asset",
@@ -308,7 +308,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 # TODO: <Alex>ALEX-UNCOMMENT_WHEN_SORTERS_ARE_INCLUDED_AND_TEST_SORTED_BATCH_DEFINITION_LIST</Alex>
 # @pytest.mark.big
 # @mock.patch(
-#     "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"  # noqa: E501
+#     "great_expectations.datasource.fluent.data_asset.data_connector.google_cloud_storage_data_connector.list_gcs_keys"  # noqa: E501 # FIXME CoP
 # )
 # def test_return_all_batch_definitions_sorted(
 #     mock_list_keys,
@@ -358,7 +358,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "alex_20200809_1000.csv", "name": "alex", "timestamp": "20200809", "price": "1000"}  # noqa: E501
+#                 {"path": "alex_20200809_1000.csv", "name": "alex", "timestamp": "20200809", "price": "1000"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -366,7 +366,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "eugene_20200809_1500.csv", "name": "eugene", "timestamp": "20200809", "price": "1500"}  # noqa: E501
+#                 {"path": "eugene_20200809_1500.csv", "name": "eugene", "timestamp": "20200809", "price": "1500"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -374,7 +374,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "james_20200811_1009.csv", "name": "james", "timestamp": "20200811", "price": "1009"}  # noqa: E501
+#                 {"path": "james_20200811_1009.csv", "name": "james", "timestamp": "20200811", "price": "1009"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -382,7 +382,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "abe_20200809_1040.csv", "name": "abe", "timestamp": "20200809", "price": "1040"}  # noqa: E501
+#                 {"path": "abe_20200809_1040.csv", "name": "abe", "timestamp": "20200809", "price": "1040"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -390,7 +390,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "will_20200809_1002.csv", "name": "will", "timestamp": "20200809", "price": "1002"}  # noqa: E501
+#                 {"path": "will_20200809_1002.csv", "name": "will", "timestamp": "20200809", "price": "1002"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -398,7 +398,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "james_20200713_1567.csv", "name": "james", "timestamp": "20200713", "price": "1567"}  # noqa: E501
+#                 {"path": "james_20200713_1567.csv", "name": "james", "timestamp": "20200713", "price": "1567"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -406,7 +406,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "eugene_20201129_1900.csv", "name": "eugene", "timestamp": "20201129", "price": "1900"}  # noqa: E501
+#                 {"path": "eugene_20201129_1900.csv", "name": "eugene", "timestamp": "20201129", "price": "1900"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -414,7 +414,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "will_20200810_1001.csv", "name": "will", "timestamp": "20200810", "price": "1001"}  # noqa: E501
+#                 {"path": "will_20200810_1001.csv", "name": "will", "timestamp": "20200810", "price": "1001"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -422,7 +422,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "james_20200810_1003.csv", "name": "james", "timestamp": "20200810", "price": "1003"}  # noqa: E501
+#                 {"path": "james_20200810_1003.csv", "name": "james", "timestamp": "20200810", "price": "1003"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #         BatchDefinition(
@@ -430,7 +430,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
 #             data_connector_name="fluent",
 #             data_asset_name="my_google_cloud_storage_data_asset",
 #             batch_identifiers=IDDict(
-#                 {"path": "alex_20200819_1300.csv", "name": "alex", "timestamp": "20200819", "price": "1300"}  # noqa: E501
+#                 {"path": "alex_20200819_1300.csv", "name": "alex", "timestamp": "20200819", "price": "1300"}  # noqa: E501 # FIXME CoP
 #             ),
 #         ),
 #     ]
@@ -459,7 +459,7 @@ def test_return_only_unique_batch_definitions(mock_list_keys):
         "A/file_3.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
 
     my_data_connector: DataConnector
 
@@ -541,7 +541,7 @@ def test_alpha(mock_list_keys):
         "test_dir_alpha/D.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     my_data_connector: DataConnector = GoogleCloudStorageDataConnector(
         datasource_name="my_file_path_datasource",
         data_asset_name="my_google_cloud_storage_data_asset",
@@ -596,7 +596,7 @@ def test_alpha(mock_list_keys):
 def test_foxtrot(mock_list_keys):
     mock_list_keys.return_value = []
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
 
     my_data_connector: DataConnector
 

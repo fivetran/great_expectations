@@ -56,16 +56,20 @@ _registered_renderers: dict = {}
 
 class RendererImpl(NamedTuple):
     expectation: str
-    renderer: Callable[..., Union[RenderedAtomicContent, RenderedContent]]
+    renderer: Callable[
+        ..., Union[RenderedAtomicContent, list[RenderedAtomicContent], RenderedContent]
+    ]
 
 
 def register_renderer(
     object_name: str,
     parent_class: Union[Type[Expectation], Type[MetricProvider]],
-    renderer_fn: Callable[..., Union[RenderedAtomicContent, RenderedContent]],
+    renderer_fn: Callable[
+        ..., Union[RenderedAtomicContent, list[RenderedAtomicContent], RenderedContent]
+    ],
 ):
     # noinspection PyUnresolvedReferences
-    renderer_name = renderer_fn._renderer_type  # type: ignore[attr-defined]
+    renderer_name = renderer_fn._renderer_type  # type: ignore[attr-defined] # FIXME CoP
     if object_name not in _registered_renderers:
         logger.debug(f"Registering {renderer_name} for expectation_type {object_name}.")
         _registered_renderers[object_name] = {renderer_name: (parent_class, renderer_fn)}
@@ -77,7 +81,7 @@ def register_renderer(
             renderer_fn,
         ):
             logger.info(
-                f"Multiple declarations of {renderer_name} renderer for expectation_type {object_name} "  # noqa: E501
+                f"Multiple declarations of {renderer_name} renderer for expectation_type {object_name} "  # noqa: E501 # FIXME CoP
                 f"found."
             )
             return
@@ -105,7 +109,7 @@ def get_renderer_names(expectation_or_metric_type: str) -> List[str]:
 
     Returns:
         A list of renderer names for the Expectation or Metric.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     return list(_registered_renderers.get(expectation_or_metric_type, {}).keys())
 
 
@@ -121,7 +125,7 @@ def get_renderer_names_with_renderer_types(
 
     Returns:
         A list of renderer names for the given prefixes and Expectation or Metric.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     return [
         renderer_name
         for renderer_name in get_renderer_names(
@@ -172,14 +176,14 @@ def register_core_metrics() -> None:
 
     # Implicitly calls MetaMetricProvider.__new__ as Metrics are loaded from metrics.__init__.py
     # As __new__ calls upon register_metric this import builds our core registry
-    from great_expectations.expectations import metrics  # noqa: F401
+    from great_expectations.expectations import metrics  # noqa: F401 # FIXME CoP
 
     after_count = len(_registered_metrics)
 
     if before_count == after_count:
         logger.debug("Already registered core metrics; no updates to registry")
     else:
-        logger.debug(f"Registered {after_count-before_count} core metrics")
+        logger.debug(f"Registered {after_count - before_count} core metrics")
 
 
 def register_core_expectations() -> None:
@@ -198,14 +202,14 @@ def register_core_expectations() -> None:
 
     # Implicitly calls MetaExpectation.__new__ as Expectations are loaded from core.__init__.py
     # As __new__ calls upon register_expectation, this import builds our core registry
-    from great_expectations.expectations import core  # noqa: F401
+    from great_expectations.expectations import core  # noqa: F401 # FIXME CoP
 
     after_count = len(_registered_expectations)
 
     if before_count == after_count:
         logger.debug("Already registered core expectations; no updates to registry")
     else:
-        logger.debug(f"Registered {after_count-before_count} core expectations")
+        logger.debug(f"Registered {after_count - before_count} core expectations")
 
 
 def _add_response_key(res, key, value):
@@ -216,7 +220,7 @@ def _add_response_key(res, key, value):
     return res
 
 
-def register_metric(  # noqa: PLR0913
+def register_metric(  # noqa: PLR0913 # FIXME CoP
     metric_name: str,
     metric_domain_keys: Tuple[str, ...],
     metric_value_keys: Tuple[str, ...],
@@ -239,34 +243,34 @@ def register_metric(  # noqa: PLR0913
 
     Returns:
         A dictionary containing warnings thrown during registration if applicable, and the success status of registration.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     res: dict = {}
     execution_engine_name = execution_engine.__name__
     logger.debug(f"Registering metric: {metric_name}")
     if metric_provider is not None and metric_fn_type is not None:
-        metric_provider.metric_fn_type = metric_fn_type  # type: ignore[attr-defined]
+        metric_provider.metric_fn_type = metric_fn_type  # type: ignore[attr-defined] # FIXME CoP
     if metric_name in _registered_metrics:
         metric_definition = _registered_metrics[metric_name]
         current_domain_keys = metric_definition.get("metric_domain_keys", set())
         if set(current_domain_keys) != set(metric_domain_keys):
             logger.warning(
-                f"metric {metric_name} is being registered with different metric_domain_keys; overwriting metric_domain_keys"  # noqa: E501
+                f"metric {metric_name} is being registered with different metric_domain_keys; overwriting metric_domain_keys"  # noqa: E501 # FIXME CoP
             )
             _add_response_key(
                 res,
                 "warning",
-                f"metric {metric_name} is being registered with different metric_domain_keys; overwriting metric_domain_keys",  # noqa: E501
+                f"metric {metric_name} is being registered with different metric_domain_keys; overwriting metric_domain_keys",  # noqa: E501 # FIXME CoP
             )
 
         current_value_keys = metric_definition.get("metric_value_keys", set())
         if set(current_value_keys) != set(metric_value_keys):
             logger.warning(
-                f"metric {metric_name} is being registered with different metric_value_keys; overwriting metric_value_keys"  # noqa: E501
+                f"metric {metric_name} is being registered with different metric_value_keys; overwriting metric_value_keys"  # noqa: E501 # FIXME CoP
             )
             _add_response_key(
                 res,
                 "warning",
-                f"metric {metric_name} is being registered with different metric_value_keys; overwriting metric_value_keys",  # noqa: E501
+                f"metric {metric_name} is being registered with different metric_value_keys; overwriting metric_value_keys",  # noqa: E501 # FIXME CoP
             )
 
         providers = metric_definition.get("providers", {})
@@ -274,22 +278,22 @@ def register_metric(  # noqa: PLR0913
             _current_provider_cls, current_provider_fn = providers[execution_engine_name]
             if current_provider_fn != metric_provider:
                 logger.warning(
-                    f"metric {metric_name} is being registered with different metric_provider; overwriting metric_provider"  # noqa: E501
+                    f"metric {metric_name} is being registered with different metric_provider; overwriting metric_provider"  # noqa: E501 # FIXME CoP
                 )
                 _add_response_key(
                     res,
                     "warning",
-                    f"metric {metric_name} is being registered with different metric_provider; overwriting metric_provider",  # noqa: E501
+                    f"metric {metric_name} is being registered with different metric_provider; overwriting metric_provider",  # noqa: E501 # FIXME CoP
                 )
                 providers[execution_engine_name] = metric_class, metric_provider
             else:
                 logger.info(
-                    f"Multiple declarations of metric {metric_name} for engine {execution_engine_name}."  # noqa: E501
+                    f"Multiple declarations of metric {metric_name} for engine {execution_engine_name}."  # noqa: E501 # FIXME CoP
                 )
                 _add_response_key(
                     res,
                     "info",
-                    f"Multiple declarations of metric {metric_name} for engine {execution_engine_name}.",  # noqa: E501
+                    f"Multiple declarations of metric {metric_name} for engine {execution_engine_name}.",  # noqa: E501 # FIXME CoP
                 )
         else:
             providers[execution_engine_name] = metric_class, metric_provider
@@ -307,14 +311,45 @@ def register_metric(  # noqa: PLR0913
     return res
 
 
+def _get_metric_definition(metric_name: str) -> dict:
+    try:
+        return _registered_metrics[metric_name]
+    except KeyError:
+        raise gx_exceptions.MetricProviderError(f"No metric named {metric_name} found.")  # noqa: TRY003 # FIXME CoP
+
+
+def get_sqlalchemy_metric_provider(
+    metric_name: str,
+) -> Tuple[MetricProvider, Callable]:
+    """The default SqlAlchemy metric provider for a given metric."""
+    metric_definition = _get_metric_definition(metric_name)
+    try:
+        return metric_definition["providers"]["SqlAlchemyExecutionEngine"]
+    except KeyError:
+        raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
+            f"No provider found for {metric_name} using SqlAlchemyExecutionEngine"
+        )
+
+
 def get_metric_provider(
     metric_name: str, execution_engine: ExecutionEngine
 ) -> Tuple[MetricProvider, Callable]:
+    metric_definition = _get_metric_definition(metric_name)
     try:
-        metric_definition = _registered_metrics[metric_name]
         return metric_definition["providers"][type(execution_engine).__name__]
     except KeyError:
-        raise gx_exceptions.MetricProviderError(  # noqa: TRY003
+        # Search up class hierarchy for a match. We skip the first entry since that's the
+        # execution engine type itself, type(execution_engine), which we just checked and
+        # resulted in the KeyError we're handling here.
+        for cls in type(execution_engine).mro()[1:]:
+            possible_key = cls.__name__
+            if metric_definition["providers"].get(possible_key) is not None:
+                metric_provider = metric_definition["providers"][possible_key]
+                # Register the metric provider for this engine so we don't have to search again
+                metric_definition["providers"][type(execution_engine).__name__] = metric_provider
+                return metric_provider
+        # no matches when search hierarchy so we raise
+        raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
             f"No provider found for {metric_name} using {type(execution_engine).__name__}"
         )
 
@@ -323,13 +358,10 @@ def get_metric_function_type(
     metric_name: str, execution_engine: ExecutionEngine
 ) -> Optional[Union[MetricPartialFunctionTypes, MetricFunctionTypes]]:
     try:
-        metric_definition = _registered_metrics[metric_name]
-        provider_fn, _provider_class = metric_definition["providers"][
-            type(execution_engine).__name__
-        ]
+        provider_fn, _provider_class = get_metric_provider(metric_name, execution_engine)
         return getattr(provider_fn, "metric_fn_type", None)
     except KeyError:
-        raise gx_exceptions.MetricProviderError(  # noqa: TRY003
+        raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
             f"No provider found for {metric_name} using {type(execution_engine).__name__}"
         )
 
@@ -342,7 +374,7 @@ def get_metric_kwargs(
     try:
         metric_definition = _registered_metrics.get(metric_name)
         if metric_definition is None:
-            raise gx_exceptions.MetricProviderError(f"No definition found for {metric_name}")  # noqa: TRY003
+            raise gx_exceptions.MetricProviderError(f"No definition found for {metric_name}")  # noqa: TRY003 # FIXME CoP
         default_kwarg_values = metric_definition["default_kwarg_values"]
         metric_kwargs = {
             "metric_domain_keys": metric_definition["metric_domain_keys"],
@@ -377,7 +409,7 @@ def get_metric_kwargs(
             metric_kwargs["metric_value_kwargs"] = metric_value_kwargs
         return metric_kwargs
     except KeyError:
-        raise gx_exceptions.MetricProviderError(f"Incomplete definition found for {metric_name}")  # noqa: TRY003
+        raise gx_exceptions.MetricProviderError(f"Incomplete definition found for {metric_name}")  # noqa: TRY003 # FIXME CoP
 
 
 def get_domain_metrics_dict_by_name(
@@ -393,7 +425,7 @@ def get_domain_metrics_dict_by_name(
 def get_expectation_impl(expectation_name: str) -> Type[Expectation]:
     expectation: Type[Expectation] | None = _registered_expectations.get(expectation_name)
     if not expectation:
-        raise gx_exceptions.ExpectationNotFoundError(f"{expectation_name} not found")  # noqa: TRY003
+        raise gx_exceptions.ExpectationNotFoundError(f"{expectation_name} not found")  # noqa: TRY003 # FIXME CoP
 
     return expectation
 
@@ -406,10 +438,8 @@ def list_registered_expectation_implementations(
         expectation_name,
         expectation_implementation,
     ) in _registered_expectations.items():
-        if (
-            expectation_root is None
-            or expectation_root
-            and issubclass(expectation_implementation, expectation_root)
+        if expectation_root is None or (
+            expectation_root and issubclass(expectation_implementation, expectation_root)
         ):
             registered_expectation_implementations.append(expectation_name)
 

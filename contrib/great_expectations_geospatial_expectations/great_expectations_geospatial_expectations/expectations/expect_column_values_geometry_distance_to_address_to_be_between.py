@@ -280,9 +280,9 @@ class ExpectColumnValuesGeometryDistanceToAddressToBeBetween(ColumnMapExpectatio
             min_val = configuration.kwargs["min_value"]
         if "max_value" in configuration.kwargs:
             max_val = configuration.kwargs["max_value"]
-        assert (
-            min_val is not None or max_val is not None
-        ), "min_value and max_value cannot both be None"
+        assert min_val is not None or max_val is not None, (
+            "min_value and max_value cannot both be None"
+        )
 
         return True
 

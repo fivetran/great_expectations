@@ -56,7 +56,7 @@ def bobby_statistics_data_assistant_result(
         estimation="flag_outliers",
     )
 
-    return cast(StatisticsDataAssistantResult, data_assistant_result)
+    return cast("StatisticsDataAssistantResult", data_assistant_result)
 
 
 @pytest.mark.slow  # 6.90s

@@ -59,11 +59,11 @@ class DataAssetStore(Store):
         super().__init__(
             store_backend=store_backend,
             runtime_environment=runtime_environment,
-            store_name=store_name,  # type: ignore[arg-type]
+            store_name=store_name,  # type: ignore[arg-type] # FIXME CoP
         )
 
-        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501
-        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501
+        # Gather the call arguments of the present function (include the "module_name" and add the "class_name"), filter  # noqa: E501 # FIXME CoP
+        # out the Falsy values, and set the instance "_config" variable equal to the resulting dictionary.  # noqa: E501 # FIXME CoP
         self._config = {
             "store_backend": store_backend,
             "runtime_environment": runtime_environment,
@@ -95,13 +95,13 @@ class DataAssetStore(Store):
         type_ = value.get("type")
         data_asset_model = DataSourceManager.type_lookup.get(type_)
         if not data_asset_model:
-            raise LookupError(f"Unknown DataAsset 'type': '{type_}'")  # noqa: TRY003
+            raise LookupError(f"Unknown DataAsset 'type': '{type_}'")  # noqa: TRY003 # FIXME CoP
         return data_asset_model(**value)
 
     @override
     @staticmethod
     def gx_cloud_response_json_to_object_dict(
-        response_json: CloudResponsePayloadTD,  # type: ignore[override]
+        response_json: CloudResponsePayloadTD,  # type: ignore[override] # FIXME CoP
     ) -> dict:
         """
         This method takes full json response from GX cloud and outputs a dict appropriate for
@@ -112,7 +112,7 @@ class DataAssetStore(Store):
         if isinstance(data, list):
             if len(data) > 1:
                 # TODO: handle larger arrays of DataAssets
-                raise TypeError(f"GX Cloud returned {len(data)} DataAssets but expected 1")  # noqa: TRY003
+                raise TypeError(f"GX Cloud returned {len(data)} DataAssets but expected 1")  # noqa: TRY003 # FIXME CoP
             data = data[0]
         data_asset_id: str = data["id"]
         data_asset_config_dict: dict = data["attributes"]["data_asset_config"]

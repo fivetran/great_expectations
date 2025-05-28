@@ -6,7 +6,7 @@ try:
     # default to the typing_extensions version if available as it contains bug fixes & improvements
     from typing_extensions import Annotated
 except ImportError:
-    from typing import Annotated  # type: ignore[assignment]
+    from typing import Annotated  # type: ignore[assignment] # FIXME CoP
 
 try:
     from typing_extensions import override

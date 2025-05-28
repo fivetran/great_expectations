@@ -6,6 +6,7 @@ from .mysql import MySQLDatasourceTestConfig
 from .pandas_data_frame import PandasDataFrameDatasourceTestConfig
 from .pandas_filesystem_csv import PandasFilesystemCsvDatasourceTestConfig
 from .postgres import PostgreSQLDatasourceTestConfig
+from .redshift import RedshiftDatasourceTestConfig
 from .snowflake import SnowflakeDatasourceTestConfig
 from .spark_filesystem_csv import SparkFilesystemCsvDatasourceTestConfig
 from .sqlite import SqliteDatasourceTestConfig

@@ -1,4 +1,3 @@
-from functools import cached_property
 from typing import Mapping, Optional
 
 import pandas as pd
@@ -6,6 +5,7 @@ import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -31,12 +31,14 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
     ) -> BatchTestSetup:
         return SnowflakeBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
             table_name=self.table_name,
+            context=context,
         )
 
 
@@ -51,7 +53,7 @@ class SnowflakeConnectionConfig(BaseSettings):
     SNOWFLAKE_ACCOUNT: str
     SNOWFLAKE_DATABASE: str
     SNOWFLAKE_WAREHOUSE: str
-    SNOWFLAKE_ROLE: str = "PUBLIC"
+    SNOWFLAKE_ROLE: str
 
     @property
     def connection_string(self) -> str:
@@ -80,14 +82,16 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         config: SnowflakeDatasourceTestConfig,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
         table_name: Optional[str] = None,
     ) -> None:
         self.snowflake_connection_config = SnowflakeConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
-        super().__init__(config=config, data=data, extra_data=extra_data, table_name=table_name)
+        super().__init__(
+            config=config, data=data, extra_data=extra_data, table_name=table_name, context=context
+        )
 
-    @cached_property
     @override
-    def asset(self) -> TableAsset:
+    def make_asset(self) -> TableAsset:
         schema = self.schema
         assert schema
         return self.context.data_sources.add_snowflake(

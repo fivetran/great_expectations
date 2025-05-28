@@ -461,7 +461,7 @@ def verify_asset_names_mock(
 
             payload = CloudResponseSchema.from_datasource_json(request.body)
             LOGGER.info(f"PUT payload: ->\n{pf(payload.dict())}")
-            assets = payload.data["assets"]  # type: ignore[index]
+            assets = payload.data["assets"]  # type: ignore[index] # FIXME CoP
             assert assets, "No assets found"
             for asset in assets:
                 if asset["name"] == DEFAULT_PANDAS_DATA_ASSET_NAME:

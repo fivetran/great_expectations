@@ -14,33 +14,29 @@ To add a Data Asset from a new Data Source, refer to [Connect GX Cloud](/cloud/c
 
 ## Add a Data Asset from an existing Data Source
 
-Define the data you want GX Cloud to access. 
-
-### Prerequisites
-
-- You have connected GX Cloud to the relevant Data Source.
-
-### Procedure
+To add a Data Asset from an existing Data Source, complete the following steps:
 
 1. In GX Cloud, click **Data Assets** > **New Data Asset**.
 
 2. In the **Existing Data Source** tab, select the relevant Data Source.
 
-3. Select one or more tables to import as Data Assets.
+3. Select one or more tables or views to import as Data Assets.
 
 4. Click **Add x Asset(s)**.
+
+5. Decide which [Anomaly Detection](/docs/cloud/overview/automating_rules.md#anomaly-detection) options you want to enable. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
+
+6. Click **Start monitoring** or **Finish**.
 
 Then you can [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) for your new Data Asset.
 
 ## View Data Asset metrics
 
-Data Asset metrics provide you with insight into the data you can use for your data validations. 
+Data Asset metrics provide you with insight into the data you can use for your data validations. When you create a new Data Asset, schema data is automatically fetched.
 
 1. In GX Cloud, click **Data Assets** and then select a Data Asset in the **Data Assets** list.
 
-2. Click the **Overview** tab.
-
-    When you select a new Data Asset, schema data is automatically fetched.
+2. Click the **Metrics** tab.
 
 3. Optional. Select one of the following options:
 
@@ -62,20 +58,6 @@ The following table lists the available Data Asset metrics.
 | **Mean**                                 | For numeric columns, the average value in the column.<br/> This is determined by dividing the sum of all values in the column by the number of values.  |
 | **Median**                                 | For numeric columns, the value in the middle of a data set.<br/> 50% of the data within the Data Asset has a value smaller or equal to the median, and 50% of the data within the Data Asset has a value that is higher or equal to the median.  |
 | **Null %**                                | The percentage of missing values in a column.             |
-
-## Edit a Data Asset
-
-You can only edit the settings of Data Assets created in GX Cloud.
-
-1. In GX Cloud, click **Data Assets**.
-2. In the Data Assets list, click **Edit Data Asset** for the Data Asset you want to edit.
-3. Edit the following fields:
-
-    - **Table name**: Enter the name of a new table from the Data Source to import as a Data Asset.
-
-    - **Data Asset name**: Enter a new name for the Data Asset. If you use the same name for multiple Data Assets, each Data Asset must be associated with a unique Data Source.
-
-4. Click **Save**.
 
 ## Delete a Data Asset
 
@@ -123,4 +105,3 @@ To connect to your Data Source in GX Cloud, there are two methods for managing c
    When running the GX Agent in another container-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
 
    When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Core Python client is running.
-

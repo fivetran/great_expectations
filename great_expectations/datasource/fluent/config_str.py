@@ -206,7 +206,7 @@ class ConfigUri(AnyUrl, ConfigStr):  # type: ignore[misc] # Mixin "validate" sig
                 cls.str_contains_config_template(part)  # type: ignore[arg-type] # is str
                 and name not in cls.ALLOWED_SUBSTITUTIONS
             ):
-                raise ValueError(  # noqa: TRY003
+                raise ValueError(  # noqa: TRY003 # FIXME CoP
                     f"Only {', '.join(allowed_substitutions)} may use config substitution; '{name}'"
                     " substitution not allowed"
                 )
@@ -257,7 +257,7 @@ def _check_config_substitutions_needed(
     """
     Given a Datasource and a dict-like mapping type return the keys whose value is a `ConfigStr` type.
     Optionally raise a warning if config substitution is needed but impossible due to a missing `_config_provider`.
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
     need_config_subs: set[str] = {k for (k, v) in options.items() if isinstance(v, ConfigStr)}
     if (
         need_config_subs
@@ -265,6 +265,6 @@ def _check_config_substitutions_needed(
         and not datasource._config_provider
     ):
         warnings.warn(
-            f"config variables '{','.join(need_config_subs)}' need substitution but no `_ConfigurationProvider` is present"  # noqa: E501
+            f"config variables '{','.join(need_config_subs)}' need substitution but no `_ConfigurationProvider` is present"  # noqa: E501 # FIXME CoP
         )
     return need_config_subs

@@ -59,6 +59,7 @@ from .exceptions import (
     StoreError,
     SuiteParameterError,
     UnavailableMetricError,
+    UnhashableColumnError,
     UnsupportedConfigVersionError,
     ValidationError,
 )

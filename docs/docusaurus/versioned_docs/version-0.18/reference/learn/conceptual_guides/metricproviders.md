@@ -64,7 +64,7 @@ Sometimes, the MetricProvider class is created directly from the Expectation cla
 
 The API for MetricProvider classes is unusual. MetricProvider classes are never intended to be instantiated, and they don’t have inputs or outputs in the normal sense of method arguments and return values. Instead, the inputs for MetricProvider classes are methods for calculating the Metric on different backend applications. Each method must be decorated with an appropriate decorator. On `new`, the MetricProvider class registers the decorated methods as part of the Metrics registry so that they can be invoked to calculate Metrics. The registered methods are the only output from MetricProviders.
 
-:::note
+:::note Note
 Decorators invoked on `new` can make maintainability challenging. GX intends to address this shortcoming in future releases.
 :::
 

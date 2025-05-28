@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 Data uniqueness is a fundamental aspect of data quality that ensures distinct values are present only once where expected in a dataset. Uniqueness constraints are often applied to columns that serve as primary keys, composite keys, or other unique identifiers. Validating uniqueness is critical for maintaining data integrity, preventing duplication, and enabling accurate analysis.
 
-Failing to validate uniqueness can lead to various data quality issues:
+Failing to validate uniqueness can lead to various data quality problems:
 
 * Duplicates can skew analytics, leading to incorrect conclusions and flawed decision-making. For example, duplicate transactions could overstate revenue.
 * Non-unique identifiers can cause data corruption when merging or joining datasets, resulting in lost data or mismatched records.
@@ -74,7 +74,7 @@ This Expectation validates that the combination of values across multiple column
 
 This Expectation validates that the proportion of unique values in a column is between a specified minimum and maximum value. It is useful for ensuring a certain level of uniqueness in a column without requiring full uniqueness.
 
-**Example**: Validate that least 90% of all customer `email_address` values are unique.
+**Example**: Validate that at least 90% of all customer `email_address` values are unique.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_expectations.py ExpectColumnProportionOfUniqueValuesToBeBetween"
 ```
@@ -154,7 +154,7 @@ Use the GX Cloud UI to walk through the following steps:
       * Column List: `last_name`, `phone_number`
       * Ignore Row If: Any value is missing
 
-4. Validate the `uniqueness_customers` Data Asset with the newly create Expectations.
+4. Validate the `uniqueness_customers` Data Asset with the newly created Expectations.
 
 5. Review the Validation Results. Under **Batches & run history**, select the individual Validation run (not **All Runs**) to view the sample unexpected values that were identified for failing Expectations.
 

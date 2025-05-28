@@ -5,20 +5,20 @@ import InfoUsingAVirtualEnvironment from '../../_core_components/admonitions/_if
 
 Azure Blob Storage stores unstructured data on the Microsoft cloud data storage platform. To validate Azure Blob Storage data with GX Core you install additional Python libraries and define a connection string.
 
-## Prerequisites
+## Prerequisites {#prerequisites-azure}
 
 - An [Azure Storage account](https://docs.microsoft.com/en-us/azure/storage). 
 - [Azure storage account access keys](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal).
 - <PrereqPythonInstalled/>
 - <RecommendedVirtualEnvironment/>
 
-## Installation
+## Installation {#installation-azure}
   
 1. Install the Python dependencies for Azure Blob Storage support.
 
    Run the following code to install GX Core with the additional Python libraries needed to work with Azure Blob Storage:
 
-   :::info
+   :::info Info
    <InfoUsingAVirtualEnvironment/>
    :::
 
@@ -34,7 +34,7 @@ Azure Blob Storage stores unstructured data on the Microsoft cloud data storage 
    export AZURE_STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=<YOUR-STORAGE-ACCOUNT-NAME>;AccountKey=<YOUR-STORAGE-ACCOUNT-KEY>"
    ```
 
-   :::info
+   :::info Info
 
    You can manage your credentials for all environments and Data Sources by storing them as environment variables.  To do this, enter `export ENV_VARIABLE_NAME=env_var_value` in the terminal or add the equivalent command to your `~/.bashrc` file.
   

@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.compatibility import pydantic
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
@@ -13,6 +14,18 @@ STRING_COL = "string_col"
 INT_COL = "int_col"
 INT_COL_2 = "int_col_2"
 DUPLICATES = "duplicates"
+
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    SPARK_COLUMN_TYPES = {
+        STRING_COL: PYSPARK_TYPES.StringType,
+        INT_COL: PYSPARK_TYPES.IntegerType,
+        INT_COL_2: PYSPARK_TYPES.IntegerType,
+        DUPLICATES: PYSPARK_TYPES.IntegerType,
+    }
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
 
 
 DATA = pd.DataFrame(
@@ -27,7 +40,10 @@ DATA = pd.DataFrame(
 
 @parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=DATA)
 def test_golden_path(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectCompoundColumnsToBeUnique(column_list=[STRING_COL, INT_COL, INT_COL_2])
+    expectation = gxe.ExpectCompoundColumnsToBeUnique(
+        column_list=[STRING_COL, INT_COL, INT_COL_2],
+        ignore_row_if="any_value_is_missing",
+    )
     result = batch_for_datasource.validate(expectation)
     assert result.success
 
@@ -77,7 +93,7 @@ def test_failure(
     assert not result.success
 
 
-@pytest.mark.xfail(strict=True, reason="We should fail at intantiation; not when validating")
+@pytest.mark.unit
 @pytest.mark.parametrize(
     "column_list",
     [
@@ -85,7 +101,6 @@ def test_failure(
         pytest.param([INT_COL_2], id="one_col"),
     ],
 )
-@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
-def test_invalid_config(column_list: list[str], batch_for_datasource: Batch) -> None:
-    with pytest.raises(ValueError):
+def test_invalid_config(column_list: list[str]) -> None:
+    with pytest.raises(pydantic.ValidationError):
         gxe.ExpectCompoundColumnsToBeUnique(column_list=column_list)

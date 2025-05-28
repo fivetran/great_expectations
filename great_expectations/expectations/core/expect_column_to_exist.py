@@ -5,12 +5,13 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 from great_expectations.compatibility.pydantic import Field, StrictStr
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -35,19 +36,19 @@ COLUMN_INDEX_DESCRIPTION = (
     "If not None, checks the order of the columns. "
     "The expectation will fail if the column is not in location column_index (zero-indexed)."
 )
+DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
-DATA_QUALITY_ISSUES = ["Schema"]
 
 
 class ExpectColumnToExist(BatchExpectation):
@@ -78,7 +79,7 @@ class ExpectColumnToExist(BatchExpectation):
 
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -89,7 +90,7 @@ class ExpectColumnToExist(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -134,7 +135,7 @@ class ExpectColumnToExist(BatchExpectation):
               "success": false,
               "result": {{}}
             }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
     column_index: Union[int, SuiteParameterDict, None] = Field(

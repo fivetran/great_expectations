@@ -4,10 +4,11 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001
+from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.render import (
     LegacyDescriptiveRendererType,
@@ -25,7 +26,7 @@ from great_expectations.render.util import (
 )
 
 try:
-    import sqlalchemy as sa  # noqa: F401, TID251
+    import sqlalchemy as sa  # noqa: F401, TID251 # FIXME CoP
 except ImportError:
     pass
 
@@ -56,18 +57,18 @@ STRICT_MAX_DESCRIPTION = (
     "must be strictly smaller than max_value, default=False"
 )
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "Redshift",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
-DATA_QUALITY_ISSUES = ["Numerical data"]
+DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
 
 class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
@@ -118,7 +119,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
     See Also:
         [ExpectColumnMinToBeBetween](https://greatexpectations.io/expectations/expect_column_min_to_be_between)
 
-    Supported Datasources:
+    Supported Data Sources:
         [{SUPPORTED_DATA_SOURCES[0]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[1]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
@@ -129,7 +130,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
-    Data Quality Category:
+    Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
 
     Example Data:
@@ -185,7 +186,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
                   "meta": {{}},
                   "success": false
                 }}
-    """  # noqa: E501
+    """  # noqa: E501 # FIXME CoP
 
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
@@ -206,7 +207,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
     }
     _library_metadata = library_metadata
 
-    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501
+    # Setting necessary computation metric dependencies and defining kwargs, as well as assigning kwargs default values\  # noqa: E501 # FIXME CoP
     metric_dependencies = ("column.max",)
     success_keys = (
         "min_value",
@@ -250,7 +251,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
 
     @classmethod
     @override
-    def _prescriptive_template(  # noqa: C901 - too complex
+    def _prescriptive_template(  # noqa: C901 #  too complex
         cls,
         renderer_configuration: RendererConfiguration,
     ) -> RendererConfiguration:
@@ -284,7 +285,7 @@ class ExpectColumnMaxToBeBetween(ColumnAggregateExpectation):
                 if params.min_value == params.max_value:
                     template_str = "maximum value must be $min_value"
                 else:
-                    template_str = f"maximum value must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501
+                    template_str = f"maximum value must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
             elif not params.min_value:
                 template_str = f"maximum value must be {at_most_str} $max_value."
             else:

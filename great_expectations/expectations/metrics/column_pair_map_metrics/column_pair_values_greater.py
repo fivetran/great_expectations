@@ -44,7 +44,7 @@ class ColumnPairValuesAGreaterThanB(ColumnPairMapMetricProvider):
         if or_equal:
             return sa.or_(
                 column_A >= column_B,
-                sa.and_(column_A == None, column_B == None),  # noqa: E711
+                sa.and_(column_A == None, column_B == None),  # noqa: E711 # FIXME CoP
             )
         else:
             return column_A > column_B
