@@ -20,7 +20,7 @@ To add a Data Asset from an existing Data Source, complete the following steps:
 
 2. In the **Existing Data Source** tab, select the relevant Data Source.
 
-3. Select one or more tables to import as Data Assets.
+3. Select one or more tables or views to import as Data Assets.
 
 4. Click **Add x Asset(s)**.
 

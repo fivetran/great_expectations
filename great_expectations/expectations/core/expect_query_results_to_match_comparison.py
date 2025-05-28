@@ -4,6 +4,7 @@ from collections import Counter
 from functools import cmp_to_key
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Optional, Tuple, Type, Union
 
+from great_expectations import exceptions
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.result_format import ResultFormat
@@ -47,9 +48,9 @@ EXPECTATION_SHORT_DESCRIPTION = (
 )
 BASE_QUERY_DESCRIPTION = "A SQL query to be executed for this Data Asset."
 COMPARISON_DATA_SOURCE_NAME_DESCRIPTION = (
-    "The name of the source Data Source to compare this Asset against."
+    "The name of the comparison Data Source to compare this Asset against."
 )
-COMPARISON_QUERY_DESCRIPTION = "A SQL query to be executed for the source Data Source."
+COMPARISON_QUERY_DESCRIPTION = "A SQL query to be executed for the comparison Data Source."
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.POSTGRESQL.value,
     SupportedDataSources.SNOWFLAKE.value,
@@ -251,10 +252,8 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
             unexpected_rows = []
         else:
             # creates a hashmap with row values as key and count of duplicate rows as value
-            base_results_frequency_map = Counter(tuple(row.values()) for row in base_results)
-            comparison_results_frequency_map = Counter(
-                tuple(row.values()) for row in comparison_results
-            )
+            base_results_frequency_map = self._rows_to_frequency_map(base_results)
+            comparison_results_frequency_map = self._rows_to_frequency_map(comparison_results)
 
             # Get the matches: if we see a value X times in comparison,
             # and Y times in base, min(X, Y)
@@ -304,6 +303,25 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
                 },
             }
 
+    def _rows_to_frequency_map(self, rows: list[dict[str, Any]]) -> Counter[tuple]:
+        try:
+            return Counter(tuple(row.values()) for row in rows)
+        except TypeError as e:
+            if "unhashable type" in str(e):
+                col_name = self._get_first_unhashable_column(rows)
+                raise exceptions.UnhashableColumnError(col_name) from e
+            else:
+                raise e from e
+
+    def _get_first_unhashable_column(self, rows: list[dict[str, Any]]) -> str:
+        for row in rows:
+            for col, value in row.items():
+                try:
+                    hash(value)
+                except TypeError:
+                    return col
+        raise ValueError
+
     @override
     @classmethod
     @renderer(renderer_type=AtomicDiagnosticRendererType.OBSERVED_VALUE)
@@ -322,7 +340,9 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         missing_rows_table = cls._create_observed_values_table(missing_rows)
         unexpected_rows_table = cls._create_observed_values_table(unexpected_rows)
 
-        if (
+        if len(missing_rows) == 0 and len(unexpected_rows) == 0:
+            return []
+        elif (
             len(missing_rows) == 1
             and len(unexpected_rows) == 1
             and len(missing_rows_cols) == 1
@@ -335,13 +355,13 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
                 result=result,
                 runtime_configuration=runtime_configuration,
             )
-        elif len(missing_rows_cols) == 1 and len(unexpected_rows_cols) == 1:
+        elif len(missing_rows_cols) <= 1 and len(unexpected_rows_cols) <= 1:
             return cls._create_observed_values_set(
+                comparison_col_name=missing_rows_cols[0] if missing_rows_cols else None,
+                base_col_name=unexpected_rows_cols[0] if unexpected_rows_cols else None,
                 configuration=configuration,
                 result=result,
                 runtime_configuration=runtime_configuration,
-                comparison_col_name=missing_rows_cols[0],
-                base_col_name=unexpected_rows_cols[0],
             )
         else:
             return [
@@ -414,15 +434,31 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     @classmethod
     def _create_observed_values_set(
         cls,
-        comparison_col_name: str,
-        base_col_name: str,
+        comparison_col_name: Optional[str] = None,
+        base_col_name: Optional[str] = None,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
     ) -> RenderedAtomicContent:
         result_details = cls._get_details_from_results(result)
-        comparison_values = [row[comparison_col_name] for row in result_details["missing_rows"]]
-        base_values = [row[base_col_name] for row in result_details["unexpected_rows"]]
+        comparison_values = (
+            [
+                row[comparison_col_name]
+                for row in result_details["missing_rows"]
+                if row[comparison_col_name] is not None
+            ]
+            if comparison_col_name
+            else []
+        )
+        base_values = (
+            [
+                row[base_col_name]
+                for row in result_details["unexpected_rows"]
+                if row[base_col_name] is not None
+            ]
+            if base_col_name
+            else []
+        )
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
@@ -571,15 +607,16 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         ]
         output_rows: list[list[RendererTableValue]] = []
         for row in rows:
-            output_rows.append(
-                [
-                    RendererTableValue(
-                        schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
-                        value=row[col_name],
+            output_row_values = []
+            for col_name in col_names:
+                if row[col_name] is not None:
+                    output_row_values.append(
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
+                            value=row[col_name],
+                        )
                     )
-                    for col_name in col_names
-                ]
-            )
+            output_rows.append(output_row_values)
 
         return [header_row, *output_rows]
 
