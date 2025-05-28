@@ -29,9 +29,8 @@ import PrereqGxInstallation from '../../_core_components/prerequisites/_gx_insta
 
    If you don't specify parameters with the `get_context()` method, GX checks your project environment and returns the first Data Context using the following criteria:
 
-   - `get_context()` instantiates and returns a GX Cloud Data Context if it finds the necessary credentials in your environment variables.
-   - If a GX Cloud Data Context cannot be instantiated, `get_context()` will instantiate and return the first File Data Context it finds in the folder hierarchy of your current working directory.
-   - If neither of the above options are viable, `get_context()` instantiates and returns an Ephemeral Data Context.
+   - If a File Data Context is found in the folder hierarchy of your current working directory, `get_context()` will instantiate and return it.
+   - Otherwise, `get_context()` instantiates and returns an Ephemeral Data Context.
 
 2. Optional. Run the following code to verify the type of Data Context you received:
 
