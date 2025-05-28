@@ -8,7 +8,7 @@ description: Connect GX Cloud to a Redshift Data Source.
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
 
-- A Redshift database, schema, and table.
+- A Redshift database, schema, and table or view.
 
 - If you are using a [fully-hosted deployment of GX Cloud](/docs/cloud/deploy/deployment_patterns.md), your Redshift cluster or workgroup must be [publicly accessible](https://docs.aws.amazon.com/redshift/latest/mgmt/rs-security-group-public-private.html#rs-security-group-public-default).
 
@@ -16,7 +16,7 @@ description: Connect GX Cloud to a Redshift Data Source.
 
    - `USAGE` privileges on the schema.
 
-   - `SELECT` privileges on the table.
+   - `SELECT` privileges on the table or view.
 
 - Optional. To improve data security, GX recommends creating a separate Redshift user for your GX Cloud connection.
 
@@ -36,14 +36,14 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
    CREATE USER gx_user PASSWORD 'your_password';
    ```
 
-3. Grant the new role schema `USAGE` and table `SELECT` permissions.
+3. Grant the new role schema `USAGE` and table and view `SELECT` permissions.
 
    ```sql title="Redshift query editor v2"
    GRANT USAGE ON SCHEMA your_schema TO ROLE gx_role;
    GRANT SELECT ON ALL TABLES IN SCHEMA your_schema TO ROLE gx_role;
    ```
 
-4. Optional. Grant the new role access to future tables in the schema.
+4. Optional. Grant the new role access to future tables and views in the schema.
    
    ```sql title="Redshift query editor v2"
    ALTER DEFAULT PRIVILEGES IN SCHEMA your_schema
@@ -97,7 +97,7 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
    
 5. Click **Connect**.
 
-6. Select one or more tables to import as Data Assets.
+6. Select one or more tables or views to import as Data Assets.
 
 7. Click **Add x Asset(s)**.
 

@@ -11,7 +11,7 @@ import Tabs from '@theme/Tabs';
 
 - You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
 
-- You have a Databricks SQL catalog, schema, and table.
+- You have a Databricks SQL catalog, schema, and table or view.
 
 - Optional. To improve data security, GX recommends creating a separate Databricks SQL [service principal](https://docs.databricks.com/en/admin/users-groups/service-principals.html#manage-service-principals-in-your-account) for your GX Cloud connection.
 
@@ -31,7 +31,7 @@ import Tabs from '@theme/Tabs';
 
 4. Click **Connect**.
 
-5. Select one or more tables to import as Data Assets.
+5. Select one or more tables or views to import as Data Assets.
 
 6. Click **Add x Asset(s)**.
 

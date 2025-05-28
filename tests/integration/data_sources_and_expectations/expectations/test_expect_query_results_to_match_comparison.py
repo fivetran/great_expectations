@@ -1,8 +1,11 @@
+import uuid
 from typing import Any
 
 import pandas as pd
 import pytest
 
+import great_expectations as gx
+import great_expectations.compatibility.postgresql as postgresql_dialect
 import great_expectations.expectations as gxe
 from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.render.components import (
@@ -26,6 +29,10 @@ from tests.integration.data_sources_and_expectations.data_sources.test_compariso
     ALL_COMPARISON_TO_BASE_SOURCES,
 )
 from tests.integration.test_utils.data_source_config import SqliteDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.postgres import (
+    PostgresBatchTestSetup,
+    PostgreSQLDatasourceTestConfig,
+)
 
 SQLITE_ONLY = [
     MultiSourceTestConfig(
@@ -482,34 +489,7 @@ def test_rendering_no_differences(multi_source_batch: MultiSourceBatch):
     )
     result.render()
 
-    assert result.rendered_content == [
-        RenderedAtomicContent(
-            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
-            value=RenderedAtomicValue(
-                template="Unexpected records: $row_count",
-                params={
-                    "row_count": {
-                        "schema": RendererSchema(type=RendererValueType.NUMBER),
-                        "value": 0,
-                    }
-                },
-            ),
-            value_type="TableType",
-        ),
-        RenderedAtomicContent(
-            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
-            value=RenderedAtomicValue(
-                template="Missing records: $row_count",
-                params={
-                    "row_count": {
-                        "schema": RendererSchema(type=RendererValueType.NUMBER),
-                        "value": 0,
-                    }
-                },
-            ),
-            value_type="TableType",
-        ),
-    ]
+    assert result.rendered_content == []
 
 
 @multi_source_batch_setup(
@@ -710,3 +690,261 @@ def test_rendering_with_one_value(multi_source_batch: MultiSourceBatch):
             ),
         ),
     ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    comparison_data=pd.DataFrame({"foo": [1, 2, 3]}),
+    base_data=pd.DataFrame({"bar": []}),
+)
+def test_rendering_only_missing_rows_single_column(multi_source_batch: MultiSourceBatch):
+    """Test rendering when only missing_rows exist with single column."""
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT foo FROM {source_table}",
+            base_query="SELECT bar FROM {batch}",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                meta_notes={"format": MetaNotesFormat.STRING, "content": []},
+                template="$exp__0 $exp__1 $exp__2",
+                params={
+                    "expected_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [1, 2, 3],
+                    },
+                    "observed_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [],
+                    },
+                    "exp__0": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 1,
+                    },
+                    "exp__1": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 2,
+                    },
+                    "exp__2": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.MISSING,
+                        "value": 3,
+                    },
+                },
+            ),
+        )
+    ]
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=SQLITE_ONLY,
+    comparison_data=pd.DataFrame({"foo": []}),
+    base_data=pd.DataFrame({"bar": [1, 2, 3]}),
+)
+def test_rendering_only_unexpected_rows_single_column(multi_source_batch: MultiSourceBatch):
+    """Test rendering when only unexpected_rows exist with single column."""
+    source_table = multi_source_batch.comparison_table_name
+    result = multi_source_batch.base_batch.validate(
+        gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+            comparison_query=f"SELECT foo FROM {source_table}",
+            base_query="SELECT bar FROM {batch}",
+        )
+    )
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                meta_notes={"format": MetaNotesFormat.STRING, "content": []},
+                template="$ov__0 $ov__1 $ov__2",
+                params={
+                    "expected_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [],
+                    },
+                    "observed_value": {
+                        "schema": RendererSchema(type=RendererValueType.ARRAY),
+                        "value": [1, 2, 3],
+                    },
+                    "ov__0": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 1,
+                    },
+                    "ov__1": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 2,
+                    },
+                    "ov__2": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "render_state": ObservedValueRenderState.UNEXPECTED,
+                        "value": 3,
+                    },
+                },
+            ),
+        )
+    ]
+
+
+@pytest.mark.postgresql
+def test_unhashable_data_types():
+    df = pd.DataFrame({"json_data": [{"foo": "bar"}]})
+    context = gx.get_context(mode="ephemeral")
+    batch_setup_a = PostgresBatchTestSetup(
+        config=PostgreSQLDatasourceTestConfig(
+            column_types={"json_data": postgresql_dialect.postgresqltypes.JSONB}
+        ),
+        data=df,
+        extra_data={},
+        context=context,
+    )
+    batch_setup_b = PostgresBatchTestSetup(
+        config=PostgreSQLDatasourceTestConfig(
+            column_types={"json_data": postgresql_dialect.postgresqltypes.JSONB}
+        ),
+        data=df,
+        extra_data={},
+        context=context,
+    )
+
+    with (
+        batch_setup_a.batch_test_context() as batch_a,
+        batch_setup_b.asset_test_context() as asset_b,
+    ):
+        data_source_name = asset_b.datasource.name
+        source_table = asset_b.table_name
+        expectation = gxe.ExpectQueryResultsToMatchComparison(
+            comparison_data_source_name=data_source_name,
+            comparison_query=f"SELECT * FROM {source_table}",
+            base_query="SELECT * FROM {batch}",
+        )
+
+        result = batch_a.validate(expectation)
+
+        assert result.exception_info["exception_message"] == "Unhashable column: json_data"
+
+
+uuid_a = uuid.uuid4()
+uuid_b = uuid.uuid4()
+uuid_c = uuid.uuid4()
+uuid_d = uuid.uuid4()
+
+
+@pytest.mark.postgresql
+def test_rendering_table_with_multiple_uuid():
+    context = gx.get_context(mode="ephemeral")
+    batch_setup_a = PostgresBatchTestSetup(
+        config=PostgreSQLDatasourceTestConfig(
+            column_types={"id": postgresql_dialect.postgresqltypes.UUID}
+        ),
+        data=pd.DataFrame({"name": ["a", "b"], "id": [uuid_a, uuid_b]}),
+        extra_data={},
+        context=context,
+    )
+    batch_setup_b = PostgresBatchTestSetup(
+        config=PostgreSQLDatasourceTestConfig(
+            column_types={"id": postgresql_dialect.postgresqltypes.UUID}
+        ),
+        data=pd.DataFrame({"name": ["a", "b"], "id": [uuid_c, uuid_d]}),
+        extra_data={},
+        context=context,
+    )
+
+    with (
+        batch_setup_a.batch_test_context() as batch_a,
+        batch_setup_b.asset_test_context() as asset_b,
+    ):
+        data_source_name = asset_b.datasource.name
+        source_table = asset_b.table_name
+
+        result = batch_a.validate(
+            gxe.ExpectQueryResultsToMatchComparison(
+                comparison_data_source_name=data_source_name,
+                comparison_query=f"SELECT name, id FROM {source_table}",
+                base_query="SELECT name, id FROM {batch}",
+            )
+        )
+        result.render()
+
+        assert result.rendered_content == [
+            _create_table_rendered_atomic_content(
+                template="Unexpected records: $row_count",
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 2,
+                    }
+                },
+                col_names=["name", "id"],
+                col_types=[RendererValueType.STRING, RendererValueType.STRING],
+                rows=[
+                    ["a", uuid_a],
+                    ["b", uuid_b],
+                ],
+            ),
+            _create_table_rendered_atomic_content(
+                template="Missing records: $row_count",
+                params={
+                    "row_count": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 2,
+                    }
+                },
+                col_names=["name", "id"],
+                col_types=[RendererValueType.STRING, RendererValueType.STRING],
+                rows=[
+                    ["a", uuid_c],
+                    ["b", uuid_d],
+                ],
+            ),
+        ]
+
+
+def _create_table_rendered_atomic_content(
+    template: str,
+    params: dict[str, Any],
+    col_names: list[str],
+    col_types: list[RendererValueType],
+    rows: list[list[str]],
+) -> RenderedAtomicContent:
+    return RenderedAtomicContent(
+        name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+        value=RenderedAtomicValue(
+            template=template,
+            params=params,
+            header_row=[
+                RendererTableValue(
+                    schema=RendererSchema(type=RendererValueType.STRING),
+                    value=col_name,
+                )
+                for col_name in col_names
+            ],
+            table=[
+                [
+                    RendererTableValue(
+                        schema=RendererSchema(type=col_type),
+                        value=cell_value,
+                    )
+                    for cell_value, col_type in zip(row, col_types)
+                ]
+                for row in rows
+            ],
+        ),
+        value_type="TableType",
+    )
