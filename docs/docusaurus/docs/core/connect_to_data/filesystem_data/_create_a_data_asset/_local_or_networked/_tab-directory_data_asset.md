@@ -6,13 +6,13 @@ import PrereqGxInstall from '../../../../_core_components/prerequisites/_gx_inst
 import PrereqDataContext from '../../../../_core_components/prerequisites/_preconfigured_data_context.md'
 import PrereqSparkFilesystemDataSource from '../../../../_core_components/prerequisites/_data_source_spark_filesystem.md'
 
-### Prerequisites
+### Prerequisites {#prerequisites-data-asset-directory-lon} 
 - <PrereqPythonInstall/>.
 - <PrereqGxInstall/>.
 - <PrereqDataContext/>.
 - [A Spark Filesystem Data Source configured to access data files in a local or networked folder hierarchy](/core/connect_to_data/filesystem_data/filesystem_data.md?data_source_type=spark&environment=filesystem#create-a-data-source).
 
-### Procedure
+### Procedure {#procedure-data-asset-directory-lon}
 
 <Tabs 
    queryString="procedure"

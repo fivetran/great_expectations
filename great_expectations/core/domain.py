@@ -180,7 +180,7 @@ not exist as value of appropriate key in "domain_kwargs" dictionary.
     # Adding this property for convenience (also, in the future, arguments may not be all set to their default values).  # noqa: E501 # FIXME CoP
     @property
     def id(self) -> str:
-        return IDDict(self.to_json_dict()).to_id()
+        return str(IDDict(self.to_json_dict()).to_id())
 
     @override
     def to_json_dict(self) -> dict:

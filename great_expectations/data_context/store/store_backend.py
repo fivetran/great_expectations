@@ -7,4 +7,4 @@ from great_expectations.data_context.store.in_memory_store_backend import (
     InMemoryStoreBackend,
 )
 
-__all__ = ["StoreBackend", "InMemoryStoreBackend"]
+__all__ = ["InMemoryStoreBackend", "StoreBackend"]

@@ -56,13 +56,17 @@ _registered_renderers: dict = {}
 
 class RendererImpl(NamedTuple):
     expectation: str
-    renderer: Callable[..., Union[RenderedAtomicContent, RenderedContent]]
+    renderer: Callable[
+        ..., Union[RenderedAtomicContent, list[RenderedAtomicContent], RenderedContent]
+    ]
 
 
 def register_renderer(
     object_name: str,
     parent_class: Union[Type[Expectation], Type[MetricProvider]],
-    renderer_fn: Callable[..., Union[RenderedAtomicContent, RenderedContent]],
+    renderer_fn: Callable[
+        ..., Union[RenderedAtomicContent, list[RenderedAtomicContent], RenderedContent]
+    ],
 ):
     # noinspection PyUnresolvedReferences
     renderer_name = renderer_fn._renderer_type  # type: ignore[attr-defined] # FIXME CoP
@@ -179,7 +183,7 @@ def register_core_metrics() -> None:
     if before_count == after_count:
         logger.debug("Already registered core metrics; no updates to registry")
     else:
-        logger.debug(f"Registered {after_count-before_count} core metrics")
+        logger.debug(f"Registered {after_count - before_count} core metrics")
 
 
 def register_core_expectations() -> None:
@@ -205,7 +209,7 @@ def register_core_expectations() -> None:
     if before_count == after_count:
         logger.debug("Already registered core expectations; no updates to registry")
     else:
-        logger.debug(f"Registered {after_count-before_count} core expectations")
+        logger.debug(f"Registered {after_count - before_count} core expectations")
 
 
 def _add_response_key(res, key, value):
@@ -307,13 +311,44 @@ def register_metric(  # noqa: PLR0913 # FIXME CoP
     return res
 
 
+def _get_metric_definition(metric_name: str) -> dict:
+    try:
+        return _registered_metrics[metric_name]
+    except KeyError:
+        raise gx_exceptions.MetricProviderError(f"No metric named {metric_name} found.")  # noqa: TRY003 # FIXME CoP
+
+
+def get_sqlalchemy_metric_provider(
+    metric_name: str,
+) -> Tuple[MetricProvider, Callable]:
+    """The default SqlAlchemy metric provider for a given metric."""
+    metric_definition = _get_metric_definition(metric_name)
+    try:
+        return metric_definition["providers"]["SqlAlchemyExecutionEngine"]
+    except KeyError:
+        raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
+            f"No provider found for {metric_name} using SqlAlchemyExecutionEngine"
+        )
+
+
 def get_metric_provider(
     metric_name: str, execution_engine: ExecutionEngine
 ) -> Tuple[MetricProvider, Callable]:
+    metric_definition = _get_metric_definition(metric_name)
     try:
-        metric_definition = _registered_metrics[metric_name]
         return metric_definition["providers"][type(execution_engine).__name__]
     except KeyError:
+        # Search up class hierarchy for a match. We skip the first entry since that's the
+        # execution engine type itself, type(execution_engine), which we just checked and
+        # resulted in the KeyError we're handling here.
+        for cls in type(execution_engine).mro()[1:]:
+            possible_key = cls.__name__
+            if metric_definition["providers"].get(possible_key) is not None:
+                metric_provider = metric_definition["providers"][possible_key]
+                # Register the metric provider for this engine so we don't have to search again
+                metric_definition["providers"][type(execution_engine).__name__] = metric_provider
+                return metric_provider
+        # no matches when search hierarchy so we raise
         raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
             f"No provider found for {metric_name} using {type(execution_engine).__name__}"
         )
@@ -323,10 +358,7 @@ def get_metric_function_type(
     metric_name: str, execution_engine: ExecutionEngine
 ) -> Optional[Union[MetricPartialFunctionTypes, MetricFunctionTypes]]:
     try:
-        metric_definition = _registered_metrics[metric_name]
-        provider_fn, _provider_class = metric_definition["providers"][
-            type(execution_engine).__name__
-        ]
+        provider_fn, _provider_class = get_metric_provider(metric_name, execution_engine)
         return getattr(provider_fn, "metric_fn_type", None)
     except KeyError:
         raise gx_exceptions.MetricProviderError(  # noqa: TRY003 # FIXME CoP
@@ -406,10 +438,8 @@ def list_registered_expectation_implementations(
         expectation_name,
         expectation_implementation,
     ) in _registered_expectations.items():
-        if (
-            expectation_root is None
-            or expectation_root
-            and issubclass(expectation_implementation, expectation_root)
+        if expectation_root is None or (
+            expectation_root and issubclass(expectation_implementation, expectation_root)
         ):
             registered_expectation_implementations.append(expectation_name)
 

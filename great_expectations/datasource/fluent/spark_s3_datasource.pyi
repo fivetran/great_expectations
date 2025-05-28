@@ -22,7 +22,7 @@ class SparkS3Datasource(_SparkFilePathDatasource):
     # S3 specific attributes
     bucket: str
     boto3_options: dict[str, ConfigStr | Any] = {}
-    def add_csv_asset(  # noqa: PLR0913 # FIXME CoP
+    def add_csv_asset(
         self,
         name: str,
         *,

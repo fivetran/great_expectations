@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Union, cast
 
 import pandas as pd
+from sqlalchemy.exc import ProgrammingError
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.alias_types import PathStr
@@ -263,7 +264,7 @@ def build_checkpoint_store_using_store_backend(
     overwrite_existing: bool = False,
 ) -> CheckpointStore:
     return cast(
-        CheckpointStore,
+        "CheckpointStore",
         build_configuration_store(
             class_name="CheckpointStore",
             module_name="great_expectations.data_context.store",
@@ -730,7 +731,12 @@ def introspect_db(  # noqa: C901, PLR0912 # FIXME CoP
         if selected_schema_name is not None and schema_name != selected_schema_name:
             continue
 
-        table_names: List[str] = inspector.get_table_names(schema=schema)
+        try:
+            table_names: List[str] = inspector.get_table_names(schema=schema)
+        except ProgrammingError:
+            # Likely another test already cleaned up this schema.
+            # TODO: Make tests only clean up after themselves
+            continue
         for table_name in table_names:
             if ignore_information_schemas_and_system_tables and (table_name in system_tables):
                 continue
@@ -878,9 +884,11 @@ def get_default_mssql_url() -> str:
     Returns:
         String of default connection to Docker container
     """
-    db_hostname = os.getenv("GE_TEST_LOCAL_DB_HOSTNAME", "localhost")
-    connection_string = f"mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@{db_hostname}:1433/test_ci?driver=ODBC Driver 17 for SQL Server&charset=utf8&autocommit=true"  # noqa: E501 # FIXME CoP
-    return connection_string
+    return (
+        "mssql+pyodbc://sa:ReallyStrongPwd1234%^&*@127.0.0.1:1433/test_ci"
+        "?driver=ODBC Driver 18 for SQL Server&charset=utf8"
+        "&autocommit=true&TrustServerCertificate=yes"
+    )
 
 
 def get_awsathena_db_name(db_name_env_var: str = "ATHENA_DB_NAME") -> str:
@@ -950,6 +958,8 @@ def add_datasource(
         return context.data_sources.add_snowflake(name=name, connection_string=connection_string)
     elif dialect == "postgres":
         return context.data_sources.add_postgres(name=name, connection_string=connection_string)
+    elif dialect == "redshift":
+        return context.data_sources.add_redshift(name=name, connection_string=connection_string)
     else:
         return context.data_sources.add_sql(name=name, connection_string=connection_string)
 

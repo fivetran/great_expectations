@@ -6,15 +6,15 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Un
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_types import (
-    ConditionParser,  # noqa: TCH001 # FIXME CoP
+    ConditionParser,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -40,18 +40,26 @@ if TYPE_CHECKING:
 EXPECTATION_SHORT_DESCRIPTION = "Expect the number of rows to be between two values."
 MIN_VALUE_DESCRIPTION = "The minimum number of rows, inclusive."
 MAX_VALUE_DESCRIPTION = "The maximum number of rows, inclusive."
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-]
+
+STRICT_MIN_DESCRIPTION = (
+    "If True, the row count must be strictly larger than min_value, default=False"
+)
+STRICT_MAX_DESCRIPTION = (
+    "If True, the row count must be strictly smaller than max_value, default=False"
+)
 DATA_QUALITY_ISSUES = [DataQualityIssues.VOLUME.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 
 
 class ExpectTableRowCountToBeBetween(BatchExpectation):
@@ -68,6 +76,10 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
             {MIN_VALUE_DESCRIPTION}
         max_value (int or None): \
             {MAX_VALUE_DESCRIPTION}
+        strict_min (boolean): \
+            {STRICT_MIN_DESCRIPTION}
+        strict_max (boolean): \
+            {STRICT_MAX_DESCRIPTION}
 
     Other Parameters:
         result_format (str or None): \
@@ -86,7 +98,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
         Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
 
     Notes:
-        * min_value and max_value are both inclusive.
+        * min_value and max_value are both inclusive unless strict_min or strict_max are set to True.
         * If min_value is None, then max_value is treated as an upper bound, and the number of acceptable rows has \
           no minimum.
         * If max_value is None, then min_value is treated as a lower bound, and the number of acceptable rows has \
@@ -164,6 +176,8 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
     max_value: Union[int, SuiteParameterDict, datetime, None] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
+    strict_min: bool = pydantic.Field(default=False, description=STRICT_MAX_DESCRIPTION)
+    strict_max: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
@@ -182,10 +196,14 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
     success_keys = (
         "min_value",
         "max_value",
+        "strict_min",
+        "strict_max",
     )
     args_keys = (
         "min_value",
         "max_value",
+        "strict_min",
+        "strict_max",
     )
 
     class Config:
@@ -220,6 +238,34 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
                     },
                 }
             )
+
+    @pydantic.root_validator
+    def _root_validate(cls, values: dict) -> dict:
+        min_value = values.get("min_value")
+        max_value = values.get("max_value")
+
+        if (
+            min_value is not None
+            and max_value is not None
+            and not isinstance(min_value, dict)
+            and not isinstance(max_value, dict)
+            and min_value > max_value
+        ):
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                f"min_value ({min_value}) must be less than or equal to max_value ({max_value})"
+            )
+
+        if isinstance(min_value, dict) and "$PARAMETER" not in min_value:
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                "min_value dict must contain key $PARAMETER"
+            )
+
+        if isinstance(max_value, dict) and "$PARAMETER" not in max_value:
+            raise ValueError(  # noqa: TRY003 # Error message gets swallowed by Pydantic
+                "max_value dict must contain key $PARAMETER"
+            )
+
+        return values
 
     @classmethod
     @override

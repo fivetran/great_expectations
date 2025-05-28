@@ -5,15 +5,16 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
+    parse_value_to_observed_type,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     VALUE_SET_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
-    ValueSetField,  # noqa: TCH001  # type needed in pydantic validation
+    ValueSetField,  # noqa: TC001  # type needed in pydantic validation
 )
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
@@ -45,15 +46,16 @@ if TYPE_CHECKING:
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the set of distinct column values to equal a given set."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.UNIQUENESS.value]
 
@@ -372,9 +374,14 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
         observed_value_set = set(observed_value_counts.index)
         value_set = self._get_success_kwargs()["value_set"]
 
-        parsed_value_set = value_set
-
-        expected_value_set = set(parsed_value_set)
+        # Try to coerce string values to match the type of observed values
+        if observed_value_set and value_set:
+            first_observed = next(iter(observed_value_set))
+            expected_value_set = {
+                parse_value_to_observed_type(first_observed, value) for value in value_set
+            }
+        else:
+            expected_value_set = set(value_set)
 
         return {
             "success": observed_value_set == expected_value_set,
@@ -424,20 +431,24 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
             param_prefix=ov_param_prefix,
             renderer_configuration=renderer_configuration,
         )
-
-        expected_value_set = set(renderer_configuration.kwargs.get("value_set", []))
         observed_value_set = set(
             result.get("result", {}).get("observed_value", []) if result else []
         )
+        sample_observed_value = next(iter(observed_value_set)) if observed_value_set else None
+        expected_value_set = {
+            parse_value_to_observed_type(observed_value=sample_observed_value, value=value)
+            for value in renderer_configuration.kwargs.get("value_set", [])
+        }
 
         observed_values = (
-            (name, sch)
-            for name, sch in renderer_configuration.params
+            (name, schema)
+            for name, schema in renderer_configuration.params
             if name.startswith(ov_param_prefix)
         )
+
         expected_values = (
-            (name, sch)
-            for name, sch in renderer_configuration.params
+            (name, schema)
+            for name, schema in renderer_configuration.params
             if name.startswith(expected_param_prefix)
         )
 
@@ -452,7 +463,11 @@ class ExpectColumnDistinctValuesToEqualSet(ColumnAggregateExpectation):
             template_str_list.append(f"${name}")
 
         for name, schema in expected_values:
-            if schema.value not in observed_value_set:
+            coerced_value = parse_value_to_observed_type(
+                observed_value=sample_observed_value,
+                value=schema.value,
+            )
+            if coerced_value not in observed_value_set:
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value

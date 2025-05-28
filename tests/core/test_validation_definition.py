@@ -1,15 +1,18 @@
 from __future__ import annotations
 
+import datetime
 import json
 import uuid
 from typing import TYPE_CHECKING, Type
 from unittest import mock
+from unittest.mock import ANY
 
 import pandas as pd
 import pytest
 
 import great_expectations as gx
 import great_expectations.expectations as gxe
+from great_expectations import RunIdentifier
 from great_expectations import __version__ as GX_VERSION
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
@@ -305,7 +308,11 @@ class TestValidationRun:
             "batch_markers": BATCH_MARKERS,
             "active_batch_definition": ACTIVE_BATCH_DEFINITION,
             "great_expectations_version": GX_VERSION,
+            "run_id": ANY,
+            "validation_time": ANY,
         }
+        assert isinstance(output.meta["run_id"], RunIdentifier)
+        assert isinstance(output.meta["validation_time"], datetime.datetime)
 
     @pytest.mark.unit
     def test_adds_correct_batch_parameter_field_for_dataframes(
@@ -328,7 +335,11 @@ class TestValidationRun:
             "batch_markers": BATCH_MARKERS,
             "active_batch_definition": ACTIVE_BATCH_DEFINITION,
             "great_expectations_version": GX_VERSION,
+            "run_id": ANY,
+            "validation_time": ANY,
         }
+        assert isinstance(output.meta["run_id"], RunIdentifier)
+        assert isinstance(output.meta["validation_time"], datetime.datetime)
 
     @pytest.mark.parametrize(
         "batch_parameters",
@@ -360,7 +371,11 @@ class TestValidationRun:
             "batch_markers": BATCH_MARKERS,
             "active_batch_definition": ACTIVE_BATCH_DEFINITION,
             "great_expectations_version": GX_VERSION,
+            "run_id": ANY,
+            "validation_time": ANY,
         }
+        assert isinstance(output.meta["run_id"], RunIdentifier)
+        assert isinstance(output.meta["validation_time"], datetime.datetime)
 
     @mock.patch.object(ValidationResultsStore, "set")
     @pytest.mark.unit

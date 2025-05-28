@@ -5,12 +5,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import root_validator
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import Comparable  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -29,9 +29,7 @@ from great_expectations.render.util import (
 )
 
 if TYPE_CHECKING:
-    from great_expectations.core import (
-        ExpectationValidationResult,
-    )
+    from great_expectations.core import ExpectationValidationResult
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
@@ -47,15 +45,16 @@ STRICT_MIN_DESCRIPTION = "If True, values must be strictly larger than min_value
 STRICT_MAX_DESCRIPTION = "If True, values must be strictly smaller than max_value."
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-    "MySQL",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 
 
@@ -202,14 +201,18 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
     strict_max: bool = pydantic.Field(default=False, description=MAX_VALUE_DESCRIPTION)
 
-    @classmethod
-    @root_validator(pre=True)
+    @root_validator
     def check_min_val_or_max_val(cls, values: dict) -> dict:
-        min_val = values.get("min_val")
-        max_val = values.get("max_val")
+        min_value = values.get("min_value")
+        max_value = values.get("max_value")
 
-        if min_val is None and max_val is None:
+        if min_value is None and max_value is None:
             raise ValueError("min_value and max_value cannot both be None")  # noqa: TRY003 # FIXME CoP
+
+        # Check for empty dicts since Pydantic coerces empty strings
+        # to empty dicts (SuiteParameterDict) during validation of Comparable field
+        if min_value == {} or max_value == {}:
+            raise ValueError("values cannot be empty strings")  # noqa: TRY003 # FIXME CoP
 
         return values
 

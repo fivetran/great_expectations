@@ -13,6 +13,7 @@ from great_expectations.data_context.data_context.cloud_data_context import (
 from great_expectations.datasource.fluent.fluent_base_model import FluentBaseModel
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset, Datasource
 from great_expectations.datasource.fluent.pandas_datasource import PandasDatasource
+from tests.conftest import random_name
 
 DATASOURCE_NAME = "my datasource for batch configs"
 EMPTY_DATA_ASSET_NAME = "my data asset for batch configs"
@@ -470,3 +471,22 @@ def test_sort_batches__requires_keys(empty_data_asset, mocker):
 
     with pytest.raises(KeyError, match=expected_error):
         empty_data_asset.sort_batches([wheres_my_b, i_have_a_b], partitioner)
+
+
+class TestGetBatchDefinition:
+    def test_get_returns_id(self, data_context: AbstractDataContext) -> None:
+        # arrange
+        resource_name = random_name()
+        ds = data_context.data_sources.add_pandas(
+            name=resource_name,
+        )
+        asset = ds.add_dataframe_asset(name=resource_name)
+        batch_def = asset.add_batch_definition_whole_dataframe(name=resource_name)
+
+        # act
+        refetched_batch_def = asset.get_batch_definition(resource_name)
+
+        # assert
+        assert batch_def.id
+        assert refetched_batch_def.id
+        assert batch_def.id == refetched_batch_def.id

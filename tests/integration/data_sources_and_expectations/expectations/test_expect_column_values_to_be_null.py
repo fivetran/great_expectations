@@ -9,9 +9,9 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     JUST_PANDAS_DATA_SOURCES,
-    NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import SparkFilesystemCsvDatasourceTestConfig
 
 ALL_NULL_COLUMN = "all_nulls"
 MOSTLY_NULL_COLUMN = "mostly_nulls"
@@ -24,9 +24,31 @@ DATA = pd.DataFrame(
     dtype="object",
 )
 
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 
-@parameterize_batch_for_data_sources(data_source_configs=NON_SQL_DATA_SOURCES, data=DATA)
-def test_success_complete_non_sql(batch_for_datasource: Batch) -> None:
+    SPARK_COLUMN_TYPES = {
+        MOSTLY_NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+        ALL_NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+    }
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_complete_pandas(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectColumnValuesToBeNull(column=ALL_NULL_COLUMN)
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SparkFilesystemCsvDatasourceTestConfig(column_types=SPARK_COLUMN_TYPES),
+    ],
+    data=DATA,
+)
+def test_success_complete_spark(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeNull(column=ALL_NULL_COLUMN)
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     assert result.success

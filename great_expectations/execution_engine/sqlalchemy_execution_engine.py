@@ -17,7 +17,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Iterable,
     List,
     MutableMapping,
@@ -59,17 +58,17 @@ from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
 )
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 del get_versions  # isort:skip
 
 
-from great_expectations.core import IDDict
 from great_expectations.core.batch import BatchMarkers, BatchSpec
 from great_expectations.core.batch_spec import (
     RuntimeQueryBatchSpec,
     SqlAlchemyDatasourceBatchSpec,
 )
+from great_expectations.core.id_dict import IDDict, IDDictID
 from great_expectations.exceptions import (
     DatasourceKeyPairAuthBadPassphraseError,
     ExecutionEngineError,
@@ -95,9 +94,12 @@ from great_expectations.util import (
     import_library_module,
     import_make_url,
 )
-from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001 # FIXME CoP
-)
+
+if TYPE_CHECKING:
+    from great_expectations.validator.metric_configuration import (
+        MetricConfiguration,
+        MetricConfigurationID,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -557,7 +559,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         if batch_id is None:
             # We allow no batch id specified if there is only one batch
             if self.batch_manager.active_batch_data:
-                data_object = cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data)
+                data_object = cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data)
             else:
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
@@ -565,7 +567,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data_object = cast(
-                    SqlAlchemyBatchData, self.batch_manager.batch_data_cache[batch_id]
+                    "SqlAlchemyBatchData", self.batch_manager.batch_data_cache[batch_id]
                 )
             else:
                 raise GreatExpectationsError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003 # FIXME CoP
@@ -615,9 +617,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         # For SqlAlchemyExecutionEngine only one filter condition is allowed
         if len(filter_conditions) == 1:
             filter_condition = filter_conditions[0]
-            assert (
-                filter_condition.condition_type == RowConditionParserType.GE
-            ), "filter_condition must be of type GX for SqlAlchemyExecutionEngine"
+            assert filter_condition.condition_type == RowConditionParserType.GE, (
+                "filter_condition must be of type GX for SqlAlchemyExecutionEngine"
+            )
 
             # SQLAlchemy 2.0 deprecated select_from() from a non-Table asset without a subquery.
             # Implicit coercion of SELECT and textual SELECT constructs into FROM clauses is deprecated.  # noqa: E501 # FIXME CoP
@@ -643,7 +645,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             and "column_B" in domain_kwargs
             and "ignore_row_if" in domain_kwargs
         ):
-            if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+            if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
                 # Checking if case-sensitive and using appropriate name
                 # noinspection PyPep8Naming
                 column_A_name = sqlalchemy.quoted_name(domain_kwargs["column_A"], quote=True)
@@ -689,7 +691,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             return selectable
 
         if "column_list" in domain_kwargs and "ignore_row_if" in domain_kwargs:
-            if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+            if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
                 # Checking if case-sensitive and using appropriate name
                 column_list = [
                     sqlalchemy.quoted_name(domain_kwargs[column_name], quote=True)
@@ -787,9 +789,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.COLUMN
-        ), "This method only supports MetricDomainTypes.COLUMN"
+        assert domain_type == MetricDomainTypes.COLUMN, (
+            "This method only supports MetricDomainTypes.COLUMN"
+        )
 
         compute_domain_kwargs: dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: dict = {}
@@ -800,7 +802,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column"] = sqlalchemy.quoted_name(
                 compute_domain_kwargs.pop("column"), quote=True
             )
@@ -826,9 +828,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.COLUMN_PAIR
-        ), "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        assert domain_type == MetricDomainTypes.COLUMN_PAIR, (
+            "This method only supports MetricDomainTypes.COLUMN_PAIR"
+        )
 
         compute_domain_kwargs: dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: dict = {}
@@ -839,7 +841,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column_A"] = sqlalchemy.quoted_name(
                 compute_domain_kwargs.pop("column_A"), quote=True
             )
@@ -869,9 +871,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             compute_domain_kwargs, accessor_domain_kwargs partition from domain_kwargs
             The union of compute_domain_kwargs, accessor_domain_kwargs is the input domain_kwargs
         """  # noqa: E501 # FIXME CoP
-        assert (
-            domain_type == MetricDomainTypes.MULTICOLUMN
-        ), "This method only supports MetricDomainTypes.MULTICOLUMN"
+        assert domain_type == MetricDomainTypes.MULTICOLUMN, (
+            "This method only supports MetricDomainTypes.MULTICOLUMN"
+        )
 
         compute_domain_kwargs: dict = copy.deepcopy(domain_kwargs)
         accessor_domain_kwargs: dict = {}
@@ -885,7 +887,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             raise GreatExpectationsError("column_list must contain at least 2 columns")  # noqa: TRY003 # FIXME CoP
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column_list"] = [
                 sqlalchemy.quoted_name(column_name, quote=True) for column_name in column_list
             ]
@@ -898,7 +900,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
     def resolve_metric_bundle(  # noqa: C901 #  too complex
         self,
         metric_fn_bundle: Iterable[MetricComputationConfiguration],
-    ) -> Dict[Tuple[str, str, str], MetricValue]:
+    ) -> dict[MetricConfigurationID, MetricValue]:
         """For every metric in a set of Metrics to resolve, obtains necessary metric keyword arguments and builds
         bundles of the metrics into one large query dictionary so that they are all executed simultaneously. Will fail
         if bundling the metrics together is not possible.
@@ -912,16 +914,16 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             Returns:
                 A dictionary of "MetricConfiguration" IDs and their corresponding now-queried (fully resolved) values.
         """  # noqa: E501 # FIXME CoP
-        resolved_metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+        resolved_metrics: dict[MetricConfigurationID, MetricValue] = {}
 
         res: List[sqlalchemy.Row]
 
         # We need a different query for each Domain (where clause).
-        queries: Dict[Tuple[str, str, str], dict] = {}
+        queries: dict[IDDictID, dict] = {}
 
         query: dict
 
-        domain_id: Tuple[str, str, str]
+        domain_id: IDDictID
 
         bundled_metric_configuration: MetricComputationConfiguration
         for bundled_metric_configuration in metric_fn_bundle:
@@ -997,7 +999,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             assert len(query["metric_ids"]) == len(res[0]), "unexpected number of metrics returned"
 
             idx: int
-            metric_id: Tuple[str, str, str]
+            metric_id: MetricConfigurationID
             for idx, metric_id in enumerate(query["metric_ids"]):
                 # Converting SQL query execution results into JSON-serializable format produces simple data types,  # noqa: E501 # FIXME CoP
                 # amenable for subsequent post-processing by higher-level "Metric" and "Expectation" layers.  # noqa: E501 # FIXME CoP

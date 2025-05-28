@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+from types import ModuleType
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Union
 
 import numpy as np
@@ -24,7 +25,7 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.expectations.registry import get_metric_kwargs
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
@@ -73,18 +74,19 @@ TYPE__DESCRIPTION = """
     A string representing the data type that each column should have as entries. \
     Valid types are defined by the current backend implementation and are dynamically loaded.
     """
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 
 
 class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
@@ -416,10 +418,17 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
         ]:
-            success = (
-                isinstance(actual_column_type, str)
-                and actual_column_type.lower() == expected_type.lower()
-            )
+            # For these dialects, actual_column_type should be a string or CaseInsensitiveString
+            if isinstance(actual_column_type, str):
+                # CaseInsensitiveString objects will automatically do case-insensitive comparison
+                success = actual_column_type == expected_type
+            else:
+                # Handle the case where it's not a string type
+                # This should never happen, but we'll handle it just in case
+                # the column type should be converted to a CaseInsensitiveString
+                # for these three dialects in metrics/util.py:get_sqlalchemy_column_metadata
+                success = str(actual_column_type).lower() == expected_type.lower()
+
             return {
                 "success": success,
                 "result": {"observed_value": actual_column_type},
@@ -621,6 +630,8 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
         elif type_module.__name__ == "clickhouse_sqlalchemy.drivers.base":
             potential_type = get_clickhouse_sqlalchemy_potential_type(type_module, expected_type)
             types.append(potential_type)
+        elif type_module.__name__ == "sqlalchemy_redshift.dialect":
+            types.extend(_get_redshift_sqlalchemy_types(type_module, expected_type))
         else:
             potential_type = getattr(type_module, expected_type)
             types.append(potential_type)
@@ -629,6 +640,22 @@ def _get_potential_sqlalchemy_types(execution_engine, expected_type):
     if len(types) == 0:
         logger.debug("No recognized sqlalchemy types in type_list for current dialect.")
 
+    return types
+
+
+def _get_redshift_sqlalchemy_types(
+    type_module: ModuleType, expected_type: Any
+) -> list[sa.sql.type_api.TypeEngine]:
+    types: list[sa.sql.type_api.TypeEngine] = []
+    potential_type = getattr(type_module, expected_type)
+    types.append(potential_type)
+    if expected_type.lower() == "decimal":
+        # There is no redshift numeric type NUMERIC. It is suppose to be a synonym for
+        # the official type DECIMAL, according to the docs:
+        # https://docs.aws.amazon.com/redshift/latest/dg/c_Supported_data_types.html
+        # However we have observed the raw sqltypes.[NUMERIC|Numeric] instead so we
+        # add this as an allowed matching type.
+        types.append(sa.sql.sqltypes.NUMERIC)
     return types
 
 

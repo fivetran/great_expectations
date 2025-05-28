@@ -29,6 +29,7 @@ from great_expectations.datasource.fluent.sql_datasource import (
 from great_expectations.datasource.fluent.sql_datasource import (
     TableAsset as SqlTableAsset,
 )
+from great_expectations.execution_engine.sqlite_execution_engine import SqliteExecutionEngine
 
 if TYPE_CHECKING:
     # min version of typing_extension missing `Self`, so it can't be imported at runtime
@@ -40,6 +41,9 @@ if TYPE_CHECKING:
         BatchMetadata,
         BatchParameters,
         DataAsset,
+    )
+    from great_expectations.execution_engine.sqlalchemy_execution_engine import (
+        SqlAlchemyExecutionEngine,
     )
 
 # This module serves as an example of how to extend _SQLAssets for specific backends. The steps are:
@@ -161,6 +165,12 @@ class SqliteDatasource(SQLDatasource):
     _TableAsset: Type[SqlTableAsset] = pydantic.PrivateAttr(SqliteTableAsset)
     _QueryAsset: Type[SqlQueryAsset] = pydantic.PrivateAttr(SqliteQueryAsset)
 
+    @property
+    @override
+    def execution_engine_type(self) -> Type[SqlAlchemyExecutionEngine]:
+        """Returns the default execution engine type."""
+        return SqliteExecutionEngine
+
     @public_api
     @override
     def add_table_asset(
@@ -182,7 +192,7 @@ class SqliteDatasource(SQLDatasource):
             The SqliteTableAsset added
         """
         return cast(
-            SqliteTableAsset,
+            "SqliteTableAsset",
             super().add_table_asset(
                 name=name,
                 table_name=table_name,
@@ -213,7 +223,7 @@ class SqliteDatasource(SQLDatasource):
         """
 
         return cast(
-            SqliteQueryAsset,
+            "SqliteQueryAsset",
             super().add_query_asset(name=name, query=query, batch_metadata=batch_metadata),
         )
 

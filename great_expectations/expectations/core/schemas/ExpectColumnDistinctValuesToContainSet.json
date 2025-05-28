@@ -217,14 +217,16 @@
                         "MSSQL",
                         "BigQuery",
                         "Snowflake",
-                        "Databricks (SQL)"
+                        "Databricks (SQL)",
+                        "Redshift"
                     ]
                 }
             }
         }
     },
     "required": [
-        "column"
+        "column",
+        "value_set"
     ],
     "additionalProperties": false,
     "definitions": {
@@ -278,6 +280,11 @@
                 },
                 "offset": {
                     "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "default": false,
+                    "type": "boolean"
                 }
             },
             "required": [

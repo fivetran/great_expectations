@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 
 from great_expectations.compatibility import pydantic
 from great_expectations.core.suite_parameters import (
-    SuiteParameterDict,  # noqa: TCH001 # FIXME CoP
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -45,12 +45,13 @@ REGEX_LIST_DESCRIPTION = (
 )
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "PostgreSQL",
-    "MySQL",
-    "Databricks (SQL)",
-    "SQLite",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.REDSHIFT.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.SQLITE.value,
 ]
 
 
@@ -105,6 +106,7 @@ class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -233,6 +235,14 @@ class ExpectColumnValuesToNotMatchRegexList(ColumnMapExpectation):
                     },
                 }
             )
+
+    @pydantic.validator("regex_list")
+    def _validate_regex_list(
+        cls, regex_list: list[str] | SuiteParameterDict
+    ) -> list[str] | SuiteParameterDict:
+        if not regex_list:
+            raise ValueError("regex_list must not be empty")  # noqa: TRY003 # Error message gets swallowed by Pydantic
+        return regex_list
 
     @classmethod
     def _prescriptive_template(

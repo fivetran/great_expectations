@@ -11,7 +11,7 @@ import Tabs from '@theme/Tabs';
 
 - You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
 
-- You have a Databricks SQL catalog, schema, and table.
+- You have a Databricks SQL catalog, schema, and table or view.
 
 - Optional. To improve data security, GX recommends creating a separate Databricks SQL [service principal](https://docs.databricks.com/en/admin/users-groups/service-principals.html#manage-service-principals-in-your-account) for your GX Cloud connection.
 
@@ -31,10 +31,16 @@ import Tabs from '@theme/Tabs';
 
 4. Click **Connect**.
 
-5. Select one or more tables to import as Data Assets.
+5. Select one or more tables or views to import as Data Assets.
 
-6. Decide if you want to **Generate Expectations that detect column changes in selected Data Assets**.
+6. Click **Add x Asset(s)**.
 
-7. Click **Add x Asset(s)**. 
+7. Decide which [Anomaly Detection](/docs/cloud/overview/automating_rules.md#anomaly-detection) options you want to enable. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
 
-8. Add an Expectation. See [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+8. Click **Start monitoring** or **Finish**.
+
+
+## Next steps
+
+- [Add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+- [Run a Validation](/cloud/validations/manage_validations.md).

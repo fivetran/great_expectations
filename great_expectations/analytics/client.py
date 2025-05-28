@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 from uuid import UUID
 
 import posthog
 
-from great_expectations.analytics.config import ENV_CONFIG, Config, update_config
+from great_expectations.analytics.config import (
+    ENV_CONFIG,
+    Config,
+    update_config,
+)
 
 if TYPE_CHECKING:
     from great_expectations.analytics.base_event import Event
@@ -23,6 +27,7 @@ def submit(event: Event) -> None:
         groups = {
             "data_context": event.data_context_id,
         }
+
         if event.organization_id:
             groups.update({"organization": event.organization_id})
 
@@ -40,11 +45,14 @@ def submit(event: Event) -> None:
 
 def init(  # noqa: PLR0913 # FIXME CoP
     enable: bool,
+    mode: Literal["cloud", "ephemeral", "file"],
     user_id: Optional[UUID] = None,
     data_context_id: Optional[UUID] = None,
     organization_id: Optional[UUID] = None,
     oss_id: Optional[UUID] = None,
     cloud_mode: bool = False,
+    user_agent_str: Optional[str] = None,
+    remove_profile: bool = True,
 ):
     """Initializes the analytics platform client."""
     conf = {}
@@ -56,7 +64,15 @@ def init(  # noqa: PLR0913 # FIXME CoP
         conf["organization_id"] = organization_id
     if oss_id:
         conf["oss_id"] = oss_id
-    update_config(config=Config(cloud_mode=cloud_mode, **conf))
+    update_config(
+        config=Config(
+            cloud_mode=cloud_mode,
+            user_agent_str=user_agent_str,
+            mode=mode,
+            remove_profile=remove_profile,
+            **conf,
+        )
+    )
 
     enable = enable and not _in_gx_ci()
     posthog.disabled = not enable

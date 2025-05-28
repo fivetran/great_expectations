@@ -13,7 +13,8 @@ Running a Checkpoint will cause it to validate all of its Validation Definitions
 
 At runtime, a Checkpoint can take in a `batch_parameters` dictionary that selects the Batch to validate from each Validation Definition.  A Checkpoint will also accept an `expectation_parameters` dictionary that provides values for the parameters of the any Expectations that have been configured to accept parameters at runtime.
 
-<h2>Prerequisites</h2>
+## Prerequisites
+
 - <PrereqPythonInstalled/>.
 - <PrereqGxInstalled/>.
 - <PrereqPreconfiguredDataContext/>.
@@ -78,6 +79,9 @@ In this procedure your Data Context is assumed to be stored in the variable `con
    ```
    
    After the Checkpoint runs it will pass the Validation Results that are generated to its Actions and execute them.  Finally, the Validation Results will be returned by the `run(...)` method. 
+
+   For more information about Validation Results, what they contain, and how to adjust their verbosity see [Choose result format](../trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format.md).
+
 
 </TabItem>
 

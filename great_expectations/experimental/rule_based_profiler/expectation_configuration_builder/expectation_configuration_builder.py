@@ -4,23 +4,23 @@ import logging
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, ClassVar, Dict, List, Optional, Set, Union
 
-from great_expectations.core.batch import Batch, BatchRequestBase  # noqa: TCH001 # FIXME CoP
-from great_expectations.core.domain import Domain  # noqa: TCH001 # FIXME CoP
+from great_expectations.core.batch import Batch, BatchRequestBase  # noqa: TC001 # FIXME CoP
+from great_expectations.core.domain import Domain  # noqa: TC001 # FIXME CoP
 from great_expectations.data_context.util import instantiate_class_from_config
 from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,  # noqa: TCH001 # FIXME CoP
+    ExpectationConfiguration,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.registry import get_expectation_impl
 from great_expectations.experimental.rule_based_profiler.builder import Builder
 from great_expectations.experimental.rule_based_profiler.config import (
-    ParameterBuilderConfig,  # noqa: TCH001 # FIXME CoP
+    ParameterBuilderConfig,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.experimental.rule_based_profiler.parameter_builder import (
     ParameterBuilder,
     init_rule_parameter_builders,
 )
 from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TCH001 # FIXME CoP
+    ParameterContainer,  # noqa: TC001 # FIXME CoP
 )
 
 if TYPE_CHECKING:

@@ -175,7 +175,7 @@ def deprecated_method_or_class(
         message: Optional deprecation message.
     """
 
-    text = f".. deprecated:: {version}" "\n" f"    {message}"
+    text = f".. deprecated:: {version}\n    {message}"
 
     def wrapper(func: F) -> F:
         """Wrapper method that accepts func, so we can modify the docstring."""
@@ -210,7 +210,7 @@ def new_method_or_class(
         message: Optional message.
     """
 
-    text = f".. versionadded:: {version}" "\n" f"    {message}"
+    text = f".. versionadded:: {version}\n    {message}"
 
     def wrapper(func: Callable[P, T]) -> Callable[P, T]:
         """Wrapper method that accepts func, so we can modify the docstring."""
@@ -249,7 +249,7 @@ def deprecated_argument(
         message: Optional deprecation message.
     """  # noqa: E501 # FIXME CoP
 
-    text = f".. deprecated:: {version}" "\n" f"    {message}"
+    text = f".. deprecated:: {version}\n    {message}"
 
     def wrapper(func: F) -> F:
         """Wrapper method that accepts func, so we can modify the docstring."""
@@ -292,7 +292,7 @@ def new_argument(
         message: Optional message.
     """
 
-    text = f".. versionadded:: {version}" "\n" f"    {message}"
+    text = f".. versionadded:: {version}\n    {message}"
 
     def wrapper(func: F) -> F:
         """Wrapper method that accepts func, so we can modify the docstring."""
@@ -328,10 +328,10 @@ def _add_text_to_function_docstring_after_summary(func: F, text: str) -> F:
     docstring = ""
     if len(split_docstring) == 2:  # noqa: PLR2004 # FIXME CoP
         short_description, docstring = split_docstring
-        docstring = f"{short_description.strip()}\n" "\n" f"{text}\n" "\n" f"{dedent(docstring)}"
+        docstring = f"{short_description.strip()}\n\n{text}\n\n{dedent(docstring)}"
     elif len(split_docstring) == 1:
         short_description = split_docstring[0]
-        docstring = f"{short_description.strip()}\n" "\n" f"{text}\n"
+        docstring = f"{short_description.strip()}\n\n{text}\n"
     elif len(split_docstring) == 0:
         docstring = f"{text}\n"
 

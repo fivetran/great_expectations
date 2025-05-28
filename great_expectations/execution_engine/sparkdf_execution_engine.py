@@ -10,7 +10,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Iterable,
     List,
     Optional,
@@ -36,9 +35,9 @@ from great_expectations.core.batch_spec import (
     PathBatchSpec,
     RuntimeDataBatchSpec,
 )
-from great_expectations.core.id_dict import IDDict
+from great_expectations.core.id_dict import IDDict, IDDictID
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,  # noqa: TCH001 # FIXME CoP
+    MetricDomainTypes,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.core.util import AzureUrl
 from great_expectations.exceptions import (
@@ -50,8 +49,8 @@ from great_expectations.exceptions import (
 from great_expectations.exceptions import exceptions as gx_exceptions
 from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.execution_engine.execution_engine import (
-    MetricComputationConfiguration,  # noqa: TCH001 # FIXME CoP
-    PartitionDomainKwargs,  # noqa: TCH001 # FIXME CoP
+    MetricComputationConfiguration,  # noqa: TC001 # FIXME CoP
+    PartitionDomainKwargs,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.execution_engine.partition_and_sample.sparkdf_data_partitioner import (
     SparkDataPartitioner,
@@ -71,13 +70,14 @@ from great_expectations.expectations.row_conditions import (
     parse_condition_to_spark,
 )
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TCH001 # FIXME CoP
-from great_expectations.validator.metric_configuration import (
-    MetricConfiguration,  # noqa: TCH001 # FIXME CoP
-)
+from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
+    from great_expectations.validator.metric_configuration import (
+        MetricConfiguration,
+        MetricConfigurationID,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -253,7 +253,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
         if self.batch_manager.active_batch_data is None:
             raise ValueError("Batch has not been loaded - please run load_batch() to load a batch.")  # noqa: TRY003 # FIXME CoP
 
-        return cast(SparkDFBatchData, self.batch_manager.active_batch_data).dataframe
+        return cast("SparkDFBatchData", self.batch_manager.active_batch_data).dataframe
 
     @staticmethod
     def get_or_create_spark_session(
@@ -652,7 +652,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         if batch_id is None:
             # We allow no batch id specified if there is only one batch
             if self.batch_manager.active_batch_data:
-                data = cast(SparkDFBatchData, self.batch_manager.active_batch_data).dataframe
+                data = cast("SparkDFBatchData", self.batch_manager.active_batch_data).dataframe
             else:
                 raise ValidationError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
@@ -660,7 +660,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data = cast(
-                    SparkDFBatchData, self.batch_manager.batch_data_cache[batch_id]
+                    "SparkDFBatchData", self.batch_manager.batch_data_cache[batch_id]
                 ).dataframe
             else:
                 raise ValidationError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003 # FIXME CoP
@@ -850,7 +850,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
     def resolve_metric_bundle(
         self,
         metric_fn_bundle: Iterable[MetricComputationConfiguration],
-    ) -> Dict[Tuple[str, str, str], MetricValue]:
+    ) -> dict[MetricConfigurationID, MetricValue]:
         """For every metric in a set of Metrics to resolve, obtains necessary metric keyword arguments and builds
         bundles of the metrics into one large query dictionary so that they are all executed simultaneously. Will fail
         if bundling the metrics together is not possible.
@@ -864,15 +864,15 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
             Returns:
                 A dictionary of "MetricConfiguration" IDs and their corresponding fully resolved values for domains.
         """  # noqa: E501 # FIXME CoP
-        resolved_metrics: Dict[Tuple[str, str, str], MetricValue] = {}
+        resolved_metrics: dict[MetricConfigurationID, MetricValue] = {}
 
         res: List[pyspark.Row]
 
-        aggregates: Dict[Tuple[str, str, str], dict] = {}
+        aggregates: dict[IDDictID, dict] = {}
 
         aggregate: dict
 
-        domain_id: Tuple[str, str, str]
+        domain_id: IDDictID
 
         bundled_metric_configuration: MetricComputationConfiguration
         for bundled_metric_configuration in metric_fn_bundle:
@@ -908,12 +908,12 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
             )
 
             assert len(res) == 1, "all bundle-computed metrics must be single-value statistics"
-            assert len(aggregate["metric_ids"]) == len(
-                res[0]
-            ), "unexpected number of metrics returned"
+            assert len(aggregate["metric_ids"]) == len(res[0]), (
+                "unexpected number of metrics returned"
+            )
 
             idx: int
-            metric_id: Tuple[str, str, str]
+            metric_id: MetricConfigurationID
             for idx, metric_id in enumerate(aggregate["metric_ids"]):
                 # Converting DataFrame.collect() results into JSON-serializable format produces simple data types,  # noqa: E501 # FIXME CoP
                 # amenable for subsequent post-processing by higher-level "Metric" and "Expectation" layers.  # noqa: E501 # FIXME CoP

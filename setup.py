@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 # https://setuptools.pypa.io/en/latest/pkg_resources.html
-import pkg_resources  # noqa: TID251: TODO: switch to poetry
+import pkg_resources  # noqa: TID251  # TODO: switch to poetry
 from setuptools import find_packages, setup
 
 import versioneer
@@ -30,13 +30,13 @@ def get_extras_require():
         "s3": "boto",
     }
     sqla1x_only_keys = (
-        "bigquery",  # https://github.com/googleapis/python-bigquery-sqlalchemy/blob/main/setup.py
         "clickhouse",  # https://github.com/xzkostyan/clickhouse-sqlalchemy/blob/master/setup.py
         "redshift",  # https://github.com/sqlalchemy-redshift/sqlalchemy-redshift/blob/main/setup.py
         "teradata",  # https://pypi.org/project/teradatasqlalchemy   https://support.teradata.com/knowledge?id=kb_article_view&sys_kb_id=a5a869149729251ced863fe3f153af27
     )
     sqla_keys = (
         "athena",  # https://github.com/laughingman7743/PyAthena/blob/master/pyproject.toml
+        "bigquery",  # https://github.com/googleapis/python-bigquery-sqlalchemy/blob/main/setup.py
         "dremio",  # https://github.com/narendrans/sqlalchemy_dremio/blob/master/setup.py
         "hive",  # https://github.com/dropbox/PyHive/blob/master/setup.py
         "mssql",  # https://github.com/mkleehammer/pyodbc/blob/master/setup.py
@@ -46,6 +46,7 @@ def get_extras_require():
         "vertica",  # https://github.com/bluelabsio/sqlalchemy-vertica-python/blob/master/setup.py
         "databricks",  # https://github.com/databricks/databricks-sql-python/blob/main/pyproject.toml
         "snowflake",  # https://github.com/snowflakedb/snowflake-sqlalchemy/blob/main/setup.cfg
+        "gx-redshift",  # https://github.com/great-expectations/sqlalchemy-redshift/blob/main/setup.py
     )
     ignore_keys = (
         "sqlalchemy",
@@ -63,9 +64,10 @@ def get_extras_require():
     # correctly and are in the right location.
     for file_path in Path().glob(f"{requirements_dir}/*.txt"):
         match = rx_name_part.match(file_path.name)
-        assert (
-            match is not None
-        ), f"The extras requirements dir ({requirements_dir}) contains files that do not adhere to the following format: requirements-dev-*.txt"  # noqa: E501
+        assert match is not None, (
+            f"The extras requirements dir ({requirements_dir}) contains "
+            "files that do not adhere to the following format: requirements-dev-*.txt"
+        )
         key = match.group(1)
         if key in ignore_keys:
             continue
@@ -114,7 +116,12 @@ config = {
     "install_requires": required,
     "extras_require": get_extras_require(),
     "packages": find_packages(exclude=["contrib*", "docs*", "tests*", "examples*", "scripts*"]),
-    "package_data": {"great_expectations": ["**/py.typed", "**/*.pyi"]},
+    "package_data": {
+        "great_expectations": [
+            "**/py.typed",
+            "**/*.pyi",
+        ]
+    },
     "name": "great_expectations",
     "long_description": long_description,
     "license": "Apache-2.0",

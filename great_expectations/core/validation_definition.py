@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Optional, Union
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
+from great_expectations.analytics.client import submit as submit_event
+from great_expectations.analytics.events import ValidationDefinitionRanEvent
 from great_expectations.compatibility.pydantic import (
     BaseModel,
     Extra,
@@ -263,7 +265,6 @@ class ValidationDefinition(BaseModel):
             batch_parameters: The dictionary of parameters necessary for selecting the
               correct batch to run the validation on. The keys are strings that are determined
               by the BatchDefinition used to instantiate this ValidationDefinition. For example:
-
               - whole table -> None
               - yearly -> year
               - monthly -> year, month
@@ -298,9 +299,11 @@ class ValidationDefinition(BaseModel):
 
         # NOTE: We should promote this to a top-level field of the result.
         #       Meta should be reserved for user-defined information.
-        if run_id:
-            results.meta["run_id"] = run_id
-            results.meta["validation_time"] = run_id.run_time
+        if not run_id:
+            run_id = RunIdentifier(run_time=datetime.datetime.now(datetime.timezone.utc))
+        results.meta["run_id"] = run_id
+        results.meta["validation_time"] = run_id.run_time
+
         if batch_parameters:
             batch_parameters_copy = {k: v for k, v in batch_parameters.items()}
             if "dataframe" in batch_parameters_copy:
@@ -328,6 +331,13 @@ class ValidationDefinition(BaseModel):
             results.result_url = self._validation_results_store.parse_result_url_from_gx_cloud_ref(
                 ref
             )
+
+        submit_event(
+            event=ValidationDefinitionRanEvent(
+                validation_definition_id=self.id,
+                checkpoint_id=checkpoint_id,
+            )
+        )
 
         return results
 

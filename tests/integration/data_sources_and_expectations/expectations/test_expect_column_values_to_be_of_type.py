@@ -15,6 +15,7 @@ from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
@@ -37,6 +38,19 @@ DATA = pd.DataFrame(
 )
 
 
+try:
+    from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
+
+    SPARK_COLUMN_TYPES = {
+        INTEGER_COLUMN: PYSPARK_TYPES.IntegerType,
+        INTEGER_AND_NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+        STRING_COLUMN: PYSPARK_TYPES.StringType,
+        NULL_COLUMN: PYSPARK_TYPES.IntegerType,
+    }
+except ModuleNotFoundError:
+    SPARK_COLUMN_TYPES = {}
+
+
 @parameterize_batch_for_data_sources(
     data_source_configs=[
         PandasDataFrameDatasourceTestConfig(),
@@ -56,6 +70,7 @@ def test_success_for_type__int(batch_for_datasource: Batch) -> None:
         MSSQLDatasourceTestConfig(),
         MySQLDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
+        RedshiftDatasourceTestConfig(),
         SqliteDatasourceTestConfig(),
     ],
     data=DATA,
@@ -77,7 +92,11 @@ def test_success_for_type__Integer(batch_for_datasource: Batch) -> None:
 
 
 @parameterize_batch_for_data_sources(
-    data_source_configs=[SparkFilesystemCsvDatasourceTestConfig()],
+    data_source_configs=[
+        SparkFilesystemCsvDatasourceTestConfig(
+            column_types=SPARK_COLUMN_TYPES,
+        )
+    ],
     data=DATA,
 )
 def test_success_for_type__IntegerType(batch_for_datasource: Batch) -> None:
@@ -124,3 +143,33 @@ def test_failure(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="NUMBER")
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+# Group datasources with case-insensitive type handling
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        DatabricksDatasourceTestConfig(),
+        PostgreSQLDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
+    ],
+    data=DATA,
+)
+def test_case_insensitive_dialects(batch_for_datasource: Batch) -> None:
+    dialect_name = batch_for_datasource.data.execution_engine.engine.dialect.name.lower()
+
+    expected_dialects = ["snowflake", "databricks", "postgresql"]
+    assert dialect_name in expected_dialects, f"Unexpected dialect: {dialect_name}"
+
+    if dialect_name == "snowflake":
+        base_type = "DECIMAL(38, 0)"
+    elif dialect_name == "databricks":
+        base_type = "INT"
+    elif dialect_name == "postgresql":
+        base_type = "INTEGER"
+    else:
+        raise AssertionError(f"Unexpected dialect: {dialect_name}")
+
+    for type_str in [base_type.lower(), base_type.upper(), base_type.capitalize()]:
+        expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_=type_str)
+        result = batch_for_datasource.validate(expectation)
+        assert result.success, f"Expected success for type '{type_str}' on dialect '{dialect_name}'"

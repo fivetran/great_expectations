@@ -27,6 +27,3 @@ import OverviewCard from '@site/src/components/OverviewCard';
 
   <LinkCard topIcon label="Glossary" description="An alphabetical list of GX terms and words with definitions" to="/reference/learn/glossary" icon="/img/glossary_icon.svg" />
 </LinkCardGrid>
-
-
-

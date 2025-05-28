@@ -234,7 +234,7 @@ You can either press the b button on your keyboard or press the “Insert a cell
 :::
 
 
-A Data Source is the GX representation of a data store. In this tutorial, you are using a PostgreSQL data source, but you can also connect to others, including Pandas, Snowflake and Databricks. A Data Asset is the GX representation of a collection of records within a Data Source which are usually grouped based on the underlying data system. In this tutorial, you create a Batch Definition for the whole `customers` table, but you can also create batches based on a date column within the table.
+A Data Source is the GX representation of a data store. In this tutorial, you are using a PostgreSQL data source, but you can adapt the examples to any other [supported Data Source](docs/application_integration_support.md#integrations). A Data Asset is the GX representation of a collection of records within a Data Source which are usually grouped based on the underlying data system. In this tutorial, you create a Batch Definition for the whole `customers` table, but you can also create batches based on a date column within the table.
 ```python title="Python"
 ## Connect to your data
 
@@ -285,6 +285,10 @@ You can see that the two Expectations you have created are passing. View failed 
 
 ## 7. Build a data pipeline and automate it with Airflow
 The final portion of this tutorial automates the process above with a pipeline or DAG in the workflow orchestration tool Airflow. You will create a simple pipeline using the common write-audit-publish pattern.
+
+:::tip Try the Great Expectations Airflow Provider
+For a more ergonomic interface and more flexibility, use the [Great Expectations Airflow Provider maintained by Astronomer](https://github.com/astronomer/airflow-provider-great-expectations/blob/main/docs/index.md) to validate data directly from a DAG.
+:::
 
 ### Log into Airflow
 Open [http://localhost:8080](http://localhost:8080) in your browser. You can use the username and password created earlier in the configuration step.
@@ -414,5 +418,5 @@ Refresh the Data Docs page to see new results from the DAG run:
 ## Conclusion
 You have learned to build a pipeline using PostgreSQL, dbt, GX and Airflow. This tutorial covers a basic implementation for scheduling and running a data pipeline with open source tools. You can explore other possibilities with GX by connecting to your own Data Sources or exploring the other use cases in this section. See the [Expectations Gallery](https://greatexpectations.io/expectations/) to learn about all the Expectations you can run on your data.
 
-If you are ready to take next steps and collaborate with your team using GX, check out [GX Cloud](https://greatexpectations.io/cloud), where you can use our online platform to run GX in a no-code environment, automate rules, schedule validations, and share results.
+If you are ready to take next steps and collaborate with your team using GX, check out [GX Cloud](https://greatexpectations.io/cloud), where you can automate rules, schedule validations, and share results.
 

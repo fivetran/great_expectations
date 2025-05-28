@@ -73,9 +73,9 @@ def test_get_domain_records_with_column_domain():
 
     expected_column_df = df.iloc[:3]
 
-    assert data.equals(
-        expected_column_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_column_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.unit
@@ -109,9 +109,9 @@ def test_get_domain_records_with_column_pair_domain():
         },
         index=[1, 2, 3, 5],
     )
-    assert data.equals(
-        expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     data = engine.get_domain_records(
         domain_kwargs={
@@ -128,9 +128,9 @@ def test_get_domain_records_with_column_pair_domain():
         {"a": [2, 3, 4], "b": [3, 4, 5], "c": [2, 3, 4]}, index=[1, 2, 3]
     )
 
-    assert data.equals(
-        expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     data = engine.get_domain_records(
         domain_kwargs={
@@ -150,9 +150,9 @@ def test_get_domain_records_with_column_pair_domain():
         }
     )
 
-    assert data.equals(
-        expected_column_pair_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_column_pair_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.unit
@@ -182,9 +182,9 @@ def test_get_domain_records_with_multicolumn_domain():
         {"a": [2, 3, 4, 5], "b": [3, 4, 5, 7], "c": [2, 3, 4, 6]}, index=[1, 2, 3, 5]
     )
 
-    assert data.equals(
-        expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     data = engine.get_domain_records(
         domain_kwargs={
@@ -200,9 +200,9 @@ def test_get_domain_records_with_multicolumn_domain():
         {"a": [1, 2, 3, 4], "b": [2, 3, 4, 5], "c": [1, 2, 3, 4]}, index=[0, 1, 2, 3]
     )
 
-    assert data.equals(
-        expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
     engine = PandasExecutionEngine()
     df = pd.DataFrame(
@@ -231,9 +231,9 @@ def test_get_domain_records_with_multicolumn_domain():
         index=[0, 1, 2, 3, 4, 5],
     )
 
-    assert data.equals(
-        expected_multicolumn_df
-    ), "Data does not match after getting full access compute domain"
+    assert data.equals(expected_multicolumn_df), (
+        "Data does not match after getting full access compute domain"
+    )
 
 
 @pytest.mark.unit
@@ -326,9 +326,9 @@ def test_get_compute_domain_with_row_condition():
     assert data["b"].equals(expected_df["b"]), "Data does not match after getting compute domain"
 
     # Ensuring compute kwargs have not been modified
-    assert (
-        "row_condition" in compute_kwargs
-    ), "Row condition should be located within compute kwargs"
+    assert "row_condition" in compute_kwargs, (
+        "Row condition should be located within compute kwargs"
+    )
     assert accessor_kwargs == {}, "Accessor kwargs have been modified"
 
 
@@ -354,9 +354,9 @@ def test_get_compute_domain_with_unmeetable_row_condition():
     assert data["b"].equals(expected_df["b"]), "Data does not match after getting compute domain"
 
     # Ensuring compute kwargs have not been modified
-    assert (
-        "row_condition" in compute_kwargs
-    ), "Row condition should be located within compute kwargs"
+    assert "row_condition" in compute_kwargs, (
+        "Row condition should be located within compute kwargs"
+    )
     assert accessor_kwargs == {"column": "a"}, "Accessor kwargs have been modified"
 
 
@@ -399,7 +399,7 @@ def test_resolve_metric_bundle():
     # Ensuring metrics have been properly resolved
     assert metrics[("column.mean", "column=a", ())] == 2.0, "mean metric not properly computed"
     assert metrics[("column.standard_deviation", "column=a", ())] == 1.0, (
-        "standard deviation " "metric not properly computed"
+        "standard deviation metric not properly computed"
     )
 
 

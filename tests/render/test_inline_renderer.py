@@ -255,7 +255,7 @@ def test_inline_renderer_instantiation_error_message(
                             },
                         },
                         "schema": {"type": "com.superconductive.rendered.string"},
-                        "template": "$column values must belong to this set: $v__0 $v__1 " "$v__2.",
+                        "template": "$column values must belong to this set: $v__0 $v__1 $v__2.",
                     },
                     "value_type": "StringValueType",
                 },
@@ -549,7 +549,7 @@ def test_inline_renderer_expectation_validation_result_serialization(
                             },
                         },
                         "schema": {"type": "com.superconductive.rendered.string"},
-                        "template": "$column values must belong to this set: $v__0 $v__1 " "$v__2.",
+                        "template": "$column values must belong to this set: $v__0 $v__1 $v__2.",
                     },
                     "value_type": "StringValueType",
                 }

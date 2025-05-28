@@ -40,12 +40,12 @@ from great_expectations.core.batch_spec import (
     S3BatchSpec,
 )
 from great_expectations.core.metric_domain_types import (
-    MetricDomainTypes,  # noqa: TCH001 # FIXME CoP
+    MetricDomainTypes,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.core.util import AzureUrl, GCSUrl, S3Url, sniff_s3_compression
 from great_expectations.execution_engine import ExecutionEngine
 from great_expectations.execution_engine.execution_engine import (
-    PartitionDomainKwargs,  # noqa: TCH001 # FIXME CoP
+    PartitionDomainKwargs,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.execution_engine.pandas_batch_data import PandasBatchData
 from great_expectations.execution_engine.partition_and_sample.pandas_data_partitioner import (
@@ -58,6 +58,8 @@ from great_expectations.expectations.model_field_types import CONDITION_PARSER_P
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
+
+    from great_expectations.validator.metric_configuration import MetricConfigurationID
 
 logger = logging.getLogger(__name__)
 
@@ -393,7 +395,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
                 "Batch has not been loaded - please run load_batch_data() to load a batch."
             )
 
-        return cast(PandasBatchData, self.batch_manager.active_batch_data).dataframe
+        return cast("PandasBatchData", self.batch_manager.active_batch_data).dataframe
 
     # NOTE Abe 20201105: Any reason this shouldn't be a private method?
     @staticmethod
@@ -479,7 +481,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
             )
 
     @override
-    def resolve_metric_bundle(self, metric_fn_bundle) -> Dict[Tuple[str, str, str], Any]:
+    def resolve_metric_bundle(self, metric_fn_bundle) -> dict[MetricConfigurationID, Any]:
         """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501 # FIXME CoP
         return {}  # This is NO-OP for "PandasExecutionEngine" (no bundling for direct execution computational backend).  # noqa: E501 # FIXME CoP
 
@@ -506,7 +508,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         if batch_id is None:
             # We allow no batch id specified if there is only one batch
             if self.batch_manager.active_batch_data_id is not None:
-                data = cast(PandasBatchData, self.batch_manager.active_batch_data).dataframe
+                data = cast("PandasBatchData", self.batch_manager.active_batch_data).dataframe
             else:
                 raise gx_exceptions.ValidationError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
@@ -514,7 +516,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data = cast(
-                    PandasBatchData, self.batch_manager.batch_data_cache[batch_id]
+                    "PandasBatchData", self.batch_manager.batch_data_cache[batch_id]
                 ).dataframe
             else:
                 raise gx_exceptions.ValidationError(  # noqa: TRY003 # FIXME CoP

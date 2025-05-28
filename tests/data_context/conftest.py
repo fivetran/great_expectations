@@ -108,7 +108,7 @@ def create_common_data_context_files(context_path, asset_config_path):
         exist_ok=True,
     )
     copy_relative_path(
-        "../test_fixtures/" "expectation_suites/parameterized_expectation_suite_fixture.json",
+        "../test_fixtures/expectation_suites/parameterized_expectation_suite_fixture.json",
         os.path.join(  # noqa: PTH118 # FIXME CoP
             asset_config_path, "mydatasource/mygenerator/my_dag_node/default.json"
         ),
@@ -414,7 +414,7 @@ def mock_http_unavailable(mock_response_factory: Callable):
         patch=unittest.mock.DEFAULT,
         delete=unittest.mock.DEFAULT,
     ) as mock_requests:
-        for name, mock in cast(Dict[str, Mock], mock_requests).items():
+        for name, mock in cast("Dict[str, Mock]", mock_requests).items():
             mock.side_effect = mocked_response
             print(f"Mocking `requests.{name}` with `{mocked_response.__name__}()`")
 

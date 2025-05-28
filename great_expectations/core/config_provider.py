@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional, Type, cast
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.config_substitutor import _ConfigurationSubstitutor
 from great_expectations.core.yaml_handler import YAMLHandler
-from great_expectations.data_context.types.base import GXCloudConfig  # noqa: TCH001 # FIXME CoP
+from great_expectations.data_context.types.base import GXCloudConfig  # noqa: TC001 # FIXME CoP
 
 yaml = YAMLHandler()
 
@@ -162,7 +162,7 @@ class _ConfigurationVariablesConfigurationProvider(_AbstractConfigurationProvide
 
             variables = dict(yaml.load(contents)) or {}
             return cast(
-                Dict[str, str],
+                "Dict[str, str]",
                 self._substitutor.substitute_all_config_variables(variables, env_vars),
             )
 

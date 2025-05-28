@@ -60,7 +60,7 @@ def column_aggregate_value(
     if issubclass(engine, PandasExecutionEngine):
 
         def wrapper(metric_fn: Callable):
-            @metric_value(engine=PandasExecutionEngine)
+            @metric_value(engine=engine)
             @wraps(metric_fn)
             def inner_func(  # noqa: PLR0913 # FIXME CoP
                 cls,
@@ -126,7 +126,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
 
         def wrapper(metric_fn: Callable):
             @metric_partial(
-                engine=SqlAlchemyExecutionEngine,
+                engine=engine,
                 partial_fn_type=partial_fn_type,
                 domain_type=domain_type,
             )
@@ -188,7 +188,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
 
         def wrapper(metric_fn: Callable):
             @metric_partial(
-                engine=SparkDFExecutionEngine,
+                engine=engine,
                 partial_fn_type=partial_fn_type,
                 domain_type=domain_type,
             )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import uuid
 from datetime import date, datetime
 from enum import Enum
 from numbers import Number
@@ -32,10 +33,10 @@ from great_expectations.compatibility.pydantic import (
 from great_expectations.compatibility.pydantic import generics as pydantic_generics
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
-    ExpectationValidationResult,  # noqa: TCH001 # FIXME CoP
+    ExpectationValidationResult,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.expectations.expectation_configuration import (
-    ExpectationConfiguration,  # noqa: TCH001 # FIXME CoP
+    ExpectationConfiguration,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.render.exceptions import RendererConfigurationError
 from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
@@ -57,6 +58,26 @@ class RendererValueType(str, Enum):
     NUMBER = "number"
     OBJECT = "object"
     STRING = "string"
+
+    @classmethod
+    def from_value(cls, value: Any) -> RendererValueType:  # noqa: PLR0911
+        if value is None:
+            return RendererValueType.STRING
+
+        if isinstance(value, list):
+            return RendererValueType.ARRAY
+        elif isinstance(value, bool):
+            return RendererValueType.BOOLEAN
+        elif isinstance(value, (date, datetime)):
+            return RendererValueType.DATETIME
+        elif isinstance(value, Number):
+            return RendererValueType.NUMBER
+        elif isinstance(value, dict):
+            return RendererValueType.OBJECT
+        elif isinstance(value, (str, uuid.UUID)):
+            return RendererValueType.STRING
+        else:
+            raise TypeError
 
 
 class RendererSchema(TypedDict):
@@ -569,7 +590,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     def add_param(
         self,
         name: str,
-        param_type: RendererValueTypes,
+        param_type: Optional[RendererValueTypes] = None,
         value: Optional[Any] = None,
     ) -> None:
         """Adds a param that can be substituted into a template string during rendering.
@@ -577,8 +598,8 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         Attributes:
             name (str): A name for the attribute to be added to the params of this RendererConfiguration instance.
             param_type (one or a list of RendererValueTypes): The possible types for the value being substituted. If
-                more than one param_type is passed, inference based on param value will be performed, and the first
-                param_type to match the value will be selected.
+                zero or more than one param_type is passed, inference based on param value will be performed,
+                and the first param_type to match the value will be selected.
                     One of:
                      - array
                      - boolean
@@ -598,6 +619,21 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
 
         if value is None:
             value = self.kwargs.get(name)
+
+        if param_type is None:
+            param_type = sorted(
+                RendererValueType,
+                key=lambda x: (
+                    # in order to infer type correctly
+                    # object must be last in the list
+                    # as it is permissive to any value
+                    x.value == "object",
+                    # and string must be second to last
+                    # as it is permissive to string-able value
+                    x.value == "string",
+                    x.value,
+                ),
+            )
 
         if isinstance(value, dict) and "$PARAMETER" in value:
             param_type = RendererValueType.OBJECT
