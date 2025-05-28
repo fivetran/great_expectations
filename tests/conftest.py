@@ -426,6 +426,7 @@ def pytest_collection_modifyitems(config, items):
             reason="need --docs-tests option to run",
         ),
         Category(mark="cloud", flag="--cloud", reason="need --cloud option to run"),
+        Category(mark="snowflake", flag="--snowflake", reason="need --snowflake option to run"),
     )
 
     for category in categories:

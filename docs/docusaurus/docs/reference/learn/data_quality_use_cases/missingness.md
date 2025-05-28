@@ -26,7 +26,7 @@ In this dataset, you'll notice missing data in the `type` and `transfer_date` co
 
 ## Key missingness Expectations
 
-GX provides missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using the GX Cloud UI or the GX Core Python library. 
+GX provides missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using GX Cloud or GX Core. 
 
 :::tip Automate these rules
 When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can enable Anomaly Detection to automatically generate Expectations for each column to test that column completeness doesn't change drastically between Validation runs.
@@ -68,7 +68,7 @@ The examples given in this section provide insight into how and when to apply mi
 
 [GX Cloud](/cloud/overview/gx_cloud_overview.md) provides a visual interface and scaling conveniences to create and run workflows for managing missing data. The GX Cloud workflow to handle data missingness is: create a Data Asset with automatically generated Anomaly Detection Expectations, run a Validation, and review Validation Results.
 
-[GX Core](/core/introduction/gx_overview.md) can be used to complement and extend the capabilities of GX Cloud to programmatically implement custom workflows for handling missing data.
+[GX Core](/core/introduction/gx_overview.md) can be used to programmatically implement custom workflows for handling missing data.
 
 ### Missing critical data
 

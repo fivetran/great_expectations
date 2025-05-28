@@ -11,7 +11,7 @@ import LinkCard from '@site/src/components/LinkCard';
 import OverviewCard from '@site/src/components/OverviewCard';
 
 <OverviewCard title={frontMatter.title}>
-  Connect GX Cloud to your deployment environment. To connect to a Data Source not currently available in GX Cloud, use [GX Core](/core/connect_to_data/connect_to_data.md).
+  Connect GX Cloud to your deployment environment. To connect to a Data Source not currently available in the GX Cloud UI, use the [GX Cloud API](/cloud/connect/connect_python.md).
 </OverviewCard>
 
 <LinkCardGrid>

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import uuid
 from datetime import date, datetime
 from enum import Enum
 from numbers import Number
@@ -59,7 +60,10 @@ class RendererValueType(str, Enum):
     STRING = "string"
 
     @classmethod
-    def from_value(cls, value: Any) -> RendererValueType:
+    def from_value(cls, value: Any) -> RendererValueType:  # noqa: PLR0911
+        if value is None:
+            return RendererValueType.STRING
+
         if isinstance(value, list):
             return RendererValueType.ARRAY
         elif isinstance(value, bool):
@@ -70,7 +74,7 @@ class RendererValueType(str, Enum):
             return RendererValueType.NUMBER
         elif isinstance(value, dict):
             return RendererValueType.OBJECT
-        elif isinstance(value, str):
+        elif isinstance(value, (str, uuid.UUID)):
             return RendererValueType.STRING
         else:
             raise TypeError
