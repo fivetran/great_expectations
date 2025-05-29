@@ -16,10 +16,11 @@ An Expectation is a verifiable assertion about your data. They make implicit ass
 
 The following table lists the available GX Cloud Expectations.
 
-| Data quality issue |                    Expectation                       | Description                                                                                                                            | Dynamic Parameters? |
-|------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-| Completeness       | **column values to be null**                         | Expect the column values to be null.                                                                                                   | Yes                 |
-| Completeness       | **column values to not be null**                     | Expect the column values to not be null.                                                                                               | Yes                 |
+| Data quality issue    |                    Expectation                    |                                                               Description                                                              | Dynamic Parameters? |
+|-----------------------|---------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| Completeness          | **column values to be null**                      | Expect the column values to be null.                                                                                                   | Yes                 |
+| Completeness          | **column values to not be null**                  | Expect the column values to not be null.                                                                                               | Yes                 |
+| Multi-source       | **query results to match comparison**                | Query multiple Data Sources and compare the results for equality.                                                                      | No                  |
 | Numeric            | **column max to be between**                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 |
 | Numeric            | **column mean to be between**                        | Expect the column mean to be between a minimum and a maximum value.                                                                    | Yes                 |
 | Numeric            | **column median to be between**                      | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes                 |
@@ -37,6 +38,7 @@ The following table lists the available GX Cloud Expectations.
 | Schema             | **table column count to equal**                      | Expect the number of columns in a table or view to equal a value.                                                                      | No                  |
 | Schema             | **table columns to match ordered list**              | Expect the columns in a table or view to exactly match a specified list.                                                               | No                  |
 | Schema             | **table columns to match set**                       | Expect the columns in a table or view to match an unordered set.                                                                       | No                  |
+| SQL                | **custom Expectation with SQL**                      | Expect a SQL query to return no rows.                                                                                                  | No                  |
 | Uniqueness         | **column distinct values to be in set**              | Expect the set of distinct column values to be contained by a given set.                                                               | No                  |
 | Uniqueness         | **column distinct values to contain set**            | Expect the set of distinct column values to contain a given set.                                                                       | No                  |
 | Uniqueness         | **column distinct values to equal set**              | Expect the set of distinct column values to equal a given set.                                                                         | No                  |
@@ -75,6 +77,32 @@ The provided query should be written in the dialect of the Data Source in which 
 The optional `{batch}` named query references the Batch of data under test. When the Expectation is evaluated, the `{batch}` named query will be replaced with the Batch of data that is validated.
 
 :::
+
+## Multi-source Expectations
+
+A Multi-source Expectation executes one SQL query for each of two Data Sources and compares their results for equality. This can be helpful for validating consistency between systems during data migration or regular data loading processes. Multi-source Expectations can detect data drift introduced during the ETL process through discrepancies in schemas, counts, time windows, data types, and precision levels between Data Sources. Here are some examples of comparisons you can test:
+- Every row in table A matches every row in table B.
+- An aggregate metric of table A matches the same aggregate metric of table B.
+- An aggregate metric of table A matches a different aggregate metric of table B. (For example, the count of rows where X is true in table A matches the count of rows where Y and Z are true in table B.)
+
+To compare results for equality, each row returned by the query for the base Data Source will be compared to each row returned by the query for the comparison Data Source. When you configure a Multi-source Expectation, you set an **Expected percentage of identical rows**. The Expectation will fail if the percentage of identical rows between your two queries falls below this threshold.
+
+The percentage of identical rows is computed by dividing the number of matching rows by the maximum number of rows in either result. Here are some example scenarios:
+
+| Base result row count | Comparison result row count | Matched rows | Percentage of identical rows |
+| --------------------- | --------------------------- | ------------ | ---------------------------- |
+| 200                   | 200                         | 200          | 100%                         |
+| 25                    | 100                         | 25           | 25%                          |
+| 100                   | 25                          | 1            | 1%                           |
+| 0                     | 0                           | 0            | 100%                         |
+
+To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](#add-an-expectation) on the base Data Source. Each provided query should be written in the dialect of the associated Data Source.
+
+Keep the following limitations in mind when working with Multi-source Expectations:
+- The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
+- Batches are not supported. To test a time-based interval of data, use timestamp windows in your base and comparison SQL queries.
+- The Expectation configuration and validation results are not reflected on the comparison Data Source. The Expectation is always managed on the Data Asset where you initially configure it.
+
 
 ## Dynamic Parameters
 

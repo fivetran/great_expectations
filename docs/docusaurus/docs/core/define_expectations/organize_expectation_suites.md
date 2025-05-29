@@ -52,7 +52,7 @@ An Expectation Suite contains a group of Expectations that describe the same set
    ```python title="Python input" name="docs/docusaurus/docs/core/define_expectations/_examples/organize_expectations_into_suites.py - add Expectation Suite to the Data Context"
    ```
 
-   With a File or GX Cloud Data Context your saved Expectation Suite will be available between Python sessions.  You can retrieve your Expectation Suite from your Data Context with the following code:
+   With a File Data Context your saved Expectation Suite will be available between Python sessions.  You can retrieve your Expectation Suite from your Data Context with the following code:
 
    ```python title="Python input" name="docs/docusaurus/docs/core/define_expectations/_examples/organize_expectations_into_suites.py - retrieve an Expectation Suite"
    ```
