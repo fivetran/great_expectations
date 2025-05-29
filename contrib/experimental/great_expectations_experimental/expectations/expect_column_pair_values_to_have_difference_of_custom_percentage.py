@@ -46,6 +46,7 @@ class ExpectColumnPairValuesToHaveDifferenceOfCustomPercentage(ColumnPairMapExpe
     """Expect two columns to have a row-wise difference of three."""
 
     map_metric = "column_pair_values.diff_custom_percentage"
+    percentage: float
 
     # Examples that will be shown in the public gallery.
     examples = [
