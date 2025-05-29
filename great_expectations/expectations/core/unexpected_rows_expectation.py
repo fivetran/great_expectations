@@ -16,12 +16,18 @@ from great_expectations.render import (
     RenderedAtomicContent,
     renderedAtomicValueSchema,
 )
-from great_expectations.render.components import LegacyRendererType, RenderedStringTemplateContent
+from great_expectations.render.components import (
+    LegacyRendererType,
+    RenderedAtomicValue,
+    RenderedStringTemplateContent,
+)
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
     CodeBlock,
     CodeBlockLanguage,
     RendererConfiguration,
+    RendererSchema,
+    RendererTableValue,
     RendererValueType,
 )
 from great_expectations.render.util import substitute_none_for_missing
@@ -196,7 +202,7 @@ class UnexpectedRowsExpectation(BatchExpectation):
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
-    ) -> RenderedAtomicContent:
+    ) -> list[RenderedAtomicContent]:
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
@@ -231,11 +237,75 @@ class UnexpectedRowsExpectation(BatchExpectation):
                 "schema": {"type": "com.superconductive.rendered.string"},
             }
         )
-        return RenderedAtomicContent(
-            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
-            value=value_obj,
-            value_type="StringValueType",
-        )
+        details = cls._get_details_from_results(result)
+        unexpected_rows = details["unexpected_rows"]
+        cols = cls._get_column_names_from_result(unexpected_rows)
+        # rows = [[row[col] for col in cols] for row in unexpected_rows]
+        header_row = [
+            RendererTableValue(
+                schema=RendererSchema(type=RendererValueType.STRING),
+                value=col_name,
+            )
+            for col_name in cols
+        ]
+        output_rows: list[list[RendererTableValue]] = []
+        for row in unexpected_rows:
+            output_row_values = []
+            for col_name in cols:
+                if row[col_name] is not None:
+                    output_row_values.append(
+                        RendererTableValue(
+                            schema=RendererSchema(type=RendererValueType.from_value(row[col_name])),
+                            value=row[col_name],
+                        )
+                    )
+            output_rows.append(output_row_values)
+
+        return [
+            RenderedAtomicContent(
+                name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+                value=value_obj,
+                value_type="StringValueType",
+            ),
+            RenderedAtomicContent(
+                name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+                value=RenderedAtomicValue(
+                    template="Unexpected rows: $row_count",
+                    params={
+                        "row_count": {
+                            "schema": RendererSchema(type=RendererValueType.NUMBER),
+                            "value": unexpected_row_count,
+                        }
+                    },
+                    header_row=header_row,
+                    table=output_rows,
+                ),
+                value_type="TableType",
+            ),
+        ]
+
+    @classmethod
+    def _get_column_names_from_result(
+        cls,
+        results_list: list[dict[str, Any]],
+    ) -> list[str]:
+        """Get the list of columns from a result list.
+
+        NOTE: Order matters here, and we rely on python 3.7's deterministic ordering of results.
+        """
+        if results_list:
+            return list(results_list[0].keys())
+        else:
+            return []
+
+    @classmethod
+    def _get_details_from_results(
+        cls, result: Optional[ExpectationValidationResult]
+    ) -> dict[str, Any]:
+        assert result and result.result, "Must have result"
+        details = result.result.get("details")
+        assert isinstance(details, dict), "Details must exist and be a dict"
+        return details
 
     @override
     def _validate(
