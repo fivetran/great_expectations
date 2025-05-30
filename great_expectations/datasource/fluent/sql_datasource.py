@@ -1059,7 +1059,7 @@ class TableAsset(_SQLAsset):
                 return sqlalchemy.quoted_name(value=table_name, quote=True)
 
         return table_name
-
+    
     @pydantic.validator("schema_name", pre=True)
     def _resolve_schema_quoted_name(cls, schema_name: Optional[str]) -> Optional[Any]:
         """Resolve quoted names for schema and handle MSSQL bracket notation."""
@@ -1071,9 +1071,6 @@ class TableAsset(_SQLAsset):
         # If it's already a quoted_name, return as-is
         if sqlalchemy.quoted_name and hasattr(schema_name, '__class__') and schema_name.__class__.__name__ == 'quoted_name':
             return schema_name
-
-        # Apply lowercase transformation if not quoted (including MSSQL brackets)
-        schema_name = cls._to_lower_if_not_bracketed_by_quotes(schema_name)
 
         # Check if the schema name is quoted/bracketed
         schema_name_is_quoted = cls._is_bracketed_by_quotes(schema_name)
@@ -1090,12 +1087,12 @@ class TableAsset(_SQLAsset):
                 
                 return sqlalchemy.quoted_name(value=raw_name, quote=True)
 
-            # Check if MSSQL bracket notation is needed based on content
-            if cls._needs_mssql_brackets(schema_name):
-                return sqlalchemy.quoted_name(value=schema_name, quote=True)
+            # ALWAYS use quoted_name for MSSQL schemas to force brackets
+            # This will make SQLAlchemy use brackets in the generated SQL
+            return sqlalchemy.quoted_name(value=schema_name, quote=True)
 
         return schema_name
-
+    
     @staticmethod
     def _needs_mssql_brackets(name: str) -> bool:
         """
@@ -1129,19 +1126,33 @@ class TableAsset(_SQLAsset):
         engine: sqlalchemy.Engine = datasource.get_engine()
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
-        if self.schema_name and str(self.schema_name) not in map(
-            to_lower_if_not_quoted, inspector.get_schema_names()
-        ):
-            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
-                f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
-                f'"{self.schema_name}" does not exist.'
-            )
+        available_schemas = inspector.get_schema_names()
+        
+        if self.schema_name:
+            schema_to_check = str(self.schema_name)
+            
+            # For MSSQL, do case-insensitive comparison since SQL Server is case-insensitive
+            if engine.dialect.name.lower() == 'mssql':
+                # Case-insensitive comparison
+                schema_exists = any(
+                    schema.lower() == schema_to_check.lower() 
+                    for schema in available_schemas
+                )
+            else:
+                # For other databases, use the existing logic
+                schema_exists = schema_to_check in map(to_lower_if_not_quoted, available_schemas)
+            
+            if not schema_exists:
+                raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
+                    f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
+                    f'"{self.schema_name}" does not exist.'
+                )
 
         try:
             with engine.connect() as connection:
-                table = sa.table(self.table_name, schema=self.schema_name)
-                # don't need to fetch any data, just want to make sure the table is accessible
-                connection.execute(sa.select(1, table).limit(1))
+                # Use as_selectable to get properly quoted table
+                selectable = self.as_selectable()
+                connection.execute(sa.select(1).select_from(selectable).limit(1))
         except Exception as query_error:
             LOGGER.info(f"{self.name} `.test_connection()` query failed: {query_error!r}")
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
