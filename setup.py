@@ -2,35 +2,12 @@ import os
 import re
 from pathlib import Path
 
-from packaging.requirements import Requirement
 from setuptools import find_packages, setup
 
 import versioneer
+from great_expectations.packaging_utils import parse_requirements_file
 
 SUPPORTED_PYTHON = ">=3.9,<3.13"
-
-
-def _parse_requirements_file(file_path):
-    """
-    Parse a requirements file and return a list of requirement strings.
-
-    This is a minimal version for setup.py to avoid circular imports.
-    """
-    with open(file_path) as f:
-        content = f.read()
-
-    requirements = []
-    for line in content.splitlines():
-        stripped_line = line.strip()
-        if stripped_line and not stripped_line.startswith("#"):
-            # Remove inline comments
-            requirement_string = stripped_line.split("#")[0].strip()
-            if requirement_string:
-                # Validate the requirement by parsing it
-                req = Requirement(requirement_string)
-                requirements.append(str(req))
-
-    return requirements
 
 
 def get_python_requires() -> str:
@@ -94,7 +71,7 @@ def get_extras_require():
         if key in ignore_keys:
             continue
 
-        parsed = _parse_requirements_file(file_path)
+        parsed = parse_requirements_file(file_path)
         results[key] = parsed
 
     lite = results.pop("lite")

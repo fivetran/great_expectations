@@ -1,4 +1,4 @@
-"""Tests for packaging_utils module."""
+"""Tests for great_expectations.packaging_utils module."""
 
 import tempfile
 from pathlib import Path
