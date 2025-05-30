@@ -1,4 +1,4 @@
-"""Integration tests for packaging utils with real project files."""
+"""Integration tests for packaging_utils module."""
 
 import tempfile
 from pathlib import Path
@@ -101,9 +101,6 @@ class TestRealFileIntegration:
 
     def test_setup_py_functions_directly(self):
         """Test that setup.py functions work correctly without importing the full module."""
-        # Instead of importing setup.py, test the function directly
-        from great_expectations.packaging_utils import parse_requirements_file
-
         # Test with a real requirements file
         lite_file = Path("reqs/requirements-dev-lite.txt")
         if lite_file.exists():

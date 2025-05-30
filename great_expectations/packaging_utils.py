@@ -48,9 +48,10 @@ def parse_requirements_content(content: str) -> list[str]:
     requirements = []
 
     for line in content.splitlines():
-        if line and not line.startswith("#"):
+        stripped_line = line.strip()  # Need to strip to handle whitespace properly
+        if stripped_line and not stripped_line.startswith("#"):
             # Remove inline comments
-            requirement_string = line.split("#")[0].strip()
+            requirement_string = stripped_line.split("#")[0].strip()
             if requirement_string:
                 # Validate the requirement by parsing it
                 req = Requirement(requirement_string)
@@ -95,9 +96,10 @@ def parse_requirements_content_to_objects(content: str) -> list[Requirement]:
     requirements = []
 
     for line in content.splitlines():
-        if line and not line.startswith("#"):
+        stripped_line = line.strip()  # Need to strip to handle whitespace properly
+        if stripped_line and not stripped_line.startswith("#"):
             # Remove inline comments
-            requirement_string = line.split("#")[0].strip()
+            requirement_string = stripped_line.split("#")[0].strip()
             if requirement_string:
                 requirements.append(Requirement(requirement_string))
 
