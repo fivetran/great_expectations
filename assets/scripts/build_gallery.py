@@ -10,12 +10,12 @@ import re
 import sys
 import traceback
 from glob import glob
-from importlib.metadata import distributions
 from io import StringIO
 from subprocess import CalledProcessError, CompletedProcess, check_output, run
 from typing import TYPE_CHECKING, Dict, Final, List, Optional, Tuple
 
 import click
+import pkg_resources  # noqa: TID251 # TODO: switch to importlib.metadata or importlib.resources
 
 import great_expectations as gx
 from great_expectations.compatibility import pydantic
@@ -27,7 +27,6 @@ from great_expectations.core.expectation_diagnostics.supporting_types import (
 )
 from great_expectations.exceptions.exceptions import ExpectationNotFoundError
 from great_expectations.expectations.expectation import Expectation
-from great_expectations.packaging_utils import parse_requirements_content_to_objects
 
 if TYPE_CHECKING:
     from great_expectations.data_context.data_context.file_data_context import (
@@ -78,7 +77,9 @@ def execute_shell_command(command: str) -> int:
     """
     cwd: str = os.getcwd()  # noqa: PTH109
 
-    path_env_var: str = os.environ.get("PATH", os.defpath) + os.pathsep + cwd  # noqa: TID251
+    path_env_var: str = os.pathsep.join(
+        [os.environ.get("PATH", os.defpath), cwd]  # noqa: TID251
+    )
     env: dict = dict(os.environ, PATH=path_env_var)  # noqa: TID251
 
     status_code: int = 0
@@ -258,13 +259,11 @@ def install_necessary_requirements(requirements) -> list:
 
     Return a list of things installed, so they may be uninstalled at the end
     """
-    installed_packages = list(distributions())
-    parsed_requirements = parse_requirements_content_to_objects("\n".join(requirements))
+    installed_packages = pkg_resources.working_set
+    parsed_requirements = pkg_resources.parse_requirements(requirements)
     installed = []
     for req in parsed_requirements:
-        is_satisfied = any(
-            installed_pkg.name.lower() == req.name.lower() for installed_pkg in installed_packages
-        )
+        is_satisfied = any(installed_pkg in req for installed_pkg in installed_packages)
         if not is_satisfied:
             logger.debug(f"Executing command: 'pip install \"{req}\"'")
             status_code = execute_shell_command(f'pip install "{req}"')

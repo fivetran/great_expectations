@@ -10,9 +10,9 @@ import logging
 import os
 import pathlib
 import shutil
-from importlib.metadata import distributions
 from typing import List
 
+import pkg_resources
 import pytest
 from assets.scripts.build_gallery import execute_shell_command
 from flaky import flaky
@@ -368,7 +368,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
         base_dir = pathlib.Path(file_relative_path(__file__, "../../"))
         os.chdir(base_dir)
         # Ensure GX is installed in our environment
-        installed_packages = [pkg.name for pkg in distributions()]
+        installed_packages = [pkg.key for pkg in pkg_resources.working_set]
         if "great-expectations" not in installed_packages:
             execute_shell_command("pip install .")
         os.chdir(tmp_path)
