@@ -420,7 +420,6 @@ If you are working in a configuration file you may use the inline comment \
 "typing_extensions.override".msg = "Do not import typing_extensions.override directly, import `override` from great_expectations.compatibility.typing_extensions instead."
 # TODO: remove pydantic once our min version is pydantic v2
 "pydantic".msg = "Please do not import pydantic directly, import from great_expectations.compatibility.pydantic instead."
-"pkg_resources".msg = "pkg_resources module has been deprecated. Use importlib.resources or importlib.metada instead."
 "great_expectations.util.convert_to_json_serializable".msg = "Use pydantic for serialization."
 "great_expectations.util.ensure_json_serializable".msg = "Use pydantic for serialization."
 
@@ -445,16 +444,6 @@ filterwarnings = [
     # Find and fix ruff DTZ violations
     'once: datetime.datetime.utc.*\(\) is deprecated .*:DeprecationWarning',
 
-
-    # the pkg_resources module distributed with setuptools has been deprecated
-    # we should never use it but it is used in some of our dependencies
-    # https://setuptools.pypa.io/en/latest/pkg_resources.html
-    "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
-    "ignore: pkg_resources is deprecated as an API:UserWarning",
-
-    # ruamel, google, etc.
-    "once:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
-
     # This warning is common during testing where we intentionally use a COMPLETE format even in cases that would
     # be potentially overly resource intensive in standard operation
     "ignore:Setting result format to COMPLETE for a SqlAlchemyDataset:UserWarning",
@@ -466,8 +455,6 @@ filterwarnings = [
     # We likely won't be updating to `marhsmallow` 4, these errors should be filtered out
     "ignore::marshmallow.warnings.RemovedInMarshmallow4Warning",
     "ignore::marshmallow.warnings.ChangedInMarshmallow4Warning",
-    # pkg_resources is deprecated as an API, but third party libraries still use it
-    'ignore: Deprecated call to `pkg_resources.declare_namespace\(.*\)`',
 
 
     # --------------------------------------- Great Expectations Warnings ----------------------------------
