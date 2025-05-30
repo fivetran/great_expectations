@@ -38,8 +38,8 @@ except ImportError:
 with warnings.catch_warnings():
     # sqlalchemy_redshift is no longer being maintained and this warning is not likely to be fixed
     # adding the waring filter here allows us to ignore only for this dependency
-    # UserWarning: pkg_resources is deprecated as an API
-    warnings.simplefilter(action="ignore", category=UserWarning)
+    # DeprecationWarning: pkg_resources is deprecated as an API
+    warnings.simplefilter(action="ignore", category=DeprecationWarning)
 
     try:
         import sqlalchemy_redshift
