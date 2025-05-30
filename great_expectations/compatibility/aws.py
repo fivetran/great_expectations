@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 from great_expectations.compatibility.not_imported import NotImported
 
 BOTO_NOT_IMPORTED = NotImported(
@@ -32,75 +34,82 @@ try:
 except ImportError:
     exceptions = BOTO_NOT_IMPORTED
 
-try:
-    import sqlalchemy_redshift
-except ImportError:
-    sqlalchemy_redshift = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift import dialect as redshiftdialect
-except (ImportError, AttributeError):
-    redshiftdialect = REDSHIFT_NOT_IMPORTED
+with warnings.catch_warnings():
+    # sqlalchemy_redshift is no longer being maintained and this warning is not likely to be fixed
+    # adding the waring filter here allows us to ignore only for this dependency
+    # DeprecationWarning: pkg_resources is deprecated as an API
+    warnings.simplefilter(action="ignore", category=DeprecationWarning)
 
-try:
-    from sqlalchemy_redshift.dialect import CHAR
-except (ImportError, AttributeError):
-    CHAR = REDSHIFT_NOT_IMPORTED
+    try:
+        import sqlalchemy_redshift
+    except ImportError:
+        sqlalchemy_redshift = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import VARCHAR
-except (ImportError, AttributeError):
-    VARCHAR = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift import dialect as redshiftdialect
+    except (ImportError, AttributeError):
+        redshiftdialect = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import INTEGER
-except (ImportError, AttributeError):
-    INTEGER = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import CHAR
+    except (ImportError, AttributeError):
+        CHAR = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import SMALLINT
-except (ImportError, AttributeError):
-    SMALLINT = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import VARCHAR
+    except (ImportError, AttributeError):
+        VARCHAR = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import BIGINT
-except (ImportError, AttributeError):
-    BIGINT = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import INTEGER
+    except (ImportError, AttributeError):
+        INTEGER = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import TIMESTAMP
-except (ImportError, AttributeError):
-    TIMESTAMP = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import SMALLINT
+    except (ImportError, AttributeError):
+        SMALLINT = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import DATE
-except (ImportError, AttributeError):
-    DATE = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import BIGINT
+    except (ImportError, AttributeError):
+        BIGINT = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import DOUBLE_PRECISION
-except (ImportError, AttributeError):
-    DOUBLE_PRECISION = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import TIMESTAMP
+    except (ImportError, AttributeError):
+        TIMESTAMP = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import BOOLEAN
-except (ImportError, AttributeError):
-    BOOLEAN = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import DATE
+    except (ImportError, AttributeError):
+        DATE = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import DECIMAL
-except (ImportError, AttributeError):
-    DECIMAL = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import DOUBLE_PRECISION
+    except (ImportError, AttributeError):
+        DOUBLE_PRECISION = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import GEOMETRY
-except (ImportError, AttributeError):
-    GEOMETRY = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import BOOLEAN
+    except (ImportError, AttributeError):
+        BOOLEAN = REDSHIFT_NOT_IMPORTED
 
-try:
-    from sqlalchemy_redshift.dialect import SUPER
-except (ImportError, AttributeError):
-    SUPER = REDSHIFT_NOT_IMPORTED
+    try:
+        from sqlalchemy_redshift.dialect import DECIMAL
+    except (ImportError, AttributeError):
+        DECIMAL = REDSHIFT_NOT_IMPORTED
+
+    try:
+        from sqlalchemy_redshift.dialect import GEOMETRY
+    except (ImportError, AttributeError):
+        GEOMETRY = REDSHIFT_NOT_IMPORTED
+
+    try:
+        from sqlalchemy_redshift.dialect import SUPER
+    except (ImportError, AttributeError):
+        SUPER = REDSHIFT_NOT_IMPORTED
 
 try:
     import pyathena  # type: ignore[import-not-found] # FIXME CoP
