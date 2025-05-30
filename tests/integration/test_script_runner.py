@@ -5,6 +5,7 @@ Individual tests can be run by setting the '-k' flag and referencing the name of
 """  # noqa: E501 # FIXME CoP
 
 import importlib.machinery
+import importlib.metadata
 import importlib.util
 import logging
 import os
@@ -12,7 +13,6 @@ import pathlib
 import shutil
 from typing import List
 
-import pkg_resources
 import pytest
 from assets.scripts.build_gallery import execute_shell_command
 from flaky import flaky
@@ -368,7 +368,9 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
         base_dir = pathlib.Path(file_relative_path(__file__, "../../"))
         os.chdir(base_dir)
         # Ensure GX is installed in our environment
-        installed_packages = [pkg.key for pkg in pkg_resources.working_set]
+        installed_packages = [
+            pkg.metadata["name"].lower() for pkg in importlib.metadata.distributions()
+        ]
         if "great-expectations" not in installed_packages:
             execute_shell_command("pip install .")
         os.chdir(tmp_path)

@@ -10,12 +10,13 @@ import re
 import sys
 import traceback
 from glob import glob
+from importlib.metadata import distributions
 from io import StringIO
 from subprocess import CalledProcessError, CompletedProcess, check_output, run
 from typing import TYPE_CHECKING, Dict, Final, List, Optional, Tuple
 
 import click
-import pkg_resources  # noqa: TID251 # TODO: switch to importlib.metadata or importlib.resources
+from packaging.requirements import Requirement
 
 import great_expectations as gx
 from great_expectations.compatibility import pydantic
@@ -259,11 +260,24 @@ def install_necessary_requirements(requirements) -> list:
 
     Return a list of things installed, so they may be uninstalled at the end
     """
-    installed_packages = pkg_resources.working_set
-    parsed_requirements = pkg_resources.parse_requirements(requirements)
+    installed_packages = list(distributions())
+    # Parse requirements manually
+    parsed_requirements = []
+    for line in requirements:
+        cleaned_line = line.strip()
+        if cleaned_line and not cleaned_line.startswith("#"):
+            # Remove inline comments
+            requirement_string = None
+            if "#" in cleaned_line:
+                requirement_string = cleaned_line.split("#")[0].strip()
+            if requirement_string:
+                parsed_requirements.append(Requirement(requirement_string))
     installed = []
     for req in parsed_requirements:
-        is_satisfied = any(installed_pkg in req for installed_pkg in installed_packages)
+        is_satisfied = any(
+            installed_pkg.metadata["name"].lower() == req.name.lower()
+            for installed_pkg in installed_packages
+        )
         if not is_satisfied:
             logger.debug(f"Executing command: 'pip install \"{req}\"'")
             status_code = execute_shell_command(f'pip install "{req}"')
