@@ -1,9 +1,11 @@
-from dataclasses import dataclass
+import logging
+from dataclasses import asdict, dataclass
 from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
 from uuid import UUID
 
 import pandas as pd
 import pytest
+import sqlalchemy as sa
 from _pytest.mark import MarkDecorator
 
 import great_expectations as gx
@@ -18,7 +20,105 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
+logger = logging.getLogger(__name__)
+
 _F = TypeVar("_F", bound=Callable)
+
+
+@dataclass(frozen=True)
+class ConnectionDetails:
+    connection_string: str
+    dialect: str
+
+
+@dataclass(frozen=True)
+class PoolConfig:
+    pool_size: int
+    max_overflow: int
+    pool_recycle: int
+    pool_timeout: int
+    pool_pre_ping: bool
+
+
+class TestSessionSQLEngineManager:
+    POOL_CONFIG = PoolConfig(
+        pool_size=2,
+        max_overflow=3,
+        pool_recycle=5400,  # 1.5 hours
+        pool_timeout=30,  # 30 seconds
+        pool_pre_ping=True,  # This appears in 1.2, so we'll have to see if this breaks anything
+    )
+
+    def __init__(self):
+        self._engine_cache: dict[ConnectionDetails, sa.engine.Engine] = {}
+
+    def get_engine(
+        self,
+        connection_details: ConnectionDetails,
+    ) -> sa.engine.Engine:
+        # We use connection details as the key into our engine cache since that captures
+        # all the details about a connection in the pool.
+        cache_key = connection_details
+        if cache_key not in self._engine_cache:
+            logger.info(f"Cache miss for engine: {cache_key}. Creating new engine.")
+            engine_kwargs = asdict(self.POOL_CONFIG)
+            logger.info(
+                f"Creating engine for {connection_details.dialect} with settings: {engine_kwargs}"
+            )
+            self._engine_cache[cache_key] = sa.create_engine(
+                connection_details.connection_string, **engine_kwargs
+            )
+        else:
+            logger.info(f"Cache hit for engine: {cache_key}")
+        return self._engine_cache[cache_key]
+
+    def dispose_all_engines(self):
+        logger.info("Disposing all cached SQLAlchemy engines.")
+        for key, engine in self._engine_cache.items():
+            logger.info(f"Disposing engine: {key}")
+            try:
+                engine.dispose()
+            except Exception:
+                logger.exception(f"Error disposing engine '{key}'")
+        self._engine_cache.clear()
+
+    def get_all_pool_statistics(self) -> dict[ConnectionDetails, dict[str, int]]:
+        stats = {}
+        for key, engine in self._engine_cache.items():
+            try:
+                pool = engine.pool
+                stats[key] = {
+                    "size": pool.size(),
+                    "checked_in": pool.checkedin(),
+                    "overflow": pool.overflow(),
+                    "checked_out": pool.checkedout(),
+                }
+            except Exception as e:
+                logger.exception(f"Error getting pool status for engine '{key}'")
+                stats[key] = {"error": str(e)}
+        return stats
+
+
+@pytest.fixture(scope="session")
+def test_session_sql_engine_manager():
+    logger.info("SessionCleanupVerificationFixture: Starting setup.")
+    manager = TestSessionSQLEngineManager()
+    yield manager
+
+    logger.info("SessionCleanupVerificationFixture: Starting teardown.")
+    pre_cleanup_stats = manager.get_all_pool_statistics()
+    logger.info(f"Pool statistics before explicit cleanup: {pre_cleanup_stats}")
+    # Check for any immediately obvious issues before cleanup
+    for key, stat in pre_cleanup_stats.items():
+        if stat.get("checked_out", 0) > 0:
+            logger.warning(
+                f"Engine {key} has {stat['checked_out']} connections "
+                "still checked out BEFORE manager disposal."
+            )
+    manager.dispose_all_engines()
+    logger.info("SessionCleanupVerificationFixture: All engines disposed by manager.")
+    assert not manager._engine_cache, "Engine cache should be empty after dispose_all_engines."
+    logger.info("SessionCleanupVerificationFixture: Teardown complete.")
 
 
 @dataclass(frozen=True)
