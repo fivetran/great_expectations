@@ -8,13 +8,14 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-import pkg_resources
+from packaging.requirements import Requirement
 from ruamel.yaml import YAML
 
 from great_expectations.core.expectation_diagnostics.expectation_diagnostics import (
     ExpectationDiagnostics,
 )
 from great_expectations.expectations.expectation import Expectation
+from great_expectations.packaging_utils import parse_requirements_file_to_objects
 from great_expectations.types import SerializableDictDot
 
 logger = logging.getLogger(__name__)
@@ -209,19 +210,16 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
             logger.warning(f"Could not find requirements file {path}")
             return
 
-        with open(path) as f:
-            requirements = [req for req in pkg_resources.parse_requirements(f)]
+        requirements = parse_requirements_file_to_objects(path)
 
         def _convert_to_dependency(
-            requirement: pkg_resources.Requirement,
+            requirement: Requirement,
         ) -> Dependency:
-            name = requirement.project_name
+            name = requirement.name
             pypi_url = f"https://pypi.org/project/{name}"
-            if requirement.specs:
-                # Stringify tuple of pins
-                version = ", ".join(
-                    "".join(symbol for symbol in pin) for pin in sorted(requirement.specs)
-                )
+            if requirement.specifier:
+                # Stringify the specifier
+                version = str(requirement.specifier)
             else:
                 version = None
             return Dependency(text=name, link=pypi_url, version=version)

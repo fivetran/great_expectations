@@ -2,11 +2,10 @@ import os
 import re
 from pathlib import Path
 
-# https://setuptools.pypa.io/en/latest/pkg_resources.html
-import pkg_resources  # noqa: TID251  # TODO: switch to poetry
 from setuptools import find_packages, setup
 
 import versioneer
+from great_expectations.packaging_utils import parse_requirements_file
 
 SUPPORTED_PYTHON = ">=3.9,<3.13"
 
@@ -71,9 +70,9 @@ def get_extras_require():
         key = match.group(1)
         if key in ignore_keys:
             continue
-        with open(file_path) as f:
-            parsed = [str(req) for req in pkg_resources.parse_requirements(f)]
-            results[key] = parsed
+
+        parsed = parse_requirements_file(file_path)
+        results[key] = parsed
 
     lite = results.pop("lite")
     contrib = results.pop("contrib")
@@ -93,9 +92,6 @@ def get_extras_require():
     results.pop("boto")
     results.pop("sqlalchemy1")
     results.pop("sqlalchemy2")
-    # all_requirements_set = set()
-    # [all_requirements_set.update(vals) for vals in results.values()]
-    # results["dev"] = sorted(all_requirements_set)
     return results
 
 
