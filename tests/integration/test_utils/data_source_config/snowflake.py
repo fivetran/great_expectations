@@ -1,4 +1,4 @@
-from typing import Mapping, Optional
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -12,6 +12,9 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+
+if TYPE_CHECKING:
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
@@ -84,10 +87,16 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
         table_name: Optional[str] = None,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> None:
         self.snowflake_connection_config = SnowflakeConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
         super().__init__(
-            config=config, data=data, extra_data=extra_data, table_name=table_name, context=context
+            config=config,
+            data=data,
+            extra_data=extra_data,
+            table_name=table_name,
+            engine_manager=engine_manager,
+            context=context,
         )
 
     @override
