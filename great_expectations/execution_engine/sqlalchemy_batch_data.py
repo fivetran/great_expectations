@@ -244,22 +244,10 @@ class SqlAlchemyBatchData(BatchData):
         elif dialect == GXSqlDialect.HIVE:
             stmt = f"CREATE TEMPORARY TABLE `{temp_table_name}` AS {query}"
         elif dialect == GXSqlDialect.MSSQL:
-            # Insert "into #{temp_table_name}" in the custom sql query right before the "from" clause  # noqa: E501 # FIXME CoP
-            # Partition is case-sensitive so detect case.
-            # Note: transforming query to uppercase/lowercase has unintended consequences (i.e.,
-            # changing column names), so this is not an option!
             # noinspection PyUnresolvedReferences
             if isinstance(query, sa.dialects.mssql.base.MSSQLCompiler):
                 query = query.string  # extracting string from MSSQLCompiler object
-
-            if "from" in query:
-                strsep = "from"
-            else:
-                strsep = "FROM"
-            querymod = query.split(strsep, maxsplit=1)
-            stmt = f"{querymod[0]}into {{temp_table_name}} from{querymod[1]}".format(
-                temp_table_name=temp_table_name
-            )
+            stmt = f"SELECT * INTO {temp_table_name} FROM ({query}) AS subquery"
         # TODO: <WILL> logger.warning is emitted in situations where a permanent TABLE is created in _create_temporary_table()  # noqa: E501 # FIXME CoP
         # Similar message may be needed in the future for Trino backend.
         elif dialect in (GXSqlDialect.TRINO, GXSqlDialect.CLICKHOUSE):
