@@ -23,6 +23,27 @@ logger.setLevel(logging.INFO)
 yaml = YAML()
 
 
+def _parse_requirements(f) -> list[str]:
+    """Parse requirements from a file object.
+
+    Args:
+        f: A file object containing requirements.
+
+    Returns:
+        A list of requirement strings.
+    """
+    lines = []
+    for line in f:
+        cleaned_line = line.strip()
+        if cleaned_line and not cleaned_line.startswith("#"):
+            # Remove inline comments if present
+            if "#" in cleaned_line:
+                cleaned_line = cleaned_line.split("#")[0].strip()
+            if cleaned_line:  # Check if there's still content after removing comments
+                lines.append(str(Requirement(cleaned_line)))
+    return lines
+
+
 @dataclass
 class PackageCompletenessStatus(SerializableDictDot):
     concept_only: int
@@ -210,17 +231,7 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
             return
 
         with open(path) as f:
-            # Parse requirements manually
-            requirements = []
-            for line in f:
-                cleaned_line = line.strip()
-                if cleaned_line and not cleaned_line.startswith("#"):
-                    # Remove inline comments
-                    requirement_string = None
-                    if "#" in cleaned_line:
-                        requirement_string = cleaned_line.split("#")[0].strip()
-                    if requirement_string:
-                        requirements.append(Requirement(requirement_string))
+            requirements = [Requirement(req) for req in _parse_requirements(f)]
 
         def _convert_to_dependency(
             requirement: Requirement,

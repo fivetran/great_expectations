@@ -255,6 +255,27 @@ def get_expectations_info_dict(  # noqa: C901 - too complex
     return result
 
 
+def _parse_requirements(f) -> list[str]:
+    """Parse requirements from a file object.
+
+    Args:
+        f: A file object containing requirements.
+
+    Returns:
+        A list of requirement strings.
+    """
+    lines = []
+    for line in f:
+        cleaned_line = line.strip()
+        if cleaned_line and not cleaned_line.startswith("#"):
+            # Remove inline comments if present
+            if "#" in cleaned_line:
+                cleaned_line = cleaned_line.split("#")[0].strip()
+            if cleaned_line:  # Check if there's still content after removing comments
+                lines.append(str(Requirement(cleaned_line)))
+    return lines
+
+
 def install_necessary_requirements(requirements) -> list:
     """Install any Expectation requirements that aren't already in the venv
 
@@ -266,12 +287,11 @@ def install_necessary_requirements(requirements) -> list:
     for line in requirements:
         cleaned_line = line.strip()
         if cleaned_line and not cleaned_line.startswith("#"):
-            # Remove inline comments
-            requirement_string = None
+            # Remove inline comments if present
             if "#" in cleaned_line:
-                requirement_string = cleaned_line.split("#")[0].strip()
-            if requirement_string:
-                parsed_requirements.append(Requirement(requirement_string))
+                cleaned_line = cleaned_line.split("#")[0].strip()
+            if cleaned_line:  # Check if there's still content after removing comments
+                parsed_requirements.append(Requirement(cleaned_line))
     installed = []
     for req in parsed_requirements:
         is_satisfied = any(
