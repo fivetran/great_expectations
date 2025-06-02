@@ -145,12 +145,12 @@ class ColumnValuesMatchRegex(ColumnMapMetricProvider):
 
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column, regex, _dialect, **kwargs):
-        if _dialect.dialect.name.lower() == "mssql":
-            like_pattern = regex_to_like(regex)
-            if like_pattern is not None:
-                return column.like(like_pattern)
-            else:
-                raise NotImplementedError(f"Regex pattern '{regex}' too complex for MSSQL")
+        # if _dialect.dialect.name.lower() == "mssql":
+        #     like_pattern = regex_to_like(regex)
+        #     if like_pattern is not None:
+        #         return column.like(like_pattern)
+        #     else:
+        #         raise NotImplementedError(f"Regex pattern '{regex}' too complex for MSSQL")
         
         regex_expression = get_dialect_regex_expression(column, regex, _dialect)
         if regex_expression is None:

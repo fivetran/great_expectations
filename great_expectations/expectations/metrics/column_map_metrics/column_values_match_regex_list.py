@@ -171,19 +171,19 @@ class ColumnValuesMatchRegexList(ColumnMapMetricProvider):
         if len(regex_list) == 0:
             raise ValueError("At least one regex must be supplied in the regex_list.")
 
-        # Handle MSSQL specially
-        if _dialect.dialect.name.lower() == "mssql":
-            like_patterns = []
-            for regex in regex_list:
-                like_pattern = regex_to_like(regex)
-                if like_pattern is None:
-                    raise NotImplementedError(f"Regex pattern '{regex}' too complex for MSSQL")
-                like_patterns.append(column.like(like_pattern))
+        # # Handle MSSQL specially
+        # if _dialect.dialect.name.lower() == "mssql":
+        #     like_patterns = []
+        #     for regex in regex_list:
+        #         like_pattern = regex_to_like(regex)
+        #         if like_pattern is None:
+        #             raise NotImplementedError(f"Regex pattern '{regex}' too complex for MSSQL")
+        #         like_patterns.append(column.like(like_pattern))
             
-            if match_on == "any":
-                return sa.or_(*like_patterns)
-            else:
-                return sa.and_(*like_patterns)
+        #     if match_on == "any":
+        #         return sa.or_(*like_patterns)
+        #     else:
+        #         return sa.and_(*like_patterns)
 
         # Original logic for other dialects
         regex_expression = get_dialect_regex_expression(column, regex_list[0], _dialect)
