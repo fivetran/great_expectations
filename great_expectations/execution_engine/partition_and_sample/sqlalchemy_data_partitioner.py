@@ -65,21 +65,21 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
 
     def _get_date_part_expression(self, date_part: DatePart, column):
         """Generate dialect-specific date part extraction.
-        
+
         Args:
             date_part: DatePart enum specifying which part of date to extract
             column: SQLAlchemy column object to extract date part from
-            
+
         Returns:
             SQLAlchemy expression for extracting the date part
         """
         if self._dialect == GXSqlDialect.MSSQL:
             # MSSQL uses YEAR(), MONTH(), DAY() functions instead of EXTRACT
-            if date_part.value == 'year':
+            if date_part.value == "year":
                 return sa.func.year(column)
-            elif date_part.value == 'month':
+            elif date_part.value == "month":
                 return sa.func.month(column)
-            elif date_part.value == 'day':
+            elif date_part.value == "day":
                 return sa.func.day(column)
             else:
                 raise NotImplementedError(
@@ -553,9 +553,9 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         partitioned_query: sqlalchemy.Selectable = sa.select(  # type: ignore[call-overload] # FIXME CoP
             concat_clause,
             *[
-                sa.cast(self._get_date_part_expression(date_part, sa.column(column_name)), sa.Integer).label(
-                    date_part.value
-                )
+                sa.cast(
+                    self._get_date_part_expression(date_part, sa.column(column_name)), sa.Integer
+                ).label(date_part.value)
                 for date_part in date_parts
             ],
         ).select_from(selectable)

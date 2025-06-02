@@ -82,8 +82,6 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.sql import quoted_name  # noqa: TID251 # type-checking only
-
     # We re-import sqlalchemy here to make type-checking and our compatability layer
     # play nice with one another
     from great_expectations.compatibility import sqlalchemy
@@ -97,7 +95,7 @@ if TYPE_CHECKING:
 LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 DEFAULT_QUOTE_CHARACTERS: Final[Tuple[str, str]] = ('"', "'")
-MSSQL_BRACKET_CHARACTERS: Final[Tuple[str, str]] = ('[', ']')
+MSSQL_BRACKET_CHARACTERS: Final[Tuple[str, str]] = ("[", "]")
 
 
 @overload
@@ -118,7 +116,7 @@ def to_lower_if_not_quoted(
     """
     if not value:
         return value
-    
+
     # Check standard quotes
     for char in quote_characters:
         if value.startswith(char) and value.endswith(char):
@@ -128,15 +126,15 @@ def to_lower_if_not_quoted(
                 " May cause sqlalchemy case-sensitivity issues."
             )
             return value
-    
+
     # Check MSSQL brackets
-    if value.startswith('[') and value.endswith(']'):
+    if value.startswith("[") and value.endswith("]"):
         LOGGER.warning(
             f"The {value} string is bracketed by MSSQL brackets,"
             " so it will not be converted to lowercase."
         )
         return value
-    
+
     LOGGER.info(f"Setting {value} to lowercase to ensure sqlalchemy case-insensitivity.")
     return value.lower()
 
@@ -1044,13 +1042,13 @@ class TableAsset(_SQLAsset):
         if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
             if table_name_is_quoted:
                 # Handle different quote types
-                if table_name.startswith('[') and table_name.endswith(']'):
+                if table_name.startswith("[") and table_name.endswith("]"):
                     # MSSQL brackets - strip and mark as quoted
                     raw_name = table_name[1:-1]
                 else:
                     # Standard quotes - strip them
                     raw_name = table_name.strip("'").strip('"')
-                
+
                 return sqlalchemy.quoted_name(value=raw_name, quote=True)
 
             # Check if MSSQL bracket notation is needed based on content
@@ -1058,7 +1056,7 @@ class TableAsset(_SQLAsset):
                 return sqlalchemy.quoted_name(value=table_name, quote=True)
 
         return table_name
-    
+
     @pydantic.validator("schema_name", pre=True)
     def _resolve_schema_quoted_name(cls, schema_name: Optional[str]) -> Optional[Any]:
         """Resolve quoted names for schema and handle MSSQL bracket notation."""
@@ -1077,13 +1075,13 @@ class TableAsset(_SQLAsset):
         if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
             if schema_name_is_quoted:
                 # Handle different quote types
-                if schema_name.startswith('[') and schema_name.endswith(']'):
+                if schema_name.startswith("[") and schema_name.endswith("]"):
                     # MSSQL brackets - strip and mark as quoted
                     raw_name = schema_name[1:-1]
                 else:
                     # Standard quotes - strip them
                     raw_name = schema_name.strip("'").strip('"')
-                
+
                 return sqlalchemy.quoted_name(value=raw_name, quote=True)
 
             # ALWAYS use quoted_name for MSSQL schemas to force brackets
@@ -1091,27 +1089,27 @@ class TableAsset(_SQLAsset):
             return sqlalchemy.quoted_name(value=schema_name, quote=True)
 
         return schema_name
-    
+
     @staticmethod
     def _needs_mssql_brackets(name: str) -> bool:
         """
         Returns True if the name requires brackets in MSSQL.
-        
+
         MSSQL requires brackets for identifiers that:
         - Start with a number
         - Contain spaces, hyphens, dots, or other special characters
         - Are reserved keywords
         """
         import re
-        
+
         # Check if name starts with a number
-        if re.match(r'^\d', name):
+        if re.match(r"^\d", name):
             return True
-        
+
         # Check if name contains special characters that need escaping
-        if re.search(r'[.\s\-#@]', name):
+        if re.search(r"[.\s\-#@]", name):
             return True
-            
+
         return False
 
     @override
@@ -1126,21 +1124,20 @@ class TableAsset(_SQLAsset):
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
         available_schemas = inspector.get_schema_names()
-        
+
         if self.schema_name:
             schema_to_check = str(self.schema_name)
-            
+
             # For MSSQL, do case-insensitive comparison since SQL Server is case-insensitive
-            if engine.dialect.name.lower() == 'mssql':
+            if engine.dialect.name.lower() == "mssql":
                 # Case-insensitive comparison
                 schema_exists = any(
-                    schema.lower() == schema_to_check.lower() 
-                    for schema in available_schemas
+                    schema.lower() == schema_to_check.lower() for schema in available_schemas
                 )
             else:
                 # For other databases, use the existing logic
                 schema_exists = schema_to_check in map(to_lower_if_not_quoted, available_schemas)
-            
+
             if not schema_exists:
                 raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
                     f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
@@ -1200,11 +1197,11 @@ class TableAsset(_SQLAsset):
         for quote in DEFAULT_QUOTE_CHARACTERS:
             if target.startswith(quote) and target.endswith(quote):
                 return True
-        
+
         # Check MSSQL brackets
-        if target.startswith('[') and target.endswith(']'):
+        if target.startswith("[") and target.endswith("]"):
             return True
-            
+
         return False
 
     @classmethod
