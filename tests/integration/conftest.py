@@ -1,6 +1,6 @@
 import logging
 from dataclasses import asdict, dataclass
-from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
+from typing import Any, Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
 from uuid import UUID
 
 import pandas as pd
@@ -83,7 +83,7 @@ class TestSessionSQLEngineManager:
                 logger.exception(f"Error disposing engine '{key}'")
         self._engine_cache.clear()
 
-    def get_all_pool_statistics(self) -> dict[ConnectionDetails, dict[str, int]]:
+    def get_all_pool_statistics(self) -> dict[ConnectionDetails, dict[str, Any]]:
         stats = {}
         for key, engine in self._engine_cache.items():
             try:
