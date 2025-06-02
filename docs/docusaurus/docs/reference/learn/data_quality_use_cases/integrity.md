@@ -63,12 +63,13 @@ Validating the integrity of this financial data involves checking the consistenc
 
 ## Key integrity Expectations
 
-Great Expectations provides a collection of Expectations, available in both GX Cloud and GX Core, that validate relationships between data elements within a single table. If you want to use these same Expectations to validate data relationships across multiple tables, you have two options:
+To validate data relationships across multiple tables, you have three options:
 
-1. Create a database view that joins the tables you want to validate, and then use the built-in Expectations to validate columns within the view.
-2. Create custom SQL Expectations in [GX Cloud](/cloud/expectations/manage_expectations.md#custom-sql-expectations) or [GX Core](/core/customize_expectations/use_sql_to_define_a_custom_expectation.md) to validate relationships directly using a SQL query that references multiple tables.
+1. Create a database view that joins the tables you want to validate, and then use built-in Expectations to validate columns within the view.
+2. Create a [custom SQL Expectation](/cloud/expectations/manage_expectations.md#custom-sql-expectations) to validate relationships directly using a SQL query that references multiple tables from a single Data Source.
+3. Use a [Multi-source Expectation](/cloud/expectations/manage_expectations.md#multi-source-expectations) to execute one SQL query for each of two Data Sources and compare their results for equality.
 
-This section covers the first option and presents built-in Expectations that can be applied to single tables, or SQL views that query multiple tables. The second option is explored in the [Example: Validate cross-table data integrity](#validate-cross-table-data-integrity) section that showcases how to create and use custom SQL Expectations for validating relationships across separate tables.
+This section covers the first option and presents built-in Expectations that can be applied to single tables, or SQL views that query multiple tables. The second option is explored in the [Example: Validate cross-table data integrity](#validate-cross-table-data-integrity) section that showcases how to create and use custom SQL Expectations for validating relationships across separate tables in a single Data Source.
 
 ### Expect column pair values to be equal
 
@@ -182,7 +183,7 @@ Run the following GX Core workflow.
 
 **Context**: Validating the relationships and dependencies between data elements that reside in different tables is common use case across a variety of industries. This example uses the sample financial data in the `transfers`, `transfer_balance`, and `transfer_transaction` tables to demonstrate how to validate the integrity of transfer amounts, adjustments, and balances across tables.
 
-**Goal**: Use GX Cloud or GX Core and a implement custom SQL Expectation to validate data integrity across tables. Validate that the `transfers` table `amount` matches the corresponding `total_amount` in the `transfer_balance` table.
+**Goal**: Use GX Cloud or GX Core and implement a custom SQL Expectation to validate data integrity across tables within a single Data Source. Validate that the `transfers` table `amount` matches the corresponding `total_amount` in the `transfer_balance` table.
 
 <Tabs
    defaultValue="gx_cloud"
@@ -223,7 +224,11 @@ Run the following GX Core workflow.
 </Tabs>
 
 
-**GX solution**: Both GX Cloud and GX Core can be used to implement comprehensive integrity checks that span multiple tables and validate complex business rules.
+**GX solution**: Both GX Cloud and GX Core can be used to implement comprehensive integrity checks that span multiple tables within a single Data Source and validate complex business rules.
+
+:::tip Need to compare different Data Sources?
+You can use [Multi-source Expectations](/cloud/expectations/manage_expectations.md#multi-source-expectations) to validate integrity across two different Data Sources.
+:::
 
 ## Scenarios
 
@@ -233,7 +238,7 @@ The following scenarios provide insight into how Great Expectations can help enf
 
 **Context**: Financial institutions need to ensure data consistency across multiple systems for accurate reporting and compliance. Transactions must be recorded identically across systems, and balances must reconcile perfectly.
 
-**GX solution**: Use custom SQL Expectations to compare transaction details across systems. Apply `ExpectMulticolumnSumToEqual` to validate that accounting entries balance within each system. Create additional custom SQL Expectations to ensure transaction totals reconcile across all systems.
+**GX solution**: Use custom SQL Expectations to compare transaction details across tables within a single Data Source. Apply `ExpectMulticolumnSumToEqual` to validate that accounting entries balance within each system. Create Multi-source Expectations to ensure transaction totals reconcile across Data Sources.
 
 ### Product inventory and order validation
 

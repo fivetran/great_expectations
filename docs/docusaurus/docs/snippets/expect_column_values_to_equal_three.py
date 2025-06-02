@@ -70,7 +70,7 @@ class ColumnValuesEqualThree(ColumnMapMetricProvider):
         # </snippet>
         # <snippet name="docs/docusaurus/docs/snippets/expect_column_values_to_equal_three.py spark_selectable">
         (
-            selectable,  # noqa: F841 # unused variable
+            _,
             compute_domain_kwargs,
             accessor_domain_kwargs,
         ) = execution_engine.get_compute_domain(

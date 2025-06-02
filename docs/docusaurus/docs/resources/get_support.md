@@ -22,7 +22,7 @@ Use one of the following methods to request support:
 The order in which we are prioritizing support issues are as follows: 
 
 - Issues and PRs in the [GX GitHub repository](https://github.com/great-expectations/great_expectations)
-- Questions posted to the [GX Cloud Discourse forum](https://discourse.greatexpectations.io/c/oss-support/11)
+- Questions posted to the [GX Core Discourse forum](https://discourse.greatexpectations.io/c/oss-support/11)
 - Questions posted to the [GX Slack community channel](https://greatexpectationstalk.slack.com/archives/CUTCNHN82)
 
 **Your support question will be answered more quickly if you post in Discourse than if you post in Slack.** The reason: Discourse allows for better organization and searchability of support topics.

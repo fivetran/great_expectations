@@ -577,11 +577,12 @@ detected.
         metric_value_range: np.ndarray
         estimation_histogram: np.ndarray
         if datetime_detected:
+            min_datetime_with_tz = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
             metric_value_range = np.full(
-                shape=metric_value_range_shape, fill_value=datetime.datetime.min
+                shape=metric_value_range_shape, fill_value=min_datetime_with_tz
             )
             estimation_histogram = np.full(
-                shape=estimation_histogram_shape, fill_value=datetime.datetime.min
+                shape=estimation_histogram_shape, fill_value=min_datetime_with_tz
             )
         else:
             if self._is_metric_values_ndarray_decimal_dtype(

@@ -723,7 +723,7 @@ def isclose(
         operand_b = operand_b.total_seconds()  # type: ignore[assignment] # FIXME CoP
 
     return cast(
-        bool,
+        "bool",
         np.isclose(
             a=np.float64(operand_a),  # type: ignore[arg-type] # FIXME CoP
             b=np.float64(operand_b),  # type: ignore[arg-type] # FIXME CoP
@@ -836,7 +836,10 @@ def convert_ndarray_float_to_datetime_dtype(data: np.ndarray) -> np.ndarray:
     """  # noqa: E501 # FIXME CoP
     value: Any
     return np.asarray(
-        [datetime.datetime.utcfromtimestamp(value) for value in data]  # noqa: DTZ004 # FIXME CoP
+        [
+            datetime.datetime.fromtimestamp(value, datetime.timezone.utc).replace(tzinfo=None)
+            for value in data
+        ]
     )
 
 

@@ -264,7 +264,7 @@ def build_checkpoint_store_using_store_backend(
     overwrite_existing: bool = False,
 ) -> CheckpointStore:
     return cast(
-        CheckpointStore,
+        "CheckpointStore",
         build_configuration_store(
             class_name="CheckpointStore",
             module_name="great_expectations.data_context.store",
