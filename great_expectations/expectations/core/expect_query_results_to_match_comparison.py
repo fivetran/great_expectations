@@ -367,11 +367,11 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
             return [
                 cls._create_table_rendered_atomic_content(
                     unexpected_rows_table,
-                    label="Unexpected records",
+                    label="Unexpected rows found in current table",
                 ),
                 cls._create_table_rendered_atomic_content(
                     missing_rows_table,
-                    label="Missing records",
+                    label="Expected rows not found in current table",
                 ),
             ]
 
