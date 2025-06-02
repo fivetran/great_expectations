@@ -10,8 +10,8 @@ with warnings.catch_warnings():
     except ImportError:
         try:
             # 10.0.0 <= pip <= 19.3.1
-            from pip._internal.download import (
-                PipSession,  # noqa: F401  # type: ignore[import-not-found]
+            from pip._internal.download import (  # noqa: F401  # type: ignore[import-not-found,no-redef]
+                PipSession,
             )
             from pip._internal.req import parse_requirements  # noqa: F401  # type: ignore[no-redef]
         except ImportError:
