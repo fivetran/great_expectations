@@ -33,11 +33,12 @@ def _parse_requirements(f) -> list[str]:
     for line in f:
         cleaned_line = line.strip()
         if cleaned_line and not cleaned_line.startswith("#"):
-            # Remove inline comments if present
+            # Remove inline comments
+            requirements_string = None
             if "#" in cleaned_line:
-                cleaned_line = cleaned_line.split("#")[0].strip()
-            if cleaned_line:  # Check if there's still content after removing comments
-                lines.append(str(Requirement(cleaned_line)))
+                requirements_string = cleaned_line.split("#")[0].strip()
+            if requirements_string:
+                lines.append(str(Requirement(requirements_string)))
     return lines
 
 
