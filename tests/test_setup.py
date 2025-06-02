@@ -63,6 +63,7 @@ requests>=2.25.0  # HTTP library"""
         expected = ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"]
         assert result == expected
 
+    @pytest.mark.unit
     def test_parse_requirements_with_empty_lines(self):
         """Test parsing requirements file with empty lines."""
         content = """numpy>=1.20.0
