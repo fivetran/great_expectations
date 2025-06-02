@@ -86,8 +86,10 @@ class TestSessionSQLEngineManager:
                 logger.exception(f"Error disposing engine '{key}'")
         self._engine_cache.clear()
 
-    def get_all_pool_statistics(self) -> dict[ConnectionDetails, dict[str, Any]]:
-        stats = {}
+    def get_all_pool_statistics(
+        self,
+    ) -> dict[ConnectionDetails, dict[str, Any]]:
+        stats: dict[ConnectionDetails, dict[str, Any]] = {}
         for key, engine in self._engine_cache.items():
             try:
                 pool = engine.pool
@@ -217,7 +219,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         if self.engine_manager:
             connection_details = ConnectionDetails(
                 connection_string=self.connection_string,
-                dialect=self.dialect,
+                dialect=self.config.label,  # The config label should be the sqlalchemy dialect
             )
             engine = self.engine_manager.get_engine(connection_details)
             return engine, lambda: None
