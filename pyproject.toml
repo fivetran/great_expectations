@@ -1,15 +1,13 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-# uncomment to enable pep517 after versioneer problem is fixed.
-# https://github.com/python-versioneer/python-versioneer/issues/193
-# build-backend = "setuptools.build_meta"
+requires = ["setuptools", "wheel", "versioneer"]
+build-backend = "setuptools.build_meta"
 
 [tool.mypy]
 python_version = "3.9"
 plugins = [
     "pydantic.mypy",
     "sqlalchemy.ext.mypy.plugin"
-    ]
+]
 files = [
     "great_expectations",
     "docs",
@@ -451,7 +449,9 @@ filterwarnings = [
     # the pkg_resources module distributed with setuptools has been deprecated
     # we should never use it but it is used in some of our dependencies
     # https://setuptools.pypa.io/en/latest/pkg_resources.html
-    "once:pkg_resources is deprecated as an API:DeprecationWarning",
+    "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
+    "ignore: pkg_resources is deprecated as an API:UserWarning",
+
     # ruamel, google, etc.
     "once:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
 
@@ -643,8 +643,11 @@ filterwarnings = [
     'ignore: Deprecated API features detected! These feature\(s\) are not compatible with SQLAlchemy 2\.0\.',
     # snowflake
     # Warning is emitted when snowflake-sqlalchemy 1.6 is installed alongside sqlalchemy 1
-    "module: The GenericFunction 'flatten' is already registered and is going to be overridden:sqlalchemy.exc.SAWarning"
-
+    "module: The GenericFunction 'flatten' is already registered and is going to be overridden:sqlalchemy.exc.SAWarning",
+    # pyOpenSSL 25.0.1 starting raising this warning only for connecting to snowflake but no other datasources.
+    "ignore: Attempting to mutate a Context after a Connection was created. In the future, this will raise an exception",
+    "ignore: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.:pytest_benchmark.logger.PytestBenchmarkWarning",
+    "ignore: No data was collected\\. \\(no-data-collected\\):coverage.exceptions.CoverageWarning",
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
 ]

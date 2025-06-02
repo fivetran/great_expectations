@@ -35,4 +35,11 @@ import OverviewCard from '@site/src/components/OverviewCard';
       to="/core/customize_expectations/use_sql_to_define_a_custom_expectation" 
       icon="/img/expectation_icon.svg" 
     /> 
+    <LinkCard 
+      topIcon 
+      label="Define a Multi-source Expectation"
+      description="Create an Expectation that queries multiple Data Sources and compares the results for equality."
+      to="/core/customize_expectations/define_a_multi_source_expectation" 
+      icon="/img/expectation_icon.svg" 
+    /> 
 </LinkCardGrid>

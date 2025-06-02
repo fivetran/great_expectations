@@ -27,6 +27,16 @@ class MissingElementError(TypeError):
         )
 
 
+class MissingParameterError(ValueError):
+    def __init__(self, parameter_name: str):
+        super().__init__(f"Must provide `{parameter_name}` to `{self.__class__.__name__}` metric.")
+
+
+class InvalidParameterTypeError(TypeError):
+    def __init__(self, parameter_name: str, expected_type: type):
+        super().__init__(f"`{parameter_name}` must be provided as type `{expected_type}`.")
+
+
 class QueryParameters(TypedDict):
     column: NotRequired[str]
     column_A: NotRequired[str]
@@ -69,9 +79,9 @@ class QueryMetricProvider(MetricProvider):
             query_param
         )
         if not query:
-            raise ValueError(f"Must provide `{query_param}` to `{cls.__name__}` metric.")  # noqa: TRY003 # FIXME CoP
+            raise MissingParameterError(query_param)
         if not isinstance(query, str):
-            raise TypeError(f"`{query_param}` must be provided as a string.")  # noqa: TRY003 # FIXME CoP
+            raise InvalidParameterTypeError(query_param, str)
 
         return query
 

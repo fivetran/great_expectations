@@ -3,7 +3,7 @@ import PrereqGxInstalled from '../../_core_components/prerequisites/_gx_installa
 
 The environment variable `GX_ANALYTICS_ENABLED` can be used to toggle the collection of analytics information.  This is particularly useful when using an Ephemeral Data Context because an Ephemeral Data Context does not persist between Python sessions and therefore won't persist configuration changes made using `context.variables` in Python.
 
-`GX_ANALYTICS_ENABLED` will also work to toggle analytics collection when using a GX Cloud Data Context or a File Data Context.
+`GX_ANALYTICS_ENABLED` will also work to toggle analytics collection when using a File Data Context.
 
 ### Prerequisites {#prerequisites-environment-variable}
 
@@ -33,7 +33,7 @@ The environment variable `GX_ANALYTICS_ENABLED` can be used to toggle the collec
 
    Analytics settings are checked when a Data Context is initialized.  Therefore, for a change to `GX_ANALYTICS_ENABLED` to take effect, the Data Context must be initialized *after* the environment variable has been set.
 
-   If you already have a Data Context in a Python environment when you make a change to `GX_ANALYTICS_ENABLED`, you can re-initialize it by updating the value of `my_mode` with `ephemeral`, `file`, or `cloud` and executing the following code:
+   If you already have a Data Context in a Python environment when you make a change to `GX_ANALYTICS_ENABLED`, you can re-initialize it by updating the value of `my_mode` with `ephemeral` or `file` and executing the following code:
 
    ```python title="Python"
    my_mode = "file"

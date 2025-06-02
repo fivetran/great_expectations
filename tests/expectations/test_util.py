@@ -400,7 +400,7 @@ def test_table_column_reflection_fallback(test_backends, sa):
             sa.MetaData(),
             schema=None,
         )
-        sqlalchemy_engine = cast(SqlAlchemyExecutionEngine, validator.execution_engine)
+        sqlalchemy_engine = cast("SqlAlchemyExecutionEngine", validator.execution_engine)
         reflected_columns_list = column_reflection_fallback(
             selectable=selectable,
             dialect=sqlalchemy_engine.engine.dialect,

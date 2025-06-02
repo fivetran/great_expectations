@@ -161,14 +161,3 @@ def test_column_min_max_mismatch_misconfiguration(batch_for_datasource) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
     assert "min_value cannot be greater than max_value" in str(result.exception_info)
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=ALL_DATA_SOURCES,
-    data=pd.DataFrame({"a": [1, 2]}),
-)
-def test_column_min_max_missing_misconfiguration(batch_for_datasource) -> None:
-    expectation = gxe.ExpectColumnValuesToBeBetween(column="a")
-    result = batch_for_datasource.validate(expectation)
-    assert not result.success
-    assert "min_value and max_value cannot both be None" in str(result.exception_info)

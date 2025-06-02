@@ -46,7 +46,7 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Data Asset profiling.** GX Cloud introspects your data schema by default on Data Asset creation, and also offers one-click fetching of additional descriptive metrics including column type and statistical summaries. Data profiling results are used to suggest parameters for Expectations that you create.
 
-* **Automate rules for common issues.** GX Cloud can automatically generate Expectations that detect column changes, non-increasing data volume, and changes to the percentage of null values in each column. This option is available when [you create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source).
+* **Automate rules for Anomaly Detection.** GX Cloud can automatically generate Expectations that detect column changes, non-increasing data volume, and changes to the percentage of null values in each column. This option is available when [you create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source).
 
 * **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
@@ -62,7 +62,7 @@ GX Cloud architecture comprises a frontend web UI, storage for entity configurat
 
 ![GX Cloud architecture](./overview_images/gx_cloud_architecture.png)
 
-* **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history. The GX Cloud web UI is browser- and platform-independent.
+* **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history.
 
 * **GX Cloud data storage**. Stores the configurations for your organization's Data Sources, Data Assets, Expectations, and Validations alongside your organization's Validation Result histories and Data Asset descriptive metrics.
 

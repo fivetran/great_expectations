@@ -4,6 +4,8 @@ NOTE: assertions here take the form of asserting that expectations pass
 based on knowledge of the data in the test set.
 """
 
+import json
+import pathlib
 from typing import Dict, Optional
 
 import pytest
@@ -16,9 +18,19 @@ from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import _SQLAsset
-from tests.integration.common_workflows.conftest import CONNECTION_STRING, TABLE_NAME
+from great_expectations.self_check.util import (
+    drop_table,
+    get_test_validator_with_data,
+)
+from great_expectations.util import build_in_memory_runtime_context
 
 pytestmark = pytest.mark.postgresql
+
+
+DATABASE_NAME = "test_ci"
+CONNECTION_STRING = f"postgresql+psycopg2://postgres:@localhost:5432/{DATABASE_NAME}"
+TABLE_NAME = "ct_column_values_to_be_between__evaluation_parameters_dataset_1"
+
 
 # constants for what we know about the test data
 COLUMN_NAME = "x"
@@ -28,6 +40,30 @@ VALUES_WITH_NO_DATE = [9]
 VALUES_FOR_MOST_RECENT_DATE = [10]
 MY_FAVORITE_DAY = {"year": 2000, "month": 6, "day": 1}
 VALUES_ON_MY_FAVORITE_DAY = [8]
+
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_module():
+    # setup table
+    dir_path = pathlib.Path(__file__).parent
+    file = dir_path / "expect_column_values_to_be_between__evaluation_parameters.json"
+    with open(file) as f:
+        test_configuration = json.load(f)
+    test_config = test_configuration["datasets"][0]
+    pk_column = True
+    schemas = test_config["schemas"]
+    dataset = test_config["data"]
+    # We call this for the side-effect of creating TABLE_NAME and loading dataset into it
+    _ = get_test_validator_with_data(
+        execution_engine="postgresql",
+        data=dataset,
+        table_name=TABLE_NAME,
+        schemas=schemas,
+        context=build_in_memory_runtime_context(),
+        pk_column=pk_column,
+    )
+    yield
+    drop_table(TABLE_NAME, CONNECTION_STRING)
 
 
 @pytest.fixture

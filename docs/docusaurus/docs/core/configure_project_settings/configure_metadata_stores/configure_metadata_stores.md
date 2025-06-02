@@ -13,9 +13,9 @@ import PrereqGxInstalled from '../../_core_components/prerequisites/_gx_installa
 import PrereqFileDataContext from '../../_core_components/prerequisites/_file_data_context.md'
 
 
-Stores are used by GX to store and retreive information ranging from project metadata such as Expectation Suite configurations to the Validation Results generated when Checkpoints are run.
+Stores are used by GX Core to store and retreive information ranging from project metadata such as Expectation Suite configurations to the Validation Results generated when Checkpoints are run.
 
-Ephemeral Data Contexts store this information in memory, while GX Cloud Data Contexts store this information online.  File Data Contexts, however, store this information in files thata can be copied or shared between other File Data Contexts.
+Ephemeral Data Contexts store this information in memory. File Data Contexts, however, store this information in files that can be copied or shared between other File Data Contexts.
 
 By default, Store files are created in folders within the `base_folder` of the File Data Context.  However, you can update your Data Context to specify where these Stores should reside, or to indicate existing Stores to load when the Data Context is initialized.
 
@@ -42,9 +42,7 @@ By default, Store files are created in folders within the `base_folder` of the F
 
    Because Store configurations are loaded when a Data Context is initialized, an Ephemeral Data Context will always initialize with default in-memory Stores and any changes to them will not persist when a new Ephemeral Data Context is initialized. 
 
-   GX Cloud accounts manage Stores for you online, and do not support custom Store configurations.
-
-   Therefore, only File Data Contexts can have customized Store configurations.  This procedure assumes you have a File Data Context loaded as the variable `context`:
+   This procedure assumes you have a File Data Context loaded as the variable `context`:
 
    ```python title="Python" name="docs/docusaurus/docs/core/configure_project_settings/_examples/configure_metadata_stores.py - retrieve a File Data Context"
    ```
