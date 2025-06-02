@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     import pytest
     from pytest import FixtureRequest
 
-    from tests.integration.conftest import TestSessionSQLEngineManager
+    from tests.integration.test_utils.data_source_config.sql import TestSessionSQLEngineManager
 
 
 _ColumnTypes = TypeVar("_ColumnTypes")
