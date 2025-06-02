@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 import sqlalchemy as sa
 from _pytest.mark import MarkDecorator
+from sqlalchemy.pool import QueuePool
 
 import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
@@ -87,12 +88,21 @@ class TestSessionSQLEngineManager:
         for key, engine in self._engine_cache.items():
             try:
                 pool = engine.pool
-                stats[key] = {
-                    "size": pool.size(),
-                    "checked_in": pool.checkedin(),
-                    "overflow": pool.overflow(),
-                    "checked_out": pool.checkedout(),
-                }
+                if isinstance(pool, QueuePool):
+                    stats[key] = {
+                        "size": pool.size(),
+                        "checked_in": pool.checkedin(),
+                        "overflow": pool.overflow(),
+                        "checked_out": pool.checkedout(),
+                    }
+                else:
+                    logger.warning(
+                        f"Pool for engine {key} is not a QueuePool. It is a {type(pool)}."
+                    )
+                    stats[key] = {
+                        "type": f"{type(pool)}",
+                        "status": f"{pool.status()}",
+                    }
             except Exception as e:
                 logger.exception(f"Error getting pool status for engine '{key}'")
                 stats[key] = {"error": str(e)}
