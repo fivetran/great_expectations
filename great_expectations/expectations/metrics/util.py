@@ -128,35 +128,6 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
     Returns:
         A sqlalchemy Expression
     """
-    try:
-        # Bigquery
-        if issubclass(dialect.dialect, sa.dialects.bigquery.dialect):
-            if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP_CONTAINS")
-                )
-            else:
-                return sqlalchemy.not_(
-                    sqlalchemy.BinaryExpression(
-                        column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP_CONTAINS")
-                    )
-                )
-    except AttributeError:
-        pass
-
-    try:
-        # Redshift
-        if issubclass(dialect.dialect, sa.dialects.postgresql.dialect):
-            if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("~")
-                )
-            else:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("!~")
-                )
-    except AttributeError:
-        pass
 
     try:
         # PostgreSQL
@@ -310,20 +281,6 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
         pass
 
     try:
-        # Spark
-        if issubclass(dialect.dialect, pyspark.sql.types.StructType):
-            if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("RLIKE")
-                )
-            else:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("NOT RLIKE")
-                )
-    except (AttributeError, NameError):
-        pass
-
-    try:
         # Clickhouse
         # noinspection PyUnresolvedReferences
         if hasattr(dialect, "ClickHouseDialect") or isinstance(
@@ -370,20 +327,6 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
                     == 0
                 )
     except (AttributeError, TypeError):
-        pass
-
-    try:
-        # SQLite
-        if issubclass(dialect.dialect, sa.dialects.sqlite.dialect):
-            if positive:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
-                )
-            else:
-                return sqlalchemy.BinaryExpression(
-                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("NOT REGEXP")
-                )
-    except AttributeError:
         pass
 
     try:
