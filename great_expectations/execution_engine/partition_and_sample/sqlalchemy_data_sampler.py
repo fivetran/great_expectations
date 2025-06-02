@@ -20,6 +20,51 @@ if TYPE_CHECKING:
 class SqlAlchemyDataSampler(DataSampler):
     """Sampling methods for data stores with SQL interfaces."""
 
+    def _get_random_function(self, dialect_name: str):
+        """Get the appropriate random function for the SQL dialect.
+        
+        Args:
+            dialect_name: Name of the SQL dialect
+            
+        Returns:
+            SQLAlchemy function for random ordering
+        """
+        if dialect_name == GXSqlDialect.MSSQL:
+            return sa.func.newid()
+        elif dialect_name == GXSqlDialect.MYSQL:
+            return sa.func.rand()
+        else:  # PostgreSQL, SQLite, others
+            return sa.func.random()
+
+    def _get_md5_expression(self, column, hash_digits: int, dialect_name: str):
+        """Get the appropriate MD5 expression for the SQL dialect.
+        
+        Args:
+            column: SQLAlchemy column to hash
+            hash_digits: Number of digits to extract from hash
+            dialect_name: Name of the SQL dialect
+            
+        Returns:
+            SQLAlchemy expression for MD5 hash
+        """
+        if dialect_name == GXSqlDialect.MSSQL:
+            # MSSQL uses HASHBYTES and needs conversion to varchar
+            # HASHBYTES returns varbinary, so we convert to varchar(32) with style 2 (no 0x prefix)
+            # Then we take the rightmost characters
+            return sa.func.right(
+                sa.func.convert(
+                    sa.VARCHAR(32),
+                    sa.func.hashbytes(sa.literal_column("'MD5'"), sa.cast(column, sa.VARCHAR)),
+                    sa.literal_column("2")
+                ),
+                hash_digits
+            )
+        else:
+            return sa.func.right(
+                sa.func.md5(sa.cast(column, sa.Text)), 
+                hash_digits
+            )
+
     def sample_using_limit(
         self,
         execution_engine: SqlAlchemyExecutionEngine,
@@ -47,6 +92,8 @@ class SqlAlchemyDataSampler(DataSampler):
         if where_clause is None:
             if execution_engine.dialect_name == GXSqlDialect.SQLITE:
                 where_clause = sa.text("1 = 1")  # type: ignore[assignment] # FIXME CoP
+            elif execution_engine.dialect_name == GXSqlDialect.MSSQL:
+                where_clause = sa.text("1 = 1") # fix for {batch} error
             else:
                 where_clause = sa.true()  # type: ignore[assignment] # FIXME CoP
 
@@ -119,8 +166,8 @@ class SqlAlchemyDataSampler(DataSampler):
                 "parseable as an integer."
             )
 
-    @staticmethod
     def sample_using_random(
+        self,
         execution_engine: SqlAlchemyExecutionEngine,
         batch_spec: BatchSpec,
         where_clause: Optional[sqlalchemy.Selectable] = None,
@@ -160,11 +207,16 @@ class SqlAlchemyDataSampler(DataSampler):
             .where(where_clause)  # type: ignore[arg-type] # FIXME CoP
         ).scalar()
         sample_size: int = round(p * num_rows)
+        
+        # Get dialect-specific random function
+        dialect_name: str = execution_engine.dialect_name
+        random_func = self._get_random_function(dialect_name)
+        
         return (
             sa.select("*")
             .select_from(sa.table(table_name, schema=batch_spec.get("schema_name", None)))
             .where(where_clause)  # type: ignore[arg-type] # FIXME CoP
-            .order_by(sa.func.random())
+            .order_by(random_func)
             .limit(sample_size)
         )
 
@@ -217,11 +269,13 @@ class SqlAlchemyDataSampler(DataSampler):
 
     def sample_using_md5(
         self,
+        execution_engine: SqlAlchemyExecutionEngine,
         batch_spec: BatchSpec,
     ) -> sqlalchemy.Selectable:
         """Hash the values in the named column using md5, and only keep rows that match the given hash_value.
 
         Args:
+            execution_engine: Engine used to connect to the database.
             batch_spec: should contain keys `column_name` and optionally `hash_digits`
                 (default is 1 if not provided), `hash_value` (default is "f" if not provided)
 
@@ -241,7 +295,11 @@ class SqlAlchemyDataSampler(DataSampler):
             batch_spec=batch_spec, sampling_kwargs_key="hash_value", default_value="f"
         )
 
+        dialect_name: str = execution_engine.dialect_name
         return (
-            sa.func.right(sa.func.md5(sa.cast(sa.column(column_name), sa.Text)), hash_digits)  # type: ignore[return-value] # FIXME CoP
-            == hash_value
-        )
+            self._get_md5_expression(
+                sa.column(column_name), 
+                hash_digits, 
+                dialect_name
+            ) == hash_value
+        )  # type: ignore[return-value] # FIXME CoP

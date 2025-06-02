@@ -97,6 +97,7 @@ if TYPE_CHECKING:
 LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 DEFAULT_QUOTE_CHARACTERS: Final[Tuple[str, str]] = ('"', "'")
+MSSQL_BRACKET_CHARACTERS: Final[Tuple[str, str]] = ('[', ']')
 
 
 @overload
@@ -113,9 +114,12 @@ def to_lower_if_not_quoted(
 ) -> str | None:
     """
     Convert a string to lowercase if it is not enclosed in quotes.
+    Also considers MSSQL brackets as quotes.
     """
     if not value:
         return value
+    
+    # Check standard quotes
     for char in quote_characters:
         if value.startswith(char) and value.endswith(char):
             LOGGER.warning(
@@ -124,6 +128,15 @@ def to_lower_if_not_quoted(
                 " May cause sqlalchemy case-sensitivity issues."
             )
             return value
+    
+    # Check MSSQL brackets
+    if value.startswith('[') and value.endswith(']'):
+        LOGGER.warning(
+            f"The {value} string is bracketed by MSSQL brackets,"
+            " so it will not be converted to lowercase."
+        )
+        return value
+    
     LOGGER.info(f"Setting {value} to lowercase to ensure sqlalchemy case-insensitivity.")
     return value.lower()
 
@@ -998,16 +1011,15 @@ class TableAsset(_SQLAsset):
 
     # Instance fields
     type: Literal["table"] = "table"
-    # TODO: quoted_name or str
-    table_name: str = pydantic.Field(
+    table_name: Any = pydantic.Field(  # Any because validator may transform to quoted_name
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
-    schema_name: Optional[str] = None
+    schema_name: Optional[Any] = None  # Any because validator may transform to quoted_name
 
     @property
     def qualified_name(self) -> str:
-        return f"{self.schema_name}.{self.table_name}" if self.schema_name else self.table_name
+        return f"{self.schema_name}.{self.table_name}" if self.schema_name else str(self.table_name)
 
     @pydantic.validator("table_name", pre=True, always=True)
     def _default_table_name(cls, table_name: str, values: dict, **kwargs) -> str:
@@ -1015,33 +1027,92 @@ class TableAsset(_SQLAsset):
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "table_name cannot be empty and should default to name if not provided"
             )
-
         return validated_table_name
 
     @pydantic.validator("table_name")
-    def _resolve_quoted_name(cls, table_name: str) -> str | quoted_name:
-        table_name_is_quoted: bool = cls._is_bracketed_by_quotes(table_name)
-
-        # We reimport sqlalchemy from our compatability layer because we make
-        # quoted_name a top level import there.
+    def _resolve_quoted_name(cls, table_name: str) -> Any:  # Returns str or quoted_name
+        """Resolve quoted names and handle MSSQL bracket notation."""
         from great_expectations.compatibility import sqlalchemy
 
-        if sqlalchemy.quoted_name:  # type: ignore[truthy-function] # FIXME CoP
-            if isinstance(table_name, sqlalchemy.quoted_name):
-                return table_name
+        # If it's already a quoted_name, return as-is
+        if sqlalchemy.quoted_name and isinstance(table_name, sqlalchemy.quoted_name):
+            return table_name
 
+        # Check if the table name is quoted/bracketed (including MSSQL brackets)
+        table_name_is_quoted = cls._is_bracketed_by_quotes(table_name)
+
+        if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
             if table_name_is_quoted:
-                # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.quoted_name.quote
-                # Remove the quotes and add them back using the sqlalchemy.quoted_name function
-                # TODO: We need to handle nested quotes
-                table_name = table_name.strip("'").strip('"')
+                # Handle different quote types
+                if table_name.startswith('[') and table_name.endswith(']'):
+                    # MSSQL brackets - strip and mark as quoted
+                    raw_name = table_name[1:-1]
+                else:
+                    # Standard quotes - strip them
+                    raw_name = table_name.strip("'").strip('"')
+                
+                return sqlalchemy.quoted_name(value=raw_name, quote=True)
 
-            return sqlalchemy.quoted_name(
-                value=table_name,
-                quote=table_name_is_quoted,
-            )
+            # Check if MSSQL bracket notation is needed based on content
+            if cls._needs_mssql_brackets(table_name):
+                return sqlalchemy.quoted_name(value=table_name, quote=True)
 
         return table_name
+    
+    @pydantic.validator("schema_name", pre=True)
+    def _resolve_schema_quoted_name(cls, schema_name: Optional[str]) -> Optional[Any]:
+        """Resolve quoted names for schema and handle MSSQL bracket notation."""
+        if schema_name is None:
+            return None
+
+        from great_expectations.compatibility import sqlalchemy
+
+        # If it's already a quoted_name, return as-is
+        if sqlalchemy.quoted_name and isinstance(schema_name, sqlalchemy.quoted_name):
+            return schema_name
+
+        # Check if the schema name is quoted/bracketed
+        schema_name_is_quoted = cls._is_bracketed_by_quotes(schema_name)
+
+        if sqlalchemy.quoted_name:  # type: ignore[truthy-function]
+            if schema_name_is_quoted:
+                # Handle different quote types
+                if schema_name.startswith('[') and schema_name.endswith(']'):
+                    # MSSQL brackets - strip and mark as quoted
+                    raw_name = schema_name[1:-1]
+                else:
+                    # Standard quotes - strip them
+                    raw_name = schema_name.strip("'").strip('"')
+                
+                return sqlalchemy.quoted_name(value=raw_name, quote=True)
+
+            # ALWAYS use quoted_name for MSSQL schemas to force brackets
+            # This will make SQLAlchemy use brackets in the generated SQL
+            return sqlalchemy.quoted_name(value=schema_name, quote=True)
+
+        return schema_name
+    
+    @staticmethod
+    def _needs_mssql_brackets(name: str) -> bool:
+        """
+        Returns True if the name requires brackets in MSSQL.
+        
+        MSSQL requires brackets for identifiers that:
+        - Start with a number
+        - Contain spaces, hyphens, dots, or other special characters
+        - Are reserved keywords
+        """
+        import re
+        
+        # Check if name starts with a number
+        if re.match(r'^\d', name):
+            return True
+        
+        # Check if name contains special characters that need escaping
+        if re.search(r'[.\s\-#@]', name):
+            return True
+            
+        return False
 
     @override
     def test_connection(self) -> None:
@@ -1054,20 +1125,33 @@ class TableAsset(_SQLAsset):
         engine: sqlalchemy.Engine = datasource.get_engine()
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
 
-        if self.schema_name and self.schema_name not in map(
-            to_lower_if_not_quoted, inspector.get_schema_names()
-        ):
-            # if self.schema_name and self.schema_name not in inspector.get_schema_names():
-            raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
-                f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
-                f'"{self.schema_name}" does not exist.'
-            )
+        available_schemas = inspector.get_schema_names()
+        
+        if self.schema_name:
+            schema_to_check = str(self.schema_name)
+            
+            # For MSSQL, do case-insensitive comparison since SQL Server is case-insensitive
+            if engine.dialect.name.lower() == 'mssql':
+                # Case-insensitive comparison
+                schema_exists = any(
+                    schema.lower() == schema_to_check.lower() 
+                    for schema in available_schemas
+                )
+            else:
+                # For other databases, use the existing logic
+                schema_exists = schema_to_check in map(to_lower_if_not_quoted, available_schemas)
+            
+            if not schema_exists:
+                raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
+                    f'Attempt to connect to table: "{self.qualified_name}" failed because the schema '
+                    f'"{self.schema_name}" does not exist.'
+                )
 
         try:
             with engine.connect() as connection:
-                table = sa.table(self.table_name, schema=self.schema_name)
-                # don't need to fetch any data, just want to make sure the table is accessible
-                connection.execute(sa.select(1, table).limit(1))
+                # Use as_selectable to get properly quoted table
+                selectable = self.as_selectable()
+                connection.execute(sa.select(1).select_from(selectable).limit(1))
         except Exception as query_error:
             LOGGER.info(f"{self.name} `.test_connection()` query failed: {query_error!r}")
             raise TestConnectionError(  # noqa: TRY003 # FIXME CoP
@@ -1081,15 +1165,17 @@ class TableAsset(_SQLAsset):
 
         This can be used in a from clause for a query against this data.
         """
+        # The table_name and schema_name already have proper quoting applied by the validators
         return sa.table(self.table_name, schema=self.schema_name)
 
     @override
     def _create_batch_spec_kwargs(self) -> dict[str, Any]:
+        # Convert to string for the batch spec
         return {
             "type": "table",
             "data_asset_name": self.name,
-            "table_name": self.table_name,
-            "schema_name": self.schema_name,
+            "table_name": str(self.table_name),
+            "schema_name": str(self.schema_name) if self.schema_name else None,
             "batch_identifiers": {},
         }
 
@@ -1102,8 +1188,7 @@ class TableAsset(_SQLAsset):
         """
         Returns True if the target string is bracketed by quotes.
 
-        Override this method if the quote characters are different than `'` or `"` in the
-        target database, such as backticks in Databricks SQL.
+        Supports standard quotes ('', "") and MSSQL brackets ([]).
 
         Arguments:
             target: A string to check if it is bracketed by quotes.
@@ -1111,10 +1196,16 @@ class TableAsset(_SQLAsset):
         Returns:
             True if the target string is bracketed by quotes.
         """
-        return any(
-            target.startswith(quote) and target.endswith(quote)
-            for quote in DEFAULT_QUOTE_CHARACTERS
-        )
+        # Check standard quotes
+        for quote in DEFAULT_QUOTE_CHARACTERS:
+            if target.startswith(quote) and target.endswith(quote):
+                return True
+        
+        # Check MSSQL brackets
+        if target.startswith('[') and target.endswith(']'):
+            return True
+            
+        return False
 
     @classmethod
     def _to_lower_if_not_bracketed_by_quotes(cls, target: str) -> str:
@@ -1127,7 +1218,10 @@ class TableAsset(_SQLAsset):
         Returns:
             The target string in lowercase if it is not bracketed by quotes.
         """
-        return to_lower_if_not_quoted(target, quote_characters=DEFAULT_QUOTE_CHARACTERS)
+        # Include MSSQL brackets in the check
+        if cls._is_bracketed_by_quotes(target):
+            return target
+        return target.lower()
 
 
 def _warn_for_more_specific_datasource_type(connection_string: str) -> None:
@@ -1280,6 +1374,7 @@ class SQLDatasource(Datasource):
             raise TestConnectionError(cause=e) from e
         if self.assets and test_assets:
             for asset in self.assets:
+                # Temporarily set datasource reference for test
                 asset._datasource = self
                 asset.test_connection()
 
@@ -1304,8 +1399,7 @@ class SQLDatasource(Datasource):
             The type of this object will match the necessary type for this datasource.
             eg, it could be a TableAsset or a SqliteTableAsset.
         """  # noqa: E501 # FIXME CoP
-        if schema_name:
-            schema_name = self._TableAsset._to_lower_if_not_bracketed_by_quotes(schema_name)
+        # The validators in TableAsset will handle lowercase and quoting
         asset = self._TableAsset(
             name=name,
             table_name=table_name,

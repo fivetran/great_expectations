@@ -110,15 +110,148 @@ def _is_databricks_dialect(dialect: ModuleType | sa.Dialect | Type[sa.Dialect]) 
     return False
 
 
+def regex_to_like(regex):
+    """
+    Convert regex patterns to SQL LIKE patterns for MSSQL compatibility.
+    Returns None if the pattern is too complex for LIKE conversion.
+    """
+    # Handle exact pattern mappings first (most common cases)
+    pattern_mappings = {
+        # Character class patterns
+        '^[a-zA-Z].*': '[a-zA-Z]%',           # Starts with letter
+        '^[A-Z].*': '[A-Z]%',                 # Starts with uppercase
+        '^[a-z].*': '[a-z]%',                 # Starts with lowercase
+        '^[0-9].*': '[0-9]%',                 # Starts with digit
+        '.*[a-zA-Z]$': '%[a-zA-Z]',           # Ends with letter
+        '.*[0-9]$': '%[0-9]',                 # Ends with digit
+        
+        # Email patterns
+        '.*@.*': '%@%',                       # Contains @
+        '.*@.*\\..*': '%@%.%',                # Basic email pattern
+        
+        # Common word patterns
+        '^[A-Z][a-z]*': '[A-Z][a-z]%',       # Capitalized word
+        
+        # Whitespace patterns
+        '.*\\s.*': '% %',                     # Contains whitespace
+        '^\\s.*': ' %',                       # Starts with whitespace
+        '.*\\s$': '% ',                       # Ends with whitespace
+    }
+    
+    if regex in pattern_mappings:
+        return pattern_mappings[regex]
+    
+    # Store original for error messages
+    original_regex = regex
+    
+    # Check for unsupported complex patterns first
+    unsupported_patterns = [
+        r'\\d\{(\d+),(\d+)\}',               # Range quantifiers {2,4}
+        r'[\+\*\?]\{',                       # Complex quantifiers
+        r'\(\?\:',                           # Non-capturing groups
+        r'\(\?\=',                           # Positive lookahead
+        r'\(\?\!',                           # Negative lookahead
+        r'\(\?\<\=',                         # Positive lookbehind
+        r'\(\?\<\!',                         # Negative lookbehind
+        r'\|',                               # Alternation
+        r'\\[bBAZ]',                         # Word boundaries
+    ]
+    
+    for pattern in unsupported_patterns:
+        if re.search(pattern, regex):
+            return None
+    
+    # Start conversion process
+    like = regex
+    
+    # Handle anchors - remove them as LIKE is implicit anchoring
+    if like.startswith('^'):
+        like = like[1:]
+    if like.endswith('$'):
+        like = like[:-1]
+    
+    # Handle escaped characters (preserve literal meaning)
+    like = like.replace(r'\.', '<!LITERAL_DOT!>')
+    like = like.replace(r'\-', '<!LITERAL_DASH!>')
+    like = like.replace(r'\_', '<!LITERAL_UNDERSCORE!>')
+    like = like.replace(r'\%', '<!LITERAL_PERCENT!>')
+    like = like.replace(r'\\', '<!LITERAL_BACKSLASH!>')
+    
+    # Convert quantified digit patterns
+    like = re.sub(r'\\d\{(\d+)\}', lambda m: '_' * int(m.group(1)), like)
+    
+    # Convert character classes to LIKE equivalents
+    like = like.replace(r'\d', '_')           # Any digit
+    like = like.replace(r'\w', '_')           # Any word character (approx)
+    like = like.replace(r'\s', ' ')           # Whitespace (space)
+    
+    # Convert wildcard patterns
+    like = like.replace('.*', '%')            # Zero or more of any char
+    like = like.replace('.+', '_%')           # One or more of any char
+    like = like.replace('.', '_')             # Any single character
+    
+    # Handle simple character sets [abc] -> _ (approximation)
+    like = re.sub(r'\[([^\]]+)\]', r'[\1]', like)
+    
+    # Handle negated character sets [^abc] -> _ (approximation)
+    like = re.sub(r'\[\^([^\]]+)\]', '_', like)
+    
+    # Convert common quantifiers (simple cases only)
+    like = re.sub(r'(.)\+', r'\1%', like)     # One or more -> char%
+    like = re.sub(r'(.)\*', r'%', like)       # Zero or more -> %
+    like = re.sub(r'(.)\?', r'\1', like)      # Optional -> just the char
+    
+    # Restore escaped characters
+    like = like.replace('<!LITERAL_DOT!>', '.')
+    like = like.replace('<!LITERAL_DASH!>', '-')
+    like = like.replace('<!LITERAL_UNDERSCORE!>', '[_]')  # Escape underscore in LIKE
+    like = like.replace('<!LITERAL_PERCENT!>', '[%]')     # Escape percent in LIKE
+    like = like.replace('<!LITERAL_BACKSLASH!>', '\\')
+    
+    # Final validation - check for remaining regex syntax that can't be converted
+    remaining_regex_chars = [
+        r'\(',                               # Grouping
+        r'\)',
+        r'\{[^}]*\}',                       # Remaining quantifiers
+        r'\\[^dws]',                        # Other escape sequences
+    ]
+    
+    for pattern in remaining_regex_chars:
+        if re.search(pattern, like):
+            return None
+    
+    # Additional validation - ensure result makes sense
+    if len(like) == 0:
+        return None
+    
+    # Clean up any double wildcards
+    like = re.sub(r'%+', '%', like)          # Multiple % -> single %
+    
+    return like
+
+
 def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIXME CoP
     column: sa.Column | sa.ColumnClause,
     regex: str,
     dialect: ModuleType | Type[sa.Dialect] | sa.Dialect,
     positive: bool = True,
 ) -> sa.SQLColumnExpression | None:
+    """
+    Returns a sqlalchemy expression object for a regex match.
+
+    Args:
+        column: A sqlalchemy Column
+        regex: A regex pattern (string)
+        positive: If true, match the pattern. If false, do not match the pattern.
+        dialect: A sqlalchemy Dialect
+
+    Returns:
+        A sqlalchemy Expression
+    """
+
     try:
-        # postgres
-        if issubclass(dialect.dialect, sa.dialects.postgresql.dialect):  # type: ignore[union-attr] # FIXME CoP
+        # PostgreSQL
+        if issubclass(dialect.dialect, sa.dialects.postgresql.dialect):
             if positive:
                 return sqlalchemy.BinaryExpression(
                     column, sqlalchemy.literal(regex), sqlalchemy.custom_op("~")
@@ -137,7 +270,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
         else:
             return sa.not_(sa.func.regexp_like(column, sqlalchemy.literal(regex)))
 
-    # redshift
+    # redshift (additional check)
     # noinspection PyUnresolvedReferences
     try:
         if hasattr(dialect, "RedshiftDialect") or (
@@ -158,17 +291,39 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
 
     try:
         # MySQL
-        if issubclass(dialect.dialect, sa.dialects.mysql.dialect):  # type: ignore[union-attr] # FIXME CoP
+        if issubclass(dialect.dialect, sa.dialects.mysql.dialect):
             if positive:
                 return sqlalchemy.BinaryExpression(
                     column, sqlalchemy.literal(regex), sqlalchemy.custom_op("REGEXP")
                 )
             else:
                 return sqlalchemy.BinaryExpression(
-                    column,
-                    sqlalchemy.literal(regex),
-                    sqlalchemy.custom_op("NOT REGEXP"),
+                    column, sqlalchemy.literal(regex), sqlalchemy.custom_op("NOT REGEXP")
                 )
+    except AttributeError:
+        pass
+
+    
+    try:
+        # MSSQL - Enhanced regex support
+        if issubclass(dialect.dialect, sa.dialects.mssql.dialect):
+            # MSSQL doesn't have native regex, but we can handle common patterns
+            if positive:
+                # Convert regex to LIKE pattern for MSSQL
+                like_pattern = regex_to_like(regex)
+                if like_pattern is None:
+                    raise NotImplementedError(
+                        f"Regex pattern '{regex}' too complex for MSSQL"
+                    )
+                return column.like(like_pattern)
+            else:
+                # Convert regex to NOT LIKE pattern for MSSQL
+                like_pattern = regex_to_like(regex)
+                if like_pattern is None:
+                    raise NotImplementedError(
+                        f"Regex pattern '{regex}' too complex for MSSQL"
+                    )
+                return sa.not_(column.like(like_pattern))
     except AttributeError:
         pass
 
@@ -195,7 +350,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
         pass
 
     try:
-        # Bigquery
+        # Bigquery (alternate check)
         if hasattr(dialect, "BigQueryDialect"):
             if positive:
                 return sa.func.REGEXP_CONTAINS(column, sqlalchemy.literal(regex))
@@ -242,6 +397,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
         TypeError,
     ):  # TypeError can occur if the driver was not installed and so is None
         pass
+
     try:
         # Dremio
         if hasattr(dialect, "DremioDialect"):
@@ -276,7 +432,7 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
         pass
 
     try:
-        # sqlite
+        # sqlite (alternate check with version check)
         # regex_match for sqlite introduced in sqlalchemy v1.4
         if issubclass(dialect.dialect, sa.dialects.sqlite.dialect) and version.parse(  # type: ignore[union-attr] # FIXME CoP
             sa.__version__
@@ -294,7 +450,10 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
     except AttributeError:
         pass
 
-    return None
+    raise NotImplementedError(
+        f"Regex is not supported for dialect {dialect.name!r}. "
+        "Please add a regex function for your dialect."
+    )
 
 
 def attempt_allowing_relative_error(dialect):
@@ -475,15 +634,34 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
                 sa.column("name"),
                 schema="sys",
             ).alias("sys_tables_table_clause")
+
+            # views query
+            views_table_clause: sqlalchemy.TableClause = sa.table(
+                "views",
+                sa.column("object_id"),
+                sa.column("schema_id"),
+                sa.column("name"),
+                schema="sys",
+            ).alias("sys_views_table_clause")
+
             tables_table_query: sqlalchemy.Select = (
-                sa.select(  # type: ignore[assignment] # FIXME CoP
+                sa.select(
                     tables_table_clause.columns.object_id.label("object_id"),
                     sa.func.schema_name(tables_table_clause.columns.schema_id).label("schema_name"),
                     tables_table_clause.columns.name.label("table_name"),
                 )
                 .select_from(tables_table_clause)
-                .alias("sys_tables_table_subquery")
+                .union_all(
+                    sa.select(
+                        views_table_clause.columns.object_id.label("object_id"),
+                        sa.func.schema_name(views_table_clause.columns.schema_id).label("schema_name"),
+                        views_table_clause.columns.name.label("table_name"),
+                    )
+                    .select_from(views_table_clause)
+                )
+                .alias("sys_tables_and_views_subquery")
             )
+
             columns_table_clause: sqlalchemy.TableClause = sa.table(  # type: ignore[assignment] # FIXME CoP
                 "columns",
                 sa.column("object_id"),
@@ -1182,8 +1360,8 @@ def sql_statement_with_post_compile_to_string(
     Returns:
         String representation of select_statement
 
-    """  # noqa: E501 # FIXME CoP
-    sqlalchemy_connection: sa.engine.base.Connection = engine.engine  # type: ignore[assignment] # FIXME CoP
+    """
+    sqlalchemy_connection: sa.engine.base.Connection = engine.engine
     compiled = select_statement.compile(
         sqlalchemy_connection,
         compile_kwargs={"render_postcompile": True},
@@ -1191,8 +1369,12 @@ def sql_statement_with_post_compile_to_string(
     )
     dialect_name: str = engine.dialect_name
 
+    # FIX FOR NONETYPE ERROR - Add null check for compiled.positiontup
     if dialect_name in ["sqlite", "trino", "mssql"]:
-        params = (repr(compiled.params[name]) for name in compiled.positiontup)  # type: ignore[union-attr] # FIXME CoP
+        if compiled.positiontup is not None:
+            params = (repr(compiled.params[name]) for name in compiled.positiontup)
+        else:
+            params = ()  # Empty generator if positiontup is None
         query_as_string = re.sub(r"\?", lambda m: next(params), str(compiled))
 
     else:
