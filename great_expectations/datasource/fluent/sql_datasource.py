@@ -1012,11 +1012,11 @@ class TableAsset(_SQLAsset):
 
     # Instance fields
     type: Literal["table"] = "table"
-    table_name: Any = pydantic.Field(  # Use Any to avoid ForwardRef issues
+    table_name: Any = pydantic.Field(  # Any because validator may transform to quoted_name
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
-    schema_name: Optional[Any] = None  # Use Any to avoid ForwardRef issues
+    schema_name: Optional[Any] = None  # Any because validator may transform to quoted_name
 
     @property
     def qualified_name(self) -> str:
@@ -1031,12 +1031,12 @@ class TableAsset(_SQLAsset):
         return validated_table_name
 
     @pydantic.validator("table_name")
-    def _resolve_quoted_name(cls, table_name: str) -> Any:  # Return Any to avoid ForwardRef
+    def _resolve_quoted_name(cls, table_name: str) -> Any:  # Returns str or quoted_name
         """Resolve quoted names and handle MSSQL bracket notation."""
         from great_expectations.compatibility import sqlalchemy
 
         # If it's already a quoted_name, return as-is
-        if sqlalchemy.quoted_name and hasattr(table_name, '__class__') and table_name.__class__.__name__ == 'quoted_name':
+        if sqlalchemy.quoted_name and isinstance(table_name, sqlalchemy.quoted_name):
             return table_name
 
         # Check if the table name is quoted/bracketed (including MSSQL brackets)
@@ -1069,7 +1069,7 @@ class TableAsset(_SQLAsset):
         from great_expectations.compatibility import sqlalchemy
 
         # If it's already a quoted_name, return as-is
-        if sqlalchemy.quoted_name and hasattr(schema_name, '__class__') and schema_name.__class__.__name__ == 'quoted_name':
+        if sqlalchemy.quoted_name and isinstance(schema_name, sqlalchemy.quoted_name):
             return schema_name
 
         # Check if the schema name is quoted/bracketed
