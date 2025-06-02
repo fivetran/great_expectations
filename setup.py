@@ -2,7 +2,8 @@ import os
 import re
 from pathlib import Path
 
-from packaging.requirements import Requirement
+# https://setuptools.pypa.io/en/latest/pkg_resources.html
+import pkg_resources  # noqa: TID251  # TODO: switch to poetry
 from setuptools import find_packages, setup
 
 import versioneer
@@ -18,28 +19,6 @@ def get_python_requires() -> str:
     if os.getenv("GX_PYTHON_EXPERIMENTAL"):
         return ">=3.9"
     return SUPPORTED_PYTHON
-
-
-def _parse_requirements(f) -> list[str]:
-    """Parse requirements from a file object.
-
-    Args:
-        f: A file object containing requirements.
-
-    Returns:
-        A list of requirement strings.
-    """
-    lines = []
-    for line in f:
-        cleaned_line = line.strip()
-        if cleaned_line and not cleaned_line.startswith("#"):
-            # Remove inline comments
-            requirements_string = None
-            if "#" in cleaned_line:
-                requirements_string = cleaned_line.split("#")[0].strip()
-            if requirements_string:
-                lines.append(str(Requirement(requirements_string)))
-    return lines
 
 
 def get_extras_require():
@@ -93,7 +72,7 @@ def get_extras_require():
         if key in ignore_keys:
             continue
         with open(file_path) as f:
-            parsed = _parse_requirements(f)
+            parsed = [str(req) for req in pkg_resources.parse_requirements(f)]
             results[key] = parsed
 
     lite = results.pop("lite")
@@ -122,7 +101,7 @@ def get_extras_require():
 
 # Parse requirements.txt
 with open("requirements.txt") as f:
-    required = _parse_requirements(f)
+    required = f.read().splitlines()
 
 long_description = "Always know what to expect from your data. (See https://github.com/great-expectations/great_expectations for full description)."  # noqa: E501
 

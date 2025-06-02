@@ -8,7 +8,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-from packaging.requirements import Requirement
+import pkg_resources
 from ruamel.yaml import YAML
 
 from great_expectations.core.expectation_diagnostics.expectation_diagnostics import (
@@ -210,27 +210,17 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
             return
 
         with open(path) as f:
-            # Parse requirements manually
-            requirements = []
-            for line in f:
-                cleaned_line = line.strip()
-                if cleaned_line and not cleaned_line.startswith("#"):
-                    # Remove inline comments
-                    requirement_string = None
-                    if "#" in cleaned_line:
-                        requirement_string = cleaned_line.split("#")[0].strip()
-                    if requirement_string:
-                        requirements.append(Requirement(requirement_string))
+            requirements = [req for req in pkg_resources.parse_requirements(f)]
 
         def _convert_to_dependency(
-            requirement: Requirement,
+            requirement: pkg_resources.Requirement,
         ) -> Dependency:
-            name = requirement.name
+            name = requirement.project_name
             pypi_url = f"https://pypi.org/project/{name}"
-            if requirement.specifier:
+            if requirement.specs:
                 # Stringify tuple of pins
                 version = ", ".join(
-                    "".join(symbol for symbol in pin) for pin in sorted(requirement.specifier)
+                    "".join(symbol for symbol in pin) for pin in sorted(requirement.specs)
                 )
             else:
                 version = None
