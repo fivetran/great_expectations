@@ -1,7 +1,7 @@
 import warnings
 
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=UserWarning, module="pip")
+    warnings.filterwarnings("ignore", category=UserWarning, module="_distutils_hack")
 
     try:
         # pip >=20
