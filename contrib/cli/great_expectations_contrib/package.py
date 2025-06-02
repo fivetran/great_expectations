@@ -8,9 +8,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-import pkg_resources
 from ruamel.yaml import YAML
 
+from great_expectations.compatibility.pip import PipSession, parse_requirements
 from great_expectations.core.expectation_diagnostics.expectation_diagnostics import (
     ExpectationDiagnostics,
 )
@@ -209,21 +209,34 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
             logger.warning(f"Could not find requirements file {path}")
             return
 
-        with open(path) as f:
-            requirements = [req for req in pkg_resources.parse_requirements(f)]
+        session = PipSession()
+        requirements = [req for req in parse_requirements(path, session=session)]
 
         def _convert_to_dependency(
-            requirement: pkg_resources.Requirement,
+            requirement,
         ) -> Dependency:
-            name = requirement.project_name
+            # Extract package name and specs from requirement
+            req_str = str(requirement.requirement)
+            name = (
+                req_str.split()[0]
+                .split("==")[0]
+                .split(">=")[0]
+                .split("<=")[0]
+                .split(">")[0]
+                .split("<")[0]
+                .split("!=")[0]
+            )
             pypi_url = f"https://pypi.org/project/{name}"
-            if requirement.specs:
-                # Stringify tuple of pins
-                version = ", ".join(
-                    "".join(symbol for symbol in pin) for pin in sorted(requirement.specs)
-                )
-            else:
-                version = None
+
+            # Parse version constraints from requirement string
+            version_parts = []
+            for op in ["==", ">=", "<=", ">", "<", "!="]:
+                if op in req_str:
+                    parts = req_str.split(op)
+                    if len(parts) > 1:
+                        version_parts.append(f"{op}{parts[1].split(',')[0].strip()}")
+
+            version = ", ".join(version_parts) if version_parts else None
             return Dependency(text=name, link=pypi_url, version=version)
 
         dependencies = list(map(_convert_to_dependency, requirements))
