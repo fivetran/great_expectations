@@ -2,10 +2,10 @@ import os
 import re
 from pathlib import Path
 
-from packaging.requirements import Requirement
 from setuptools import find_packages, setup
 
 import versioneer
+from packaging_utils import parse_requirements_file_obj
 
 SUPPORTED_PYTHON = ">=3.9,<3.13"
 
@@ -18,27 +18,6 @@ def get_python_requires() -> str:
     if os.getenv("GX_PYTHON_EXPERIMENTAL"):
         return ">=3.9"
     return SUPPORTED_PYTHON
-
-
-def _parse_requirements(f) -> list[str]:
-    """Parse requirements from a file object.
-
-    Args:
-        f: A file object containing requirements.
-
-    Returns:
-        A list of requirement strings.
-    """
-    lines = []
-    for line in f:
-        cleaned_line = line.strip()
-        if cleaned_line and not cleaned_line.startswith("#"):
-            # Remove inline comments if present
-            if "#" in cleaned_line:
-                cleaned_line = cleaned_line.split("#")[0].strip()
-            if cleaned_line:  # Check if there's still content after removing comments
-                lines.append(str(Requirement(cleaned_line)))
-    return lines
 
 
 def get_extras_require():
@@ -92,7 +71,7 @@ def get_extras_require():
         if key in ignore_keys:
             continue
         with open(file_path) as f:
-            parsed = _parse_requirements(f)
+            parsed = parse_requirements_file_obj(f)
             results[key] = parsed
 
     lite = results.pop("lite")
@@ -121,7 +100,7 @@ def get_extras_require():
 
 # Parse requirements.txt
 with open("requirements.txt") as f:
-    required = _parse_requirements(f)
+    required = parse_requirements_file_obj(f)
 
 long_description = "Always know what to expect from your data. (See https://github.com/great-expectations/great_expectations for full description)."  # noqa: E501
 

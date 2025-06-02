@@ -16,7 +16,6 @@ from subprocess import CalledProcessError, CompletedProcess, check_output, run
 from typing import TYPE_CHECKING, Dict, Final, List, Optional, Tuple
 
 import click
-from packaging.requirements import Requirement
 
 import great_expectations as gx
 from great_expectations.compatibility import pydantic
@@ -28,6 +27,10 @@ from great_expectations.core.expectation_diagnostics.supporting_types import (
 )
 from great_expectations.exceptions.exceptions import ExpectationNotFoundError
 from great_expectations.expectations.expectation import Expectation
+
+# Add the root directory to the Python path to import packaging_utils
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
+from packaging_utils import parse_requirements_content_to_objects
 
 if TYPE_CHECKING:
     from great_expectations.data_context.data_context.file_data_context import (
@@ -255,25 +258,47 @@ def get_expectations_info_dict(  # noqa: C901 - too complex
     return result
 
 
-def _parse_requirements(f) -> list[str]:
-    """Parse requirements from a file object.
+def get_contrib_requirements(filepath: str) -> Dict:
+    """
+    Parse the python file from filepath to identify a "library_metadata" dictionary in any defined classes, and return a requirements_info object that includes a list of pip-installable requirements for each class that defines them.
+
+    Note, currently we are handling all dependencies at the module level. To support future expandability and detail, this method also returns per-class requirements in addition to the concatenated list.
 
     Args:
-        f: A file object containing requirements.
+        filepath: the path to the file to parse and analyze
 
     Returns:
-        A list of requirement strings.
+        A dictionary:
+        {
+            "requirements": [ all_requirements_found_in_any_library_metadata_in_file ],
+            class_name: [ requirements ]
+        }
+
     """
-    lines = []
-    for line in f:
-        cleaned_line = line.strip()
-        if cleaned_line and not cleaned_line.startswith("#"):
-            # Remove inline comments if present
-            if "#" in cleaned_line:
-                cleaned_line = cleaned_line.split("#")[0].strip()
-            if cleaned_line:  # Check if there's still content after removing comments
-                lines.append(str(Requirement(cleaned_line)))
-    return lines
+    with open(filepath) as file:
+        tree = ast.parse(file.read())
+
+    requirements_info = {"requirements": []}
+    for child in ast.iter_child_nodes(tree):
+        if not isinstance(child, ast.ClassDef):
+            continue
+        current_class = child.name
+        for node in ast.walk(child):
+            if isinstance(node, ast.Assign):
+                try:
+                    target_ids = [target.id for target in node.targets]
+                except (ValueError, AttributeError):
+                    # some assignment types assign to non-node objects (e.g. Tuple)
+                    target_ids = []
+                if "library_metadata" in target_ids:
+                    library_metadata = ast.literal_eval(node.value)
+                    requirements = library_metadata.get("requirements", [])
+                    if type(requirements) == str:  # noqa: E721
+                        requirements = [requirements]
+                    requirements_info[current_class] = requirements
+                    requirements_info["requirements"] += requirements
+
+    return requirements_info
 
 
 def install_necessary_requirements(requirements) -> list:
@@ -283,15 +308,7 @@ def install_necessary_requirements(requirements) -> list:
     """
     installed_packages = list(distributions())
     # Parse requirements manually
-    parsed_requirements = []
-    for line in requirements:
-        cleaned_line = line.strip()
-        if cleaned_line and not cleaned_line.startswith("#"):
-            # Remove inline comments if present
-            if "#" in cleaned_line:
-                cleaned_line = cleaned_line.split("#")[0].strip()
-            if cleaned_line:  # Check if there's still content after removing comments
-                parsed_requirements.append(Requirement(cleaned_line))
+    parsed_requirements = parse_requirements_content_to_objects("\n".join(requirements))
     installed = []
     for req in parsed_requirements:
         is_satisfied = any(
@@ -473,49 +490,6 @@ def combine_backend_results(  # noqa: C901 - too complex
             expectations_info.pop(bad_key_name)
         with open(f"./{outfile_name}", "w") as outfile:
             json.dump(expectations_info, outfile, indent=4)
-
-
-def get_contrib_requirements(filepath: str) -> Dict:
-    """
-    Parse the python file from filepath to identify a "library_metadata" dictionary in any defined classes, and return a requirements_info object that includes a list of pip-installable requirements for each class that defines them.
-
-    Note, currently we are handling all dependencies at the module level. To support future expandability and detail, this method also returns per-class requirements in addition to the concatenated list.
-
-    Args:
-        filepath: the path to the file to parse and analyze
-
-    Returns:
-        A dictionary:
-        {
-            "requirements": [ all_requirements_found_in_any_library_metadata_in_file ],
-            class_name: [ requirements ]
-        }
-
-    """
-    with open(filepath) as file:
-        tree = ast.parse(file.read())
-
-    requirements_info = {"requirements": []}
-    for child in ast.iter_child_nodes(tree):
-        if not isinstance(child, ast.ClassDef):
-            continue
-        current_class = child.name
-        for node in ast.walk(child):
-            if isinstance(node, ast.Assign):
-                try:
-                    target_ids = [target.id for target in node.targets]
-                except (ValueError, AttributeError):
-                    # some assignment types assign to non-node objects (e.g. Tuple)
-                    target_ids = []
-                if "library_metadata" in target_ids:
-                    library_metadata = ast.literal_eval(node.value)
-                    requirements = library_metadata.get("requirements", [])
-                    if type(requirements) == str:  # noqa: E721
-                        requirements = [requirements]
-                    requirements_info[current_class] = requirements
-                    requirements_info["requirements"] += requirements
-
-    return requirements_info
 
 
 def build_gallery(  # noqa: C901 - 17

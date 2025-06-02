@@ -8,7 +8,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-from packaging.requirements import Requirement
 from ruamel.yaml import YAML
 
 from great_expectations.core.expectation_diagnostics.expectation_diagnostics import (
@@ -17,31 +16,14 @@ from great_expectations.core.expectation_diagnostics.expectation_diagnostics imp
 from great_expectations.expectations.expectation import Expectation
 from great_expectations.types import SerializableDictDot
 
+# Add the root directory to the Python path to import packaging_utils
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+from packaging_utils import parse_requirements_file_obj
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 yaml = YAML()
-
-
-def _parse_requirements(f) -> list[str]:
-    """Parse requirements from a file object.
-
-    Args:
-        f: A file object containing requirements.
-
-    Returns:
-        A list of requirement strings.
-    """
-    lines = []
-    for line in f:
-        cleaned_line = line.strip()
-        if cleaned_line and not cleaned_line.startswith("#"):
-            # Remove inline comments if present
-            if "#" in cleaned_line:
-                cleaned_line = cleaned_line.split("#")[0].strip()
-            if cleaned_line:  # Check if there's still content after removing comments
-                lines.append(str(Requirement(cleaned_line)))
-    return lines
 
 
 @dataclass
@@ -231,24 +213,16 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
             return
 
         with open(path) as f:
-            requirements = [Requirement(req) for req in _parse_requirements(f)]
+            requirements = parse_requirements_file_obj(f)
 
-        def _convert_to_dependency(
-            requirement: Requirement,
-        ) -> Dependency:
-            name = requirement.name
-            pypi_url = f"https://pypi.org/project/{name}"
-            if requirement.specifier:
-                # Stringify tuple of pins
-                version = ", ".join(
-                    "".join(symbol for symbol in pin) for pin in sorted(requirement.specifier)
+        self.dependencies = []
+        for requirement in requirements:
+            self.dependencies.append(
+                Dependency(
+                    text=requirement,
+                    link=f"https://pypi.org/project/{requirement.split('==')[0].split('>=')[0].split('<=')[0].split('~=')[0].split('!=')[0].split('<')[0].split('>')[0]}",
                 )
-            else:
-                version = None
-            return Dependency(text=name, link=pypi_url, version=version)
-
-        dependencies = list(map(_convert_to_dependency, requirements))
-        self.dependencies = dependencies
+            )
 
     def _update_contributors(self, diagnostics: List[ExpectationDiagnostics]) -> None:
         contributors = []
