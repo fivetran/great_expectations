@@ -283,6 +283,7 @@ import os
 import re
 import subprocess
 import sys
+from typing_extensions import override
 
 
 class VersioneerConfig:
@@ -1547,12 +1548,15 @@ def get_cmdclass():
         user_options = []
         boolean_options = []
 
+        @override
         def initialize_options(self):
             pass
 
+        @override
         def finalize_options(self):
             pass
 
+        @override
         def run(self):
             vers = get_versions(verbose=True)
             print("Version: %s" % vers["version"])
