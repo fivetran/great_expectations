@@ -1,7 +1,6 @@
 include *.txt
 include reqs/*.txt
 include LICENSE
-include packaging_utils.py
 include great_expectations/data_context/checkpoint_template.yml
 include great_expectations/init_notebooks/*/*.ipynb
 include versioneer.py
