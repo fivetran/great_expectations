@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pytest
 
@@ -17,6 +17,8 @@ from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetu
 
 if TYPE_CHECKING:
     import pandas as pd
+
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 class BigQueryDatasourceTestConfig(DataSourceTestConfig):
@@ -37,6 +39,7 @@ class BigQueryDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return BigQueryBatchTestSetup(
             data=data,
@@ -44,6 +47,7 @@ class BigQueryDatasourceTestConfig(DataSourceTestConfig):
             extra_data=extra_data,
             table_name=self.table_name,
             context=context,
+            engine_manager=engine_manager,
         )
 
 

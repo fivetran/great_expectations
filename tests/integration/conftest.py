@@ -262,7 +262,7 @@ def _batch_setup_for_datasource(
     request: pytest.FixtureRequest,
     _cached_test_configs: dict[TestConfig, BatchTestSetup],
     _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
-    _cleanup,
+    test_session_sql_engine_manager: TestSessionSQLEngineManager,
 ) -> Generator[BatchTestSetup, None, None]:
     """Fixture that yields a BatchSetup for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
@@ -276,6 +276,7 @@ def _batch_setup_for_datasource(
             data=config.data,
             extra_data=config.extra_data,
             context=gx.get_context(mode="ephemeral"),
+            engine_manager=test_session_sql_engine_manager,
         )
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
@@ -288,6 +289,7 @@ def _batch_setup_for_datasource(
                 data=config.secondary_data,
                 extra_data={},
                 context=batch_setup.context,
+                engine_manager=test_session_sql_engine_manager,
             )
             _cached_secondary_test_configs[batch_setup.id] = secondary_batch_setup
             secondary_batch_setup.setup()

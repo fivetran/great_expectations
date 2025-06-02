@@ -35,6 +35,7 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         tmp_path = request.getfixturevalue("tmp_path")
         assert isinstance(tmp_path, pathlib.Path)
@@ -46,6 +47,7 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
             extra_data=extra_data,
             table_name=self.table_name,
             context=context,
+            engine_manager=engine_manager,
         )
 
 

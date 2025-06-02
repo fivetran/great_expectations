@@ -1,4 +1,4 @@
-from typing import Mapping
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -12,6 +12,9 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 from tests.test_utils import get_default_mssql_url
+
+if TYPE_CHECKING:
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 class MSSQLDatasourceTestConfig(DataSourceTestConfig):
@@ -32,6 +35,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return MSSQLBatchTestSetup(
             data=data,
@@ -39,6 +43,7 @@ class MSSQLDatasourceTestConfig(DataSourceTestConfig):
             extra_data=extra_data,
             table_name=self.table_name,
             context=context,
+            engine_manager=engine_manager,
         )
 
 

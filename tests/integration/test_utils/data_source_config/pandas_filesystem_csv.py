@@ -1,6 +1,6 @@
 import pathlib
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -13,6 +13,9 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
+
+if TYPE_CHECKING:
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 @dataclass(frozen=True)
@@ -39,6 +42,7 @@ class PandasFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         assert not extra_data, "extra_data is not supported for this data source."
         tmp_path = request.getfixturevalue("tmp_path")

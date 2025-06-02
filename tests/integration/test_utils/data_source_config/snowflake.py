@@ -35,6 +35,7 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return SnowflakeBatchTestSetup(
             data=data,
@@ -42,6 +43,7 @@ class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
             extra_data=extra_data,
             table_name=self.table_name,
             context=context,
+            engine_manager=engine_manager,
         )
 
 

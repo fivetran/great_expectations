@@ -1,4 +1,4 @@
-from typing import Mapping
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -11,6 +11,9 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+
+if TYPE_CHECKING:
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
@@ -31,6 +34,7 @@ class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return PostgresBatchTestSetup(
             data=data,
@@ -38,6 +42,7 @@ class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
             extra_data=extra_data,
             table_name=self.table_name,
             context=context,
+            engine_manager=engine_manager,
         )
 
 

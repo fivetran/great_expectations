@@ -9,7 +9,7 @@ different TestConfigs; that would be caught by our regular tests.
 
 from dataclasses import dataclass
 from functools import cache
-from typing import Mapping
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -24,6 +24,9 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
+
+if TYPE_CHECKING:
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 @dataclass
@@ -50,6 +53,7 @@ class DummyTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return DummyBatchTestSetup(data=data, config=self, context=context)
 

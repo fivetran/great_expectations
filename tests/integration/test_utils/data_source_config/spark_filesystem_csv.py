@@ -1,6 +1,6 @@
 import pathlib
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Mapping, Union
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Union
 
 import pandas as pd
 import pytest
@@ -18,6 +18,7 @@ from tests.integration.test_utils.data_source_config.base import (
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark
     from great_expectations.compatibility.pyspark import types as pyspark_types
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 @dataclass(frozen=True)
@@ -44,6 +45,7 @@ class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         assert not extra_data, "extra_data is not supported for this data source yet."
 

@@ -1,4 +1,4 @@
-from typing import Mapping
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -11,6 +11,9 @@ from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
+
+if TYPE_CHECKING:
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
@@ -31,6 +34,7 @@ class PandasDataFrameDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         assert not extra_data, "extra_data is not supported for this data source."
         return PandasDataFrameBatchTestSetup(data=data, config=self, context=context)

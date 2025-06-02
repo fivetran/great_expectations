@@ -19,6 +19,8 @@ if TYPE_CHECKING:
     import pytest
     from pytest import FixtureRequest
 
+    from tests.integration.conftest import TestSessionSQLEngineManager
+
 
 _ColumnTypes = TypeVar("_ColumnTypes")
 
@@ -49,6 +51,12 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        # This violates the integration segration principle (the I in SOLID) since we now make
+        # non-SQL datasources rely on an argument that only SQL datasources are need.
+        # However, this is simpler than adding an additional layer to decouple this interface.
+        # If the SQL and non-SQL test interfaces diverge more significatnly we should consider
+        # refactoring these tests.
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         """Create a batch setup object for this data source."""
 

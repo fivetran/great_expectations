@@ -1,4 +1,4 @@
-from typing import Mapping
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -15,6 +15,9 @@ from tests.integration.test_utils.data_source_config.sql import (
     InferrableTypesLookup,
     SQLBatchTestSetup,
 )
+
+if TYPE_CHECKING:
+    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 class MySQLDatasourceTestConfig(DataSourceTestConfig):
@@ -35,6 +38,7 @@ class MySQLDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[TestSessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return MySQLBatchTestSetup(
             data=data,
@@ -42,6 +46,7 @@ class MySQLDatasourceTestConfig(DataSourceTestConfig):
             extra_data=extra_data,
             table_name=self.table_name,
             context=context,
+            engine_manager=engine_manager,
         )
 
 
