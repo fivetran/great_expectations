@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import pytest
-import setuptools  # noqa: F401  # Import setuptools avoid distutils import order warning
 
 # Add the project root to the Python path so we can import from setup.py
 project_root = Path(__file__).parent.parent.parent
