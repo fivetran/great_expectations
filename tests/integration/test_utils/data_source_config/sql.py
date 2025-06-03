@@ -134,9 +134,10 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     def _get_engine(self) -> tuple[sa.engine.Engine, Callable[[], None]]:
         if self.engine_manager:
+            # TODO: BDIRKS - remove dialect as an argument
             connection_details = ConnectionDetails(
                 connection_string=self.connection_string,
-                dialect=sa.dialects.get_dialect(self.connection_string).name,
+                dialect=sa.engine.make_url(self.connection_string).get_backend_name(),
             )
             engine = self.engine_manager.get_engine(connection_details)
             return engine, lambda: None
