@@ -80,14 +80,14 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
 
     Column names do not matter, but the order of the columns does.
 
-    Match Percentage (100% - unexpected percent) is compared to the mostly threshold \
+    Match percentage (100% - unexpected percent) is compared to the mostly threshold \
     to determine pass/fail.
         e.g.
     unexpected percent = 10%, mostly = 80%, (100% - 10%) > 80% - pass
     unexpected percent = 10%, mostly = 91%, (100% - 10%) < 91% - fail
 
 
-    The Match Percentage is computed by dividing the number of matching records \
+    The match percentage is computed by dividing the number of matching records \
     by the maximum number of records in either the comparison result or the base result.
        e.g.
     Comparison Row Count: 100  Base Row Count: 100  Matches: 100  Match Percentage: 100%
