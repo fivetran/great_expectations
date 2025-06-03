@@ -22,11 +22,19 @@ class ConnectionDetails:
 
 @dataclass(frozen=True)
 class PoolConfig:
+    # The sqlalchemy connection pool class to use. In general we want to use QueuePool
     poolclass: Type[Pool]
+    # The number of connections to keep in the pool
     pool_size: int
+    # If all pool connections are used, we can create an additional max_overflow connections
+    # When returning connections to the pool, if the pool is full, additional connections will
+    # be discarded. This is specific for a QueuePool.
     max_overflow: int
+    # The number of seconds a connection can be open for before we recycle it and create a new one.
     pool_recycle: int
+    # Number of seconds to wait before giving up on getting a connection from the pool
     pool_timeout: int
+    # Test connection liveness on checkout
     pool_pre_ping: bool
 
 
