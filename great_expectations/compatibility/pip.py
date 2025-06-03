@@ -11,9 +11,14 @@ with warnings.catch_warnings():
         try:
             # 10.0.0 <= pip <= 19.3.1
             from pip._internal.download import (  # type: ignore[import-not-found, no-redef]
-                PipSession,  # noqa: F401
+                PipSession,
             )
-            from pip._internal.req import parse_requirements  # noqa: F401  # type: ignore[no-redef]
+            from pip._internal.req import parse_requirements  # type: ignore[no-redef]
         except ImportError:
             # pip <= 9.0.3
-            pass
+            from pip.download import (  # type: ignore[import-not-found, no-redef]
+                PipSession,  # noqa: F401
+            )
+            from pip.req import (  # type: ignore[import-not-found, no-redef]
+                parse_requirements,  # noqa: F401
+            )
