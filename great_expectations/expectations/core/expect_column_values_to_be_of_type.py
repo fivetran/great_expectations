@@ -21,6 +21,9 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.execution_engine.sqlalchemy_dialect import (
     GXSqlDialect,  # noqa: TC001, RUF100 # FIXME CoP
 )
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
@@ -223,7 +226,9 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    type_: str = pydantic.Field(description=TYPE__DESCRIPTION)
+    type_: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=TYPE__DESCRIPTION
+    )
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",

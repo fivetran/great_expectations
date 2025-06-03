@@ -7,6 +7,9 @@ import numpy as np
 
 from great_expectations.compatibility import pydantic
 from great_expectations.exceptions import InvalidExpectationConfigurationError
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
@@ -247,7 +250,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
     """  # noqa: E501 # FIXME CoP
 
     quantile_ranges: QuantileRange = pydantic.Field(description=QUANTILE_RANGES_DESCRIPTION)
-    allow_relative_error: Union[bool, str] = pydantic.Field(
+    allow_relative_error: Union[bool, str, SuiteParameterDict] = pydantic.Field(
         default=False,
         description=ALLOW_RELATIVE_ERROR_DESCRIPTION,
     )

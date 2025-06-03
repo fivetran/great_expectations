@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Sequence, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     MulticolumnMapExpectation,
     render_suite_parameter_string,
@@ -179,8 +182,10 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    column_list: Sequence[str] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
-    ignore_row_if: str = pydantic.Field(
+    column_list: Union[Sequence[str], SuiteParameterDict] = pydantic.Field(
+        description=COLUMN_LIST_DESCRIPTION
+    )
+    ignore_row_if: Union[str, SuiteParameterDict] = pydantic.Field(
         default="all_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION
     )
 

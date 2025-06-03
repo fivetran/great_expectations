@@ -6,6 +6,9 @@ from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import root_validator
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
@@ -198,8 +201,12 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     max_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
-    strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
-    strict_max: bool = pydantic.Field(default=False, description=MAX_VALUE_DESCRIPTION)
+    strict_min: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MIN_DESCRIPTION
+    )
+    strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=MAX_VALUE_DESCRIPTION
+    )
 
     @root_validator
     def check_min_val_or_max_val(cls, values: dict) -> dict:

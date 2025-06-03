@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
@@ -72,7 +75,7 @@ class ExpectColumnValuesToMatchJsonSchema(ColumnMapExpectation):
         [The JSON-schema docs](https://json-schema.org)
     """  # noqa: E501 # FIXME CoP
 
-    json_schema: dict
+    json_schema: Union[dict, SuiteParameterDict]
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata = {

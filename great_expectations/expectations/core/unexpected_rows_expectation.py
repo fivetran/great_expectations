@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Un
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -87,7 +90,9 @@ class UnexpectedRowsExpectation(BatchExpectation):
         {DATA_QUALITY_ISSUES[0]}
     """
 
-    unexpected_rows_query: str = pydantic.Field(description=UNEXPECTED_ROWS_QUERY_DESCRIPTION)
+    unexpected_rows_query: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=UNEXPECTED_ROWS_QUERY_DESCRIPTION
+    )
 
     metric_dependencies: ClassVar[Tuple[str, ...]] = (
         "unexpected_rows_query.table",
