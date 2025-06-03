@@ -215,28 +215,15 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
         def _convert_to_dependency(
             requirement,
         ) -> Dependency:
-            # Extract package name and specs from requirement
-            req_str = str(requirement.requirement)
-            name = (
-                req_str.split()[0]
-                .split("==")[0]
-                .split(">=")[0]
-                .split("<=")[0]
-                .split(">")[0]
-                .split("<")[0]
-                .split("!=")[0]
-            )
+            name = requirement.project_name
             pypi_url = f"https://pypi.org/project/{name}"
-
-            # Parse version constraints from requirement string
-            version_parts = []
-            for op in ["==", ">=", "<=", ">", "<", "!="]:
-                if op in req_str:
-                    parts = req_str.split(op)
-                    if len(parts) > 1:
-                        version_parts.append(f"{op}{parts[1].split(',')[0].strip()}")
-
-            version = ", ".join(version_parts) if version_parts else None
+            if requirement.specs:
+                # Stringify tuple of pins
+                version = ", ".join(
+                    "".join(symbol for symbol in pin) for pin in sorted(requirement.specs)
+                )
+            else:
+                version = None
             return Dependency(text=name, link=pypi_url, version=version)
 
         dependencies = list(map(_convert_to_dependency, requirements))

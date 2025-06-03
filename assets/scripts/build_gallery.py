@@ -265,23 +265,12 @@ def install_necessary_requirements(requirements) -> list:
     parsed_requirements = parse_requirements(requirements, session=session)
     installed = []
     for req in parsed_requirements:
-        # Extract package name from requirement string
-        req_name = (
-            str(req.requirement)
-            .split()[0]
-            .split("==")[0]
-            .split(">=")[0]
-            .split("<=")[0]
-            .split(">")[0]
-            .split("<")[0]
-            .split("!=")[0]
-            .lower()
-        )
-        if req_name not in installed_packages:
-            logger.debug(f"Executing command: 'pip install \"{req.requirement}\"'")
-            status_code = execute_shell_command(f'pip install "{req.requirement}"')
+        is_satisfied = any(installed_pkg in req for installed_pkg in installed_packages)
+        if not is_satisfied:
+            logger.debug(f"Executing command: 'pip install \"{req}\"'")
+            status_code = execute_shell_command(f'pip install "{req}"')
             if status_code == 0:
-                installed.append(str(req.requirement))
+                installed.append(str(req))
 
     return installed
 
