@@ -1,7 +1,6 @@
 """Unit tests for setup.py functions."""
 
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -14,79 +13,44 @@ from setup import parse_requirements
 
 
 class TestParseRequirements:
-    @pytest.mark.unit
-    def test_parse_simple_requirements(self):
-        content = """numpy>=1.20.0
+    @pytest.mark.parametrize(
+        "content,expected",
+        [
+            pytest.param(
+                """numpy>=1.20.0
 pandas>=1.3.0
-requests>=2.25.0"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        expected = ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"]
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_parse_requirements_with_comments(self):
-        """Test parsing requirements file with full-line comments."""
-        content = """# This is a comment
+requests>=2.25.0""",
+                ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"],
+                id="simple_requirements",
+            ),
+            pytest.param(
+                """# This is a comment
 numpy>=1.20.0
 # Another comment
 pandas>=1.3.0
-requests>=2.25.0"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        expected = ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"]
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_parse_requirements_with_inline_comments(self):
-        """Test parsing requirements file with inline comments."""
-        content = """numpy>=1.20.0  # Scientific computing
+requests>=2.25.0""",
+                ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"],
+                id="full_line_comments",
+            ),
+            pytest.param(
+                """numpy>=1.20.0  # Scientific computing
 pandas>=1.3.0  # Data manipulation
-requests>=2.25.0  # HTTP library"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        expected = ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"]
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_parse_requirements_with_empty_lines(self):
-        """Test parsing requirements file with empty lines."""
-        content = """numpy>=1.20.0
+requests>=2.25.0  # HTTP library""",
+                ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"],
+                id="inline_comments",
+            ),
+            pytest.param(
+                """numpy>=1.20.0
 
 pandas>=1.3.0
 
 
-requests>=2.25.0"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        expected = ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"]
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_parse_requirements_mixed_content(self):
-        """Test parsing requirements file with mixed content
-        (comments, empty lines, inline comments)."""
-        content = """# Main dependencies
+requests>=2.25.0""",
+                ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"],
+                id="empty_lines",
+            ),
+            pytest.param(
+                """# Main dependencies
 numpy>=1.20.0  # Scientific computing
 
 # Data processing
@@ -96,103 +60,61 @@ pandas>=1.3.0
 requests>=2.25.0  # For API calls
 
 # Optional dependencies
-# scipy>=1.7.0"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        expected = ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"]
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_parse_requirements_complex_versions(self):
-        """Test parsing requirements with complex version specifications."""
-        content = """numpy>=1.20.0,<2.0
+# scipy>=1.7.0""",
+                ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"],
+                id="mixed_content",
+            ),
+            pytest.param(
+                """numpy>=1.20.0,<2.0
 pandas>=1.3.0,!=1.4.0
 requests~=2.25.0
 scipy==1.7.3
-matplotlib>3.0,<=3.5.2"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        expected = [
-            "numpy>=1.20.0,<2.0",
-            "pandas>=1.3.0,!=1.4.0",
-            "requests~=2.25.0",
-            "scipy==1.7.3",
-            "matplotlib>3.0,<=3.5.2",
-        ]
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_parse_requirements_with_extras(self):
-        """Test parsing requirements with extras."""
-        content = """requests[security]>=2.25.0
+matplotlib>3.0,<=3.5.2""",
+                [
+                    "numpy>=1.20.0,<2.0",
+                    "pandas>=1.3.0,!=1.4.0",
+                    "requests~=2.25.0",
+                    "scipy==1.7.3",
+                    "matplotlib>3.0,<=3.5.2",
+                ],
+                id="complex_versions",
+            ),
+            pytest.param(
+                """requests[security]>=2.25.0
 sqlalchemy[postgresql,mysql]>=1.4.0
-pytest[testing]>=6.0.0  # Testing framework"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        expected = [
-            "requests[security]>=2.25.0",
-            "sqlalchemy[postgresql,mysql]>=1.4.0",
-            "pytest[testing]>=6.0.0",
-        ]
-        assert result == expected
-
-    @pytest.mark.unit
-    def test_parse_empty_requirements_file(self):
-        """Test parsing an empty requirements file."""
-        content = ""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        assert result == []
-
-    @pytest.mark.unit
-    def test_parse_requirements_only_comments(self):
-        """Test parsing a requirements file with only comments."""
-        content = """# This file contains only comments
+pytest[testing]>=6.0.0  # Testing framework""",
+                [
+                    "requests[security]>=2.25.0",
+                    "sqlalchemy[postgresql,mysql]>=1.4.0",
+                    "pytest[testing]>=6.0.0",
+                ],
+                id="requirements_with_extras",
+            ),
+            pytest.param("", [], id="empty_file"),
+            pytest.param(
+                """# This file contains only comments
 # No actual requirements
-# Another comment line"""
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        assert result == []
-
-    @pytest.mark.unit
-    def test_parse_requirements_whitespace_handling(self):
-        """Test that whitespace is properly handled."""
-        content = """  numpy>=1.20.0
+# Another comment line""",
+                [],
+                id="only_comments",
+            ),
+            pytest.param(
+                """  numpy>=1.20.0
     pandas>=1.3.0
-requests>=2.25.0  # comment with spaces  """
+requests>=2.25.0  # comment with spaces  """,
+                ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"],
+                id="whitespace_handling",
+            ),
+        ],
+    )
+    @pytest.mark.unit
+    def test_parse_requirements(self, content, expected, tmp_path):
+        """Test parsing requirements files with various content formats."""
+        # Create temporary requirements file
+        requirements_file = tmp_path / "requirements.txt"
+        requirements_file.write_text(content)
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
-            f.write(content)
-            f.flush()
-
-            result = parse_requirements(Path(f.name))
-
-        expected = ["numpy>=1.20.0", "pandas>=1.3.0", "requests>=2.25.0"]
+        result = parse_requirements(requirements_file)
         assert result == expected
 
     @pytest.mark.unit
