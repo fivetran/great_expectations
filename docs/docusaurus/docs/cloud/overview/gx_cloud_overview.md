@@ -60,7 +60,7 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 GX Cloud architecture comprises a frontend web UI, storage for entity configuration and metadata, a backend application, and a Python API.
 
-![You interact through the UI, API, or both. How GX Cloud connects to your data depends on your deployment pattern.](./overview_images/gx_cloud_architecture.png)
+![You interact using the UI, API, or both. How GX Cloud connects to your data depends on your deployment pattern.](./overview_images/gx_cloud_architecture.png)
 
 * **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history.
 
