@@ -69,19 +69,22 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     the current Data Source's query matches those from the comparison Data Source's query, \
     above a specified threshold.
 
-    - Each record returned by the `base_query` will be compared to each record \
-      returned by the `comparison_query`.
-    - The maximum number of records that will be returned for comparison from \
-      each query is 200.
-    - The order of records returned does not matter unless \
-      the number of records returned would be greater than 200.
-    - Column names do not matter, but the order of the columns does.
+    Each record returned by the base query will be compared to each record \
+    returned by the comparison query.
 
-    Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
+    The maximum number of records that will be returned for comparison from \
+    each query is 200.
+
+    The order of records returned does not matter unless \
+    the number of records returned would be greater than 200.
+
+    Column names do not matter, but the order of the columns does.
+
+    Match Percentage (100% - unexpected percent) is compared to the mostly threshold \
     to determine pass/fail.
         e.g.
-    `unexpected_percent` = 10%, `mostly` = 80%, (100% - 10%) > 80% - pass
-    `unexpected_percent` = 10%, `mostly` = 91%, (100% - 10%) < 91% - fail
+    unexpected percent = 10%, mostly = 80%, (100% - 10%) > 80% - pass
+    unexpected percent = 10%, mostly = 91%, (100% - 10%) < 91% - fail
 
 
     The Match Percentage is computed by dividing the number of matching records \
