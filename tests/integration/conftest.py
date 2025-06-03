@@ -11,6 +11,7 @@ import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
+from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
@@ -19,7 +20,6 @@ from tests.integration.test_utils.data_source_config.base import (
 )
 from tests.integration.test_utils.data_source_config.sql import (
     SQLBatchTestSetup,
-    TestSessionSQLEngineManager,
 )
 
 logger = logging.getLogger(__name__)
@@ -168,7 +168,7 @@ def _batch_setup_for_datasource(
     request: pytest.FixtureRequest,
     _cached_test_configs: dict[TestConfig, BatchTestSetup],
     _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
-    test_session_sql_engine_manager: TestSessionSQLEngineManager,
+    test_session_sql_engine_manager: SessionSQLEngineManager,
 ) -> Generator[BatchTestSetup, None, None]:
     """Fixture that yields a BatchSetup for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
@@ -330,7 +330,7 @@ def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> 
 @pytest.fixture(scope="session")
 def test_session_sql_engine_manager():
     logger.info("SessionCleanupVerificationFixture: Starting setup.")
-    manager = TestSessionSQLEngineManager()
+    manager = SessionSQLEngineManager()
     yield manager
 
     logger.info("SessionCleanupVerificationFixture: Starting teardown.")

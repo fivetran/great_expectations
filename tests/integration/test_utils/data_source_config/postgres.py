@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Mapping, Optional
+from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -6,14 +6,12 @@ import pytest
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
+from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
-
-if TYPE_CHECKING:
-    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
@@ -34,7 +32,7 @@ class PostgreSQLDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
-        engine_manager: Optional[TestSessionSQLEngineManager] = None,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return PostgresBatchTestSetup(
             data=data,

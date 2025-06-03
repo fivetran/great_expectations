@@ -10,6 +10,7 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.data_asset.path.spark.csv_asset import CSVAsset
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.execution_engine import SparkDFExecutionEngine
+from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
@@ -18,7 +19,6 @@ from tests.integration.test_utils.data_source_config.base import (
 if TYPE_CHECKING:
     from great_expectations.compatibility import pyspark
     from great_expectations.compatibility.pyspark import types as pyspark_types
-    from tests.integration.conftest import TestSessionSQLEngineManager
 
 
 @dataclass(frozen=True)
@@ -45,7 +45,7 @@ class SparkFilesystemCsvDatasourceTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
-        engine_manager: Optional[TestSessionSQLEngineManager] = None,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         assert not extra_data, "extra_data is not supported for this data source yet."
 

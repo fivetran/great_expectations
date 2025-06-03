@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     import pytest
     from pytest import FixtureRequest
 
-    from tests.integration.test_utils.data_source_config.sql import TestSessionSQLEngineManager
+    from tests.integration.test_utils.data_source_config.sql import SessionSQLEngineManager
 
 
 _ColumnTypes = TypeVar("_ColumnTypes")
@@ -56,7 +56,7 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
         # However, this is simpler than adding an additional layer to decouple this interface.
         # If the SQL and non-SQL test interfaces diverge more significatnly we should consider
         # refactoring these tests.
-        engine_manager: Optional[TestSessionSQLEngineManager] = None,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         """Create a batch setup object for this data source."""
 
