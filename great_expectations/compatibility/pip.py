@@ -33,7 +33,7 @@ with warnings.catch_warnings():
     except ImportError:
         try:
             # 10.0.0 <= pip <= 19.3.1
-            from pip._internal.req import parse_requirements  # type: ignore[no-redef]
+            from pip._internal.req import parse_requirements
         except ImportError:
             try:
                 # pip <= 9.0.3
