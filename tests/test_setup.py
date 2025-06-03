@@ -1,5 +1,3 @@
-"""Unit tests for setup.py functions."""
-
 import sys
 from pathlib import Path
 
