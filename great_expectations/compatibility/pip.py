@@ -49,7 +49,7 @@ with warnings.catch_warnings():
     except ImportError:
         try:
             # 10.0.0 <= pip <= 19.3.1
-            from pip._internal.req.req_install import (  # type: ignore[import-not-found, no-redef]
+            from pip._internal.req.req_install import (
                 InstallRequirement,
             )
         except ImportError:
