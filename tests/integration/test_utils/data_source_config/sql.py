@@ -4,11 +4,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import cached_property
-from typing import Any, Callable, Generic, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Callable, Generic, Mapping, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
-import sqlalchemy as sa
 from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
@@ -29,6 +28,9 @@ from tests.integration.sql_session_manager import (
     SessionSQLEngineManager,
 )
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
+
+if TYPE_CHECKING:
+    import sqlalchemy as sa
 
 
 @dataclass(frozen=True)
@@ -134,10 +136,8 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     def _get_engine(self) -> tuple[sa.engine.Engine, Callable[[], None]]:
         if self.engine_manager:
-            # TODO: BDIRKS - remove dialect as an argument
             connection_details = ConnectionDetails(
                 connection_string=self.connection_string,
-                dialect=sa.engine.make_url(self.connection_string).get_backend_name(),
             )
             engine = self.engine_manager.get_engine(connection_details)
             return engine, lambda: None

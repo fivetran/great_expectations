@@ -329,21 +329,23 @@ def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> 
 
 @pytest.fixture(scope="session")
 def test_session_sql_engine_manager():
-    logger.info("SessionCleanupVerificationFixture: Starting setup.")
+    logger.info("SessionSqlEngineManager: Starting setup.")
     manager = SessionSQLEngineManager()
     yield manager
 
-    logger.info("SessionCleanupVerificationFixture: Starting teardown.")
+    logger.info("SessionSqlEngineManager: Starting teardown.")
     pre_cleanup_stats = manager.get_all_pool_statistics()
-    logger.info(f"Pool statistics before explicit cleanup: {pre_cleanup_stats}")
+    logger.info(
+        f"SessionSqlEngineManager: Pool statistics before explicit cleanup: {pre_cleanup_stats}"
+    )
     # Check for any immediately obvious issues before cleanup
     for key, stat in pre_cleanup_stats.items():
         if "error" not in stat and stat.get("checked_out", 0) > 0:
             logger.warning(
-                f"Engine {key} has {stat['checked_out']} connections "
+                f"SessionSqlEngineManager: Engine {key} has {stat['checked_out']} connections "
                 "still checked out BEFORE manager disposal."
             )
     manager.dispose_all_engines()
-    logger.info("SessionCleanupVerificationFixture: All engines disposed by manager.")
+    logger.info("SessionSqlEngineManager: All engines disposed by manager.")
     assert not manager._engine_cache, "Engine cache should be empty after dispose_all_engines."
-    logger.info("SessionCleanupVerificationFixture: Teardown complete.")
+    logger.info("SessionSqlEngineManager: Teardown complete.")

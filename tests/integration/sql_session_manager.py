@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass
+from functools import cached_property
 from typing import Any, Type
 
 import sqlalchemy as sa
@@ -13,8 +14,10 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class ConnectionDetails:
     connection_string: str
-    # BDIRKS extract this from connection string
-    dialect: str
+
+    @cached_property
+    def dialect(self) -> str:
+        return sa.engine.make_url(self.connection_string).get_backend_name()
 
 
 @dataclass(frozen=True)
@@ -38,6 +41,9 @@ class SessionSQLEngineManager:
     )
 
     def __init__(self):
+        # It's ok to use ConnectionDetails as the key since that contains all the unique
+        # information needed to create an engine. If we allowed POOL_CONFIG to be configurable
+        # we'd need to incorporate that into the key.
         self._engine_cache: dict[ConnectionDetails, sa.engine.Engine] = {}
 
     def get_engine(
