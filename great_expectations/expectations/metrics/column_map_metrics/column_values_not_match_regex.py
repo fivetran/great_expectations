@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 from typing import TYPE_CHECKING, Optional
 
 from great_expectations.compatibility.typing_extensions import override
@@ -31,6 +30,7 @@ if TYPE_CHECKING:
     )
 
 logger = logging.getLogger(__name__)
+
 
 class ColumnValuesNotMatchRegex(ColumnMapMetricProvider):
     condition_metric_name = "column_values.not_match_regex"

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 from typing import TYPE_CHECKING, Optional
 
 from great_expectations.compatibility.typing_extensions import override
@@ -32,6 +31,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+
 class ColumnValuesMatchRegex(ColumnMapMetricProvider):
     condition_metric_name = "column_values.match_regex"
     condition_value_keys = ("regex",)
@@ -42,7 +42,6 @@ class ColumnValuesMatchRegex(ColumnMapMetricProvider):
 
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column, regex, _dialect, **kwargs):
-
         regex_expression = get_dialect_regex_expression(column, regex, _dialect)
         if regex_expression is None:
             logger.warning(f"Regex is not supported for dialect {_dialect.dialect.name!s}")

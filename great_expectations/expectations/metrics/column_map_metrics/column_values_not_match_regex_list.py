@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 
 import pandas as pd
 
@@ -18,6 +17,7 @@ from great_expectations.expectations.metrics.map_metric_provider import (
 from great_expectations.expectations.metrics.util import get_dialect_regex_expression
 
 logger = logging.getLogger(__name__)
+
 
 class ColumnValuesNotMatchRegexList(ColumnMapMetricProvider):
     condition_metric_name = "column_values.not_match_regex_list"
