@@ -1,4 +1,5 @@
 import logging
+import pprint
 from dataclasses import dataclass
 from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
 from uuid import UUID
@@ -335,8 +336,11 @@ def test_session_sql_engine_manager():
 
     logger.info("SessionSqlEngineManager: Starting teardown.")
     pre_cleanup_stats = manager.get_all_pool_statistics()
-    logger.info(
-        f"SessionSqlEngineManager: Pool statistics before explicit cleanup: {pre_cleanup_stats}"
+    # We temporarily log a warning so we can see this in the pytest output without turning on info
+    # logging across the whole test run.
+    logger.warning(
+        "SessionSqlEngineManager: Pool statistics before explicit cleanup:\n"
+        f"{pprint.pformat(pre_cleanup_stats)}"
     )
     # Check for any immediately obvious issues before cleanup
     for key, stat in pre_cleanup_stats.items():
