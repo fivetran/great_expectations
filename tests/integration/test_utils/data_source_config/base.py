@@ -51,11 +51,14 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
-        # This violates the integration segration principle (the I in SOLID) since we now make
+        # This violates the interface segration principle (the I in SOLID) since we now make
         # non-SQL datasources rely on an argument that only SQL datasources are need.
         # However, this is simpler than adding an additional layer to decouple this interface.
-        # If the SQL and non-SQL test interfaces diverge more significatnly we should consider
+        # If the SQL and non-SQL test interfaces diverge more significantly we should consider
         # refactoring these tests.
+        # One possible fix is to remove this method from this class and create a sql and
+        # non-sql subclass. We'd like need to update _ConfigT to be bounded by a union of
+        # these subclasses and update callers of create_batch_setup.
         engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         """Create a batch setup object for this data source."""

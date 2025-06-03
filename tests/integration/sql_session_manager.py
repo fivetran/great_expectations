@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, Type
 
 import sqlalchemy as sa
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import Pool, QueuePool
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ class ConnectionDetails:
 
 @dataclass(frozen=True)
 class PoolConfig:
+    poolclass: Type[Pool]
     pool_size: int
     max_overflow: int
     pool_recycle: int
@@ -28,6 +29,7 @@ class PoolConfig:
 
 class SessionSQLEngineManager:
     POOL_CONFIG = PoolConfig(
+        poolclass=QueuePool,
         pool_size=2,
         max_overflow=3,
         pool_recycle=5400,  # 1.5 hours
