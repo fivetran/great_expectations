@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Type
 
 from ruamel.yaml import YAML
 
-from great_expectations.compatibility.pip import PipSession, parse_requirements
+from great_expectations.compatibility.pip import InstallRequirement, PipSession, parse_requirements
 from great_expectations.core.expectation_diagnostics.expectation_diagnostics import (
     ExpectationDiagnostics,
 )
@@ -213,7 +213,7 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
         requirements = [req for req in parse_requirements(path, session=session)]
 
         def _convert_to_dependency(
-            requirement,
+            requirement: InstallRequirement,
         ) -> Dependency:
             name = requirement.project_name
             pypi_url = f"https://pypi.org/project/{name}"

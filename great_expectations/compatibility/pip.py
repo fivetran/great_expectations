@@ -42,3 +42,21 @@ with warnings.catch_warnings():
                 )
             except ImportError:
                 parse_requirements = PIP_NOT_IMPORTED
+
+    try:
+        # pip >=20
+        from pip._internal.req.req_install import InstallRequirement
+    except ImportError:
+        try:
+            # 10.0.0 <= pip <= 19.3.1
+            from pip._internal.req.req_install import (  # type: ignore[import-not-found, no-redef]
+                InstallRequirement,
+            )
+        except ImportError:
+            try:
+                # pip <= 9.0.3
+                from pip.req.req_install import (  # type: ignore[import-not-found, no-redef]
+                    InstallRequirement,
+                )
+            except ImportError:
+                InstallRequirement = PIP_NOT_IMPORTED  # type: ignore[misc, assignment]
