@@ -45,7 +45,6 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
             extra_data=extra_data,
             table_name=self.table_name,
             context=context,
-            engine_manager=engine_manager,
         )
 
 
@@ -66,7 +65,6 @@ class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
             data=data,
             extra_data=extra_data,
             table_name=table_name,
-            engine_manager=engine_manager,
             context=context,
         )
 
