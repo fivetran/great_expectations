@@ -69,8 +69,8 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     the current Data Source's query matches those from the comparison Data Source's query, \
     above a specified threshold.
 
-    Each record returned by the base query will be compared to each record \
-    returned by the comparison query.
+    Each record returned by the 'base_query' will be compared to each record \
+    returned by the 'comparison_query'.
 
     The maximum number of records that will be returned for comparison from \
     each query is 200.
