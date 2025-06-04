@@ -249,7 +249,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    quantile_ranges: QuantileRange = pydantic.Field(description=QUANTILE_RANGES_DESCRIPTION)
+    quantile_ranges: Union[QuantileRange, SuiteParameterDict] = pydantic.Field(description=QUANTILE_RANGES_DESCRIPTION)
     allow_relative_error: Union[bool, str, SuiteParameterDict] = pydantic.Field(
         default=False,
         description=ALLOW_RELATIVE_ERROR_DESCRIPTION,

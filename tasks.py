@@ -125,7 +125,7 @@ def lint(
     unsafe_fixes: bool = False,
     output_format: Literal["full", "concise", "github"] | None = None,
     watch: bool = False,
-    pty: bool = False,
+    pty: bool = True,
 ):
     """Run formatter (ruff format) and linter (ruff)"""
     if fmt_:
