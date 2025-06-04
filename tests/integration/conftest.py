@@ -1,5 +1,3 @@
-import logging
-import pprint
 from dataclasses import dataclass
 from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
 from uuid import UUID
@@ -12,18 +10,13 @@ import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
-from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     dict_to_tuple,
     hash_data_frame,
 )
-from tests.integration.test_utils.data_source_config.sql import (
-    SQLBatchTestSetup,
-)
-
-logger = logging.getLogger(__name__)
+from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
 
 _F = TypeVar("_F", bound=Callable)
 
@@ -169,7 +162,7 @@ def _batch_setup_for_datasource(
     request: pytest.FixtureRequest,
     _cached_test_configs: dict[TestConfig, BatchTestSetup],
     _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
-    test_session_sql_engine_manager: SessionSQLEngineManager,
+    _cleanup,
 ) -> Generator[BatchTestSetup, None, None]:
     """Fixture that yields a BatchSetup for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
@@ -183,7 +176,6 @@ def _batch_setup_for_datasource(
             data=config.data,
             extra_data=config.extra_data,
             context=gx.get_context(mode="ephemeral"),
-            engine_manager=test_session_sql_engine_manager,
         )
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
@@ -196,7 +188,6 @@ def _batch_setup_for_datasource(
                 data=config.secondary_data,
                 extra_data={},
                 context=batch_setup.context,
-                engine_manager=test_session_sql_engine_manager,
             )
             _cached_secondary_test_configs[batch_setup.id] = secondary_batch_setup
             secondary_batch_setup.setup()
@@ -326,30 +317,3 @@ def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> 
         raise ValueError(
             "MultiSourceBatch tests must either use the same backend or include sqlite."
         )
-
-
-@pytest.fixture(scope="session")
-def test_session_sql_engine_manager():
-    logger.info("SessionSqlEngineManager: Starting setup.")
-    manager = SessionSQLEngineManager()
-    yield manager
-
-    logger.info("SessionSqlEngineManager: Starting teardown.")
-    pre_cleanup_stats = manager.get_all_pool_statistics()
-    # We temporarily log a warning so we can see this in the pytest output without turning on info
-    # logging across the whole test run.
-    logger.warning(
-        "SessionSqlEngineManager: Pool statistics before explicit cleanup:\n"
-        f"{pprint.pformat(pre_cleanup_stats)}"
-    )
-    # Check for any immediately obvious issues before cleanup
-    for key, stat in pre_cleanup_stats.items():
-        if "error" not in stat and stat.get("checked_out", 0) > 0:
-            logger.warning(
-                f"SessionSqlEngineManager: Engine {key} has {stat['checked_out']} connections "
-                "still checked out BEFORE manager disposal."
-            )
-    manager.dispose_all_engines()
-    logger.info("SessionSqlEngineManager: All engines disposed by manager.")
-    assert not manager._engine_cache, "Engine cache should be empty after dispose_all_engines."
-    logger.info("SessionSqlEngineManager: Teardown complete.")
