@@ -117,9 +117,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         {DATA_QUALITY_ISSUES[0]}
     """
 
-    base_query: Union[str, SuiteParameterDict] = pydantic.Field(
-        description=BASE_QUERY_DESCRIPTION
-    )
+    base_query: Union[str, SuiteParameterDict] = pydantic.Field(description=BASE_QUERY_DESCRIPTION)
     comparison_data_source_name: Union[str, SuiteParameterDict] = pydantic.Field(
         description=COMPARISON_DATA_SOURCE_NAME_DESCRIPTION
     )

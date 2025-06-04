@@ -176,7 +176,9 @@ class ExpectCompoundColumnsToBeUnique(MulticolumnMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    column_list: Union[Sequence[str], SuiteParameterDict] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
+    column_list: Union[Sequence[str], SuiteParameterDict] = pydantic.Field(
+        description=COLUMN_LIST_DESCRIPTION
+    )
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

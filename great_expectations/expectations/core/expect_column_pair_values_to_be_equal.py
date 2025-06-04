@@ -183,9 +183,7 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
     ignore_row_if: Union[
         Literal["both_values_are_missing", "either_value_is_missing", "neither"],
         SuiteParameterDict,
-    ] = pydantic.Field(
-        default="both_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION
-    )
+    ] = pydantic.Field(default="both_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION)
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

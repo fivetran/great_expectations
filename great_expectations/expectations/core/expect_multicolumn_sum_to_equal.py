@@ -186,9 +186,7 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    sum_total: Union[float, SuiteParameterDict] = pydantic.Field(
-        description=SUM_TOTAL_DESCRIPTION
-    )
+    sum_total: Union[float, SuiteParameterDict] = pydantic.Field(description=SUM_TOTAL_DESCRIPTION)
     ignore_row_if: Union[
         Literal["all_values_are_missing", "any_value_is_missing", "never"],
         SuiteParameterDict,
