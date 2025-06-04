@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import cached_property
-from typing import Any, Generic, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Callable, Generic, Mapping, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -23,7 +23,14 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
+from tests.integration.sql_session_manager import (
+    ConnectionDetails,
+    SessionSQLEngineManager,
+)
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
+
+if TYPE_CHECKING:
+    import sqlalchemy as sa
 
 
 @dataclass(frozen=True)
@@ -75,8 +82,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
         table_name: Optional[str] = None,  # Overrides random table name generation
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> None:
-        # self.engine = create_engine(url=self.connection_string)
+        self.engine_manager = engine_manager
         self.extra_data = extra_data
         self.metadata = MetaData()
         self._user_specified_table_name = table_name
@@ -126,9 +134,21 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         else:
             return None
 
+    def _get_engine(self) -> tuple[sa.engine.Engine, Callable[[], None]]:
+        if self.engine_manager:
+            connection_details = ConnectionDetails(
+                connection_string=self.connection_string,
+            )
+            engine = self.engine_manager.get_engine(connection_details)
+            return engine, lambda: None
+        else:
+            engine = create_engine(url=self.connection_string)
+            return engine, engine.dispose
+
     @override
     def setup(self) -> None:
-        engine = create_engine(url=self.connection_string)
+        engine, cleanup = self._get_engine()
+
         with engine.connect() as conn, conn.begin():
             # create schema if needed
 
@@ -149,17 +169,17 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 df = table_data.df.replace(np.nan, None)
                 values = list(df.to_dict("index").values())
                 conn.execute(insert(table_data.table), values)
-        engine.dispose()
+        cleanup()
 
     @override
     def teardown(self) -> None:
-        engine = create_engine(url=self.connection_string)
+        engine, cleanup = self._get_engine()
         for table in self.tables:
             table.drop(engine)
         if self.schema:
             with engine.connect() as conn, conn.begin():
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
-        engine.dispose()
+        cleanup()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = ["expectation_test_table", label, self._random_resource_name()]
