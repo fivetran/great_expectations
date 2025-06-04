@@ -15,11 +15,11 @@ from typing import List
 import pkg_resources
 import pytest
 from assets.scripts.build_gallery import execute_shell_command
-from flaky import flaky
-
 from docs.docusaurus.docs.components.examples_under_test import (
     docs_tests,
 )
+from flaky import flaky
+
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
