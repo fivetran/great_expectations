@@ -155,6 +155,10 @@ def _cached_secondary_test_configs() -> dict[UUID, BatchTestSetup]:
 def _cleanup(
     _cached_test_configs: Mapping[TestConfig, BatchTestSetup],
     _cached_secondary_test_configs: Mapping[TestConfig, BatchTestSetup],
+    # While not explicitly used, we want the session_sql_engine_manager to
+    # be torn down after we clean up. Adding it as a dependeny will ensure
+    # this.
+    session_sql_engine_manager: SessionSQLEngineManager,
 ) -> Generator[None, None, None]:
     """Fixture to do all teardown at the end of the test session."""
     yield
@@ -169,7 +173,10 @@ def _batch_setup_for_datasource(
     request: pytest.FixtureRequest,
     _cached_test_configs: dict[TestConfig, BatchTestSetup],
     _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
-    test_session_sql_engine_manager: SessionSQLEngineManager,
+    session_sql_engine_manager: SessionSQLEngineManager,
+    # _cleanup is not called directly. It is a session scoped fixture
+    # which will cleanup created db resources such as schemas.
+    _cleanup: Callable[[], None],
 ) -> Generator[BatchTestSetup, None, None]:
     """Fixture that yields a BatchSetup for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
@@ -183,7 +190,7 @@ def _batch_setup_for_datasource(
             data=config.data,
             extra_data=config.extra_data,
             context=gx.get_context(mode="ephemeral"),
-            engine_manager=test_session_sql_engine_manager,
+            engine_manager=session_sql_engine_manager,
         )
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
@@ -196,7 +203,7 @@ def _batch_setup_for_datasource(
                 data=config.secondary_data,
                 extra_data={},
                 context=batch_setup.context,
-                engine_manager=test_session_sql_engine_manager,
+                engine_manager=session_sql_engine_manager,
             )
             _cached_secondary_test_configs[batch_setup.id] = secondary_batch_setup
             secondary_batch_setup.setup()
@@ -329,7 +336,7 @@ def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> 
 
 
 @pytest.fixture(scope="session")
-def test_session_sql_engine_manager():
+def session_sql_engine_manager():
     logger.info("SessionSqlEngineManager: Starting setup.")
     manager = SessionSQLEngineManager()
     yield manager
