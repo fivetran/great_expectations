@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -32,6 +33,8 @@ from tests.integration.test_utils.data_source_config.base import BatchTestSetup,
 if TYPE_CHECKING:
     import sqlalchemy as sa
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class _TableData:
@@ -46,7 +49,7 @@ InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
 
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
-    SCHEMA_PREFIX = "test_"
+    SCHEMA_PREFIX = "bdirks_test_"
 
     @property
     @abstractmethod
@@ -147,12 +150,14 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def setup(self) -> None:
+        logger.warning(f"BDIRKS: Setting up {self.schema}")
         engine, cleanup = self._get_engine()
 
         with engine.connect() as conn, conn.begin():
             # create schema if needed
 
             if self.schema:
+                logger.warning(f"BDIRKS: CREATING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"CREATE SCHEMA {self.schema}"))
 
             # create tables
@@ -173,11 +178,13 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def teardown(self) -> None:
+        logger.warning(f"BDIRKS: Tearing down {self.schema}")
         engine, cleanup = self._get_engine()
         for table in self.tables:
             table.drop(engine)
         if self.schema:
             with engine.connect() as conn, conn.begin():
+                logger.warning(f"BDIRKS: DROPPING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
         cleanup()
 
