@@ -150,14 +150,13 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def setup(self) -> None:
-        logger.warning(f"BDIRKS: Setting up {self.schema}")
         engine, cleanup = self._get_engine()
 
         with engine.connect() as conn, conn.begin():
             # create schema if needed
 
             if self.schema:
-                logger.warning(f"BDIRKS: CREATING SCHEMA {self.schema}")
+                logger.info(f"CREATING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"CREATE SCHEMA {self.schema}"))
 
             # create tables
@@ -178,13 +177,12 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @override
     def teardown(self) -> None:
-        logger.warning(f"BDIRKS: Tearing down {self.schema}")
         engine, cleanup = self._get_engine()
         for table in self.tables:
             table.drop(engine)
         if self.schema:
             with engine.connect() as conn, conn.begin():
-                logger.warning(f"BDIRKS: DROPPING SCHEMA {self.schema}")
+                logger.info(f"DROPPING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
         cleanup()
 

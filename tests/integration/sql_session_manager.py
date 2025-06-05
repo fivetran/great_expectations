@@ -58,10 +58,9 @@ class SessionSQLEngineManager:
         self,
         connection_details: ConnectionDetails,
     ) -> sa.engine.Engine:
-        logger.warning(f"BDIRKS: Getting engine for {connection_details.dialect}")
         cache_key = connection_details
         if cache_key not in self._engine_cache:
-            logger.warning(f"BDIRKS:Cache miss for engine: {cache_key}. Creating new engine.")
+            logger.info(f"Cache miss for engine: {cache_key}. Creating new engine.")
             engine_kwargs = asdict(self.POOL_CONFIG)
             logger.info(
                 f"Creating engine for {connection_details.dialect} with settings: {engine_kwargs}"
@@ -70,7 +69,7 @@ class SessionSQLEngineManager:
                 connection_details.connection_string, **engine_kwargs
             )
         else:
-            logger.warning(f"BDIRKS: Cache hit for engine: {cache_key}")
+            logger.info(f"Cache hit for engine: {cache_key}")
         return self._engine_cache[cache_key]
 
     def dispose_all_engines(self):
