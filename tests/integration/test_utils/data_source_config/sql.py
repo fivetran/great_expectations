@@ -49,7 +49,7 @@ InferredColumnTypes = dict[str, Union[type[TypeEngine], TypeEngine]]
 
 
 class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_ConfigT]):
-    SCHEMA_PREFIX = "bdirks_test_"
+    SCHEMA_PREFIX = "test_"
 
     @property
     @abstractmethod
