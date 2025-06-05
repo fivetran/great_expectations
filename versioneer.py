@@ -283,6 +283,7 @@ import os
 import re
 import subprocess
 import sys
+from typing_extensions import override
 
 
 class VersioneerConfig:
@@ -1547,12 +1548,15 @@ def get_cmdclass():
         user_options = []
         boolean_options = []
 
+        @override
         def initialize_options(self):
             pass
 
+        @override
         def finalize_options(self):
             pass
 
+        @override
         def run(self):
             vers = get_versions(verbose=True)
             print("Version: %s" % vers["version"])
@@ -1586,6 +1590,7 @@ def get_cmdclass():
         from distutils.command.build_py import build_py as _build_py
 
     class cmd_build_py(_build_py):
+        @override
         def run(self):
             root = get_root()
             cfg = get_config_from_root(root)
@@ -1601,7 +1606,7 @@ def get_cmdclass():
     cmds["build_py"] = cmd_build_py
 
     if "cx_Freeze" in sys.modules:  # cx_freeze enabled?
-        from cx_Freeze.dist import build_exe as _build_exe
+        from cx_Freeze.dist import build_exe as _build_exe  # type: ignore[import-not-found]
 
         # nczeczulin reports that py2exe won't like the pep440-style string
         # as FILEVERSION, but it can be used for PRODUCTVERSION, e.g.
@@ -1638,7 +1643,7 @@ def get_cmdclass():
         del cmds["build_py"]
 
     if "py2exe" in sys.modules:  # py2exe enabled?
-        from py2exe.distutils_buildexe import py2exe as _py2exe  # py3
+        from py2exe.distutils_buildexe import py2exe as _py2exe  # type: ignore[import-not-found]  # py3
 
         class cmd_py2exe(_py2exe):
             def run(self):
@@ -1673,6 +1678,7 @@ def get_cmdclass():
         from distutils.command.sdist import sdist as _sdist
 
     class cmd_sdist(_sdist):
+        @override
         def run(self):
             versions = get_versions()
             self._versioneer_generated_versions = versions
@@ -1681,6 +1687,7 @@ def get_cmdclass():
             self.distribution.metadata.version = versions["version"]
             return _sdist.run(self)
 
+        @override
         def make_release_tree(self, base_dir, files):
             root = get_root()
             cfg = get_config_from_root(root)

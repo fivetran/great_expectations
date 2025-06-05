@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import importlib
+import importlib.metadata
 import json
 import logging
 import os
@@ -15,10 +16,10 @@ from subprocess import CalledProcessError, CompletedProcess, check_output, run
 from typing import TYPE_CHECKING, Dict, Final, List, Optional, Tuple
 
 import click
-import pkg_resources  # noqa: TID251 # TODO: switch to importlib.metadata or importlib.resources
 
 import great_expectations as gx
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.pip import PipSession, parse_requirements
 from great_expectations.core.expectation_diagnostics.expectation_doctor import (
     ExpectationDoctor,
 )
@@ -259,8 +260,11 @@ def install_necessary_requirements(requirements) -> list:
 
     Return a list of things installed, so they may be uninstalled at the end
     """
-    installed_packages = pkg_resources.working_set
-    parsed_requirements = pkg_resources.parse_requirements(requirements)
+    installed_packages = {
+        dist.metadata["name"].lower() for dist in importlib.metadata.distributions()
+    }
+    session = PipSession()
+    parsed_requirements = parse_requirements(requirements, session=session)
     installed = []
     for req in parsed_requirements:
         is_satisfied = any(installed_pkg in req for installed_pkg in installed_packages)

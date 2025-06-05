@@ -445,15 +445,10 @@ filterwarnings = [
     # Find and fix ruff DTZ violations
     'once: datetime.datetime.utc.*\(\) is deprecated .*:DeprecationWarning',
 
-
     # the pkg_resources module distributed with setuptools has been deprecated
     # we should never use it but it is used in some of our dependencies
     # https://setuptools.pypa.io/en/latest/pkg_resources.html
-    "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore: pkg_resources is deprecated as an API:UserWarning",
-
-    # ruamel, google, etc.
-    "once:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
 
     # This warning is common during testing where we intentionally use a COMPLETE format even in cases that would
     # be potentially overly resource intensive in standard operation
@@ -466,8 +461,6 @@ filterwarnings = [
     # We likely won't be updating to `marhsmallow` 4, these errors should be filtered out
     "ignore::marshmallow.warnings.RemovedInMarshmallow4Warning",
     "ignore::marshmallow.warnings.ChangedInMarshmallow4Warning",
-    # pkg_resources is deprecated as an API, but third party libraries still use it
-    'ignore: Deprecated call to `pkg_resources.declare_namespace\(.*\)`',
 
 
     # --------------------------------------- Great Expectations Warnings ----------------------------------
@@ -646,6 +639,8 @@ filterwarnings = [
     "module: The GenericFunction 'flatten' is already registered and is going to be overridden:sqlalchemy.exc.SAWarning",
     # pyOpenSSL 25.0.1 starting raising this warning only for connecting to snowflake but no other datasources.
     "ignore: Attempting to mutate a Context after a Connection was created. In the future, this will raise an exception",
+    "ignore: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.:pytest_benchmark.logger.PytestBenchmarkWarning",
+    "ignore: No data was collected\\. \\(no-data-collected\\):coverage.exceptions.CoverageWarning",
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
 ]
