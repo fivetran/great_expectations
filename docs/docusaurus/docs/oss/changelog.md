@@ -14,6 +14,18 @@ When we deprecate our public APIs, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
 
+### 1.5.0
+* [MINORBUMP] docs for Multi-source Expectations ([#11165](https://github.com/great-expectations/great_expectations/pull/11165))
+* [DOCS] revise use of the term "Cloud" in the Core docs ([#11207](https://github.com/great-expectations/great_expectations/pull/11207))
+* [DOCS] restore link checker ([#11212](https://github.com/great-expectations/great_expectations/pull/11212))
+* [MAINTENANCE] add warning filter ([#11217](https://github.com/great-expectations/great_expectations/pull/11217))
+* [MAINTENANCE] Update renderer labels ([#11216](https://github.com/great-expectations/great_expectations/pull/11216))
+* [MAINTENANCE] Improve `ExpectQueryResultsToMatchComparison` docstring ([#11221](https://github.com/great-expectations/great_expectations/pull/11221))
+* [MAINTENANCE] pre-commit autoupdate ([#11218](https://github.com/great-expectations/great_expectations/pull/11218))
+* [MAINTENANCE] Remove `pkg_resources` dependency ([#11213](https://github.com/great-expectations/great_expectations/pull/11213))
+* [MAINTENANCE] Example suite parameter tests ([#11225](https://github.com/great-expectations/great_expectations/pull/11225))
+* [CONTRIB] Add type geometry and super into redshift_execution_engine.py ([#11194](https://github.com/great-expectations/great_expectations/pull/11194)) (thanks @VolkovGeoPhy)
+
 ### 1.4.6
 * [BUGFIX] Handle unhashable data types for ExpectQueryResultsToMatchComparison ([#11193](https://github.com/great-expectations/great_expectations/pull/11193))
 * [BUGFIX] Make type expectation case-insensitive for Databricks, Snowflake an Postgres ([#11192](https://github.com/great-expectations/great_expectations/pull/11192))
