@@ -29,7 +29,7 @@ At each workflow step, different GX components are defined and used. This sectio
 
 ### Set up a GX environment
 
-A **Data Context** manages the settings and metadata for a GX workflow. In GX Core, the Data Context is a Python object that serves as the entrypoint for the [GX Python API](/reference/index.md). You use the Data Context to define and run a GX workflow; the Data Context provides access to the configurations, metadata, and actions of your GX workflow components and the results of data validations.
+ You use a **Data Context** to define and run a GX workflow. The Data Context is a Python object that provides access to the configurations, metadata, and actions of your GX workflow components and the results of data validations.
 
 All GX workflows start with the creation of a Data Context.
 

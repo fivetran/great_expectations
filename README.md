@@ -57,10 +57,10 @@ They are listed in the order in which GX is prioritizing the support issues:
 ## Contribute
 We deeply value the contributions of our community. We're now accepting PRs for bug fixes.
 
-To ensure the long-term quality of the GX Core codebase, we're not yet ready to accept feature contributions to the parts of the codebase that don't have clear APIs for extensions. We're actively working to increase the surface area for contributions. Thank you for being a crucial part of GX Core!
+To ensure the long-term quality of the GX Core codebase, we're not yet ready to accept feature contributions to the parts of the codebase that don't have clear interfaces for extensions. We're actively working to increase the surface area for contributions. Thank you for being a crucial part of GX Core!
 
 ### Levels of contribution readiness
-🟢 Ready. Have a clear and public API for extensions.
+🟢 Ready. Have a clear and public interface for extensions.
 
 🟡 Partially ready. Case-by-case.
 

@@ -7,12 +7,12 @@ slug: /core/changelog
 
 GX Core follows [Semantic Versioning 2.0.0](https://semver.org/#semantic-versioning-200), including its [guidelines for deprecation](https://semver.org/#how-should-i-handle-deprecating-functionality).
 
-When we deprecate our public APIs, we will
+When we deprecate public functionality, we will
 
 - update our documentation to let you know about the change.
 - issue a new minor release with the deprecation in place.
 
-Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
+Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
 ### 1.5.0
 * [MINORBUMP] docs for Multi-source Expectations ([#11165](https://github.com/great-expectations/great_expectations/pull/11165))

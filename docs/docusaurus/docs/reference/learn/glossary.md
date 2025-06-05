@@ -13,11 +13,11 @@ title: "Glossary"
 
 [Data Asset](/core/connect_to_data/connect_to_data.md): A collection of records within a Data Source which are usually grouped based on the underlying data system and can be further sliced into Batches according to a desired specification.
 
-[Data Context](/core/set_up_a_gx_environment/create_a_data_context.md): A Data Context stores all of the configuration for a project in Great Expectations, and provides an API to access and update it.
+[Data Context](/core/set_up_a_gx_environment/create_a_data_context.md): A Data Context stores all of the configuration for a project in Great Expectations, and provides an interface to access and update it.
 
 [Data Docs](/core/configure_project_settings/configure_data_docs/configure_data_docs.md): Static websites generated from Great Expectations metadata detailing Expectations, Validation Results, etc.
 
-[Data Source](/core/connect_to_data/connect_to_data.md): An object that tells GX how to connect to a specific source of external data and provides a unified API within GX for organizing that data into Data Assets which can be retrieved. 
+[Data Source](/core/connect_to_data/connect_to_data.md): An object that tells GX how to connect to a specific source of external data and provides an interface for organizing that data into Data Assets which can be retrieved. 
 
 [Expectation](/core/define_expectations/create_an_expectation.md): A verifiable assertion about data.
 
