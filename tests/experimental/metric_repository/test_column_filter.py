@@ -38,6 +38,7 @@ def sample_column_types():
 class TestColumnFilter:
     """Test cases for ColumnFilter class."""
 
+    @pytest.mark.unit
     def test_init_with_defaults(self):
         """Test initialization with default parameters."""
         column_filter = ColumnFilter()
@@ -48,6 +49,7 @@ class TestColumnFilter:
         assert column_filter._include_semantic_types == []
         assert column_filter._exclude_semantic_types == []
 
+    @pytest.mark.unit
     def test_init_with_parameters(self):
         """Test initialization with specific parameters."""
         column_filter = ColumnFilter(
@@ -61,18 +63,21 @@ class TestColumnFilter:
         assert column_filter._include_semantic_types == [SemanticDomainTypes.NUMERIC]
         assert column_filter._exclude_semantic_types == [SemanticDomainTypes.TEXT]
 
+    @pytest.mark.unit
     def test_normalize_semantic_types_none(self):
         """Test semantic type normalization with None."""
         column_filter = ColumnFilter()
         result = column_filter._normalize_semantic_types(None)
         assert result == []
 
+    @pytest.mark.unit
     def test_normalize_semantic_types_single(self):
         """Test semantic type normalization with single type."""
         column_filter = ColumnFilter()
         result = column_filter._normalize_semantic_types(SemanticDomainTypes.NUMERIC)
         assert result == [SemanticDomainTypes.NUMERIC]
 
+    @pytest.mark.unit
     def test_normalize_semantic_types_list(self):
         """Test semantic type normalization with list."""
         column_filter = ColumnFilter()
@@ -80,6 +85,7 @@ class TestColumnFilter:
         result = column_filter._normalize_semantic_types(types)
         assert result == types
 
+    @pytest.mark.unit
     def test_get_table_column_names(self, mock_validator, sample_column_names):
         """Test getting table column names."""
         mock_validator.get_metric.return_value = sample_column_names
@@ -90,18 +96,21 @@ class TestColumnFilter:
         assert result == sample_column_names
         mock_validator.get_metric.assert_called_once()
 
+    @pytest.mark.unit
     def test_apply_column_name_filters_no_filters(self, sample_column_names):
         """Test column name filtering with no filters applied."""
         column_filter = ColumnFilter()
         result = column_filter._apply_column_name_filters(sample_column_names)
         assert result == sample_column_names
 
+    @pytest.mark.unit
     def test_apply_column_name_filters_include_names(self, sample_column_names):
         """Test column name filtering with include names."""
         column_filter = ColumnFilter(include_column_names=["id", "name"])
         result = column_filter._apply_column_name_filters(sample_column_names)
         assert result == ["id", "name"]
 
+    @pytest.mark.unit
     def test_apply_column_name_filters_exclude_names(self, sample_column_names):
         """Test column name filtering with exclude names."""
         column_filter = ColumnFilter(exclude_column_names=["id", "description"])
@@ -109,12 +118,14 @@ class TestColumnFilter:
         expected = ["name", "age", "salary", "created_at", "is_active"]
         assert result == expected
 
+    @pytest.mark.unit
     def test_apply_column_name_filters_include_suffixes(self, sample_column_names):
         """Test column name filtering with include suffixes."""
         column_filter = ColumnFilter(include_column_name_suffixes=["_at", "age"])
         result = column_filter._apply_column_name_filters(sample_column_names)
         assert result == ["age", "created_at"]
 
+    @pytest.mark.unit
     def test_apply_column_name_filters_exclude_suffixes(self, sample_column_names):
         """Test column name filtering with exclude suffixes."""
         column_filter = ColumnFilter(exclude_column_name_suffixes=["_at", "ion"])
@@ -122,24 +133,28 @@ class TestColumnFilter:
         expected = ["id", "name", "age", "salary", "is_active"]
         assert result == expected
 
+    @pytest.mark.unit
     def test_infer_semantic_type_numeric_integer(self, sample_column_types):
         """Test semantic type inference for integer columns."""
         column_filter = ColumnFilter()
         result = column_filter._infer_semantic_type_from_column_type(sample_column_types, "id")
         assert result == SemanticDomainTypes.NUMERIC
 
+    @pytest.mark.unit
     def test_infer_semantic_type_numeric_decimal(self, sample_column_types):
         """Test semantic type inference for decimal columns."""
         column_filter = ColumnFilter()
         result = column_filter._infer_semantic_type_from_column_type(sample_column_types, "salary")
         assert result == SemanticDomainTypes.NUMERIC
 
+    @pytest.mark.unit
     def test_infer_semantic_type_text(self, sample_column_types):
         """Test semantic type inference for text columns."""
         column_filter = ColumnFilter()
         result = column_filter._infer_semantic_type_from_column_type(sample_column_types, "name")
         assert result == SemanticDomainTypes.TEXT
 
+    @pytest.mark.unit
     def test_infer_semantic_type_datetime(self, sample_column_types):
         """Test semantic type inference for datetime columns."""
         column_filter = ColumnFilter()
@@ -148,6 +163,7 @@ class TestColumnFilter:
         )
         assert result == SemanticDomainTypes.DATETIME
 
+    @pytest.mark.unit
     def test_infer_semantic_type_boolean(self, sample_column_types):
         """Test semantic type inference for boolean columns."""
         column_filter = ColumnFilter()
@@ -156,6 +172,7 @@ class TestColumnFilter:
         )
         assert result == SemanticDomainTypes.LOGIC
 
+    @pytest.mark.unit
     def test_infer_semantic_type_unknown(self, sample_column_types):
         """Test semantic type inference for unknown columns."""
         column_filter = ColumnFilter()
@@ -164,6 +181,7 @@ class TestColumnFilter:
         )
         assert result == SemanticDomainTypes.UNKNOWN
 
+    @pytest.mark.unit
     def test_infer_semantic_type_spark_backticks(self):
         """Test semantic type inference with Spark backtick column names."""
         column_types = [{"name": "`column_name`", "type": "INTEGER"}]
@@ -171,6 +189,7 @@ class TestColumnFilter:
         result = column_filter._infer_semantic_type_from_column_type(column_types, "column_name")
         assert result == SemanticDomainTypes.NUMERIC
 
+    @pytest.mark.unit
     def test_build_semantic_type_map(self, mock_validator, sample_column_types):
         """Test building semantic type map."""
         mock_validator.get_metric.return_value = sample_column_types
@@ -186,6 +205,7 @@ class TestColumnFilter:
         }
         assert result == expected
 
+    @pytest.mark.unit
     def test_apply_semantic_type_filters_include(self):
         """Test semantic type filtering with include types."""
         column_filter = ColumnFilter(include_semantic_types=[SemanticDomainTypes.NUMERIC])
@@ -199,6 +219,7 @@ class TestColumnFilter:
         result = column_filter._apply_semantic_type_filters(column_names, semantic_type_map)
         assert result == ["id", "age"]
 
+    @pytest.mark.unit
     def test_apply_semantic_type_filters_exclude(self):
         """Test semantic type filtering with exclude types."""
         column_filter = ColumnFilter(exclude_semantic_types=[SemanticDomainTypes.TEXT])
@@ -212,6 +233,7 @@ class TestColumnFilter:
         result = column_filter._apply_semantic_type_filters(column_names, semantic_type_map)
         assert result == ["id", "age"]
 
+    @pytest.mark.unit
     def test_get_filtered_column_names_no_semantic_filtering(
         self, mock_validator, sample_column_names
     ):
@@ -224,6 +246,7 @@ class TestColumnFilter:
         expected = ["id", "name", "age", "salary", "created_at", "is_active"]
         assert result == expected
 
+    @pytest.mark.unit
     def test_get_filtered_column_names_with_semantic_filtering(
         self, mock_validator, sample_column_names, sample_column_types
     ):
@@ -248,6 +271,7 @@ class TestColumnFilter:
         expected = ["age", "salary"]
         assert result == expected
 
+    @pytest.mark.unit
     def test_get_filtered_column_names_complex_filtering(
         self, mock_validator, sample_column_names, sample_column_types
     ):
