@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from unittest.mock import Mock
-
 import pytest
 
 from great_expectations.core.domain import SemanticDomainTypes
@@ -10,9 +8,9 @@ from great_expectations.validator.validator import Validator
 
 
 @pytest.fixture
-def mock_validator():
+def mock_validator(mocker):
     """Create a mock validator for testing."""
-    validator = Mock(spec=Validator)
+    validator = mocker.Mock(spec=Validator)
     validator.active_batch_id = "test_batch_id"
     return validator
 

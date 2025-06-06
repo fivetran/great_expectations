@@ -20,7 +20,7 @@ class ColumnFilter:
     - Column name suffixes
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         include_column_names: Optional[List[str]] = None,
         exclude_column_names: Optional[List[str]] = None,
@@ -168,59 +168,67 @@ class ColumnFilter:
         self, column_types_dict_list: List[Dict[str, Any]], column_name: str
     ) -> SemanticDomainTypes:
         """Infer semantic type from column type information."""
-        # Find the column type info
-        column_type_info = None
+        column_type_info = self._find_column_type_info(column_types_dict_list, column_name)
+        if not column_type_info:
+            return SemanticDomainTypes.UNKNOWN
+
+        column_type = str(column_type_info["type"]).upper()
+        return self._map_column_type_to_semantic_type(column_type)
+
+    def _find_column_type_info(
+        self, column_types_dict_list: List[Dict[str, Any]], column_name: str
+    ) -> Optional[Dict[str, Any]]:
+        """Find column type information for the given column name."""
         for col_info in column_types_dict_list:
             if (
                 col_info["name"] == column_name or col_info["name"].strip("`") == column_name
             ):  # Spark specific fix
-                column_type_info = col_info
-                break
+                return col_info if "type" in col_info else None
+        return None
 
-        if not column_type_info or "type" not in column_type_info:
-            return SemanticDomainTypes.UNKNOWN
-
-        column_type = str(column_type_info["type"]).upper()
-
-        # Map column type to semantic type
-        if any(
-            column_type.startswith(type_name.upper())
-            for type_name in ProfilerTypeMapping.INT_TYPE_NAMES
-            + ProfilerTypeMapping.FLOAT_TYPE_NAMES
-        ):
+    def _map_column_type_to_semantic_type(self, column_type: str) -> SemanticDomainTypes:
+        """Map column type to semantic type."""
+        # Check numeric types
+        if self._is_numeric_type(column_type):
             return SemanticDomainTypes.NUMERIC
-        elif column_type in {
-            type_name.upper() for type_name in ProfilerTypeMapping.STRING_TYPE_NAMES
-        }:
-            return SemanticDomainTypes.TEXT
-        elif column_type in {
-            type_name.upper() for type_name in ProfilerTypeMapping.BOOLEAN_TYPE_NAMES
-        }:
-            return SemanticDomainTypes.LOGIC
-        elif any(
+
+        # Check other types
+        type_mappings = [
+            (ProfilerTypeMapping.STRING_TYPE_NAMES, SemanticDomainTypes.TEXT),
+            (ProfilerTypeMapping.BOOLEAN_TYPE_NAMES, SemanticDomainTypes.LOGIC),
+            (ProfilerTypeMapping.BINARY_TYPE_NAMES, SemanticDomainTypes.BINARY),
+            (ProfilerTypeMapping.CURRENCY_TYPE_NAMES, SemanticDomainTypes.CURRENCY),
+            (ProfilerTypeMapping.IDENTIFIER_TYPE_NAMES, SemanticDomainTypes.IDENTIFIER),
+        ]
+
+        for type_names, semantic_type in type_mappings:
+            if column_type in {type_name.upper() for type_name in type_names}:
+                return semantic_type
+
+        # Check datetime types (with prefix matching)
+        if any(
             column_type.startswith(type_name.upper())
             for type_name in ProfilerTypeMapping.DATETIME_TYPE_NAMES
         ):
             return SemanticDomainTypes.DATETIME
-        elif column_type in {
-            type_name.upper() for type_name in ProfilerTypeMapping.BINARY_TYPE_NAMES
-        }:
-            return SemanticDomainTypes.BINARY
-        elif column_type in {
-            type_name.upper() for type_name in ProfilerTypeMapping.CURRENCY_TYPE_NAMES
-        }:
-            return SemanticDomainTypes.CURRENCY
-        elif column_type in {
-            type_name.upper() for type_name in ProfilerTypeMapping.IDENTIFIER_TYPE_NAMES
-        }:
-            return SemanticDomainTypes.IDENTIFIER
-        elif column_type in (
-            {type_name.upper() for type_name in ProfilerTypeMapping.MISCELLANEOUS_TYPE_NAMES}
-            | {type_name.upper() for type_name in ProfilerTypeMapping.RECORD_TYPE_NAMES}
-        ):
+
+        # Check miscellaneous types
+        if self._is_miscellaneous_type(column_type):
             return SemanticDomainTypes.MISCELLANEOUS
-        else:
-            return SemanticDomainTypes.UNKNOWN
+
+        return SemanticDomainTypes.UNKNOWN
+
+    def _is_numeric_type(self, column_type: str) -> bool:
+        """Check if column type is numeric."""
+        numeric_types = ProfilerTypeMapping.INT_TYPE_NAMES + ProfilerTypeMapping.FLOAT_TYPE_NAMES
+        return any(column_type.startswith(type_name.upper()) for type_name in numeric_types)
+
+    def _is_miscellaneous_type(self, column_type: str) -> bool:
+        """Check if column type is miscellaneous."""
+        misc_types = {
+            type_name.upper() for type_name in ProfilerTypeMapping.MISCELLANEOUS_TYPE_NAMES
+        } | {type_name.upper() for type_name in ProfilerTypeMapping.RECORD_TYPE_NAMES}
+        return column_type in misc_types
 
     def _apply_semantic_type_filters(
         self, column_names: List[str], semantic_type_map: Dict[str, SemanticDomainTypes]
