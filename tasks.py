@@ -624,6 +624,7 @@ def type_schema(  # noqa: C901 - too complex
         core.ExpectColumnValuesToNotMatchRegexList,
         core.UnexpectedRowsExpectation,
         core.ExpectQueryResultsToMatchComparison,
+        core.ExpectColumnProportionOfNonNullValuesToBeBetween,
     ]
     for x in supported_expectations:
         schema_path = expectation_dir.joinpath(f"{x.__name__}.json")

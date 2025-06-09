@@ -1,0 +1,182 @@
+{
+    "title": "ExpectColumnProportionOfNonNullValuesToBeBetween",
+    "description": "Base class for column aggregate Expectations.\n\nThese types of Expectation produce an aggregate metric for a column, such as the mean, standard deviation,\nnumber of unique values, column type, etc.\n\n--Documentation--\n    - https://docs.greatexpectations.io/docs/guides/expectations/creating_custom_expectations/how_to_create_custom_column_aggregate_expectations/\n\nArgs:\n domain_keys (tuple): A tuple of the keys used to determine the domain of the\n     expectation.\n success_keys (tuple): A tuple of the keys used to determine the success of\n     the expectation.\n\n     - A  \"column\" key is required for column expectations.\n\nRaises:\n    InvalidExpectationConfigurationError: If no `column` is specified",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "Id",
+            "type": "string"
+        },
+        "meta": {
+            "title": "Meta",
+            "type": "object"
+        },
+        "notes": {
+            "title": "Notes",
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "result_format": {
+            "title": "Result Format",
+            "default": "BASIC",
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/ResultFormat"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        },
+        "description": {
+            "title": "Description",
+            "description": "A short description of your Expectation",
+            "type": "string"
+        },
+        "catch_exceptions": {
+            "title": "Catch Exceptions",
+            "default": false,
+            "type": "boolean"
+        },
+        "rendered_content": {
+            "title": "Rendered Content",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "windows": {
+            "title": "Windows",
+            "description": "Definition(s) for evaluation of temporal windows",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Window"
+            }
+        },
+        "batch_id": {
+            "title": "Batch Id",
+            "type": "string"
+        },
+        "column": {
+            "title": "Column",
+            "description": "The column name.",
+            "minLength": 1,
+            "type": "string"
+        },
+        "row_condition": {
+            "title": "Row Condition",
+            "type": "string"
+        },
+        "condition_parser": {
+            "title": "Condition Parser",
+            "enum": [
+                "great_expectations",
+                "great_expectations__experimental__",
+                "pandas",
+                "spark"
+            ],
+            "type": "string"
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "expectation_class": {
+                    "title": "Expectation Class",
+                    "type": "string",
+                    "const": "ExpectColumnProportionOfNonNullValuesToBeBetween"
+                },
+                "expectation_type": {
+                    "title": "Expectation Type",
+                    "type": "string",
+                    "const": ""
+                },
+                "domain_type": {
+                    "title": "Domain Type",
+                    "type": "string",
+                    "const": "column",
+                    "description": "Column Aggregate"
+                }
+            }
+        }
+    },
+    "required": [
+        "column"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "ResultFormat": {
+            "title": "ResultFormat",
+            "description": "An enumeration.",
+            "enum": [
+                "BOOLEAN_ONLY",
+                "BASIC",
+                "COMPLETE",
+                "SUMMARY"
+            ],
+            "type": "string"
+        },
+        "Offset": {
+            "title": "Offset",
+            "description": "A threshold in which a metric will be considered passable",
+            "type": "object",
+            "properties": {
+                "positive": {
+                    "title": "Positive",
+                    "type": "number"
+                },
+                "negative": {
+                    "title": "Negative",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "positive",
+                "negative"
+            ],
+            "additionalProperties": false
+        },
+        "Window": {
+            "title": "Window",
+            "description": "A definition for a temporal window across <`range`> number of previous invocations",
+            "type": "object",
+            "properties": {
+                "constraint_fn": {
+                    "title": "Constraint Fn",
+                    "type": "string"
+                },
+                "parameter_name": {
+                    "title": "Parameter Name",
+                    "type": "string"
+                },
+                "range": {
+                    "title": "Range",
+                    "type": "integer"
+                },
+                "offset": {
+                    "$ref": "#/definitions/Offset"
+                },
+                "strict": {
+                    "title": "Strict",
+                    "default": false,
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "constraint_fn",
+                "parameter_name",
+                "range",
+                "offset"
+            ],
+            "additionalProperties": false
+        }
+    }
+}
