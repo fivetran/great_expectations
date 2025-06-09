@@ -149,7 +149,7 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
                     "exception_message": null
                   }},
                   "result": {{
-                    "observed_value": .75
+                    "observed_value": 0.75
                   }},
                   "meta": {{}},
                   "success": true
@@ -173,7 +173,7 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
                     "exception_message": null
                   }},
                   "result": {{
-                    "observed_value": .67
+                    "observed_value": 0.75
                   }},
                   "meta": {{}},
                   "success": false
