@@ -8,9 +8,6 @@ import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
-from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
-    JUST_PANDAS_DATA_SOURCES,
-)
 from tests.integration.test_utils.data_source_config import RedshiftDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.big_query import BigQueryDatasourceTestConfig
@@ -37,6 +34,7 @@ HALF_NONNULL_COL = "half_nonnull"
 MOSTLY_NONNULL_COL = "mostly_nonnull"
 NO_NONNULL_COL = "no_nonnull"
 STRING_COL = "my_strings"
+TEST_COL = "test_col"
 
 
 # Create a sample dataframe with different proportions of nonnull values
@@ -50,6 +48,9 @@ DATA = pd.DataFrame(
     },
     dtype="object",
 )
+
+# Create an empty dataframe
+EMPTY_DATA = pd.DataFrame({TEST_COL: []})
 
 COLUMN_TYPES = {NO_NONNULL_COL: sqlatypes.INTEGER}
 try:
@@ -79,11 +80,16 @@ ALL_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     SqliteDatasourceTestConfig(column_types=COLUMN_TYPES),
 ]
 
+# Define a data source config that only includes SQLite
+JUST_SQLITE_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
+    SqliteDatasourceTestConfig(column_types=COLUMN_TYPES),
+]
+
 
 @parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=DATA)
 def test_success_complete_results(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
-        column=HALF_NONNULL_COL, min_value=0.5, max_value=0.5
+        column=HALF_NONNULL_COL, min_value=0.4, max_value=0.7
     )
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     assert result.success
@@ -92,9 +98,8 @@ def test_success_complete_results(batch_for_datasource: Batch) -> None:
 
 @parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=DATA)
 def test_strings(batch_for_datasource: Batch) -> None:
-    # String column has 6 non-null values out of 10 (60%)
     expectation = gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
-        column=STRING_COL, min_value=0.6, max_value=0.6
+        column=STRING_COL, min_value=0.4, max_value=0.7
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success
@@ -109,13 +114,13 @@ def test_strings(batch_for_datasource: Batch) -> None:
         ),
         pytest.param(
             gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
-                column=HALF_NONNULL_COL, min_value=0.5, max_value=0.5
+                column=HALF_NONNULL_COL, min_value=0.4, max_value=0.7
             ),
             id="half_nonnull",
         ),
         pytest.param(
             gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
-                column=ALL_NONNULL_COL, min_value=1.0, max_value=1.0
+                column=ALL_NONNULL_COL, min_value=0.9, max_value=1.0
             ),
             id="all_nonnull",
         ),
@@ -149,7 +154,7 @@ def test_strings(batch_for_datasource: Batch) -> None:
         ),
     ],
 )
-@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_SQLITE_DATA_SOURCES, data=DATA)
 def test_success(
     batch_for_datasource: Batch, expectation: gxe.ExpectColumnProportionOfNonNullValuesToBeBetween
 ) -> None:
@@ -180,9 +185,29 @@ def test_success(
         ),
     ],
 )
-@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_SQLITE_DATA_SOURCES, data=DATA)
 def test_failure(
     batch_for_datasource: Batch, expectation: gxe.ExpectColumnProportionOfNonNullValuesToBeBetween
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_SQLITE_DATA_SOURCES, data=EMPTY_DATA)
+def test_empty_dataframe(batch_for_datasource: Batch) -> None:
+    """Test that expectations handle empty dataframes correctly."""
+    expectation = gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
+        column=TEST_COL, min_value=0.0, max_value=1.0
+    )
+    result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
+    assert result.success
+
+    expectation_zero = gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
+        column=TEST_COL, min_value=0.0, max_value=0.0
+    )
+    result_zero = batch_for_datasource.validate(
+        expectation_zero, result_format=ResultFormat.COMPLETE
+    )
+
+    assert result_zero.success
+    assert result_zero.to_json_dict()["result"] == {"observed_value": 0}

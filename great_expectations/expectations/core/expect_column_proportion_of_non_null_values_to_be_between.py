@@ -200,7 +200,7 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
 
     _library_metadata = library_metadata
 
-    metric_dependencies = ("column.nonnull_count",)
+    metric_dependencies = ("column.nonnull_proportion",)
     success_keys = (
         "min_value",
         "max_value",
@@ -276,7 +276,7 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
         execution_engine: Optional[ExecutionEngine] = None,
     ):
         return self._validate_metric_value_between(
-            metric_name="column.nonnull_count",
+            metric_name="column.nonnull_proportion",
             metrics=metrics,
             runtime_configuration=runtime_configuration,
             execution_engine=execution_engine,
