@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
 from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.types import (
     Comparable,  # noqa: TC001 # pydantic instantiates this type at runtime
 )
@@ -249,15 +250,17 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
             )
 
     @classmethod
-    def _prescriptive_template(
+    @override
+    def _prescriptive_template(  # type: ignore[empty-body]  # TODO: remove this with impementation
         cls,
         renderer_configuration: RendererConfiguration,
     ) -> RendererConfiguration: ...
 
     @classmethod
+    @override
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
-    def _prescriptive_renderer(
+    def _prescriptive_renderer(  # type: ignore[empty-body]  # TODO: remove this with impementation
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
@@ -265,7 +268,8 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
         **kwargs,
     ) -> list[RenderedStringTemplateContent]: ...
 
-    def _validate(
+    @override
+    def _validate(  # type: ignore[empty-body]  # TODO: remove this with impementation
         self,
         metrics: dict,
         runtime_configuration: Optional[dict] = None,
