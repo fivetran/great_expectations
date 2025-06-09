@@ -9,8 +9,11 @@ from great_expectations.core.types import (
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
+    render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
+from great_expectations.render import LegacyRendererType
+from great_expectations.render.renderer.renderer import renderer
 
 if TYPE_CHECKING:
     from great_expectations.core import (
@@ -251,6 +254,9 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
         renderer_configuration: RendererConfiguration,
     ) -> RendererConfiguration: ...
 
+    @classmethod
+    @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
+    @render_suite_parameter_string
     def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
