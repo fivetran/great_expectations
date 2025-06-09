@@ -25,7 +25,7 @@ To detect schema anomalies, we automatically generate a rule to [**expect table 
 
 ### Volume
 
-“To detect anomalies in row count, we automatically generate a rule to [**expect table row count to be between**](/reference/learn/data_quality_use_cases/volume.md#expect-table-row-count-to-be-between) with a forecasted range that tests that the current validation run doesn’t deviate significantly from historical patterns. For example, if there is a sudden increase when volume has been stable or stagnation in a season when volume typically grows, then this Expectation will fail.
+To detect anomalies in row count, we automatically generate a rule to [**expect table row count to be between**](/reference/learn/data_quality_use_cases/volume.md#expect-table-row-count-to-be-between) with a forecasted range that tests that the current validation run doesn’t deviate significantly from historical patterns. For example, if there is a sudden increase when volume has been stable or stagnation in a season when volume typically grows, then this Expectation will fail.
 
 
 ### Completeness

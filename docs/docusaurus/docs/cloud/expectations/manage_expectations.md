@@ -133,6 +133,8 @@ When you select your `n` run count, and:
 
 Forecasted ranges are determined by GX Cloud through a continuous learning algorithm that analyzes historical patterns in your data. For example, a forecasted range for volume Anomaly Detection could detect a sudden increase when volume has been stable or stagnation in a season when volume typically grows. GX Cloud sets and updates forecasted range parameters on your behalf. 
 
+Expectations with forecasted ranges will neither pass nor fail until there have been at least 2 validation runs. This is because GX Cloud needs at least 2 data points to produce a forecast.
+
 ## Expectation condition
 
 The Expectation condition is an optional field that applies to any Expectation validating row-level data. This condition allows you to filter your data so that only a specific subset of your Batch is validated. Rows will be validated only when the condition is true.
