@@ -13,7 +13,15 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 
 if TYPE_CHECKING:
+    from great_expectations.core import (
+        ExpectationValidationResult,
+    )
     from great_expectations.execution_engine import ExecutionEngine
+    from great_expectations.expectations.expectation_configuration import (
+        ExpectationConfiguration,
+    )
+    from great_expectations.render import RenderedStringTemplateContent
+    from great_expectations.render.renderer_configuration import RendererConfiguration
 
 EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the proportion of non-null values to be between a minimum value and a maximum value."
@@ -236,6 +244,20 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
                     },
                 }
             )
+
+    @classmethod
+    def _prescriptive_template(
+        cls,
+        renderer_configuration: RendererConfiguration,
+    ) -> RendererConfiguration: ...
+
+    def _prescriptive_renderer(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+        **kwargs,
+    ) -> list[RenderedStringTemplateContent]: ...
 
     def _validate(
         self,
