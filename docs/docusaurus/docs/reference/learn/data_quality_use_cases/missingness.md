@@ -29,7 +29,7 @@ In this dataset, you'll notice missing data in the `type` and `transfer_date` co
 GX provides missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using GX Cloud or GX Core. 
 
 :::tip Automate these rules
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations#add-an-expectation), you can automate Expectations for Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs.
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can automate Expectations for Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs.
 :::
 
 ### Expect Column Values To Not Be Null
