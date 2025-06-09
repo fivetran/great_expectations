@@ -269,7 +269,7 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
     ) -> list[RenderedStringTemplateContent]: ...
 
     @override
-    def _validate(  # type: ignore[empty-body]  # TODO: remove this with impementation
+    def _validate(
         self,
         metrics: dict,
         runtime_configuration: Optional[dict] = None,
