@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 def nonnull_proportion(_metrics):
     """Computes the proportion of non-null values out of all values"""
     total_values = _metrics.get("table.row_count")
-    nonnull_count = _metrics.get("column.nonnull_count")
+    nonnull_count = _metrics.get("column.non_null_count")
 
     # Ensuring that we do not divide by 0, returning 0 if all values are nulls
     if total_values > 0:
@@ -34,7 +34,7 @@ def nonnull_proportion(_metrics):
 
 
 class ColumnNonNullProportion(ColumnAggregateMetricProvider):
-    metric_name = "column.nonnull_proportion"
+    metric_name = "column.non_null_proportion"
 
     @metric_value(engine=PandasExecutionEngine)
     def _pandas(*args, metrics, **kwargs):
