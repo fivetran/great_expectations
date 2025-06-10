@@ -686,18 +686,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
         name="get_validator",
     ),
     PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/experimental/rule_based_profiler/helpers/util.py"
-        ),
-        name="build_batch_request",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/experimental/rule_based_profiler/rule_based_profiler.py"
-        ),
-        name="run",
-    ),
-    PrintableDefinition(
         file=pathlib.Path("great_expectations/render/components.py"),
         name="CollapseContent",
     ),

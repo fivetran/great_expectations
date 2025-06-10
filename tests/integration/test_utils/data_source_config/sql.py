@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -31,6 +32,8 @@ from tests.integration.test_utils.data_source_config.base import BatchTestSetup,
 
 if TYPE_CHECKING:
     import sqlalchemy as sa
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -153,6 +156,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             # create schema if needed
 
             if self.schema:
+                logger.info(f"CREATING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"CREATE SCHEMA {self.schema}"))
 
             # create tables
@@ -178,6 +182,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             table.drop(engine)
         if self.schema:
             with engine.connect() as conn, conn.begin():
+                logger.info(f"DROPPING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
         cleanup()
 

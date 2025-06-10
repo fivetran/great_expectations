@@ -4,12 +4,12 @@ import os.path
 
 import matplotlib.pyplot as plt
 import numpy as np
-
-from great_expectations.data_context.util import file_relative_path
 from time_series_expectations.generator import (
     DailyTimeSeriesGenerator,
     HourlyTimeSeriesGenerator,
 )
+
+from great_expectations.data_context.util import file_relative_path
 
 plt.rcParams["figure.figsize"] = (20, 3)
 

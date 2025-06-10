@@ -26,7 +26,7 @@ print(json.dumps(readable_report, indent=4))
 ```
 Note: The Data Profiler comes with a pre-trained deep learning model, used to efficiently identify **sensitive data** (PII / NPI). If desired, it's easy to add new entities to the existing pre-trained model or insert an entire new pipeline for entity recognition.
 
-For API documentation, visit the [documentation page](https://capitalone.github.io/DataProfiler/).
+For more information, visit the [documentation page](https://capitalone.github.io/DataProfiler/).
 
 If you have suggestions or find a bug, [please open an issue](https://github.com/capitalone/dataprofiler/issues/new/choose).
 
@@ -489,7 +489,7 @@ profile = dp.Profiler(text_data, profiler_type='unstructured')
 report = profile.report(report_options={"output_format": "pretty"})
 print(json.dumps(report, indent=4))
 ```
-**Visit the [documentation page](https://capitalone.github.io/DataProfiler/) for additional Examples and API details**
+**Visit the [documentation page](https://capitalone.github.io/DataProfiler/) for additional examples and details**
 
 
 # References

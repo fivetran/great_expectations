@@ -59,6 +59,8 @@ REDSHIFT_TYPES = (
         "time with time zone": aws.redshiftdialect.TIMETZ,
         "timestamp without time zone": aws.redshiftdialect.TIMESTAMP,
         "timestamp with time zone": aws.redshiftdialect.TIMESTAMPTZ,
+        "geometry": aws.redshiftdialect.GEOMETRY,
+        "super": aws.redshiftdialect.SUPER,
     }
     if aws.redshiftdialect
     else {}
