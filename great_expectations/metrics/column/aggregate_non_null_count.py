@@ -9,4 +9,4 @@ class ColumnAggregateNonNullCountResult(MetricResult[int]): ...
 class ColumnAggregateNonNullCount(ColumnMetric[ColumnAggregateNonNullCountResult]):
     """Count of non-null values in a column"""
 
-    name = "column.nonnull_count"
+    name = "column.non_null_count"
