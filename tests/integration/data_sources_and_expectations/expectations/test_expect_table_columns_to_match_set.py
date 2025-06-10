@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
@@ -86,3 +87,25 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(False, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_exact_match_(
+    batch_for_datasource: Batch, suite_param_value: str, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_table_columns_to_match_set"
+    expectation = gxe.ExpectTableColumnsToMatchSet(
+        column_set=[COL_A, COL_B],
+        exact_match={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

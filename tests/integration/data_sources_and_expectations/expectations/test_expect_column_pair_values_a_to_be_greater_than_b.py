@@ -190,3 +190,49 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(True, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_or_equal_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_column_pair_values_a_to_be_greater_than_b"
+    expectation = gxe.ExpectColumnPairValuesAToBeGreaterThanB(
+        column_A=NUMBERS_A,
+        column_B=NUMBERS_B,
+        or_equal={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param("both_values_are_missing", True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_ignore_row_if_(
+    batch_for_datasource: Batch, suite_param_value: str, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_column_pair_values_a_to_be_greater_than_b"
+    expectation = gxe.ExpectColumnPairValuesAToBeGreaterThanB(
+        column_A=NUMBERS_A,
+        column_B=NUMBERS_B,
+        ignore_row_if={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

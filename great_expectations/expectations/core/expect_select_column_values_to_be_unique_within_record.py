@@ -182,9 +182,7 @@ class ExpectSelectColumnValuesToBeUniqueWithinRecord(MulticolumnMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    column_list: Union[Sequence[str], SuiteParameterDict] = pydantic.Field(
-        description=COLUMN_LIST_DESCRIPTION
-    )
+    column_list: Sequence[str] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
     ignore_row_if: Union[str, SuiteParameterDict] = pydantic.Field(
         default="all_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION
     )

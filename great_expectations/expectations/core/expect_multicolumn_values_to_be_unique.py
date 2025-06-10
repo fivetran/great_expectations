@@ -72,7 +72,7 @@ class ExpectMulticolumnValuesToBeUnique(ColumnMapExpectation):
          Exact fields vary depending on the values passed to result_format, catch_exceptions, and meta.
     """  # noqa: E501 # FIXME CoP
 
-    column_list: Union[tuple, list, SuiteParameterDict]
+    column_list: Union[tuple, list]
     ignore_row_if: Union[str, SuiteParameterDict] = "all_values_are_missing"
 
     library_metadata = {

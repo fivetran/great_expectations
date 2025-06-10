@@ -315,17 +315,22 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
             )
 
     @pydantic.validator("quantile_ranges")
-    def validate_quantile_ranges(cls, quantile_ranges: QuantileRange) -> Optional[QuantileRange]:
-        try:
-            assert all(
-                True if None in x else x == sorted([val for val in x if val is not None])
-                for x in quantile_ranges.value_ranges
-            ), "quantile_ranges must consist of ordered pairs"
-        except AssertionError as e:
-            raise InvalidExpectationConfigurationError(str(e))
+    def validate_quantile_ranges(
+        cls, quantile_ranges: QuantileRange | SuiteParameterDict
+    ) -> Optional[QuantileRange | SuiteParameterDict]:
+        if isinstance(quantile_ranges, QuantileRange):
+            try:
+                assert all(
+                    True if None in x else x == sorted([val for val in x if val is not None])
+                    for x in quantile_ranges.value_ranges
+                ), "quantile_ranges must consist of ordered pairs"
+            except AssertionError as e:
+                raise InvalidExpectationConfigurationError(str(e))
 
-        if len(quantile_ranges.quantiles) != len(quantile_ranges.value_ranges):
-            raise ValueError("quantile_values and quantiles must have the same number of elements")  # noqa: TRY003 # FIXME CoP
+            if len(quantile_ranges.quantiles) != len(quantile_ranges.value_ranges):
+                raise ValueError(  # noqa: TRY003
+                    "quantile_values and quantiles must have the same number of elements"
+                )  # FIXME CoP
 
         return quantile_ranges
 

@@ -101,3 +101,56 @@ def test_no_data(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
     assert result.to_json_dict()["result"] == {"observed_value": None}
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(True, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA_WITH_NULLS
+)
+def test_success_with_suite_param_strict_min_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_mean_to_be_between"
+    expectation = gxe.ExpectColumnMeanToBeBetween(
+        column=COL_NAME,
+        min_value=2,
+        max_value=3,
+        strict_min={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(True, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA_WITH_NULLS
+)
+def test_success_with_suite_param_strict_max_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_mean_to_be_between"
+    expectation = gxe.ExpectColumnMeanToBeBetween(
+        column=COL_NAME,
+        min_value=2,
+        max_value=3,
+        strict_max={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

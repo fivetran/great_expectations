@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
@@ -50,3 +51,129 @@ def test_failure(batch_for_datasource: Batch) -> None:
     )
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param({"weights": [0.5, 0.3, 0.2], "values": ["A", "B", "C"]}, True, id="success"),
+        pytest.param(
+            {
+                "weights": [0.3333333333333333, 0.3333333333333333, 0.3333333333333333],
+                "values": ["A", "B", "C"],
+            },
+            False,
+            id="failure",
+        ),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_partition_object_(
+    batch_for_datasource: Batch, suite_param_value: dict, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_kl_divergence_to_be_less_than"
+    expectation = gxe.ExpectColumnKLDivergenceToBeLessThan(
+        column=COL_NAME,
+        partition_object={"$PARAMETER": suite_param_key},
+        threshold=0.01,
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(0.01, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_threshold_(
+    batch_for_datasource: Batch, suite_param_value: float, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_kl_divergence_to_be_less_than"
+    expectation = gxe.ExpectColumnKLDivergenceToBeLessThan(
+        column=COL_NAME,
+        partition_object={"weights": [0.5, 0.3, 0.2], "values": ["A", "B", "C"]},
+        threshold={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(0, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_internal_weight_holdout_(
+    batch_for_datasource: Batch, suite_param_value: float, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_kl_divergence_to_be_less_than"
+    expectation = gxe.ExpectColumnKLDivergenceToBeLessThan(
+        column=COL_NAME,
+        partition_object={"weights": [0.5, 0.3, 0.2], "values": ["A", "B", "C"]},
+        threshold=0.01,
+        internal_weight_holdout={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(0.1, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_tail_weight_holdout_(
+    batch_for_datasource: Batch, suite_param_value: float, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_kl_divergence_to_be_less_than"
+    expectation = gxe.ExpectColumnKLDivergenceToBeLessThan(
+        column=COL_NAME,
+        partition_object={"weights": [0.5, 0.3, 0.2], "values": ["A", "B", "C"]},
+        threshold=0.01,
+        tail_weight_holdout={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(True, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_bucketize_data_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_kl_divergence_to_be_less_than"
+    expectation = gxe.ExpectColumnKLDivergenceToBeLessThan(
+        column=COL_NAME,
+        partition_object={"weights": [0.5, 0.3, 0.2], "values": ["A", "B", "C"]},
+        threshold=0.01,
+        bucketize_data={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

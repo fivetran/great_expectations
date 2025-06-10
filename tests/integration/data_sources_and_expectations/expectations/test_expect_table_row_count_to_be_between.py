@@ -3,6 +3,7 @@ import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.compatibility import pydantic
+from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
@@ -145,3 +146,49 @@ def test_invalid_runtime_parameters() -> None:
             min_value={"min_value": "param_min_value"},
             max_value={"max_value": "param_max_values"},
         )
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(True, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_strict_min_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_table_row_count_to_be_between"
+    expectation = gxe.ExpectTableRowCountToBeBetween(
+        min_value=2,
+        max_value=4,
+        strict_min={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(True, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_strict_max_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_table_row_count_to_be_between"
+    expectation = gxe.ExpectTableRowCountToBeBetween(
+        min_value=2,
+        max_value=4,
+        strict_max={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

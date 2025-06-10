@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
@@ -72,3 +73,58 @@ def test_failure(batch_for_datasource: Batch) -> None:
     )
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
     assert not result.success
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(
+            {
+                "quantiles": [0, 0.333, 0.667, 1],
+                "value_ranges": [[0, 1], [2, 3], [3, 4], [4, 5]],
+            },
+            True,
+            id="success",
+        ),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_quantile_ranges_(
+    batch_for_datasource: Batch, suite_param_value: dict, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_column_quantile_values_to_be_between"
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(False, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_allow_relative_error_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_column_quantile_values_to_be_between"
+    expectation = gxe.ExpectColumnQuantileValuesToBeBetween(
+        column=COL_NAME,
+        quantile_ranges=QuantileRange(
+            quantiles=[0, 0.333, 0.667, 1],
+            value_ranges=[[0, 1], [2, 3], [3, 4], [4, 5]],
+        ),
+        allow_relative_error={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

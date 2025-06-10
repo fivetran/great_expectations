@@ -948,3 +948,61 @@ def _create_table_rendered_atomic_content(
         ),
         value_type="TableType",
     )
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param("SELECT * FROM {batch}", True, id="success"),
+    ],
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+    base_data=BASE_DATA,
+    comparison_data=COMPARISON_DATA,
+)
+def test_success_with_suite_param_base_query_(
+    multi_source_batch: MultiSourceBatch, suite_param_value: str, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_query_results_to_match_comparison"
+
+    expectation = gxe.ExpectQueryResultsToMatchComparison(
+        base_query={"$PARAMETER": suite_param_key},
+        comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+        comparison_query="SELECT * FROM {source_table}".replace(
+            "{source_table}", multi_source_batch.comparison_table_name
+        ),
+    )
+
+    result = multi_source_batch.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param("SELECT * FROM {source_table}", True, id="success"),
+    ],
+)
+@multi_source_batch_setup(
+    multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+    base_data=BASE_DATA,
+    comparison_data=COMPARISON_DATA,
+)
+def test_success_with_suite_param_comparison_query_(
+    multi_source_batch: MultiSourceBatch, suite_param_value: str, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_query_results_to_match_comparison"
+
+    expectation = gxe.ExpectQueryResultsToMatchComparison(
+        base_query="SELECT * FROM {batch}",
+        comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+        comparison_query={"$PARAMETER": suite_param_key},
+    )
+
+    result = multi_source_batch.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
