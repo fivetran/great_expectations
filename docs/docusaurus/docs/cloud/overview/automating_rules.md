@@ -10,7 +10,7 @@ With GX Cloud, you can automatically generate data quality rules to more quickly
 
 ## Anomaly Detection
 
-When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cloud by default generates Expectations to detect anomalies in the following data quality issues. You can also automate Anomaly Detection for these when you [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) on an existing Data Asset.
+When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cloud by default generates Expectations to detect anomalies in the following data quality issues. You can also automate Anomaly Detection for these when you [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
 
 - [Schema](#schema)
 - [Volume](#volume)
