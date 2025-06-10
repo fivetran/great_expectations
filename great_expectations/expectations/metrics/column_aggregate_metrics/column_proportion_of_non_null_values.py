@@ -64,8 +64,8 @@ class ColumnNonNullProportion(ColumnAggregateMetricProvider):
             runtime_configuration=runtime_configuration,
         )
 
-        dependencies["column.nonnull_count"] = MetricConfiguration(
-            metric_name="column.nonnull_count",
+        dependencies["column.non_null_count"] = MetricConfiguration(
+            metric_name="column.non_null_count",
             metric_domain_kwargs=metric.metric_domain_kwargs,
         )
 
