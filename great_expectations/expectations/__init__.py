@@ -13,6 +13,7 @@ from .core import (
     ExpectColumnPairValuesAToBeGreaterThanB,
     ExpectColumnPairValuesToBeEqual,
     ExpectColumnPairValuesToBeInSet,
+    ExpectColumnProportionOfNonNullValuesToBeBetween,
     ExpectColumnProportionOfUniqueValuesToBeBetween,
     ExpectColumnQuantileValuesToBeBetween,
     ExpectColumnStdevToBeBetween,
