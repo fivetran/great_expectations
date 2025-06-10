@@ -148,6 +148,10 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                                 "schema": {"type": "number"},
                                 "value": 0.7,
                             },
+                            "max_value": {
+                                "schema": {"type": "number"},
+                                "value": 0.7,
+                            },
                         },
                         schema={"type": "com.superconductive.rendered.string"},
                     ),
