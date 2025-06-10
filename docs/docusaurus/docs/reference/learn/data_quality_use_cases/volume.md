@@ -39,8 +39,8 @@ Ensures that the number of rows in a dataset falls within a specified range.
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/volume_resources/volume_expectations.py ExpectTableRowCountToBeBetween"
 ```
 
-:::tip Automate this rule
-When you [create a new Data Asset with GX Cloud](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can automate an instance of this Expectation for Anomaly Detection that detects volume changes that deviate from historical patterns.
+:::tip Automate this rule with GX Cloud
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can automate an instance of this Expectation for Anomaly Detection that detects volume changes that deviate from historical patterns.
 :::
 
 <small>View `ExpectTableRowCountToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between).</small>
@@ -164,7 +164,7 @@ The scenarios in this section outline common real-world use cases for data volum
 
 ## Avoid common volume validation pitfalls
 
-- **Static Thresholds**: Avoid using fixed thresholds for `ExpectTableRowCountToBeBetween` that don't account for natural growth or seasonality. For example, an e-commerce platform might need different volume thresholds for regular days versus holiday seasons. Regularly review and adjust your parameters. Or to save time, automate [Anomaly Detection](/cloud/overview/automating_rules.md#anomaly-detection). 
+- **Static Thresholds**: Avoid using fixed thresholds for `ExpectTableRowCountToBeBetween` that don't account for natural growth or seasonality. For example, an e-commerce platform might need different volume thresholds for regular days versus holiday seasons. Regularly review and adjust your parameters. Or to save time, automate [Anomaly Detection](/cloud/overview/automating_rules.md#anomaly-detection) with GX Cloud. 
 
 - **Ignoring Data Skew**: Data skew refers to the uneven distribution of data across partitions or nodes in a distributed system. Failing to account for data skew when validating volume can lead to misleading results. Monitor volume at the partition level and implement checks to detect and handle data skew.
 

@@ -138,8 +138,8 @@ flexibility where column presence is more critical than their sequence.
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/schema_resources/schema_expectations.py ExpectTableColumnsToMatchSet"
 ```
 
-:::tip Automate this rule
-When you [create a new Data Asset with GX Cloud](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can automate a schema Expectation for Anomaly Detection to test that columns don't diverge from the initial set over time.
+:::tip Automate this rule with GX Cloud
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can automate a schema Expectation for Anomaly Detection to test that columns don't diverge from the initial set over time.
 :::
 
 <small>View `ExpectTableColumnsToMatchSet` in the [Expectation
