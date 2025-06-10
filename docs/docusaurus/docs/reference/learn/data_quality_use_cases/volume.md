@@ -73,7 +73,7 @@ Compares the row count of the current table to another table within the same dat
 <br/>
 
 :::tip[GX tips for volume Expectations]
-- Use `ExpectTableRowCountToBeBetween` with a forecasted range based on historical data and growth patterns to maintain relevance.
+- Regularly adjust your `ExpectTableRowCountToBeBetween` thresholds based on historical data and growth patterns to maintain relevance. Or to save time, automate a forecasted range with GX Cloud.
 - Use `ExpectTableRowCountToEqual` in conjunction with time-based partitioning for precise daily volume checks.
 - Implement `ExpectTableRowCountToEqualOtherTable` to ensure data integrity across your data pipeline stages.
 :::
