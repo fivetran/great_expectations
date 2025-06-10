@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
@@ -13,8 +13,21 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
-from great_expectations.render import LegacyRendererType
+from great_expectations.render import (
+    LegacyDescriptiveRendererType,
+    LegacyRendererType,
+    RenderedStringTemplateContent,
+)
 from great_expectations.render.renderer.renderer import renderer
+from great_expectations.render.renderer_configuration import (
+    RendererConfiguration,
+    RendererValueType,
+)
+from great_expectations.render.util import (
+    handle_strict_min_max,
+    parse_row_condition_string_pandas_engine,
+    substitute_none_for_missing,
+)
 
 if TYPE_CHECKING:
     from great_expectations.core import (
@@ -24,8 +37,7 @@ if TYPE_CHECKING:
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
-    from great_expectations.render import RenderedStringTemplateContent
-    from great_expectations.render.renderer_configuration import RendererConfiguration
+    from great_expectations.render.renderer_configuration import AddParamArgs
 
 EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the proportion of non-null values to be between a minimum value and a maximum value."
@@ -250,23 +262,152 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
             )
 
     @classmethod
+    def _get_min_max_string(cls, renderer_configuration: RendererConfiguration) -> str:
+        params = renderer_configuration.params
+
+        if not params.min_value and not params.max_value:
+            return "may have any fraction of non-null values."
+        else:
+            at_least_str = "greater than or equal to"
+            if params.strict_min:
+                at_least_str = cls._get_strict_min_string(
+                    renderer_configuration=renderer_configuration
+                )
+            at_most_str = "less than or equal to"
+            if params.strict_max:
+                at_most_str = cls._get_strict_max_string(
+                    renderer_configuration=renderer_configuration
+                )
+            if not params.min_value:
+                return f"fraction of non-null values must be {at_most_str} $max_value."
+            elif not params.max_value:
+                return f"fraction of non-null values must be {at_least_str} $min_value."
+            elif params.min_value.value != params.max_value.value:
+                return (
+                    f"fraction of non-null values must be {at_least_str} $min_value "
+                    f"and {at_most_str} $max_value."
+                )
+            else:
+                return "fraction of non-null values must be exactly $min_value."
+
+    @classmethod
     @override
-    def _prescriptive_template(  # type: ignore[empty-body]  # TODO: remove this with impementation
+    def _prescriptive_template(
         cls,
         renderer_configuration: RendererConfiguration,
-    ) -> RendererConfiguration: ...
+    ) -> RendererConfiguration:
+        add_param_args: AddParamArgs = (
+            ("column", RendererValueType.STRING),
+            ("min_value", [RendererValueType.NUMBER, RendererValueType.DATETIME]),
+            ("max_value", [RendererValueType.NUMBER, RendererValueType.DATETIME]),
+            ("strict_min", RendererValueType.BOOLEAN),
+            ("strict_max", RendererValueType.BOOLEAN),
+        )
+        for name, param_type in add_param_args:
+            renderer_configuration.add_param(name=name, param_type=param_type)
+
+        template_str = cls._get_min_max_string(renderer_configuration)
+
+        if renderer_configuration.include_column_name:
+            template_str = f"$column {template_str}"
+
+        renderer_configuration.template_str = template_str
+
+        return renderer_configuration
 
     @classmethod
     @override
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
-    def _prescriptive_renderer(  # type: ignore[empty-body]  # TODO: remove this with impementation
+    def _prescriptive_renderer(
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
         **kwargs,
-    ) -> list[RenderedStringTemplateContent]: ...
+    ) -> list[RenderedStringTemplateContent]:
+        runtime_configuration = runtime_configuration or {}
+        include_column_name = runtime_configuration.get("include_column_name") is not False
+        styling = runtime_configuration.get("styling")
+        params = (
+            substitute_none_for_missing(
+                configuration.kwargs,
+                [
+                    "column",
+                    "min_value",
+                    "max_value",
+                    "row_condition",
+                    "condition_parser",
+                    "strict_min",
+                    "strict_max",
+                ],
+            )
+            if configuration
+            else {}
+        )
+
+        if params["min_value"] is None and params["max_value"] is None:
+            template_str = "may have any fraction of non-null values."
+        else:
+            at_least_str, at_most_str = handle_strict_min_max(params)
+            if params["min_value"] is None:
+                template_str = f"fraction of non-null values must be {at_most_str} $max_value."
+            elif params["max_value"] is None:
+                template_str = f"fraction of non-null values must be {at_least_str} $min_value."
+            elif params["min_value"] != params["max_value"]:
+                template_str = (
+                    f"fraction of non-null values must be {at_least_str} $min_value "
+                    f"and {at_most_str} $max_value."
+                )
+            else:
+                template_str = "fraction of non-null values must be exactly $min_value."
+
+        if include_column_name:
+            template_str = f"$column {template_str}"
+
+        if params["row_condition"] is not None:
+            (
+                conditional_template_str,
+                conditional_params,
+            ) = parse_row_condition_string_pandas_engine(params["row_condition"])
+            template_str = f"{conditional_template_str}, then {template_str}"
+            params.update(conditional_params)
+
+        return [
+            RenderedStringTemplateContent(
+                content_block_type="string_template",
+                string_template={
+                    "template": template_str,
+                    "params": params,
+                    "styling": styling,
+                },
+            ),
+        ]
+
+    @classmethod
+    @renderer(
+        renderer_type=LegacyDescriptiveRendererType.COLUMN_PROPERTIES_TABLE_DISTINCT_PERCENT_ROW
+    )
+    def _descriptive_column_properties_table_distinct_percent_row_renderer(
+        cls,
+        configuration: Optional[ExpectationConfiguration] = None,
+        result: Optional[ExpectationValidationResult] = None,
+        runtime_configuration: Optional[dict] = None,
+        **kwargs,
+    ) -> list[Union[RenderedStringTemplateContent, str]]:
+        assert result, "Must pass in result."
+        observed_value = result.result["observed_value"]
+        template_string_object = RenderedStringTemplateContent(
+            content_block_type="string_template",
+            string_template={
+                "template": "Non-null (%)",
+                "tooltip": {"content": "expect_column_proportion_of_non_null_values_to_be_between"},
+            },
+        )
+        if not observed_value:
+            return [template_string_object, "--"]
+        else:
+            return [template_string_object, f"{100 * observed_value:.1f}%"]
 
     @override
     def _validate(

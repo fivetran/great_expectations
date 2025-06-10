@@ -7,6 +7,12 @@ from sqlalchemy import types as sqlatypes
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.render import (
+    AtomicDiagnosticRendererType,
+    RenderedAtomicContent,
+    RenderedAtomicValue,
+)
+from great_expectations.render.renderer_configuration import RendererSchema, RendererValueType
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import RedshiftDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
@@ -211,3 +217,32 @@ def test_empty_dataframe(batch_for_datasource: Batch) -> None:
 
     assert result_zero.success
     assert result_zero.to_json_dict()["result"] == {"observed_value": 0}
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_SQLITE_DATA_SOURCES, data=DATA)
+def test_diagnostic_rendering(batch_for_datasource: Batch) -> None:
+    """Test that diagnostic rendering works correctly for the expectation."""
+    expectation = gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
+        column=HALF_NONNULL_COL,
+        min_value=0.4,
+        max_value=0.7,
+    )
+    result = batch_for_datasource.validate(expectation)
+    result.render()
+
+    assert result.rendered_content == [
+        RenderedAtomicContent(
+            name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
+            value_type="StringValueType",
+            value=RenderedAtomicValue(
+                schema={"type": "com.superconductive.rendered.string"},
+                template="$observed_value",
+                params={
+                    "observed_value": {
+                        "schema": RendererSchema(type=RendererValueType.NUMBER),
+                        "value": 0.5,
+                    },
+                },
+            ),
+        ),
+    ]
