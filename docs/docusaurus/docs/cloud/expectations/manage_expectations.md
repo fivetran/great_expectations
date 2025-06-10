@@ -105,7 +105,7 @@ Keep the following limitations in mind when working with Multi-source Expectatio
 
 ## Anomaly Detection
 
-Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can automate Anomaly Detection Expectations when [you create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) on an existing Data Asset. You can also manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
+Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can automate Anomaly Detection Expectations when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) on an existing Data Asset. You can also manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
 
 ### Dynamic Parameters
 
@@ -166,7 +166,7 @@ To clear the Expectation condition, click the clear button located on the right-
 5. Select an Expectation type.
 
    :::tip Automatic rules for Anomaly Detection
-   If you selected the schema, volume, or completeness data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](https://docs.greatexpectations.io/docs/cloud/overview/automating_rules.md#anomaly-detection). If you instead want to create your own rules, click **Manual** and then select an Expectation type.
+   If you selected the schema, volume, or completeness data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/automating_rules.md#anomaly-detection). If you instead want to create your own rules, click **Manual** and then select an Expectation type.
    :::
 
 6. Complete the mandatory and optional fields for the Expectation. A recurring [validation schedule](/cloud/schedules/manage_schedules.md) will be applied automatically to your Expectation. 
