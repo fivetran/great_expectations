@@ -283,7 +283,10 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
             elif not params.max_value:
                 return f"fraction of non-null values must be {at_least_str} $min_value."
             elif params.min_value.value != params.max_value.value:
-                return f"fraction of non-null values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
+                return (
+                    f"fraction of non-null values must be {at_least_str} $min_value "
+                    f"and {at_most_str} $max_value."
+                )
             else:
                 return "fraction of non-null values must be exactly $min_value."
 
@@ -352,7 +355,10 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
             elif params["max_value"] is None:
                 template_str = f"fraction of non-null values must be {at_least_str} $min_value."
             elif params["min_value"] != params["max_value"]:
-                template_str = f"fraction of non-null values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
+                template_str = (
+                    f"fraction of non-null values must be {at_least_str} $min_value "
+                    f"and {at_most_str} $max_value."
+                )
             else:
                 template_str = "fraction of non-null values must be exactly $min_value."
 
