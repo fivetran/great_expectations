@@ -417,7 +417,7 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
         execution_engine: Optional[ExecutionEngine] = None,
     ):
         return self._validate_metric_value_between(
-            metric_name="column.nonnull_proportion",
+            metric_name="column.non_null_proportion",
             metrics=metrics,
             runtime_configuration=runtime_configuration,
             execution_engine=execution_engine,
