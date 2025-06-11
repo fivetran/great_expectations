@@ -4,7 +4,7 @@ import logging
 import os
 import pathlib
 import uuid
-from typing import TYPE_CHECKING, Final, Generator, Iterator, Literal, Protocol
+from typing import TYPE_CHECKING, Final, Generator, Iterator
 
 import numpy as np
 import pandas as pd
@@ -13,17 +13,15 @@ import pytest
 import great_expectations as gx
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.checkpoint import Checkpoint
-from great_expectations.compatibility.sqlalchemy import TextClause
 from great_expectations.core import ExpectationSuite
 from great_expectations.data_context import CloudDataContext
 from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
-    SqlAlchemyExecutionEngine,
 )
 from great_expectations.expectations import ExpectColumnValuesToNotBeNull
 
 if TYPE_CHECKING:
-    from great_expectations.compatibility import pyspark, sqlalchemy
+    from great_expectations.compatibility import pyspark
 
 LOGGER: Final = logging.getLogger("tests")
 
@@ -107,70 +105,6 @@ def checkpoint(
 @pytest.fixture(scope="module")
 def tmp_path(tmp_path_factory) -> pathlib.Path:
     return tmp_path_factory.mktemp("project")
-
-
-class TableFactory(Protocol):
-    def __call__(
-        self,
-        gx_engine: SqlAlchemyExecutionEngine,
-        table_names: set[str],
-        schema_name: str | None = None,
-    ) -> None: ...
-
-
-@pytest.fixture(scope="module")
-def table_factory() -> Iterator[TableFactory]:
-    """
-    Given a SQLAlchemy engine, table_name and schema,
-    create the table if it does not exist and drop it after the test class.
-    """
-    all_created_tables: dict[str, list[dict[Literal["table_name", "schema_name"], str | None]]] = {}
-    engines: dict[str, sqlalchemy.engine.Engine] = {}
-
-    def _table_factory(
-        gx_engine: SqlAlchemyExecutionEngine,
-        table_names: set[str],
-        schema_name: str | None = None,
-    ) -> None:
-        sa_engine = gx_engine.engine
-        LOGGER.info(
-            f"Creating `{sa_engine.dialect.name}` table for {table_names} if it does not exist"
-        )
-        created_tables: list[dict[Literal["table_name", "schema_name"], str | None]] = []
-
-        with gx_engine.get_connection() as conn:
-            transaction = conn.begin()
-            if schema_name:
-                conn.execute(TextClause(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
-            for name in table_names:
-                qualified_table_name = f"{schema_name}.{name}" if schema_name else name
-                create_tables: str = (
-                    f"CREATE TABLE IF NOT EXISTS {qualified_table_name}"
-                    f" (id INTEGER, name VARCHAR(255), value INTEGER)"
-                )
-                conn.execute(TextClause(create_tables))
-
-                created_tables.append(dict(table_name=name, schema_name=schema_name))
-            transaction.commit()
-        all_created_tables[sa_engine.dialect.name] = created_tables
-        engines[sa_engine.dialect.name] = sa_engine
-
-    yield _table_factory
-
-    # teardown
-    for dialect, tables in all_created_tables.items():
-        engine = engines[dialect]
-        with engine.connect() as conn:
-            transaction = conn.begin()
-            schema: str | None = None
-            for table in tables:
-                name = table["table_name"]
-                schema = table["schema_name"]
-                qualified_table_name = f"{schema}.{name}" if schema else name
-                conn.execute(TextClause(f"DROP TABLE IF EXISTS {qualified_table_name}"))
-            if schema:
-                conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema}"))
-            transaction.commit()
 
 
 def construct_spark_df_from_pandas(

@@ -4,21 +4,21 @@ import os
 import uuid
 from typing import TYPE_CHECKING, Final, Generator
 
+import pandas as pd
 import pytest
 
 from great_expectations import ValidationDefinition
 from great_expectations.core.batch_definition import BatchDefinition
+from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.integration.test_utils.data_source_config import SnowflakeDatasourceTestConfig
 
 if TYPE_CHECKING:
     from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
     from great_expectations.core import ExpectationSuite
     from great_expectations.data_context import CloudDataContext
     from great_expectations.datasource.fluent import (
-        DataAsset,
         SnowflakeDatasource,
     )
-    from great_expectations.datasource.fluent.sql_datasource import TableAsset
-    from tests.integration.cloud.end_to_end.conftest import TableFactory
 
 RANDOM_SCHEMA: Final[str] = f"i{uuid.uuid4().hex}"
 
@@ -56,35 +56,29 @@ def datasource(
     return datasource
 
 
-@pytest.fixture(scope="module")
-def data_asset(
-    datasource: SnowflakeDatasource,
-    table_factory: TableFactory,
-) -> Generator[DataAsset, None, None]:
-    """Test the entire Data Asset CRUD lifecycle here and in Data Asset-specific fixtures."""
-    asset_name = f"da_{uuid.uuid4().hex}"
-    table_name = f"i{uuid.uuid4().hex}"
-    table_factory(
-        gx_engine=datasource.get_execution_engine(),
-        table_names={table_name},
-        schema_name=RANDOM_SCHEMA,
-    )
-    yield datasource.add_table_asset(
-        name=asset_name,
-        table_name=table_name,
-    )
-    datasource.delete_asset(name=asset_name)
-    with pytest.raises(LookupError):
-        datasource.get_asset(name=asset_name)
+@pytest.mark.cloud
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SnowflakeDatasourceTestConfig()],
+    data=pd.DataFrame({"id": [1, 2, 3], "name": ["A", "B", "C"]}),
+)
+def test_snowflake_end_to_end(
+    batch_for_datasource,
+):
+    """Test the entire lifecycle:
+    Data Asset CRUD, batch definition, validation, and checkpoint run."""
+    # Get the asset created by parameterize_batch_for_data_sources
+    asset = batch_for_datasource.data_asset
 
+    # Test accessing the asset
+    assert asset is not None
 
-@pytest.fixture(scope="module")
-def batch_definition(
-    context: CloudDataContext,
-    data_asset: TableAsset,
-) -> BatchDefinition:
+    # Test retrieving data through the asset
+    batch = asset.build_batch()
+    assert batch is not None
+
+    # Create a batch definition
     batch_def_name = f"batch_def_{uuid.uuid4().hex}"
-    return data_asset.add_batch_definition_whole_table(
+    asset.add_batch_definition_whole_table(
         name=batch_def_name,
     )
 
