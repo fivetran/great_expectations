@@ -40,6 +40,9 @@ This Expectation validates that the proportion of non-null values in a column is
 
 <small>View `ExpectColumnProportionOfNonNullValuesToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_proportion_of_non_null_values_to_be_between).</small>
 
+<br/>
+<br/>
+
 :::tip Automate this rule with GX Cloud
 When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can automate Expectations for Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs.
 :::
