@@ -58,7 +58,9 @@ suite.add_expectation(
 
 suite.add_expectation(
     # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py ExpectColumnProportionOfNonNullValuesToBeBetween">
-    gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(column="type", min_value=0.9, max_value=0.95)
+    gxe.ExpectColumnProportionOfNonNullValuesToBeBetween(
+        column="type", min_value=0.9, max_value=0.95
+    )
     # </snippet>
 )
 
