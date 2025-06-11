@@ -67,7 +67,6 @@ Ensures that values within a column are `NULL`.
 
 <small>View `ExpectColumnValuesToBeNull` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_values_to_be_null).</small>
 
-
 <br/>
 <br/>
 
