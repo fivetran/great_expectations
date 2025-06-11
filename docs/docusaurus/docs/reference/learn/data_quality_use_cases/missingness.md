@@ -28,7 +28,19 @@ In this dataset, you'll notice missing data in the `type` and `transfer_date` co
 
 GX provides missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using GX Cloud or GX Core. 
 
-:::tip Automate these rules with GX Cloud
+
+### Expect Column Proportion Of Non-null Values To Be Between
+
+This Expectation validates that the proportion of non-null values in a column is between a specified minimum and maximum value. 
+
+**Use Case**: Handle columns where some variation in nullness is acceptable but unbounded growth or contraction is not.
+
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py ExpectColumnProportionOfNonNullValuesToBeBetween"
+```
+
+<small>View `ExpectColumnProportionOfNonNullValuesToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_proportion_of_non_null_values_to_be_between).</small>
+
+:::tip Automate this rule with GX Cloud
 When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can automate Expectations for Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs.
 :::
 
@@ -55,17 +67,6 @@ Ensures that values within a column are `NULL`.
 
 <small>View `ExpectColumnValuesToBeNull` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_values_to_be_null).</small>
 
-
-### Expect Column Proportion Of Non-null Values To Be Between
-
-This Expectation validates that the proportion of non-null values in a column is between a specified minimum and maximum value. 
-
-**Use Case**: Handle columns where some variation in nullness is acceptable but unbounded growth or contraction is not.
-
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py ExpectColumnProportionOfNonNullValuesToBeBetween"
-```
-
-<small>View `ExpectColumnProportionOfNonNullValuesToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_proportion_of_non_null_values_to_be_between).</small>
 
 <br/>
 <br/>
