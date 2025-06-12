@@ -8,7 +8,7 @@ import Tabs from '@theme/Tabs';
 import PrereqPythonInstalled from '../_core_components/prerequisites/_python_installation.md';
 import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installation.md';
 
-Great Expectations provides [Actions for common workflows](/application_integration_support.md#integrations) such as sending emails and updating Data Docs. If these don't meet your needs, you can create a custom Action to integrate with different tools or apply custom business logic based on Validation Results. Example use cases for custom Actions include:
+Great Expectations provides [Actions for common workflows](help/compatibility_reference.md) such as sending emails and updating Data Docs. If these don't meet your needs, you can create a custom Action to integrate with different tools or apply custom business logic based on Validation Results. Example use cases for custom Actions include:
 - Opening tickets in an issue tracker when Validation runs fail.
 - Triggering different webhooks depending on which Expectations fail.
 - Running follow-up ETL jobs to fill in missing values.  

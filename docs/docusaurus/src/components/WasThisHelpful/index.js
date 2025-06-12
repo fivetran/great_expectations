@@ -192,7 +192,7 @@ export default function WasThisHelpful () {
 
             {formData.selectedValue === 'need-gx-support' &&
               <p style={{ marginBottom: '0' }}>
-                Visit our <a href='https://docs.greatexpectations.io/docs/resources/get_support'>Get
+                Visit our <a href='https://docs.greatexpectations.io/docs/help/get_support'>Get
                   Support
                   page
                           </a>.
