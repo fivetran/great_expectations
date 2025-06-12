@@ -974,7 +974,7 @@ def test_success_with_suite_param_base_query_(
         ),
     )
 
-    result = multi_source_batch.validate(
+    result = multi_source_batch.base_batch.validate(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
@@ -1002,7 +1002,7 @@ def test_success_with_suite_param_comparison_query_(
         comparison_query={"$PARAMETER": suite_param_key},
     )
 
-    result = multi_source_batch.validate(
+    result = multi_source_batch.base_batch.validate(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result

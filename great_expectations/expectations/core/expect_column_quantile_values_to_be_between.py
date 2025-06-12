@@ -486,8 +486,8 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
             "string_template": {"template": template_str, "params": params},
         }
 
-        quantiles = params["quantile_ranges"]["quantiles"]
-        value_ranges = params["quantile_ranges"]["value_ranges"]
+        quantiles = params["quantile_ranges"].get("quantiles", [])
+        value_ranges = params["quantile_ranges"].get("value_ranges", [])
 
         table_header_row = ["Quantile", "Min Value", "Max Value"]
         table_rows = []
