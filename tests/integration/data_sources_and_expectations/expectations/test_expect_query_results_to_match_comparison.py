@@ -963,11 +963,12 @@ def test_success_with_suite_param_base_query_(
     expectation = gxe.ExpectQueryResultsToMatchComparison(
         base_query={"$PARAMETER": suite_param_key},
         comparison_data_source_name=multi_source_batch.comparison_data_source_name,
-        comparison_query=f"SELECT * FROM {multi_source_batch.comparison_table_name}",
+        comparison_query=f"SELECT a, b FROM {multi_source_batch.comparison_table_name} ORDER BY a, b",  # noqa: E501
     )
 
     result = multi_source_batch.base_batch.validate(
-        expectation, expectation_parameters={suite_param_key: "SELECT * FROM {batch}"}
+        expectation,
+        expectation_parameters={suite_param_key: "SELECT a, b FROM {batch} ORDER BY a, b"},
     )
     assert result.success
 
@@ -983,7 +984,7 @@ def test_success_with_suite_param_comparison_query_(
     suite_param_key = "test_expect_query_results_to_match_comparison"
 
     expectation = gxe.ExpectQueryResultsToMatchComparison(
-        base_query="SELECT * FROM {batch}",
+        base_query="SELECT a, b FROM {batch} ORDER BY a, b",
         comparison_data_source_name=multi_source_batch.comparison_data_source_name,
         comparison_query={"$PARAMETER": suite_param_key},
     )
@@ -991,7 +992,7 @@ def test_success_with_suite_param_comparison_query_(
     result = multi_source_batch.base_batch.validate(
         expectation,
         expectation_parameters={
-            suite_param_key: f"SELECT * FROM {multi_source_batch.comparison_table_name}"
+            suite_param_key: f"SELECT a, b FROM {multi_source_batch.comparison_table_name} ORDER BY a, b"  # noqa: E501
         },
     )
     assert result.success
