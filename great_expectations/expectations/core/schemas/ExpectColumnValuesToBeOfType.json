@@ -105,7 +105,14 @@
         "type_": {
             "title": "Type ",
             "description": "\n    A string representing the data type that each column should have as entries.     Valid types are defined by the current backend implementation and are dynamically loaded.\n    ",
-            "type": "string"
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "metadata": {
             "type": "object",

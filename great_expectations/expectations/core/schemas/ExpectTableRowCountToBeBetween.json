@@ -102,13 +102,27 @@
             "title": "Strict Min",
             "description": "If True, the row count must be strictly smaller than max_value, default=False",
             "default": false,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "strict_max": {
             "title": "Strict Max",
             "description": "If True, the row count must be strictly larger than min_value, default=False",
             "default": false,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "row_condition": {
             "title": "Row Condition",

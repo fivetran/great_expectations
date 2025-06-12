@@ -1,7 +1,6 @@
 from typing import Mapping, Sequence
 
 import pandas as pd
-import pytest
 
 import great_expectations.expectations as gxe
 from great_expectations.core.result_format import ResultFormat
@@ -73,26 +72,21 @@ def test_missing_table(batch_for_datasource: Batch):
     assert not result.success, "We should not find the other table, since we didn't load it."
 
 
-@pytest.mark.parametrize(
-    "suite_param_value,expected_result",
-    [
-        pytest.param("other_table", True, id="success"),
-    ],
-)
 @parameterize_batch_for_data_sources(
     data_source_configs=MULTI_ASSET_DATA_SOURCES,
     data=pd.DataFrame({"a": [1, 2, 3, 4]}),
     extra_data={"other_table": pd.DataFrame({"col_b": ["a", "b", "c", "d"]})},
 )
 def test_success_with_suite_param_other_table_name_(
-    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+    batch_for_datasource: Batch, extra_table_names_for_datasource: Mapping[str, str]
 ) -> None:
     suite_param_key = "test_expect_table_row_count_to_equal_other_table"
+    other_table_name = extra_table_names_for_datasource["other_table"]
     expectation = gxe.ExpectTableRowCountToEqualOtherTable(
         other_table_name={"$PARAMETER": suite_param_key},
         result_format=ResultFormat.SUMMARY,
     )
     result = batch_for_datasource.validate(
-        expectation, expectation_parameters={suite_param_key: suite_param_value}
+        expectation, expectation_parameters={suite_param_key: other_table_name}
     )
-    assert result.success == expected_result
+    assert result.success

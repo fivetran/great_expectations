@@ -110,26 +110,40 @@
         },
         "value_pairs_set": {
             "title": "Value Pairs Set",
-            "type": "array",
-            "items": {
-                "type": "array",
-                "minItems": 2,
-                "maxItems": 2,
-                "items": [
-                    {},
-                    {}
-                ]
-            }
+            "anyOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": [
+                            {},
+                            {}
+                        ]
+                    }
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "ignore_row_if": {
             "title": "Ignore Row If",
             "default": "both_values_are_missing",
-            "enum": [
-                "both_values_are_missing",
-                "either_value_is_missing",
-                "neither"
-            ],
-            "type": "string"
+            "anyOf": [
+                {
+                    "enum": [
+                        "both_values_are_missing",
+                        "either_value_is_missing",
+                        "neither"
+                    ],
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "metadata": {
             "type": "object",

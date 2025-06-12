@@ -69,7 +69,14 @@
         "unexpected_rows_query": {
             "title": "Unexpected Rows Query",
             "description": "A SQL or Spark-SQL query to be executed for validation.",
-            "type": "string"
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "metadata": {
             "type": "object",
