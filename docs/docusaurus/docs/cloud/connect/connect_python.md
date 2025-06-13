@@ -82,7 +82,7 @@ Environment variables securely store your GX Cloud access credentials.
 
 :::tip Working with Data Sources
 
-The Data Context you created includes a built-in `pandas_default` Data Source. This Data Source gives access to all of the `read_*(...)` methods available in pandas. This allows you connect to a pandas Data Asset without adding your own Data Source first.
+The Data Context you created includes a built-in `pandas_default` Data Source. This Data Source gives access to all of the `read_*(...)` methods available in pandas. This allows you connect to a pandas Data Asset without adding your own Data Source first as demonstrated in this section.
 
 Cloud API instructions for connecting to other Data Sources such as Amazon S3, Azure Blob Storage, Google Cloud Storage, BigQuery, and Spark are under construction. In the meantime you can refer to the [GX Core docs](https://docs.greatexpectations.io/docs/core/connect_to_data/) for guidance as the Cloud API uses the same methods for connecting Data Sources.
 :::
