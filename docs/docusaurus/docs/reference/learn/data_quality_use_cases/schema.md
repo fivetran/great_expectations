@@ -37,7 +37,7 @@ You can [access this dataset](https://raw.githubusercontent.com/great-expectatio
 
 ## Key schema Expectations
 
-GX offers a collection of Expectations for schema validation, all of which can be added directly in GX Cloud or GX Core. With GX Cloud, you can automate some of these Expectations for Anomaly Detection.
+GX offers a collection of Expectations for schema validation, all of which can be added directly in GX Cloud or GX Core. 
 
 The schema Expectations provide basic practical solutions for common validation scenarios and can also be used to satisfy more nuanced validation needs.
 

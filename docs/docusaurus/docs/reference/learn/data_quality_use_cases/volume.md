@@ -28,7 +28,7 @@ This dataset represents daily financial transactions. In a real-world scenario, 
 
 ## Key volume Expectations
 
-GX provides several Expectations specifically designed for managing data volume, all of which can be added directly in GX Cloud or GX Core. With GX Cloud, you can automate some of these Expectations for Anomaly Detection.
+GX provides several Expectations specifically designed for managing data volume, all of which can be added directly in GX Cloud or GX Core. 
 
 ### Expect Table Row Count To Be Between
 
