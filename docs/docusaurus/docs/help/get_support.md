@@ -27,7 +27,7 @@ The order in which we are prioritizing support issues are as follows:
 
 **Your support question will be answered more quickly if you post in Discourse than if you post in Slack.** The reason: Discourse allows for better organization and searchability of support topics.
 
-For specific details on what is supported, visit our [compatibility reference](/help/compatibility_reference). For areas not covered by GX support, we encourage community-driven assistance. Check out the [GX Core Issues Board](https://github.com/orgs/great-expectations/projects/2?pane=info) for the latest status on GitHub Issues. 
+For specific details on what is supported, visit our [compatibility reference](/help/compatibility_reference.md). For areas not covered by GX support, we encourage community-driven assistance. Check out the [GX Core Issues Board](https://github.com/orgs/great-expectations/projects/2?pane=info) for the latest status on GitHub Issues. 
 
 ## How to effectively get support
 
