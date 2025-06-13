@@ -15,7 +15,7 @@ from great_expectations.expectations.metrics.column_aggregate_metric_provider im
 
 
 class ColumnNonNullCount(ColumnAggregateMetricProvider):
-    metric_name = "column.nonnull_count"
+    metric_name = "column.non_null_count"
 
     @column_aggregate_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column, **kwargs):
