@@ -515,7 +515,7 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
         RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
-                template="Unexpected records: $row_count",
+                template="Unexpected rows found in current table: $row_count",
                 params={
                     "row_count": {
                         "schema": RendererSchema(type=RendererValueType.NUMBER),
@@ -545,7 +545,7 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
         RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
-                template="Missing records: $row_count",
+                template="Expected rows not found in current table: $row_count",
                 params={
                     "row_count": {
                         "schema": RendererSchema(type=RendererValueType.NUMBER),
@@ -884,7 +884,7 @@ def test_rendering_table_with_multiple_uuid():
 
         assert result.rendered_content == [
             _create_table_rendered_atomic_content(
-                template="Unexpected records: $row_count",
+                template="Unexpected rows found in current table: $row_count",
                 params={
                     "row_count": {
                         "schema": RendererSchema(type=RendererValueType.NUMBER),
@@ -899,7 +899,7 @@ def test_rendering_table_with_multiple_uuid():
                 ],
             ),
             _create_table_rendered_atomic_content(
-                template="Missing records: $row_count",
+                template="Expected rows not found in current table: $row_count",
                 params={
                     "row_count": {
                         "schema": RendererSchema(type=RendererValueType.NUMBER),

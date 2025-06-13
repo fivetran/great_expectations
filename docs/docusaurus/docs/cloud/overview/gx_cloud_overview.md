@@ -58,9 +58,9 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 ## GX Cloud architecture
 
-GX Cloud architecture comprises a frontend web UI, storage for entity configuration and metadata, a backend application, and a Python client.
+GX Cloud architecture comprises a frontend web UI, storage for entity configuration and metadata, a backend application, and a Python API.
 
-![GX Cloud architecture](./overview_images/gx_cloud_architecture.png)
+![You interact using the UI, API, or both. How GX Cloud connects to your data depends on your deployment pattern.](./overview_images/gx_cloud_architecture.png)
 
 * **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history.
 
@@ -68,4 +68,4 @@ GX Cloud architecture comprises a frontend web UI, storage for entity configurat
 
 * **GX Cloud backend application**. Contains the necessary logic and compute to connect to data and run queries. The specifics of how the GX Cloud backend connects to your data is described in [Deployment patterns](/cloud/deploy/deployment_patterns.md).
 
-* **GX Core Python client**. Enables you to interact programmatically with GX Cloud entities and workflows created via the API. The [GX Core Python client](/core/introduction/introduction.mdx) can complement and extend your web UI-created workflows.
+* **GX Cloud API**. Enables you to [interact programmatically](/reference/index.md) with GX Cloud entities and workflows using Python scripts. 

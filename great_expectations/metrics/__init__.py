@@ -1,6 +1,7 @@
 from .batch.batch_column_types import BatchColumnTypes
 from .batch.row_count import BatchRowCount
 from .batch.sample_values import SampleValues
+from .column.aggregate_non_null_count import ColumnAggregateNonNullCount
 from .column.descriptive_stats import ColumnDescriptiveStats
 from .column.distinct_values import ColumnDistinctValues
 from .column.distinct_values_count import ColumnDistinctValuesCount

@@ -69,22 +69,25 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     the current Data Source's query matches those from the comparison Data Source's query, \
     above a specified threshold.
 
-    - Each record returned by the `base_query` will be compared to each record \
-      returned by the `comparison_query`.
-    - The maximum number of records that will be returned for comparison from \
-      each query is 200.
-    - The order of records returned does not matter unless \
-      the number of records returned would be greater than 200.
-    - Column names do not matter, but the order of the columns does.
+    Each record returned by the 'base_query' will be compared to each record \
+    returned by the 'comparison_query'.
 
-    Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
+    The maximum number of records that will be returned for comparison from \
+    each query is 200.
+
+    The order of records returned does not matter unless \
+    the number of records returned would be greater than 200.
+
+    Column names do not matter, but the order of the columns does.
+
+    Match percentage (100% - unexpected percent) is compared to the mostly threshold \
     to determine pass/fail.
         e.g.
-    `unexpected_percent` = 10%, `mostly` = 80%, (100% - 10%) > 80% - pass
-    `unexpected_percent` = 10%, `mostly` = 91%, (100% - 10%) < 91% - fail
+    unexpected percent = 10%, mostly = 80%, (100% - 10%) > 80% - pass
+    unexpected percent = 10%, mostly = 91%, (100% - 10%) < 91% - fail
 
 
-    The Match Percentage is computed by dividing the number of matching records \
+    The match percentage is computed by dividing the number of matching records \
     by the maximum number of records in either the comparison result or the base result.
        e.g.
     Comparison Row Count: 100  Base Row Count: 100  Matches: 100  Match Percentage: 100%
@@ -367,11 +370,11 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
             return [
                 cls._create_table_rendered_atomic_content(
                     unexpected_rows_table,
-                    label="Unexpected records",
+                    label="Unexpected rows found in current table",
                 ),
                 cls._create_table_rendered_atomic_content(
                     missing_rows_table,
-                    label="Missing records",
+                    label="Expected rows not found in current table",
                 ),
             ]
 

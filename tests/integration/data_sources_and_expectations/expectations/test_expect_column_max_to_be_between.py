@@ -15,10 +15,10 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 
 COL_NAME = "my_col"
 
-ONES_AND_TWOS = pd.DataFrame({COL_NAME: [1, 3]})
+ONES_AND_THREES = pd.DataFrame({COL_NAME: [1, 3]})
 
 
-@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ONES_AND_TWOS)
+@parameterize_batch_for_data_sources(data_source_configs=ALL_DATA_SOURCES, data=ONES_AND_THREES)
 def test_success_complete_results(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnMaxToBeBetween(column=COL_NAME, min_value=1, max_value=4)
     result = batch_for_datasource.validate(expectation, result_format=ResultFormat.COMPLETE)
@@ -110,7 +110,7 @@ def test_ignores_nulls(batch_for_datasource: Batch) -> None:
     ],
 )
 @parameterize_batch_for_data_sources(
-    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_TWOS
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_THREES
 )
 def test_failure(batch_for_datasource: Batch, expectation: gxe.ExpectColumnMaxToBeBetween) -> None:
     result = batch_for_datasource.validate(expectation)
@@ -127,3 +127,55 @@ def test_no_data(batch_for_datasource: Batch) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
     assert result.to_json_dict()["result"] == {"observed_value": None}
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(0, True, id="success"),
+        pytest.param(4, False, id="failure"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_THREES
+)
+def test_success_with_suite_param_min_value_(
+    batch_for_datasource: Batch, suite_param_value: int, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_max_to_be_between"
+    expectation = gxe.ExpectColumnMaxToBeBetween(
+        column=COL_NAME,
+        min_value={"$PARAMETER": suite_param_key},
+        max_value=5,
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success is expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(5, True, id="success"),
+        pytest.param(2, False, id="failure"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_THREES
+)
+def test_success_with_suite_param_max_value_(
+    batch_for_datasource: Batch, suite_param_value: int, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_max_to_be_between"
+    expectation = gxe.ExpectColumnMaxToBeBetween(
+        column=COL_NAME,
+        min_value=0,
+        max_value={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success is expected_result

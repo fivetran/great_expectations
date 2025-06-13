@@ -8,9 +8,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-import pkg_resources
 from ruamel.yaml import YAML
 
+from great_expectations.compatibility.pip import InstallRequirement, PipSession, parse_requirements
 from great_expectations.core.expectation_diagnostics.expectation_diagnostics import (
     ExpectationDiagnostics,
 )
@@ -209,11 +209,11 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
             logger.warning(f"Could not find requirements file {path}")
             return
 
-        with open(path) as f:
-            requirements = [req for req in pkg_resources.parse_requirements(f)]
+        session = PipSession()
+        requirements = [req for req in parse_requirements(path, session=session)]
 
         def _convert_to_dependency(
-            requirement: pkg_resources.Requirement,
+            requirement: InstallRequirement,
         ) -> Dependency:
             name = requirement.project_name
             pypi_url = f"https://pypi.org/project/{name}"

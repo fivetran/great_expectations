@@ -19,6 +19,7 @@ import numpy as np
 import packaging
 import pandas as pd
 import pytest
+import setuptools  # noqa: F401  # Import setuptools avoid distutils import order warning
 
 import great_expectations as gx
 from great_expectations.analytics.config import ENV_CONFIG
@@ -426,7 +427,6 @@ def pytest_collection_modifyitems(config, items):
             reason="need --docs-tests option to run",
         ),
         Category(mark="cloud", flag="--cloud", reason="need --cloud option to run"),
-        Category(mark="snowflake", flag="--snowflake", reason="need --snowflake option to run"),
     )
 
     for category in categories:
