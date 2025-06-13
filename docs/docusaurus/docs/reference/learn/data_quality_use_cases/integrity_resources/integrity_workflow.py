@@ -54,7 +54,7 @@ class ExpectTransfersToArriveWithin45Seconds(gxe.UnexpectedRowsExpectation):
 
     description = "Transfers arrive within 45 seconds"
 
-    unexpected_rows_query = """
+    unexpected_rows_query: str = """
         select *
         from {batch}
         where extract(epoch from (age(received_ts, sent_ts))) > 45
@@ -104,7 +104,7 @@ class ExpectTransferAmountsToMatch(gxe.UnexpectedRowsExpectation):
         "Transfer amounts in integrity_transfers and integrity_transfer_balance match."
     )
 
-    unexpected_rows_query = """
+    unexpected_rows_query: str = """
         select *
         from {batch} t
         join integrity_transfer_balance b using (transfer_balance_id)
