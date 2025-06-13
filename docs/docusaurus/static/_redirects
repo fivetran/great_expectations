@@ -454,4 +454,4 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 ## Redirects for renamed resources docs
 
 /docs/resources/get_support /docs/help/get_support
-/docs/application_integration_support /docs/help/compatability_reference
+/docs/application_integration_support /help/compatability_reference
