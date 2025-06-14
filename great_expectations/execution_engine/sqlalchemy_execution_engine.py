@@ -328,6 +328,28 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
         elif self.dialect_name == GXSqlDialect.DATABRICKS:
             self.dialect_module = import_library_module("databricks.sqlalchemy")
+            # Patch Databricks dialect to use backticks instead of double quotes
+            try:
+                from sqlalchemy.sql.compiler import IdentifierPreparer
+                
+                class DatabricksIdentifierPreparer(IdentifierPreparer):
+                    """Custom identifier preparer for Databricks that uses backticks."""
+                    
+                    def __init__(self, dialect, initial_quote="`", final_quote="`", escape_quote="``", quote_case_sensitive_collations=True, omit_schema=False):
+                        super().__init__(
+                            dialect, 
+                            initial_quote=initial_quote, 
+                            final_quote=final_quote, 
+                            escape_quote=escape_quote,
+                            quote_case_sensitive_collations=quote_case_sensitive_collations,
+                            omit_schema=omit_schema
+                        )
+                
+                # Replace the dialect's preparer with our custom one
+                self.engine.dialect.identifier_preparer = DatabricksIdentifierPreparer(self.engine.dialect)
+                logger.debug("Successfully patched Databricks dialect to use backticks for identifier quoting")
+            except Exception as e:
+                logger.warning(f"Failed to patch Databricks dialect for backtick support: {e}")
         else:
             self.dialect_module = None
 
@@ -1149,7 +1171,33 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         query = batch_spec.get("query")
         selectable: sqlalchemy.Selectable
         if table_name:
-            selectable = sa.table(table_name, schema=batch_spec.get("schema_name", None))
+            # Check if we're using Databricks and need special handling
+            if self.dialect_name == GXSqlDialect.DATABRICKS:
+                import re
+                table_name_str = str(table_name)
+                schema_name = batch_spec.get("schema_name", None)
+                schema_name_str = str(schema_name) if schema_name else None
+                
+                # Check if the table name needs special escaping for Databricks
+                if re.match(r"^\d", table_name_str) or re.search(r"[.\s\-#@]", table_name_str):
+                    # For Databricks, create a subquery with backticks
+                    clean_table_name = table_name_str.strip('"').strip("'").strip("`")
+                    if schema_name_str:
+                        clean_schema_name = schema_name_str.strip('"').strip("'").strip("`")
+                        # Use a select with text to control the identifier quoting
+                        selectable = sa.select(sa.text("*")).select_from(
+                            sa.text(f"`{clean_schema_name}`.`{clean_table_name}`")
+                        ).subquery()
+                    else:
+                        selectable = sa.select(sa.text("*")).select_from(
+                            sa.text(f"`{clean_table_name}`")
+                        ).subquery()
+                else:
+                    # Standard table that doesn't need special escaping
+                    selectable = sa.table(table_name, schema=schema_name)
+            else:
+                # Standard behavior for all other databases
+                selectable = sa.table(table_name, schema=batch_spec.get("schema_name", None))
         else:
             if not isinstance(query, str):
                 raise ValueError(f"SQL query should be a str but got {query}")  # noqa: TRY003 # FIXME CoP
