@@ -277,7 +277,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
         params = renderer_configuration.params
 
         if not params.min_value and not params.max_value:
-            template_str = "may have any fraction of unique values."
+            template_str = "may have any proportion of unique values."
         else:
             at_least_str = "greater than or equal to"
             if params.strict_min:
@@ -290,14 +290,14 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
                     renderer_configuration=renderer_configuration
                 )
             if not params.min_value:
-                template_str = f"fraction of unique values must be {at_most_str} $max_value."
+                template_str = f"proportion of unique values must be {at_most_str} $max_value."
             elif not params.max_value:
-                template_str = f"fraction of unique values must be {at_least_str} $min_value."
+                template_str = f"proportion of unique values must be {at_least_str} $min_value."
             else:  # noqa: PLR5501 # FIXME CoP
                 if params.min_value.value != params.max_value.value:
-                    template_str = f"fraction of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
+                    template_str = f"proportion of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
                 else:
-                    template_str = "fraction of unique values must be exactly $min_value."
+                    template_str = "proportion of unique values must be exactly $min_value."
 
         if renderer_configuration.include_column_name:
             template_str = f"$column {template_str}"
@@ -333,18 +333,18 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
         )
 
         if params["min_value"] is None and params["max_value"] is None:
-            template_str = "may have any fraction of unique values."
+            template_str = "may have any proportion of unique values."
         else:
             at_least_str, at_most_str = handle_strict_min_max(params)
             if params["min_value"] is None:
-                template_str = f"fraction of unique values must be {at_most_str} $max_value."
+                template_str = f"proportion of unique values must be {at_most_str} $max_value."
             elif params["max_value"] is None:
-                template_str = f"fraction of unique values must be {at_least_str} $min_value."
+                template_str = f"proportion of unique values must be {at_least_str} $min_value."
             else:  # noqa: PLR5501 # FIXME CoP
                 if params["min_value"] != params["max_value"]:
-                    template_str = f"fraction of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
+                    template_str = f"proportion of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
                 else:
-                    template_str = "fraction of unique values must be exactly $min_value."
+                    template_str = "proportion of unique values must be exactly $min_value."
 
         if include_column_name:
             template_str = f"$column {template_str}"
