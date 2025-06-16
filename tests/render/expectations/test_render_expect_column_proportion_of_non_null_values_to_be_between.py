@@ -19,7 +19,7 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                 RenderedAtomicContent(
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
-                        template="$column may have any fraction of non-null values.",
+                        template="$column may have any proportion of non-null values.",
                         params={
                             "column": {
                                 "schema": {"type": "string"},
@@ -44,8 +44,8 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         template=(
-                            "$column fraction of non-null values must be greater than or equal to "
-                            "$min_value and less than or equal to $max_value."
+                            "$column proportion of non-null values must be greater "
+                            "than or equal to $min_value and less than or equal to $max_value."
                         ),
                         params={
                             "column": {
@@ -78,7 +78,7 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         template=(
-                            "$column fraction of non-null values must be less than or equal to "
+                            "$column proportion of non-null values must be less than or equal to "
                             "$max_value."
                         ),
                         params={
@@ -108,8 +108,8 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         template=(
-                            "$column fraction of non-null values must be greater than or equal to "
-                            "$min_value."
+                            "$column proportion of non-null values must be greater "
+                            "than or equal to $min_value."
                         ),
                         params={
                             "column": {
@@ -138,7 +138,8 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                 RenderedAtomicContent(
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
-                        template="$column fraction of non-null values must be exactly $min_value.",
+                        template="$column proportion of non-null values "
+                        "must be exactly $min_value.",
                         params={
                             "column": {
                                 "schema": {"type": "string"},
@@ -172,7 +173,7 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         template=(
-                            "$column fraction of non-null values must be greater than $min_value "
+                            "$column proportion of non-null values must be greater than $min_value "
                             "and less than or equal to $max_value."
                         ),
                         params={
@@ -212,8 +213,8 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         template=(
-                            "$column fraction of non-null values must be greater than or equal to "
-                            "$min_value and less than $max_value."
+                            "$column proportion of non-null values must be greater "
+                            "than or equal to $min_value and less than $max_value."
                         ),
                         params={
                             "column": {
@@ -253,7 +254,7 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         template=(
-                            "$column fraction of non-null values must be greater than $min_value "
+                            "$column proportion of non-null values must be greater than $min_value "
                             "and less than $max_value."
                         ),
                         params={
@@ -296,7 +297,7 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         template=(
-                            "$column fraction of non-null values must be greater than $min_value."
+                            "$column proportion of non-null values must be greater than $min_value."
                         ),
                         params={
                             "column": {
@@ -330,7 +331,7 @@ from great_expectations.render.renderer.inline_renderer import InlineRenderer
                     name="atomic.prescriptive.summary",
                     value=RenderedAtomicValue(
                         template=(
-                            "$column fraction of non-null values must be less than $max_value."
+                            "$column proportion of non-null values must be less than $max_value."
                         ),
                         params={
                             "column": {
