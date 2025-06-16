@@ -34,6 +34,7 @@ To help you have a better understanding of data health, GX Cloud provides the fo
       - [ExpectTableRowCountToEqual](https://greatexpectations.io/expectations/expect_table_row_count_to_equal/)
       - [ExpectTableRowCountToEqualOtherTable](https://greatexpectations.io/expectations/expect_table_row_count_to_equal_other_table/)
    - **Completeness:** The percentage of Data Assets that have at least one completeness-focused Expectation. This includes the following Expectations:  
+      - [ExpectColumnProportionOfNonNullValuesToBeBetween](https://greatexpectations.io/expectations/expect_column_proportion_of_non_null_values_to_be_between/)
       - [ExpectColumnValuesToBeNull](https://greatexpectations.io/expectations/expect_column_values_to_be_null/)
       - [ExpectColumnValuesToNotBeNull](https://greatexpectations.io/expectations/expect_column_values_to_not_be_null/)
 
