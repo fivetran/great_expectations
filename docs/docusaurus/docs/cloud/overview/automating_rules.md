@@ -27,13 +27,13 @@ To detect non-increasing volume, we automatically generate a rule to [**expect t
 
 ### Completeness
 
-To detect completeness anomalies, we automatically generate rules for every column to [**expect column values to not be null**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-values-to-not-be-null) and/or [**expect column values to be null**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-values-to-be-null). The Expectation(s) and parameters for a column depend on the column's initial null percentage.
+To detect completeness anomalies, we automatically generate rules for every column to [**expect column proportion of non-null values to be between**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-proportion-of-non-null-values-to-be-between) thresholds that depend on the column's initial proportion of non-null values.
 
-- If a column initially has no null values, GX generates one completeness Expectation to test that the column continues to have 100% non-null values.
-- If a column initially has all null values, GX generates one completeness Expectation to test that the column continues to have 100% null values.
-- If a column starts with a mix of null and non-null values, GX generates two completeness Expectations with dynamic parameters to test that the null percentage stays close to the average of the last 5 Validation runs.
+- If a column initially has no null values, GX Cloud generates a rule to test that the column continues to have no null values.
+- If a column initially has all null values, GX Cloud generates a rule to test that the column continues to have all null values.
+- If a column starts with a mix of null and non-null values, GX Cloud generates a rule with dynamic parameters to test that the proportions stay close to the average of the last 5 Validation runs.
 
-If the null percentage changes at all for a column that started with all null values or no null values, its generated completeness Expectation will fail. If the null percentage changes a bit for a column that started with a mix of null and non-null values, its generated completeness Expectations will pass; if the change is drastic, one of the generated completeness Expectations will fail. Which one fails depends on whether the null percentage increased or decreased.
+If the proportions change at all for a column that started with all null values or no null values, its generated completeness Expectation will fail. If the proportions change a bit for a column that started with a mix of null and non-null values, its generated completeness Expectation will pass; if the change is drastic, the generated completeness Expectation will fail.
 
 
 
