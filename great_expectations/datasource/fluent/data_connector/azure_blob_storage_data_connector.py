@@ -197,7 +197,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
     def _get_full_file_path(self, path: str) -> str:
         # If the path is already a fully qualified Azure URL (starts with wasbs://), return it as-is
         # This handles the case of whole_directory_path_override which is already fully qualified
-        if path.startswith("wasbs://"):
+        if path.startswith("wasbs://") or not self._file_path_template_map_fn:
             return path
 
         template_arguments: dict = {
