@@ -3,6 +3,7 @@ import os
 import re
 from typing import TYPE_CHECKING, List
 
+import boto3
 import pandas as pd
 import pytest
 from moto import mock_s3
@@ -685,3 +686,84 @@ def test_sanitize_prefix_behaves_the_same_as_local_files():
     check_sameness("a.x/b/c", "a.x/b/c/")
     check_sameness("path/to/folder.something/", "path/to/folder.something/")
     check_sameness("path/to/folder.something", "path/to/folder.something")
+
+
+@pytest.mark.unit
+@mock_s3
+@pytest.mark.parametrize(
+    "whole_directory_override, expected_batch_count, expected_identifier_key",
+    [
+        pytest.param(
+            True, 1, "path", id="with_whole_directory_override_returns_single_directory_batch"
+        ),
+        pytest.param(
+            False,
+            3,
+            "filename",
+            id="without_whole_directory_override_returns_individual_file_batches",
+        ),
+    ],
+)
+def test_s3_data_connector_whole_directory_path_override(
+    whole_directory_override, expected_batch_count, expected_identifier_key
+):
+    """Test S3DataConnector behavior with and without whole_directory_path_override parameter."""
+    # Setup
+    bucket_name = "test-bucket"
+    prefix = "test_directory/"
+    whole_directory_path = f"s3://{bucket_name}/{prefix}"
+
+    # Create S3 client and bucket
+    s3_client = boto3.client("s3", region_name="us-east-1")
+    s3_client.create_bucket(Bucket=bucket_name)
+
+    # Create multiple files in the directory
+    test_files = [
+        f"{prefix}file1.csv",
+        f"{prefix}file2.csv",
+        f"{prefix}file3.csv",
+    ]
+
+    for file_path in test_files:
+        s3_client.put_object(Bucket=bucket_name, Key=file_path, Body="col1,col2\n1,2\n3,4\n")
+
+    # Create data connector with conditional whole_directory_path_override
+    data_connector = S3DataConnector(
+        datasource_name="my_s3_datasource",
+        data_asset_name="my_data_asset",
+        s3_client=s3_client,
+        bucket=bucket_name,
+        prefix=prefix,
+        file_path_template_map_fn=S3Url.OBJECT_URL_TEMPLATE.format,
+        whole_directory_path_override=whole_directory_path if whole_directory_override else None,
+    )
+
+    # Create batch request with conditional partitioner
+    batch_request = BatchRequest(
+        datasource_name="my_s3_datasource",
+        data_asset_name="my_data_asset",
+        options={},
+        partitioner=None
+        if whole_directory_override
+        else FileNamePartitionerPath(regex=re.compile(r"(?P<filename>.+\.csv)")),
+    )
+    batch_definitions = data_connector.get_batch_definition_list(batch_request)
+
+    # Verify expected batch count
+    assert len(batch_definitions) == expected_batch_count
+
+    # Verify batch definitions have correct structure
+    for batch_definition in batch_definitions:
+        assert batch_definition.datasource_name == "my_s3_datasource"
+        assert batch_definition.data_asset_name == "my_data_asset"
+        assert expected_identifier_key in batch_definition.batch_identifiers
+
+    if whole_directory_override:
+        # For directory mode, verify single batch with directory path
+        batch_definition = batch_definitions[0]
+        assert batch_definition.batch_identifiers["path"] == whole_directory_path
+    else:
+        # For file mode, verify individual file batches
+        file_names = [bd.batch_identifiers["filename"] for bd in batch_definitions]
+        expected_files = ["file1.csv", "file2.csv", "file3.csv"]
+        assert sorted(file_names) == sorted(expected_files)

@@ -13,6 +13,7 @@ from great_expectations.datasource.fluent.data_connector import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.alias_types import PathStr
     from great_expectations.compatibility import azure
     from great_expectations.core.batch import LegacyBatchDefinition
 
@@ -40,6 +41,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
         delimiter (str): Microsoft Azure Blob Storage delimiter
         recursive_file_discovery (bool): Flag to indicate if files should be searched recursively from subfolders
         file_path_template_map_fn: Format function mapping path to fully-qualified resource on ABS
+        whole_directory_path_override: If present, treat entire directory as single Asset
     """  # noqa: E501 # FIXME CoP
 
     asset_level_option_keys: ClassVar[tuple[str, ...]] = (
@@ -61,6 +63,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
         delimiter: str = "/",
         recursive_file_discovery: bool = False,
         file_path_template_map_fn: Optional[Callable] = None,
+        whole_directory_path_override: PathStr | None = None,
     ) -> None:
         self._azure_client: azure.BlobServiceClient = azure_client
 
@@ -78,6 +81,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
             datasource_name=datasource_name,
             data_asset_name=data_asset_name,
             file_path_template_map_fn=file_path_template_map_fn,
+            whole_directory_path_override=whole_directory_path_override,
         )
 
     @classmethod
@@ -92,6 +96,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
         delimiter: str = "/",
         recursive_file_discovery: bool = False,
         file_path_template_map_fn: Optional[Callable] = None,
+        whole_directory_path_override: PathStr | None = None,
     ) -> AzureBlobStorageDataConnector:
         """Builds "AzureBlobStorageDataConnector", which links named DataAsset to Microsoft Azure Blob Storage.
 
@@ -105,6 +110,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
             delimiter: Microsoft Azure Blob Storage delimiter
             recursive_file_discovery: Flag to indicate if files should be searched recursively from subfolders
             file_path_template_map_fn: Format function mapping path to fully-qualified resource on ABS
+            whole_directory_path_override: If present, treat entire directory as single Asset
 
         Returns:
             Instantiated "AzureBlobStorageDataConnector" object
@@ -119,6 +125,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
             delimiter=delimiter,
             recursive_file_discovery=recursive_file_discovery,
             file_path_template_map_fn=file_path_template_map_fn,
+            whole_directory_path_override=whole_directory_path_override,
         )
 
     @classmethod
@@ -188,12 +195,10 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
     # Interface Method
     @override
     def _get_full_file_path(self, path: str) -> str:
-        if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
-requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501 # FIXME CoP
-            )
+        # If the path is already a fully qualified Azure URL (starts with wasbs://), return it as-is
+        # This handles the case of whole_directory_path_override which is already fully qualified
+        if path.startswith("wasbs://"):
+            return path
 
         template_arguments: dict = {
             "account_name": self._account_name,
