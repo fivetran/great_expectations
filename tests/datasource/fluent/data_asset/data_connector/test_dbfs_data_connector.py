@@ -12,7 +12,7 @@ from great_expectations.core.util import DBFSPath
 from great_expectations.datasource.fluent.data_connector import (
     DBFSDataConnector,
 )
-from great_expectations.datasource.fluent.data_connector.filesystem_data_connector import (
+from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
     MissingFilePathTemplateMapFnError,
 )
 from tests.test_utils import create_files_in_directory

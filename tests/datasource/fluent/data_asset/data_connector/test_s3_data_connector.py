@@ -679,6 +679,7 @@ def test_sanitize_prefix_behaves_the_same_as_local_files():
 
 
 @pytest.mark.unit
+@mock_s3
 @pytest.mark.parametrize(
     "whole_directory_override, expected_batch_count, expected_identifier_key",
     [
@@ -759,17 +760,15 @@ def test_s3_data_connector_whole_directory_path_override(
 
 
 @pytest.mark.unit
-def test_s3_data_connector_missing_file_path_template_map_fn_error(s3_setup):
+def test_s3_data_connector_missing_file_path_template_map_fn_error(s3_client, s3_bucket_name):
     """Test S3DataConnector raises MissingFilePathTemplateMapFnError
     when missing file_path_template_map_fn."""
-    s3_client, bucket = s3_setup
-
     with pytest.raises(MissingFilePathTemplateMapFnError):
         S3DataConnector(
             datasource_name="my_s3_datasource",
             data_asset_name="my_data_asset",
             s3_client=s3_client,
-            bucket=bucket,
+            bucket=s3_bucket_name,
             prefix="test/",
             file_path_template_map_fn=None,
         )
