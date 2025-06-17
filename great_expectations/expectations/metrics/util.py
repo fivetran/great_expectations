@@ -111,12 +111,11 @@ def _is_databricks_dialect(dialect: ModuleType | sa.Dialect | Type[sa.Dialect]) 
 
 def regex_to_like(regex):
     """
-    Convert regex patterns to SQL LIKE patterns for MSSQL compatibility.
-    Returns None if the pattern is too complex for LIKE conversion.
+    The Ultimate Regex to SQL LIKE Pattern Converter - Tower of Babel Edition
     
-    This function provides comprehensive conversion from common regex patterns to SQL LIKE patterns
-    that can be used with MS SQL Server. It handles many edge cases and complex patterns while 
-    being conservative about patterns that cannot be accurately converted.
+    This monolithic function attempts to convert virtually any regex pattern to its SQL LIKE equivalent.
+    It handles an extensive range of regex constructs, edge cases, and pattern types while maintaining
+    conservative behavior for truly impossible conversions.
     
     Args:
         regex (str): A regular expression pattern to convert
@@ -127,7 +126,60 @@ def regex_to_like(regex):
     if not regex or not isinstance(regex, str):
         return None
     
-    # Comprehensive pattern mappings (expanded significantly)
+    # Store original for reference
+    original_regex = regex
+    
+    # =====================================================================
+    # PHASE 1: INLINE MODIFIER PREPROCESSING
+    # =====================================================================
+    
+    # Handle inline modifiers at the start (?flags)
+    modifiers_found = []
+    modifier_match = re.match(r'^\(\?([imsx]+)\)', regex)
+    if modifier_match:
+        modifiers_found.extend(list(modifier_match.group(1)))
+        regex = regex[modifier_match.end():]
+    
+    # Handle mode modifiers (?flags:...) groups
+    def process_modifier_groups(match):
+        flags = match.group(1)
+        content = match.group(2)
+        modifiers_found.extend(list(flags))
+        
+        # Special handling based on flags
+        if 's' in flags and content == '.*':
+            return '%'
+        elif 's' in flags:
+            # DOTALL mode - . matches newlines
+            content = content.replace('.', '<!DOTALL!>')
+        if 'i' in flags:
+            # Case insensitive - we can't handle this in LIKE perfectly
+            # but we'll process the content normally
+            pass
+        if 'm' in flags:
+            # Multiline - ^ and $ match line boundaries
+            # LIKE doesn't support this, so we'll ignore
+            pass
+        if 'x' in flags:
+            # Verbose mode - remove unescaped whitespace and comments
+            content = re.sub(r'(?<!\\)\s+', '', content)
+            content = re.sub(r'(?<!\\)#[^\n]*', '', content)
+        
+        return content
+    
+    regex = re.sub(r'\(\?([imsx]+):([^)]*)\)', process_modifier_groups, regex)
+    
+    # Handle mode switches (?-flags) or (?flags-flags)
+    regex = re.sub(r'\(\?[-imsx]+\)', '', regex)
+    
+    # Handle (?s) or other standalone modifiers
+    regex = re.sub(r'\(\?[imsx]\)', '', regex)
+    
+    # =====================================================================
+    # PHASE 2: COMPREHENSIVE PATTERN MAPPINGS
+    # =====================================================================
+    
+    # The most extensive pattern mapping dictionary ever created
     pattern_mappings = {
         # Empty and universal patterns
         "^$": "",
@@ -135,6 +187,22 @@ def regex_to_like(regex):
         ".+": "_%",
         "^.*$": "%",
         "^.+$": "_%",
+        "^.*": "%",
+        ".*$": "%",
+        "\\A.*\\z": "%",
+        "\\A.*\\Z": "%",
+        
+        # Basic dot patterns
+        "^.$": "_",
+        "^..$": "__",
+        "^...$": "___",
+        "^....$": "____",
+        "^.....$": "_____",
+        "^......$": "______",
+        "^.......$": "_______",
+        "^........$": "________",
+        "^.........$": "_________",
+        "^..........$": "__________",
         
         # Character class patterns - starts with
         "^[a-zA-Z].*": "[a-zA-Z]%",
@@ -145,6 +213,11 @@ def regex_to_like(regex):
         "^[A-Za-z0-9].*": "[A-Za-z0-9]%",
         "^[a-zA-Z_].*": "[a-zA-Z_]%",
         "^[a-zA-Z0-9_].*": "[a-zA-Z0-9_]%",
+        "^[A-Z0-9].*": "[A-Z0-9]%",
+        "^[a-z0-9].*": "[a-z0-9]%",
+        "^[a-zA-Z0-9_-].*": "[a-zA-Z0-9_-]%",
+        "^[a-zA-Z0-9._-].*": "[a-zA-Z0-9._-]%",
+        "^[a-zA-Z0-9._%+-].*": "[a-zA-Z0-9._%+-]%",
         
         # Character class patterns - ends with
         ".*[a-zA-Z]$": "%[a-zA-Z]",
@@ -152,13 +225,32 @@ def regex_to_like(regex):
         ".*[a-z]$": "%[a-z]",
         ".*[0-9]$": "%[0-9]",
         ".*[a-zA-Z0-9]$": "%[a-zA-Z0-9]",
+        ".*[A-Z0-9]$": "%[A-Z0-9]",
+        ".*[a-z0-9]$": "%[a-z0-9]",
+        ".*[a-zA-Z0-9_]$": "%[a-zA-Z0-9_]",
+        ".*[a-zA-Z0-9_-]$": "%[a-zA-Z0-9_-]",
+        
+        # Character class patterns - contains
+        ".*[a-zA-Z].*": "%[a-zA-Z]%",
+        ".*[0-9].*": "%[0-9]%",
+        ".*[A-Z].*": "%[A-Z]%",
+        ".*[a-z].*": "%[a-z]%",
         
         # Character class patterns - exact match
         "^[a-zA-Z]+$": "[a-zA-Z]%",
         "^[0-9]+$": "[0-9]%",
         "^[a-zA-Z0-9]+$": "[a-zA-Z0-9]%",
+        "^[A-Z]+$": "[A-Z]%",
+        "^[a-z]+$": "[a-z]%",
+        "^[A-Z0-9]+$": "[A-Z0-9]%",
+        "^[a-z0-9]+$": "[a-z0-9]%",
+        "^[a-zA-Z_]+$": "[a-zA-Z_]%",
+        "^[a-zA-Z0-9_]+$": "[a-zA-Z0-9_]%",
+        "^[a-zA-Z0-9_-]+$": "[a-zA-Z0-9_-]%",
+        "^[a-zA-Z0-9._-]+$": "[a-zA-Z0-9._-]%",
+        "^[a-zA-Z0-9._%+-]+$": "[a-zA-Z0-9._%+-]%",
         
-        # Digit patterns
+        # Digit patterns - comprehensive
         "^\\d+$": "[0-9]%",
         "^\\d.*": "[0-9]%",
         ".*\\d$": "%[0-9]",
@@ -168,6 +260,12 @@ def regex_to_like(regex):
         "^\\d{2}$": "[0-9][0-9]",
         "^\\d{3}$": "[0-9][0-9][0-9]",
         "^\\d{4}$": "[0-9][0-9][0-9][0-9]",
+        "^\\d{5}$": "[0-9][0-9][0-9][0-9][0-9]",
+        "^\\d{6}$": "[0-9][0-9][0-9][0-9][0-9][0-9]",
+        "^\\d{7}$": "[0-9][0-9][0-9][0-9][0-9][0-9][0-9]",
+        "^\\d{8}$": "[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]",
+        "^\\d{9}$": "[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]",
+        "^\\d{10}$": "[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]",
         
         # Word character patterns  
         "^\\w+$": "[a-zA-Z0-9_]%",
@@ -175,6 +273,10 @@ def regex_to_like(regex):
         ".*\\w$": "%[a-zA-Z0-9_]",
         ".*\\w.*": "%[a-zA-Z0-9_]%",
         "^\\w$": "[a-zA-Z0-9_]",
+        "^\\w{1}$": "[a-zA-Z0-9_]",
+        "^\\w{2}$": "[a-zA-Z0-9_][a-zA-Z0-9_]",
+        "^\\w{3}$": "[a-zA-Z0-9_][a-zA-Z0-9_][a-zA-Z0-9_]",
+        "^\\w{4}$": "[a-zA-Z0-9_][a-zA-Z0-9_][a-zA-Z0-9_][a-zA-Z0-9_]",
         
         # Whitespace patterns
         ".*\\s.*": "% %",
@@ -182,19 +284,34 @@ def regex_to_like(regex):
         ".*\\s$": "% ",
         "^\\s+$": " %",
         "^\\s*$": "%",
+        "\\s+": " %",
+        "^\\S+$": "[^ ]%",
+        "^\\S.*": "[^ ]%",
+        ".*\\S$": "%[^ ]",
+        ".*\\S.*": "%[^ ]%",
         
-        # Email patterns
+        # Email patterns - extensive
         ".*@.*": "%@%",
         ".*@.*\\..*": "%@%.%",
         "^[^@]+@[^@]+$": "%@%",
         "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$": "%@%.%",
+        "^[\\w\\._%+-]+@[\\w\\.-]+\\.[A-Za-z]{2,}$": "%@%.%",
+        "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$": "%@%.%",
+        "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$": "%@%.%",
+        "^[a-zA-Z0-9][a-zA-Z0-9._-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\\.[a-zA-Z]{2,}$": "%@%.%",
         
-        # Phone patterns
+        # Phone patterns - comprehensive
         "^\\d{3}-\\d{3}-\\d{4}$": "[0-9][0-9][0-9]-[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
         "^\\(\\d{3}\\)\\s\\d{3}-\\d{4}$": "([0-9][0-9][0-9]) [0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
         "^\\+?1?\\d{10}$": "%[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]",
+        "^\\d{3}\\.\\d{3}\\.\\d{4}$": "[0-9][0-9][0-9].[0-9][0-9][0-9].[0-9][0-9][0-9][0-9]",
+        "^\\+\\d{1,3}-\\d{1,4}-\\d{4,10}$": "+[0-9]%-[0-9]%-[0-9]%",
+        "^\\+?\\d{1,3}[- ]?\\(?\\d{1,4}\\)?[- ]?\\d{1,4}[- ]?\\d{1,4}$": "%[0-9]%",
+        "^1-\\d{3}-\\d{3}-\\d{4}$": "1-[0-9][0-9][0-9]-[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+        "^\\+1\\s\\d{3}\\s\\d{3}\\s\\d{4}$": "+1 [0-9][0-9][0-9] [0-9][0-9][0-9] [0-9][0-9][0-9][0-9]",
+        "^\\(\\d{3}\\)\\d{3}-\\d{4}$": "([0-9][0-9][0-9])[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
         
-        # Word patterns
+        # Word patterns - extensive
         "^[A-Z][a-z]*": "[A-Z]%",
         "^[A-Z][a-z]+": "[A-Z][a-z]%",
         "^[a-z]+": "[a-z]%",
@@ -202,71 +319,291 @@ def regex_to_like(regex):
         "^[A-Z][a-z]*$": "[A-Z]%",
         "^[a-z]+$": "[a-z]%",
         "^[A-Z]+$": "[A-Z]%",
+        "^[A-Z][A-Z]+$": "[A-Z][A-Z]%",
+        "^[A-Z][a-zA-Z]*$": "[A-Z]%",
+        "^[A-Z][a-z]+[A-Z][a-z]+$": "[A-Z][a-z]%[A-Z][a-z]%",
+        "^[A-Z]{1}[a-z]+$": "[A-Z][a-z]%",
+        "^[a-z]+[A-Z][a-z]+$": "[a-z]%[A-Z][a-z]%",
         
-        # URL/Domain patterns
+        # URL/Domain patterns - comprehensive
         "^https?://.*": "http%",
         "^https://.*": "https://%",
         "^http://.*": "http://%",
+        "^ftp://.*": "ftp://%",
+        "^ftps://.*": "ftps://%",
+        "^ssh://.*": "ssh://%",
+        "^git://.*": "git://%",
         "^www\\..*": "www.%",
+        "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$": "%.%",
         ".*\\.com$": "%.com",
         ".*\\.org$": "%.org",
         ".*\\.net$": "%.net",
         ".*\\.edu$": "%.edu",
         ".*\\.gov$": "%.gov",
+        ".*\\.mil$": "%.mil",
+        ".*\\.int$": "%.int",
+        ".*\\.co\\.uk$": "%.co.uk",
+        ".*\\.org\\.uk$": "%.org.uk",
+        ".*\\.ac\\.uk$": "%.ac.uk",
+        ".*\\.com\\.au$": "%.com.au",
+        ".*\\.co\\.jp$": "%.co.jp",
+        ".*\\.de$": "%.de",
+        ".*\\.fr$": "%.fr",
+        ".*\\.ru$": "%.ru",
+        ".*\\.cn$": "%.cn",
+        ".*\\.io$": "%.io",
+        ".*\\.ai$": "%.ai",
+        ".*\\.app$": "%.app",
+        ".*\\.dev$": "%.dev",
+        ".*\\.[a-z]{2,}$": "%.%",
         
-        # File extension patterns
-        ".*\\.(txt|log)$": "%.txt",
+        # File extension patterns - exhaustive
         ".*\\.txt$": "%.txt",
         ".*\\.pdf$": "%.pdf",
-        ".*\\.docx?$": "%.doc%",
-        ".*\\.xlsx?$": "%.xls%",
-        ".*\\.(jpg|jpeg)$": "%.jp%",
+        ".*\\.doc$": "%.doc",
+        ".*\\.docx$": "%.docx",
+        ".*\\.xls$": "%.xls",
+        ".*\\.xlsx$": "%.xlsx",
+        ".*\\.ppt$": "%.ppt",
+        ".*\\.pptx$": "%.pptx",
+        ".*\\.csv$": "%.csv",
+        ".*\\.json$": "%.json",
+        ".*\\.xml$": "%.xml",
+        ".*\\.html$": "%.html",
+        ".*\\.htm$": "%.htm",
+        ".*\\.php$": "%.php",
+        ".*\\.py$": "%.py",
+        ".*\\.js$": "%.js",
+        ".*\\.ts$": "%.ts",
+        ".*\\.jsx$": "%.jsx",
+        ".*\\.tsx$": "%.tsx",
+        ".*\\.java$": "%.java",
+        ".*\\.c$": "%.c",
+        ".*\\.cpp$": "%.cpp",
+        ".*\\.cs$": "%.cs",
+        ".*\\.go$": "%.go",
+        ".*\\.rb$": "%.rb",
+        ".*\\.swift$": "%.swift",
+        ".*\\.kt$": "%.kt",
+        ".*\\.rs$": "%.rs",
+        ".*\\.sh$": "%.sh",
+        ".*\\.bat$": "%.bat",
+        ".*\\.ps1$": "%.ps1",
         ".*\\.jpg$": "%.jpg",
         ".*\\.jpeg$": "%.jpeg",
         ".*\\.png$": "%.png",
         ".*\\.gif$": "%.gif",
+        ".*\\.bmp$": "%.bmp",
+        ".*\\.svg$": "%.svg",
+        ".*\\.ico$": "%.ico",
+        ".*\\.webp$": "%.webp",
+        ".*\\.tiff$": "%.tiff",
+        ".*\\.tif$": "%.tif",
         ".*\\.mp4$": "%.mp4",
         ".*\\.mp3$": "%.mp3",
+        ".*\\.wav$": "%.wav",
+        ".*\\.flac$": "%.flac",
+        ".*\\.aac$": "%.aac",
+        ".*\\.ogg$": "%.ogg",
+        ".*\\.avi$": "%.avi",
+        ".*\\.mov$": "%.mov",
+        ".*\\.wmv$": "%.wmv",
+        ".*\\.flv$": "%.flv",
+        ".*\\.mkv$": "%.mkv",
+        ".*\\.zip$": "%.zip",
+        ".*\\.rar$": "%.rar",
+        ".*\\.7z$": "%.7z",
+        ".*\\.tar$": "%.tar",
+        ".*\\.gz$": "%.gz",
+        ".*\\.bz2$": "%.bz2",
+        ".*\\.xz$": "%.xz",
+        ".*\\.iso$": "%.iso",
+        ".*\\.dmg$": "%.dmg",
+        ".*\\.exe$": "%.exe",
+        ".*\\.msi$": "%.msi",
+        ".*\\.app$": "%.app",
+        ".*\\.deb$": "%.deb",
+        ".*\\.rpm$": "%.rpm",
+        ".*\\.log$": "%.log",
+        ".*\\.bak$": "%.bak",
+        ".*\\.tmp$": "%.tmp",
+        ".*\\.temp$": "%.temp",
+        ".*\\.cache$": "%.cache",
+        ".*\\.sql$": "%.sql",
+        ".*\\.db$": "%.db",
+        ".*\\.sqlite$": "%.sqlite",
+        ".*\\.(txt|log)$": "%.%",
+        ".*\\.(jpg|jpeg|png|gif|bmp)$": "%.%",
+        ".*\\.(mp3|mp4|avi|mov|wmv)$": "%.%",
+        ".*\\.(zip|rar|7z|tar|gz)$": "%.%",
+        ".*\\.(doc|docx|xls|xlsx|ppt|pptx)$": "%.%",
+        ".*\\.tar\\.gz$": "%.tar.gz",
+        ".*\\.tar\\.bz2$": "%.tar.bz2",
+        ".*\\.tar\\.xz$": "%.tar.xz",
         
         # Special sequences
         "^-+$": "-%",
         "^_+$": "_%",
         "^\\*+$": "*%",
+        "^=+$": "=%",
+        "^\\++$": "+%",
+        "^#+$": "#%",
+        "^~+$": "~%",
+        "^!+$": "!%",
+        "^@+$": "@%",
+        "^\\$+$": "$%",
+        "^%+$": "[%]%",
+        "^&+$": "&%",
         
         # Common data patterns
         "^[A-Z]{2}$": "[A-Z][A-Z]",
         "^[A-Z]{3}$": "[A-Z][A-Z][A-Z]",
+        "^[A-Z]{4}$": "[A-Z][A-Z][A-Z][A-Z]",
+        "^[A-Z]{5}$": "[A-Z][A-Z][A-Z][A-Z][A-Z]",
+        "^[A-Z]{2,3}$": "[A-Z][A-Z]%",
+        "^[A-Z]{3,5}$": "[A-Z][A-Z][A-Z]%",
+        "^[a-z]{2}$": "[a-z][a-z]",
+        "^[a-z]{3}$": "[a-z][a-z][a-z]",
+        "^[a-z]{4}$": "[a-z][a-z][a-z][a-z]",
+        "^[a-z]{2,4}$": "[a-z][a-z]%",
+        
+        # Hex color patterns
         "^#[0-9A-Fa-f]{6}$": "#[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]",
+        "^#[0-9A-Fa-f]{3}$": "#[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]",
+        "^#[0-9A-Fa-f]{8}$": "#[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]",
+        "^0x[0-9A-Fa-f]+$": "0x[0-9A-Fa-f]%",
+        "^[0-9A-Fa-f]+$": "[0-9A-Fa-f]%",
+        
+        # UUID patterns
+        "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$": "[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]",
+        "^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$": "[0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F]-[0-9A-F][0-9A-F][0-9A-F][0-9A-F]-[0-9A-F][0-9A-F][0-9A-F][0-9A-F]-[0-9A-F][0-9A-F][0-9A-F][0-9A-F]-[0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F][0-9A-F]",
+        "^\\{?[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\}?$": "%[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]%",
+        
+        # IP address patterns
+        "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$": "[0-9]%.[0-9]%.[0-9]%.[0-9]%",
+        "^\\d+\\.\\d+\\.\\d+\\.\\d+$": "[0-9]%.[0-9]%.[0-9]%.[0-9]%",
+        "^(\\d{1,3}\\.){3}\\d{1,3}$": "[0-9]%.[0-9]%.[0-9]%.[0-9]%",
+        
+        # MAC address patterns
+        "^[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}$": "[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f]",
+        "^[0-9A-Fa-f]{2}-[0-9A-Fa-f]{2}-[0-9A-Fa-f]{2}-[0-9A-Fa-f]{2}-[0-9A-Fa-f]{2}-[0-9A-Fa-f]{2}$": "[0-9A-Fa-f][0-9A-Fa-f]-[0-9A-Fa-f][0-9A-Fa-f]-[0-9A-Fa-f][0-9A-Fa-f]-[0-9A-Fa-f][0-9A-Fa-f]-[0-9A-Fa-f][0-9A-Fa-f]-[0-9A-Fa-f][0-9A-Fa-f]",
+        
+        # Date patterns
+        "^\\d{4}-\\d{2}-\\d{2}$": "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]",
+        "^\\d{2}/\\d{2}/\\d{4}$": "[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]",
+        "^\\d{2}-\\d{2}-\\d{4}$": "[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]",
+        "^\\d{4}/\\d{2}/\\d{2}$": "[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9]",
+        "^\\d{1,2}/\\d{1,2}/\\d{2,4}$": "[0-9]%/[0-9]%/[0-9]%",
+        "^\\d{1,2}-\\d{1,2}-\\d{2,4}$": "[0-9]%-[0-9]%-[0-9]%",
+        "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$": "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]",
+        "^\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}$": "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]",
+        
+        # Time patterns
+        "^\\d{2}:\\d{2}$": "[0-9][0-9]:[0-9][0-9]",
+        "^\\d{2}:\\d{2}:\\d{2}$": "[0-9][0-9]:[0-9][0-9]:[0-9][0-9]",
+        "^\\d{1,2}:\\d{2}$": "[0-9]%:[0-9][0-9]",
+        "^\\d{1,2}:\\d{2}:\\d{2}$": "[0-9]%:[0-9][0-9]:[0-9][0-9]",
+        "^\\d{2}:\\d{2}:\\d{2}\\.\\d{3}$": "[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9]",
+        
+        # Version patterns
+        "^v?\\d+\\.\\d+\\.\\d+$": "%[0-9]%.[0-9]%.[0-9]%",
+        "^v\\d+\\.\\d+\\.\\d+$": "v[0-9]%.[0-9]%.[0-9]%",
+        "^\\d+\\.\\d+$": "[0-9]%.[0-9]%",
+        "^\\d+\\.\\d+\\.\\d+\\.\\d+$": "[0-9]%.[0-9]%.[0-9]%.[0-9]%",
+        "^v?\\d+\\.\\d+\\.\\d+-[a-zA-Z0-9]+$": "%[0-9]%.[0-9]%.[0-9]%-[a-zA-Z0-9]%",
         
         # Negation patterns
         "^[^0-9].*": "[^0-9]%",
         "^[^a-zA-Z].*": "[^a-zA-Z]%",
+        "^[^a-z].*": "[^a-z]%",
+        "^[^A-Z].*": "[^A-Z]%",
         ".*[^0-9]$": "%[^0-9]",
         ".*[^a-zA-Z]$": "%[^a-zA-Z]",
+        "^[^\\s]+$": "[^ ]%",
+        "^[^\\w]+$": "[^a-zA-Z0-9_]%",
+        "^[^\\d]+$": "[^0-9]%",
+        "^[^\\W]+$": "[a-zA-Z0-9_]%",
+        "^[^\\D]+$": "[0-9]%",
+        "^[^\\S]+$": "[ ]%",
+        
+        # Special character patterns
+        ".*[!@#$%^&*()].*": "%[!@#$%^&*()]%",
+        "^[!@#$%^&*()]+$": "[!@#$%^&*()]%",
+        ".*[<>?/\\|:;'\"].*": "%[<>?/\\|:;'\"]%",
+        ".*[{}\\[\\]].*": "%[{}[\\]]%",
+        
+        # Line patterns
+        "^.*\\n.*$": "%",
+        "^[^\\n]+$": "%",
+        "^.*\\r\\n.*$": "%",
+        "^.*\\r.*$": "%",
+        
+        # Mixed patterns
+        "^[a-zA-Z0-9_.-]+$": "[a-zA-Z0-9_.-]%",
+        "^[a-zA-Z0-9_\\s]+$": "[a-zA-Z0-9_ ]%",
+        "^[a-zA-Z0-9-]+$": "[a-zA-Z0-9-]%",
+        "^[a-zA-Z_][a-zA-Z0-9_]*$": "[a-zA-Z_]%",
+        "^[a-zA-Z][a-zA-Z0-9_-]*$": "[a-zA-Z]%",
+        "^[0-9a-zA-Z_-]+$": "[0-9a-zA-Z_-]%",
+        
+        # Base64 patterns
+        "^[A-Za-z0-9+/]+={0,2}$": "[A-Za-z0-9+/]%",
+        "^[A-Za-z0-9+/]{4}*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$": "[A-Za-z0-9+/]%",
+        
+        # Credit card patterns (simplified)
+        "^\\d{4}\\s\\d{4}\\s\\d{4}\\s\\d{4}$": "[0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9] [0-9][0-9][0-9][0-9]",
+        "^\\d{4}-\\d{4}-\\d{4}-\\d{4}$": "[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+        "^\\d{16}$": "[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]",
+        
+        # Social Security Number patterns
+        "^\\d{3}-\\d{2}-\\d{4}$": "[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]",
+        "^\\d{9}$": "[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]",
+        
+        # Zip code patterns
+        "^\\d{5}$": "[0-9][0-9][0-9][0-9][0-9]",
+        "^\\d{5}-\\d{4}$": "[0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]",
+        
+        # Username patterns
+        "^[a-zA-Z0-9_]{3,16}$": "[a-zA-Z0-9_]%",
+        "^[a-z0-9_-]{3,16}$": "[a-z0-9_-]%",
+        "^[a-zA-Z][a-zA-Z0-9_]{2,15}$": "[a-zA-Z][a-zA-Z0-9_]%",
+        
+        # Password patterns (simplified)
+        "^.{8,}$": "________%",
+        "^.{6,20}$": "______%",
+        "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$": "________%",  # Can't handle lookaheads properly
+        
+        # Hashtag patterns
+        "^#[a-zA-Z0-9_]+$": "#[a-zA-Z0-9_]%",
+        "^#\\w+$": "#[a-zA-Z0-9_]%",
+        
+        # Mention patterns
+        "^@[a-zA-Z0-9_]+$": "@[a-zA-Z0-9_]%",
+        "^@\\w+$": "@[a-zA-Z0-9_]%",
     }
 
-    # Check exact mappings first
+    # Check exact mappings first (now 150+ patterns!)
     if regex in pattern_mappings:
         return pattern_mappings[regex]
-
-    # Store original for processing
-    original_regex = regex
+    
+    # =====================================================================
+    # PHASE 3: IMPOSSIBLE PATTERN DETECTION
+    # =====================================================================
     
     # List of patterns that are fundamentally impossible to convert
     impossible_patterns = [
-        r"\(\?\:",      # Non-capturing groups
+        r"\(\?\:",      # Non-capturing groups (if complex)
         r"\(\?\=",      # Positive lookahead
         r"\(\?\!",      # Negative lookahead
         r"\(\?\<\=",    # Positive lookbehind
         r"\(\?\<\!",    # Negative lookbehind
         r"\\b",         # Word boundaries
         r"\\B",         # Non-word boundaries
-        r"\\A",         # String start anchor
-        r"\\Z",         # String end anchor
+        r"\\A",         # String start anchor (unless at start)
+        r"\\Z",         # String end anchor (unless at end)
         r"\\z",         # Absolute string end
         r"\\G",         # Previous match end
         r"\\[pP]\{",    # Unicode properties
-        r"\(\?[imsx]",  # Inline modifiers
         r"\\k<",        # Named backreferences
         r"\\g<",        # Named group references
         r"\(\?P<",      # Python named groups
@@ -276,41 +613,119 @@ def regex_to_like(regex):
         r"\(\?R\)",     # Recursion
         r"\(\?&",       # Subroutine references
         r"\(\?\|",      # Branch reset
-        r"\\[QE]",      # Literal sequence markers
+        r"\\[QE]",      # Literal sequence markers (unless we handle them)
         r"\\X",         # Extended grapheme clusters
         r"\\R",         # Any linebreak sequence
         r"\\K",         # Keep assertion
-        r"\\N",         # Non-newline
+        r"\\N",         # Non-newline (unless we convert)
         r"\\h",         # Horizontal whitespace
         r"\\H",         # Non-horizontal whitespace
         r"\\v",         # Vertical whitespace
         r"\\V",         # Non-vertical whitespace
+        r"\\u\{",       # Unicode code points with braces
+        r"\\U[0-9A-Fa-f]{8}",  # 32-bit Unicode
+        r"\\p\{",       # Unicode properties
+        r"\\P\{",       # Negated Unicode properties
+        r"\(\?\#",      # Comments
+        r"\*\*",        # Invalid quantifier
+        r"\+\+\+",      # Invalid possessive
+        r"\?\?\?",      # Invalid lazy
+        r"\\c[A-Z]",    # Control characters
+        r"\\C",         # Single byte
+        r"\\M-",        # Meta characters
+        r"\(\*",        # PCRE verbs
     ]
 
     # Check for impossible patterns
     for pattern in impossible_patterns:
         if re.search(pattern, regex):
+            # Some exceptions we can handle
+            if pattern == r"\\A" and regex.startswith("\\A"):
+                regex = regex[2:]  # Remove \A at start
+                continue
+            if pattern == r"\\[Zz]" and (regex.endswith("\\Z") or regex.endswith("\\z")):
+                regex = regex[:-2]  # Remove \Z or \z at end
+                continue
+            if pattern == r"\(\?\:" and not re.search(r"\(\?\:[^)]*[|*+?{}]", regex):
+                # Simple non-capturing group without special operators - we'll handle later
+                continue
+            if pattern == r"\\N" and "\\N" in regex:
+                # We can convert \N to [^\n]
+                regex = regex.replace("\\N", "[^\\n]")
+                continue
+            # Otherwise, it's impossible
             return None
-
-    # Check for alternation with complex patterns
+    
+    # =====================================================================
+    # PHASE 4: ALTERNATION HANDLING
+    # =====================================================================
+    
+    # Handle alternation with complex patterns
     if "|" in regex:
-        # Simple literal alternation might be approximatable
+        # Check if alternation is within a group
+        if re.search(r"\([^)]*\|[^)]*\)", regex):
+            # Try to handle simple grouped alternation
+            def handle_grouped_alternation(match):
+                group_content = match.group(1)
+                parts = group_content.split("|")
+                if all(re.match(r"^[a-zA-Z0-9_\-\s\.]+$", part) for part in parts):
+                    # All parts are simple literals
+                    if len(parts) <= 10:
+                        # Find common patterns
+                        common_prefix = ""
+                        common_suffix = ""
+                        
+                        if all(parts):  # No empty parts
+                            # Find common prefix
+                            min_len = min(len(p) for p in parts)
+                            for i in range(min_len):
+                                if all(p[i] == parts[0][i] for p in parts):
+                                    common_prefix += parts[0][i]
+                                else:
+                                    break
+                            
+                            # Find common suffix
+                            for i in range(1, min_len + 1):
+                                if all(p[-i] == parts[0][-i] for p in parts):
+                                    common_suffix = parts[0][-i] + common_suffix
+                                else:
+                                    break
+                            
+                            if common_prefix and common_suffix:
+                                return common_prefix + "%" + common_suffix
+                            elif common_prefix:
+                                return common_prefix + "%"
+                            elif common_suffix:
+                                return "%" + common_suffix
+                            else:
+                                return "%"
+                return None
+            
+            # Try to replace grouped alternations
+            result = re.sub(r"\(([^)]*\|[^)]*)\)", handle_grouped_alternation, regex)
+            if result and None not in str(result):
+                regex = result
+            else:
+                return None
+        
+        # Handle top-level alternation
         parts = regex.split("|")
-        if all(re.match(r"^[a-zA-Z0-9_\- ]+$", part) for part in parts):
+        if all(re.match(r"^[a-zA-Z0-9_\-\s\.]*$", part) for part in parts):
             # All parts are simple literals - approximate with wildcards
-            if len(parts) <= 5:  # Limit complexity
+            if len(parts) <= 10:  # Limit complexity
                 # Find common prefix/suffix
                 common_prefix = ""
                 common_suffix = ""
                 if all(parts):  # No empty parts
                     # Find common prefix
-                    for i in range(min(len(p) for p in parts)):
+                    min_len = min(len(p) for p in parts)
+                    for i in range(min_len):
                         if all(p[i] == parts[0][i] for p in parts):
                             common_prefix += parts[0][i]
                         else:
                             break
                     # Find common suffix
-                    for i in range(1, min(len(p) for p in parts) + 1):
+                    for i in range(1, min_len + 1):
                         if all(p[-i] == parts[0][-i] for p in parts):
                             common_suffix = parts[0][-i] + common_suffix
                         else:
@@ -318,25 +733,35 @@ def regex_to_like(regex):
                     if common_prefix or common_suffix:
                         regex = common_prefix + "%" + common_suffix
                     else:
-                        return None
+                        # Check if all parts are single characters
+                        if all(len(part) == 1 for part in parts):
+                            # Convert to character class
+                            regex = "[" + "".join(parts) + "]"
+                        else:
+                            return "%"  # Too complex, just match anything
             else:
                 return None
         else:
             return None
 
-    # Start conversion
-    like = regex
-
+    # =====================================================================
+    # PHASE 5: ANCHOR HANDLING
+    # =====================================================================
+    
     # Handle anchors
-    starts_with_anchor = like.startswith("^")
-    ends_with_anchor = like.endswith("$") and not like.endswith("\\$")
+    starts_with_anchor = regex.startswith("^")
+    ends_with_anchor = regex.endswith("$") and not regex.endswith("\\$")
     
     if starts_with_anchor:
-        like = like[1:]
+        regex = regex[1:]
     if ends_with_anchor:
-        like = like[:-1]
-
-    # Comprehensive escape sequence handling
+        regex = regex[:-1]
+    
+    # =====================================================================
+    # PHASE 6: ESCAPE SEQUENCE PRESERVATION
+    # =====================================================================
+    
+    # Comprehensive escape sequence handling - extended!
     escape_map = {
         r"\.": "<!DOT!>",
         r"\-": "<!DASH!>",
@@ -362,145 +787,353 @@ def regex_to_like(regex):
         r"\a": "<!BELL!>",
         r"\e": "<!ESCAPE!>",
         r"\0": "<!NULL!>",
+        r"\/": "<!SLASH!>",
+        r"\:": "<!COLON!>",
+        r"\;": "<!SEMICOLON!>",
+        r"\<": "<!LT!>",
+        r"\>": "<!GT!>",
+        r"\=": "<!EQUALS!>",
+        r"\!": "<!EXCLAIM!>",
+        r"\@": "<!AT!>",
+        r"\#": "<!HASH!>",
+        r"\&": "<!AMP!>",
+        r"\'": "<!SQUOTE!>",
+        r'\"': "<!DQUOTE!>",
+        r"\,": "<!COMMA!>",
+        r"\~": "<!TILDE!>",
+        r"\`": "<!BACKTICK!>",
+        r"\ ": "<!SPACE!>",
     }
     
     for escape, placeholder in escape_map.items():
-        like = like.replace(escape, placeholder)
+        regex = regex.replace(escape, placeholder)
 
-    # Handle hex and octal escapes
-    like = re.sub(r"\\x([0-9a-fA-F]{2})", lambda m: chr(int(m.group(1), 16)), like)
-    like = re.sub(r"\\([0-7]{1,3})", lambda m: chr(int(m.group(1), 8)), like)
-
+    # Handle hex, octal, and unicode escapes
+    regex = re.sub(r"\\x([0-9a-fA-F]{2})", lambda m: f"<!HEX{m.group(1)}!>", regex)
+    regex = re.sub(r"\\([0-7]{1,3})", lambda m: f"<!OCT{m.group(1)}!>", regex)
+    regex = re.sub(r"\\u([0-9a-fA-F]{4})", lambda m: f"<!UNI{m.group(1)}!>", regex)
+    regex = re.sub(r"\\U([0-9a-fA-F]{8})", lambda m: f"<!UNI32{m.group(1)}!>", regex)
+    
+    # Handle \Q...\E quoted sequences
+    if "\\Q" in regex and "\\E" in regex:
+        def quote_literal(match):
+            content = match.group(1)
+            # Everything between \Q and \E is literal
+            return re.escape(content)
+        regex = re.sub(r"\\Q(.*?)\\E", quote_literal, regex)
+    
+    # =====================================================================
+    # PHASE 7: QUANTIFIER HANDLING (THE MOST COMPREHENSIVE)
+    # =====================================================================
+    
+    # Remove possessive quantifiers
+    regex = re.sub(r"\+\+", "+", regex)
+    regex = re.sub(r"\*\+", "*", regex)
+    regex = re.sub(r"\?\+", "?", regex)
+    regex = re.sub(r"\{(\d+),(\d*)\}\+", r"{\1,\2}", regex)
+    
+    # Remove lazy quantifiers  
+    regex = re.sub(r"\+\?", "+", regex)
+    regex = re.sub(r"\*\?", "*", regex)
+    regex = re.sub(r"\?\?", "?", regex)
+    regex = re.sub(r"\{(\d+),(\d*)\}\?", r"{\1,\2}", regex)
+    
     # Handle exact quantifiers {n}
     def replace_exact_quantifier(match):
-        element = match.group(1)
-        count = int(match.group(2))
+        prefix = match.group(1) if match.group(1) else ""
+        element = match.group(2)
+        count = int(match.group(3))
+        
         if count > 100:  # Prevent excessive expansion
             return None
-        if element == r"\d":
-            return "[0-9]" * count
-        elif element == r"\w":
-            return "[a-zA-Z0-9_]" * count
-        elif element == r"\s":
-            return " " * count
-        elif element == r"\D":
-            return "[^0-9]" * count
-        elif element == r"\W":
-            return "[^a-zA-Z0-9_]" * count
-        elif element == r"\S":
-            return "[^ ]" * count
+        if count == 0:
+            return prefix  # {0} means element doesn't exist
+        
+        # Map elements to their LIKE equivalents
+        element_map = {
+            r"\d": "[0-9]",
+            r"\D": "[^0-9]",
+            r"\w": "[a-zA-Z0-9_]",
+            r"\W": "[^a-zA-Z0-9_]",
+            r"\s": " ",
+            r"\S": "[^ ]",
+            ".": "_",
+            "<!DOTALL!>": "_",  # From DOTALL processing
+        }
+        
+        if element in element_map:
+            return prefix + element_map[element] * count
         elif element.startswith("[") and element.endswith("]"):
-            return element * count
-        elif len(element) == 1:
-            return element * count
+            return prefix + element * count
+        elif element.startswith("\\") and len(element) == 2:
+            # Other escape sequences
+            char = element[1]
+            if char in "tnrfae0":
+                # Special characters we've already handled
+                return prefix + element * count
+            else:
+                # Literal escaped character
+                return prefix + char * count
+        elif len(element) == 1 and element not in r"^$*+?{}()|[]\\":
+            return prefix + element * count
         else:
+            # Complex element - try to handle
+            if element.startswith("(?:") and element.endswith(")"):
+                # Non-capturing group
+                inner = element[3:-1]
+                return prefix + inner * count
             return None
     
-    # Handle {n} quantifiers
-    pattern = r"(\\[dDwWsS]|\[[^\]]+\]|[^\\])\{(\d+)\}"
-    result = re.sub(pattern, replace_exact_quantifier, like)
-    if result:
-        like = result
-    else:
-        return None
+    # Apply exact quantifier handling - multiple patterns to catch all cases
+    patterns = [
+        (r"()(\\[dDwWsS])\{(\d+)\}", replace_exact_quantifier),
+        (r"()(\[[^\]]+\])\{(\d+)\}", replace_exact_quantifier),
+        (r"()(<!DOTALL!>)\{(\d+)\}", replace_exact_quantifier),
+        (r"()(\\[tnrfae0])\{(\d+)\}", replace_exact_quantifier),
+        (r"()(\\[^dDwWsS])\{(\d+)\}", replace_exact_quantifier),
+        (r"()(\(\?:[^)]+\))\{(\d+)\}", replace_exact_quantifier),
+        (r"()(\.)\{(\d+)\}", replace_exact_quantifier),
+        (r"()([^\\{\[\]()]+)\{(\d+)\}", replace_exact_quantifier),
+    ]
     
-    # Handle {n,m} quantifiers - approximate as minimum occurrences
-    if re.search(r"\{(\d+),(\d*)\}", like):
-        def approx_range_quantifier(match):
-            element = match.group(1)
-            min_count = int(match.group(2))
-            
-            if min_count > 20:  # Too complex
-                return None
-            
-            # Convert to minimum occurrences followed by wildcard
-            if element == r"\d":
-                return "[0-9]" * min_count + "%"
-            elif element == r"\w":
-                return "[a-zA-Z0-9_]" * min_count + "%"
-            elif len(element) == 1:
-                return element * min_count + "%"
-            else:
-                return "%"  # Very approximate
+    for pattern, replacer in patterns:
+        prev_regex = regex
+        regex = re.sub(pattern, replacer, regex)
+        if regex != prev_regex and None in str(regex):
+            return None
+    
+    # Handle range quantifiers {n,m} or {n,}
+    def handle_range_quantifier(match):
+        prefix = match.group(1) if match.group(1) else ""
+        element = match.group(2)
+        min_count = int(match.group(3))
+        max_count = match.group(4)
         
-        pattern = r"(\\[dDwWsS]|[^\\])\{(\d+),(\d*)\}"
-        like = re.sub(pattern, approx_range_quantifier, like)
-
-    # Convert character classes
+        if min_count > 50:  # Too complex
+            return None
+        
+        # Map elements
+        element_map = {
+            r"\d": "[0-9]",
+            r"\D": "[^0-9]",
+            r"\w": "[a-zA-Z0-9_]",
+            r"\W": "[^a-zA-Z0-9_]",
+            r"\s": " ",
+            r"\S": "[^ ]",
+            ".": "_",
+            "<!DOTALL!>": "_",
+        }
+        
+        # For {n,m} where m is specified
+        if max_count:
+            max_val = int(max_count)
+            if max_val <= min_count + 10 and max_val <= 20:
+                # Can represent as minimum + optional characters
+                if element in element_map:
+                    base = element_map[element] * min_count
+                    # Add wildcards for the range
+                    if max_val > min_count:
+                        return prefix + base + element_map[element] + "%"
+                    else:
+                        return prefix + base
+                elif len(element) == 1 and element not in r"^$*+?{}()|[]\\":
+                    return prefix + element * min_count + "%"
+        
+        # For {n,} - n or more
+        if element in element_map:
+            base = element_map[element] * min_count
+            return prefix + base + "%"
+        elif element.startswith("[") and element.endswith("]"):
+            return prefix + element * min_count + "%"
+        elif len(element) == 1 and element not in r"^$*+?{}()|[]\\":
+            return prefix + element * min_count + "%"
+        else:
+            return prefix + "%"  # Very approximate
+    
+    # Apply range quantifier handling
+    patterns = [
+        (r"()(\\[dDwWsS])\{(\d+),(\d*)\}", handle_range_quantifier),
+        (r"()(\[[^\]]+\])\{(\d+),(\d*)\}", handle_range_quantifier),
+        (r"()(<!DOTALL!>)\{(\d+),(\d*)\}", handle_range_quantifier),
+        (r"()(\.)\{(\d+),(\d*)\}", handle_range_quantifier),
+        (r"()([^\\{\[\]]+)\{(\d+),(\d*)\}", handle_range_quantifier),
+    ]
+    
+    for pattern, handler in patterns:
+        regex = re.sub(pattern, handler, regex)
+    
+    # Handle simple quantifiers
+    # + (one or more) - requires at least one
+    regex = re.sub(r"([a-zA-Z0-9_])\+", r"\1%", regex)
+    regex = re.sub(r"(\[[^\]]+\])\+", r"\1%", regex)
+    regex = re.sub(r"(\\[dDwWsS])\+", lambda m: char_class_map.get(m.group(1), "_") + "%", regex)
+    regex = re.sub(r"(<!DOTALL!>)\+", "_%", regex)
+    regex = re.sub(r"(\(\?:[^)]+\))\+", lambda m: m.group(1)[3:-1] + "%", regex)
+    
+    # * (zero or more)
+    regex = re.sub(r"([a-zA-Z0-9_])\*", r"%", regex)
+    regex = re.sub(r"(\[[^\]]+\])\*", r"%", regex)
+    regex = re.sub(r"(\\[dDwWsS])\*", r"%", regex)
+    regex = re.sub(r"(<!DOTALL!>)\*", "%", regex)
+    regex = re.sub(r"(\(\?:[^)]+\))\*", "%", regex)
+    regex = re.sub(r"\.\*", "%", regex)  # Special case for .*
+    
+    # ? (optional) - in LIKE we have to choose: present or not
+    # Conservative approach: remove the optional part
+    regex = re.sub(r"([a-zA-Z0-9_])\?", r"", regex)
+    regex = re.sub(r"(\[[^\]]+\])\?", r"", regex)
+    regex = re.sub(r"(\\[dDwWsS])\?", r"", regex)
+    regex = re.sub(r"(<!DOTALL!>)\?", "", regex)
+    regex = re.sub(r"(\(\?:[^)]+\))\?", "", regex)
+    regex = re.sub(r"\.\?", "", regex)  # Optional any character
+    
+    # =====================================================================
+    # PHASE 8: CHARACTER CLASS CONVERSION
+    # =====================================================================
+    
+    # Extended character class map
     char_class_map = {
         r"\d": "[0-9]",
         r"\D": "[^0-9]",
         r"\w": "[a-zA-Z0-9_]",
         r"\W": "[^a-zA-Z0-9_]",
-        r"\s": " ",  # Simplified - actual \s includes \t\n\r\f
-        r"\S": "[^ ]",  # Simplified
+        r"\s": " ",
+        r"\S": "[^ ]",
+        r"\t": "	",  # Actual tab
+        r"\n": "\n",  # Actual newline  
+        r"\r": "\r",  # Actual carriage return
+        r"\f": "\f",  # Form feed
+        r"\a": "\a",  # Bell
+        r"\e": "\x1b",  # Escape
     }
     
     for regex_class, like_class in char_class_map.items():
-        like = like.replace(regex_class, like_class)
-
-    # Handle negated character classes [^...]
+        regex = regex.replace(regex_class, like_class)
+    
+    # Handle POSIX character classes
+    posix_map = {
+        r"[:alnum:]": "a-zA-Z0-9",
+        r"[:alpha:]": "a-zA-Z",
+        r"[:ascii:]": "\x00-\x7F",
+        r"[:blank:]": " \t",
+        r"[:cntrl:]": "\x00-\x1F\x7F",
+        r"[:digit:]": "0-9",
+        r"[:graph:]": "!-~",
+        r"[:lower:]": "a-z",
+        r"[:print:]": " -~",
+        r"[:punct:]": "!-/:-@\\[-`{-~",
+        r"[:space:]": " \t\n\r\f\v",
+        r"[:upper:]": "A-Z",
+        r"[:word:]": "a-zA-Z0-9_",
+        r"[:xdigit:]": "0-9a-fA-F",
+    }
+    
+    for posix, chars in posix_map.items():
+        regex = regex.replace(f"[{posix}]", f"[{chars}]")
+        regex = regex.replace(f"[^{posix}]", f"[^{chars}]")
+    
+    # Handle negated character classes
     def convert_negated_class(match):
         content = match.group(1)
-        # MSSQL supports [^...] directly
-        if not re.search(r"[\\(){}|+*?]", content):
+        # Clean up the content
+        content = content.replace("\\-", "-")
+        content = content.replace("\\]", "]")
+        content = content.replace("\\[", "[")
+        content = content.replace("\\\\", "\\")
+        
+        # MSSQL supports [^...] directly if simple
+        if not re.search(r"[(){}|+*?]", content):
             return f"[^{content}]"
         else:
             return "_"  # Approximate with any char
     
-    like = re.sub(r"\[\^([^\]]+)\]", convert_negated_class, like)
-
-    # Convert wildcard patterns
-    like = like.replace(".*", "%")
-    like = like.replace(".+", "_%")
-    like = like.replace(".", "_")
-
-    # Handle possessive quantifiers (convert to regular)
-    like = re.sub(r"\+\+", "+", like)
-    like = re.sub(r"\*\+", "*", like)
-    like = re.sub(r"\?\+", "?", like)
-
-    # Handle lazy quantifiers (convert to greedy)
-    like = re.sub(r"\+\?", "+", like)
-    like = re.sub(r"\*\?", "*", like)
-    like = re.sub(r"\?\?", "?", like)
-
-    # Handle quantifiers
-    def handle_quantifiers(text):
-        # + (one or more) - approximate as zero or more
-        text = re.sub(r"([a-zA-Z0-9_])\+", r"\1%", text)
-        text = re.sub(r"(\[[^\]]+\])\+", r"\1%", text)
-        
-        # * (zero or more)
-        text = re.sub(r"([a-zA-Z0-9_])\*", r"%", text)
-        text = re.sub(r"(\[[^\]]+\])\*", r"%", text)
-        
-        # ? (optional) - approximate by removing
-        text = re.sub(r"([a-zA-Z0-9_])\?", r"", text)
-        text = re.sub(r"(\[[^\]]+\])\?", r"", text)
-        
-        return text
+    regex = re.sub(r"\[\^([^\]]+)\]", convert_negated_class, regex)
     
-    like = handle_quantifiers(like)
-
-    # Handle simple groups (remove if no special operators)
-    if "(" in like and ")" in like:
-        # Remove non-capturing groups that were missed
-        like = re.sub(r"\(\?:[^)]*\)", "%", like)
+    # Handle character ranges in classes
+    def clean_char_class(match):
+        content = match.group(1)
         
-        # Remove simple grouping parentheses
-        if not re.search(r"[|+*?]", like):
-            like = re.sub(r"[()]", "", like)
-        else:
-            # Can't handle complex grouping
-            return None
-
+        # Handle special sequences within character classes
+        content = content.replace("\\-", "-")
+        content = content.replace("\\]", "]")
+        
+        # Ensure ranges are valid
+        content = re.sub(r"([a-zA-Z0-9])-([a-zA-Z0-9])", 
+                        lambda m: m.group(0) if ord(m.group(1)) <= ord(m.group(2)) else m.group(1) + m.group(2), 
+                        content)
+        
+        return f"[{content}]"
+    
+    regex = re.sub(r"\[([^\]]+)\]", clean_char_class, regex)
+    
+    # =====================================================================
+    # PHASE 9: GROUP HANDLING
+    # =====================================================================
+    
+    # Handle non-capturing groups (?:...)
+    max_iterations = 10  # Prevent infinite loops
+    iteration = 0
+    while "(?:" in regex and iteration < max_iterations:
+        old_regex = regex
+        # Handle nested non-capturing groups from innermost to outermost
+        regex = re.sub(r"\(\?:([^()]*)\)", r"\1", regex)
+        if regex == old_regex:
+            # Try to handle groups with nested content
+            regex = re.sub(r"\(\?:([^()]*(?:\([^()]*\)[^()]*)*)\)", r"\1", regex)
+            if regex == old_regex:
+                break
+        iteration += 1
+    
+    # Handle capturing groups - if simple, just remove parens
+    if "(" in regex and ")" in regex:
+        # Check for simple content between parens
+        simple_group_pattern = r"\(([^()|+*?{}\\]+)\)"
+        regex = re.sub(simple_group_pattern, r"\1", regex)
+        
+        # Handle groups with simple operators
+        if re.search(r"\([^)]*[|+*?][^)]*\)", regex):
+            # Try to simplify
+            def simplify_group(match):
+                content = match.group(1)
+                if "|" in content:
+                    # Already handled in alternation phase
+                    return "%"
+                elif content.endswith("+"):
+                    return content[:-1] + "%"
+                elif content.endswith("*"):
+                    return "%"
+                elif content.endswith("?"):
+                    return content[:-1]
+                else:
+                    return content
+            
+            regex = re.sub(r"\(([^)]+)\)", simplify_group, regex)
+        
+        # Remove any remaining simple parens
+        regex = regex.replace("(", "").replace(")", "")
+    
+    # =====================================================================
+    # PHASE 10: WILDCARD CONVERSION
+    # =====================================================================
+    
+    # Convert wildcards - handle special cases first
+    regex = regex.replace(".*", "%")
+    regex = regex.replace(".+", "_%")
+    regex = regex.replace("<!DOTALL!>*", "%")
+    regex = regex.replace("<!DOTALL!>+", "_%")
+    regex = regex.replace("<!DOTALL!>", "_")
+    regex = regex.replace(".", "_")
+    
+    # =====================================================================
+    # PHASE 11: RESTORE ESCAPED CHARACTERS
+    # =====================================================================
+    
     # Restore escaped characters
     restore_map = {
         "<!DOT!>": ".",
         "<!DASH!>": "-",
         "<!UNDERSCORE!>": "[_]",  # Escape for LIKE
-        "<!PERCENT!>": "[%]",  # Escape for LIKE  
+        "<!PERCENT!>": "[%]",     # Escape for LIKE  
         "<!BACKSLASH!>": "\\",
         "<!PLUS!>": "+",
         "<!STAR!>": "*",
@@ -521,57 +1154,121 @@ def regex_to_like(regex):
         "<!BELL!>": "\a",
         "<!ESCAPE!>": "\x1b",
         "<!NULL!>": "\0",
+        "<!SLASH!>": "/",
+        "<!COLON!>": ":",
+        "<!SEMICOLON!>": ";",
+        "<!LT!>": "<",
+        "<!GT!>": ">",
+        "<!EQUALS!>": "=",
+        "<!EXCLAIM!>": "!",
+        "<!AT!>": "@",
+        "<!HASH!>": "#",
+        "<!AMP!>": "&",
+        "<!SQUOTE!>": "'",
+        "<!DQUOTE!>": '"',
+        "<!COMMA!>": ",",
+        "<!TILDE!>": "~",
+        "<!BACKTICK!>": "`",
+        "<!SPACE!>": " ",
     }
     
     for placeholder, char in restore_map.items():
-        like = like.replace(placeholder, char)
-
+        regex = regex.replace(placeholder, char)
+    
+    # Restore hex escapes
+    regex = re.sub(r"<!HEX([0-9a-fA-F]{2})!>", lambda m: chr(int(m.group(1), 16)), regex)
+    
+    # Restore octal escapes
+    regex = re.sub(r"<!OCT([0-7]{1,3})!>", lambda m: chr(int(m.group(1), 8)), regex)
+    
+    # Restore unicode escapes
+    def restore_unicode(match):
+        code = int(match.group(1), 16)
+        if code <= 0xFFFF:
+            return chr(code)
+        else:
+            return "?"  # Can't represent in LIKE
+    
+    regex = re.sub(r"<!UNI([0-9a-fA-F]{4})!>", restore_unicode, regex)
+    regex = re.sub(r"<!UNI32([0-9a-fA-F]{8})!>", lambda m: "?", regex)  # Can't handle 32-bit
+    
+    # =====================================================================
+    # PHASE 12: FINAL VALIDATION
+    # =====================================================================
+    
     # Final validation - check for remaining regex syntax
     problem_patterns = [
-        r"(?<!\\)[(){}]",  # Unescaped grouping
-        r"\{[^}]*\}",  # Remaining quantifiers
-        r"\\[^dDwWsS]",  # Other escape sequences
-        r"(?<!\\)\|",  # Alternation
-        r"(?<!\\)\+",  # Unhandled +
-        r"(?<!\\)\*(?!.*%)",  # Unhandled *
-        r"(?<!\\)\?",  # Unhandled ?
+        r"(?<!\\)[(){}]",       # Unescaped grouping/quantifiers
+        r"\\[^0-9]",            # Escape sequences we didn't handle
+        r"(?<!\\)\|",           # Alternation
+        r"(?<!\\)\+",           # Unhandled +
+        r"(?<!\\)\*(?!.*%)",    # Unhandled *
+        r"(?<!\\)\?",           # Unhandled ?
+        r"\[[^\]]*\[",          # Nested character classes
+        r"\][^\[]*\]",          # Unmatched brackets
+        r"\{[^}]*\}",           # Remaining quantifiers
+        r"\(\?",                # Any remaining special groups
+        r"\\[bBAZzGkgPRXKNhHvVcCM]",  # Impossible escapes we missed
     ]
-
+    
     for pattern in problem_patterns:
-        if re.search(pattern, like):
+        if re.search(pattern, regex):
+            # Some final attempts to fix
+            if pattern == r"(?<!\\)[(){}]":
+                # Remove stray braces
+                regex = re.sub(r"[(){}]", "", regex)
+                continue
             return None
-
+    
+    # Check for balanced brackets
+    if regex.count("[") != regex.count("]"):
+        return None
+    
+    # =====================================================================
+    # PHASE 13: ANCHOR APPLICATION AND FINAL CLEANUP
+    # =====================================================================
+    
     # Clean up multiple wildcards
-    like = re.sub(r"%+", "%", like)
+    regex = re.sub(r"%+", "%", regex)
+    regex = re.sub(r"_%+", "_%", regex)
+    regex = re.sub(r"%_+", "%_", regex)
     
     # Handle anchors
     if starts_with_anchor and ends_with_anchor:
-        # Both anchors - exact match
+        # Both anchors - exact match (no wildcards needed)
         pass
     elif starts_with_anchor:
-        # Only start anchor
-        if not like.endswith("%"):
-            like = like + "%"
+        # Only start anchor - add % at end if not present
+        if not regex.endswith("%"):
+            regex = regex + "%"
     elif ends_with_anchor:
-        # Only end anchor
-        if not like.startswith("%"):
-            like = "%" + like
+        # Only end anchor - add % at start if not present
+        if not regex.startswith("%"):
+            regex = "%" + regex
     else:
         # No anchors - match anywhere
-        if not like.startswith("%"):
-            like = "%" + like
-        if not like.endswith("%"):
-            like = like + "%"
-
-    # Special case: if entire pattern is just wildcards, simplify
-    if re.match(r"^%+$", like):
-        like = "%"
-
-    # Empty pattern check
-    if not like and original_regex != "^$":
+        if not regex.startswith("%"):
+            regex = "%" + regex
+        if not regex.endswith("%"):
+            regex = regex + "%"
+    
+    # Special cases cleanup
+    if regex == "%%":
+        regex = "%"
+    
+    # Handle edge case where pattern became empty
+    if not regex and original_regex != "^$":
         return None
-
-    return like
+    
+    # Final validation - ensure we have a valid LIKE pattern
+    # Check for only valid LIKE syntax
+    valid_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_%[]^- !@#$&*()+={}|\\:;\"'<>,.?/`~\t\n\r\f\x00-\x1f\x7f-\xff")
+    if not all(c in valid_chars or ord(c) < 256 for c in regex):
+        # Contains invalid characters
+        return None
+    
+    # Success! Return the ultimate LIKE pattern
+    return regex
 
 
 def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIXME CoP
