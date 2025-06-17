@@ -95,7 +95,7 @@ class DBFSDataConnector(FilesystemDataConnector):
         if self._file_path_template_map_fn is None:
             raise MissingFilePathTemplateMapFnError()
 
-        template_arguments: dict = {
+        template_arguments = {
             "path": str(self.base_directory.joinpath(path)),
         }
 

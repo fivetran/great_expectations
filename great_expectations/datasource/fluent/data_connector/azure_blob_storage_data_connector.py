@@ -204,7 +204,7 @@ class AzureBlobStorageDataConnector(FilePathDataConnector):
         if self._file_path_template_map_fn is None:
             raise MissingFilePathTemplateMapFnError()
 
-        template_arguments: dict = {
+        template_arguments = {
             "account_name": self._account_name,
             "container": self._container,
             "path": path,

@@ -208,7 +208,7 @@ class S3DataConnector(FilePathDataConnector):
         if self._file_path_template_map_fn is None:
             raise MissingFilePathTemplateMapFnError()
 
-        template_arguments: dict = {
+        template_arguments = {
             "bucket": self._bucket,
             "path": path,
         }
