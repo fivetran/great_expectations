@@ -3,7 +3,6 @@ import os
 import re
 from typing import TYPE_CHECKING, List
 
-import boto3
 import pandas as pd
 import pytest
 from moto import mock_s3
