@@ -85,14 +85,17 @@ def test__get_full_file_path_pandas(fs: FakeFilesystem):
 @pytest.mark.unit
 def test_dbfs_data_connector_missing_file_path_template_map_fn_error():
     """Test DBFS data connector raises error when file_path_template_map_fn is None."""
+    data_connector = DBFSDataConnector(
+        datasource_name="my_dbfs_datasource",
+        data_asset_name="my_data_asset",
+        base_directory=pathlib.Path("/dbfs/test"),
+        glob_directive="*.csv",
+        file_path_template_map_fn=None,
+    )
+
+    # The error is raised when _get_full_file_path is called, not during instantiation
     with pytest.raises(MissingFilePathTemplateMapFnError):
-        DBFSDataConnector(
-            datasource_name="my_dbfs_datasource",
-            data_asset_name="my_data_asset",
-            base_directory=pathlib.Path("/dbfs/test"),
-            glob_directive="*.csv",
-            file_path_template_map_fn=None,
-        )
+        data_connector._get_full_file_path("test.csv")
 
 
 @pytest.mark.spark

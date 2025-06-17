@@ -763,12 +763,15 @@ def test_s3_data_connector_whole_directory_path_override(
 def test_s3_data_connector_missing_file_path_template_map_fn_error(s3_client, s3_bucket_name):
     """Test S3DataConnector raises MissingFilePathTemplateMapFnError
     when missing file_path_template_map_fn."""
+    data_connector = S3DataConnector(
+        datasource_name="my_s3_datasource",
+        data_asset_name="my_data_asset",
+        s3_client=s3_client,
+        bucket=s3_bucket_name,
+        prefix="test/",
+        file_path_template_map_fn=None,
+    )
+
+    # The error is raised when _get_full_file_path is called, not during instantiation
     with pytest.raises(MissingFilePathTemplateMapFnError):
-        S3DataConnector(
-            datasource_name="my_s3_datasource",
-            data_asset_name="my_data_asset",
-            s3_client=s3_client,
-            bucket=s3_bucket_name,
-            prefix="test/",
-            file_path_template_map_fn=None,
-        )
+        data_connector._get_full_file_path("test.csv")
