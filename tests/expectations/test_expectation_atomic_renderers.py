@@ -748,7 +748,7 @@ def test_atomic_prescriptive_summary_expect_column_proportion_of_unique_values_t
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column fraction of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+            "template": "$column proportion of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
