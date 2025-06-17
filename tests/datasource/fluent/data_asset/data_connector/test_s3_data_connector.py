@@ -77,6 +77,7 @@ def test_df():
 
 
 @pytest.mark.big
+@mock_s3
 def test_basic_instantiation(s3_setup, test_df):
     client, bucket = s3_setup
 
@@ -113,6 +114,7 @@ def test_basic_instantiation(s3_setup, test_df):
 
 
 @pytest.mark.big
+@mock_s3
 def test_instantiation_batching_regex_does_not_match_paths(s3_setup, test_df):
     client, bucket = s3_setup
 
@@ -145,6 +147,7 @@ def test_instantiation_batching_regex_does_not_match_paths(s3_setup, test_df):
 
 
 @pytest.mark.big
+@mock_s3
 def test_return_all_batch_definitions_unsorted(s3_setup, test_df):
     client, bucket = s3_setup
 
@@ -371,6 +374,7 @@ def test_return_all_batch_definitions_unsorted(s3_setup, test_df):
 
 
 @pytest.mark.big
+@mock_s3
 def test_return_only_unique_batch_definitions(s3_setup, test_df):
     client, bucket = s3_setup
 
@@ -425,6 +429,7 @@ def test_return_only_unique_batch_definitions(s3_setup, test_df):
 
 
 @pytest.mark.big
+@mock_s3
 def test_data_reference_count_methods(s3_setup, test_df):
     client, bucket = s3_setup
 
@@ -464,6 +469,7 @@ def test_data_reference_count_methods(s3_setup, test_df):
 
 
 @pytest.mark.big
+@mock_s3
 def test_alpha(s3_setup, test_df):
     client, bucket = s3_setup
 
@@ -525,6 +531,7 @@ def test_alpha(s3_setup, test_df):
 
 
 @pytest.mark.big
+@mock_s3
 def test_foxtrot(s3_setup, test_df):
     client, bucket = s3_setup
 
@@ -759,6 +766,7 @@ def test_s3_data_connector_whole_directory_path_override(
 
 
 @pytest.mark.unit
+@mock_s3
 def test_s3_data_connector_missing_file_path_template_map_fn_error(s3_client, s3_bucket_name):
     """Test S3DataConnector raises MissingFilePathTemplateMapFnError
     when missing file_path_template_map_fn."""
