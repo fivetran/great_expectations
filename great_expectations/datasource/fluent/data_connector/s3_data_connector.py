@@ -10,6 +10,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_spec import PathBatchSpec, S3BatchSpec
 from great_expectations.datasource.fluent.data_connector import (
     FilePathDataConnector,
+    MissingFilePathTemplateMapFnError,
 )
 from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
     sanitize_prefix_for_gcs_and_s3,
@@ -207,11 +208,7 @@ class S3DataConnector(FilePathDataConnector):
             return path
 
         if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
-requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501 # FIXME CoP
-            )
+            raise MissingFilePathTemplateMapFnError(self)
 
         template_arguments: dict = {
             "bucket": self._bucket,

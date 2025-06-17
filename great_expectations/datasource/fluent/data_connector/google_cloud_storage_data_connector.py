@@ -10,6 +10,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_spec import GCSBatchSpec, PathBatchSpec
 from great_expectations.datasource.fluent.data_connector import (
     FilePathDataConnector,
+    MissingFilePathTemplateMapFnError,
 )
 from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
     sanitize_prefix_for_gcs_and_s3,
@@ -198,10 +199,13 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
     def _get_full_file_path(self, path: str) -> str:
         # If the path is already a fully qualified GCS URL (starts with gs://), return it as-is
         # This handles the case of whole_directory_path_override which is already fully qualified
-        if path.startswith("gs://") or not self._file_path_template_map_fn:
+        if path.startswith("gs://"):
             return path
 
-        template_arguments: dict = {
+        if self._file_path_template_map_fn is None:
+            raise MissingFilePathTemplateMapFnError(self)
+
+        template_arguments = {
             "bucket_or_name": self._bucket_or_name,
             "path": path,
         }
