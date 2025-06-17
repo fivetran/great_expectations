@@ -1238,7 +1238,7 @@ def test_ValidationResultsColumnSectionRenderer_render_table(
         in content_block_stringified
     )
     assert "may have any number of unique values." in content_block_stringified
-    assert "may have any fraction of unique values." in content_block_stringified
+    assert "may have any proportion of unique values." in content_block_stringified
     assert (
         "values must not be null, at least $mostly_pct % of the time." in content_block_stringified
     )
