@@ -14,6 +14,9 @@ from great_expectations.datasource.fluent import BatchRequest
 from great_expectations.datasource.fluent.data_connector import (
     GoogleCloudStorageDataConnector,
 )
+from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    MissingFilePathTemplateMapFnError,
+)
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.data_connector import (
@@ -811,3 +814,19 @@ def test_gcs_data_connector_whole_directory_path_override(
         file_names = [bd.batch_identifiers["filename"] for bd in batch_definitions]
         expected_files = ["file1.csv", "file2.csv", "file3.csv"]
         assert sorted(file_names) == sorted(expected_files)
+
+
+@pytest.mark.unit
+def test_gcs_data_connector_missing_file_path_template_map_fn_error():
+    """Test GCS data connector raises error when file_path_template_map_fn is None."""
+    gcs_client: google.Client = MockGCSClient()  # type: ignore[assignment]
+
+    with pytest.raises(MissingFilePathTemplateMapFnError):
+        GoogleCloudStorageDataConnector(
+            datasource_name="my_gcs_datasource",
+            data_asset_name="my_data_asset",
+            gcs_client=gcs_client,
+            bucket_or_name="test-bucket",
+            prefix="test/",
+            file_path_template_map_fn=None,
+        )

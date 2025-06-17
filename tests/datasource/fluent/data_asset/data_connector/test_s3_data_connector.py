@@ -20,6 +20,7 @@ from great_expectations.datasource.fluent.data_connector.azure_blob_storage_data
     sanitize_prefix,
 )
 from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    MissingFilePathTemplateMapFnError,
     sanitize_prefix_for_gcs_and_s3,
 )
 
@@ -767,3 +768,25 @@ def test_s3_data_connector_whole_directory_path_override(
         file_names = [bd.batch_identifiers["filename"] for bd in batch_definitions]
         expected_files = ["file1.csv", "file2.csv", "file3.csv"]
         assert sorted(file_names) == sorted(expected_files)
+
+
+@pytest.mark.unit
+@mock_s3
+def test_s3_data_connector_missing_file_path_template_map_fn_error():
+    """Test S3DataConnector raises MissingFilePathTemplateMapFnError
+    when missing file_path_template_map_fn."""
+    region_name: str = "us-east-1"
+    bucket: str = "test_bucket"
+    conn = boto3.resource("s3", region_name=region_name)
+    conn.create_bucket(Bucket=bucket)
+    client: BaseClient = boto3.client("s3", region_name=region_name)
+
+    with pytest.raises(MissingFilePathTemplateMapFnError):
+        S3DataConnector(
+            datasource_name="my_s3_datasource",
+            data_asset_name="my_data_asset",
+            s3_client=client,
+            bucket=bucket,
+            prefix="test/",
+            file_path_template_map_fn=None,
+        )

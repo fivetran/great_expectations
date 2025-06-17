@@ -14,6 +14,9 @@ from great_expectations.datasource.fluent import BatchRequest
 from great_expectations.datasource.fluent.data_connector import (
     AzureBlobStorageDataConnector,
 )
+from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    MissingFilePathTemplateMapFnError,
+)
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.data_connector import (
@@ -823,3 +826,20 @@ def test_abs_data_connector_whole_directory_path_override(
         file_names = [bd.batch_identifiers["filename"] for bd in batch_definitions]
         expected_files = ["file1.csv", "file2.csv", "file3.csv"]
         assert sorted(file_names) == sorted(expected_files)
+
+
+@pytest.mark.unit
+def test_abs_data_connector_missing_file_path_template_map_fn_error():
+    """Test Azure data connector raises error when file_path_template_map_fn is None."""
+    azure_client: azure.BlobServiceClient = MockBlobServiceClient()  # type: ignore[assignment]
+
+    with pytest.raises(MissingFilePathTemplateMapFnError):
+        AzureBlobStorageDataConnector(
+            datasource_name="my_abs_datasource",
+            data_asset_name="my_data_asset",
+            azure_client=azure_client,
+            account_name="testaccount",
+            container="test-container",
+            name_starts_with="test/",
+            file_path_template_map_fn=None,
+        )

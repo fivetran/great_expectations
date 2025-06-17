@@ -201,7 +201,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
             return path
 
         if self._file_path_template_map_fn is None:
-            raise MissingFilePathTemplateMapFnError(self)
+            raise MissingFilePathTemplateMapFnError()
 
         template_arguments = {
             "bucket_or_name": self._bucket_or_name,
