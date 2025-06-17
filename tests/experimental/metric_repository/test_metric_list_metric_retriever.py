@@ -14,7 +14,6 @@ from great_expectations.experimental.metric_repository.metrics import (
     MetricTypes,
     TableMetric,
 )
-from great_expectations.experimental.rule_based_profiler.domain_builder import ColumnDomainBuilder
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.validator import Validator
 
@@ -662,10 +661,7 @@ def test_get_metrics_only_gets_a_validator_once(
         computed_metrics,
         aborted_metrics,
     )
-    mocker.patch(
-        f"{ColumnDomainBuilder.__module__}.{ColumnDomainBuilder.__name__}.get_effective_column_names",
-        return_value=["col1", "col2"],
-    )
+    # No column filtering needed for table-only metrics
     metric_retriever.get_metrics(batch_request=mock_batch_request, metric_list=metrics_list)
 
     mock_context.get_validator.assert_called_once_with(batch_request=mock_batch_request)
@@ -697,10 +693,7 @@ def test_get_metrics_only_gets_new_validator_on_asset_change(
         computed_metrics,
         aborted_metrics,
     )
-    mocker.patch(
-        f"{ColumnDomainBuilder.__module__}.{ColumnDomainBuilder.__name__}.get_effective_column_names",
-        return_value=["col1", "col2"],
-    )
+    # No column filtering needed for table-only metrics
     metric_retriever.get_metrics(batch_request=mock_batch_request_variant, metric_list=metrics_list)
 
     assert mock_context.get_validator.call_count == 4
