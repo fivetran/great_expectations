@@ -678,12 +678,14 @@ def test_gcs_data_connector_missing_file_path_template_map_fn_error():
     """Test GCS data connector raises error when file_path_template_map_fn is None."""
     gcs_client: google.Client = MockGCSClient()
 
+    data_connector = GoogleCloudStorageDataConnector(
+        datasource_name="my_gcs_datasource",
+        data_asset_name="my_data_asset",
+        gcs_client=gcs_client,
+        bucket_or_name="test-bucket",
+        prefix="test/",
+        file_path_template_map_fn=None,
+    )
+
     with pytest.raises(MissingFilePathTemplateMapFnError):
-        GoogleCloudStorageDataConnector(
-            datasource_name="my_gcs_datasource",
-            data_asset_name="my_data_asset",
-            gcs_client=gcs_client,
-            bucket_or_name="test-bucket",
-            prefix="test/",
-            file_path_template_map_fn=None,
-        )
+        data_connector._get_full_file_path("test.csv")

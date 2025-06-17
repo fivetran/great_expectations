@@ -772,6 +772,5 @@ def test_s3_data_connector_missing_file_path_template_map_fn_error(s3_client, s3
         file_path_template_map_fn=None,
     )
 
-    # The error is raised when _get_full_file_path is called, not during instantiation
     with pytest.raises(MissingFilePathTemplateMapFnError):
         data_connector._get_full_file_path("test.csv")

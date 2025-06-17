@@ -689,13 +689,15 @@ def test_abs_data_connector_missing_file_path_template_map_fn_error():
     """Test Azure data connector raises error when file_path_template_map_fn is None."""
     azure_client: azure.BlobServiceClient = MockBlobServiceClient()
 
+    data_connector = AzureBlobStorageDataConnector(
+        datasource_name="my_abs_datasource",
+        data_asset_name="my_data_asset",
+        azure_client=azure_client,
+        account_name="testaccount",
+        container="test-container",
+        name_starts_with="test/",
+        file_path_template_map_fn=None,
+    )
+
     with pytest.raises(MissingFilePathTemplateMapFnError):
-        AzureBlobStorageDataConnector(
-            datasource_name="my_abs_datasource",
-            data_asset_name="my_data_asset",
-            azure_client=azure_client,
-            account_name="testaccount",
-            container="test-container",
-            name_starts_with="test/",
-            file_path_template_map_fn=None,
-        )
+        data_connector._get_full_file_path("test.csv")

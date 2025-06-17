@@ -93,7 +93,6 @@ def test_dbfs_data_connector_missing_file_path_template_map_fn_error():
         file_path_template_map_fn=None,
     )
 
-    # The error is raised when _get_full_file_path is called, not during instantiation
     with pytest.raises(MissingFilePathTemplateMapFnError):
         data_connector._get_full_file_path("test.csv")
 
