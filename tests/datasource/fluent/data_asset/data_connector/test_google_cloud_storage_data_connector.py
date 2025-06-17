@@ -819,7 +819,7 @@ def test_gcs_data_connector_whole_directory_path_override(
 @pytest.mark.unit
 def test_gcs_data_connector_missing_file_path_template_map_fn_error():
     """Test GCS data connector raises error when file_path_template_map_fn is None."""
-    gcs_client: google.Client = MockGCSClient()  # type: ignore[assignment]
+    gcs_client: google.Client = MockGCSClient()
 
     with pytest.raises(MissingFilePathTemplateMapFnError):
         GoogleCloudStorageDataConnector(

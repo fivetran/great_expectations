@@ -5,9 +5,11 @@ import pathlib
 from typing import TYPE_CHECKING, Callable, Optional
 
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    MissingFilePathTemplateMapFnError,
+)
 from great_expectations.datasource.fluent.data_connector.filesystem_data_connector import (
     FilesystemDataConnector,
-    MissingFilePathTemplateMapFnError,
 )
 
 if TYPE_CHECKING:
