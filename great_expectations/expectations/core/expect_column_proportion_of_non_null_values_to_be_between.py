@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import (
-    Comparable,  # noqa: TC001 # pydantic instantiates this type at runtime
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # pydantic isinstance
 )
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
@@ -192,10 +192,10 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
                 }}
     """
 
-    min_value: Optional[Comparable] = pydantic.Field(
+    min_value: Optional[Union[float, SuiteParameterDict]] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
     )
-    max_value: Optional[Comparable] = pydantic.Field(
+    max_value: Optional[Union[float, SuiteParameterDict]] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
     strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
