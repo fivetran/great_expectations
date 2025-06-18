@@ -14,6 +14,17 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.2
+* [FEATURE] Add SuiteParameterDict to all Expectation Kwargs ([#11222](https://github.com/great-expectations/great_expectations/pull/11222)) (thanks @Pascal06S)
+* [BUGFIX] fix `ValidationError` in `ExpectColumnPairValuesToHaveDifferenceOfCustomPercentage` ([#11209](https://github.com/great-expectations/great_expectations/pull/11209)) (thanks @sariaslaso)
+* [BUGFIX] `add_batch_definition_whole_directory` only loading 1 file ([#11254](https://github.com/great-expectations/great_expectations/pull/11254))
+* [BUGFIX] Remove datetime types from proportion `min_value` and `max_value` parameters ([#11259](https://github.com/great-expectations/great_expectations/pull/11259))
+* [DOCS] temporarily remove link checker ([#11250](https://github.com/great-expectations/great_expectations/pull/11250))
+* [DOCS] Cloud API data source tip ([#11248](https://github.com/great-expectations/great_expectations/pull/11248))
+* [DOCS] ExpectColumnProportionOfNonNullValuesToBeBetween (#11245) ([#11257](https://github.com/great-expectations/great_expectations/pull/11257))
+* [MAINTENANCE] Update "fraction" to "proportion" on NonNullProportion renderer ([#11253](https://github.com/great-expectations/great_expectations/pull/11253))
+* [MAINTENANCE] Bump brace-expansion from 1.1.11 to 1.1.12 in /docs/docusaurus ([#11251](https://github.com/great-expectations/great_expectations/pull/11251))
+
 ### 1.5.1
 * [FEATURE] Add ColumnAggregateNonNullCount metric ([#11229](https://github.com/great-expectations/great_expectations/pull/11229))
 * [FEATURE] `ExpectColumnProportionOfUniqueValuesToBeBetween` ([#11235](https://github.com/great-expectations/great_expectations/pull/11235))
