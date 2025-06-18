@@ -61,8 +61,14 @@ def test_event_identifiers(analytics_config):
     distinct_id, base_properties = analytics_config
     event = DataContextInitializedEvent()
     properties = event.properties()
+    filtered_base_properties = base_properties.copy()
     # All base properties should be in the event properties
-    assert base_properties.items() <= properties.items()
+    if "user_id" in filtered_base_properties:
+        filtered_base_properties.pop("user_id", None)
+        filtered_base_properties.pop("organization_id", None)
+
+    assert filtered_base_properties.items() <= properties.items()
+
     # Service should be set to gx-core
     assert properties["service"] == "gx-core"
     # The distinct_id should be the user_id if it is set, otherwise the oss_id
@@ -71,12 +77,6 @@ def test_event_identifiers(analytics_config):
         assert event.distinct_id == base_properties["user_id"]
     else:
         assert event.distinct_id == base_properties["oss_id"]
-
-    # The user_id and organization_id should only be set if they are in the config
-    if "user_id" not in base_properties:
-        assert "user_id" not in properties
-    if "organization_id" not in base_properties:
-        assert "organization_id" not in properties
 
 
 @pytest.mark.xfail(
@@ -114,6 +114,7 @@ def test_ephemeral_context_init(monkeypatch):
             "gx_version": mock.ANY,
             "user_agent_str": None,
             "mode": "ephemeral",
+            "$process_person_profile": False,
         },
         groups={"data_context": mock.ANY},
     )
@@ -137,6 +138,7 @@ def test_ephemeral_context_init_with_optional_fields(monkeypatch):
             "gx_version": mock.ANY,
             "user_agent_str": user_agent_str,
             "mode": "ephemeral",
+            "$process_person_profile": False,
         },
         groups={"data_context": mock.ANY},
     )
@@ -183,13 +185,19 @@ def test_cloud_context_init(
             "gx_version": mock.ANY,
             "user_agent_str": mock.ANY,
             "mode": mock.ANY,
+            "$process_person_profile": False,
         },
         groups={"data_context": mock.ANY},
     )
 
 
 @pytest.mark.parametrize(
-    ("environment_variable", "constructor_variable", "expected_value", "user_agent_str"),
+    (
+        "environment_variable",
+        "constructor_variable",
+        "expected_value",
+        "user_agent_str",
+    ),
     [
         (False, None, False, None),
         (False, False, False, None),
@@ -330,3 +338,36 @@ def test_user_agent_str_after_setting_explicitly(
         user_agent_str=new_user_agent_str,
         mode="ephemeral",
     )
+
+
+@pytest.mark.parametrize("remove_profile", [True, False])
+@pytest.mark.unit
+def test_remove_profile_setting(remove_profile: bool, monkeypatch):
+    # Test that remove_profile flag correctly controls the $process_person_profile property.
+    # https://posthog.com/docs/libraries/python#person-profiles-and-properties
+
+    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
+
+    with mock.patch("posthog.capture") as mock_submit:
+        from great_expectations.analytics.client import init, submit
+        from great_expectations.analytics.events import DataContextInitializedEvent
+
+        init(
+            enable=True,
+            mode="ephemeral",
+            data_context_id=TESTING_UUID,
+            remove_profile=remove_profile,
+        )
+        event = DataContextInitializedEvent()
+
+        submit(event)
+
+        mock_submit.assert_called_once()
+
+        args = mock_submit.call_args.args
+        properties = args[2]
+
+        if remove_profile:
+            assert properties.get("$process_person_profile") is False
+        else:
+            assert properties.get("$process_person_profile") is True

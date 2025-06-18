@@ -22,6 +22,9 @@ from .expect_column_pair_values_a_to_be_greater_than_b import (
 )
 from .expect_column_pair_values_to_be_equal import ExpectColumnPairValuesToBeEqual
 from .expect_column_pair_values_to_be_in_set import ExpectColumnPairValuesToBeInSet
+from .expect_column_proportion_of_non_null_values_to_be_between import (
+    ExpectColumnProportionOfNonNullValuesToBeBetween,
+)
 from .expect_column_proportion_of_unique_values_to_be_between import (
     ExpectColumnProportionOfUniqueValuesToBeBetween,
 )
@@ -84,7 +87,7 @@ from .expect_column_values_to_not_match_regex_list import (
 from .expect_compound_columns_to_be_unique import ExpectCompoundColumnsToBeUnique
 from .expect_multicolumn_sum_to_equal import ExpectMulticolumnSumToEqual
 from .expect_multicolumn_values_to_be_unique import ExpectMulticolumnValuesToBeUnique
-from .expect_query_results_to_match_source import ExpectQueryResultsToMatchSource
+from .expect_query_results_to_match_comparison import ExpectQueryResultsToMatchComparison
 from .expect_select_column_values_to_be_unique_within_record import (
     ExpectSelectColumnValuesToBeUniqueWithinRecord,
 )

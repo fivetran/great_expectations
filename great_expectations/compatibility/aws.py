@@ -93,6 +93,16 @@ except (ImportError, AttributeError):
     DECIMAL = REDSHIFT_NOT_IMPORTED
 
 try:
+    from sqlalchemy_redshift.dialect import GEOMETRY
+except (ImportError, AttributeError):
+    GEOMETRY = REDSHIFT_NOT_IMPORTED
+
+try:
+    from sqlalchemy_redshift.dialect import SUPER
+except (ImportError, AttributeError):
+    SUPER = REDSHIFT_NOT_IMPORTED
+
+try:
     import pyathena  # type: ignore[import-not-found] # FIXME CoP
 except ImportError:
     pyathena = ATHENA_NOT_IMPORTED
@@ -123,3 +133,5 @@ class REDSHIFT_TYPES:
     DOUBLE_PRECISION = DOUBLE_PRECISION
     BOOLEAN = BOOLEAN
     DECIMAL = DECIMAL
+    GEOMETRY = GEOMETRY
+    SUPER = SUPER

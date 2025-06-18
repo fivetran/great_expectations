@@ -48,8 +48,8 @@ import PrereqDataContext from '../../../../_core_components/prerequisites/_preco
 
    A new Data Asset is created and added to a Data Source simultaneously.  The file format that the Data Asset can read is determined by the method used when the Data Asset is added to the Data Source.
 
-   - To see the file formats supported by a pandas File Data Source, reference the `.add_*_asset(...)` methods in [the API documentation for a `PandasFilesystemDatasource`](/reference/api/datasource/fluent/PandasFilesystemDatasource_class.mdx).
-   - To see the file formats supported by a Spark File Data Source, reference the `.add_*_asset(...)` methods in [the API documentation for a `SparkFilesystemDatasource`](/reference/api/datasource/fluent/SparkFilesystemDatasource_class.mdx).
+   - To see the file formats supported by a pandas File Data Source, refer to the `.add_*_asset(...)` methods in the [`PandasFilesystemDatasource` reference page](/reference/api/datasource/fluent/PandasFilesystemDatasource_class.mdx).
+   - To see the file formats supported by a Spark File Data Source, refer to the `.add_*_asset(...)` methods in the [`SparkFilesystemDatasource` reference page](/reference/api/datasource/fluent/SparkFilesystemDatasource_class.mdx).
 
    The following example creates a Data Asset that can read `.csv` file data:
 

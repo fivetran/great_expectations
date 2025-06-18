@@ -54,7 +54,7 @@ def test_basic_instantiation(mock_list_keys):
         "alpha-3.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     my_data_connector: DataConnector = GoogleCloudStorageDataConnector(
         datasource_name="my_file_path_datasource",
         data_asset_name="my_google_cloud_storage_data_asset",
@@ -91,7 +91,7 @@ def test_instantiation_batching_regex_does_not_match_paths(mock_list_keys):
         "alpha-3.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     my_data_connector: DataConnector = GoogleCloudStorageDataConnector(
         datasource_name="my_file_path_datasource",
         data_asset_name="my_google_cloud_storage_data_asset",
@@ -135,7 +135,7 @@ def test_return_all_batch_definitions_unsorted(mock_list_keys):
         "will_20200810_1001.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     my_data_connector: DataConnector = GoogleCloudStorageDataConnector(
         datasource_name="my_file_path_datasource",
         data_asset_name="my_google_cloud_storage_data_asset",
@@ -459,7 +459,7 @@ def test_return_only_unique_batch_definitions(mock_list_keys):
         "A/file_3.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
 
     my_data_connector: DataConnector
 
@@ -541,7 +541,7 @@ def test_alpha(mock_list_keys):
         "test_dir_alpha/D.csv",
     ]
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     my_data_connector: DataConnector = GoogleCloudStorageDataConnector(
         datasource_name="my_file_path_datasource",
         data_asset_name="my_google_cloud_storage_data_asset",
@@ -596,7 +596,7 @@ def test_alpha(mock_list_keys):
 def test_foxtrot(mock_list_keys):
     mock_list_keys.return_value = []
 
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
 
     my_data_connector: DataConnector
 

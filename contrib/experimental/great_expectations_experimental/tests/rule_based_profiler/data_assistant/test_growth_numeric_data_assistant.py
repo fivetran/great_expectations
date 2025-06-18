@@ -43,7 +43,7 @@ def bobby_growth_numeric_data_assistant_result_usage_stats_enabled(
         estimation="flag_outliers",
     )
 
-    return cast(GrowthNumericDataAssistantResult, data_assistant_result)
+    return cast("GrowthNumericDataAssistantResult", data_assistant_result)
 
 
 @pytest.fixture(scope="module")
@@ -63,7 +63,7 @@ def bobby_growth_numeric_data_assistant_result(
         estimation="flag_outliers",
     )
 
-    return cast(GrowthNumericDataAssistantResult, data_assistant_result)
+    return cast("GrowthNumericDataAssistantResult", data_assistant_result)
 
 
 @pytest.fixture(scope="module")
@@ -83,7 +83,7 @@ def quentin_implicit_invocation_result_actual_time(
         estimation="flag_outliers",
     )
 
-    return cast(GrowthNumericDataAssistantResult, data_assistant_result)
+    return cast("GrowthNumericDataAssistantResult", data_assistant_result)
 
 
 @pytest.fixture(scope="module")
@@ -104,7 +104,7 @@ def quentin_implicit_invocation_result_frozen_time(
         estimation="flag_outliers",
     )
 
-    return cast(GrowthNumericDataAssistantResult, data_assistant_result)
+    return cast("GrowthNumericDataAssistantResult", data_assistant_result)
 
 
 @pytest.mark.big

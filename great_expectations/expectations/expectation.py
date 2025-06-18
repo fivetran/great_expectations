@@ -29,7 +29,7 @@ from typing import (
 
 import pandas as pd
 from dateutil.parser import parse
-from typing_extensions import ParamSpec, dataclass_transform
+from typing_extensions import ParamSpec, TypeGuard, dataclass_transform
 
 from great_expectations import __version__ as ge_version
 from great_expectations._docs_decorators import public_api
@@ -117,7 +117,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 P = ParamSpec("P")
-T = TypeVar("T", List[RenderedStringTemplateContent], RenderedAtomicContent)
+T = TypeVar(
+    "T",
+    list[RenderedStringTemplateContent],
+    Union[RenderedAtomicContent, list[RenderedAtomicContent]],
+)
 
 
 def render_suite_parameter_string(render_func: Callable[P, T]) -> Callable[P, T]:  # noqa: C901 # FIXME CoP
@@ -145,10 +149,17 @@ def render_suite_parameter_string(render_func: Callable[P, T]) -> Callable[P, T]
                     key = get_suite_parameter_key(value)
                     current_expectation_params.append(key)
 
+        def is_list_of_rendered_string_template_content(
+            rendered_content: T,
+        ) -> TypeGuard[list[RenderedStringTemplateContent]]:
+            return isinstance(rendered_content, list) and all(
+                isinstance(content, RenderedStringTemplateContent) for content in rendered_content
+            )
+
         # if expectation configuration has no eval params, then don't look for the values in runtime_configuration  # noqa: E501 # FIXME CoP
         # isinstance check should be removed upon implementation of RenderedAtomicContent suite parameter support  # noqa: E501 # FIXME CoP
-        if current_expectation_params and not isinstance(
-            rendered_string_template, RenderedAtomicContent
+        if current_expectation_params and is_list_of_rendered_string_template_content(
+            rendered_string_template
         ):
             runtime_configuration: Optional[dict] = kwargs.get("runtime_configuration")  # type: ignore[assignment] # could be object?
             if runtime_configuration:
@@ -559,7 +570,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
-    ) -> RenderedAtomicContent:
+    ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
@@ -1047,7 +1058,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
         runtime_configuration: Optional[dict] = None,
-    ) -> RenderedAtomicContent:
+    ) -> RenderedAtomicContent | list[RenderedAtomicContent]:
         renderer_configuration: RendererConfiguration = RendererConfiguration(
             configuration=configuration,
             result=result,
@@ -1055,26 +1066,12 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         )
 
         name = "observed_value"
-        param_types = sorted(
-            RendererValueType,
-            key=lambda x: (
-                # in order to infer type correctly
-                # object must be last in the list
-                # as it is permissive to any value
-                x.value == "object",
-                # and string must be second to last
-                # as it is permissive to string-able value
-                x.value == "string",
-                x.value,
-            ),
-        )
         value = result.result.get(name) if result is not None else None
         if value is None:
             value = cls._get_observed_value_from_evr(result=result)
 
         renderer_configuration.add_param(
             name=name,
-            param_type=param_types,
             value=value,
         )
 

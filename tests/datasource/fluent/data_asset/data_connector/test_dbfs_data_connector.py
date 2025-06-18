@@ -112,7 +112,7 @@ def test__get_full_file_path_spark(basic_spark_df_execution_engine, fs):
     )
 
     assert (
-        cast(DBFSDataConnector, my_data_connector)._get_full_file_path(path="bigfile_1.csv")
+        cast("DBFSDataConnector", my_data_connector)._get_full_file_path(path="bigfile_1.csv")
         == f"{base_directory_colon}/test_dir_0/A/B/C/bigfile_1.csv"
     )
 

@@ -292,7 +292,7 @@ class FluentBaseModel(pydantic.BaseModel):
         if isinstance(include_exclude, Mapping):
             include_exclude_dict = dict(include_exclude)
         elif isinstance(include_exclude, AbstractSet):
-            include_exclude_dict = {field: True for field in include_exclude}
+            include_exclude_dict = dict.fromkeys(include_exclude, True)
         else:
             include_exclude_dict = {}
         return include_exclude_dict

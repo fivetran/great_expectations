@@ -166,7 +166,7 @@ def test_get_metric_calls_get_metrics_and_returns_correct_result():
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
     metrics_calculator = MetricsCalculator(execution_engine=execution_engine)
 
     metric_name = "my_metric_name"

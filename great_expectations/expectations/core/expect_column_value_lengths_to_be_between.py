@@ -221,8 +221,12 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
     max_value: Union[int, SuiteParameterDict, datetime, None] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
-    strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
-    strict_max: bool = pydantic.Field(default=False, description=STRICT_MAX_DESCRIPTION)
+    strict_min: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MIN_DESCRIPTION
+    )
+    strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MAX_DESCRIPTION
+    )
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
@@ -355,7 +359,7 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
     @classmethod
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
-    def _prescriptive_renderer(  # noqa: C901 #  too complex
+    def _prescriptive_renderer(  # noqa: PLR0912, C901 #  too complex
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
@@ -394,9 +398,10 @@ class ExpectColumnValueLengthsToBeBetween(ColumnMapExpectation):
         else:
             at_least_str, at_most_str = handle_strict_min_max(params)
 
-            if params["mostly"] is not None and params["mostly"] < 1.0:
-                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
+            if params["mostly"] is not None:
+                if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                    params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                    # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 if params["min_value"] is not None and params["max_value"] is not None:
                     template_str = f"values must be {at_least_str} $min_value and {at_most_str} $max_value characters long, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 

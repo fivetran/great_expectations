@@ -94,29 +94,57 @@
         "threshold": {
             "title": "Threshold",
             "description": "The maximum KL divergence to for which to return success=True. If KL divergence is largerthan the provided threshold, the test will return success=False.",
-            "type": "number"
+            "anyOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "internal_weight_holdout": {
             "title": "Internal Weight Holdout",
             "description": "The amount of weight to split uniformly among zero-weighted partition bins. internal_weight_holdout provides a mechanisms to make the test less strict by assigning positive weights to values observed in the data for which the partition explicitly expected zero weight.",
             "default": 0,
-            "minimum": 0,
-            "maximum": 1,
-            "type": "number"
+            "anyOf": [
+                {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "tail_weight_holdout": {
             "title": "Tail Weight Holdout",
             "description": "The amount of weight to add to the tails of the histogram.Tail weight holdout is split evenly between (-Infinity, min(partition_object['bins'])) and (max(partition_object['bins']), +Infinity). tail_weight_holdout provides a mechanism to make the test less strict by assigning positive weights to values observed in the data that are not present in the partition. With no tail_weight_holdout, any value observed outside the provided partition_object will cause KL divergence to rise to +Infinity. Defaults to 0.",
             "default": 0,
-            "minimum": 0,
-            "maximum": 1,
-            "type": "number"
+            "anyOf": [
+                {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "bucketize_data": {
             "title": "Bucketize Data",
             "description": "If True, then continuous data will be bucketized before evaluation. Setting this parameter to false allows evaluation of KL divergence with a None partition object for profiling against discrete data.",
             "default": true,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "min_value": {
             "title": "Min Value",

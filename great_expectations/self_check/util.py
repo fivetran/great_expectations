@@ -447,14 +447,14 @@ BACKEND_TO_ENGINE_NAME_DICT = {
     "spark": "spark",
 }
 
-BACKEND_TO_ENGINE_NAME_DICT.update({name: "sqlalchemy" for name in SQL_DIALECT_NAMES})
+BACKEND_TO_ENGINE_NAME_DICT.update(dict.fromkeys(SQL_DIALECT_NAMES, "sqlalchemy"))
 
 
 # The default exeuction engine is SqlAlchemyExecutionEngine so we set this and then override
 # with specific values.
-SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT = {
-    name: SqlAlchemyExecutionEngine for name in SQL_DIALECT_NAMES
-}
+SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT = dict.fromkeys(
+    SQL_DIALECT_NAMES, SqlAlchemyExecutionEngine
+)
 SQLALCHEMY_DIALECT_TO_ENGINE_CLASS_DICT["sqlite"] = SqliteExecutionEngine
 
 
@@ -1108,7 +1108,7 @@ def build_spark_engine(
     execution_engine = SparkDFExecutionEngine(
         spark_config=spark_config,
         batch_data_dict={
-            batch_id or cast(LegacyBatchDefinition, batch_definition).id: df,
+            batch_id or cast("LegacyBatchDefinition", batch_definition).id: df,
         },
     )
     return execution_engine
@@ -1503,7 +1503,7 @@ def generate_expectation_tests(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIXME
         engines_to_include["spark"] = execution_engine_diagnostics.SparkDFExecutionEngine
         engines_to_include["sqlalchemy"] = execution_engine_diagnostics.SqlAlchemyExecutionEngine
         if engines_to_include.get("sqlalchemy") is True and raise_exceptions_for_backends is False:
-            dialects_to_include = {dialect: True for dialect in SQL_DIALECT_NAMES}
+            dialects_to_include = dict.fromkeys(SQL_DIALECT_NAMES, True)
 
     _debug(f"Attempting engines ({engines_to_include}) and dialects ({dialects_to_include})")
 

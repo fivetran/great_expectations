@@ -45,7 +45,7 @@ class MockGCSClient:
 def _build_spark_gcs_datasource(
     gcs_options: Dict[str, Any] | None = None,
 ) -> SparkGoogleCloudStorageDatasource:
-    gcs_client: google.Client = cast(google.Client, MockGCSClient())
+    gcs_client: google.Client = cast("google.Client", MockGCSClient())
     spark_gcs_datasource = SparkGoogleCloudStorageDatasource(
         name="spark_gcs_datasource",
         bucket_or_name="test_bucket",

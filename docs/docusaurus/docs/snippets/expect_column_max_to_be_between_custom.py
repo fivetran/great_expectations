@@ -66,7 +66,7 @@ class ColumnCustomMax(ColumnAggregateMetricProvider):
         # <snippet name="docs/docusaurus/docs/snippets/expect_column_max_to_be_between_custom.py sql_selectable">
         (
             selectable,
-            compute_domain_kwargs,  # noqa: F841 # unused variable
+            _,
             accessor_domain_kwargs,
         ) = execution_engine.get_compute_domain(
             metric_domain_kwargs, MetricDomainTypes.COLUMN

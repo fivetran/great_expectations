@@ -179,7 +179,7 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
     column_set: Union[list, set, SuiteParameterDict, None] = pydantic.Field(
         description=COLUMN_SET_DESCRIPTION
     )
-    exact_match: Union[bool, None] = pydantic.Field(
+    exact_match: Union[bool, SuiteParameterDict, None] = pydantic.Field(
         default=True, description=EXACT_MATCH_DESCRIPTION
     )
 

@@ -1,6 +1,5 @@
-import math
-
 import pandas as pd
+import pytest
 
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.metrics.column.descriptive_stats import (
@@ -30,7 +29,5 @@ class TestColumnDescriptiveStats:
         assert isinstance(metric_result, ColumnDescriptiveStatsResult)
         assert metric_result.value.min == 1
         assert metric_result.value.max == 5
-        assert metric_result.value.mean == 3
-        assert math.isclose(
-            metric_result.value.standard_deviation, 1.4907119849998598, rel_tol=1e-6, abs_tol=0.0
-        )
+        assert metric_result.value.mean == pytest.approx(3)
+        assert metric_result.value.standard_deviation == pytest.approx(1.4907119849998598)

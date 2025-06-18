@@ -167,9 +167,10 @@ class ExpectColumnValuesToMatchStrftimeFormat(ColumnMapExpectation):
             template_str = "values must match a strftime format but none was specified."
         else:
             template_str = "values must match the following strftime format: $strftime_format"
-            if params["mostly"] is not None and params["mostly"] < 1.0:
-                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
+            if params["mostly"] is not None:
+                if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                    params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                    # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 template_str += ", at least $mostly_pct % of the time."
             else:
                 template_str += "."

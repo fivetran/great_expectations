@@ -1,3 +1,5 @@
+import logging
+import pprint
 from dataclasses import dataclass
 from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
 from uuid import UUID
@@ -10,13 +12,18 @@ import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.context_factory import set_context
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
+from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     dict_to_tuple,
     hash_data_frame,
 )
-from tests.integration.test_utils.data_source_config.sql import SQLBatchTestSetup
+from tests.integration.test_utils.data_source_config.sql import (
+    SQLBatchTestSetup,
+)
+
+logger = logging.getLogger(__name__)
 
 _F = TypeVar("_F", bound=Callable)
 
@@ -148,6 +155,10 @@ def _cached_secondary_test_configs() -> dict[UUID, BatchTestSetup]:
 def _cleanup(
     _cached_test_configs: Mapping[TestConfig, BatchTestSetup],
     _cached_secondary_test_configs: Mapping[TestConfig, BatchTestSetup],
+    # While not explicitly used, we want the session_sql_engine_manager to
+    # be torn down after we clean up. Adding it as a dependeny will ensure
+    # this.
+    session_sql_engine_manager: SessionSQLEngineManager,
 ) -> Generator[None, None, None]:
     """Fixture to do all teardown at the end of the test session."""
     yield
@@ -162,7 +173,10 @@ def _batch_setup_for_datasource(
     request: pytest.FixtureRequest,
     _cached_test_configs: dict[TestConfig, BatchTestSetup],
     _cached_secondary_test_configs: dict[UUID, BatchTestSetup],
-    _cleanup,
+    session_sql_engine_manager: SessionSQLEngineManager,
+    # _cleanup is not called directly. It is a session scoped fixture
+    # which will cleanup created db resources such as schemas.
+    _cleanup: Callable[[], None],
 ) -> Generator[BatchTestSetup, None, None]:
     """Fixture that yields a BatchSetup for a specific data source type.
     This must be used in conjunction with `indirect=True` to defer execution
@@ -176,6 +190,7 @@ def _batch_setup_for_datasource(
             data=config.data,
             extra_data=config.extra_data,
             context=gx.get_context(mode="ephemeral"),
+            engine_manager=session_sql_engine_manager,
         )
         _cached_test_configs[config] = batch_setup
         batch_setup.setup()
@@ -188,6 +203,7 @@ def _batch_setup_for_datasource(
                 data=config.secondary_data,
                 extra_data={},
                 context=batch_setup.context,
+                engine_manager=session_sql_engine_manager,
             )
             _cached_secondary_test_configs[batch_setup.id] = secondary_batch_setup
             secondary_batch_setup.setup()
@@ -219,9 +235,9 @@ def asset_for_datasource(
 
 @dataclass(frozen=True)
 class MultiSourceBatch:
-    target_batch: Batch
-    source_data_source_name: str
-    source_table_name: str
+    base_batch: Batch
+    comparison_data_source_name: str
+    comparison_table_name: str
 
 
 @pytest.fixture
@@ -238,9 +254,9 @@ def multi_source_batch(
     set_context(_batch_setup_for_datasource.context)
     secondary_asset = secondary_batch_setup.make_asset()
     yield MultiSourceBatch(
-        target_batch=_batch_setup_for_datasource.make_batch(),
-        source_data_source_name=secondary_asset.datasource.name,
-        source_table_name=secondary_batch_setup.table_name,
+        base_batch=_batch_setup_for_datasource.make_batch(),
+        comparison_data_source_name=secondary_asset.datasource.name,
+        comparison_table_name=secondary_batch_setup.table_name,
     )
 
 
@@ -254,21 +270,21 @@ def extra_table_names_for_datasource(
 
 
 @pytest.fixture(scope="session")
-def _source_to_target_map() -> Mapping[UUID, UUID]:
-    """Get a source BatchTestSetup ID by its target BatchTestSetup ID."""
+def _base_to_comparison_map() -> Mapping[UUID, UUID]:
+    """Get a comparison BatchTestSetup ID by its base BatchTestSetup ID."""
     return {}
 
 
 @dataclass(frozen=True)
 class MultiSourceTestConfig:
-    source: DataSourceTestConfig
-    target: DataSourceTestConfig
+    comparison: DataSourceTestConfig
+    base: DataSourceTestConfig
 
 
 def multi_source_batch_setup(
     multi_source_test_configs: list[MultiSourceTestConfig],
-    target_data: pd.DataFrame,
-    source_data: pd.DataFrame,
+    base_data: pd.DataFrame,
+    comparison_data: pd.DataFrame,
 ) -> Callable[[_F], _F]:
     def decorator(func: _F) -> _F:
         pytest_params = []
@@ -276,13 +292,13 @@ def multi_source_batch_setup(
             pytest_params.append(
                 pytest.param(
                     TestConfig(
-                        data_source_config=multi_source_test_config.target,
-                        data=target_data,
+                        data_source_config=multi_source_test_config.base,
+                        data=base_data,
                         extra_data={},
-                        secondary_source_config=multi_source_test_config.source,
-                        secondary_data=source_data,
+                        secondary_source_config=multi_source_test_config.comparison,
+                        secondary_data=comparison_data,
                     ),
-                    id=f"{multi_source_test_config.source.test_id}->{multi_source_test_config.target.test_id}",
+                    id=f"{multi_source_test_config.comparison.test_id}->{multi_source_test_config.base.test_id}",
                     marks=_get_multi_source_marks(multi_source_test_config),
                 )
             )
@@ -297,15 +313,15 @@ def multi_source_batch_setup(
 
 
 def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> list[MarkDecorator]:
-    if multi_source_test_config.target.pytest_mark == multi_source_test_config.source.pytest_mark:
-        return [multi_source_test_config.target.pytest_mark]
+    if multi_source_test_config.base.pytest_mark == multi_source_test_config.comparison.pytest_mark:
+        return [multi_source_test_config.base.pytest_mark]
     # our test setup restricts us to testing a single backend at a time.
     # sqlite doesn't require any extra setup, so it's an exception.
     marks = [
         mark
         for mark in [
-            multi_source_test_config.source.pytest_mark,
-            multi_source_test_config.target.pytest_mark,
+            multi_source_test_config.comparison.pytest_mark,
+            multi_source_test_config.base.pytest_mark,
         ]
         if mark != pytest.mark.sqlite
     ]
@@ -317,3 +333,30 @@ def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> 
         raise ValueError(
             "MultiSourceBatch tests must either use the same backend or include sqlite."
         )
+
+
+@pytest.fixture(scope="session")
+def session_sql_engine_manager():
+    logger.info("SessionSqlEngineManager: Starting setup.")
+    manager = SessionSQLEngineManager()
+    yield manager
+
+    logger.info("SessionSqlEngineManager: Starting teardown.")
+    pre_cleanup_stats = manager.get_all_pool_statistics()
+    # We temporarily log a warning so we can see this in the pytest output without turning on info
+    # logging across the whole test run.
+    logger.warning(
+        "SessionSqlEngineManager: Pool statistics before explicit cleanup:\n"
+        f"{pprint.pformat(pre_cleanup_stats)}"
+    )
+    # Check for any immediately obvious issues before cleanup
+    for key, stat in pre_cleanup_stats.items():
+        if "error" not in stat and stat.get("checked_out", 0) > 0:
+            logger.warning(
+                f"SessionSqlEngineManager: Engine {key} has {stat['checked_out']} connections "
+                "still checked out BEFORE manager disposal."
+            )
+    manager.dispose_all_engines()
+    logger.info("SessionSqlEngineManager: All engines disposed by manager.")
+    assert not manager._engine_cache, "Engine cache should be empty after dispose_all_engines."
+    logger.info("SessionSqlEngineManager: Teardown complete.")

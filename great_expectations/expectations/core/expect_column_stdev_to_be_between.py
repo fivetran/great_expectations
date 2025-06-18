@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
@@ -183,8 +186,12 @@ class ExpectColumnStdevToBeBetween(ColumnAggregateExpectation):
     max_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
-    strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
-    strict_max: bool = pydantic.Field(default=False, description=STRICT_MAX_DESCRIPTION)
+    strict_min: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MIN_DESCRIPTION
+    )
+    strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MAX_DESCRIPTION
+    )
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

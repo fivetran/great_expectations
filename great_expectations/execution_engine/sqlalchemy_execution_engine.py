@@ -559,7 +559,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         if batch_id is None:
             # We allow no batch id specified if there is only one batch
             if self.batch_manager.active_batch_data:
-                data_object = cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data)
+                data_object = cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data)
             else:
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
@@ -567,7 +567,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data_object = cast(
-                    SqlAlchemyBatchData, self.batch_manager.batch_data_cache[batch_id]
+                    "SqlAlchemyBatchData", self.batch_manager.batch_data_cache[batch_id]
                 )
             else:
                 raise GreatExpectationsError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003 # FIXME CoP
@@ -645,7 +645,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             and "column_B" in domain_kwargs
             and "ignore_row_if" in domain_kwargs
         ):
-            if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+            if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
                 # Checking if case-sensitive and using appropriate name
                 # noinspection PyPep8Naming
                 column_A_name = sqlalchemy.quoted_name(domain_kwargs["column_A"], quote=True)
@@ -691,7 +691,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             return selectable
 
         if "column_list" in domain_kwargs and "ignore_row_if" in domain_kwargs:
-            if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+            if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
                 # Checking if case-sensitive and using appropriate name
                 column_list = [
                     sqlalchemy.quoted_name(domain_kwargs[column_name], quote=True)
@@ -802,7 +802,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column"] = sqlalchemy.quoted_name(
                 compute_domain_kwargs.pop("column"), quote=True
             )
@@ -841,7 +841,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column_A"] = sqlalchemy.quoted_name(
                 compute_domain_kwargs.pop("column_A"), quote=True
             )
@@ -887,7 +887,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             raise GreatExpectationsError("column_list must contain at least 2 columns")  # noqa: TRY003 # FIXME CoP
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column_list"] = [
                 sqlalchemy.quoted_name(column_name, quote=True) for column_name in column_list
             ]

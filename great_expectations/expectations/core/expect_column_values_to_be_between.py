@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import root_validator
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -198,8 +201,12 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     max_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
-    strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
-    strict_max: bool = pydantic.Field(default=False, description=MAX_VALUE_DESCRIPTION)
+    strict_min: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MIN_DESCRIPTION
+    )
+    strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=MAX_VALUE_DESCRIPTION
+    )
 
     @root_validator
     def check_min_val_or_max_val(cls, values: dict) -> dict:
@@ -342,7 +349,7 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
     @override
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
-    def _prescriptive_renderer(
+    def _prescriptive_renderer(  # noqa: C901
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
@@ -373,9 +380,10 @@ class ExpectColumnValuesToBeBetween(ColumnMapExpectation):
             at_least_str, at_most_str = handle_strict_min_max(params)
 
             mostly_str = ""
-            if params["mostly"] is not None and params["mostly"] < 1.0:
-                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
+            if params["mostly"] is not None:
+                if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                    params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                    # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 mostly_str = ", at least $mostly_pct % of the time"
 
             if params["min_value"] is not None and params["max_value"] is not None:

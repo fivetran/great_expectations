@@ -9,7 +9,7 @@ different TestConfigs; that would be caught by our regular tests.
 
 from dataclasses import dataclass
 from functools import cache
-from typing import Mapping
+from typing import Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -20,6 +20,7 @@ from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.pandas_datasource import DataFrameAsset
 from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
@@ -50,6 +51,7 @@ class DummyTestConfig(DataSourceTestConfig):
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return DummyBatchTestSetup(data=data, config=self, context=context)
 

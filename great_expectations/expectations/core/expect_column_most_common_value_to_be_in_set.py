@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
@@ -177,7 +180,7 @@ class ExpectColumnMostCommonValueToBeInSet(ColumnAggregateExpectation):
     """  # noqa: E501 # FIXME CoP
 
     value_set: ValueSetField
-    ties_okay: Union[bool, None] = pydantic.Field(
+    ties_okay: Union[bool, SuiteParameterDict, None] = pydantic.Field(
         default=None,
         description=TIES_OKAY_DESCRIPTION,
     )

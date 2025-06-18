@@ -44,6 +44,12 @@ class GreatExpectationsValidationError(ValidationError, GreatExpectationsError):
         return self.message
 
 
+class UnhashableColumnError(GreatExpectationsError):
+    def __init__(self, col_name: str) -> None:
+        msg = f"Unhashable column: {col_name}"
+        super().__init__(msg)
+
+
 class DataContextError(GreatExpectationsError):
     pass
 

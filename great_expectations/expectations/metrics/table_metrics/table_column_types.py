@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, Optional, cast
 
 from great_expectations.compatibility import pyspark, sqlalchemy
 from great_expectations.core.metric_domain_types import MetricDomainTypes
@@ -10,14 +10,14 @@ from great_expectations.execution_engine import (
     SparkDFExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
-from great_expectations.execution_engine.sqlalchemy_batch_data import (
-    SqlAlchemyBatchData,
-)
 from great_expectations.expectations.metrics.metric_provider import metric_value
 from great_expectations.expectations.metrics.table_metric_provider import (
     TableMetricProvider,
 )
 from great_expectations.expectations.metrics.util import get_sqlalchemy_column_metadata
+
+if TYPE_CHECKING:
+    from great_expectations.execution_engine.sqlalchemy_batch_data import SqlAlchemyBatchData
 
 
 class ColumnTypes(TableMetricProvider):
@@ -59,7 +59,7 @@ class ColumnTypes(TableMetricProvider):
                 )
 
         batch_data: SqlAlchemyBatchData = cast(
-            SqlAlchemyBatchData,
+            "SqlAlchemyBatchData",
             execution_engine.batch_manager.batch_data_cache.get(batch_id),
         )
         if batch_data is None:

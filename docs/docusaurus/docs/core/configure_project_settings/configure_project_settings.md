@@ -31,7 +31,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
   <LinkCard 
       topIcon 
       label="Credentials"
-      description="Securely store and access credentials for database connection strings, org IDs for connecting to a GX Cloud account, and tokens for Checkpoint Action API endpoints and webhooks."
+      description="Securely store and access credentials for database connection strings and tokens for Checkpoint Actions."
       to="/core/configure_project_settings/configure_credentials" 
       icon="/img/expectation_icon.svg" 
   />

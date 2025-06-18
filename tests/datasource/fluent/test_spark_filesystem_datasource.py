@@ -395,7 +395,7 @@ def test_add_asset_with_asset_specific_params(
     assert asset.name == "asset_name"
     for param, value in add_method_params.items():
         if param == "spark_schema":
-            struct_type = cast(pyspark_types.StructType, value)
+            struct_type = cast("pyspark_types.StructType", value)
             assert getattr(asset, param) == struct_type.jsonValue()
         else:
             assert getattr(asset, param) == value
@@ -693,7 +693,7 @@ def test_add_directory_asset_with_asset_specific_params(
         if param == "data_directory":
             assert getattr(asset, param) == pathlib.Path(str(value))
         elif param == "spark_schema":
-            struct_type = cast(pyspark_types.StructType, value)
+            struct_type = cast("pyspark_types.StructType", value)
             assert getattr(asset, param) == struct_type.jsonValue()
         else:
             assert getattr(asset, param) == value

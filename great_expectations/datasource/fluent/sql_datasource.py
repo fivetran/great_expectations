@@ -650,7 +650,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
             batch_spec_kwargs["partitioner_kwargs"] = sql_partitioner.partitioner_method_kwargs()
             # mypy infers that batch_spec_kwargs["batch_identifiers"] is a collection, but
             # it is hardcoded to a dict above, so we cast it here.
-            cast(Dict, batch_spec_kwargs["batch_identifiers"]).update(
+            cast("Dict", batch_spec_kwargs["batch_identifiers"]).update(
                 sql_partitioner.batch_parameters_to_batch_spec_kwarg_identifiers(request.options)
             )
         # Creating the batch_spec is our hook into the execution engine.
@@ -905,10 +905,9 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 partitioner=batch_request.partitioner,
             )
         ):
-            options = {
-                option: None
-                for option in self.get_batch_parameters_keys(partitioner=batch_request.partitioner)
-            }
+            options = dict.fromkeys(
+                self.get_batch_parameters_keys(partitioner=batch_request.partitioner)
+            )
             expect_batch_request_form = BatchRequest[ColumnPartitioner](
                 datasource_name=self.datasource.name,
                 data_asset_name=self.name,
