@@ -28,9 +28,24 @@ In this dataset, you'll notice missing data in the `type` and `transfer_date` co
 
 GX provides missingness-focused Expectations to manage missing data in your datasets. These Expectations can be created using GX Cloud or GX Core. 
 
-:::tip Automate these rules
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can enable Anomaly Detection to automatically generate Expectations for each column to test that column completeness doesn't change drastically between Validation runs.
+### Expect Column Proportion Of Non-null Values To Be Between
+
+This Expectation validates that the proportion of non-null values in a column is between a specified minimum and maximum value. 
+
+**Use Case**: Handle columns where some variation in nullness is acceptable but unbounded growth or contraction is not.
+
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py ExpectColumnProportionOfNonNullValuesToBeBetween"
+```
+
+<small>View `ExpectColumnProportionOfNonNullValuesToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_proportion_of_non_null_values_to_be_between).</small>
+
+<br/>
+<br/>
+
+:::tip Automate this rule with GX Cloud
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can enable Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs.
 :::
+
 
 ### Expect Column Values To Not Be Null
 
@@ -38,7 +53,7 @@ Ensures that values within a specific column are not `NULL`.
 
 **Use Case**: Ensure critical columns are consistently populated.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missing_expectations.py ExpectColumnValuesToNotBeNull"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/missingness_resources/missingness_expectations.py ExpectColumnValuesToNotBeNull"
 ```
 
 <small>View `ExpectColumnValuesToNotBeNull` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_column_values_to_not_be_null).</small>
@@ -114,7 +129,6 @@ Setting a low percentage for the `mostly` parameter allows for the presence of v
 
 - **Overlooking edge cases**: Rare scenarios of missing data can go unnoticed, leading to incomplete data quality checks. Regularly broaden your [`ExpectColumnValuesToNotBeNull`](#expect-column-values-to-not-be-null) coverage to cover such cases.
 - **Inconsistent definitions**: Differing definitions of 'missing' data across teams can lead to inconsistent handling. Standardize definitions and document them clearly across teams.
-- **False positives/negatives**: Rigid thresholds can cause false positives or negatives. Use historical data for setting thresholds and consider the `mostly` attribute available for both [`ExpectColumnValuesToNotBeNull`](#expect-column-values-to-not-be-null) and [`ExpectColumnValuesToBeNull`](#expect-column-values-to-be-null).
 - **Manual handling**: Manually addressing missing data can introduce errors and is unsustainable for large datasets. Automate data quality checks and remediation.
 - **Ignoring root causes**: Addressing symptoms without understanding the root causes can lead to recurring problems. Conduct root cause analyses and implement relevant Expectations early in your data stream.
 

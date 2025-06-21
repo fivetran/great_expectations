@@ -130,13 +130,27 @@
             "title": "Strict Min",
             "description": "If True, the column must have strictly more unique value count than min_value to pass.",
             "default": false,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "strict_max": {
             "title": "Strict Max",
             "description": "If True, the column must have strictly fewer unique value count than max_value to pass.",
             "default": false,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "library_metadata": {
             "title": "Library Metadata",

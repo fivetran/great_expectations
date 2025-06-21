@@ -138,13 +138,27 @@
             "title": "Strict Min",
             "description": "If True, values must be strictly larger than min_value.",
             "default": false,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "strict_max": {
             "title": "Strict Max",
             "description": "If True, values must be strictly smaller than max_value.",
             "default": false,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "metadata": {
             "type": "object",

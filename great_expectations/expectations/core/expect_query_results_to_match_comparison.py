@@ -8,6 +8,9 @@ from great_expectations import exceptions
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.result_format import ResultFormat
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     parse_value_to_observed_type,
@@ -117,11 +120,13 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         {DATA_QUALITY_ISSUES[0]}
     """
 
-    base_query: str = pydantic.Field(description=BASE_QUERY_DESCRIPTION)
-    comparison_data_source_name: str = pydantic.Field(
+    base_query: Union[str, SuiteParameterDict] = pydantic.Field(description=BASE_QUERY_DESCRIPTION)
+    comparison_data_source_name: Union[str, SuiteParameterDict] = pydantic.Field(
         description=COMPARISON_DATA_SOURCE_NAME_DESCRIPTION
     )
-    comparison_query: str = pydantic.Field(description=COMPARISON_QUERY_DESCRIPTION)
+    comparison_query: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=COMPARISON_QUERY_DESCRIPTION
+    )
     mostly: MostlyField = 1
 
     metric_dependencies: ClassVar[Tuple[str, ...]] = (

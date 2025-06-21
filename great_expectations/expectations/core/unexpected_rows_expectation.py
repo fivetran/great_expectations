@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Un
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -87,7 +90,9 @@ class UnexpectedRowsExpectation(BatchExpectation):
         {DATA_QUALITY_ISSUES[0]}
     """
 
-    unexpected_rows_query: str = pydantic.Field(description=UNEXPECTED_ROWS_QUERY_DESCRIPTION)
+    unexpected_rows_query: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=UNEXPECTED_ROWS_QUERY_DESCRIPTION
+    )
 
     metric_dependencies: ClassVar[Tuple[str, ...]] = (
         "unexpected_rows_query.table",
@@ -101,7 +106,12 @@ class UnexpectedRowsExpectation(BatchExpectation):
     )
 
     @pydantic.validator("unexpected_rows_query")
-    def _validate_query(cls, query: str) -> str:
+    def _validate_query(
+        cls, query: Union[str, SuiteParameterDict]
+    ) -> Union[str, SuiteParameterDict]:
+        if isinstance(query, SuiteParameterDict):
+            return query
+
         parsed_fields = [f[1] for f in Formatter().parse(query)]
         if "batch" not in parsed_fields:
             batch_warning_message = (

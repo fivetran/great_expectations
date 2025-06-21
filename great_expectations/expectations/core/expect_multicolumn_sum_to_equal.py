@@ -4,6 +4,9 @@ import logging
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Literal, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     MulticolumnMapExpectation,
 )
@@ -183,12 +186,13 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    sum_total: float = pydantic.Field(description=SUM_TOTAL_DESCRIPTION)
-    ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (
-        pydantic.Field(
-            default="all_values_are_missing",
-            description=IGNORE_ROW_IF_DESCRIPTION,
-        )
+    sum_total: Union[float, SuiteParameterDict] = pydantic.Field(description=SUM_TOTAL_DESCRIPTION)
+    ignore_row_if: Union[
+        Literal["all_values_are_missing", "any_value_is_missing", "never"],
+        SuiteParameterDict,
+    ] = pydantic.Field(
+        default="all_values_are_missing",
+        description=IGNORE_ROW_IF_DESCRIPTION,
     )
 
     # This dictionary contains metadata for display in the public gallery

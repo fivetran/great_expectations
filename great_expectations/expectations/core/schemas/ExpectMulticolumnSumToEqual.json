@@ -108,17 +108,31 @@
             "title": "Ignore Row If",
             "description": "If specified, sets the condition on which a given row is to be ignored.",
             "default": "all_values_are_missing",
-            "enum": [
-                "all_values_are_missing",
-                "any_value_is_missing",
-                "never"
-            ],
-            "type": "string"
+            "anyOf": [
+                {
+                    "enum": [
+                        "all_values_are_missing",
+                        "any_value_is_missing",
+                        "never"
+                    ],
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "sum_total": {
             "title": "Sum Total",
             "description": "Expected sum of columns",
-            "type": "number"
+            "anyOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "metadata": {
             "type": "object",

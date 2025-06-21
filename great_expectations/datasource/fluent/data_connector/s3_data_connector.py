@@ -8,16 +8,16 @@ from typing import TYPE_CHECKING, Any, Callable, ClassVar, Dict, Generator, List
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_spec import PathBatchSpec, S3BatchSpec
-from great_expectations.datasource.fluent.data_connector import (
-    FilePathDataConnector,
-)
 from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    FilePathDataConnector,
+    MissingFilePathTemplateMapFnError,
     sanitize_prefix_for_gcs_and_s3,
 )
 
 if TYPE_CHECKING:
     from botocore.client import BaseClient
 
+    from great_expectations.alias_types import PathStr
     from great_expectations.core.batch import LegacyBatchDefinition
 
 
@@ -45,6 +45,7 @@ class S3DataConnector(FilePathDataConnector):
         max_keys (int): S3 max_keys (default is 1000)
         recursive_file_discovery (bool): Flag to indicate if files should be searched recursively from subfolders
         file_path_template_map_fn: Format function mapping path to fully-qualified resource on S3
+        whole_directory_path_override: If present, treat entire directory as single Asset
     """  # noqa: E501 # FIXME CoP
 
     asset_level_option_keys: ClassVar[tuple[str, ...]] = (
@@ -66,6 +67,7 @@ class S3DataConnector(FilePathDataConnector):
         max_keys: int = 1000,
         recursive_file_discovery: bool = False,
         file_path_template_map_fn: Optional[Callable] = None,
+        whole_directory_path_override: PathStr | None = None,
     ) -> None:
         self._s3_client: BaseClient = s3_client
 
@@ -83,6 +85,7 @@ class S3DataConnector(FilePathDataConnector):
             datasource_name=datasource_name,
             data_asset_name=data_asset_name,
             file_path_template_map_fn=file_path_template_map_fn,
+            whole_directory_path_override=whole_directory_path_override,
         )
 
     @classmethod
@@ -97,6 +100,7 @@ class S3DataConnector(FilePathDataConnector):
         max_keys: int = 1000,
         recursive_file_discovery: bool = False,
         file_path_template_map_fn: Optional[Callable] = None,
+        whole_directory_path_override: PathStr | None = None,
     ) -> S3DataConnector:
         """Builds "S3DataConnector", which links named DataAsset to AWS S3.
 
@@ -110,6 +114,7 @@ class S3DataConnector(FilePathDataConnector):
             max_keys: S3 max_keys (default is 1000)
             recursive_file_discovery: Flag to indicate if files should be searched recursively from subfolders
             file_path_template_map_fn: Format function mapping path to fully-qualified resource on S3
+            whole_directory_path_override: If present, treat entire directory as single Asset
 
         Returns:
             Instantiated "S3DataConnector" object
@@ -124,6 +129,7 @@ class S3DataConnector(FilePathDataConnector):
             max_keys=max_keys,
             recursive_file_discovery=recursive_file_discovery,
             file_path_template_map_fn=file_path_template_map_fn,
+            whole_directory_path_override=whole_directory_path_override,
         )
 
     @classmethod
@@ -194,14 +200,15 @@ class S3DataConnector(FilePathDataConnector):
     # Interface Method
     @override
     def _get_full_file_path(self, path: str) -> str:
-        if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
-requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501 # FIXME CoP
-            )
+        # If the path is already a fully qualified S3 URL (starts with s3://), return it as-is
+        # This handles the case of whole_directory_path_override which is already fully qualified
+        if path.startswith("s3://"):
+            return path
 
-        template_arguments: dict = {
+        if self._file_path_template_map_fn is None:
+            raise MissingFilePathTemplateMapFnError()
+
+        template_arguments = {
             "bucket": self._bucket,
             "path": path,
         }

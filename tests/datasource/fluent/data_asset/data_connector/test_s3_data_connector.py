@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import uuid
 from typing import TYPE_CHECKING, List
 
 import pandas as pd
@@ -19,12 +20,11 @@ from great_expectations.datasource.fluent.data_connector.azure_blob_storage_data
     sanitize_prefix,
 )
 from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    MissingFilePathTemplateMapFnError,
     sanitize_prefix_for_gcs_and_s3,
 )
 
 if TYPE_CHECKING:
-    from botocore.client import BaseClient
-
     from great_expectations.datasource.fluent.data_connector import (
         DataConnector,
     )
@@ -37,16 +37,36 @@ except ImportError:
     logger.debug("Unable to load boto3; install optional boto3 dependency for support.")
 
 
+@pytest.fixture
+def aws_region():
+    """AWS region for testing."""
+    return "us-east-1"
+
+
+@pytest.fixture
+def s3_bucket_name():
+    """S3 bucket name for testing."""
+    return f"test-bucket-{uuid.uuid4().hex[:8]}"
+
+
+@pytest.fixture
+def test_df():
+    """Sample pandas DataFrame for testing."""
+    return pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+
+
+def create_s3_setup(bucket_name: str, region: str = "us-east-1"):
+    """Helper function to create S3 resources within a @mock_s3 context."""
+    conn = boto3.resource("s3", region_name=region)
+    conn.create_bucket(Bucket=bucket_name)
+    client = boto3.client("s3", region_name=region)
+    return client, bucket_name
+
+
 @pytest.mark.big
 @mock_s3
-def test_basic_instantiation():
-    region_name: str = "us-east-1"
-    bucket: str = "test_bucket"
-    conn = boto3.resource("s3", region_name=region_name)
-    conn.create_bucket(Bucket=bucket)
-    client: BaseClient = boto3.client("s3", region_name=region_name)
-
-    test_df: pd.DataFrame = pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+def test_basic_instantiation(s3_bucket_name, aws_region, test_df):
+    client, bucket = create_s3_setup(s3_bucket_name, aws_region)
 
     keys: List[str] = [
         "alpha-1.csv",
@@ -82,14 +102,8 @@ def test_basic_instantiation():
 
 @pytest.mark.big
 @mock_s3
-def test_instantiation_batching_regex_does_not_match_paths():
-    region_name: str = "us-east-1"
-    bucket: str = "test_bucket"
-    conn = boto3.resource("s3", region_name=region_name)
-    conn.create_bucket(Bucket=bucket)
-    client: BaseClient = boto3.client("s3", region_name=region_name)
-
-    test_df: pd.DataFrame = pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+def test_instantiation_batching_regex_does_not_match_paths(s3_bucket_name, aws_region, test_df):
+    client, bucket = create_s3_setup(s3_bucket_name, aws_region)
 
     keys: List[str] = [
         "alpha-1.csv",
@@ -121,14 +135,8 @@ def test_instantiation_batching_regex_does_not_match_paths():
 
 @pytest.mark.big
 @mock_s3
-def test_return_all_batch_definitions_unsorted():
-    region_name: str = "us-east-1"
-    bucket: str = "test_bucket"
-    conn = boto3.resource("s3", region_name=region_name)
-    conn.create_bucket(Bucket=bucket)
-    client: BaseClient = boto3.client("s3", region_name=region_name)
-
-    test_df: pd.DataFrame = pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+def test_return_all_batch_definitions_unsorted(s3_bucket_name, aws_region, test_df):
+    client, bucket = create_s3_setup(s3_bucket_name, aws_region)
 
     keys: List[str] = [
         "alex_2020-08-09_1000.csv",
@@ -354,14 +362,8 @@ def test_return_all_batch_definitions_unsorted():
 
 @pytest.mark.big
 @mock_s3
-def test_return_only_unique_batch_definitions():
-    region_name: str = "us-east-1"
-    bucket: str = "test_bucket"
-    conn = boto3.resource("s3", region_name=region_name)
-    conn.create_bucket(Bucket=bucket)
-    client: BaseClient = boto3.client("s3", region_name=region_name)
-
-    test_df: pd.DataFrame = pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+def test_return_only_unique_batch_definitions(s3_bucket_name, aws_region, test_df):
+    client, bucket = create_s3_setup(s3_bucket_name, aws_region)
 
     keys: List[str] = [
         "A/file_1.csv",
@@ -415,14 +417,8 @@ def test_return_only_unique_batch_definitions():
 
 @pytest.mark.big
 @mock_s3
-def test_data_reference_count_methods():
-    region_name: str = "us-east-1"
-    bucket: str = "test_bucket"
-    conn = boto3.resource("s3", region_name=region_name)
-    conn.create_bucket(Bucket=bucket)
-    client: BaseClient = boto3.client("s3", region_name=region_name)
-
-    test_df: pd.DataFrame = pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+def test_data_reference_count_methods(s3_bucket_name, aws_region, test_df):
+    client, bucket = create_s3_setup(s3_bucket_name, aws_region)
 
     keys: List[str] = [
         "A/file_1.csv",
@@ -461,14 +457,8 @@ def test_data_reference_count_methods():
 
 @pytest.mark.big
 @mock_s3
-def test_alpha():
-    region_name: str = "us-east-1"
-    bucket: str = "test_bucket"
-    conn = boto3.resource("s3", region_name=region_name)
-    conn.create_bucket(Bucket=bucket)
-    client: BaseClient = boto3.client("s3", region_name=region_name)
-
-    test_df: pd.DataFrame = pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+def test_alpha(s3_bucket_name, aws_region, test_df):
+    client, bucket = create_s3_setup(s3_bucket_name, aws_region)
 
     keys: List[str] = [
         "test_dir_alpha/A.csv",
@@ -529,14 +519,8 @@ def test_alpha():
 
 @pytest.mark.big
 @mock_s3
-def test_foxtrot():
-    region_name: str = "us-east-1"
-    bucket: str = "test_bucket"
-    conn = boto3.resource("s3", region_name=region_name)
-    conn.create_bucket(Bucket=bucket)
-    client: BaseClient = boto3.client("s3", region_name=region_name)
-
-    test_df: pd.DataFrame = pd.DataFrame(data={"col1": [1, 2], "col2": [3, 4]})
+def test_foxtrot(s3_bucket_name, aws_region, test_df):
+    client, bucket = create_s3_setup(s3_bucket_name, aws_region)
 
     keys: List[str] = [
         "test_dir_foxtrot/A/A-1.csv",
@@ -685,3 +669,105 @@ def test_sanitize_prefix_behaves_the_same_as_local_files():
     check_sameness("a.x/b/c", "a.x/b/c/")
     check_sameness("path/to/folder.something/", "path/to/folder.something/")
     check_sameness("path/to/folder.something", "path/to/folder.something")
+
+
+@pytest.mark.unit
+@mock_s3
+@pytest.mark.parametrize(
+    "whole_directory_override, expected_batch_count, expected_identifier_key",
+    [
+        pytest.param(
+            True, 1, "path", id="with_whole_directory_override_returns_single_directory_batch"
+        ),
+        pytest.param(
+            False,
+            3,
+            "filename",
+            id="without_whole_directory_override_returns_individual_file_batches",
+        ),
+    ],
+)
+def test_s3_data_connector_whole_directory_path_override(
+    whole_directory_override,
+    expected_batch_count,
+    expected_identifier_key,
+    s3_bucket_name,
+    aws_region,
+):
+    """Test S3DataConnector behavior with and without whole_directory_path_override parameter."""
+    # Setup
+    s3_client, bucket_name = create_s3_setup(s3_bucket_name, aws_region)
+
+    prefix = "test_directory/"
+    whole_directory_path = f"s3://{bucket_name}/{prefix}"
+
+    # Create multiple files in the directory
+    test_files = [
+        f"{prefix}file1.csv",
+        f"{prefix}file2.csv",
+        f"{prefix}file3.csv",
+    ]
+
+    for file_path in test_files:
+        s3_client.put_object(Bucket=bucket_name, Key=file_path, Body="col1,col2\n1,2\n3,4\n")
+
+    # Create data connector with conditional whole_directory_path_override
+    data_connector = S3DataConnector(
+        datasource_name="my_s3_datasource",
+        data_asset_name="my_data_asset",
+        s3_client=s3_client,
+        bucket=bucket_name,
+        prefix=prefix,
+        file_path_template_map_fn=S3Url.OBJECT_URL_TEMPLATE.format,
+        whole_directory_path_override=whole_directory_path if whole_directory_override else None,
+    )
+
+    # Create batch request with conditional partitioner
+    batch_request = BatchRequest(
+        datasource_name="my_s3_datasource",
+        data_asset_name="my_data_asset",
+        options={},
+        partitioner=None
+        if whole_directory_override
+        else FileNamePartitionerPath(regex=re.compile(r"(?P<filename>.+\.csv)")),
+    )
+    batch_definitions = data_connector.get_batch_definition_list(batch_request)
+
+    # Verify expected batch count
+    assert len(batch_definitions) == expected_batch_count
+
+    # Verify batch definitions have correct structure
+    for batch_definition in batch_definitions:
+        assert batch_definition.datasource_name == "my_s3_datasource"
+        assert batch_definition.data_asset_name == "my_data_asset"
+        assert expected_identifier_key in batch_definition.batch_identifiers
+
+    if whole_directory_override:
+        # For directory mode, verify single batch with directory path
+        batch_definition = batch_definitions[0]
+        assert batch_definition.batch_identifiers["path"] == whole_directory_path
+    else:
+        # For file mode, verify individual file batches
+        file_names = [bd.batch_identifiers["filename"] for bd in batch_definitions]
+        expected_files = ["file1.csv", "file2.csv", "file3.csv"]
+        assert sorted(file_names) == sorted(expected_files)
+
+
+@pytest.mark.unit
+@mock_s3
+def test_s3_data_connector_missing_file_path_template_map_fn_error(s3_bucket_name, aws_region):
+    """Test S3DataConnector raises MissingFilePathTemplateMapFnError
+    when missing file_path_template_map_fn."""
+    s3_client, bucket = create_s3_setup(s3_bucket_name, aws_region)
+
+    data_connector = S3DataConnector(
+        datasource_name="my_s3_datasource",
+        data_asset_name="my_data_asset",
+        s3_client=s3_client,
+        bucket=bucket,
+        prefix="test/",
+        file_path_template_map_fn=None,
+    )
+
+    with pytest.raises(MissingFilePathTemplateMapFnError):
+        data_connector._get_full_file_path("test.csv")

@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Uni
 import numpy as np
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
@@ -246,8 +249,10 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    quantile_ranges: QuantileRange = pydantic.Field(description=QUANTILE_RANGES_DESCRIPTION)
-    allow_relative_error: Union[bool, str] = pydantic.Field(
+    quantile_ranges: Union[QuantileRange, SuiteParameterDict] = pydantic.Field(
+        description=QUANTILE_RANGES_DESCRIPTION
+    )
+    allow_relative_error: Union[bool, str, SuiteParameterDict] = pydantic.Field(
         default=False,
         description=ALLOW_RELATIVE_ERROR_DESCRIPTION,
     )
@@ -310,17 +315,22 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
             )
 
     @pydantic.validator("quantile_ranges")
-    def validate_quantile_ranges(cls, quantile_ranges: QuantileRange) -> Optional[QuantileRange]:
-        try:
-            assert all(
-                True if None in x else x == sorted([val for val in x if val is not None])
-                for x in quantile_ranges.value_ranges
-            ), "quantile_ranges must consist of ordered pairs"
-        except AssertionError as e:
-            raise InvalidExpectationConfigurationError(str(e))
+    def validate_quantile_ranges(
+        cls, quantile_ranges: QuantileRange | SuiteParameterDict
+    ) -> Optional[QuantileRange | SuiteParameterDict]:
+        if isinstance(quantile_ranges, QuantileRange):
+            try:
+                assert all(
+                    True if None in x else x == sorted([val for val in x if val is not None])
+                    for x in quantile_ranges.value_ranges
+                ), "quantile_ranges must consist of ordered pairs"
+            except AssertionError as e:
+                raise InvalidExpectationConfigurationError(str(e))
 
-        if len(quantile_ranges.quantiles) != len(quantile_ranges.value_ranges):
-            raise ValueError("quantile_values and quantiles must have the same number of elements")  # noqa: TRY003 # FIXME CoP
+            if len(quantile_ranges.quantiles) != len(quantile_ranges.value_ranges):
+                raise ValueError(  # noqa: TRY003
+                    "quantile_values and quantiles must have the same number of elements"
+                )  # FIXME CoP
 
         return quantile_ranges
 
@@ -476,8 +486,8 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
             "string_template": {"template": template_str, "params": params},
         }
 
-        quantiles = params["quantile_ranges"]["quantiles"]
-        value_ranges = params["quantile_ranges"]["value_ranges"]
+        quantiles = params["quantile_ranges"].get("quantiles", [])
+        value_ranges = params["quantile_ranges"].get("value_ranges", [])
 
         table_header_row = ["Quantile", "Min Value", "Max Value"]
         table_rows = []

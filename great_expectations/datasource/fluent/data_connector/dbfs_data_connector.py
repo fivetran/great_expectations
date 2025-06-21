@@ -5,7 +5,10 @@ import pathlib
 from typing import TYPE_CHECKING, Callable, Optional
 
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.datasource.fluent.data_connector import (
+from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    MissingFilePathTemplateMapFnError,
+)
+from great_expectations.datasource.fluent.data_connector.filesystem_data_connector import (
     FilesystemDataConnector,
 )
 
@@ -26,6 +29,7 @@ class DBFSDataConnector(FilesystemDataConnector):
         data_context_root_directory: Optional GreatExpectations root directory (if installed on DBFS)
         file_path_template_map_fn: Format function mapping path to fully-qualified resource on DBFS
         get_unfiltered_batch_definition_list_fn: Function used to get the batch definition list before filtering
+        whole_directory_path_override: If present, treat entire directory as single Asset
     """  # noqa: E501 # FIXME CoP
 
     def __init__(  # noqa: PLR0913 # FIXME CoP
@@ -70,6 +74,7 @@ class DBFSDataConnector(FilesystemDataConnector):
             data_context_root_directory: Optional GreatExpectations root directory (if installed on DBFS)
             file_path_template_map_fn: Format function mapping path to fully-qualified resource on DBFS
             get_unfiltered_batch_definition_list_fn: Function used to get the batch definition list before filtering
+            whole_directory_path_override: If present, treat entire directory as single Asset
 
         Returns:
             Instantiated "DBFSDataConnector" object
@@ -88,13 +93,9 @@ class DBFSDataConnector(FilesystemDataConnector):
     @override
     def _get_full_file_path(self, path: str) -> str:
         if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
-requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501 # FIXME CoP
-            )
+            raise MissingFilePathTemplateMapFnError()
 
-        template_arguments: dict = {
+        template_arguments = {
             "path": str(self.base_directory.joinpath(path)),
         }
 

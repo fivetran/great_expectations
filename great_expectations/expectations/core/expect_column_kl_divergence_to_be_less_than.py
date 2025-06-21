@@ -9,6 +9,9 @@ import pandas as pd
 from scipy import stats
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.execution_engine.util import (
     is_valid_categorical_partition_object,
@@ -319,15 +322,21 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    partition_object: Union[dict, None] = pydantic.Field(description=PARTITION_OBJECT_DESCRIPTION)
-    threshold: Union[float, None] = pydantic.Field(description=THRESHOLD_DESCRIPTION)
-    internal_weight_holdout: Union[float, None] = pydantic.Field(
+    partition_object: Union[dict, SuiteParameterDict, None] = pydantic.Field(
+        description=PARTITION_OBJECT_DESCRIPTION
+    )
+    threshold: Union[float, SuiteParameterDict, None] = pydantic.Field(
+        description=THRESHOLD_DESCRIPTION
+    )
+    internal_weight_holdout: Union[float, SuiteParameterDict, None] = pydantic.Field(
         default=0, ge=0, le=1, description=INTERNAL_WEIGHT_HOLDOUT_DESCRIPTION
     )
-    tail_weight_holdout: Union[float, None] = pydantic.Field(
+    tail_weight_holdout: Union[float, SuiteParameterDict, None] = pydantic.Field(
         default=0, ge=0, le=1, description=TAIL_WEIGHT_HOLDOUT_DESCRIPTION
     )
-    bucketize_data: bool = pydantic.Field(default=True, description=BUCKETIZE_DATA_DESCRIPTION)
+    bucketize_data: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=True, description=BUCKETIZE_DATA_DESCRIPTION
+    )
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
     )

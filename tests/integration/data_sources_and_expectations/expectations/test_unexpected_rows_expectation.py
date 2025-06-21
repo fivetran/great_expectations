@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
@@ -368,3 +369,23 @@ def test_fail_result_format(batch_for_datasource: Batch) -> None:
             ],
         },
     }
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=ALL_SUPPORTED_DATA_SOURCES,
+    data=TABLE_1,
+)
+@pytest.mark.parametrize("unexpected_rows_query", SUCCESS_QUERIES)
+def test_success_with_suite_param_other_table_name_(
+    batch_for_datasource: Batch, unexpected_rows_query
+) -> None:
+    suite_param_key = "test_unexpected_rows_expectation"
+    expectation = gxe.UnexpectedRowsExpectation(
+        description="Expect query with {batch} keyword to succeed",
+        unexpected_rows_query={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: unexpected_rows_query}
+    )
+    assert result.success
