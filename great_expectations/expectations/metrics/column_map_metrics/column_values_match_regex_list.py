@@ -46,10 +46,10 @@ class ColumnValuesMatchRegexList(ColumnMapMetricProvider):
     @column_condition_partial(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(cls, column, regex_list, match_on, _dialect, **kwargs):
         if match_on not in ["any", "all"]:
-            raise ValueError("match_on must be any or all")
+            raise ValueError("match_on must be any or all") # noqa: TRY003 # FIXME CoP
 
         if len(regex_list) == 0:
-            raise ValueError("At least one regex must be supplied in the regex_list.")
+            raise ValueError("At least one regex must be supplied in the regex_list.") # noqa: TRY003 # FIXME CoP
 
         # Original logic for other dialects
         regex_expression = get_dialect_regex_expression(column, regex_list[0], _dialect)

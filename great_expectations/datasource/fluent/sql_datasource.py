@@ -82,6 +82,7 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 )
 
 if TYPE_CHECKING:
+    from sqlalchemy.sql import quoted_name # noqa: TID251 # type-checking only
     # We re-import sqlalchemy here to make type-checking and our compatability layer
     # play nice with one another
     from great_expectations.compatibility import sqlalchemy

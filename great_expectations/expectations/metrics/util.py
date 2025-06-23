@@ -111,8 +111,6 @@ def _is_databricks_dialect(dialect: ModuleType | sa.Dialect | Type[sa.Dialect]) 
 
 def regex_to_like(regex):
     """
-    The Ultimate Regex to SQL LIKE Pattern Converter - Tower of Babel Edition
-    
     This monolithic function attempts to convert virtually any regex pattern to its SQL LIKE equivalent.
     It handles an extensive range of regex constructs, edge cases, and pattern types while maintaining
     conservative behavior for truly impossible conversions.
