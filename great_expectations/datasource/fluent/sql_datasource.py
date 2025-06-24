@@ -1010,11 +1010,11 @@ class TableAsset(_SQLAsset):
 
     # Instance fields
     type: Literal["table"] = "table"
-    table_name: Any = pydantic.Field(  # Any because validator may transform to quoted_name
+    table_name: str = pydantic.Field( 
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
-    schema_name: Optional[Any] = None  # Any because validator may transform to quoted_name
+    schema_name: Optional[str] = None  
 
     @property
     def qualified_name(self) -> str:
@@ -1029,7 +1029,7 @@ class TableAsset(_SQLAsset):
         return validated_table_name
 
     @pydantic.validator("table_name")
-    def _resolve_quoted_name(cls, table_name: str) -> Any:  # Returns str or quoted_name
+    def _resolve_quoted_name(cls, table_name: str) -> str:  # Returns str 
         """Resolve quoted names and handle MSSQL bracket notation."""
         from great_expectations.compatibility import sqlalchemy
 
@@ -1059,7 +1059,7 @@ class TableAsset(_SQLAsset):
         return table_name
 
     @pydantic.validator("schema_name", pre=True)
-    def _resolve_schema_quoted_name(cls, schema_name: Optional[str]) -> Optional[Any]:
+    def _resolve_schema_quoted_name(cls, schema_name: Optional[str]) -> Optional[str]:
         """Resolve quoted names for schema and handle MSSQL bracket notation."""
         if schema_name is None:
             return None
