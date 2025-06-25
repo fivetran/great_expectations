@@ -497,3 +497,8 @@ class RedshiftExecutionEngineError(GreatExpectationsError):
     def __init__(self, message: str) -> None:
         msg = f"Redshift execution engine error: {message}"
         super().__init__(msg)
+
+
+class InvalidSetTypeError(GreatExpectationsError):
+    def __init__(self, expected_type: str, actual_type: str) -> None:
+        super().__init__(f"Expected a set[{expected_type}], got an element of type {actual_type}")
