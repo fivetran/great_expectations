@@ -1376,6 +1376,144 @@ class SQLDatasource(Datasource):
                 asset._datasource = self
                 asset.test_connection()
 
+    # def _extract_schema_from_datasource_name(self) -> Optional[str]:
+    #     """Extract schema name from datasource name.
+        
+    #     Assumes schema name is everything after the last underscore in the datasource name.
+    #     Returns None if no underscore is found or if the extracted part doesn't look like a schema name.
+        
+    #     Returns:
+    #         The extracted schema name or None if not found/valid.
+    #     """
+    #     if "_" not in self.name:
+    #         return None
+            
+    #     # Extract everything after the last underscore
+    #     potential_schema = self.name.split("_")[-1]
+        
+    #     # Basic validation - schema names should be reasonable length and contain valid characters
+    #     if len(potential_schema) < 1 or len(potential_schema) > 128:
+    #         return None
+            
+    #     # Check for obviously invalid schema names (all digits, single characters, empty strings)
+    #     if potential_schema.isdigit() or len(potential_schema) == 1 or not potential_schema.strip():
+    #         return None
+            
+    #     return potential_schema
+    
+    # def _get_available_table_names_from_schema(self, schema_name: str) -> List[str]:
+    #     """Get available table and view names from the specified schema.
+        
+    #     Args:
+    #         schema_name: The schema to introspect.
+            
+    #     Returns:
+    #         List of table and view names in the schema.
+    #     """
+    #     try:
+    #         engine: sqlalchemy.Engine = self.get_engine()
+    #         inspector: sqlalchemy.Inspector = sa.inspect(engine)
+            
+    #         table_names = []
+            
+    #         # Get table names
+    #         try:
+    #             tables = inspector.get_table_names(schema=schema_name)
+    #             table_names.extend(tables)
+    #         except Exception:
+    #             # Schema might not exist or access denied
+    #             pass
+            
+    #         # Get view names 
+    #         try:
+    #             views = inspector.get_view_names(schema=schema_name)
+    #             table_names.extend(views)
+    #         except (NotImplementedError, Exception):
+    #             # Views not supported by this dialect or access denied
+    #             pass
+                
+    #         return table_names
+            
+    #     except Exception:
+    #         # Any error in introspection, return empty list
+    #         return []
+    
+    # @override
+    # def get_asset_names(self) -> Set[str]:
+    #     """Returns the set of available DataAsset names.
+        
+    #     This includes both manually added assets and automatically discovered tables
+    #     from the schema inferred from the datasource name, but only for MSSQL connections.
+        
+    #     Returns:
+    #         Set of available DataAsset names.
+    #     """
+    #     # Get manually added assets
+    #     manual_asset_names = super().get_asset_names()
+        
+    #     # Only discover tables for MSSQL
+    #     if self.get_engine().dialect.name.lower() != "mssql":
+    #         return manual_asset_names
+        
+    #     # Try to discover tables from inferred schema
+    #     discovered_names = set()
+    #     inferred_schema = self._extract_schema_from_datasource_name()
+    #     if inferred_schema:
+    #         try:
+    #             table_names = self._get_available_table_names_from_schema(inferred_schema)
+    #             discovered_names = set(table_names)
+    #         except Exception:
+    #             # If discovery fails, just return manual assets
+    #             pass
+                
+    #     # Return union of manual and discovered assets
+    #     return manual_asset_names | discovered_names
+    
+    # @override
+    # def get_asset(self, name: str) -> TableAsset:
+    #     """Returns the DataAsset referred to by asset_name.
+        
+    #     For MSSQL connections, this will first check manually added assets,
+    #     then attempt to auto-discover the table from the inferred schema.
+        
+    #     Args:
+    #         name: name of DataAsset sought.
+            
+    #     Returns:
+    #         if named "DataAsset" object exists or can be auto-discovered; otherwise, exception is raised.
+    #     """
+    #     # First try to get manually added asset using parent implementation
+    #     try:
+    #         return super().get_asset(name)
+    #     except LookupError:
+    #         # If not found and this is MSSQL, try to auto-discover
+    #         if self.get_engine().dialect.name.lower() == "mssql":
+    #             inferred_schema = self._extract_schema_from_datasource_name()
+    #             if inferred_schema:
+    #                 try:
+    #                     # Check if the table exists in the inferred schema
+    #                     available_tables = self._get_available_table_names_from_schema(inferred_schema)
+    #                     if name in available_tables:
+    #                         # Create a temporary table asset for the discovered table
+    #                         # This doesn't add it to the datasource permanently
+    #                         asset = self._TableAsset(
+    #                             name=name,
+    #                             table_name=name,
+    #                             schema_name=inferred_schema,
+    #                             batch_metadata={},
+    #                         )
+    #                         asset._datasource = self
+    #                         return asset
+    #                 except Exception:
+    #                     # If auto-discovery fails, fall through to raise original error
+    #                     pass
+            
+    #         # Re-raise the original LookupError if auto-discovery didn't work
+    #         available_names = self.get_asset_names()
+    #         raise LookupError(
+    #             f'"{name}" not found. Available assets are ({", ".join(available_names)})'
+    #         )
+
     @public_api
     def add_table_asset(
         self,
@@ -1389,7 +1527,8 @@ class SQLDatasource(Datasource):
         Args:
             name: The name of this table asset.
             table_name: The table where the data resides.
-            schema_name: The schema that holds the table.
+            schema_name: The schema that holds the table. For MSSQL, if not provided,
+                       it will be inferred from the datasource name (everything after the last underscore).
             batch_metadata: BatchMetadata we want to associate with this DataAsset and all batches derived from it.
 
         Returns:
@@ -1397,6 +1536,13 @@ class SQLDatasource(Datasource):
             The type of this object will match the necessary type for this datasource.
             eg, it could be a TableAsset or a SqliteTableAsset.
         """  # noqa: E501 # FIXME CoP
+        
+        # # For MSSQL, auto-infer schema_name from datasource name if not provided
+        # if schema_name is None and self.get_engine().dialect.name.lower() == "mssql":
+        #     inferred_schema = self._extract_schema_from_datasource_name()
+        #     if inferred_schema:
+        #         schema_name = inferred_schema
+        
         # The validators in TableAsset will handle lowercase and quoting
         asset = self._TableAsset(
             name=name,
