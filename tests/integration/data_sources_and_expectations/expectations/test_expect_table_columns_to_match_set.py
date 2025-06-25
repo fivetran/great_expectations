@@ -9,6 +9,11 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config.databricks import (
+    DatabricksDatasourceTestConfig,
+)
+from tests.integration.test_utils.data_source_config.postgres import PostgreSQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.snowflake import SnowflakeDatasourceTestConfig
 
 COL_A = "col_a"
 COL_B = "col_b"
@@ -109,3 +114,27 @@ def test_success_with_suite_param_exact_match_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+# Case insenstivity tests
+CASE_INSENSITIVE_DATA = pd.DataFrame(
+    {
+        "column_a": [1],
+        "COLUMN_B": [2],
+        "CoLuMn_C": [3],
+    }
+)
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        PostgreSQLDatasourceTestConfig(),
+        DatabricksDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
+    ],
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_A", "column_b", "COLumN_c"])
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
