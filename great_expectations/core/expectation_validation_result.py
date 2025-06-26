@@ -113,7 +113,8 @@ class ExpectationValidationResult(SerializableDictDot):
         }
         self.rendered_content = rendered_content
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         """ExpectationValidationResult equality ignores instance identity, relying only on properties."""  # noqa: E501 # FIXME CoP
         # NOTE: JPC - 20200213 - need to spend some time thinking about whether we want to
         # consistently allow dict as a comparison alternative in situations like these...
