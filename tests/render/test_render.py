@@ -415,7 +415,6 @@ def test_render_string_template():
     assert res == expected
 
 
-@pytest.mark.unit
 def test_rendered_content_hash_consistency_with_equality():
     from great_expectations.render.components import RenderedContent
 
@@ -426,7 +425,6 @@ def test_rendered_content_hash_consistency_with_equality():
     assert hash(content1) == hash(content2)
 
 
-@pytest.mark.unit
 def test_rendered_string_template_content_hash_consistency_with_equality():
     from great_expectations.render.components import RenderedStringTemplateContent
 
@@ -440,7 +438,6 @@ def test_rendered_string_template_content_hash_consistency_with_equality():
     assert hash(content1) == hash(content2)
 
 
-@pytest.mark.unit
 def test_rendered_string_template_content_hash_different_for_different_templates():
     from great_expectations.render.components import RenderedStringTemplateContent
 
@@ -454,7 +451,6 @@ def test_rendered_string_template_content_hash_different_for_different_templates
     assert hash(content1) != hash(content2)
 
 
-@pytest.mark.unit
 def test_rendered_string_template_content_hash_stable_across_runs():
     from great_expectations.render.components import RenderedStringTemplateContent
 
