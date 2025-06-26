@@ -163,20 +163,22 @@ class ExpectationValidationResult(SerializableDictDot):
             result_hash = hash(tuple(sorted(self.result.items())))
         else:
             result_hash = hash(None)
-        
+
         # Handle expectation_config hash
         if self.expectation_config:
             config_hash = hash(self.expectation_config)
         else:
             config_hash = hash(None)
-        
-        return hash((
-            self.success,
-            config_hash,
-            result_hash,
-            tuple(sorted(self.meta.items())) if self.meta else (),
-            tuple(sorted(self.exception_info.items())) if self.exception_info else (),
-        ))
+
+        return hash(
+            (
+                self.success,
+                config_hash,
+                result_hash,
+                tuple(sorted(self.meta.items())) if self.meta else (),
+                tuple(sorted(self.exception_info.items())) if self.exception_info else (),
+            )
+        )
 
     def __ne__(self, other):  # type: ignore[explicit-override] # FIXME
         # Negated implementation of '__eq__'. TODO the method should be deleted when it will coincide with __eq__.  # noqa: E501 # FIXME CoP
@@ -539,13 +541,15 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         )
 
     def __hash__(self) -> int:
-        return hash((
-            self.success,
-            tuple(sorted(hash(result) for result in self.results)),
-            tuple(sorted(self.suite_parameters.items())) if self.suite_parameters else (),
-            tuple(sorted(self.statistics.items())) if self.statistics else (),
-            tuple(sorted(self.meta.items())) if self.meta else (),
-        ))
+        return hash(
+            (
+                self.success,
+                tuple(sorted(hash(result) for result in self.results)),
+                tuple(sorted(self.suite_parameters.items())) if self.suite_parameters else (),
+                tuple(sorted(self.statistics.items())) if self.statistics else (),
+                tuple(sorted(self.meta.items())) if self.meta else (),
+            )
+        )
 
     def __repr__(self):  # type: ignore[explicit-override] # FIXME
         return json.dumps(self.to_json_dict(), indent=2)

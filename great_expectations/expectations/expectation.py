@@ -372,7 +372,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
     def _to_normalized_self_dict(self) -> dict:
         """Helper method to get normalized dictionary representation for equality and hashing.
-        
+
         This method:
         1. Excludes rendered_content (derived property)
         2. Normalizes notes and meta (falsiness is equivalent)

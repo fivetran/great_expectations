@@ -355,12 +355,14 @@ class ExpectationSuite(SerializableDictDot):
         )
 
     def __hash__(self) -> int:
-        return hash((
-            self.name,
-            tuple(sorted(hash(exp) for exp in self.expectations)),
-            tuple(sorted(self.suite_parameters.items())) if self.suite_parameters else (),
-            tuple(sorted(self.meta.items())) if self.meta else (),
-        ))
+        return hash(
+            (
+                self.name,
+                tuple(sorted(hash(exp) for exp in self.expectations)),
+                tuple(sorted(self.suite_parameters.items())) if self.suite_parameters else (),
+                tuple(sorted(self.meta.items())) if self.meta else (),
+            )
+        )
 
     def __ne__(self, other):  # type: ignore[explicit-override] # FIXME
         # By using the == operator, the returned NotImplemented is handled correctly.

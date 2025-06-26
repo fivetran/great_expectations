@@ -411,12 +411,14 @@ class ExpectationConfiguration(SerializableDictDot):
     def __hash__(self) -> int:
         this_kwargs: dict = convert_to_json_serializable(self.kwargs)
         this_meta: dict = convert_to_json_serializable(self.meta)
-        
-        return hash((
-            self.type,
-            tuple(sorted(this_kwargs.items())),
-            tuple(sorted(this_meta.items())),
-        ))
+
+        return hash(
+            (
+                self.type,
+                tuple(sorted(this_kwargs.items())),
+                tuple(sorted(this_meta.items())),
+            )
+        )
 
     def __ne__(self, other):  # type: ignore[explicit-override] # FIXME
         # By using the == operator, the returned NotImplemented is handled correctly.
