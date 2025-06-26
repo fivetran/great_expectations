@@ -43,6 +43,7 @@ class Renderer:
         # Renderers do not have any state, so they are equal if they are the same class
         return type(self) is type(other)
 
+    @override
     def __hash__(self) -> int:
         return hash(type(self))
 
