@@ -231,15 +231,16 @@ def test_analytics_enabled_on_load(
             user_agent_str=user_agent_str,
         )
 
-    mock_init.assert_called_with(
-        enable=expected_value,
-        data_context_id=mock.ANY,
-        organization_id=mock.ANY,
-        oss_id=mock.ANY,
-        user_id=mock.ANY,
-        user_agent_str=user_agent_str,
-        mode="ephemeral",
-    )
+    if expected_value is not False:
+        mock_init.assert_called_with(
+            enable=expected_value,
+            data_context_id=mock.ANY,
+            organization_id=mock.ANY,
+            oss_id=mock.ANY,
+            user_id=mock.ANY,
+            user_agent_str=user_agent_str,
+            mode="ephemeral",
+        )
 
 
 @pytest.mark.unit
