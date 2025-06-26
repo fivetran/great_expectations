@@ -340,7 +340,8 @@ class ExpectationSuite(SerializableDictDot):
             "Please use ExpectationSuite.expectations instead."
         )
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         """ExpectationSuite equality ignores instance identity, relying only on properties."""
         if not isinstance(other, self.__class__):
             # Delegate comparison to the other instance's __eq__.
