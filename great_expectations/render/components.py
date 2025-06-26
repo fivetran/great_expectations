@@ -141,7 +141,7 @@ class RenderedContent:
         return self.to_json_dict() == other.to_json_dict()
 
     @override
-    (self) -> int:
+    __hash__(self) -> int:
         return hash(str(self.to_json_dict()))
 
     @classmethod
