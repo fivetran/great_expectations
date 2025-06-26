@@ -13,7 +13,7 @@ from great_expectations.render import (
     RenderedAtomicValue,
 )
 from great_expectations.render.renderer_configuration import RendererSchema, RendererValueType
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import RedshiftDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.base import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.big_query import BigQueryDatasourceTestConfig

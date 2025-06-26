@@ -6,7 +6,7 @@ from great_expectations.metrics.multi_column.sum_equal import (
     MultiColumnSumEqualUnexpectedCount,
     MultiColumnSumEqualUnexpectedCountResult,
 )
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.integration.metrics.conftest import (
     PANDAS_DATA_SOURCES,
     SPARK_DATA_SOURCES,

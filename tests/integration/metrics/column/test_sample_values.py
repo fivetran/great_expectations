@@ -5,7 +5,7 @@ from great_expectations.metrics.column.sample_values import (
     ColumnSampleValues,
     ColumnSampleValuesResult,
 )
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import SQL_DATA_SOURCES
 
 COLUMN_NAME = "stuff"

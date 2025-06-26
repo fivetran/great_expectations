@@ -9,7 +9,7 @@ from great_expectations.metrics.column.values_non_null import (
     ColumnValuesNonNullCountResult,
     ColumnValuesNonNullResult,
 )
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import PANDAS_DATA_SOURCES, SPARK_DATA_SOURCES, SQL_DATA_SOURCES
 
 STRING_COLUMN_NAME = "letter"

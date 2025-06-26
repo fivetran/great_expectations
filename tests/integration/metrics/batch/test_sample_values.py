@@ -1,7 +1,7 @@
 import pandas as pd
 
 from great_expectations.metrics.batch.sample_values import SampleValues, SampleValuesResult
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import ALL_DATA_SOURCES
 
 COL_NAME = "my_column"

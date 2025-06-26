@@ -4,7 +4,7 @@ from typing import Sequence
 import pandas as pd
 
 import great_expectations.expectations as gxe
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,

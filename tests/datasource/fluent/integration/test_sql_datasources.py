@@ -19,6 +19,7 @@ from typing import (
     TypedDict,
 )
 
+import pandas as pd
 import pytest
 from packaging.version import Version
 from pytest import param
@@ -59,6 +60,8 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
     quote_str,
 )
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
+from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.test_utils.data_source_config import SnowflakeDatasourceTestConfig
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -488,7 +491,6 @@ def snowflake_creds_populated() -> bool:
     return bool(os.getenv("SNOWFLAKE_CI_USER_PASSWORD") or os.getenv("SNOWFLAKE_CI_ACCOUNT"))
 
 
-@pytest.fixture
 def snowflake_ds(
     context: EphemeralDataContext,
     snowflake_creds_populated: bool,
@@ -524,7 +526,6 @@ def sqlite_ds(context: EphemeralDataContext, tmp_path: pathlib.Path) -> SqliteDa
         ),
         param("postgres", marks=[pytest.mark.postgresql]),
         param("databricks_sql", marks=[pytest.mark.databricks]),
-        param("snowflake", marks=[pytest.mark.snowflake]),
         param("sqlite", marks=[pytest.mark.sqlite]),
     ]
 )
@@ -534,6 +535,61 @@ def all_sql_datasources(
 ) -> Generator[SQLDatasource, None, None]:
     datasource = request.getfixturevalue(f"{request.param}_ds")
     yield datasource
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SnowflakeDatasourceTestConfig(table_name=TEST_TABLE_NAME.lower()),
+    ],
+    data=pd.DataFrame({"a": [1, 2]}),
+)
+def test_snowflake_lower(batch_for_datasource):
+    table_name = TEST_TABLE_NAME.lower()
+    assert batch_for_datasource.data_asset.table_name == table_name
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SnowflakeDatasourceTestConfig(table_name=f'"{TEST_TABLE_NAME.lower()}"'),
+    ],
+    data=pd.DataFrame({"a": [1, 2]}),
+)
+def test_snowflake_quoted_lower(batch_for_datasource):
+    table_name = f'"{TEST_TABLE_NAME.lower()}"'
+    assert batch_for_datasource.data_asset.table_name == table_name
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SnowflakeDatasourceTestConfig(table_name=TEST_TABLE_NAME.upper()),
+    ],
+    data=pd.DataFrame({"a": [1, 2]}),
+)
+def test_snowflake_upper(batch_for_datasource):
+    table_name = TEST_TABLE_NAME.upper()
+    assert batch_for_datasource.data_asset.table_name == table_name
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SnowflakeDatasourceTestConfig(table_name=f'"{TEST_TABLE_NAME.upper()}"'),
+    ],
+    data=pd.DataFrame({"a": [1, 2]}),
+)
+def test_snowflake_quoted_upper(batch_for_datasource):
+    table_name = f'"{TEST_TABLE_NAME.upper()}"'
+    assert batch_for_datasource.data_asset.table_name == table_name
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        SnowflakeDatasourceTestConfig(table_name=f'"{TEST_TABLE_NAME.title()}"'),
+    ],
+    data=pd.DataFrame({"a": [1, 2]}),
+)
+def test_snowflake_quoted_title(batch_for_datasource):
+    table_name = f'"{TEST_TABLE_NAME.title()}"'
+    assert batch_for_datasource.data_asset.table_name == table_name
 
 
 @pytest.mark.parametrize(
@@ -602,31 +658,6 @@ class TestTableIdentifiers:
         databricks_sql_ds.add_table_asset(
             asset_name, table_name=table_name, schema_name=RAND_SCHEMA
         )
-
-    @pytest.mark.snowflake
-    def test_snowflake(
-        self,
-        snowflake_ds: SnowflakeDatasource,
-        asset_name: TableNameCase,
-        table_factory: TableFactory,
-    ):
-        table_name = TABLE_NAME_MAPPING["snowflake"].get(asset_name)
-        if not table_name:
-            pytest.skip(f"no '{asset_name}' table_name for snowflake")
-        if not snowflake_ds:
-            pytest.skip("no snowflake datasource")
-        # create table
-        schema = RAND_SCHEMA
-        table_factory(
-            gx_engine=snowflake_ds.get_execution_engine(),
-            table_names={table_name},
-            schema=schema,
-        )
-
-        table_names: list[str] = inspect(snowflake_ds.get_engine()).get_table_names(schema=schema)
-        print(f"snowflake tables:\n{pf(table_names)}))")
-
-        snowflake_ds.add_table_asset(asset_name, table_name=table_name)
 
     @pytest.mark.sqlite
     def test_sqlite(

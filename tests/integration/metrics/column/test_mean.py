@@ -5,7 +5,7 @@ from great_expectations.metrics.column.mean import (
     ColumnMeanResult,
 )
 from great_expectations.metrics.metric_results import MetricErrorResult
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,

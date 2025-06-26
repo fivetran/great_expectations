@@ -6,7 +6,7 @@ from great_expectations.metrics.column.aggregate_non_null_count import (
     ColumnAggregateNonNullCount,
     ColumnAggregateNonNullCountResult,
 )
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import (
     PANDAS_DATA_SOURCES,
     SPARK_DATA_SOURCES,

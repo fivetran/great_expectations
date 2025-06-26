@@ -6,7 +6,7 @@ from great_expectations.metrics.column.descriptive_stats import (
     ColumnDescriptiveStats,
     ColumnDescriptiveStatsResult,
 )
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import ALL_DATA_SOURCES
 
 COLUMN_NAME = "whatevs"

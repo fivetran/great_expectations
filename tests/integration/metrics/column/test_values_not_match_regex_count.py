@@ -5,7 +5,7 @@ from great_expectations.metrics.column.values_not_match_regex_count import (
     ColumnValuesNotMatchRegexCount,
     ColumnValuesNotMatchRegexCountResult,
 )
-from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import (
     ALL_DATA_SOURCES,
     SPARK_DATA_SOURCES,
