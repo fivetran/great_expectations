@@ -391,7 +391,8 @@ class ExpectationConfiguration(SerializableDictDot):
 
         return False
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         """ExpectationConfiguration equality does include meta, but ignores instance identity."""
         if not isinstance(other, self.__class__):
             # Delegate comparison to the other instance's __eq__.
@@ -408,6 +409,7 @@ class ExpectationConfiguration(SerializableDictDot):
             )
         )
 
+    @override
     def __hash__(self) -> int:
         this_kwargs: dict = convert_to_json_serializable(self.kwargs)
         this_meta: dict = convert_to_json_serializable(self.meta)
