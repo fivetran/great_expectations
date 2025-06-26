@@ -354,6 +354,7 @@ class ExpectationSuite(SerializableDictDot):
             )
         )
 
+    @override
     def __hash__(self) -> int:
         return hash(
             (
