@@ -331,6 +331,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             else:
                 return self == other
 
+        @override
         def __hash__(self) -> int:
             return hash(tuple(sorted(self.dict().items())))
 
