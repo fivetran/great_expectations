@@ -139,6 +139,9 @@ class RenderedContent:
             return NotImplemented
         return self.to_json_dict() == other.to_json_dict()
 
+    def __hash__(self) -> int:
+        return hash(str(self.to_json_dict()))
+
     @classmethod
     def rendered_content_list_to_json(cls, list_, check_dicts=False):
         result_list = []
@@ -496,6 +499,10 @@ class RenderedStringTemplateContent(RenderedComponentContent):
 
     def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
         return str(self) == str(other)
+
+    def __hash__(self) -> int:
+        """Overrides the default implementation"""
+        return hash(str(self))
 
 
 class RenderedBulletListContent(RenderedComponentContent):

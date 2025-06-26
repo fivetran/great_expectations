@@ -104,6 +104,9 @@ class ValidationGraph:
         """Supports comparing two "ValidationGraph" objects."""
         return self.edge_ids == other.edge_ids
 
+    def __hash__(self) -> int:
+        return hash(frozenset(self.edge_ids))
+
     @property
     def edges(self) -> List[MetricEdge]:
         """Returns "MetricEdge" objects, contained within this "ValidationGraph" object (as list)."""  # noqa: E501 # FIXME CoP
