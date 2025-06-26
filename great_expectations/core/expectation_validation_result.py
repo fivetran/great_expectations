@@ -160,7 +160,8 @@ class ExpectationValidationResult(SerializableDictDot):
     @override
     def __hash__(self) -> int:
         """Overrides the default implementation"""
-        # Handle result hash similar to the complex comparison in __eq__
+        # note that it is possible for two results to be equal but have different hashes
+        # this is because during comparison we only compare common keys
         if self.result:
             result_hash = hash(tuple(sorted(self.result.items())))
         else:

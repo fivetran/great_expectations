@@ -329,7 +329,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             elif isinstance(other, dict):
                 return self.dict() == other
             else:
-                return self == other
+                return NotImplemented
 
         @override
         def __hash__(self) -> int:
