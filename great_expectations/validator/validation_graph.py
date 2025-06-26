@@ -104,6 +104,7 @@ class ValidationGraph:
         """Supports comparing two "ValidationGraph" objects."""
         return self.edge_ids == other.edge_ids
 
+    @override
     def __hash__(self) -> int:
         return hash(frozenset(self.edge_ids))
 
