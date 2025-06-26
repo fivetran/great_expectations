@@ -141,7 +141,7 @@ class RenderedContent:
         return self.to_json_dict() == other.to_json_dict()
 
     @override
-    def __hash__(self) -> int:
+    (self) -> int:
         return hash(str(self.to_json_dict()))
 
     @classmethod
@@ -499,9 +499,11 @@ class RenderedStringTemplateContent(RenderedComponentContent):
         )
         return string
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         return str(self) == str(other)
 
+    @override
     def __hash__(self) -> int:
         """Overrides the default implementation"""
         return hash(str(self))
