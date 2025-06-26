@@ -444,3 +444,16 @@ class ExpectationValidationGraph:
             for metric_id, metric_info_item in metric_info.items()
             if metric_id in graph_metric_ids
         }
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ExpectationValidationGraph):
+            return False
+        return (
+            self.configuration == other.configuration
+            and self.graph == other.graph
+        )
+
+    @override
+    def __hash__(self) -> int:
+        return hash((self.configuration, self.graph))

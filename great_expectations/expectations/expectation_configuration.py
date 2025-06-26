@@ -414,11 +414,22 @@ class ExpectationConfiguration(SerializableDictDot):
         this_kwargs: dict = convert_to_json_serializable(self.kwargs)
         this_meta: dict = convert_to_json_serializable(self.meta)
 
+        def make_hashable(obj):
+            """Convert unhashable types to hashable ones recursively."""
+            if isinstance(obj, (str, int, float, bool, type(None))):
+                return obj
+            elif isinstance(obj, list):
+                return tuple(make_hashable(item) for item in obj)
+            elif isinstance(obj, dict):
+                return tuple(sorted((k, make_hashable(v)) for k, v in obj.items()))
+            else:
+                return str(obj)
+
         return hash(
             (
                 self.type,
-                tuple(sorted(this_kwargs.items())),
-                tuple(sorted(this_meta.items())),
+                make_hashable(this_kwargs),
+                make_hashable(this_meta),
             )
         )
 

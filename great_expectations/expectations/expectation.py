@@ -400,7 +400,19 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
     @override
     def __hash__(self) -> int:
-        return hash(tuple(sorted(self._to_normalized_self_dict().items())))
+        def make_hashable(obj):
+            """Convert unhashable types to hashable ones recursively."""
+            if isinstance(obj, (str, int, float, bool, type(None))):
+                return obj
+            elif isinstance(obj, list):
+                return tuple(make_hashable(item) for item in obj)
+            elif isinstance(obj, dict):
+                return tuple(sorted((k, make_hashable(v)) for k, v in obj.items()))
+            else:
+                return str(obj)
+
+        normalized_dict = self._to_normalized_self_dict()
+        return hash(make_hashable(normalized_dict))
 
     @pydantic.validator("result_format")
     def _validate_result_format(cls, result_format: ResultFormat | dict) -> ResultFormat | dict:

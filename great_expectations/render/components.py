@@ -142,7 +142,7 @@ class RenderedContent:
 
     @override
     def __hash__(self) -> int:
-        return hash(str(self.to_json_dict()))
+        return hash(str(sorted(self.to_json_dict())))
 
     @classmethod
     def rendered_content_list_to_json(cls, list_, check_dicts=False):
