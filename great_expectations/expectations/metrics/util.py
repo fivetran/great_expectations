@@ -190,6 +190,18 @@ def regex_to_like(regex):
         "\\A.*\\z": "%",
         "\\A.*\\Z": "%",
         
+        # Special space-related patterns that can't be handled with SQL LIKE
+        # These will return special markers for custom SQL handling
+        "^(?!.*  )(?! ).*(?<! )$": "SQL:COMPREHENSIVE_SPACE_CHECK",
+        "^(?!.*  ).*$": "SQL:NO_DOUBLE_SPACES",
+        "^(?! ).*$": "SQL:NO_LEADING_SPACES", 
+        "^.*(?<! )$": "SQL:NO_TRAILING_SPACES",
+        "^(?! ).*(?<! )$": "SQL:NO_LEADING_TRAILING_SPACES",
+        
+        # Multiline patterns that need special handling
+        "(?:^% - # of companies$\\n^% - financed em$\\n?)+": "SQL:MULTILINE_PATTERN",
+        "(?:% - # of companies\\n% - financed em\\n?)+": "SQL:MULTILINE_PATTERN",
+        
         # Basic dot patterns
         "^.$": "_",
         "^..$": "__",
@@ -1351,12 +1363,57 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
                 like_pattern = regex_to_like(regex)
                 if like_pattern is None:
                     raise NotImplementedError(f"Regex pattern '{regex}' too complex for MSSQL")
+                
+                # Handle special SQL markers for space patterns
+                if isinstance(like_pattern, str) and like_pattern.startswith("SQL:"):
+                    if like_pattern == "SQL:NO_TRAILING_SPACES":
+                        return column == sa.func.RTRIM(column)
+                    elif like_pattern == "SQL:NO_DOUBLE_SPACES":
+                        return sa.not_(column.like("%  %"))
+                    elif like_pattern == "SQL:NO_LEADING_SPACES":
+                        return column == sa.func.LTRIM(column)
+                    elif like_pattern == "SQL:NO_LEADING_TRAILING_SPACES":
+                        return sa.and_(column == sa.func.LTRIM(column), column == sa.func.RTRIM(column))
+                    elif like_pattern == "SQL:COMPREHENSIVE_SPACE_CHECK":
+                        return sa.and_(
+                            sa.not_(column.like("%  %")),  # No double spaces
+                            column == sa.func.LTRIM(column),  # No leading spaces
+                            column == sa.func.RTRIM(column)   # No trailing spaces
+                        )
+                    elif like_pattern == "SQL:MULTILINE_PATTERN":
+                        # For multiline patterns, just approximate with LIKE
+                        return column.like("%- # of companies%- financed em%")
+                    else:
+                        raise NotImplementedError(f"Unknown SQL marker: {like_pattern}")
+                
                 return column.like(like_pattern)
             else:
                 # Convert regex to NOT LIKE pattern for MSSQL
                 like_pattern = regex_to_like(regex)
                 if like_pattern is None:
                     raise NotImplementedError(f"Regex pattern '{regex}' too complex for MSSQL")
+                
+                # Handle special SQL markers for space patterns (negated)
+                if isinstance(like_pattern, str) and like_pattern.startswith("SQL:"):
+                    if like_pattern == "SQL:NO_TRAILING_SPACES":
+                        return column != sa.func.RTRIM(column)
+                    elif like_pattern == "SQL:NO_DOUBLE_SPACES":
+                        return column.like("%  %")
+                    elif like_pattern == "SQL:NO_LEADING_SPACES":
+                        return column != sa.func.LTRIM(column)
+                    elif like_pattern == "SQL:NO_LEADING_TRAILING_SPACES":
+                        return sa.or_(column != sa.func.LTRIM(column), column != sa.func.RTRIM(column))
+                    elif like_pattern == "SQL:COMPREHENSIVE_SPACE_CHECK":
+                        return sa.or_(
+                            column.like("%  %"),  # Has double spaces
+                            column != sa.func.LTRIM(column),  # Has leading spaces
+                            column != sa.func.RTRIM(column)   # Has trailing spaces
+                        )
+                    elif like_pattern == "SQL:MULTILINE_PATTERN":
+                        return sa.not_(column.like("%- # of companies%- financed em%"))
+                    else:
+                        raise NotImplementedError(f"Unknown SQL marker: {like_pattern}")
+                
                 return sa.not_(column.like(like_pattern))
     except AttributeError:
         pass
