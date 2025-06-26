@@ -156,6 +156,7 @@ class ExpectationValidationResult(SerializableDictDot):
             # if invalid comparisons are attempted, the objects are not equal.
             return False
 
+    @override
     def __hash__(self) -> int:
         """Overrides the default implementation"""
         # Handle result hash similar to the complex comparison in __eq__
@@ -540,6 +541,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
             )
         )
 
+    @override
     def __hash__(self) -> int:
         return hash(
             (
