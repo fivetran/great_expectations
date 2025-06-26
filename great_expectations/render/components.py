@@ -133,12 +133,14 @@ class RenderedContent:
         """
         return {}
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         if not isinstance(other, self.__class__):
             # Delegate comparison to the other instance's __eq__.
             return NotImplemented
         return self.to_json_dict() == other.to_json_dict()
 
+    @override
     def __hash__(self) -> int:
         return hash(str(self.to_json_dict()))
 
