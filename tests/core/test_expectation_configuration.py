@@ -182,28 +182,24 @@ class TestExpectationConfigurationHash:
     @pytest.mark.unit
     def test_hash_different_for_different_types(self):
         config1 = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column"}
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
         )
         config2 = ExpectationConfiguration(
-            type="expect_column_values_to_be_between",
-            kwargs={"column": "test_column"}
+            type="expect_column_values_to_be_between", kwargs={"column": "test_column"}
         )
-        
+
         assert config1 != config2
         assert hash(config1) != hash(config2)
 
     @pytest.mark.unit
     def test_hash_different_for_different_kwargs(self):
         config1 = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column_1"}
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column_1"}
         )
         config2 = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column_2"}
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column_2"}
         )
-        
+
         assert config1 != config2
         assert hash(config1) != hash(config2)
 
@@ -212,14 +208,14 @@ class TestExpectationConfigurationHash:
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
             kwargs={"column": "test_column"},
-            meta={"test": "value1"}
+            meta={"test": "value1"},
         )
         config2 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
             kwargs={"column": "test_column"},
-            meta={"test": "value2"}
+            meta={"test": "value2"},
         )
-        
+
         assert config1 != config2
         assert hash(config1) != hash(config2)
 
@@ -228,5 +224,5 @@ class TestExpectationConfigurationHash:
         hash1 = hash(config1)
         hash2 = hash(config1)
         hash3 = hash(config1)
-        
+
         assert hash1 == hash2 == hash3

@@ -105,7 +105,7 @@ def test__get_column_list_from_evrs(titanic_profiled_evrs_1):
 def test_renderer_hash_consistency_with_equality():
     renderer1 = Renderer()
     renderer2 = Renderer()
-    
+
     assert renderer1 == renderer2
     assert hash(renderer1) == hash(renderer2)
 
@@ -114,10 +114,10 @@ def test_renderer_hash_consistency_with_equality():
 def test_renderer_hash_different_for_different_types():
     class TestRenderer(Renderer):
         pass
-    
+
     renderer1 = Renderer()
     renderer2 = TestRenderer()
-    
+
     assert renderer1 != renderer2
     assert hash(renderer1) != hash(renderer2)
 
@@ -125,9 +125,9 @@ def test_renderer_hash_different_for_different_types():
 @pytest.mark.unit
 def test_renderer_hash_stable_across_runs():
     renderer = Renderer()
-    
+
     hash1 = hash(renderer)
     hash2 = hash(renderer)
     hash3 = hash(renderer)
-    
+
     assert hash1 == hash2 == hash3

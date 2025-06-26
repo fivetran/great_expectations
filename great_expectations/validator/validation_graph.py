@@ -449,10 +449,7 @@ class ExpectationValidationGraph:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ExpectationValidationGraph):
             return False
-        return (
-            self.configuration == other.configuration
-            and self.graph == other.graph
-        )
+        return self.configuration == other.configuration and self.graph == other.graph
 
     @override
     def __hash__(self) -> int:

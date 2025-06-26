@@ -485,10 +485,10 @@ def test_validation_graph_hash_consistency_with_equality():
         pass
 
     execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
-    
+
     graph1 = ValidationGraph(execution_engine=execution_engine)
     graph2 = ValidationGraph(execution_engine=execution_engine)
-    
+
     assert graph1 == graph2
     assert hash(graph1) == hash(graph2)
 
@@ -499,10 +499,10 @@ def test_validation_graph_hash_different_for_different_edges(metric_edge):
         pass
 
     execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
-    
+
     graph1 = ValidationGraph(execution_engine=execution_engine)
     graph2 = ValidationGraph(execution_engine=execution_engine, edges=[metric_edge])
-    
+
     assert graph1 != graph2
     assert hash(graph1) != hash(graph2)
 
@@ -513,13 +513,13 @@ def test_validation_graph_hash_stable_across_runs():
         pass
 
     execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
-    
+
     graph = ValidationGraph(execution_engine=execution_engine)
-    
+
     hash1 = hash(graph)
     hash2 = hash(graph)
     hash3 = hash(graph)
-    
+
     assert hash1 == hash2 == hash3
 
 
@@ -536,7 +536,7 @@ def test_expectation_validation_graph_hash_consistency_with_equality(
         configuration=expect_column_values_to_be_unique_expectation_config,
         graph=validation_graph_with_no_edges,
     )
-    
+
     assert graph1 == graph2
     assert hash(graph1) == hash(graph2)
 
@@ -546,14 +546,12 @@ def test_expectation_validation_graph_hash_different_for_different_configuration
     validation_graph_with_no_edges,
 ):
     config1 = ExpectationConfiguration(
-        type="expect_column_values_to_not_be_null",
-        kwargs={"column": "test_column_1"}
+        type="expect_column_values_to_not_be_null", kwargs={"column": "test_column_1"}
     )
     config2 = ExpectationConfiguration(
-        type="expect_column_values_to_not_be_null",
-        kwargs={"column": "test_column_2"}
+        type="expect_column_values_to_not_be_null", kwargs={"column": "test_column_2"}
     )
-    
+
     graph1 = ExpectationValidationGraph(
         configuration=config1,
         graph=validation_graph_with_no_edges,
@@ -562,7 +560,7 @@ def test_expectation_validation_graph_hash_different_for_different_configuration
         configuration=config2,
         graph=validation_graph_with_no_edges,
     )
-    
+
     assert graph1 != graph2
     assert hash(graph1) != hash(graph2)
 
@@ -576,11 +574,11 @@ def test_expectation_validation_graph_hash_stable_across_runs(
         configuration=expect_column_values_to_be_unique_expectation_config,
         graph=validation_graph_with_no_edges,
     )
-    
+
     hash1 = hash(graph)
     hash2 = hash(graph)
     hash3 = hash(graph)
-    
+
     assert hash1 == hash2 == hash3
 
 

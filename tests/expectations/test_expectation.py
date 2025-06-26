@@ -605,18 +605,12 @@ class TestExpectationHash:
     @pytest.mark.unit
     def test_hash_consistency_with_equality(self):
         expectation1 = gxe.ExpectColumnValuesToNotBeNull(
-            column="test_column",
-            mostly=0.95,
-            meta={"test": "value"},
-            notes="test notes"
+            column="test_column", mostly=0.95, meta={"test": "value"}, notes="test notes"
         )
         expectation2 = gxe.ExpectColumnValuesToNotBeNull(
-            column="test_column",
-            mostly=0.95,
-            meta={"test": "value"},
-            notes="test notes"
+            column="test_column", mostly=0.95, meta={"test": "value"}, notes="test notes"
         )
-        
+
         assert expectation1 == expectation2
         assert hash(expectation1) == hash(expectation2)
 
@@ -624,7 +618,7 @@ class TestExpectationHash:
     def test_hash_different_for_different_columns(self):
         expectation1 = gxe.ExpectColumnValuesToNotBeNull(column="test_column_1")
         expectation2 = gxe.ExpectColumnValuesToNotBeNull(column="test_column_2")
-        
+
         assert expectation1 != expectation2
         assert hash(expectation1) != hash(expectation2)
 
@@ -632,21 +626,19 @@ class TestExpectationHash:
     def test_hash_different_for_different_mostly(self):
         expectation1 = gxe.ExpectColumnValuesToNotBeNull(column="test_column", mostly=0.95)
         expectation2 = gxe.ExpectColumnValuesToNotBeNull(column="test_column", mostly=0.90)
-        
+
         assert expectation1 != expectation2
         assert hash(expectation1) != hash(expectation2)
 
     @pytest.mark.unit
     def test_hash_different_for_different_meta(self):
         expectation1 = gxe.ExpectColumnValuesToNotBeNull(
-            column="test_column",
-            meta={"test": "value1"}
+            column="test_column", meta={"test": "value1"}
         )
         expectation2 = gxe.ExpectColumnValuesToNotBeNull(
-            column="test_column",
-            meta={"test": "value2"}
+            column="test_column", meta={"test": "value2"}
         )
-        
+
         assert expectation1 != expectation2
         assert hash(expectation1) != hash(expectation2)
 
@@ -654,23 +646,20 @@ class TestExpectationHash:
     def test_hash_excludes_rendered_content(self):
         expectation1 = gxe.ExpectColumnValuesToNotBeNull(column="test_column")
         expectation2 = gxe.ExpectColumnValuesToNotBeNull(column="test_column")
-        
+
         expectation1.render()
-        
+
         assert expectation1 == expectation2
         assert hash(expectation1) == hash(expectation2)
 
     @pytest.mark.unit
     def test_hash_stable_across_runs(self):
         expectation = gxe.ExpectColumnValuesToNotBeNull(
-            column="test_column",
-            mostly=0.95,
-            meta={"test": "value"},
-            notes="test notes"
+            column="test_column", mostly=0.95, meta={"test": "value"}, notes="test notes"
         )
-        
+
         hash1 = hash(expectation)
         hash2 = hash(expectation)
         hash3 = hash(expectation)
-        
+
         assert hash1 == hash2 == hash3
