@@ -695,7 +695,7 @@ class ExpectationSuiteSchema(Schema):
     def clean_empty(self, data: _TExpectationSuite) -> _TExpectationSuite:
         if isinstance(data, ExpectationSuite):
             # We are hitting this TypeVar narrowing mypy bug: https://github.com/python/mypy/issues/10817
-            data = self._clean_empty_suite(data)  # type: ignore[assignment] # FIXME CoP
+            data = self._clean_empty_suite(data)
         elif isinstance(data, dict):
             data = self._clean_empty_dict(data)
         return data
