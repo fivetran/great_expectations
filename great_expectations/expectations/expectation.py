@@ -398,6 +398,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
         return self._to_normalized_self_dict() == other._to_normalized_self_dict()
 
+    @override
     def __hash__(self) -> int:
         return hash(tuple(sorted(self._to_normalized_self_dict().items())))
 
