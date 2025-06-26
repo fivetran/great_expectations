@@ -249,7 +249,8 @@ class AbstractDataContext(ConfigPeer, ABC):
         self._init_data_source_manager()
 
         self._attach_fluent_config_datasources_and_build_data_connectors(self.fluent_config)
-        self._init_analytics()
+        if self._determine_analytics_enabled():
+            self._init_analytics()
         submit_event(event=DataContextInitializedEvent())
 
     def _init_data_source_manager(self) -> None:
