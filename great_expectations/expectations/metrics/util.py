@@ -193,10 +193,21 @@ def regex_to_like(regex):
         # Special space-related patterns that can't be handled with SQL LIKE
         # These will return special markers for custom SQL handling
         "^(?!.*  )(?! ).*(?<! )$": "SQL:COMPREHENSIVE_SPACE_CHECK",
+        "^(?! )(?!.*  ).*(?<! )$": "SQL:COMPREHENSIVE_SPACE_CHECK",  # Alternative order
         "^(?!.*  ).*$": "SQL:NO_DOUBLE_SPACES",
         "^(?! ).*$": "SQL:NO_LEADING_SPACES", 
         "^.*(?<! )$": "SQL:NO_TRAILING_SPACES",
         "^(?! ).*(?<! )$": "SQL:NO_LEADING_TRAILING_SPACES",
+        
+        # Additional space pattern variations
+        "^(?!\\s).*(?<!\\s)$": "SQL:NO_LEADING_TRAILING_WHITESPACE",
+        "^(?!\\s).*$": "SQL:NO_LEADING_WHITESPACE", 
+        "^.*(?<!\\s)$": "SQL:NO_TRAILING_WHITESPACE",
+        "^(?!.*\\s{2,}).*$": "SQL:NO_MULTIPLE_SPACES",
+        "^(?!.*   ).*$": "SQL:NO_TRIPLE_SPACES",
+        "^(?!.*    ).*$": "SQL:NO_QUAD_SPACES",
+        "^[^\\s].*[^\\s]$": "SQL:NO_LEADING_TRAILING_WHITESPACE",
+        "^\\S.*\\S$": "SQL:NO_LEADING_TRAILING_WHITESPACE",
         
         # Multiline patterns that need special handling
         "(?:^% - # of companies$\\n^% - financed em$\\n?)+": "SQL:MULTILINE_PATTERN",
@@ -1380,6 +1391,22 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
                             column == sa.func.LTRIM(column),  # No leading spaces
                             column == sa.func.RTRIM(column)   # No trailing spaces
                         )
+                    elif like_pattern in ["SQL:NO_LEADING_TRAILING_WHITESPACE", "SQL:NO_LEADING_WHITESPACE", "SQL:NO_TRAILING_WHITESPACE"]:
+                        # Handle whitespace patterns similar to space patterns
+                        if like_pattern == "SQL:NO_LEADING_TRAILING_WHITESPACE":
+                            return sa.and_(column == sa.func.LTRIM(column), column == sa.func.RTRIM(column))
+                        elif like_pattern == "SQL:NO_LEADING_WHITESPACE":
+                            return column == sa.func.LTRIM(column)
+                        elif like_pattern == "SQL:NO_TRAILING_WHITESPACE":
+                            return column == sa.func.RTRIM(column)
+                    elif like_pattern in ["SQL:NO_MULTIPLE_SPACES", "SQL:NO_TRIPLE_SPACES", "SQL:NO_QUAD_SPACES"]:
+                        # Handle multiple space patterns
+                        if like_pattern == "SQL:NO_MULTIPLE_SPACES":
+                            return sa.not_(column.like("%  %"))  # No double+ spaces
+                        elif like_pattern == "SQL:NO_TRIPLE_SPACES":
+                            return sa.not_(column.like("%   %"))  # No triple spaces
+                        elif like_pattern == "SQL:NO_QUAD_SPACES":
+                            return sa.not_(column.like("%    %"))  # No quad spaces
                     elif like_pattern == "SQL:MULTILINE_PATTERN":
                         # For multiline patterns, just approximate with LIKE
                         return column.like("%- # of companies%- financed em%")
@@ -1409,6 +1436,22 @@ def get_dialect_regex_expression(  # noqa: C901, PLR0911, PLR0912, PLR0915 # FIX
                             column != sa.func.LTRIM(column),  # Has leading spaces
                             column != sa.func.RTRIM(column)   # Has trailing spaces
                         )
+                    elif like_pattern in ["SQL:NO_LEADING_TRAILING_WHITESPACE", "SQL:NO_LEADING_WHITESPACE", "SQL:NO_TRAILING_WHITESPACE"]:
+                        # Handle whitespace patterns (negated)
+                        if like_pattern == "SQL:NO_LEADING_TRAILING_WHITESPACE":
+                            return sa.or_(column != sa.func.LTRIM(column), column != sa.func.RTRIM(column))
+                        elif like_pattern == "SQL:NO_LEADING_WHITESPACE":
+                            return column != sa.func.LTRIM(column)
+                        elif like_pattern == "SQL:NO_TRAILING_WHITESPACE":
+                            return column != sa.func.RTRIM(column)
+                    elif like_pattern in ["SQL:NO_MULTIPLE_SPACES", "SQL:NO_TRIPLE_SPACES", "SQL:NO_QUAD_SPACES"]:
+                        # Handle multiple space patterns (negated)
+                        if like_pattern == "SQL:NO_MULTIPLE_SPACES":
+                            return column.like("%  %")  # Has double+ spaces
+                        elif like_pattern == "SQL:NO_TRIPLE_SPACES":
+                            return column.like("%   %")  # Has triple spaces
+                        elif like_pattern == "SQL:NO_QUAD_SPACES":
+                            return column.like("%    %")  # Has quad spaces
                     elif like_pattern == "SQL:MULTILINE_PATTERN":
                         return sa.not_(column.like("%- # of companies%- financed em%"))
                     else:
