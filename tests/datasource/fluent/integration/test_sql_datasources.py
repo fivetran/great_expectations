@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import pathlib
 import shutil
 import sys
@@ -47,9 +46,7 @@ from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context import EphemeralDataContext
 from great_expectations.datasource.fluent import (
-    DatabricksSQLDatasource,
     PostgresDatasource,
-    SnowflakeDatasource,
     SQLDatasource,
     SqliteDatasource,
 )
@@ -85,7 +82,7 @@ DO_NOT_CREATE_TABLES: set[str] = {"trino"}
 # sqlite db files should be using fresh tmp_path on every test
 DO_NOT_DROP_TABLES: set[str] = {"sqlite"}
 
-DatabaseType: TypeAlias = Literal["databricks_sql", "postgres", "snowflake", "sqlite", "trino"]
+DatabaseType: TypeAlias = Literal["postgres", "sqlite", "trino"]
 TableNameCase: TypeAlias = Literal[
     "quoted_lower",
     "quoted_mixed",
@@ -115,22 +112,6 @@ TABLE_NAME_MAPPING: Final[Mapping[DatabaseType, Mapping[TableNameCase, str]]] = 
         # "quoted_upper": f"'{TRINO_TABLE.upper()}'",
         # "quoted_mixed": f"'TRINO_TABLE.title()'",
         # "unquoted_mixed": TRINO_TABLE.title(),
-    },
-    "databricks_sql": {
-        "unquoted_lower": TEST_TABLE_NAME.lower(),
-        "quoted_lower": f"`{TEST_TABLE_NAME.lower()}`",
-        "unquoted_upper": TEST_TABLE_NAME.upper(),
-        "quoted_upper": f"`{TEST_TABLE_NAME.upper()}`",
-        "quoted_mixed": f"`{TEST_TABLE_NAME.title()}`",
-        "unquoted_mixed": TEST_TABLE_NAME.title(),
-    },
-    "snowflake": {
-        "unquoted_lower": TEST_TABLE_NAME.lower(),
-        "quoted_lower": f'"{TEST_TABLE_NAME.lower()}"',
-        "unquoted_upper": TEST_TABLE_NAME.upper(),
-        "quoted_upper": f'"{TEST_TABLE_NAME.upper()}"',
-        "quoted_mixed": f'"{TEST_TABLE_NAME.title()}"',
-        # "unquoted_mixed": TEST_TABLE_NAME.title(),
     },
     "sqlite": {
         "unquoted_lower": TEST_TABLE_NAME.lower(),
@@ -314,33 +295,39 @@ COLUMN_DDL: Final[Mapping[ColNameParams, str]] = {
 FAILS_EXPECTATION: Final[Mapping[ColNameParamId, list[DatabaseType]]] = {
     # DDL: unquoted_lower_col ------
     "str unquoted_lower_col": [],
-    'str "unquoted_lower_col"': ["postgres", "snowflake", "sqlite"],
-    "str UNQUOTED_LOWER_COL": ["databricks_sql", "postgres", "sqlite"],
-    'str "UNQUOTED_LOWER_COL"': ["snowflake", "sqlite"],
+    'str "unquoted_lower_col"': ["postgres", "sqlite"],
+    "str UNQUOTED_LOWER_COL": ["postgres", "sqlite"],
+    'str "UNQUOTED_LOWER_COL"': ["sqlite"],
     # DDL: UNQUOTED_UPPER_COL ------
-    "str unquoted_upper_col": ["databricks_sql", "sqlite"],
+    "str unquoted_upper_col": ["sqlite"],
     'str "unquoted_upper_col"': ["postgres", "sqlite"],
     "str UNQUOTED_UPPER_COL": ["postgres"],
-    'str "UNQUOTED_UPPER_COL"': ["postgres", "snowflake", "sqlite"],
+    'str "UNQUOTED_UPPER_COL"': ["postgres", "sqlite"],
     # DDL: "quoted_lower_col" -----
-    'str "quoted_lower_col"': ["postgres", "snowflake", "sqlite"],
-    "str quoted_lower_col": ["snowflake"],
-    "str QUOTED_LOWER_COL": ["databricks_sql", "postgres", "snowflake", "sqlite"],
+    'str "quoted_lower_col"': ["postgres", "sqlite"],
+    "str QUOTED_LOWER_COL": ["postgres", "sqlite"],
     'str "QUOTED_LOWER_COL"': ["sqlite"],
     # DDl: "QUOTED_UPPER_COL" ----
-    "str quoted_upper_col": ["databricks_sql", "sqlite", "postgres"],
+    "str quoted_upper_col": ["sqlite", "postgres"],
     'str "quoted_upper_col"': ["sqlite"],
     "str QUOTED_UPPER_COL": [],
-    'str "QUOTED_UPPER_COL"': ["postgres", "snowflake", "sqlite"],
+    'str "QUOTED_UPPER_COL"': ["postgres", "sqlite"],
     # DDL: "quotedMixed" -----
-    "str quotedmixed": ["databricks_sql", "postgres", "sqlite", "snowflake"],
-    "str quotedMixed": ["snowflake"],
-    'str "quotedMixed"': ["databricks_sql", "postgres", "sqlite", "snowflake"],
-    "str QUOTEDMIXED": ["databricks_sql", "postgres", "sqlite", "snowflake"],
+    "str quotedmixed": [
+        "postgres",
+        "sqlite",
+    ],
+    'str "quotedMixed"': [
+        "postgres",
+        "sqlite",
+    ],
+    "str QUOTEDMIXED": [
+        "postgres",
+        "sqlite",
+    ],
     # DDL: "quoted.w.dots" -------
-    "str quoted.w.dots": ["databricks_sql"],
-    'str "quoted.w.dots"': ["databricks_sql", "postgres", "snowflake", "sqlite"],
-    "str QUOTED.W.DOTS": ["databricks_sql", "snowflake", "sqlite", "postgres"],
+    'str "quoted.w.dots"': ["postgres", "sqlite"],
+    "str QUOTED.W.DOTS": ["sqlite", "postgres"],
     'str "QUOTED.W.DOTS"': ["sqlite"],
 }
 
@@ -455,51 +442,6 @@ def postgres_ds(context: EphemeralDataContext) -> PostgresDatasource:
     ds = context.data_sources.add_postgres(
         "postgres",
         connection_string="postgresql+psycopg2://postgres:postgres@localhost:5432/test_ci",
-    )
-    return ds
-
-
-@pytest.fixture
-def databricks_creds_populated() -> bool:
-    return bool(
-        os.getenv("DATABRICKS_TOKEN")
-        or os.getenv("DATABRICKS_HOST")
-        or os.getenv("DATABRICKS_HTTP_PATH")
-    )
-
-
-@pytest.fixture
-def databricks_sql_ds(
-    context: EphemeralDataContext, databricks_creds_populated: bool
-) -> DatabricksSQLDatasource:
-    if not databricks_creds_populated:
-        pytest.skip("no databricks credentials")
-    ds = context.data_sources.add_databricks_sql(
-        "databricks_sql",
-        connection_string="databricks://token:"
-        "${DATABRICKS_TOKEN}@${DATABRICKS_HOST}:443"
-        "?http_path=${DATABRICKS_HTTP_PATH}&catalog=ci&schema=" + RAND_SCHEMA,
-    )
-    return ds
-
-
-@pytest.fixture
-def snowflake_creds_populated() -> bool:
-    return bool(os.getenv("SNOWFLAKE_CI_USER_PASSWORD") or os.getenv("SNOWFLAKE_CI_ACCOUNT"))
-
-
-def snowflake_ds(
-    context: EphemeralDataContext,
-    snowflake_creds_populated: bool,
-) -> SnowflakeDatasource:
-    if not snowflake_creds_populated:
-        pytest.skip("no snowflake credentials")
-    ds = context.data_sources.add_snowflake(
-        "snowflake",
-        connection_string="snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci"
-        f"/{RAND_SCHEMA}?warehouse=ci&role=ci",
-        # NOTE: uncomment this and set SNOWFLAKE_USER to run tests against your own snowflake account  # noqa: E501 # FIXME CoP
-        # connection_string="snowflake://${SNOWFLAKE_USER}@oca29081.us-east-1/DEMO_DB/RESTAURANTS?warehouse=COMPUTE_WH&role=PUBLIC&authenticator=externalbrowser",
     )
     return ds
 
@@ -734,7 +676,7 @@ class TestColumnExpectations:
     def test_unquoted_params(
         self,
         context: EphemeralDataContext,
-        all_sql_datasources: SQLDatasource,
+        self_hosted_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
         request: pytest.FixtureRequest,
@@ -746,8 +688,7 @@ class TestColumnExpectations:
         Test fails if the expectation fails regardless of dialect.
         """
         param_id = request.node.callspec.id
-        datasource = all_sql_datasources
-        dialect = datasource.get_engine().dialect.name
+        datasource = self_hosted_sql_datasources
 
         if column_name[0] in ("'", '"', "`"):
             pytest.skip(f"see _desired_state tests for {column_name!r}")
@@ -755,11 +696,7 @@ class TestColumnExpectations:
             # apply marker this way so that xpasses can be seen in the report
             request.applymarker(pytest.mark.xfail(run=False))
 
-        schema: str | None = (
-            RAND_SCHEMA
-            if GXSqlDialect(dialect) in (GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS)
-            else None
-        )
+        schema: str | None = None
 
         print(f"\ncolumn DDL:\n  {COLUMN_DDL[column_name]}")  # type: ignore[index] # FIXME
         print(f"\n`column_name` parameter __repr__:\n  {column_name!r}")
@@ -834,7 +771,7 @@ class TestColumnExpectations:
     def test_quoted_params(
         self,
         context: EphemeralDataContext,
-        all_sql_datasources: SQLDatasource,
+        self_hosted_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
         request: pytest.FixtureRequest,
@@ -846,7 +783,7 @@ class TestColumnExpectations:
         Test fails if the expectation fails regardless of dialect.
         """
         param_id = request.node.callspec.id
-        datasource = all_sql_datasources
+        datasource = self_hosted_sql_datasources
         dialect = GXSqlDialect(datasource.get_engine().dialect.name)
 
         if column_name[0] not in ("'", '"', "`"):
@@ -857,11 +794,7 @@ class TestColumnExpectations:
             # apply marker this way so that xpasses can be seen in the report
             request.applymarker(pytest.mark.xfail(run=False))
 
-        schema: str | None = (
-            RAND_SCHEMA
-            if GXSqlDialect(dialect) in (GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS)
-            else None
-        )
+        schema: str | None = None
 
         print(f"\ncolumn DDL:\n  {COLUMN_DDL[column_name]}")  # type: ignore[index] # FIXME
         print(f"\n`column_name` parameter __repr__:\n  {column_name!r}")
@@ -952,7 +885,7 @@ class TestColumnExpectations:
     def test_desired_state(
         self,
         context: EphemeralDataContext,
-        all_sql_datasources: SQLDatasource,
+        self_hosted_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
         request: pytest.FixtureRequest,
@@ -969,7 +902,7 @@ class TestColumnExpectations:
         However currently, GX does not behave the same way as the databases in all cases.
         """
         param_id = request.node.callspec.id
-        datasource = all_sql_datasources
+        datasource = self_hosted_sql_datasources
         dialect = GXSqlDialect(datasource.get_engine().dialect.name)
 
         original_column_name = column_name
