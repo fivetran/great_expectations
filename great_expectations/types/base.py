@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import Any, Callable, List, TypeVar
+from typing import Callable, List, TypeVar
 
 from ruamel.yaml import YAML, yaml_object
 
@@ -11,6 +11,7 @@ yaml = YAML()
 
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
+
 
 @yaml_object(yaml)
 class DotDict(dict):
