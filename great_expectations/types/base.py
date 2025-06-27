@@ -26,7 +26,9 @@ class DotDict(dict):
 
     # the below type annotations are not very helpful because they vary based on the version of
     # Python
-    __setattr__: Callable[[dict[_KT, _VT], _KT, _VT], None] | Callable[[str, Any], None] = dict.__setitem__
+    __setattr__: Callable[[dict[_KT, _VT], _KT, _VT], None] | Callable[[str, Any], None] = (
+        dict.__setitem__
+    )
     __delattr__: Callable[[dict[_KT, _VT], _KT], None] | Callable[[str], None] = dict.__delitem__
 
     def __dir__(self):  # type: ignore[explicit-override] # FIXME
