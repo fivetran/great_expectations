@@ -328,6 +328,28 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
         elif self.dialect_name == GXSqlDialect.DATABRICKS:
             self.dialect_module = import_library_module("databricks.sqlalchemy")
+            # Patch Databricks dialect to use backticks instead of double quotes
+            try:
+                from sqlalchemy.sql.compiler import IdentifierPreparer
+                
+                class DatabricksIdentifierPreparer(IdentifierPreparer):
+                    """Custom identifier preparer for Databricks that uses backticks."""
+                    
+                    def __init__(self, dialect, initial_quote="`", final_quote="`", escape_quote="``", quote_case_sensitive_collations=True, omit_schema=False):
+                        super().__init__(
+                            dialect, 
+                            initial_quote=initial_quote, 
+                            final_quote=final_quote, 
+                            escape_quote=escape_quote,
+                            quote_case_sensitive_collations=quote_case_sensitive_collations,
+                            omit_schema=omit_schema
+                        )
+                
+                # Replace the dialect's preparer with our custom one
+                self.engine.dialect.identifier_preparer = DatabricksIdentifierPreparer(self.engine.dialect)
+                logger.debug("Successfully patched Databricks dialect to use backticks for identifier quoting")
+            except Exception as e:
+                logger.warning(f"Failed to patch Databricks dialect for backtick support: {e}")
         else:
             self.dialect_module = None
 
@@ -559,7 +581,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         if batch_id is None:
             # We allow no batch id specified if there is only one batch
             if self.batch_manager.active_batch_data:
-                data_object = cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data)
+                data_object = cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data)
             else:
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
@@ -567,7 +589,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data_object = cast(
-                    SqlAlchemyBatchData, self.batch_manager.batch_data_cache[batch_id]
+                    "SqlAlchemyBatchData", self.batch_manager.batch_data_cache[batch_id]
                 )
             else:
                 raise GreatExpectationsError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003 # FIXME CoP
@@ -645,7 +667,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             and "column_B" in domain_kwargs
             and "ignore_row_if" in domain_kwargs
         ):
-            if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+            if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
                 # Checking if case-sensitive and using appropriate name
                 # noinspection PyPep8Naming
                 column_A_name = sqlalchemy.quoted_name(domain_kwargs["column_A"], quote=True)
@@ -691,7 +713,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             return selectable
 
         if "column_list" in domain_kwargs and "ignore_row_if" in domain_kwargs:
-            if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+            if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
                 # Checking if case-sensitive and using appropriate name
                 column_list = [
                     sqlalchemy.quoted_name(domain_kwargs[column_name], quote=True)
@@ -802,7 +824,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column"] = sqlalchemy.quoted_name(
                 compute_domain_kwargs.pop("column"), quote=True
             )
@@ -841,7 +863,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column_A"] = sqlalchemy.quoted_name(
                 compute_domain_kwargs.pop("column_A"), quote=True
             )
@@ -887,7 +909,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             raise GreatExpectationsError("column_list must contain at least 2 columns")  # noqa: TRY003 # FIXME CoP
 
         # Checking if case-sensitive and using appropriate name
-        if cast(SqlAlchemyBatchData, self.batch_manager.active_batch_data).use_quoted_name:
+        if cast("SqlAlchemyBatchData", self.batch_manager.active_batch_data).use_quoted_name:
             accessor_domain_kwargs["column_list"] = [
                 sqlalchemy.quoted_name(column_name, quote=True) for column_name in column_list
             ]
@@ -1149,7 +1171,33 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         query = batch_spec.get("query")
         selectable: sqlalchemy.Selectable
         if table_name:
-            selectable = sa.table(table_name, schema=batch_spec.get("schema_name", None))
+            # Check if we're using Databricks and need special handling
+            if self.dialect_name == GXSqlDialect.DATABRICKS:
+                import re
+                table_name_str = str(table_name)
+                schema_name = batch_spec.get("schema_name", None)
+                schema_name_str = str(schema_name) if schema_name else None
+                
+                # Check if the table name needs special escaping for Databricks
+                if re.match(r"^\d", table_name_str) or re.search(r"[.\s\-#@]", table_name_str):
+                    # For Databricks, create a subquery with backticks
+                    clean_table_name = table_name_str.strip('"').strip("'").strip("`")
+                    if schema_name_str:
+                        clean_schema_name = schema_name_str.strip('"').strip("'").strip("`")
+                        # Use a select with text to control the identifier quoting
+                        selectable = sa.select(sa.text("*")).select_from(
+                            sa.text(f"`{clean_schema_name}`.`{clean_table_name}`")
+                        ).subquery()
+                    else:
+                        selectable = sa.select(sa.text("*")).select_from(
+                            sa.text(f"`{clean_table_name}`")
+                        ).subquery()
+                else:
+                    # Standard table that doesn't need special escaping
+                    selectable = sa.table(table_name, schema=schema_name)
+            else:
+                # Standard behavior for all other databases
+                selectable = sa.table(table_name, schema=batch_spec.get("schema_name", None))
         else:
             if not isinstance(query, str):
                 raise ValueError(f"SQL query should be a str but got {query}")  # noqa: TRY003 # FIXME CoP
