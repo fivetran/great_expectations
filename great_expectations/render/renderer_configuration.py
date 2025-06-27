@@ -329,7 +329,11 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
             elif isinstance(other, dict):
                 return self.dict() == other
             else:
-                return self == other
+                return NotImplemented
+
+        @override
+        def __hash__(self) -> int:
+            return hash(tuple(sorted(self.dict().items())))
 
     @staticmethod
     def _get_renderer_value_base_model_type(
