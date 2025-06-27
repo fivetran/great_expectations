@@ -5,7 +5,8 @@ import logging
 from typing import Any, List
 
 from ruamel.yaml import YAML, yaml_object
-from typing_extensions import override
+
+from great_expectations.compatibility.typing_extensions import override
 
 logger = logging.getLogger(__name__)
 yaml = YAML()
