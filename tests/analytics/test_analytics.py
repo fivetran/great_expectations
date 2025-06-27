@@ -209,7 +209,7 @@ def test_cloud_context_init(
     ],
 )
 @pytest.mark.unit
-def test_analytics_enabled_on_load(
+def test_analytics_enabled_on_load_unless_disabled(
     environment_variable: bool,
     constructor_variable: Optional[bool],
     expected_value: bool,
@@ -241,6 +241,8 @@ def test_analytics_enabled_on_load(
             user_agent_str=user_agent_str,
             mode="ephemeral",
         )
+    else:
+        mock_init.assert_not_called()
 
 
 @pytest.mark.unit
@@ -299,15 +301,16 @@ def test_analytics_enabled_after_setting_explicitly(
         context.enable_analytics(enable_analytics)
 
     assert context.config.analytics_enabled == enable_analytics
-    mock_init.assert_called_with(
-        enable=enable_analytics,
-        data_context_id=mock.ANY,
-        organization_id=mock.ANY,
-        oss_id=mock.ANY,
-        user_id=mock.ANY,
-        user_agent_str=mock.ANY,
-        mode="ephemeral",
-    )
+    if enable_analytics is True:
+        mock_init.assert_called_with(
+            enable=enable_analytics,
+            data_context_id=mock.ANY,
+            organization_id=mock.ANY,
+            oss_id=mock.ANY,
+            user_id=mock.ANY,
+            user_agent_str=mock.ANY,
+            mode="ephemeral",
+        )
 
 
 @pytest.mark.parametrize("initial_user_agent_str", [None, "old user agent string"])
