@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import Any, List, override
+from typing import Any, List
+from typing_extensions import override
 
 from ruamel.yaml import YAML, yaml_object
 
