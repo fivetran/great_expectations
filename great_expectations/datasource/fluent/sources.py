@@ -128,10 +128,8 @@ class DataSourceManager:
             )
 
         # rollback type registrations if exception occurs
-        with (
-            cls.type_lookup.transaction() as ds_type_lookup,
-            ds_type._type_lookup.transaction() as asset_type_lookup,
-        ):
+        with cls.type_lookup.transaction() as ds_type_lookup, \
+             ds_type._type_lookup.transaction() as asset_type_lookup:
             cls._register_assets(ds_type, asset_type_lookup=asset_type_lookup)
 
             cls._register_datasource(
@@ -455,6 +453,39 @@ class DataSourceManager:
             f"positional argument: {name_or_datasource}, kwargs: {kwargs}"
         )
 
+    def _get_mssql_datasource_type(
+        self,
+        datasource_type: Type[Datasource],
+        kwargs: Dict[str, Any],
+    ) -> Type[Datasource]:
+        """Automatically use SQLServerDatasource for MSSQL connections.
+        
+        Args:
+            datasource_type: The originally requested datasource type
+            kwargs: Constructor kwargs
+            
+        Returns:
+            SQLServerDatasource if MSSQL connection detected, otherwise original type
+        """
+        # Only apply to generic SQLDatasource
+        if not (hasattr(datasource_type, '__name__') and 
+                datasource_type.__name__ == 'SQLDatasource'):
+            return datasource_type
+            
+        # Check for MSSQL connection string
+        connection_string = str(kwargs.get('connection_string', ''))
+        if 'mssql' not in connection_string.lower():
+            return datasource_type
+            
+        # Import SQLServerDatasource and use it instead
+        try:
+            from great_expectations.datasource.fluent.sqlserver_datasource import SQLServerDatasource
+            logger.info(f"Auto-detected MSSQL connection, using SQLServerDatasource instead of SQLDatasource")
+            return SQLServerDatasource
+        except ImportError:
+            logger.warning("Failed to import SQLServerDatasource, falling back to SQLDatasource")
+            return datasource_type
+
     def create_add_crud_method(
         self,
         datasource_type: Type[Datasource],
@@ -463,15 +494,18 @@ class DataSourceManager:
         def add_datasource(
             name_or_datasource: Optional[Union[str, Datasource]] = None, **kwargs
         ) -> Datasource:
+            # Auto-detect MSSQL and use SQLServerDatasource if applicable
+            actual_datasource_type = self._get_mssql_datasource_type(datasource_type, kwargs)
+            
             # Because of the precedence of `or` and `if`, these grouping paranthesis are necessary.
             datasource = (
-                self._datasource_passed_in(datasource_type, name_or_datasource, **kwargs)
+                self._datasource_passed_in(actual_datasource_type, name_or_datasource, **kwargs)
             ) or (
-                datasource_type(name=name_or_datasource, **kwargs)
+                actual_datasource_type(name=name_or_datasource, **kwargs)
                 if name_or_datasource
-                else datasource_type(**kwargs)
+                else actual_datasource_type(**kwargs)
             )
-            logger.debug(f"Adding {datasource_type} with {datasource.name}")
+            logger.debug(f"Adding {actual_datasource_type} with {datasource.name}")
             datasource._data_context = self._data_context
             datasource.test_connection()
             datasource = self._data_context._add_fluent_datasource(datasource)
@@ -546,19 +580,22 @@ class DataSourceManager:
             # circular import
             from great_expectations.datasource.fluent.interfaces import Datasource
 
+            # Auto-detect MSSQL and use SQLServerDatasource if applicable
+            actual_datasource_type = self._get_mssql_datasource_type(datasource_type, kwargs)
+
             new_datasource = (
-                self._datasource_passed_in(datasource_type, name_or_datasource, **kwargs)
+                self._datasource_passed_in(actual_datasource_type, name_or_datasource, **kwargs)
             ) or (
-                datasource_type(name=name_or_datasource, **kwargs)
+                actual_datasource_type(name=name_or_datasource, **kwargs)
                 if name_or_datasource
-                else datasource_type(**kwargs)
+                else actual_datasource_type(**kwargs)
             )
 
             # if new_datasource is None that means name is defined as name_or_datasource or as a kwarg  # noqa: E501 # FIXME CoP
             datasource_name: str = new_datasource.name
-            logger.debug(f"Adding or updating {datasource_type.__name__} with '{datasource_name}'")
+            logger.debug(f"Adding or updating {actual_datasource_type.__name__} with '{datasource_name}'")
             self._validate_current_datasource_type(
-                datasource_name, datasource_type, raise_if_none=False
+                datasource_name, actual_datasource_type, raise_if_none=False
             )
 
             # preserve any pre-existing id for usage with cloud

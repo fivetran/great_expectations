@@ -89,6 +89,9 @@ from great_expectations.datasource.fluent.databricks_sql_datasource import (
 from great_expectations.datasource.fluent.snowflake_datasource import (
     SnowflakeDatasource,
 )
+from great_expectations.datasource.fluent.sqlserver_datasource import (
+    SQLServerDatasource,
+)
 
 
 _PANDAS_SCHEMA_VERSION: str = (
