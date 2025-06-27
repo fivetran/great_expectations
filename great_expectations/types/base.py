@@ -2,15 +2,12 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import Any, Callable, List, TypeVar
+from typing import Any, List
 
 from ruamel.yaml import YAML, yaml_object
 
 logger = logging.getLogger(__name__)
 yaml = YAML()
-
-_KT = TypeVar("_KT")
-_VT = TypeVar("_VT")
 
 
 @yaml_object(yaml)
@@ -24,12 +21,11 @@ class DotDict(dict):
     def __getattr__(self, item):
         return self.get(item)
 
-    # the below type annotations are not very helpful because they vary based on the version of
-    # Python
-    __setattr__: Callable[[dict[_KT, _VT], _KT, _VT], None] | Callable[[str, Any], None] = (
-        dict.__setitem__
-    )
-    __delattr__: Callable[[dict[_KT, _VT], _KT], None] | Callable[[str], None] = dict.__delitem__
+    def __setattr__(self, name: str, value: Any) -> None:
+        self[name] = value
+
+    def __delattr__(self, name: str) -> None:
+        del self[name]
 
     def __dir__(self):  # type: ignore[explicit-override] # FIXME
         return self.keys()
