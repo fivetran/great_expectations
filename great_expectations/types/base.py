@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import Any, List
+from typing import Any, List, override
 
 from ruamel.yaml import YAML, yaml_object
 
@@ -21,9 +21,11 @@ class DotDict(dict):
     def __getattr__(self, item):
         return self.get(item)
 
+    @override
     def __setattr__(self, name: str, value: Any) -> None:
         self[name] = value
 
+    @override
     def __delattr__(self, name: str) -> None:
         del self[name]
 
