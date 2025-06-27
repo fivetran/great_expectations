@@ -2,10 +2,7 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import TYPE_CHECKING, Any, Callable, List
-
-if TYPE_CHECKING:
-    from typing_extensions import Self
+from typing import Any, Callable, List
 
 from ruamel.yaml import YAML, yaml_object
 
