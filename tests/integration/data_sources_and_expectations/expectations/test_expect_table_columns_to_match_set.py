@@ -1,9 +1,11 @@
-from typing import Any, Dict, Optional, Sequence
+from enum import Enum
+from typing import Dict, Optional, Sequence
 
 import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.core.expectation_validation_result import ExpectationValidationResult
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -149,15 +151,13 @@ def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
     assert result.success
 
     # Assert rendered content is as expected
-    assert len(result.rendered_content) == 1
-    rendered_params = result.rendered_content[0].to_json_dict()["value"]["params"]
-    observed_values = _extract_observed_state(rendered_params)
+    observed_values = _extract_observed_state(result)
     assert observed_values == {
         "column_a": "expected",
         "COLUMN_B": "expected",
         "CoLuMn_C": "expected",
     }
-    expected_values = _extract_expected_state(rendered_params)
+    expected_values = _extract_expected_state(result)
     assert expected_values == {"COLUMN_A": None, "column_b": None, "COLumN_c": None}
 
 
@@ -177,34 +177,60 @@ def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
     assert not result.success
 
     # Assert rendered content is as expected
-    assert len(result.rendered_content) == 1
-    rendered_params = result.rendered_content[0].to_json_dict()["value"]["params"]
-    observed_values = _extract_observed_state(rendered_params)
+    observed_values = _extract_observed_state(result)
     assert observed_values == {
         "column_a": "unexpected",
         "COLUMN_B": "expected",
         "CoLuMn_C": "expected",
     }
-    expected_values = _extract_expected_state(rendered_params)
+    expected_values = _extract_expected_state(result)
     assert expected_values == {"COLUMN_Az": "missing", "column_b": None, "COLumN_c": None}
 
 
-def _extract_observed_state(rendered_params: Dict[str, Any]) -> Dict[str, str]:
+def _extract_observed_state(result: ExpectationValidationResult) -> Dict[str, str]:
     """Extracts observed column name to rendered state from validation result"""
-    return {
-        v["value"]: v["render_state"].value
-        for k, v in rendered_params.items()
-        if k.startswith("ov__")
-    }
+    # ExpectationValidationResult is not narrowly typed so we need to a lot of
+    # isinstance assertions for our expectation.
+    assert isinstance(result.rendered_content, list)
+    assert len(result.rendered_content) == 1
+    value = result.rendered_content[0].to_json_dict()["value"]
+    assert isinstance(value, dict)
+    rendered_params = value["params"]
+    assert isinstance(rendered_params, dict)
+    # We don't use a comprehension because we need to do type assertions with
+    # isinstance calls.
+    observed_state: Dict[str, str] = {}
+    for k, v in rendered_params.items():
+        assert isinstance(v, dict)
+        if k.startswith("ov__"):
+            assert isinstance(v["value"], str)
+            assert isinstance(v["render_state"], Enum)
+            observed_state[v["value"]] = v["render_state"].value
+    return observed_state
 
 
-def _extract_expected_state(rendered_params: Dict[str, Any]) -> Dict[str, Optional[str]]:
+def _extract_expected_state(result: ExpectationValidationResult) -> Dict[str, Optional[str]]:
     """Extracts expected column name to rendered state from validation result"""
-    return {
-        v["value"]: v["render_state"].value if "render_state" in v else None
-        for k, v in rendered_params.items()
-        if k.startswith("exp__")
-    }
+    # ExpectationValidationResult is not narrowly typed so we need to a lot of
+    # isinstance assertions for our expectation.
+    assert isinstance(result.rendered_content, list)
+    assert len(result.rendered_content) == 1
+    value = result.rendered_content[0].to_json_dict()["value"]
+    assert isinstance(value, dict)
+    rendered_params = value["params"]
+    assert isinstance(rendered_params, dict)
+    # We don't use a comprehension because we need to do type assertions with
+    # isinstance calls.
+    expected_state: Dict[str, Optional[str]] = {}
+    for k, v in rendered_params.items():
+        assert isinstance(v, dict)
+        if k.startswith("exp__"):
+            assert isinstance(v["value"], str)
+            if "render_state" in v and isinstance(v["render_state"], Enum):
+                expected_state[v["value"]] = v["render_state"].value
+            else:
+                expected_state[v["value"]] = None
+    return expected_state
 
 
 # For most of our tests we use all sql datasources. However, for some of them we exclude
