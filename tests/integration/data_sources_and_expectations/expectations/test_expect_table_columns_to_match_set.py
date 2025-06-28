@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Any, Dict, Optional, Sequence
 
 import pandas as pd
 import pytest
@@ -138,9 +138,27 @@ CASE_INSENSITIVE_DATA = pd.DataFrame(
     data=CASE_INSENSITIVE_DATA,
 )
 def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
+    # Arrange
     expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_A", "column_b", "COLumN_c"])
+
+    # Act
     result = batch_for_datasource.validate(expectation)
+    result.render()  # creates rendered content
+
+    # Assert
     assert result.success
+
+    # Assert rendered content is as expected
+    assert len(result.rendered_content) == 1
+    rendered_params = result.rendered_content[0].to_json_dict()["value"]["params"]
+    observed_values = _extract_observed_state(rendered_params)
+    assert observed_values == {
+        "column_a": "expected",
+        "COLUMN_B": "expected",
+        "CoLuMn_C": "expected",
+    }
+    expected_values = _extract_expected_state(rendered_params)
+    assert expected_values == {"COLUMN_A": None, "column_b": None, "COLumN_c": None}
 
 
 @parameterize_batch_for_data_sources(
@@ -148,9 +166,45 @@ def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
     data=CASE_INSENSITIVE_DATA,
 )
 def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
+    # Arrange
     expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_Az", "column_b", "COLumN_c"])
+
+    # Act
     result = batch_for_datasource.validate(expectation)
+    result.render()  # creates rendered content
+
+    # Assert
     assert not result.success
+
+    # Assert rendered content is as expected
+    assert len(result.rendered_content) == 1
+    rendered_params = result.rendered_content[0].to_json_dict()["value"]["params"]
+    observed_values = _extract_observed_state(rendered_params)
+    assert observed_values == {
+        "column_a": "unexpected",
+        "COLUMN_B": "expected",
+        "CoLuMn_C": "expected",
+    }
+    expected_values = _extract_expected_state(rendered_params)
+    assert expected_values == {"COLUMN_Az": "missing", "column_b": None, "COLumN_c": None}
+
+
+def _extract_observed_state(rendered_params: Dict[str, Any]) -> Dict[str, str]:
+    """Extracts observed column name to rendered state from validation result"""
+    return {
+        v["value"]: v["render_state"].value
+        for k, v in rendered_params.items()
+        if k.startswith("ov__")
+    }
+
+
+def _extract_expected_state(rendered_params: Dict[str, Any]) -> Dict[str, Optional[str]]:
+    """Extracts expected column name to rendered state from validation result"""
+    return {
+        v["value"]: v["render_state"].value if "render_state" in v else None
+        for k, v in rendered_params.items()
+        if k.startswith("exp__")
+    }
 
 
 # For most of our tests we use all sql datasources. However, for some of them we exclude
