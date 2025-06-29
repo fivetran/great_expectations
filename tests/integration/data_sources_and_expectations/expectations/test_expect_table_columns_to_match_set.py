@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Optional, Sequence
+from typing import Dict, List, Optional, Sequence
 
 import pandas as pd
 import pytest
@@ -151,31 +151,32 @@ CASE_INSENSITIVE_DATA = pd.DataFrame(
 )
 
 
-def expected_observed_columns(datasource_type: str) -> Dict[str, str]:
+def observed_column_names(datasource_type: str) -> List[str]:
+    """Returns observed column name base on type in A, B, C order."""
     if datasource_type == "snowflake":
         # Since SQLAlchemy doesn't quote lowercase names in CREATE TABLE and since uppercase is
         # case insenstive in Snowflake, both column_a and column_b will be case insensitive.
         # SQLAlchemy will return case insensitive names in lowercase when inspecting the table.
-        return {
-            "column_a": "expected",
-            "column_b": "expected",
-            "CoLuMn_C": "expected",
-        }
+        return [
+            "column_a",
+            "column_b",
+            "CoLuMn_C",
+        ]
     elif datasource_type == "redshift":
         # Redshift is case insensitive by default
         # SQLAlchemy will return case insensitive names in lowercase when inspecting the table.
-        return {
-            "column_a": "expected",
-            "column_b": "expected",
-            "CoLuMn_C": "expected",
-        }
+        return [
+            "column_a",
+            "column_b",
+            "CoLuMn_C",
+        ]
     else:
         # For most datasources we expected the observed column names to match CASE_INSENSITIVE_DATA.
-        return {
-            "column_a": "expected",
-            "COLUMN_B": "expected",
-            "CoLuMn_C": "expected",
-        }
+        return [
+            "column_a",
+            "COLUMN_B",
+            "CoLuMn_C",
+        ]
 
 
 SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT: Sequence[DataSourceTestConfig] = [
@@ -215,7 +216,12 @@ def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
 
     # Assert rendered content is as expected
     observed_values = _extract_observed_state(result)
-    assert observed_values == expected_observed_columns(batch_for_datasource.datasource.type)
+    assert observed_values == dict(
+        zip(
+            observed_column_names(batch_for_datasource.datasource.type),
+            ["expected", "expected", "expected"],
+        )
+    )
     expected_values = _extract_expected_state(result)
     assert expected_values == {"COLUMN_A": None, "column_b": None, "COLumN_c": None}
 
@@ -237,7 +243,12 @@ def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
 
     # Assert rendered content is as expected
     observed_values = _extract_observed_state(result)
-    assert observed_values == expected_observed_columns(batch_for_datasource.datasource.type)
+    assert observed_values == dict(
+        zip(
+            observed_column_names(batch_for_datasource.datasource.type),
+            ["unexpected", "expected", "expected"],
+        )
+    )
     expected_values = _extract_expected_state(result)
     assert expected_values == {"COLUMN_Az": "missing", "column_b": None, "COLumN_c": None}
 
