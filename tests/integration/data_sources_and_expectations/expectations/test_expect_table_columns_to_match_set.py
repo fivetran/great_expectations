@@ -126,6 +126,22 @@ def test_success_with_suite_param_exact_match_(
 
 
 # Case insenstivity tests
+# For some of our case insensitive tests we break out Snowflake and Redshift into separate
+# tests for the following reasons:
+##### Snowflake #####
+# In test setup, sqlalchemy's CREATE TABLE will not quote lowercase column names
+# but will quote uppercase. Since snowflake stores case insensitive strings
+# as uppercase, while all the other databases we are testing stores them as lowercase
+# this creates different case insensitive columns. We break out the snowflake tests
+# into their own tests.
+#
+#### Redshift ####
+# Redshift by default is case insensitive so trying to match case via quoted identifiers
+# fails. There is a global setting you can set on a redshift cluster,
+# enable_case_sensitive_identifier, one can apply to make it case sensitive. Our code
+# looks like it would handle this successfully but I haven't verified since I need to
+# change our redshift CI cluster. There is tracked in GX-1197.
+
 CASE_INSENSITIVE_DATA = pd.DataFrame(
     {
         "column_a": [1],
@@ -133,6 +149,53 @@ CASE_INSENSITIVE_DATA = pd.DataFrame(
         "CoLuMn_C": [3],
     }
 )
+
+
+def expected_observed_columns(datasource_type: str) -> Dict[str, str]:
+    if datasource_type == "snowflake":
+        # Since SQLAlchemy doesn't quote lowercase names in CREATE TABLE and since uppercase is
+        # case insenstive in Snowflake, both column_a and column_b will be case insensitive.
+        # SQLAlchemy will return case insensitive names in lowercase when inspecting the table.
+        return {
+            "column_a": "expected",
+            "column_b": "expected",
+            "CoLuMn_C": "expected",
+        }
+    elif datasource_type == "redshift":
+        # Redshift is case insensitive by default
+        # SQLAlchemy will return case insensitive names in lowercase when inspecting the table.
+        return {
+            "column_a": "expected",
+            "column_b": "expected",
+            "CoLuMn_C": "expected",
+        }
+    else:
+        # For most datasources we expected the observed column names to match CASE_INSENSITIVE_DATA.
+        return {
+            "column_a": "expected",
+            "COLUMN_B": "expected",
+            "CoLuMn_C": "expected",
+        }
+
+
+SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT: Sequence[DataSourceTestConfig] = [
+    BigQueryDatasourceTestConfig(),
+    DatabricksDatasourceTestConfig(),
+    MSSQLDatasourceTestConfig(),
+    MySQLDatasourceTestConfig(),
+    PostgreSQLDatasourceTestConfig(),
+    SqliteDatasourceTestConfig(),
+]
+
+
+@pytest.mark.unit
+def test_sql_data_sources_without_snowflake_redshift() -> None:
+    # Verify SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT is what is says it is
+    assert len(SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT) + 2 == len(SQL_DATA_SOURCES)
+    assert SnowflakeDatasourceTestConfig() not in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT
+    assert RedshiftDatasourceTestConfig() not in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT
+    for datasource in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT:
+        assert datasource in SQL_DATA_SOURCES
 
 
 @parameterize_batch_for_data_sources(
@@ -152,11 +215,7 @@ def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
 
     # Assert rendered content is as expected
     observed_values = _extract_observed_state(result)
-    assert observed_values == {
-        "column_a": "expected",
-        "COLUMN_B": "expected",
-        "CoLuMn_C": "expected",
-    }
+    assert observed_values == expected_observed_columns(batch_for_datasource.datasource.type)
     expected_values = _extract_expected_state(result)
     assert expected_values == {"COLUMN_A": None, "column_b": None, "COLumN_c": None}
 
@@ -178,11 +237,7 @@ def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
 
     # Assert rendered content is as expected
     observed_values = _extract_observed_state(result)
-    assert observed_values == {
-        "column_a": "unexpected",
-        "COLUMN_B": "expected",
-        "CoLuMn_C": "expected",
-    }
+    assert observed_values == expected_observed_columns(batch_for_datasource.datasource.type)
     expected_values = _extract_expected_state(result)
     assert expected_values == {"COLUMN_Az": "missing", "column_b": None, "COLumN_c": None}
 
@@ -231,42 +286,6 @@ def _extract_expected_state(result: ExpectationValidationResult) -> Dict[str, Op
             else:
                 expected_state[v["value"]] = None
     return expected_state
-
-
-# For most of our tests we use all sql datasources. However, for some of them we exclude
-# snowflake and redshift for the following reasons:
-##### Snowflake #####
-# In test setup, sqlalchemy's CREATE TABLE will not quote lowercase column names
-# but will quote uppercase. Since snowflake stores case insensitive strings
-# as uppercase, while all the other databases we are testing stores them as lowercase
-# this creates different case insensitive columns. We break out the snowflake tests
-# into their own tests.
-#
-#### Redshift ####
-# Redshift by default is case insensitive so trying to match case via quoted identifiers
-# fails. There is a global setting you can set on a redshift cluster,
-# enable_case_sensitive_identifier, one can apply to make it case sensitive. Our code
-# looks like it would handle this successfully but I haven't verified since I need to
-# change our redshift CI cluster. There is tracked in GX-1197.
-
-SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT: Sequence[DataSourceTestConfig] = [
-    BigQueryDatasourceTestConfig(),
-    DatabricksDatasourceTestConfig(),
-    MSSQLDatasourceTestConfig(),
-    MySQLDatasourceTestConfig(),
-    PostgreSQLDatasourceTestConfig(),
-    SqliteDatasourceTestConfig(),
-]
-
-
-@pytest.mark.unit
-def test_sql_data_sources_without_snowflake_redshift() -> None:
-    # Verify SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT is what is says it is
-    assert len(SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT) + 2 == len(SQL_DATA_SOURCES)
-    assert SnowflakeDatasourceTestConfig() not in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT
-    assert RedshiftDatasourceTestConfig() not in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT
-    for datasource in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT:
-        assert datasource in SQL_DATA_SOURCES
 
 
 @parameterize_batch_for_data_sources(
