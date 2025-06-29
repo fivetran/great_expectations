@@ -168,7 +168,7 @@ def observed_column_names(datasource_type: str) -> List[str]:
         return [
             "column_a",
             "column_b",
-            "CoLuMn_C",
+            "column_c",
         ]
     else:
         # For most datasources we expected the observed column names to match CASE_INSENSITIVE_DATA.
