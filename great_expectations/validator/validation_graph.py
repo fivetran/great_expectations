@@ -104,6 +104,10 @@ class ValidationGraph:
         """Supports comparing two "ValidationGraph" objects."""
         return self.edge_ids == other.edge_ids
 
+    @override
+    def __hash__(self) -> int:
+        return hash(frozenset(self.edge_ids))
+
     @property
     def edges(self) -> List[MetricEdge]:
         """Returns "MetricEdge" objects, contained within this "ValidationGraph" object (as list)."""  # noqa: E501 # FIXME CoP
@@ -440,3 +444,13 @@ class ExpectationValidationGraph:
             for metric_id, metric_info_item in metric_info.items()
             if metric_id in graph_metric_ids
         }
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ExpectationValidationGraph):
+            return False
+        return self.configuration == other.configuration and self.graph == other.graph
+
+    @override
+    def __hash__(self) -> int:
+        return hash((self.configuration, self.graph))

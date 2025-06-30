@@ -1462,3 +1462,84 @@ def test_is_fresh_ignores_expectation_ordering(in_memory_runtime_context):
         diagnostics = suite.is_fresh()
 
     assert diagnostics.success is True
+
+
+class TestExpectationSuiteHash:
+    @pytest.mark.unit
+    def test_hash_consistency_with_equality(self, empty_data_context):
+        expectation1 = ExpectColumnValuesToNotBeNull(column="test_column")
+        expectation2 = ExpectColumnValuesToNotBeNull(column="test_column")
+
+        suite1 = ExpectationSuite(name="test_suite")
+        suite1.add_expectation(expectation1)
+
+        suite2 = ExpectationSuite(name="test_suite")
+        suite2.add_expectation(expectation2)
+
+        assert suite1 == suite2
+        assert hash(suite1) == hash(suite2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_names(self, empty_data_context):
+        expectation = ExpectColumnValuesToNotBeNull(column="test_column")
+
+        suite1 = ExpectationSuite(name="test_suite_1")
+        suite1.add_expectation(expectation)
+
+        suite2 = ExpectationSuite(name="test_suite_2")
+        suite2.add_expectation(expectation)
+
+        assert suite1 != suite2
+        assert hash(suite1) != hash(suite2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_expectations(self, empty_data_context):
+        expectation1 = ExpectColumnValuesToNotBeNull(column="test_column_1")
+        expectation2 = ExpectColumnValuesToNotBeNull(column="test_column_2")
+
+        suite1 = ExpectationSuite(name="test_suite")
+        suite1.add_expectation(expectation1)
+
+        suite2 = ExpectationSuite(name="test_suite")
+        suite2.add_expectation(expectation2)
+
+        assert suite1 != suite2
+        assert hash(suite1) != hash(suite2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_meta(self, empty_data_context):
+        expectation = ExpectColumnValuesToNotBeNull(column="test_column")
+
+        suite1 = ExpectationSuite(name="test_suite", meta={"test": "value1"})
+        suite1.add_expectation(expectation)
+
+        suite2 = ExpectationSuite(name="test_suite", meta={"test": "value2"})
+        suite2.add_expectation(expectation)
+
+        assert suite1 != suite2
+        assert hash(suite1) != hash(suite2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_suite_parameters(self, empty_data_context):
+        expectation = ExpectColumnValuesToNotBeNull(column="test_column")
+
+        suite1 = ExpectationSuite(name="test_suite", suite_parameters={"param1": "value1"})
+        suite1.add_expectation(expectation)
+
+        suite2 = ExpectationSuite(name="test_suite", suite_parameters={"param1": "value2"})
+        suite2.add_expectation(expectation)
+
+        assert suite1 != suite2
+        assert hash(suite1) != hash(suite2)
+
+    @pytest.mark.unit
+    def test_hash_stable_across_runs(self, empty_data_context):
+        expectation = ExpectColumnValuesToNotBeNull(column="test_column")
+        suite = ExpectationSuite(name="test_suite")
+        suite.add_expectation(expectation)
+
+        hash1 = hash(suite)
+        hash2 = hash(suite)
+        hash3 = hash(suite)
+
+        assert hash1 == hash2 == hash3
