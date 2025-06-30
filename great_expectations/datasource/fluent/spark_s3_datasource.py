@@ -136,6 +136,7 @@ class SparkS3Datasource(_SparkFilePathDatasource):
             max_keys=s3_max_keys,
             recursive_file_discovery=s3_recursive_file_discovery,
             file_path_template_map_fn=S3Url.OBJECT_URL_TEMPLATE.format,
+            whole_directory_path_override=data_asset.get_whole_directory_path_override(),
         )
 
         # build a more specific `_test_connection_error_message`

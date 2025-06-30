@@ -108,7 +108,14 @@
             "title": "Ignore Row If",
             "description": "If specified, sets the condition on which a given row is to be ignored.",
             "default": "all_values_are_missing",
-            "type": "string"
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "metadata": {
             "type": "object",

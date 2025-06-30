@@ -1,7 +1,7 @@
 import re
 from datetime import datetime
 from pprint import pprint
-from typing import Callable, Dict, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import pytest
 
@@ -748,7 +748,7 @@ def test_atomic_prescriptive_summary_expect_column_proportion_of_unique_values_t
                 "min_value": {"schema": {"type": "number"}, "value": 10},
             },
             "schema": {"type": "com.superconductive.rendered.string"},
-            "template": "$column fraction of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
+            "template": "$column proportion of unique values must be greater than or equal to $min_value and less than or equal to $max_value.",  # noqa: E501 # FIXME CoP
         },
         "value_type": "StringValueType",
     }
@@ -2750,6 +2750,26 @@ def test_expect_column_distinct_values_to_contain_set_atomic_diagnostic_observed
         assert res["value"]["params"][name]["render_state"] == status
 
 
+def _create_result_details_from_expected_result(
+    expected_result: Tuple[str, str, str],
+) -> Optional[Dict[str, Any]]:
+    unexpected = []
+    missing = []
+    for _, col, state in expected_result:
+        if state == "unexpected":
+            unexpected.append(col)
+        elif state == "missing":
+            missing.append(col)
+    if not unexpected and not missing:
+        return None
+    details = {"mismatched": {}}
+    if unexpected:
+        details["mismatched"]["unexpected"] = unexpected
+    if missing:
+        details["mismatched"]["missing"] = missing
+    return details
+
+
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "description, value_set, observed_value, expected_result",
@@ -2943,6 +2963,9 @@ def test_expect_table_columns_to_match_set_atomic_diagnostic_observed_value(
         ),
         "result": {"observed_value": observed_value},
     }
+    details = _create_result_details_from_expected_result(expected_result)
+    if details:
+        x["result"]["details"] = details
 
     expected_template_string = " ".join([f"${name}" for name, _, _ in expected_result])
 

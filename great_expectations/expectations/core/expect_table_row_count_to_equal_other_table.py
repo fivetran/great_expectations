@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -160,7 +163,9 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    other_table_name: str = pydantic.Field(description=OTHER_TABLE_NAME_DESCRIPTION)
+    other_table_name: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=OTHER_TABLE_NAME_DESCRIPTION
+    )
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
 

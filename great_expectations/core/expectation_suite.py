@@ -340,7 +340,8 @@ class ExpectationSuite(SerializableDictDot):
             "Please use ExpectationSuite.expectations instead."
         )
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         """ExpectationSuite equality ignores instance identity, relying only on properties."""
         if not isinstance(other, self.__class__):
             # Delegate comparison to the other instance's __eq__.
@@ -351,6 +352,17 @@ class ExpectationSuite(SerializableDictDot):
                 sorted(self.expectations) == sorted(other.expectations),
                 self.suite_parameters == other.suite_parameters,
                 self.meta == other.meta,
+            )
+        )
+
+    @override
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.name,
+                tuple(sorted(hash(exp) for exp in self.expectations)),
+                tuple(sorted(self.suite_parameters.items())) if self.suite_parameters else (),
+                tuple(sorted(self.meta.items())) if self.meta else (),
             )
         )
 
@@ -683,7 +695,7 @@ class ExpectationSuiteSchema(Schema):
     def clean_empty(self, data: _TExpectationSuite) -> _TExpectationSuite:
         if isinstance(data, ExpectationSuite):
             # We are hitting this TypeVar narrowing mypy bug: https://github.com/python/mypy/issues/10817
-            data = self._clean_empty_suite(data)  # type: ignore[assignment] # FIXME CoP
+            data = self._clean_empty_suite(data)
         elif isinstance(data, dict):
             data = self._clean_empty_dict(data)
         return data

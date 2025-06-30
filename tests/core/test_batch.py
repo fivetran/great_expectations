@@ -231,3 +231,111 @@ def test_get_batch_request_from_acceptable_arguments_block_partitioner_sampler_b
     assert "partitioner_method" not in actual.batch_spec_passthrough
     assert "partitioner_kwargs" not in actual.batch_spec_passthrough
     assert isinstance(actual, BatchRequest)
+
+
+@pytest.mark.unit
+def test_batch_request_hash_consistency_with_equality():
+    batch1 = BatchRequest(
+        datasource_name="test_datasource",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+    )
+    batch2 = BatchRequest(
+        datasource_name="test_datasource",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+    )
+
+    assert batch1 == batch2
+    assert hash(batch1) == hash(batch2)
+
+
+@pytest.mark.unit
+def test_batch_request_hash_different_for_different_attributes():
+    batch1 = BatchRequest(
+        datasource_name="test_datasource_1",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+    )
+    batch2 = BatchRequest(
+        datasource_name="test_datasource_2",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+    )
+
+    assert batch1 != batch2
+    assert hash(batch1) != hash(batch2)
+
+
+@pytest.mark.unit
+def test_batch_request_hash_stable_across_runs():
+    batch = BatchRequest(
+        datasource_name="test_datasource",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+    )
+
+    hash1 = hash(batch)
+    hash2 = hash(batch)
+    hash3 = hash(batch)
+
+    assert hash1 == hash2 == hash3
+
+
+@pytest.mark.unit
+def test_runtime_batch_request_hash_consistency_with_equality():
+    batch1 = RuntimeBatchRequest(
+        datasource_name="test_datasource",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+        runtime_parameters={"path": "test_path"},
+        batch_identifiers={"test": "identifier"},
+    )
+    batch2 = RuntimeBatchRequest(
+        datasource_name="test_datasource",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+        runtime_parameters={"path": "test_path"},
+        batch_identifiers={"test": "identifier"},
+    )
+
+    assert batch1 == batch2
+    assert hash(batch1) == hash(batch2)
+
+
+@pytest.mark.unit
+def test_runtime_batch_request_hash_different_for_different_runtime_parameters():
+    batch1 = RuntimeBatchRequest(
+        datasource_name="test_datasource",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+        runtime_parameters={"path": "test_path_1"},
+        batch_identifiers={"test": "identifier"},
+    )
+    batch2 = RuntimeBatchRequest(
+        datasource_name="test_datasource",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+        runtime_parameters={"path": "test_path_2"},
+        batch_identifiers={"test": "identifier"},
+    )
+
+    assert batch1 != batch2
+    assert hash(batch1) != hash(batch2)
+
+
+@pytest.mark.unit
+def test_runtime_batch_request_hash_stable_across_runs():
+    batch = RuntimeBatchRequest(
+        datasource_name="test_datasource",
+        data_connector_name="test_connector",
+        data_asset_name="test_asset",
+        runtime_parameters={"path": "test_path"},
+        batch_identifiers={"test": "identifier"},
+    )
+
+    hash1 = hash(batch)
+    hash2 = hash(batch)
+    hash3 = hash(batch)
+
+    assert hash1 == hash2 == hash3

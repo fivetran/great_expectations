@@ -413,3 +413,52 @@ def test_render_string_template():
     )
 
     assert res == expected
+
+
+def test_rendered_content_hash_consistency_with_equality():
+    from great_expectations.render.components import RenderedContent
+
+    content1 = RenderedContent()
+    content2 = RenderedContent()
+
+    assert content1 == content2
+    assert hash(content1) == hash(content2)
+
+
+def test_rendered_string_template_content_hash_consistency_with_equality():
+    from great_expectations.render.components import RenderedStringTemplateContent
+
+    template1 = {"template": "Hello $name", "params": {"name": "World"}}
+    template2 = {"params": {"name": "World"}, "template": "Hello $name"}
+
+    content1 = RenderedStringTemplateContent(string_template=template1)
+    content2 = RenderedStringTemplateContent(string_template=template2)
+
+    assert content1 == content2
+    assert hash(content1) == hash(content2)
+
+
+def test_rendered_string_template_content_hash_different_for_different_templates():
+    from great_expectations.render.components import RenderedStringTemplateContent
+
+    template1 = {"template": "Hello $name", "params": {"name": "World"}}
+    template2 = {"template": "Hello $name", "params": {"name": "Universe"}}
+
+    content1 = RenderedStringTemplateContent(string_template=template1)
+    content2 = RenderedStringTemplateContent(string_template=template2)
+
+    assert content1 != content2
+    assert hash(content1) != hash(content2)
+
+
+def test_rendered_string_template_content_hash_stable_across_runs():
+    from great_expectations.render.components import RenderedStringTemplateContent
+
+    template = {"template": "Hello $name", "params": {"name": "World"}}
+    content = RenderedStringTemplateContent(string_template=template)
+
+    hash1 = hash(content)
+    hash2 = hash(content)
+    hash3 = hash(content)
+
+    assert hash1 == hash2 == hash3

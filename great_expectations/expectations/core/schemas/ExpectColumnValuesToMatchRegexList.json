@@ -121,11 +121,18 @@
             "title": "Match On",
             "description": "'any' or 'all'. Use 'any' if the value should match at least one regular expression in the list. Use 'all' if it should match each regular expression in the list.",
             "default": "any",
-            "enum": [
-                "any",
-                "all"
-            ],
-            "type": "string"
+            "anyOf": [
+                {
+                    "enum": [
+                        "any",
+                        "all"
+                    ],
+                    "type": "string"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "metadata": {
             "type": "object",

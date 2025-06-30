@@ -194,7 +194,7 @@ class ExpectColumnValuesToMatchRegexList(ColumnMapExpectation):
     regex_list: Union[List[str], SuiteParameterDict] = pydantic.Field(
         description=REGEX_LIST_DESCRIPTION
     )
-    match_on: Literal["any", "all"] = pydantic.Field(
+    match_on: Union[Literal["any", "all"], SuiteParameterDict] = pydantic.Field(
         default="any", description=MATCH_ON_DESCRIPTION
     )
 
@@ -351,9 +351,10 @@ class ExpectColumnValuesToMatchRegexList(ColumnMapExpectation):
                 "values must match any of the following regular expressions: " + values_string
             )
 
-        if params["mostly"] is not None and params["mostly"] < 1.0:
-            params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-            # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")
+        if params["mostly"] is not None:
+            if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
             template_str += ", at least $mostly_pct % of the time."
         else:
             template_str += "."

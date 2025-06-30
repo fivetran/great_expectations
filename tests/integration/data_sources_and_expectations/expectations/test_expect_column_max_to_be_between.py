@@ -152,7 +152,7 @@ def test_success_with_suite_param_min_value_(
     result = batch_for_datasource.validate(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
-    assert result.success is expected_result
+    assert result.success == expected_result
 
 
 @pytest.mark.parametrize(
@@ -178,4 +178,56 @@ def test_success_with_suite_param_max_value_(
     result = batch_for_datasource.validate(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
-    assert result.success is expected_result
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(True, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_THREES
+)
+def test_success_with_suite_param_strict_min_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_max_to_be_between"
+    expectation = gxe.ExpectColumnMaxToBeBetween(
+        column=COL_NAME,
+        min_value=0,
+        max_value=5,
+        strict_min={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(True, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ONES_AND_THREES
+)
+def test_success_with_suite_param_strict_max_(
+    batch_for_datasource: Batch, suite_param_value: bool, expected_result: bool
+) -> None:
+    suite_param_key = "expect_column_max_to_be_between"
+    expectation = gxe.ExpectColumnMaxToBeBetween(
+        column=COL_NAME,
+        min_value=0,
+        max_value=5,
+        strict_max={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

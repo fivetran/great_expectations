@@ -463,6 +463,12 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_proportion_of_non_null_values_to_be_between.py"
+        ),
+        name="ExpectColumnProportionOfNonNullValuesToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
             "great_expectations/expectations/core/expect_column_proportion_of_unique_values_to_be_between.py"
         ),
         name="ExpectColumnProportionOfUniqueValuesToBeBetween",

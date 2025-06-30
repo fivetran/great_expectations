@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.types import (
-    Comparable,  # noqa: TC001 # pydantic instantiates this type at runtime
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # pydantic isinstance
 )
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
@@ -192,10 +192,10 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
                 }}
     """
 
-    min_value: Optional[Comparable] = pydantic.Field(
+    min_value: Optional[Union[float, SuiteParameterDict]] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
     )
-    max_value: Optional[Comparable] = pydantic.Field(
+    max_value: Optional[Union[float, SuiteParameterDict]] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
     strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
@@ -266,7 +266,7 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
         params = renderer_configuration.params
 
         if not params.min_value and not params.max_value:
-            return "may have any fraction of non-null values."
+            return "may have any proportion of non-null values."
         else:
             at_least_str = "greater than or equal to"
             if params.strict_min:
@@ -279,16 +279,16 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
                     renderer_configuration=renderer_configuration
                 )
             if not params.min_value:
-                return f"fraction of non-null values must be {at_most_str} $max_value."
+                return f"proportion of non-null values must be {at_most_str} $max_value."
             elif not params.max_value:
-                return f"fraction of non-null values must be {at_least_str} $min_value."
+                return f"proportion of non-null values must be {at_least_str} $min_value."
             elif params.min_value.value != params.max_value.value:
                 return (
-                    f"fraction of non-null values must be {at_least_str} $min_value "
+                    f"proportion of non-null values must be {at_least_str} $min_value "
                     f"and {at_most_str} $max_value."
                 )
             else:
-                return "fraction of non-null values must be exactly $min_value."
+                return "proportion of non-null values must be exactly $min_value."
 
     @classmethod
     @override
@@ -347,20 +347,20 @@ class ExpectColumnProportionOfNonNullValuesToBeBetween(ColumnAggregateExpectatio
         )
 
         if params["min_value"] is None and params["max_value"] is None:
-            template_str = "may have any fraction of non-null values."
+            template_str = "may have any proportion of non-null values."
         else:
             at_least_str, at_most_str = handle_strict_min_max(params)
             if params["min_value"] is None:
-                template_str = f"fraction of non-null values must be {at_most_str} $max_value."
+                template_str = f"proportion of non-null values must be {at_most_str} $max_value."
             elif params["max_value"] is None:
-                template_str = f"fraction of non-null values must be {at_least_str} $min_value."
+                template_str = f"proportion of non-null values must be {at_least_str} $min_value."
             elif params["min_value"] != params["max_value"]:
                 template_str = (
-                    f"fraction of non-null values must be {at_least_str} $min_value "
+                    f"proportion of non-null values must be {at_least_str} $min_value "
                     f"and {at_most_str} $max_value."
                 )
             else:
-                template_str = "fraction of non-null values must be exactly $min_value."
+                template_str = "proportion of non-null values must be exactly $min_value."
 
         if include_column_name:
             template_str = f"$column {template_str}"

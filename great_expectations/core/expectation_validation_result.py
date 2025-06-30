@@ -113,7 +113,8 @@ class ExpectationValidationResult(SerializableDictDot):
         }
         self.rendered_content = rendered_content
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         """ExpectationValidationResult equality ignores instance identity, relying only on properties."""  # noqa: E501 # FIXME CoP
         # NOTE: JPC - 20200213 - need to spend some time thinking about whether we want to
         # consistently allow dict as a comparison alternative in situations like these...
@@ -155,6 +156,32 @@ class ExpectationValidationResult(SerializableDictDot):
         except (ValueError, TypeError):
             # if invalid comparisons are attempted, the objects are not equal.
             return False
+
+    @override
+    def __hash__(self) -> int:
+        """Overrides the default implementation"""
+        # note that it is possible for two results to be equal but have different hashes
+        # this is because during comparison we only compare common keys
+        if self.result:
+            result_hash = hash(tuple(sorted(self.result.items())))
+        else:
+            result_hash = hash(None)
+
+        # Handle expectation_config hash
+        if self.expectation_config:
+            config_hash = hash(self.expectation_config)
+        else:
+            config_hash = hash(None)
+
+        return hash(
+            (
+                self.success,
+                config_hash,
+                result_hash,
+                tuple(sorted(self.meta.items())) if self.meta else (),
+                tuple(sorted(self.exception_info.items())) if self.exception_info else (),
+            )
+        )
 
     def __ne__(self, other):  # type: ignore[explicit-override] # FIXME
         # Negated implementation of '__eq__'. TODO the method should be deleted when it will coincide with __eq__.  # noqa: E501 # FIXME CoP
@@ -513,6 +540,18 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                 self.suite_parameters == other.suite_parameters,
                 self.statistics == other.statistics,
                 self.meta == other.meta,
+            )
+        )
+
+    @override
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.success,
+                tuple(sorted(hash(result) for result in self.results)),
+                tuple(sorted(self.suite_parameters.items())) if self.suite_parameters else (),
+                tuple(sorted(self.statistics.items())) if self.statistics else (),
+                tuple(sorted(self.meta.items())) if self.meta else (),
             )
         )
 

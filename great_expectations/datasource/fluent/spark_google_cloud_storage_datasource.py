@@ -155,6 +155,7 @@ class SparkGoogleCloudStorageDatasource(_SparkFilePathDatasource):
             max_results=gcs_max_results,
             recursive_file_discovery=gcs_recursive_file_discovery,
             file_path_template_map_fn=GCSUrl.OBJECT_URL_TEMPLATE.format,
+            whole_directory_path_override=data_asset.get_whole_directory_path_override(),
         )
 
         # build a more specific `_test_connection_error_message`

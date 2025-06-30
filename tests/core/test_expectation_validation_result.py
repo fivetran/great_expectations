@@ -493,3 +493,172 @@ class TestSerialization:
             {"index": "b", "value": 2},
             {"index": "c", "value": 4},
         ]
+
+
+class TestExpectationValidationResultHash:
+    @pytest.mark.unit
+    def test_hash_consistency_with_equality(self):
+        config1 = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
+        )
+        config2 = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
+        )
+
+        result1 = ExpectationValidationResult(
+            success=True,
+            expectation_config=config1,
+            result={"observed_value": 100},
+            meta={"test": "value"},
+            exception_info={"raised_exception": False},
+        )
+
+        result2 = ExpectationValidationResult(
+            success=True,
+            expectation_config=config2,
+            result={"observed_value": 100},
+            meta={"test": "value"},
+            exception_info={"raised_exception": False},
+        )
+
+        assert result1 == result2
+        assert hash(result1) == hash(result2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_success(self):
+        config = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
+        )
+
+        result1 = ExpectationValidationResult(
+            success=True, expectation_config=config, result={"observed_value": 100}
+        )
+
+        result2 = ExpectationValidationResult(
+            success=False, expectation_config=config, result={"observed_value": 100}
+        )
+
+        assert result1 != result2
+        assert hash(result1) != hash(result2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_results(self):
+        config = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
+        )
+
+        result1 = ExpectationValidationResult(
+            success=True, expectation_config=config, result={"observed_value": 100}
+        )
+
+        result2 = ExpectationValidationResult(
+            success=True, expectation_config=config, result={"observed_value": 200}
+        )
+
+        assert result1 != result2
+        assert hash(result1) != hash(result2)
+
+    @pytest.mark.unit
+    def test_hash_stable_across_runs(self):
+        config = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
+        )
+
+        result = ExpectationValidationResult(
+            success=True,
+            expectation_config=config,
+            result={"observed_value": 100},
+            meta={"test": "value"},
+            exception_info={"raised_exception": False},
+        )
+
+        hash1 = hash(result)
+        hash2 = hash(result)
+        hash3 = hash(result)
+
+        assert hash1 == hash2 == hash3
+
+
+class TestExpectationSuiteValidationResultHash:
+    @pytest.mark.unit
+    def test_hash_consistency_with_equality(self):
+        config = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
+        )
+
+        evr = ExpectationValidationResult(
+            success=True, expectation_config=config, result={"observed_value": 100}
+        )
+
+        result1 = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=True,
+            results=[evr],
+            suite_parameters={"param": "value"},
+            statistics={"evaluated_expectations": 1},
+            meta={"test": "value"},
+        )
+
+        result2 = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=True,
+            results=[evr],
+            suite_parameters={"param": "value"},
+            statistics={"evaluated_expectations": 1},
+            meta={"test": "value"},
+        )
+
+        assert result1 == result2
+        assert hash(result1) == hash(result2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_success(self):
+        config = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
+        )
+
+        evr = ExpectationValidationResult(
+            success=True, expectation_config=config, result={"observed_value": 100}
+        )
+
+        result1 = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=True,
+            results=[evr],
+            suite_parameters={"param": "value"},
+        )
+
+        result2 = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=False,
+            results=[evr],
+            suite_parameters={"param": "value"},
+        )
+
+        assert result1 != result2
+        assert hash(result1) != hash(result2)
+
+    @pytest.mark.unit
+    def test_hash_stable_across_runs(self):
+        config = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null", kwargs={"column": "test_column"}
+        )
+
+        evr = ExpectationValidationResult(
+            success=True, expectation_config=config, result={"observed_value": 100}
+        )
+
+        result = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=True,
+            results=[evr],
+            suite_parameters={"param": "value"},
+            statistics={"evaluated_expectations": 1},
+            meta={"test": "value"},
+        )
+
+        hash1 = hash(result)
+        hash2 = hash(result)
+        hash3 = hash(result)
+
+        assert hash1 == hash2 == hash3
