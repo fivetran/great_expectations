@@ -696,8 +696,6 @@ class TestColumnExpectations:
             # apply marker this way so that xpasses can be seen in the report
             request.applymarker(pytest.mark.xfail(run=False))
 
-        schema: str | None = None
-
         print(f"\ncolumn DDL:\n  {COLUMN_DDL[column_name]}")  # type: ignore[index] # FIXME
         print(f"\n`column_name` parameter __repr__:\n  {column_name!r}")
         print(f"type:\n  {type(column_name)}\n")
@@ -705,7 +703,6 @@ class TestColumnExpectations:
         table_factory(
             gx_engine=datasource.get_execution_engine(),
             table_names={TEST_TABLE_NAME},
-            schema=schema,
             data=[
                 {
                     "id": 1,
@@ -720,9 +717,7 @@ class TestColumnExpectations:
             ],
         )
 
-        asset = datasource.add_table_asset(
-            "my_asset", table_name=TEST_TABLE_NAME, schema_name=schema
-        )
+        asset = datasource.add_table_asset("my_asset", table_name=TEST_TABLE_NAME)
         print(f"asset:\n{asset!r}\n")
 
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))
@@ -910,12 +905,6 @@ class TestColumnExpectations:
             # databricks uses backticks for quoting
             column_name = quote_str(column_name[1:-1], dialect=dialect)
 
-        schema: str | None = (
-            RAND_SCHEMA
-            if GXSqlDialect(dialect) in (GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS)
-            else None
-        )
-
         print(f"\ncolumn DDL:\n  {COLUMN_DDL[original_column_name]}")  # type: ignore[index] # FIXME
         print(f"\n`column_name` parameter __repr__:\n  {column_name!r}")
         print(f"type:\n  {type(column_name)}\n")
@@ -923,7 +912,6 @@ class TestColumnExpectations:
         table_factory(
             gx_engine=datasource.get_execution_engine(),
             table_names={TEST_TABLE_NAME},
-            schema=schema,
             data=[
                 {
                     "id": 1,
@@ -938,7 +926,7 @@ class TestColumnExpectations:
             ],
         )
 
-        qualified_table_name: str = f"{schema}.{TEST_TABLE_NAME}" if schema else TEST_TABLE_NAME
+        qualified_table_name: str = TEST_TABLE_NAME
         # check the column exists so that we know what if the expectation should succeed or fail
         column_exists = _raw_query_check_column_exists(
             column_name,
@@ -946,9 +934,7 @@ class TestColumnExpectations:
             datasource.get_execution_engine(),
         )
 
-        asset = datasource.add_table_asset(
-            "my_asset", table_name=TEST_TABLE_NAME, schema_name=schema
-        )
+        asset = datasource.add_table_asset("my_asset", table_name=TEST_TABLE_NAME)
         print(f"asset:\n{asset!r}\n")
 
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))
