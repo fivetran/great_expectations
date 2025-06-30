@@ -128,15 +128,29 @@
         },
         "strict_min": {
             "title": "Strict Min",
-            "description": "If True, the maximal column minimum must be strictly smaller than max_value, default=False",
+            "description": "If True, the minimal column minimum must be strictly larger than min_value, default=False",
             "default": false,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "strict_max": {
             "title": "Strict Max",
-            "description": "If True, the minimal column minimum must be strictly larger than min_value, default=False",
+            "description": "If True, the maximal column minimum must be strictly smaller than max_value, default=False",
             "default": false,
-            "type": "boolean"
+            "anyOf": [
+                {
+                    "type": "boolean"
+                },
+                {
+                    "type": "object"
+                }
+            ]
         },
         "metadata": {
             "type": "object",

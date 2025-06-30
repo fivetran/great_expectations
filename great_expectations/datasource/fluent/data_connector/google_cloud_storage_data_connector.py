@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING, Callable, ClassVar, List, Optional, Type
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_spec import GCSBatchSpec, PathBatchSpec
-from great_expectations.datasource.fluent.data_connector import (
-    FilePathDataConnector,
-)
 from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    FilePathDataConnector,
+    MissingFilePathTemplateMapFnError,
     sanitize_prefix_for_gcs_and_s3,
 )
 
 if TYPE_CHECKING:
+    from great_expectations.alias_types import PathStr
     from great_expectations.compatibility import google
     from great_expectations.core.batch import LegacyBatchDefinition
 
@@ -43,6 +43,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
         max_results (int): max blob filepaths to return
         recursive_file_discovery (bool): Flag to indicate if files should be searched recursively from subfolders
         file_path_template_map_fn: Format function mapping path to fully-qualified resource on GCS
+        whole_directory_path_override: If present, treat entire directory as single Asset
     """  # noqa: E501 # FIXME CoP
 
     asset_level_option_keys: ClassVar[tuple[str, ...]] = (
@@ -64,6 +65,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
         max_results: Optional[int] = None,
         recursive_file_discovery: bool = False,
         file_path_template_map_fn: Optional[Callable] = None,
+        whole_directory_path_override: PathStr | None = None,
     ) -> None:
         self._gcs_client: google.Client = gcs_client
 
@@ -81,6 +83,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
             datasource_name=datasource_name,
             data_asset_name=data_asset_name,
             file_path_template_map_fn=file_path_template_map_fn,
+            whole_directory_path_override=whole_directory_path_override,
         )
 
     @classmethod
@@ -95,6 +98,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
         max_results: Optional[int] = None,
         recursive_file_discovery: bool = False,
         file_path_template_map_fn: Optional[Callable] = None,
+        whole_directory_path_override: PathStr | None = None,
     ) -> GoogleCloudStorageDataConnector:
         """Builds "GoogleCloudStorageDataConnector", which links named DataAsset to Google Cloud Storage.
 
@@ -108,6 +112,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
             recursive_file_discovery: Flag to indicate if files should be searched recursively from subfolders
             max_results: max blob filepaths to return
             file_path_template_map_fn: Format function mapping path to fully-qualified resource on GCS
+            whole_directory_path_override: If present, treat entire directory as single Asset
 
         Returns:
             Instantiated "GoogleCloudStorageDataConnector" object
@@ -122,6 +127,7 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
             max_results=max_results,
             recursive_file_discovery=recursive_file_discovery,
             file_path_template_map_fn=file_path_template_map_fn,
+            whole_directory_path_override=whole_directory_path_override,
         )
 
     @classmethod
@@ -189,14 +195,15 @@ class GoogleCloudStorageDataConnector(FilePathDataConnector):
     # Interface Method
     @override
     def _get_full_file_path(self, path: str) -> str:
-        if self._file_path_template_map_fn is None:
-            raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"""Converting file paths to fully-qualified object references for "{self.__class__.__name__}" \
-requires "file_path_template_map_fn: Callable" to be set.
-"""  # noqa: E501 # FIXME CoP
-            )
+        # If the path is already a fully qualified GCS URL (starts with gs://), return it as-is
+        # This handles the case of whole_directory_path_override which is already fully qualified
+        if path.startswith("gs://"):
+            return path
 
-        template_arguments: dict = {
+        if self._file_path_template_map_fn is None:
+            raise MissingFilePathTemplateMapFnError()
+
+        template_arguments = {
             "bucket_or_name": self._bucket_or_name,
             "path": path,
         }

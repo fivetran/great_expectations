@@ -18,6 +18,9 @@ from great_expectations.compatibility.bigquery import (
 )
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.execution_engine.sqlalchemy_dialect import (
     GXSqlDialect,  # noqa: TC001, RUF100 # FIXME CoP
 )
@@ -223,7 +226,7 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    type_: str = pydantic.Field(description=TYPE__DESCRIPTION)
+    type_: Union[str, SuiteParameterDict] = pydantic.Field(description=TYPE__DESCRIPTION)
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
         "maturity": "production",
@@ -334,9 +337,10 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
             ["column", "type_", "mostly", "row_condition", "condition_parser"],
         )
 
-        if params["mostly"] is not None and params["mostly"] < 1.0:
-            params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-            # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")
+        if params["mostly"] is not None:
+            if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
             template_str = "values must be of type $type_, at least $mostly_pct % of the time."
         else:
             template_str = "values must be of type $type_."

@@ -626,7 +626,7 @@ def build_gallery(  # noqa: C901 - 17
 
     # Iterate the gallery_info_by_backend dict and write the backend-specific files
     for _backend, gallery_info in gallery_info_by_backend.items():
-        if gallery_info_by_backend[_backend]:
+        if gallery_info:
             with open(f"{_backend}_{backend_outfile_suffix}.json", "w") as outfile:
                 json.dump(gallery_info, outfile, indent=4)
 

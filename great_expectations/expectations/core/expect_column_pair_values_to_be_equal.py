@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
     render_suite_parameter_string,
@@ -177,9 +180,10 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
-        pydantic.Field(default="both_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION)
-    )
+    ignore_row_if: Union[
+        Literal["both_values_are_missing", "either_value_is_missing", "neither"],
+        SuiteParameterDict,
+    ] = pydantic.Field(default="both_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION)
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

@@ -1,12 +1,25 @@
+from typing import Sequence
+
 import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
+    SQL_DATA_SOURCES,
+    BigQueryDatasourceTestConfig,
+    DatabricksDatasourceTestConfig,
+    DataSourceTestConfig,
+    MSSQLDatasourceTestConfig,
+    MySQLDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
+    SnowflakeDatasourceTestConfig,
+    SqliteDatasourceTestConfig,
 )
 
 COL_A = "col_a"
@@ -84,5 +97,170 @@ def test_success(
 def test_failure(
     batch_for_datasource: Batch, expectation: gxe.ExpectTableColumnsToMatchSet
 ) -> None:
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param(False, True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_exact_match_(
+    batch_for_datasource: Batch, suite_param_value: str, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_table_columns_to_match_set"
+    expectation = gxe.ExpectTableColumnsToMatchSet(
+        column_set=[COL_A, COL_B],
+        exact_match={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result
+
+
+# Case insenstivity tests
+CASE_INSENSITIVE_DATA = pd.DataFrame(
+    {
+        "column_a": [1],
+        "COLUMN_B": [2],
+        "CoLuMn_C": [3],
+    }
+)
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_A", "column_b", "COLumN_c"])
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_Az", "column_b", "COLumN_c"])
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
+
+
+# For most of our tests we use all sql datasources. However, for some of them we exclude
+# snowflake and redshift for the following reasons:
+##### Snowflake #####
+# In test setup, sqlalchemy's CREATE TABLE will not quote lowercase column names
+# but will quote uppercase. Since snowflake stores case insensitive strings
+# as uppercase, while all the other databases we are testing stores them as lowercase
+# this creates different case insensitive columns. We break out the snowflake tests
+# into their own tests.
+#
+#### Redshift ####
+# Redshift by default is case insensitive so trying to match case via quoted identifiers
+# fails. There is a global setting you can set on a redshift cluster,
+# enable_case_sensitive_identifier, one can apply to make it case sensitive. Our code
+# looks like it would handle this successfully but I haven't verified since I need to
+# change our redshift CI cluster. There is tracked in GX-1197.
+
+SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT: Sequence[DataSourceTestConfig] = [
+    BigQueryDatasourceTestConfig(),
+    DatabricksDatasourceTestConfig(),
+    MSSQLDatasourceTestConfig(),
+    MySQLDatasourceTestConfig(),
+    PostgreSQLDatasourceTestConfig(),
+    SqliteDatasourceTestConfig(),
+]
+
+
+@pytest.mark.unit
+def test_sql_data_sources_without_snowflake_redshift() -> None:
+    # Verify SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT is what is says it is
+    assert len(SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT) + 2 == len(SQL_DATA_SOURCES)
+    assert SnowflakeDatasourceTestConfig() not in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT
+    assert RedshiftDatasourceTestConfig() not in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT
+    for datasource in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT:
+        assert datasource in SQL_DATA_SOURCES
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_quoted_success(batch_for_datasource: Batch) -> None:
+    # When we create the table in the testing fr
+    expectation = gxe.ExpectTableColumnsToMatchSet(
+        column_set=['"column_a"', '"COLUMN_B"', '"CoLuMn_C"']
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[SnowflakeDatasourceTestConfig()],
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_quoted_success_snowflake(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectTableColumnsToMatchSet(
+        column_set=['"column_a"', '"CoLuMn_C"'],
+        exact_match=False,
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_quoted_failure(batch_for_datasource: Batch) -> None:
+    expectation = gxe.ExpectTableColumnsToMatchSet(
+        column_set=['"Column_a"', '"COLUMN_B"', '"CoLuMn_C"']
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_unquoted_and_quoted_success(batch_for_datasource: Batch) -> None:
+    # Column A and B are case insensitve
+    expectation = gxe.ExpectTableColumnsToMatchSet(
+        column_set=["Column_a", "COLUMN_B", '"CoLuMn_C"']
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_unquoted_and_quoted_with_unquoted_failure(batch_for_datasource: Batch) -> None:
+    # Column A and B are case insensitve
+    expectation = gxe.ExpectTableColumnsToMatchSet(
+        column_set=["Column_az", "COLUMN_B", '"CoLuMn_C"']
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_unquoted_and_quoted_with_quoted_failure(batch_for_datasource: Batch) -> None:
+    # Column C is case sensitve
+    expectation = gxe.ExpectTableColumnsToMatchSet(
+        column_set=["column_a", "COLUMN_B", '"Column_c"']
+    )
     result = batch_for_datasource.validate(expectation)
     assert not result.success

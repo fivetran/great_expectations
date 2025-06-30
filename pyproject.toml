@@ -302,6 +302,8 @@ lint.ignore = [
     # https://beta.ruff.rs/docs/rules/#pyupgrade-up
     "UP006", # use-pep585-annotation
     "UP007", # use-pep604-annotation
+    "UP035", # TODO: remove once min version of pydantic supports using collections.abc types
+    "UP045", # Use `X | None` for type annotations - >2k occurrences, required for backward compatibliity
     # https://beta.ruff.rs/docs/rules/#flake8-type-checking-tch
     # minimal cost for standard lib imports; keep this disabled
     "TC003", # typing-only-standard-library-import
@@ -313,7 +315,6 @@ lint.ignore = [
     # https://beta.ruff.rs/docs/rules/#flake8-pyi-pyi
     "PYI053", # string-or-bytes-too-long - causes mypy to fail on some of our type stubs
     "PYI054", # numeric-literal-too-long - causes mypy to fail on some of our type stubs
-    "UP035", # TODO: remove once min version of pydantic supports using collections.abc types
     # https://beta.ruff.rs/docs/rules/#flake8-bugbear-b
     # TODO: enable these
     "B904", # raise-without-from-inside-except
@@ -335,9 +336,8 @@ lint.ignore = [
     "SIM202", # negate-not-equal-op
     "SIM210", # if-expr-with-true-false
     "SIM112", # uncapitalized-environment-variables
-
-
-
+    # https://docs.astral.sh/ruff/rules/#convention-plc
+    "PLC0415", # `import` should be at the top-level of a file - used frequently for compatibility
 ]
 extend-exclude = [
     "docs/docusaurus/versioned_docs/version-0.18",

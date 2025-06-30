@@ -176,8 +176,12 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
     max_value: Union[int, SuiteParameterDict, datetime, None] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
-    strict_min: bool = pydantic.Field(default=False, description=STRICT_MAX_DESCRIPTION)
-    strict_max: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
+    strict_min: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MAX_DESCRIPTION
+    )
+    strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MIN_DESCRIPTION
+    )
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
 

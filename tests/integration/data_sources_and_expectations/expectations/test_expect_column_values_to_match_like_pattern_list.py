@@ -238,3 +238,27 @@ def test_msql_fancy_syntax(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param("any", True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=SUPPORTED_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_match_on_(
+    batch_for_datasource: Batch, suite_param_value: str, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_column_values_to_match_like_pattern_list"
+
+    expectation = gxe.ExpectColumnValuesToMatchLikePatternList(
+        column=BASIC_PATTERNS,
+        like_pattern_list=["abc", "def", "ghi"],
+        match_on={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

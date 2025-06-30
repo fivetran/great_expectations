@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Union
 
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
@@ -70,7 +73,7 @@ class ExpectColumnValuesToBeDecreasing(ColumnMapExpectation):
         [ExpectColumnValuesToBeIncreasing](https://greatexpectations.io/expectations/expect_column_values_to_be_increasing)
     """  # noqa: E501 # FIXME CoP
 
-    strictly: Union[bool, None] = None
+    strictly: Union[bool, SuiteParameterDict, None] = None
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata = {

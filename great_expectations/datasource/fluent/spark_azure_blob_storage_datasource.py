@@ -165,6 +165,7 @@ class SparkAzureBlobStorageDatasource(_SparkFilePathDatasource):
             delimiter=abs_delimiter,
             recursive_file_discovery=abs_recursive_file_discovery,
             file_path_template_map_fn=AzureUrl.AZURE_BLOB_STORAGE_WASBS_URL_TEMPLATE.format,
+            whole_directory_path_override=data_asset.get_whole_directory_path_override(),
         )
 
         # build a more specific `_test_connection_error_message`

@@ -479,6 +479,109 @@ def test_progress_bar_config(
         assert mock_tqdm.call_args[1]["disable"] is are_progress_bars_disabled
 
 
+@pytest.mark.unit
+def test_validation_graph_hash_consistency_with_equality():
+    class DummyExecutionEngine:
+        pass
+
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
+
+    graph1 = ValidationGraph(execution_engine=execution_engine)
+    graph2 = ValidationGraph(execution_engine=execution_engine)
+
+    assert graph1 == graph2
+    assert hash(graph1) == hash(graph2)
+
+
+@pytest.mark.unit
+def test_validation_graph_hash_different_for_different_edges(metric_edge):
+    class DummyExecutionEngine:
+        pass
+
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
+
+    graph1 = ValidationGraph(execution_engine=execution_engine)
+    graph2 = ValidationGraph(execution_engine=execution_engine, edges=[metric_edge])
+
+    assert graph1 != graph2
+    assert hash(graph1) != hash(graph2)
+
+
+@pytest.mark.unit
+def test_validation_graph_hash_stable_across_runs():
+    class DummyExecutionEngine:
+        pass
+
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
+
+    graph = ValidationGraph(execution_engine=execution_engine)
+
+    hash1 = hash(graph)
+    hash2 = hash(graph)
+    hash3 = hash(graph)
+
+    assert hash1 == hash2 == hash3
+
+
+@pytest.mark.unit
+def test_expectation_validation_graph_hash_consistency_with_equality(
+    expect_column_values_to_be_unique_expectation_config,
+    validation_graph_with_no_edges,
+):
+    graph1 = ExpectationValidationGraph(
+        configuration=expect_column_values_to_be_unique_expectation_config,
+        graph=validation_graph_with_no_edges,
+    )
+    graph2 = ExpectationValidationGraph(
+        configuration=expect_column_values_to_be_unique_expectation_config,
+        graph=validation_graph_with_no_edges,
+    )
+
+    assert graph1 == graph2
+    assert hash(graph1) == hash(graph2)
+
+
+@pytest.mark.unit
+def test_expectation_validation_graph_hash_different_for_different_configurations(
+    validation_graph_with_no_edges,
+):
+    config1 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null", kwargs={"column": "test_column_1"}
+    )
+    config2 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null", kwargs={"column": "test_column_2"}
+    )
+
+    graph1 = ExpectationValidationGraph(
+        configuration=config1,
+        graph=validation_graph_with_no_edges,
+    )
+    graph2 = ExpectationValidationGraph(
+        configuration=config2,
+        graph=validation_graph_with_no_edges,
+    )
+
+    assert graph1 != graph2
+    assert hash(graph1) != hash(graph2)
+
+
+@pytest.mark.unit
+def test_expectation_validation_graph_hash_stable_across_runs(
+    expect_column_values_to_be_unique_expectation_config,
+    validation_graph_with_no_edges,
+):
+    graph = ExpectationValidationGraph(
+        configuration=expect_column_values_to_be_unique_expectation_config,
+        graph=validation_graph_with_no_edges,
+    )
+
+    hash1 = hash(graph)
+    hash2 = hash(graph)
+    hash3 = hash(graph)
+
+    assert hash1 == hash2 == hash3
+
+
 if __name__ == "__main__":
     argv: list = sys.argv[1:]
 
