@@ -7,7 +7,7 @@ from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.expectations.core.expect_column_quantile_values_to_be_between import (
     QuantileRange,
 )
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,

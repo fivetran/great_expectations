@@ -10,7 +10,7 @@ from great_expectations.checkpoint import Checkpoint
 from great_expectations.core import ExpectationSuite
 from great_expectations.expectations import ExpectColumnValuesToNotBeNull
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,

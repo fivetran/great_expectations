@@ -9,7 +9,7 @@ from great_expectations.metrics.batch.batch_column_types import (
     BatchColumnTypes,
     BatchColumnTypesResult,
 )
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config.databricks import (
     DatabricksDatasourceTestConfig,
 )

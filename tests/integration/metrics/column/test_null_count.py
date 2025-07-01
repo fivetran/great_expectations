@@ -6,7 +6,7 @@ from great_expectations.metrics.column.null_count import (
     ColumnNullCount,
     ColumnNullCountResult,
 )
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import (
     PANDAS_DATA_SOURCES,
     SPARK_DATA_SOURCES,

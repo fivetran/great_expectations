@@ -5,7 +5,7 @@ from great_expectations.metrics.column.values_not_match_regex_values import (
     ColumnValuesNotMatchRegexValues,
     ColumnValuesNotMatchRegexValuesResult,
 )
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import SQL_DATA_SOURCES, SnowflakeDatasourceTestConfig
 
 COLUMN_NAME = "whatevs"

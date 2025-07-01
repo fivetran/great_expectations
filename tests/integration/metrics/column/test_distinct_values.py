@@ -5,7 +5,7 @@ from great_expectations.metrics.column.distinct_values import (
     ColumnDistinctValues,
     ColumnDistinctValuesResult,
 )
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import PANDAS_DATA_SOURCES, SPARK_DATA_SOURCES, SQL_DATA_SOURCES
 
 COLUMN_NAME = "whatevs"

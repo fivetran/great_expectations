@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from great_expectations.metrics.query.row_count import QueryRowCount, QueryRowCountResult
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
     DatabricksDatasourceTestConfig,

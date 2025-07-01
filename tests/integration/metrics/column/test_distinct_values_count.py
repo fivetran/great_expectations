@@ -5,7 +5,7 @@ from great_expectations.metrics.column.distinct_values_count import (
     ColumnDistinctValuesCount,
     ColumnDistinctValuesCountResult,
 )
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.metrics.conftest import ALL_DATA_SOURCES
 
 COLUMN_NAME = "whatevs"

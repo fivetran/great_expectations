@@ -6,7 +6,7 @@ from great_expectations.metrics.column_pair.values_in_set import (
     ColumnPairValuesInSetUnexpectedCount,
     ColumnPairValuesInSetUnexpectedCountResult,
 )
-from tests.conftest import parameterize_batch_for_data_sources
+from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import SparkFilesystemCsvDatasourceTestConfig
 from tests.metrics.conftest import PANDAS_DATA_SOURCES, SPARK_DATA_SOURCES, SQL_DATA_SOURCES
 
