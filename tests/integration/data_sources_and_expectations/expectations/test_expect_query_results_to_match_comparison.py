@@ -20,7 +20,7 @@ from great_expectations.render.renderer_configuration import (
     RendererTableValue,
     RendererValueType,
 )
-from tests.conftest import (
+from tests.integration.conftest import (
     MultiSourceBatch,
     MultiSourceTestConfig,
     multi_source_batch_setup,

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from tests.conftest import (
+from tests.integration.conftest import (
     MultiSourceBatch,
     MultiSourceTestConfig,
     multi_source_batch_setup,

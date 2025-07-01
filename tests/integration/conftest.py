@@ -1,21 +1,12 @@
-from __future__ import annotations
-
 import logging
+import pprint
 from dataclasses import dataclass
-from typing import (
-    TYPE_CHECKING,
-    Callable,
-    Generator,
-    Mapping,
-    Optional,
-    Sequence,
-    TypeVar,
-    Union,
-)
+from typing import Callable, Generator, Mapping, Optional, Sequence, TypeVar, Union
 from uuid import UUID
 
 import pandas as pd
 import pytest
+from _pytest.mark import MarkDecorator
 
 import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
@@ -25,19 +16,15 @@ from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config import DataSourceTestConfig
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
-    hash_data_frame,
     dict_to_tuple,
+    hash_data_frame,
 )
 from tests.integration.test_utils.data_source_config.sql import (
     SQLBatchTestSetup,
 )
 
-if TYPE_CHECKING:
-    from _pytest.mark import MarkDecorator
-
 logger = logging.getLogger(__name__)
 
-# Integration test support - TypeVar
 _F = TypeVar("_F", bound=Callable)
 
 
@@ -100,9 +87,9 @@ def parameterize_batch_for_data_sources(
     Args:
         data_source_configs: The data source configurations to test.
         data: Data to load into the asset
-        extra_data: Mapping of {asset_label: data} to load into other assets. Only relevant for
-                    SQL multi-table expectations. NOTE: This is NOT the table name. The label is
-                    used to correlate the data with the types passed to
+        extra_data: Mapping of {asset_label: data} to load into other assets. Only relevant for SQL
+                    multi-table expectations. NOTE: This is NOT the table name. The label is used to
+                    correlate the data with the types passed to
                     DataSourceTestConfig.extra_column_types.
 
 
@@ -141,87 +128,19 @@ def parameterize_batch_for_data_sources(
     return decorator
 
 
-@dataclass(frozen=True)
-class MultiSourceBatch:
-    base_batch: Batch
-    comparison_data_source_name: str
-    comparison_table_name: str
-
-
-@dataclass(frozen=True)
-class MultiSourceTestConfig:
-    comparison: DataSourceTestConfig
-    base: DataSourceTestConfig
-
-
-def multi_source_batch_setup(
-    multi_source_test_configs: list[MultiSourceTestConfig],
-    base_data: pd.DataFrame,
-    comparison_data: pd.DataFrame,
-) -> Callable[[_F], _F]:
-    def decorator(func: _F) -> _F:
-        pytest_params = []
-        for multi_source_test_config in multi_source_test_configs:
-            pytest_params.append(
-                pytest.param(
-                    TestConfig(
-                        data_source_config=multi_source_test_config.base,
-                        data=base_data,
-                        extra_data={},
-                        secondary_source_config=multi_source_test_config.comparison,
-                        secondary_data=comparison_data,
-                    ),
-                    id=f"{multi_source_test_config.comparison.test_id}->{multi_source_test_config.base.test_id}",
-                    marks=_get_multi_source_marks(multi_source_test_config),
-                )
-            )
-        parameterize_decorator = pytest.mark.parametrize(
-            _batch_setup_for_datasource.__name__,
-            pytest_params,
-            indirect=True,
-        )
-        return parameterize_decorator(func)
-
-    return decorator
-
-
-def _get_multi_source_marks(
-    multi_source_test_config: MultiSourceTestConfig,
-) -> list[MarkDecorator]:
-    if multi_source_test_config.base.pytest_mark == multi_source_test_config.comparison.pytest_mark:
-        return [multi_source_test_config.base.pytest_mark]
-    # our test setup restricts us to testing a single backend at a time.
-    # sqlite doesn't require any extra setup, so it's an exception.
-    marks = [
-        mark
-        for mark in [
-            multi_source_test_config.comparison.pytest_mark,
-            multi_source_test_config.base.pytest_mark,
-        ]
-        if mark != pytest.mark.sqlite
-    ]
-    if len(marks) == 1:
-        return marks
-    elif not marks:
-        return [pytest.mark.sqlite]
-    else:
-        raise ValueError(
-            "MultiSourceBatch tests must either use the same backend or include sqlite."
-        )
-
-
 # NOTE on performance setup/teardown:
-# When we get equivalent TestConfigs, we only instantiate one BatchTestSetup for all of them,
-# and only perform its setup/teardown once. batch_for_datasource instantiate the BatchTestSetup
-# immediately before the first test that needs it and store it in cached_test_configs.
-# Subsequent tests that use the same TestConfig will reuse the same BatchTestSetup. At the end
-# of the test session, _cleanup will clean up all the BatchTestSetups.
+# When we get equivalent TestConfigs, we only instantiate one BatchTestSetup for all of them, and
+# only perform its setup/teardown once. batch_for_datasource instantiate the BatchTestSetup
+# immediately before the first test that needs it and store it in cached_test_configs. Subsequent
+# tests that use the same TestConfig will reuse the same BatchTestSetup. At the end of the test
+# session, _cleanup will clean up all the BatchTestSetups.
 
 
 @pytest.fixture(scope="session")
 def _cached_test_configs() -> dict[TestConfig, BatchTestSetup]:
     """Fixture to hold cached test configurations across tests."""
     cached_test_configs: dict[TestConfig, BatchTestSetup] = {}
+
     return cached_test_configs
 
 
@@ -314,6 +233,13 @@ def asset_for_datasource(
     yield _batch_setup_for_datasource.make_asset()
 
 
+@dataclass(frozen=True)
+class MultiSourceBatch:
+    base_batch: Batch
+    comparison_data_source_name: str
+    comparison_table_name: str
+
+
 @pytest.fixture
 def multi_source_batch(
     _batch_setup_for_datasource: BatchTestSetup,
@@ -349,6 +275,66 @@ def _base_to_comparison_map() -> Mapping[UUID, UUID]:
     return {}
 
 
+@dataclass(frozen=True)
+class MultiSourceTestConfig:
+    comparison: DataSourceTestConfig
+    base: DataSourceTestConfig
+
+
+def multi_source_batch_setup(
+    multi_source_test_configs: list[MultiSourceTestConfig],
+    base_data: pd.DataFrame,
+    comparison_data: pd.DataFrame,
+) -> Callable[[_F], _F]:
+    def decorator(func: _F) -> _F:
+        pytest_params = []
+        for multi_source_test_config in multi_source_test_configs:
+            pytest_params.append(
+                pytest.param(
+                    TestConfig(
+                        data_source_config=multi_source_test_config.base,
+                        data=base_data,
+                        extra_data={},
+                        secondary_source_config=multi_source_test_config.comparison,
+                        secondary_data=comparison_data,
+                    ),
+                    id=f"{multi_source_test_config.comparison.test_id}->{multi_source_test_config.base.test_id}",
+                    marks=_get_multi_source_marks(multi_source_test_config),
+                )
+            )
+        parameterize_decorator = pytest.mark.parametrize(
+            _batch_setup_for_datasource.__name__,
+            pytest_params,
+            indirect=True,
+        )
+        return parameterize_decorator(func)
+
+    return decorator
+
+
+def _get_multi_source_marks(multi_source_test_config: MultiSourceTestConfig) -> list[MarkDecorator]:
+    if multi_source_test_config.base.pytest_mark == multi_source_test_config.comparison.pytest_mark:
+        return [multi_source_test_config.base.pytest_mark]
+    # our test setup restricts us to testing a single backend at a time.
+    # sqlite doesn't require any extra setup, so it's an exception.
+    marks = [
+        mark
+        for mark in [
+            multi_source_test_config.comparison.pytest_mark,
+            multi_source_test_config.base.pytest_mark,
+        ]
+        if mark != pytest.mark.sqlite
+    ]
+    if len(marks) == 1:
+        return marks
+    elif not marks:
+        return [pytest.mark.sqlite]
+    else:
+        raise ValueError(
+            "MultiSourceBatch tests must either use the same backend or include sqlite."
+        )
+
+
 @pytest.fixture(scope="session")
 def session_sql_engine_manager():
     logger.info("SessionSqlEngineManager: Starting setup.")
@@ -356,11 +342,9 @@ def session_sql_engine_manager():
     yield manager
 
     logger.info("SessionSqlEngineManager: Starting teardown.")
-    import pprint
-
     pre_cleanup_stats = manager.get_all_pool_statistics()
-    # We temporarily log a warning so we can see this in the pytest output without turning on
-    # info logging across the whole test run.
+    # We temporarily log a warning so we can see this in the pytest output without turning on info
+    # logging across the whole test run.
     logger.warning(
         "SessionSqlEngineManager: Pool statistics before explicit cleanup:\n"
         f"{pprint.pformat(pre_cleanup_stats)}"
@@ -375,4 +359,4 @@ def session_sql_engine_manager():
     manager.dispose_all_engines()
     logger.info("SessionSqlEngineManager: All engines disposed by manager.")
     assert not manager._engine_cache, "Engine cache should be empty after dispose_all_engines."
-    logger.info("SessionSqlEngineManager: Teardown complete.") 
+    logger.info("SessionSqlEngineManager: Teardown complete.")
