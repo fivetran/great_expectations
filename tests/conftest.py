@@ -12,22 +12,8 @@ import string
 import urllib.parse
 import warnings
 from dataclasses import dataclass
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Final,
-    Generator,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Dict, Final, Generator, List, Optional
 from unittest import mock
-from uuid import UUID
 
 import numpy as np
 import packaging
@@ -41,7 +27,6 @@ from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
 )
-from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.expectation_validation_result import (
@@ -84,7 +69,6 @@ from great_expectations.data_context.util import (
     file_relative_path,
 )
 from great_expectations.datasource.fluent import GxDatasourceWarning, PandasDatasource
-from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 from great_expectations.execution_engine import SparkDFExecutionEngine
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -101,7 +85,7 @@ from great_expectations.util import (
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from great_expectations.validator.validator import Validator
-from tests.integration.fluent import (
+from tests.datasource.fluent._fake_cloud_api import (
     DUMMY_JWT_TOKEN,
     FAKE_ORG_ID,
     GX_CLOUD_MOCK_BASE_URL,
@@ -109,20 +93,14 @@ from tests.integration.fluent import (
     gx_cloud_api_fake_ctx,
 )
 
-
 if TYPE_CHECKING:
     from unittest.mock import MagicMock  # noqa: TID251 # type-checking only
 
-    from _pytest.mark import MarkDecorator
     from pytest_mock import MockerFixture
 
     from great_expectations.compatibility.sqlalchemy import Engine
 
 yaml = YAMLHandler()
-
-# Integration test support - TypeVar
-_F = TypeVar("_F", bound=Callable)
-
 ###
 #
 # NOTE: THESE TESTS ARE WRITTEN WITH THE en_US.UTF-8 LOCALE AS DEFAULT FOR STRING FORMATTING
