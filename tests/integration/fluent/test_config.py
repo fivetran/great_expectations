@@ -47,7 +47,7 @@ from great_expectations.datasource.fluent.sql_datasource import (
     SqlPartitionerYearAndMonth,
     TableAsset,
 )
-from tests.datasource.fluent.conftest import FLUENT_DATASOURCE_TEST_DIR
+from tests.integration.fluent.conftest import FLUENT_DATASOURCE_TEST_DIR
 
 if TYPE_CHECKING:
     from pytest import FixtureRequest
@@ -61,7 +61,7 @@ p = pytest.param
 
 
 CSV_PATH = FLUENT_DATASOURCE_TEST_DIR.joinpath(
-    pathlib.Path("..", "..", "test_sets", "taxi_yellow_tripdata_samples")
+    pathlib.Path("../../datasource", "..", "test_sets", "taxi_yellow_tripdata_samples")
 )
 
 PG_CONFIG_YAML_FILE = FLUENT_DATASOURCE_TEST_DIR / FileDataContext.GX_YML

@@ -16,7 +16,7 @@ from great_expectations.data_context.types.base import (
     DataContextConfig,
     InMemoryStoreBackendDefaults,
 )
-from tests.datasource.fluent._fake_cloud_api import FAKE_USER_ID
+from tests.integration.fluent import FAKE_USER_ID
 
 TESTING_UUID = UUID("00000000-c000-0000-0000-000000000000")
 

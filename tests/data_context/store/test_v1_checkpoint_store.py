@@ -21,7 +21,7 @@ from great_expectations.data_context.types.resource_identifiers import GXCloudId
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
 
-    from tests.datasource.fluent._fake_cloud_api import CloudDetails
+    from tests.integration.fluent import CloudDetails
 
 
 @pytest.fixture

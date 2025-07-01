@@ -16,7 +16,7 @@ from great_expectations.datasource.fluent.sql_datasource import (
     TableAsset,
     _SQLAsset,
 )
-from tests.datasource.fluent.conftest import CreateSourceFixture
+from tests.integration.fluent.conftest import CreateSourceFixture
 
 
 @pytest.fixture

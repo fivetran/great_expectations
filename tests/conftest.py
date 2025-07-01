@@ -101,7 +101,7 @@ from great_expectations.util import (
 )
 from great_expectations.validator.metric_configuration import MetricConfiguration
 from great_expectations.validator.validator import Validator
-from tests.datasource.fluent._fake_cloud_api import (
+from tests.integration.fluent import (
     DUMMY_JWT_TOKEN,
     FAKE_ORG_ID,
     GX_CLOUD_MOCK_BASE_URL,

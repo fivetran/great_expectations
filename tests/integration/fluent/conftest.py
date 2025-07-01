@@ -54,7 +54,7 @@ from great_expectations.execution_engine import (
     ExecutionEngine,
     SqlAlchemyExecutionEngine,
 )
-from tests.datasource.fluent._fake_cloud_api import (
+from tests.integration.fluent._fake_cloud_api import (
     _CLOUD_API_FAKE_DB,
     FAKE_ORG_ID,
     GX_CLOUD_MOCK_BASE_URL,
@@ -165,7 +165,7 @@ def inject_engine_lookup_double(
 @pytest.fixture
 def sqlite_database_path() -> pathlib.Path:
     relative_path = pathlib.Path(
-        "..",
+        "../../datasource",
         "..",
         "test_sets",
         "taxi_yellow_tripdata_samples",
@@ -196,7 +196,7 @@ def seed_ds_env_vars(
 
 @pytest.fixture
 def cloud_api_fake_db(cloud_api_fake) -> FakeDBTypedDict:
-    from tests.datasource.fluent._fake_cloud_api import _CLOUD_API_FAKE_DB
+    from tests.integration.fluent._fake_cloud_api import _CLOUD_API_FAKE_DB
 
     return _CLOUD_API_FAKE_DB
 
@@ -432,7 +432,7 @@ def seeded_contexts(
 
 @pytest.fixture
 def pandas_filesystem_datasource(empty_data_context) -> PandasFilesystemDatasource:
-    base_directory_rel_path = pathlib.Path("..", "..", "test_sets", "taxi_yellow_tripdata_samples")
+    base_directory_rel_path = pathlib.Path("../../datasource", "..", "test_sets", "taxi_yellow_tripdata_samples")
     base_directory_abs_path = (
         pathlib.Path(__file__).parent.joinpath(base_directory_rel_path).resolve(strict=True)
     )
