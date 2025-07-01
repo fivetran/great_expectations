@@ -1,204 +1,52 @@
 from __future__ import annotations
 
-import functools
 import logging
 import pathlib
-import urllib.parse
-import warnings
-from contextlib import contextmanager
-from pprint import pformat as pf
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    ContextManager,
-    Dict,
-    Final,
-    Generator,
-    List,
-    Optional,
-    Type,
-    Union,
-)
+import uuid
+from typing import TYPE_CHECKING, Final
 
+import numpy as np
+import pandas as pd
 import pytest
-from moto import mock_s3
-from pytest import MonkeyPatch
-from typing_extensions import TypeAlias, override
 
 import great_expectations as gx
-from great_expectations.compatibility import aws
-from great_expectations.core.batch import BatchData
-from great_expectations.core.batch_spec import (
-    BatchMarkers,
-    SqlAlchemyDatasourceBatchSpec,
+from great_expectations import ValidationDefinition, get_context
+from great_expectations.checkpoint import Checkpoint
+from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
+from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
+    add_dataframe_to_db,
 )
-from great_expectations.data_context import EphemeralDataContext, FileDataContext
-from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
+from great_expectations.core import ExpectationSuite
+from great_expectations.core.partitioners import (
+    ColumnPartitionerMonthly,
+)
+from great_expectations.data_context import (
+    AbstractDataContext,
+    EphemeralDataContext,
+    FileDataContext,
+)
 from great_expectations.datasource.fluent import (
-    PandasAzureBlobStorageDatasource,
-    PandasGoogleCloudStorageDatasource,
-    SparkAzureBlobStorageDatasource,
-    SparkGoogleCloudStorageDatasource,
-    SQLDatasource,
-)
-from great_expectations.datasource.fluent.config import GxConfig
-from great_expectations.datasource.fluent.interfaces import Datasource
-from great_expectations.datasource.fluent.pandas_filesystem_datasource import (
+    BatchRequest,
     PandasFilesystemDatasource,
+    SparkFilesystemDatasource,
+    SqliteDatasource,
 )
-from great_expectations.datasource.fluent.postgres_datasource import PostgresDatasource
-from great_expectations.datasource.fluent.sources import DataSourceManager
-from great_expectations.datasource.fluent.sql_datasource import TableAsset
-from great_expectations.execution_engine import (
-    ExecutionEngine,
-    SqlAlchemyExecutionEngine,
+from great_expectations.datasource.fluent.interfaces import (
+    DataAsset,
+    Datasource,
 )
-from tests.integration.fluent._fake_cloud_api import (
-    _CLOUD_API_FAKE_DB,
-    FAKE_ORG_ID,
-    GX_CLOUD_MOCK_BASE_URL,
-    FakeDBTypedDict,
-    create_fake_db_seed_data,
+from great_expectations.datasource.fluent.sources import (
+    DEFAULT_PANDAS_DATA_ASSET_NAME,
 )
-from tests.sqlalchemy_test_doubles import Dialect, MockSaEngine
+from great_expectations.expectations import ExpectColumnValuesToNotBeNull
+from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 
 if TYPE_CHECKING:
-    import responses
-    from botocore.client import BaseClient as BotoBaseClient
-    from pytest import FixtureRequest
+    from great_expectations.checkpoint.checkpoint import CheckpointResult
 
-    from great_expectations.data_context import CloudDataContext
+logger = logging.getLogger(__name__)
 
-
-CreateSourceFixture: TypeAlias = Callable[..., ContextManager[PostgresDatasource]]
-FLUENT_DATASOURCE_TEST_DIR: Final = pathlib.Path(__file__).parent
-PG_CONFIG_YAML_FILE: Final = FLUENT_DATASOURCE_TEST_DIR / FileDataContext.GX_YML
-_DEFAULT_TEST_YEARS = list(range(2021, 2023))
-_DEFAULT_TEST_MONTHS = list(range(1, 13))
-
-
-CNF_TEST_LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
-
-
-def sqlachemy_execution_engine_mock_cls(
-    validate_batch_spec: Callable[[SqlAlchemyDatasourceBatchSpec], None],
-    dialect: str,
-    partitioner_query_response: Optional[Union[List[Dict[str, Any]], List[Any]]] = None,
-):
-    """Creates a mock gx sql alchemy engine class
-
-    Args:
-        validate_batch_spec: A hook that can be used to validate the generated the batch spec
-            passed into get_batch_data_and_markers
-        dialect: A string representing the SQL Engine dialect. Examples include: postgresql, sqlite
-        partitioner_query_response: An optional list of dictionaries. Each dictionary is a row returned
-            from the partitioner query. The keys are the column names and the value is the column values,
-            eg: [{'year': 2021, 'month': 1}, {'year': 2021, 'month': 2}]
-    """  # noqa: E501 # FIXME CoP
-
-    class MockSqlAlchemyExecutionEngine(SqlAlchemyExecutionEngine):
-        def __init__(self, create_temp_table: bool = True, *args, **kwargs):
-            # We should likely let the user pass in an engine. In a SqlAlchemyExecutionEngine used in  # noqa: E501 # FIXME CoP
-            # non-mocked code the engine property is of the type:
-            # from sqlalchemy.engine import Engine as SaEngine
-            self.engine = MockSaEngine(dialect=Dialect(dialect))  # type: ignore[assignment] # FIXME CoP
-            self._create_temp_table = create_temp_table
-
-        @override
-        def get_batch_data_and_markers(  # type: ignore[override] # FIXME CoP
-            self, batch_spec: SqlAlchemyDatasourceBatchSpec
-        ) -> tuple[BatchData, BatchMarkers]:
-            validate_batch_spec(batch_spec)
-            return BatchData(self), BatchMarkers(ge_load_time=None)
-
-        def execute_partitioned_query(self, partitioned_query):  # type: ignore[explicit-override] # FIXME
-            class Row:
-                def __init__(self, attributes):
-                    for k, v in attributes.items():
-                        setattr(self, k, v)
-
-            # We know that partitioner_query_response is non-empty because of validation
-            # at the top of the outer function.
-            # In some cases, such as in the datetime partitioners,
-            # a dictionary is returned our from out partitioner query with the key as the parameter_name.  # noqa: E501 # FIXME CoP
-            # Otherwise, a list of values is returned.
-            if isinstance(partitioner_query_response[0], dict):
-                return [Row(row_dict) for row_dict in partitioner_query_response]
-            return partitioner_query_response
-
-    return MockSqlAlchemyExecutionEngine
-
-
-class ExecutionEngineDouble(ExecutionEngine):
-    def __init__(self, *args, **kwargs):
-        pass
-
-    @override
-    def get_batch_data_and_markers(self, batch_spec) -> tuple[BatchData, BatchMarkers]:  # type: ignore[override] # FIXME CoP
-        return BatchData(self), BatchMarkers(ge_load_time=None)
-
-
-@pytest.fixture
-def inject_engine_lookup_double(
-    monkeypatch: MonkeyPatch,
-) -> Generator[Type[ExecutionEngineDouble], None, None]:
-    """
-    Inject an execution engine test double into the _SourcesFactory.engine_lookup
-    so that all Datasources use the execution engine double.
-    Dynamically create a new subclass so that runtime type validation does not fail.
-    """
-    original_engine_override: dict[Type[Datasource], Type[ExecutionEngine]] = {}
-    for key in DataSourceManager.type_lookup:
-        if issubclass(type(key), Datasource):
-            original_engine_override[key] = key.execution_engine_override
-
-    try:
-        for source in original_engine_override:
-            source.execution_engine_override = ExecutionEngineDouble
-        yield ExecutionEngineDouble
-    finally:
-        for source, engine in original_engine_override.items():
-            source.execution_engine_override = engine
-
-
-@pytest.fixture
-def sqlite_database_path() -> pathlib.Path:
-    relative_path = pathlib.Path(
-        "../../datasource",
-        "..",
-        "test_sets",
-        "taxi_yellow_tripdata_samples",
-        "sqlite",
-        "yellow_tripdata.db",
-    )
-    return pathlib.Path(__file__).parent.joinpath(relative_path).resolve(strict=True)
-
-
-@pytest.fixture
-def seed_ds_env_vars(
-    monkeypatch: pytest.MonkeyPatch, sqlite_database_path: pathlib.Path
-) -> tuple[tuple[str, str], ...]:
-    """Seed a collection of ENV variables for use in testing config substitution."""
-    config_sub_dict = {
-        "MY_CONN_STR": f"sqlite:///{sqlite_database_path}",
-        "MY_URL": "http://example.com",
-        "MY_FILE": __file__,
-    }
-
-    for name, value in config_sub_dict.items():
-        monkeypatch.setenv(name, value)
-        CNF_TEST_LOGGER.info(f"Setting ENV - {name} = '{value}'")
-
-    # return as tuple of tuples so that the return value is immutable and therefore cacheable
-    return tuple((k, v) for k, v in config_sub_dict.items())
-
-
-@pytest.fixture
-def cloud_api_fake_db(cloud_api_fake) -> FakeDBTypedDict:
-    from tests.integration.fluent._fake_cloud_api import _CLOUD_API_FAKE_DB
-
-    return _CLOUD_API_FAKE_DB
+TEST_TABLE_NAME: Final[str] = "test_table"
 
 
 @pytest.fixture
@@ -213,7 +61,7 @@ def file_dc_config_dir_init(tmp_path: pathlib.Path) -> pathlib.Path:
     assert gx_yml.exists()
 
     tmp_gx_dir = gx_yml.parent.absolute()
-    CNF_TEST_LOGGER.info(f"tmp_gx_dir -> {tmp_gx_dir}")
+    logger.info(f"tmp_gx_dir -> {tmp_gx_dir}")
     return tmp_gx_dir
 
 
@@ -223,289 +71,309 @@ def empty_file_context(file_dc_config_dir_init) -> FileDataContext:
     return context
 
 
+def default_pandas_data(
+    test_backends,
+    context: AbstractDataContext,
+) -> tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest]:
+    relative_path = pathlib.Path("..", "..", "test_sets", "taxi_yellow_tripdata_samples")
+    csv_path = pathlib.Path(__file__).parent.joinpath(relative_path).resolve(strict=True)
+    pandas_ds = context.data_sources.pandas_default
+    pandas_ds.read_csv(
+        filepath_or_buffer=csv_path / "yellow_tripdata_sample_2019-02.csv",
+    )
+    asset = pandas_ds.get_asset(name=DEFAULT_PANDAS_DATA_ASSET_NAME)
+    batch_request = asset.build_batch_request()
+    return context, pandas_ds, asset, batch_request
+
+
+def pandas_sql_data(
+    test_backends,
+    context: AbstractDataContext,
+) -> tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest]:
+    passenger_count = np.repeat([1, 1, 1, 2, 6], 2000)
+    df = pd.DataFrame(
+        data={
+            "passenger_count": passenger_count,
+        }
+    )
+    con = sa.create_engine("sqlite://")
+    add_dataframe_to_db(df=df, name="my_table", con=con)
+    pandas_ds = context.data_sources.add_pandas("my_pandas")
+    pandas_ds.read_sql(
+        sql=sa.text("SELECT * FROM my_table"),
+        con=con,
+    )
+    asset = pandas_ds.get_asset(name=DEFAULT_PANDAS_DATA_ASSET_NAME)
+    batch_request = asset.build_batch_request()
+    return context, pandas_ds, asset, batch_request
+
+
+def pandas_filesystem_datasource(
+    test_backends,
+    context: AbstractDataContext,
+) -> PandasFilesystemDatasource:
+    relative_path = pathlib.Path(
+        "..",
+        "..",
+        "test_sets",
+        "taxi_yellow_tripdata_samples",
+        "first_3_files",
+    )
+    csv_path = pathlib.Path(__file__).parent.joinpath(relative_path).resolve(strict=True)
+    pandas_ds = context.data_sources.add_pandas_filesystem(
+        name="my_pandas",
+        base_directory=csv_path,
+    )
+    return pandas_ds
+
+
+def pandas_data(
+    test_backends,
+    context: AbstractDataContext,
+) -> tuple[AbstractDataContext, PandasFilesystemDatasource, DataAsset, BatchRequest]:
+    context.config_variables.update({"pipeline_filename": __file__})
+    pandas_ds = pandas_filesystem_datasource(test_backends=test_backends, context=context)
+    asset = pandas_ds.add_csv_asset(
+        name="csv_asset",
+        batch_metadata={"my_pipeline": "${pipeline_filename}"},
+    )
+    batching_regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_def = asset.add_batch_definition_monthly(name="monthly_batch_def", regex=batching_regex)
+    batch_request = batch_def.build_batch_request(batch_parameters={"year": "2019", "month": "01"})
+    return context, pandas_ds, asset, batch_request
+
+
+def sqlite_datasource(
+    context: AbstractDataContext, db_filename: str | pathlib.Path
+) -> SqliteDatasource:
+    relative_path = pathlib.Path(
+        "..",
+        "..",
+        "test_sets",
+        "taxi_yellow_tripdata_samples",
+        "sqlite",
+        db_filename,
+    )
+    db_file = pathlib.Path(__file__).parent.joinpath(relative_path).resolve(strict=True)
+    datasource = context.data_sources.add_sqlite(
+        name="test_datasource",
+        connection_string=f"sqlite:///{db_file}",
+        # don't set `create_temp_table` so that we can test the default behavior
+    )
+    return datasource
+
+
+def sql_data(
+    test_backends,
+    context: AbstractDataContext,
+) -> tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest]:
+    datasource = sqlite_datasource(context, "yellow_tripdata.db")
+    asset = datasource.add_table_asset(
+        name="my_asset",
+        table_name="yellow_tripdata_sample_2019_01",
+    )
+    batch_request = asset.build_batch_request(
+        options={"year": 2019, "month": 1},
+        partitioner=ColumnPartitionerMonthly(column_name="pickup_datetime"),
+    )
+    return context, datasource, asset, batch_request
+
+
+def spark_filesystem_datasource(
+    test_backends,
+    context: AbstractDataContext,
+) -> SparkFilesystemDatasource:
+    if "SparkDFDataset" not in test_backends:
+        pytest.skip("No spark backend selected.")
+
+    relative_path = pathlib.Path("..", "..", "test_sets", "taxi_yellow_tripdata_samples")
+    csv_path = pathlib.Path(__file__).parent.joinpath(relative_path).resolve(strict=True)
+    spark_ds = context.data_sources.add_spark_filesystem(
+        name="my_spark",
+        base_directory=csv_path,
+    )
+    return spark_ds
+
+
+def spark_data(
+    test_backends,
+    context: AbstractDataContext,
+) -> tuple[AbstractDataContext, SparkFilesystemDatasource, DataAsset, BatchRequest]:
+    if "SparkDFDataset" not in test_backends:
+        pytest.skip("No spark backend selected.")
+
+    spark_ds = spark_filesystem_datasource(test_backends=test_backends, context=context)
+    asset = spark_ds.add_csv_asset(
+        name="csv_asset",
+        header=True,
+        infer_schema=True,
+    )
+    batching_regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_definition = asset.add_batch_definition_monthly("my_batch_def", regex=batching_regex)
+    batch_request = batch_definition.build_batch_request({"year": "2019", "month": "01"})
+    return context, spark_ds, asset, batch_request
+
+
+def multibatch_pandas_data(
+    test_backends,
+    context: AbstractDataContext,
+) -> tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest]:
+    relative_path = pathlib.Path("..", "..", "test_sets", "taxi_yellow_tripdata_samples")
+    csv_path = pathlib.Path(__file__).parent.joinpath(relative_path).resolve(strict=True)
+    pandas_ds = context.data_sources.add_pandas_filesystem(
+        name="my_pandas",
+        base_directory=csv_path,
+    )
+    asset = pandas_ds.add_csv_asset(
+        name="csv_asset",
+    )
+    batching_regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_definition = asset.add_batch_definition_monthly("monthly_batch_def", regex=batching_regex)
+    batch_request = batch_definition.build_batch_request({"year": "2020"})
+    return context, pandas_ds, asset, batch_request
+
+
+def multibatch_sql_data(
+    test_backends,
+    context: AbstractDataContext,
+) -> tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest]:
+    datasource = sqlite_datasource(context, "yellow_tripdata_sample_2020_all_months_combined.db")
+    asset = datasource.add_table_asset(
+        name="my_asset",
+        table_name="yellow_tripdata_sample_2020",
+    )
+    batch_request = asset.build_batch_request(
+        options={"year": 2020},
+        partitioner=ColumnPartitionerMonthly(column_name="pickup_datetime"),
+    )
+    return context, datasource, asset, batch_request
+
+
+def multibatch_spark_data(
+    test_backends,
+    context: AbstractDataContext,
+) -> tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest]:
+    if "SparkDFDataset" not in test_backends:
+        pytest.skip("No spark backend selected.")
+
+    relative_path = pathlib.Path("..", "..", "test_sets", "taxi_yellow_tripdata_samples")
+    csv_path = pathlib.Path(__file__).parent.joinpath(relative_path).resolve(strict=True)
+    spark_ds = context.data_sources.add_spark_filesystem(
+        name="my_spark",
+        base_directory=csv_path,
+    )
+    asset = spark_ds.add_csv_asset(
+        name="csv_asset",
+        header=True,
+        infer_schema=True,
+    )
+    batching_regex = r"yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})\.csv"
+    batch_definition = asset.add_batch_definition_monthly("monthly_batch_def", regex=batching_regex)
+    batch_request = batch_definition.build_batch_request({"year": "2020"})
+    return context, spark_ds, asset, batch_request
+
+
 @pytest.fixture(
     params=[
-        pytest.param("empty_cloud_context_fluent", marks=pytest.mark.cloud),
-        pytest.param("empty_file_context", marks=pytest.mark.filesystem),
-    ],
-    ids=["cloud", "file"],
-)
-def empty_contexts(
-    request: FixtureRequest,
-    cloud_storage_get_client_doubles,
-) -> FileDataContext | CloudDataContext:
-    context_fixture: FileDataContext | CloudDataContext = request.getfixturevalue(request.param)
-    return context_fixture
-
-
-@pytest.fixture(scope="session")
-def fluent_gx_config_yml() -> pathlib.Path:
-    assert PG_CONFIG_YAML_FILE.exists()
-    return PG_CONFIG_YAML_FILE
-
-
-@pytest.fixture(scope="session")
-def fluent_gx_config_yml_str(fluent_gx_config_yml: pathlib.Path) -> str:
-    return fluent_gx_config_yml.read_text()
-
-
-@pytest.fixture()
-def aws_region_name() -> str:
-    return "us-east-1"
-
-
-@pytest.fixture(scope="function")
-def aws_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Monkeypatch ENV AWS Credentials for moto."""
-    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "testing")
-    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "testing")
-    monkeypatch.setenv("AWS_SECURITY_TOKEN", "testing")
-    monkeypatch.setenv("AWS_SESSION_TOKEN", "testing")
-    monkeypatch.setenv("AWS_DEFAULT_REGION", "testing")
-
-
-@pytest.fixture
-def s3_mock(aws_credentials, aws_region_name: str) -> Generator[BotoBaseClient, None, None]:
-    with mock_s3():
-        client = aws.boto3.client("s3", region_name=aws_region_name)
-        yield client
-
-
-class _TestClientDummy:
-    pass
-
-
-_CLIENT_DUMMY = _TestClientDummy()
-
-
-def _get_test_client_dummy(*args, **kwargs) -> _TestClientDummy:
-    CNF_TEST_LOGGER.debug(
-        f"_get_test_client_dummy() called with \nargs: {pf(args)}\nkwargs: {pf(kwargs)}"
-    )
-    return _CLIENT_DUMMY
-
-
-@pytest.fixture
-def gcs_get_client_dummy(monkeypatch: MonkeyPatch):
-    monkeypatch.setattr(
-        PandasGoogleCloudStorageDatasource,
-        "_get_gcs_client",
-        _get_test_client_dummy,
-        raising=True,
-    )
-    monkeypatch.setattr(
-        SparkGoogleCloudStorageDatasource,
-        "_get_gcs_client",
-        _get_test_client_dummy,
-        raising=True,
-    )
-
-
-@pytest.fixture
-def azure_get_client_dummy(monkeypatch: MonkeyPatch):
-    monkeypatch.setattr(
-        PandasAzureBlobStorageDatasource,
-        "_get_azure_client",
-        _get_test_client_dummy,
-        raising=True,
-    )
-    monkeypatch.setattr(
-        SparkAzureBlobStorageDatasource,
-        "_get_azure_client",
-        _get_test_client_dummy,
-        raising=True,
-    )
-
-
-@pytest.fixture
-def cloud_storage_get_client_doubles(
-    gcs_get_client_dummy,
-    azure_get_client_dummy,
-):
-    """
-    Patches Datasources that rely on a private _get_*_client() method to return test doubles
-    instead.
-
-    gcs
-    azure
-    """
-    CNF_TEST_LOGGER.warning(
-        "Patching cloud storage _get_*_client() methods to return client test doubles"
-    )
-
-
-@pytest.fixture
-def filter_data_connector_build_warning():
-    with warnings.catch_warnings() as w:
-        warnings.simplefilter("ignore", RuntimeWarning)
-        yield w
-
-
-@pytest.fixture
-def fluent_only_config(fluent_gx_config_yml_str: str, seed_ds_env_vars: tuple) -> GxConfig:
-    """Creates a fluent `GxConfig` object and ensures it contains at least one `Datasource`"""
-    fluent_config = GxConfig.parse_yaml(fluent_gx_config_yml_str)
-    assert fluent_config.datasources
-    return fluent_config
-
-
-@pytest.fixture
-def fluent_yaml_config_file(
-    file_dc_config_dir_init: pathlib.Path,
-    fluent_gx_config_yml_str: str,
-) -> pathlib.Path:
-    """
-    Dump the provided GxConfig to a temporary path. File is removed during test teardown.
-
-    Append fluent config to default config file
-    """
-    config_file_path = file_dc_config_dir_init / FileDataContext.GX_YML
-
-    assert config_file_path.exists() is True
-
-    with open(config_file_path, mode="a") as f_append:
-        yaml_string = "\n# Fluent\n" + fluent_gx_config_yml_str
-        f_append.write(yaml_string)
-
-    CNF_TEST_LOGGER.debug(f"  Config File Text\n-----------\n{config_file_path.read_text()}")
-    return config_file_path
-
-
-@pytest.fixture
-@functools.lru_cache(maxsize=1)
-def seeded_file_context(
-    filter_data_connector_build_warning,
-    fluent_yaml_config_file: pathlib.Path,
-    seed_ds_env_vars: tuple,
-) -> FileDataContext:
-    context = gx.get_context(context_root_dir=fluent_yaml_config_file.parent, cloud_mode=False)
-    assert isinstance(context, FileDataContext)
-    return context
-
-
-@pytest.fixture
-def seed_cloud(
-    filter_data_connector_build_warning,
-    cloud_api_fake: responses.RequestsMock,
-    fluent_only_config: GxConfig,
-):
-    """
-    In order to load the seeded cloud config, this fixture must be called before any
-    `get_context()` calls.
-    """
-    org_url_base = urllib.parse.urljoin(GX_CLOUD_MOCK_BASE_URL, f"organizations/{FAKE_ORG_ID}")
-
-    fake_db_data = create_fake_db_seed_data(fds_config=fluent_only_config)
-    _CLOUD_API_FAKE_DB.update(fake_db_data)
-
-    seeded_datasources = _CLOUD_API_FAKE_DB["data-context-configuration"]["datasources"]
-    CNF_TEST_LOGGER.info(f"Seeded Datasources ->\n{pf(seeded_datasources, depth=2)}")
-    assert seeded_datasources
-
-    yield cloud_api_fake
-
-    assert len(cloud_api_fake.calls) >= 1, f"{org_url_base} was never called"
-
-
-@pytest.fixture
-def seeded_cloud_context(
-    seed_cloud,  # NOTE: this fixture must be called before the CloudDataContext is created
-    empty_cloud_context_fluent,
-):
-    empty_cloud_context_fluent._init_datasources()
-    return empty_cloud_context_fluent
-
-
-@pytest.fixture(
-    params=[
-        pytest.param("seeded_file_context", marks=[pytest.mark.filesystem]),
-        pytest.param("seeded_cloud_context", marks=[pytest.mark.cloud]),
+        pytest.param(pandas_data, marks=pytest.mark.filesystem),
+        pytest.param(sql_data, marks=pytest.mark.sqlite),
+        pytest.param(spark_data, marks=pytest.mark.spark),
+        pytest.param(default_pandas_data, marks=pytest.mark.filesystem),
+        pytest.param(pandas_sql_data, marks=pytest.mark.filesystem),
     ]
 )
-def seeded_contexts(
-    request: FixtureRequest,
-):
-    """Parametrized fixture for seeded File and Cloud DataContexts."""
-    context_fixture: FileDataContext | CloudDataContext = request.getfixturevalue(request.param)
-    return context_fixture
+def datasource_test_data(
+    test_backends,
+    empty_data_context,
+    request,
+) -> tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest]:
+    return request.param(test_backends=test_backends, context=empty_data_context)
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(multibatch_pandas_data, marks=pytest.mark.filesystem),
+        pytest.param(multibatch_sql_data, marks=pytest.mark.sqlite),
+        pytest.param(multibatch_spark_data, marks=pytest.mark.spark),
+    ]
+)
+def multibatch_datasource_test_data(
+    test_backends, empty_data_context, request
+) -> tuple[AbstractDataContext, Datasource, DataAsset, BatchRequest]:
+    return request.param(test_backends=test_backends, context=empty_data_context)
+
+
+@pytest.fixture(params=[pandas_filesystem_datasource, spark_filesystem_datasource])
+def filesystem_datasource(test_backends, empty_data_context, request) -> Datasource:
+    if request.param.__name__ == "spark_data" and "SparkDFDataset" not in test_backends:
+        pytest.skip("No spark backend selected.")
+
+    return request.param(test_backends, empty_data_context)
 
 
 @pytest.fixture
-def pandas_filesystem_datasource(empty_data_context) -> PandasFilesystemDatasource:
-    base_directory_rel_path = pathlib.Path(
-        "../../datasource", "..", "test_sets", "taxi_yellow_tripdata_samples"
-    )
-    base_directory_abs_path = (
-        pathlib.Path(__file__).parent.joinpath(base_directory_rel_path).resolve(strict=True)
-    )
-    pandas_filesystem_datasource = PandasFilesystemDatasource(
-        name="pandas_filesystem_datasource",
-        base_directory=base_directory_abs_path,
-    )
-    pandas_filesystem_datasource._data_context = empty_data_context
-    return pandas_filesystem_datasource
+def context() -> EphemeralDataContext:
+    """Return an ephemeral data context for testing."""
+    ctx = get_context(mode="ephemeral")
+    assert isinstance(ctx, EphemeralDataContext)
+    return ctx
 
 
-@contextmanager
-def _source(
-    validate_batch_spec: Callable[[SqlAlchemyDatasourceBatchSpec], None],
-    dialect: str,
-    connection_string: str = "postgresql+psycopg2://postgres:@localhost/test_ci",
-    data_context: Optional[AbstractDataContext] = None,
-    partitioner_query_response: Optional[List[Dict[str, Any]]] = None,
-    create_temp_table: bool = True,
-) -> Generator[PostgresDatasource, None, None]:
-    partitioner_response = partitioner_query_response or (
-        [
-            {"year": year, "month": month}
-            for year in _DEFAULT_TEST_YEARS
-            for month in _DEFAULT_TEST_MONTHS
-        ]
-    )
-
-    execution_eng_cls = sqlachemy_execution_engine_mock_cls(
-        validate_batch_spec=validate_batch_spec,
-        dialect=dialect,
-        partitioner_query_response=partitioner_response,
-    )
-    original_override = PostgresDatasource.execution_engine_override  # type: ignore[misc] # FIXME CoP
-    try:
-        PostgresDatasource.execution_engine_override = execution_eng_cls  # type: ignore[misc] # FIXME CoP
-        postgres_datasource = PostgresDatasource(
-            name="my_datasource",
-            connection_string=connection_string,
-            create_temp_table=create_temp_table,
+def _run_checkpoint_test(batch_for_datasource, datasource_type: str) -> None:
+    """Helper function to run checkpoint validation test"""
+    context = batch_for_datasource.datasource.data_context
+    expectation_suite = context.suites.add(
+        ExpectationSuite(
+            name=f"{datasource_type}_es_{uuid.uuid4().hex}",
+            expectations=[ExpectColumnValuesToNotBeNull(column="test_column", mostly=1)],
         )
-        if data_context:
-            postgres_datasource._data_context = data_context
-        yield postgres_datasource
-    finally:
-        PostgresDatasource.execution_engine_override = original_override  # type: ignore[misc] # FIXME CoP
-
-
-# We may be able to parameterize this fixture so we can instantiate _source in the fixture.
-# This would reduce the `with ...` boilerplate in the individual tests.
-@pytest.fixture
-def create_source() -> ContextManager:
-    return _source  # type: ignore[return-value] # FIXME CoP
-
-
-@pytest.fixture
-def sql_datasource_table_asset_test_connection_noop(
-    ephemeral_context_with_defaults: EphemeralDataContext,
-    monkeypatch: pytest.MonkeyPatch,
-    filter_gx_datasource_warnings: None,
-) -> SQLDatasource:
-    """
-    SQLDatasource instance where `TableAsset.test_connection()` always passes.
-    """
-    sql_datasource = ephemeral_context_with_defaults.data_sources.add_sql(
-        name="my_sql_datasource", connection_string="sqlite:///"
     )
-    CNF_TEST_LOGGER.warning(f"Patching {sql_datasource.name} `.test_connection()` to a noop")
+    validation_definition = context.validation_definitions.add(
+        ValidationDefinition(
+            name=f"{datasource_type}_val_def_{uuid.uuid4().hex}",
+            data=batch_for_datasource.data_asset.batch_definitions[0],
+            suite=expectation_suite,
+        )
+    )
+    checkpoint = context.checkpoints.add(
+        Checkpoint(
+            name=f"{datasource_type.title()} Test Checkpoint {uuid.uuid4().hex}",
+            validation_definitions=[validation_definition],
+        )
+    )
+    checkpoint_result: CheckpointResult = checkpoint.run()
+    assert checkpoint_result.success
 
-    def noop(self: SQLDatasource | TableAsset):
-        CNF_TEST_LOGGER.warning(f"{self.__class__.__name__}.test_connection noop called")
 
-    monkeypatch.setattr(TableAsset, "test_connection", noop, raising=True)
-    return sql_datasource
+def _run_column_expectation_test(
+    batch_for_datasource, datasource_type: str, column_name: str
+) -> None:
+    """Helper function to run column expectation validation test"""
+    context = batch_for_datasource.datasource.data_context
+    expectation_suite = context.suites.add(
+        ExpectationSuite(
+            name=f"{datasource_type}_column_es_{uuid.uuid4().hex}",
+        )
+    )
+    expectation_suite.add_expectation_configuration(
+        expectation_configuration=ExpectationConfiguration(
+            type="expect_column_values_to_match_regex",
+            kwargs={"column": column_name, "regex": r".*"},
+        )
+    )
+    expectation_suite.save()
+    validation_definition = context.validation_definitions.add(
+        ValidationDefinition(
+            name=f"{datasource_type}_column_val_def_{uuid.uuid4().hex}",
+            data=batch_for_datasource.data_asset.batch_definitions[0],
+            suite=expectation_suite,
+        )
+    )
+    checkpoint = context.checkpoints.add(
+        Checkpoint(
+            name=f"{datasource_type.title()} Column Test Checkpoint {uuid.uuid4().hex}",
+            validation_definitions=[validation_definition],
+        )
+    )
+    checkpoint_result: CheckpointResult = checkpoint.run()
+    assert checkpoint_result.success

@@ -72,9 +72,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def spark_filesystem_datasource(empty_data_context, test_backends) -> SparkFilesystemDatasource:
-    base_directory_rel_path = pathlib.Path(
-        "../../datasource", "..", "test_sets", "taxi_yellow_tripdata_samples"
-    )
+    base_directory_rel_path = pathlib.Path("..", "..", "test_sets", "taxi_yellow_tripdata_samples")
     base_directory_abs_path = (
         pathlib.Path(__file__).parent.joinpath(base_directory_rel_path).resolve(strict=True)
     )

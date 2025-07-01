@@ -48,7 +48,7 @@ from great_expectations.datasource.fluent.sql_datasource import (
 )
 from great_expectations.exceptions.exceptions import NoAvailableBatchesError
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
-from tests.integration.fluent.conftest import (
+from tests.datasource.fluent.conftest import (
     _DEFAULT_TEST_MONTHS,
     _DEFAULT_TEST_YEARS,
     CreateSourceFixture,

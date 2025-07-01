@@ -11,7 +11,7 @@ from great_expectations.core.partitioners import (
     PartitionerConvertedDatetime,
 )
 from great_expectations.datasource.fluent import SqliteDatasource
-from tests.integration.fluent.conftest import sqlachemy_execution_engine_mock_cls
+from tests.datasource.fluent.conftest import sqlachemy_execution_engine_mock_cls
 
 if TYPE_CHECKING:
     from great_expectations.data_context import AbstractDataContext
@@ -25,7 +25,7 @@ def sqlite_datasource_name() -> str:
 @pytest.fixture
 def sqlite_database_path() -> pathlib.Path:
     relative_path = pathlib.Path(
-        "../../datasource",
+        "..",
         "..",
         "test_sets",
         "taxi_yellow_tripdata_samples",

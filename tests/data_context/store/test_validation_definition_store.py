@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from great_expectations.data_context.data_context.ephemeral_data_context import (
         EphemeralDataContext,
     )
-    from tests.integration.fluent import CloudDetails
+    from tests.datasource.fluent._fake_cloud_api import CloudDetails
 
 
 @pytest.fixture

@@ -27,7 +27,7 @@ from great_expectations.datasource.fluent.constants import (
 from great_expectations.datasource.fluent.pandas_filesystem_datasource import (
     PandasFilesystemDatasource,
 )
-from tests.integration.fluent._fake_cloud_api import (
+from tests.datasource.fluent._fake_cloud_api import (
     DEFAULT_HEADERS,
     FAKE_ORG_ID,
     GX_CLOUD_MOCK_BASE_URL,
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from requests import PreparedRequest
     from responses import RequestsMock
 
-    from tests.integration.fluent._fake_cloud_api import FakeDBTypedDict
+    from tests.datasource.fluent._fake_cloud_api import FakeDBTypedDict
 
 
 yaml = YAMLHandler()
@@ -53,7 +53,7 @@ LOGGER = logging.getLogger(__name__)
 @pytest.fixture
 def taxi_data_samples_dir() -> pathlib.Path:
     return pathlib.Path(
-        __file__, "../../datasource", "..", "..", "test_sets", "taxi_yellow_tripdata_samples"
+        __file__, "..", "..", "..", "test_sets", "taxi_yellow_tripdata_samples"
     ).resolve(strict=True)
 
 
