@@ -328,28 +328,6 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             )
         elif self.dialect_name == GXSqlDialect.DATABRICKS:
             self.dialect_module = import_library_module("databricks.sqlalchemy")
-            # Patch Databricks dialect to use backticks instead of double quotes
-            try:
-                from sqlalchemy.sql.compiler import IdentifierPreparer
-                
-                class DatabricksIdentifierPreparer(IdentifierPreparer):
-                    """Custom identifier preparer for Databricks that uses backticks."""
-                    
-                    def __init__(self, dialect, initial_quote="`", final_quote="`", escape_quote="``", quote_case_sensitive_collations=True, omit_schema=False):
-                        super().__init__(
-                            dialect, 
-                            initial_quote=initial_quote, 
-                            final_quote=final_quote, 
-                            escape_quote=escape_quote,
-                            quote_case_sensitive_collations=quote_case_sensitive_collations,
-                            omit_schema=omit_schema
-                        )
-                
-                # Replace the dialect's preparer with our custom one
-                self.engine.dialect.identifier_preparer = DatabricksIdentifierPreparer(self.engine.dialect)
-                logger.debug("Successfully patched Databricks dialect to use backticks for identifier quoting")
-            except Exception as e:
-                logger.warning(f"Failed to patch Databricks dialect for backtick support: {e}")
         else:
             self.dialect_module = None
 
@@ -600,10 +578,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             # (i.e. multiple record sets (tables) in one batch
             if domain_kwargs["table"] != data_object.selectable.name:
                 # noinspection PyProtectedMember
+                table_name = domain_kwargs["table"]
+                schema_name = data_object._schema_name
                 selectable = sa.Table(
-                    domain_kwargs["table"],
+                    table_name,
                     sa.MetaData(),
-                    schema=data_object._schema_name,
+                    schema=schema_name,
                 )
             else:
                 selectable = data_object.selectable
@@ -1166,18 +1146,19 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         return sa.select("*").select_from(selectable).where(partition_clause)  # type: ignore[arg-type] # FIXME CoP
 
+
     def _subselectable(self, batch_spec: BatchSpec) -> sqlalchemy.Selectable:
         table_name = batch_spec.get("table_name")
         query = batch_spec.get("query")
         selectable: sqlalchemy.Selectable
         if table_name:
-            # Check if we're using Databricks and need special handling
+            # Handle Databricks identifier quoting if needed
             if self.dialect_name == GXSqlDialect.DATABRICKS:
                 import re
-                table_name_str = str(table_name)
                 schema_name = batch_spec.get("schema_name", None)
+                table_name_str = str(table_name)
                 schema_name_str = str(schema_name) if schema_name else None
-                
+
                 # Check if the table name needs special escaping for Databricks
                 if re.match(r"^\d", table_name_str) or re.search(r"[.\s\-#@]", table_name_str):
                     # For Databricks, create a subquery with backticks
