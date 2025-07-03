@@ -97,7 +97,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         if not self._store.has_key(key=key):
             raise DataContextError(f"ValidationDefinition with name {name} was not found.")  # noqa: TRY003 # FIXME CoP
 
-        return cast(ValidationDefinition, self._store.get(key=key))
+        return cast("ValidationDefinition", self._store.get(key=key))
 
     @public_api
     @override

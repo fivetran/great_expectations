@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
+from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
@@ -39,12 +41,16 @@ class DatabricksDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         return DatabricksBatchTestSetup(
             data=data,
             config=self,
             extra_data=extra_data,
             table_name=self.table_name,
+            context=context,
+            engine_manager=engine_manager,
         )
 
 

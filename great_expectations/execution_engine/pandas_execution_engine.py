@@ -395,7 +395,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
                 "Batch has not been loaded - please run load_batch_data() to load a batch."
             )
 
-        return cast(PandasBatchData, self.batch_manager.active_batch_data).dataframe
+        return cast("PandasBatchData", self.batch_manager.active_batch_data).dataframe
 
     # NOTE Abe 20201105: Any reason this shouldn't be a private method?
     @staticmethod
@@ -508,7 +508,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         if batch_id is None:
             # We allow no batch id specified if there is only one batch
             if self.batch_manager.active_batch_data_id is not None:
-                data = cast(PandasBatchData, self.batch_manager.active_batch_data).dataframe
+                data = cast("PandasBatchData", self.batch_manager.active_batch_data).dataframe
             else:
                 raise gx_exceptions.ValidationError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
@@ -516,7 +516,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data = cast(
-                    PandasBatchData, self.batch_manager.batch_data_cache[batch_id]
+                    "PandasBatchData", self.batch_manager.batch_data_cache[batch_id]
                 ).dataframe
             else:
                 raise gx_exceptions.ValidationError(  # noqa: TRY003 # FIXME CoP

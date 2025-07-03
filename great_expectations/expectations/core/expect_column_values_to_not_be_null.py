@@ -14,7 +14,7 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.expectation_configuration import (
     parse_result_format,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     MOSTLY_DESCRIPTION,
@@ -48,15 +48,16 @@ if TYPE_CHECKING:
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the column values to not be null."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.COMPLETENESS.value]
 
@@ -269,9 +270,10 @@ class ExpectColumnValuesToNotBeNull(ColumnMapExpectation):
             ["column", "mostly", "row_condition", "condition_parser"],
         )
 
-        if params["mostly"] is not None and params["mostly"] < 1.0:
-            params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-            # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")
+        if params["mostly"] is not None:
+            if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
             if include_column_name:
                 template_str = (
                     "$column values must not be null, at least $mostly_pct % of the time."

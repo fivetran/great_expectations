@@ -5,6 +5,7 @@ import os
 import pathlib
 import shutil
 import uuid
+from pathlib import Path
 from typing import Dict, List, Union
 
 import pytest
@@ -569,10 +570,10 @@ def test_data_context_create_does_not_overwrite_existing_config_variables_yml(
 @pytest.mark.filesystem
 def test_scaffold_directories(tmp_path_factory):
     empty_directory = str(tmp_path_factory.mktemp("test_scaffold_directories"))
-    empty_directory = pathlib.Path(empty_directory)
-    FileDataContext._scaffold_directories(empty_directory)
+    empty_directory_path = Path(empty_directory)
+    FileDataContext._scaffold_directories(empty_directory_path)
 
-    assert set(os.listdir(empty_directory)) == {
+    assert {p.name for p in empty_directory_path.iterdir()} == {
         "plugins",
         "checkpoints",
         "expectations",
@@ -580,9 +581,7 @@ def test_scaffold_directories(tmp_path_factory):
         "uncommitted",
         "validation_definitions",
     }
-    assert set(
-        os.listdir(os.path.join(empty_directory, "uncommitted"))  # noqa: PTH118 # FIXME CoP
-    ) == {
+    assert {p.name for p in (empty_directory_path / "uncommitted").iterdir()} == {
         "data_docs",
         "validations",
     }

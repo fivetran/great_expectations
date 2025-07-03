@@ -14,4 +14,6 @@ class ColumnValuesNonNullCountResult(MetricResult[int]): ...
 
 
 class ColumnValuesNonNullCount(ColumnMetric[ColumnValuesNonNullCountResult]):
+    """Count of non-null values in a column"""
+
     name = f"column_values.nonnull.{MetricNameSuffix.COUNT.value}"

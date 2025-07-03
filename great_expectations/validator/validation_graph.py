@@ -10,11 +10,11 @@ from typing import (
     Optional,
     Set,
     Tuple,
+    TypedDict,
     Union,
 )
 
 from tqdm.auto import tqdm
-from typing_extensions import TypedDict
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
@@ -26,33 +26,23 @@ from great_expectations.validator.metric_configuration import (
 )
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
-
     from great_expectations.core import IDDict
     from great_expectations.execution_engine import ExecutionEngine
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
     from great_expectations.expectations.metrics.metric_provider import MetricProvider
-    from great_expectations.metrics.metric_results import (
-        MetricErrorResultValue,
-    )
     from great_expectations.validator.computed_metric import MetricValue
     from great_expectations.validator.metrics_calculator import (
         _AbortedMetricsInfoDict,
     )
 
 
-class DeprecatedMetricErrorResultValue(TypedDict):
+class MetricsCalculatorErrorResultValue(TypedDict):
     metric_configuration: MetricConfiguration
     exception_info: ExceptionInfo
     num_failures: int
 
-
-_DeprecatedAbortedMetricsInfoDict: TypeAlias = Dict[
-    MetricConfigurationID,
-    DeprecatedMetricErrorResultValue,
-]
 
 __all__ = [
     "ExpectationValidationGraph",
@@ -113,6 +103,10 @@ class ValidationGraph:
     def __eq__(self, other) -> bool:
         """Supports comparing two "ValidationGraph" objects."""
         return self.edge_ids == other.edge_ids
+
+    @override
+    def __hash__(self) -> int:
+        return hash(frozenset(self.edge_ids))
 
     @property
     def edges(self) -> List[MetricEdge]:
@@ -249,7 +243,7 @@ class ValidationGraph:
         else:
             catch_exceptions = False
 
-        failed_metric_info: _DeprecatedAbortedMetricsInfoDict = {}
+        failed_metric_info: _AbortedMetricsInfoDict = {}
         aborted_metrics_info: _AbortedMetricsInfoDict = {}
 
         ready_metrics: Set[MetricConfiguration]
@@ -314,10 +308,12 @@ class ValidationGraph:
                             failed_metric_info[failed_metric.id]["num_failures"] += 1
                             failed_metric_info[failed_metric.id]["exception_info"] = exception_info
                         else:
-                            failed_metric_info[failed_metric.id] = DeprecatedMetricErrorResultValue(
-                                metric_configuration=failed_metric,
-                                exception_info=exception_info,
-                                num_failures=1,
+                            failed_metric_info[failed_metric.id] = (
+                                MetricsCalculatorErrorResultValue(
+                                    metric_configuration=failed_metric,
+                                    exception_info=exception_info,
+                                    num_failures=1,
+                                )
                             )
 
                 else:
@@ -423,7 +419,7 @@ class ExpectationValidationGraph:
         metric_info = self._filter_metric_info_in_graph(metric_info=metric_info)
         metric_exception_info: Dict[str, Union[MetricConfiguration, ExceptionInfo, int]] = {}
         metric_id: MetricConfigurationID
-        metric_info_item: MetricErrorResultValue
+        metric_info_item: MetricsCalculatorErrorResultValue
         for metric_id, metric_info_item in metric_info.items():
             metric_exception_info[str(metric_id)] = metric_info_item["exception_info"]
 
@@ -448,3 +444,13 @@ class ExpectationValidationGraph:
             for metric_id, metric_info_item in metric_info.items()
             if metric_id in graph_metric_ids
         }
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ExpectationValidationGraph):
+            return False
+        return self.configuration == other.configuration and self.graph == other.graph
+
+    @override
+    def __hash__(self) -> int:
+        return hash((self.configuration, self.graph))

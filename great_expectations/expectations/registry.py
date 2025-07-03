@@ -56,13 +56,17 @@ _registered_renderers: dict = {}
 
 class RendererImpl(NamedTuple):
     expectation: str
-    renderer: Callable[..., Union[RenderedAtomicContent, RenderedContent]]
+    renderer: Callable[
+        ..., Union[RenderedAtomicContent, list[RenderedAtomicContent], RenderedContent]
+    ]
 
 
 def register_renderer(
     object_name: str,
     parent_class: Union[Type[Expectation], Type[MetricProvider]],
-    renderer_fn: Callable[..., Union[RenderedAtomicContent, RenderedContent]],
+    renderer_fn: Callable[
+        ..., Union[RenderedAtomicContent, list[RenderedAtomicContent], RenderedContent]
+    ],
 ):
     # noinspection PyUnresolvedReferences
     renderer_name = renderer_fn._renderer_type  # type: ignore[attr-defined] # FIXME CoP

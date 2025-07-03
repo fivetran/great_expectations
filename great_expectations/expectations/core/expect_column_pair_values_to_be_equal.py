@@ -3,11 +3,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -37,15 +40,16 @@ if TYPE_CHECKING:
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the values in column A to be the same as column B."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 
@@ -176,9 +180,10 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
-        pydantic.Field(default="both_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION)
-    )
+    ignore_row_if: Union[
+        Literal["both_values_are_missing", "either_value_is_missing", "neither"],
+        SuiteParameterDict,
+    ] = pydantic.Field(default="both_values_are_missing", description=IGNORE_ROW_IF_DESCRIPTION)
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

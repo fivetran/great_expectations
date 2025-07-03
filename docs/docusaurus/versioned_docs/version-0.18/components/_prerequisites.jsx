@@ -38,7 +38,6 @@ import VersionedLink from '@site/src/components/VersionedLink'
  *   requireExpectationSuite: Valid values are {true} or {false}
  */
 export default class Prerequisites extends React.Component {
-
   defaultPrerequisiteItems () {
     const returnItems = []
     if (this.props.requirePython === true) {
@@ -74,10 +73,10 @@ export default class Prerequisites extends React.Component {
   render () {
     return (
       <div>
-          <ul>
-            {this.defaultPrerequisiteItems()}
-          </ul>
-          {this.props.children}
+        <ul>
+          {this.defaultPrerequisiteItems()}
+        </ul>
+        {this.props.children}
       </div>
     )
   }

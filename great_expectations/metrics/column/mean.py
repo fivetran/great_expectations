@@ -6,4 +6,6 @@ class ColumnMeanResult(MetricResult[float]): ...
 
 
 class ColumnMean(ColumnMetric[ColumnMeanResult]):
+    """Mean of values in a column"""
+
     name = "column.mean"

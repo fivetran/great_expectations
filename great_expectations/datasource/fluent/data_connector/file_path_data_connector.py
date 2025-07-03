@@ -36,6 +36,15 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+class MissingFilePathTemplateMapFnError(ValueError):
+    def __init__(self):
+        super().__init__(
+            "Converting file paths to fully-qualified object references for "
+            f"`{self.__class__.__name__}` requires "
+            "`file_path_template_map_fn: Callable` to be set."
+        )
+
+
 class FilePathDataConnector(DataConnector):
     """The base class for Data Connectors designed to access filesystem-like data.
 

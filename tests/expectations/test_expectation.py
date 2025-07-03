@@ -467,26 +467,29 @@ def test_expectation_equality_ignores_rendered_content():
     "expectation_a, expectation_b, expected_result",
     [
         pytest.param(
-            gxe.ExpectColumnValuesToBeBetween(column="foo"), {}, False, id="different_objects"
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
+            {},
+            False,
+            id="different_objects",
         ),
         pytest.param(
             gxe.ExpectColumnDistinctValuesToBeInSet(column="bar", value_set=[1, 2, 3]),
-            gxe.ExpectColumnValuesToBeBetween(column="foo"),
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
             True,
             id="different_expectation_types",
         ),
         pytest.param(
-            gxe.ExpectColumnValuesToBeBetween(column="foo"),
-            gxe.ExpectColumnValuesToBeBetween(column="foo"),
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
+            gxe.ExpectColumnValuesToBeBetween(column="foo", min_value=0),
             False,
             id="equivalent_expectations",
         ),
         pytest.param(
             gxe.ExpectColumnValuesToBeBetween(
-                column="foo", id="bbbe648e-0a43-431b-81a0-04e68f1473ae"
+                column="foo", min_value=0, id="bbbe648e-0a43-431b-81a0-04e68f1473ae"
             ),
             gxe.ExpectColumnValuesToBeBetween(
-                column="foo", id="aaae648e-0a43-431b-81a0-04e68f1473ae"
+                column="foo", min_value=0, id="aaae648e-0a43-431b-81a0-04e68f1473ae"
             ),
             False,
             id="equiv_expectations_with_ids",
@@ -500,10 +503,10 @@ def test_expectations___lt__(expectation_a, expectation_b, expected_result):
 @pytest.mark.unit
 def test_expectation_sorting():
     expectation_a = gxe.ExpectColumnValuesToBeBetween(
-        column="foo", id="80b6d508-a843-426e-97c0-7ff64d35ac04"
+        column="foo", min_value=0, id="80b6d508-a843-426e-97c0-7ff64d35ac04"
     )
     expectation_b = gxe.ExpectColumnValuesToBeBetween(
-        column="foo", id="4cd1e63a-880b-46ea-93e8-c11636df18b8"
+        column="foo", min_value=0, id="4cd1e63a-880b-46ea-93e8-c11636df18b8"
     )
     expectation_c = gxe.ExpectTableColumnCountToBeBetween()
     expectation_d = gxe.ExpectColumnMaxToBeBetween(column="foo", min_value=0, max_value=10)
@@ -567,18 +570,96 @@ class TestCustomAnnotatedFields:
             _SampleExpectation(mostly=mostly, value_set=[1, 2, 3])
 
     @pytest.mark.parametrize(
-        "value_set",
+        "value_set,expected_value",
         [
-            ["a"],
-            [1],
-            {"a"},
-            {1},
-            [1, 2, 3],
-            ["a", "b", "c"],
-            {"$PARAMETER": "my_param"},
+            (["a"], ["a"]),
+            ([1], [1]),
+            ({"a"}, ["a"]),
+            ({1}, [1]),
+            ([1, 2, 3], [1, 2, 3]),
+            (["a", "b", "c"], ["a", "b", "c"]),
+            ({"$PARAMETER": "my_param"}, {"$PARAMETER": "my_param"}),
         ],
     )
     @pytest.mark.unit
-    def test_valid_value_set_values(self, value_set: Union[Sequence, set]):
+    def test_valid_value_set_values(self, value_set: Union[Sequence, set], expected_value: Any):
         expectation = _SampleExpectation(mostly=1, value_set=value_set)
-        assert expectation.value_set == value_set
+        assert expectation.value_set == expected_value
+
+    @pytest.mark.parametrize(
+        "input_value,expected_type",
+        [
+            ({"1", "2", "3"}, list),
+            (("1", "2", "3"), list),
+            (["1", "2", "3"], list),
+            ({"$PARAMETER": "my_param"}, dict),
+        ],
+    )
+    @pytest.mark.unit
+    def test_value_set_field_converts_to_list(self, input_value: Any, expected_type: type) -> None:
+        expectation = _SampleExpectation(mostly=1, value_set=input_value)
+        assert isinstance(expectation.value_set, expected_type)
+
+
+class TestExpectationHash:
+    @pytest.mark.unit
+    def test_hash_consistency_with_equality(self):
+        expectation1 = gxe.ExpectColumnValuesToNotBeNull(
+            column="test_column", mostly=0.95, meta={"test": "value"}, notes="test notes"
+        )
+        expectation2 = gxe.ExpectColumnValuesToNotBeNull(
+            column="test_column", mostly=0.95, meta={"test": "value"}, notes="test notes"
+        )
+
+        assert expectation1 == expectation2
+        assert hash(expectation1) == hash(expectation2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_columns(self):
+        expectation1 = gxe.ExpectColumnValuesToNotBeNull(column="test_column_1")
+        expectation2 = gxe.ExpectColumnValuesToNotBeNull(column="test_column_2")
+
+        assert expectation1 != expectation2
+        assert hash(expectation1) != hash(expectation2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_mostly(self):
+        expectation1 = gxe.ExpectColumnValuesToNotBeNull(column="test_column", mostly=0.95)
+        expectation2 = gxe.ExpectColumnValuesToNotBeNull(column="test_column", mostly=0.90)
+
+        assert expectation1 != expectation2
+        assert hash(expectation1) != hash(expectation2)
+
+    @pytest.mark.unit
+    def test_hash_different_for_different_meta(self):
+        expectation1 = gxe.ExpectColumnValuesToNotBeNull(
+            column="test_column", meta={"test": "value1"}
+        )
+        expectation2 = gxe.ExpectColumnValuesToNotBeNull(
+            column="test_column", meta={"test": "value2"}
+        )
+
+        assert expectation1 != expectation2
+        assert hash(expectation1) != hash(expectation2)
+
+    @pytest.mark.unit
+    def test_hash_excludes_rendered_content(self):
+        expectation1 = gxe.ExpectColumnValuesToNotBeNull(column="test_column")
+        expectation2 = gxe.ExpectColumnValuesToNotBeNull(column="test_column")
+
+        expectation1.render()
+
+        assert expectation1 == expectation2
+        assert hash(expectation1) == hash(expectation2)
+
+    @pytest.mark.unit
+    def test_hash_stable_across_runs(self):
+        expectation = gxe.ExpectColumnValuesToNotBeNull(
+            column="test_column", mostly=0.95, meta={"test": "value"}, notes="test notes"
+        )
+
+        hash1 = hash(expectation)
+        hash2 = hash(expectation)
+        hash3 = hash(expectation)
+
+        assert hash1 == hash2 == hash3

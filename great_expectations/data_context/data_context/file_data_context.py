@@ -98,8 +98,10 @@ class FileDataContext(SerializableDataContext):
         # The former corresponds to the root of the user's project while the latter
         # encapsulates any config (in the form of a great_expectations/ directory).
         project_root_dir = pathlib.Path(self._context_root_directory).parent
+        relative_context_dir = pathlib.Path(self._context_root_directory).name
         self._scaffold(
             project_root_dir=project_root_dir,
+            context_root_dir_name=relative_context_dir,
         )
 
     @override

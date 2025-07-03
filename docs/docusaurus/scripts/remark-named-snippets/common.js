@@ -10,5 +10,5 @@ function getDirs () {
 }
 
 module.exports = {
-    getDirs,
+  getDirs
 }

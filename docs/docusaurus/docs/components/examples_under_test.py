@@ -47,16 +47,6 @@ create_a_data_context = [
         # data_context_dir="",
         backend_dependencies=[],
     ),
-    # TODO: Re-enable this once a --docs-tests-cloud environment is available.
-    # IntegrationTestFixture(
-    #     # To test, run:
-    #     # pytest --docs-tests --cloud -k "create_a_cloud_data_context" tests/integration/test_script_runner.py
-    #     name="create_a_cloud_data_context",
-    #     user_flow_script="docs/docusaurus/docs/core/set_up_a_gx_environment/_create_a_data_context/cloud_data_context.py",
-    #     # data_dir="",
-    #     # data_context_dir="",
-    #     backend_dependencies=[],
-    # ),
     IntegrationTestFixture(
         # To test, run:
         # pytest --docs-tests -k "create_a_file_data_context" tests/integration/test_script_runner.py
@@ -495,6 +485,15 @@ docs_examples_customize_expectations = [
         # pytest --docs-tests -k "docs_example_use_sql_to_define_a_custom_expectation" tests/integration/test_script_runner.py
         name="docs_example_use_sql_to_define_a_custom_expectation",
         user_flow_script="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py",
+        data_dir="tests/test_sets/taxi_yellow_tripdata_samples/sqlite",
+        # data_context_dir="",
+        backend_dependencies=[],
+    ),
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "docs_example_define_a_multi_source_expectation" tests/integration/test_script_runner.py
+        name="docs_example_define_a_multi_source_expectation",
+        user_flow_script="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_multi_source_expectation.py",
         data_dir="tests/test_sets/taxi_yellow_tripdata_samples/sqlite",
         # data_context_dir="",
         backend_dependencies=[],

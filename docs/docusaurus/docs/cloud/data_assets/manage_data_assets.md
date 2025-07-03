@@ -20,11 +20,11 @@ To add a Data Asset from an existing Data Source, complete the following steps:
 
 2. In the **Existing Data Source** tab, select the relevant Data Source.
 
-3. Select one or more tables to import as Data Assets.
+3. Select one or more tables or views to import as Data Assets.
 
 4. Click **Add x Asset(s)**.
 
-5. Decide which [common data quality issues](/docs/cloud/overview/automating_rules.md#monitoring-common-issues) you want to start monitoring. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** issues. You can de-select recommendations you’d like to opt out of.
+5. Decide which [Anomaly Detection](/docs/cloud/overview/automating_rules.md#anomaly-detection) options you want to enable. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
 
 6. Click **Start monitoring** or **Finish**.
 
@@ -104,4 +104,4 @@ To connect to your Data Source in GX Cloud, there are two methods for managing c
 
    When running the GX Agent in another container-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
 
-   When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Core Python client is running.
+   When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Cloud API Python client is running.

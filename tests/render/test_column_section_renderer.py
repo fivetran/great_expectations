@@ -4,17 +4,13 @@ from collections import OrderedDict
 import pytest
 
 import great_expectations.expectations as gxe
-from great_expectations.core import (
-    ExpectationSuite,
-)
+from great_expectations.core import ExpectationSuite
 from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
     ExpectationValidationResult,
 )
 from great_expectations.data_context.util import file_relative_path
-from great_expectations.expectations.expectation import (
-    Expectation,
-)
+from great_expectations.expectations.expectation import Expectation
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
@@ -1242,7 +1238,7 @@ def test_ValidationResultsColumnSectionRenderer_render_table(
         in content_block_stringified
     )
     assert "may have any number of unique values." in content_block_stringified
-    assert "may have any fraction of unique values." in content_block_stringified
+    assert "may have any proportion of unique values." in content_block_stringified
     assert (
         "values must not be null, at least $mostly_pct % of the time." in content_block_stringified
     )

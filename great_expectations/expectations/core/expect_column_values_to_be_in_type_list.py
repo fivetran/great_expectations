@@ -23,7 +23,7 @@ from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
 from great_expectations.expectations.registry import get_metric_kwargs
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
@@ -59,7 +59,14 @@ TYPE_LIST_DESCRIPTION = """
     A list of strings representing the data type that each column should have as entries. \
     Valid types are defined by the current backend implementation and are dynamically loaded.
     """
-SUPPORTED_DATA_SOURCES = ["Spark", "SQLite", "PostgreSQL", "MSSQL", "BigQuery"]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 DATA_QUALITY_ISSUES = [DataQualityIssues.SCHEMA.value]
 
 
@@ -307,7 +314,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
     @override
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
-    def _prescriptive_renderer(
+    def _prescriptive_renderer(  # noqa: C901, PLR0912
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
@@ -327,9 +334,10 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                 params[f"v__{i!s}"] = v
             values_string = " ".join([f"$v__{i!s}" for i, v in enumerate(params["type_list"])])
 
-            if params["mostly"] is not None and params["mostly"] < 1.0:
-                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
+            if params["mostly"] is not None:
+                if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                    params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                    # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 if include_column_name:
                     template_str = (
                         "$column value types must belong to this set: "

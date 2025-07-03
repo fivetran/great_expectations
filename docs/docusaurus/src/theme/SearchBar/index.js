@@ -5,8 +5,7 @@ import { useHistory } from '@docusaurus/router'
 import { useBaseUrlUtils } from '@docusaurus/useBaseUrl'
 import Link from '@docusaurus/Link'
 import Head from '@docusaurus/Head'
-import { isRegexpStringMatch } from '@docusaurus/theme-common'
-import { useSearchLinkCreator } from '@docusaurus/theme-common'
+import { isRegexpStringMatch, useSearchLinkCreator } from '@docusaurus/theme-common'
 import { DocSearchButton, useDocSearchKeyboardEvents } from '@docsearch/react'
 import { useAlgoliaContextualFacetFilters } from '@docusaurus/theme-search-algolia/client'
 import Translate from '@docusaurus/Translate'
@@ -17,7 +16,7 @@ const aa = require('search-insights')
 aa('init', {
   appId: 'PFK639M3JK',
   apiKey: 'fc3e3b1588b46d8d476aca9c1cadd53f',
-  useCookie: true,
+  useCookie: true
 })
 function Hit ({ hit, children }) {
   return <Link to={hit.url}>{children}</Link>
@@ -25,16 +24,16 @@ function Hit ({ hit, children }) {
 function ResultsFooter ({ state, onClose }) {
   const makeLink = useSearchLinkCreator(state.query)
   return (
-     <Link to={makeLink(state.query)} onClick={onClose}>
-       <Translate
-         id='theme.SearchBar.seeAll'
-         values={{ count: state.context.nbHits }}
-       >
-         {'See all {count} results'}
-       </Translate>
-     </Link>
-   )
-  }
+    <Link to={makeLink(state.query)} onClick={onClose}>
+      <Translate
+        id='theme.SearchBar.seeAll'
+        values={{ count: state.context.nbHits }}
+      >
+        {'See all {count} results'}
+      </Translate>
+    </Link>
+  )
+}
 function mergeFacetFilters (f1, f2) {
   const normalize = (f) => (typeof f === 'string' ? [f] : f)
   return [...normalize(f1), ...normalize(f2)]
@@ -45,7 +44,7 @@ function DocSearch ({ contextualSearch, externalUrlRegex, ...props }) {
   const configFacetFilters = props.searchParameters?.facetFilters ?? []
   const facetFilters = contextualSearch
     ? // Merge contextual search filters with config filters
-      mergeFacetFilters(contextualSearchFacetFilters, configFacetFilters)
+    mergeFacetFilters(contextualSearchFacetFilters, configFacetFilters)
     : // ... or use config facetFilters
     configFacetFilters
   // We let user override default searchParameters if she wants to
@@ -178,10 +177,10 @@ function DocSearch ({ contextualSearch, externalUrlRegex, ...props }) {
             transformItems={transformItems}
             hitComponent={Hit}
             transformSearchClient={transformSearchClient}
-            {...(props.searchPagePath
-               && {
-              resultsFooterComponent
-            }
+            {...(props.searchPagePath &&
+               {
+                 resultsFooterComponent
+               }
             )}
             {...props}
             searchParameters={searchParameters}

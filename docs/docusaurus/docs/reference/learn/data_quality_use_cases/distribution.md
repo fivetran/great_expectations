@@ -34,10 +34,10 @@ In this dataset, `purchase_amount` represents the amount spent by customers in v
 
 ## Key distribution Expectations
 
-GX offers a collection of Expectations used to validate data distribution. These Expectations can be added via the GX Cloud UI or using the GX Core Python library.
+GX Cloud and GX Core both offer a collection of Expectations used to validate data distribution.
 
 :::note[Distribution Expectation availability]
-`ExpectColumnKLDivergenceToBeLessThan` and `ExpectColumnQuantileValuesToBeBetween` can be added to a GX Cloud deployment, but currently must be added using the GX API instead of the GX Cloud UI.
+`ExpectColumnKLDivergenceToBeLessThan` and `ExpectColumnQuantileValuesToBeBetween` can be added to a GX Cloud deployment, but currently must be added using the GX Cloud API instead of the GX Cloud UI.
 :::
 
 

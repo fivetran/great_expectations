@@ -55,7 +55,7 @@ def pandas_execution_engine_fake(
             }
 
     PandasExecutionEngineFake.__name__ = "PandasExecutionEngine"
-    return cast(ExecutionEngine, PandasExecutionEngineFake())
+    return cast("ExecutionEngine", PandasExecutionEngineFake())
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def validation_graph_with_no_edges() -> ValidationGraph:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     return ValidationGraph(execution_engine=execution_engine, edges=None)
 
@@ -81,7 +81,7 @@ def validation_graph_with_single_edge(metric_edge: MetricEdge) -> ValidationGrap
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     return ValidationGraph(execution_engine=execution_engine, edges=[metric_edge])
 
@@ -125,7 +125,7 @@ def expect_column_value_z_scores_to_be_less_than_expectation_validation_graph():
         pass
 
     PandasExecutionEngineStub.__name__ = "PandasExecutionEngine"
-    execution_engine = cast(ExecutionEngine, PandasExecutionEngineStub())
+    execution_engine = cast("ExecutionEngine", PandasExecutionEngineStub())
 
     expectation_configuration = ExpectationConfiguration(
         type="expect_column_value_z_scores_to_be_less_than",
@@ -158,7 +158,7 @@ def test_ValidationGraph_init_no_input_edges() -> None:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -173,7 +173,7 @@ def test_ValidationGraph_init_with_input_edges(
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     edges = [metric_edge]
     graph = ValidationGraph(execution_engine=execution_engine, edges=edges)
@@ -187,7 +187,7 @@ def test_ValidationGraph_add(metric_edge: MetricEdge) -> None:
     class DummyExecutionEngine:
         pass
 
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -332,7 +332,7 @@ def test_populate_dependencies_with_incorrect_metric_name():
         pass
 
     PandasExecutionEngineStub.__name__ = "PandasExecutionEngine"
-    execution_engine = cast(ExecutionEngine, PandasExecutionEngineStub())
+    execution_engine = cast("ExecutionEngine", PandasExecutionEngineStub())
 
     graph = ValidationGraph(execution_engine=execution_engine)
 
@@ -432,8 +432,8 @@ def test_progress_bar_config(
     class DummyExecutionEngine:
         pass
 
-    metric_configuration = cast(MetricConfiguration, DummyMetricConfiguration)
-    execution_engine = cast(ExecutionEngine, DummyExecutionEngine)
+    metric_configuration = cast("MetricConfiguration", DummyMetricConfiguration)
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
 
     # ValidationGraph is a complex object that requires len > 3 to not trigger tqdm
     with (
@@ -477,6 +477,109 @@ def test_progress_bar_config(
         _resolved_metrics, _aborted_metrics_info = graph.resolve(**call_args)
         assert mock_tqdm.called is True
         assert mock_tqdm.call_args[1]["disable"] is are_progress_bars_disabled
+
+
+@pytest.mark.unit
+def test_validation_graph_hash_consistency_with_equality():
+    class DummyExecutionEngine:
+        pass
+
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
+
+    graph1 = ValidationGraph(execution_engine=execution_engine)
+    graph2 = ValidationGraph(execution_engine=execution_engine)
+
+    assert graph1 == graph2
+    assert hash(graph1) == hash(graph2)
+
+
+@pytest.mark.unit
+def test_validation_graph_hash_different_for_different_edges(metric_edge):
+    class DummyExecutionEngine:
+        pass
+
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
+
+    graph1 = ValidationGraph(execution_engine=execution_engine)
+    graph2 = ValidationGraph(execution_engine=execution_engine, edges=[metric_edge])
+
+    assert graph1 != graph2
+    assert hash(graph1) != hash(graph2)
+
+
+@pytest.mark.unit
+def test_validation_graph_hash_stable_across_runs():
+    class DummyExecutionEngine:
+        pass
+
+    execution_engine = cast("ExecutionEngine", DummyExecutionEngine)
+
+    graph = ValidationGraph(execution_engine=execution_engine)
+
+    hash1 = hash(graph)
+    hash2 = hash(graph)
+    hash3 = hash(graph)
+
+    assert hash1 == hash2 == hash3
+
+
+@pytest.mark.unit
+def test_expectation_validation_graph_hash_consistency_with_equality(
+    expect_column_values_to_be_unique_expectation_config,
+    validation_graph_with_no_edges,
+):
+    graph1 = ExpectationValidationGraph(
+        configuration=expect_column_values_to_be_unique_expectation_config,
+        graph=validation_graph_with_no_edges,
+    )
+    graph2 = ExpectationValidationGraph(
+        configuration=expect_column_values_to_be_unique_expectation_config,
+        graph=validation_graph_with_no_edges,
+    )
+
+    assert graph1 == graph2
+    assert hash(graph1) == hash(graph2)
+
+
+@pytest.mark.unit
+def test_expectation_validation_graph_hash_different_for_different_configurations(
+    validation_graph_with_no_edges,
+):
+    config1 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null", kwargs={"column": "test_column_1"}
+    )
+    config2 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null", kwargs={"column": "test_column_2"}
+    )
+
+    graph1 = ExpectationValidationGraph(
+        configuration=config1,
+        graph=validation_graph_with_no_edges,
+    )
+    graph2 = ExpectationValidationGraph(
+        configuration=config2,
+        graph=validation_graph_with_no_edges,
+    )
+
+    assert graph1 != graph2
+    assert hash(graph1) != hash(graph2)
+
+
+@pytest.mark.unit
+def test_expectation_validation_graph_hash_stable_across_runs(
+    expect_column_values_to_be_unique_expectation_config,
+    validation_graph_with_no_edges,
+):
+    graph = ExpectationValidationGraph(
+        configuration=expect_column_values_to_be_unique_expectation_config,
+        graph=validation_graph_with_no_edges,
+    )
+
+    hash1 = hash(graph)
+    hash2 = hash(graph)
+    hash3 = hash(graph)
+
+    assert hash1 == hash2 == hash3
 
 
 if __name__ == "__main__":

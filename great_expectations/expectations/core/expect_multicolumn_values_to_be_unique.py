@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Union
 
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
@@ -70,7 +73,7 @@ class ExpectMulticolumnValuesToBeUnique(ColumnMapExpectation):
     """  # noqa: E501 # FIXME CoP
 
     column_list: Union[tuple, list]
-    ignore_row_if: str = "all_values_are_missing"
+    ignore_row_if: Union[str, SuiteParameterDict] = "all_values_are_missing"
 
     library_metadata = {
         "maturity": "production",

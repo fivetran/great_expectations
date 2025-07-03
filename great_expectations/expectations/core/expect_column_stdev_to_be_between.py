@@ -3,13 +3,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -44,18 +47,19 @@ STRICT_MIN_DESCRIPTION = (
 STRICT_MAX_DESCRIPTION = (
     "If True, the column standard deviation must be strictly smaller than max_value."
 )
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-]
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 
 
 class ExpectColumnStdevToBeBetween(ColumnAggregateExpectation):
@@ -182,8 +186,12 @@ class ExpectColumnStdevToBeBetween(ColumnAggregateExpectation):
     max_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
-    strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
-    strict_max: bool = pydantic.Field(default=False, description=STRICT_MAX_DESCRIPTION)
+    strict_min: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MIN_DESCRIPTION
+    )
+    strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MAX_DESCRIPTION
+    )
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

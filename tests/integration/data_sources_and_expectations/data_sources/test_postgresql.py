@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations import get_context
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
 from tests.integration.test_utils.data_source_config.postgres import PostgresBatchTestSetup
@@ -44,6 +45,7 @@ class TestPostgresqlDataTypes:
             ),
             data=self.DATA_FRAME,
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
         with batch_setup.batch_test_context() as batch:
@@ -68,6 +70,7 @@ class TestPostgresqlDataTypes:
             config=PostgreSQLDatasourceTestConfig(column_types={self.DATE_COL_NAME: col_type}),
             data=self.DATA_FRAME,
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
         with batch_setup.batch_test_context() as batch:
@@ -97,6 +100,7 @@ class TestPostgresqlDataTypes:
             config=PostgreSQLDatasourceTestConfig(column_types={self.NUMERIC_COL_NAME: col_type}),
             data=self.DATA_FRAME,
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
         with batch_setup.batch_test_context() as batch:
@@ -121,6 +125,7 @@ class TestPostgresqlDataTypes:
             config=PostgreSQLDatasourceTestConfig(column_types={self.STRING_COL_NAME: col_type}),
             data=self.DATA_FRAME,
             extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
         with batch_setup.batch_test_context() as batch:

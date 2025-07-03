@@ -1,11 +1,11 @@
-import React from 'react';
-import ColorModeToggle from '@theme-original/Navbar/ColorModeToggle';
-import styles from './styles.module.scss';
+import React from 'react'
+import ColorModeToggle from '@theme-original/Navbar/ColorModeToggle'
+import styles from './styles.module.scss'
 
-export default function ColorModeToggleWrapper(props) {
+export default function ColorModeToggleWrapper (props) {
   return (
-      <div className={styles.hidden}>
-        <ColorModeToggle {...props} />
-      </div>
-  );
+    <div className={styles.hidden}>
+      <ColorModeToggle {...props} />
+    </div>
+  )
 }

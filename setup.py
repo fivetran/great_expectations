@@ -1,14 +1,38 @@
 import os
 import re
 from pathlib import Path
+from typing import List
 
-# https://setuptools.pypa.io/en/latest/pkg_resources.html
-import pkg_resources  # noqa: TID251: TODO: switch to poetry
 from setuptools import find_packages, setup
 
 import versioneer
 
 SUPPORTED_PYTHON = ">=3.9,<3.13"
+
+
+def parse_requirements(file_path: Path) -> List[str]:
+    """
+    Requirements parser that doesn't depend on pip internals.
+    This avoids circular dependencies during package build.
+
+    Args:
+        file_path: Path to the requirements file to parse
+
+    Returns:
+        List of requirement strings with comments and empty lines removed
+    """
+    requirements = []
+    with open(file_path) as f:
+        for line in f:
+            cleaned_line = line.strip()
+            # Skip empty lines and comments
+            if cleaned_line and not cleaned_line.startswith("#"):
+                # Remove inline comments
+                requirement_line = cleaned_line
+                if "#" in cleaned_line:
+                    requirement_line = cleaned_line.split("#")[0].strip()
+                requirements.append(requirement_line)
+    return requirements
 
 
 def get_python_requires() -> str:
@@ -30,13 +54,13 @@ def get_extras_require():
         "s3": "boto",
     }
     sqla1x_only_keys = (
-        "bigquery",  # https://github.com/googleapis/python-bigquery-sqlalchemy/blob/main/setup.py
         "clickhouse",  # https://github.com/xzkostyan/clickhouse-sqlalchemy/blob/master/setup.py
         "redshift",  # https://github.com/sqlalchemy-redshift/sqlalchemy-redshift/blob/main/setup.py
         "teradata",  # https://pypi.org/project/teradatasqlalchemy   https://support.teradata.com/knowledge?id=kb_article_view&sys_kb_id=a5a869149729251ced863fe3f153af27
     )
     sqla_keys = (
         "athena",  # https://github.com/laughingman7743/PyAthena/blob/master/pyproject.toml
+        "bigquery",  # https://github.com/googleapis/python-bigquery-sqlalchemy/blob/main/setup.py
         "dremio",  # https://github.com/narendrans/sqlalchemy_dremio/blob/master/setup.py
         "hive",  # https://github.com/dropbox/PyHive/blob/master/setup.py
         "mssql",  # https://github.com/mkleehammer/pyodbc/blob/master/setup.py
@@ -46,6 +70,7 @@ def get_extras_require():
         "vertica",  # https://github.com/bluelabsio/sqlalchemy-vertica-python/blob/master/setup.py
         "databricks",  # https://github.com/databricks/databricks-sql-python/blob/main/pyproject.toml
         "snowflake",  # https://github.com/snowflakedb/snowflake-sqlalchemy/blob/main/setup.cfg
+        "gx-redshift",  # https://github.com/great-expectations/sqlalchemy-redshift/blob/main/setup.py
     )
     ignore_keys = (
         "sqlalchemy",
@@ -70,9 +95,9 @@ def get_extras_require():
         key = match.group(1)
         if key in ignore_keys:
             continue
-        with open(file_path) as f:
-            parsed = [str(req) for req in pkg_resources.parse_requirements(f)]
-            results[key] = parsed
+
+        parsed = parse_requirements(file_path)
+        results[key] = parsed
 
     lite = results.pop("lite")
     contrib = results.pop("contrib")
@@ -115,7 +140,12 @@ config = {
     "install_requires": required,
     "extras_require": get_extras_require(),
     "packages": find_packages(exclude=["contrib*", "docs*", "tests*", "examples*", "scripts*"]),
-    "package_data": {"great_expectations": ["**/py.typed", "**/*.pyi"]},
+    "package_data": {
+        "great_expectations": [
+            "**/py.typed",
+            "**/*.pyi",
+        ]
+    },
     "name": "great_expectations",
     "long_description": long_description,
     "license": "Apache-2.0",
@@ -139,4 +169,5 @@ config = {
     ],
 }
 
-setup(**config)
+if __name__ == "__main__":
+    setup(**config)

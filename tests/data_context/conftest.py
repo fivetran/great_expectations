@@ -414,7 +414,7 @@ def mock_http_unavailable(mock_response_factory: Callable):
         patch=unittest.mock.DEFAULT,
         delete=unittest.mock.DEFAULT,
     ) as mock_requests:
-        for name, mock in cast(Dict[str, Mock], mock_requests).items():
+        for name, mock in cast("Dict[str, Mock]", mock_requests).items():
             mock.side_effect = mocked_response
             print(f"Mocking `requests.{name}` with `{mocked_response.__name__}()`")
 

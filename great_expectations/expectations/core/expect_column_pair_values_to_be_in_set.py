@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from typing import Any, ClassVar, Dict, List, Literal, Tuple, Type, Union
 
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -16,18 +19,18 @@ EXPECTATION_SHORT_DESCRIPTION = (
     "Expect the paired values from columns A and B to belong to a set of valid pairs."
 )
 VALUE_PAIRS_SET_DESCRIPTION = "All the valid pairs to be matched."
-SUPPORTED_DATA_SOURCES = ["Snowflake", "PostgreSQL"]
 DATA_QUALITY_ISSUES = [DataQualityIssues.VALIDITY.value]
 
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 
 
@@ -77,6 +80,7 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -162,10 +166,11 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    value_pairs_set: List[Tuple[Any, Any]]
-    ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
-        "both_values_are_missing"
-    )
+    value_pairs_set: Union[List[Tuple[Any, Any]], SuiteParameterDict]
+    ignore_row_if: Union[
+        Literal["both_values_are_missing", "either_value_is_missing", "neither"],
+        SuiteParameterDict,
+    ] = "both_values_are_missing"
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

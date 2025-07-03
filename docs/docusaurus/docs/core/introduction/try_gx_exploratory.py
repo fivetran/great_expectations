@@ -50,6 +50,7 @@ expectation = gx.expectations.ExpectColumnValuesToBeBetween(
 # Validate Batch using Expectation.
 # <snippet name="docs/docusaurus/docs/core/introduction/try_gx_exploratory.py validate batch">
 validation_result = batch.validate(expectation)
+print(validation_result)
 # </snippet>
 
 # </snippet>

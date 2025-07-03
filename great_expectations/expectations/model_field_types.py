@@ -1,6 +1,6 @@
-from typing import Literal, Sequence, Union, get_args
+from typing import List, Literal, Union, get_args
 
-from great_expectations.compatibility import pydantic
+from great_expectations.compatibility.pydantic import Field
 from great_expectations.compatibility.typing_extensions import Annotated
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # used in pydantic validation
@@ -12,7 +12,7 @@ from great_expectations.expectations.model_field_descriptions import (
 
 MostlyField = Annotated[
     Union[float, SuiteParameterDict],
-    pydantic.Field(
+    Field(
         description=MOSTLY_DESCRIPTION,
         ge=0.0,
         le=1.0,
@@ -22,8 +22,8 @@ MostlyField = Annotated[
 ]
 
 ValueSetField = Annotated[
-    Union[Sequence, set, SuiteParameterDict],
-    pydantic.Field(
+    Union[List, SuiteParameterDict],
+    Field(
         title="Value Set",
         description=VALUE_SET_DESCRIPTION,
         schema_overrides={
