@@ -14,6 +14,15 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.4
+* [BUGFIX] B/gx 1174/generalize schema expectation ([#11272](https://github.com/great-expectations/great_expectations/pull/11272))
+* [BUGFIX] Fix renderer for ExpectTableColumnsToMatchSet ([#11281](https://github.com/great-expectations/great_expectations/pull/11281))
+* [DOCS] Anomaly Detection: Expectation drawer and model ([#11234](https://github.com/great-expectations/great_expectations/pull/11234))
+* [DOCS] Clarify integration support policy page ([#11247](https://github.com/great-expectations/great_expectations/pull/11247))
+* [MAINTENANCE] Remove TableFactory from cloud e2e ([#11274](https://github.com/great-expectations/great_expectations/pull/11274))
+* [MAINTENANCE] Bump ruff to 0.12.0 ([#11263](https://github.com/great-expectations/great_expectations/pull/11263))
+* [MAINTENANCE] convert Snowflake & Databricks integration tests to parameterize_batch_for_data_sources ([#11277](https://github.com/great-expectations/great_expectations/pull/11277))
+
 ### 1.5.3
 * [BUGFIX] Make ExpectTableColumnsToMatchSet case insensitive ([#11266](https://github.com/great-expectations/great_expectations/pull/11266))
 * [DOCS] ExpectColumnProportionOfNonNullValuesToBeBetween (#11245) ([#11257](https://github.com/great-expectations/great_expectations/pull/11257))

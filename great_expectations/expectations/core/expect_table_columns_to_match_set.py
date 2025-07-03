@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Set, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
@@ -8,7 +8,6 @@ from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
 from great_expectations.exceptions.exceptions import InvalidSetTypeError
-from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -42,7 +41,11 @@ if TYPE_CHECKING:
 
 
 EXPECTATION_SHORT_DESCRIPTION = "Expect the columns in a table to match an unordered set."
-COLUMN_SET_DESCRIPTION = "The column names, in any order."
+COLUMN_SET_DESCRIPTION = (
+    "The column names, in any order. In SQL datasources, if the column names are "
+    "double quoted, for example '\"column_name\"', a case sensitive match is "
+    "done. Otherwise a case insensitive match is done."
+)
 EXACT_MATCH_DESCRIPTION = (
     "If True, the list of columns must exactly match the observed columns. "
     "If False, observed columns must include column_set but additional columns will pass."
@@ -368,11 +371,6 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             renderer_configuration=renderer_configuration,
         )
 
-        expected_column_set = set(renderer_configuration.kwargs.get("column_set", []))
-        observed_column_set = set(
-            result.get("result", {}).get("observed_value", []) if result else []
-        )
-
         observed_columns = (
             (name, sch)
             for name, sch in renderer_configuration.params
@@ -383,19 +381,26 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             for name, sch in renderer_configuration.params
             if name.startswith(expected_param_prefix)
         )
+        mismatched_columns = {"unexpected": [], "missing": []}
+        if (
+            "details" in result["result"]
+            and "mismatched" in result["result"]["details"]
+            and result["result"]["details"]["mismatched"]
+        ):
+            mismatched_columns.update(result["result"]["details"]["mismatched"])
 
         template_str_list = []
         for name, schema in observed_columns:
             render_state = (
-                ObservedValueRenderState.EXPECTED.value
-                if schema.value in expected_column_set
-                else ObservedValueRenderState.UNEXPECTED.value
+                ObservedValueRenderState.UNEXPECTED.value
+                if schema.value in mismatched_columns["unexpected"]
+                else ObservedValueRenderState.EXPECTED.value
             )
             renderer_configuration.params.__dict__[name].render_state = render_state
             template_str_list.append(f"${name}")
 
         for name, schema in expected_columns:
-            if schema.value not in observed_column_set:
+            if schema.value in mismatched_columns["missing"]:
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value
@@ -423,111 +428,156 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
         runtime_configuration: Optional[dict] = None,
         execution_engine: Optional[ExecutionEngine] = None,
     ):
-        expected_column_set = _make_column_set_with_execution_engine_type(
-            self._get_success_kwargs().get("column_set"), execution_engine
+        from great_expectations.execution_engine import SqlAlchemyExecutionEngine
+
+        if isinstance(execution_engine, SqlAlchemyExecutionEngine):
+            return self._validate_sqlalchemy(metrics)
+
+        # Retrieve expected and observed column names
+        expected_column_list = self._get_success_kwargs().get("column_set")
+        expected_column_set = (
+            set(expected_column_list) if expected_column_list is not None else set()
         )
         actual_column_list = metrics.get("table.columns")
         actual_column_set = set(actual_column_list)
-        exact_match = self._get_success_kwargs().get("exact_match")
 
-        if (
-            (expected_column_set is None) and (exact_match is not True)
-        ) or actual_column_set == expected_column_set:
-            return {"success": True, "result": {"observed_value": actual_column_list}}
-        else:
-            # Convert to lists and sort to lock order for testing and output rendering
-            # unexpected_list contains items from the dataset columns that are not in expected_column_set  # noqa: E501 # FIXME CoP
-            unexpected_list = sorted(list(actual_column_set - expected_column_set))
-            # missing_list contains items from expected_column_set that are not in the dataset columns  # noqa: E501 # FIXME CoP
-            missing_list = sorted(list(expected_column_set - actual_column_set))
-            # observed_value contains items that are in the dataset columns
-            observed_value = sorted(actual_column_list)
+        unmatched_actual_column_set = actual_column_set - expected_column_set
+        unmatched_expected_column_set = expected_column_set - actual_column_set
+        return _validate_result(
+            actual_column_set,
+            expected_column_set,
+            unmatched_actual_column_set,
+            unmatched_expected_column_set,
+            self._get_success_kwargs().get("exact_match"),
+        )
 
-            mismatched = {}
-            if len(unexpected_list) > 0:
-                mismatched["unexpected"] = unexpected_list
-            if len(missing_list) > 0:
-                mismatched["missing"] = missing_list
+    def _validate_sqlalchemy(self, metrics: Dict):
+        # We want to match the expected columns with the actual columns. We first break up the
+        # expected columns into 2 sets, the quoted columns which must match exactly and the unquoted
+        # columns, which we case insensitive match.
+        expected_column_set = set(self._get_success_kwargs().get("column_set"))
+        quoted_expected_column_set = set()
+        unquoted_expected_column_set = set()
+        for col in expected_column_set:
+            if col.startswith('"') and col.endswith('"'):
+                quoted_expected_column_set.add(col[1:-1])
+            else:
+                unquoted_expected_column_set.add(col)
 
-            result = {
-                "observed_value": observed_value,
-                "details": {"mismatched": mismatched},
-            }
+        # The actual columns from the db will be unquoted and may be strs or CaseInsensitiveStrings.
+        # We normalize the actual_column_list to CaseInsensitiveStrings so we can use set operations
+        # going forward.
+        actual_column_list = metrics.get("table.columns")
+        actual_column_set = _make_case_insensitive_set(actual_column_list)
 
-            return_success = {
-                "success": True,
-                "result": result,
-            }
-            return_failed = {
-                "success": False,
-                "result": result,
-            }
+        # We make copies of the expected and actual column sets and remove items from them as we
+        # find matches between the 2 sets.
+        unmatched_expected_column_set = expected_column_set.copy()
+        unmatched_actual_column_set = actual_column_set.copy()
 
-            if exact_match:
-                return return_failed
-            else:  # noqa: PLR5501 # FIXME CoP
-                # Failed if there are items in the missing list (but OK to have unexpected_list)
-                if len(missing_list) > 0:
-                    return return_failed
-                # Passed if there are no items in the missing list
-                else:
-                    return return_success
+        # We first match quoted strings. The expected set is a set of strs while the actual set
+        # is a set of CaseInsensitiveStrings so we can't use set operations.
+        for col in actual_column_set:
+            if str(col) in quoted_expected_column_set:
+                unmatched_expected_column_set.remove(f'"{col!s}"')
+                unmatched_actual_column_set.remove(col)
+
+        # We normalize the unmatched_expected_column_set to CaseInsensitiveStrings
+        unmatched_expected_column_set = _make_case_insensitive_set(unmatched_expected_column_set)
+
+        # We now do the unquoted match
+        unquoted_expected_column_set = _make_case_insensitive_set(unquoted_expected_column_set)
+        unquoted_matches = unquoted_expected_column_set.intersection(unmatched_actual_column_set)
+
+        # We subtract the unquoted matches from the current unmatched sets to finalize them
+        unmatched_actual_column_set = unmatched_actual_column_set - unquoted_matches
+        unmatched_expected_column_set = unmatched_expected_column_set - unquoted_matches
+
+        return _validate_result(
+            actual_column_set,
+            expected_column_set,
+            unmatched_actual_column_set,
+            unmatched_expected_column_set,
+            self._get_success_kwargs().get("exact_match"),
+        )
 
 
-def _make_column_set_with_execution_engine_type(
-    column_set: Optional[set[str]],
-    execution_engine: Optional[ExecutionEngine],
-) -> set[str]:
+def _make_case_insensitive_set(
+    str_set: Optional[set[str | CaseInsensitiveString]],
+) -> set[CaseInsensitiveString]:
     """
-    Transforms column names in column_set to the appropriate type for the execution_engine.
+    Transforms a set of strs to CaseInsensitiveStrings.
 
     Args:
-        column_set: A set of column names.
-        execution_engine: An execution engine.
+        str_set: A set of strs.
 
     Returns:
-        A set of column names whose type matches the metric table.columns. This type varies
-        based on the execution engine.
+        A set of CaseInsensitiveString.
     """
-    if column_set is None:
+    from great_expectations.expectations.metrics.util import (
+        CaseInsensitiveString,
+    )
+
+    if str_set is None:
         return set()
 
-    dialect = (
-        execution_engine.dialect.name if execution_engine and execution_engine.dialect else None
-    )
-    if dialect and dialect in [
-        GXSqlDialect.DATABRICKS,
-        GXSqlDialect.POSTGRESQL,
-        GXSqlDialect.SNOWFLAKE,
-    ]:
-        # For these dialects, column_set we want to use
-        # The metric column_set will return a set of strs but table.columns will return a list of
-        # CaseInsensitiveStrings. CaseInsensitiveStrings and strs can be equal but have different
-        # hashes which breaks set operations. Since we want to do set operations in a case
-        # insensitive manner, we make the expect_column_set case insensitive.
-        return _make_case_insensitive_set(column_set)
-    else:
-        return set(column_set)
-
-
-def _make_case_insensitive_set(strs: set[str]) -> set[CaseInsensitiveString]:
-    """Creates a set of CaseInsensitiveStrings from a set of strs.
-
-    Args:
-        strs: A set of strs (not CaseInsensitiveStrings).
-
-    Returns:
-        A set of CaseInsensitiveStrings.
-    """
-    # Making a CaseInsentitiveSet data structure would be a more general solution and
-    # if we need to do this type transformation more than once we should make one in
-    # great_expectations/expectations/metrics/util.py.
-    from great_expectations.expectations.metrics.util import CaseInsensitiveString
-
     case_insensitive_strs = set()
-    for s in strs:
-        if isinstance(s, str) and not isinstance(s, CaseInsensitiveString):
+    for s in str_set:
+        if isinstance(s, CaseInsensitiveString):
+            case_insensitive_strs.add(s)
+        elif isinstance(s, str):
             case_insensitive_strs.add(CaseInsensitiveString(s))
         else:
-            raise InvalidSetTypeError("str", str(type(s)))
+            raise InvalidSetTypeError(
+                expected_type="str or CaseInsensitiveString", actual_type=str(type(s))
+            )
     return case_insensitive_strs
+
+
+def _validate_result(
+    actual_column_set: Set[Union[str, CaseInsensitiveString]],
+    expected_column_set: Set[str],
+    unmatched_actual_column_set: Set[Union[str, CaseInsensitiveString]],
+    unmatched_expected_column_set: Set[Union[str, CaseInsensitiveString]],
+    exact_match: bool,
+) -> Dict[str, Any]:
+    empty_set = set()
+    observed_value = sorted([str(col) for col in actual_column_set])
+
+    if ((expected_column_set is None) and (exact_match is not True)) or (
+        unmatched_expected_column_set == empty_set and unmatched_actual_column_set == empty_set
+    ):
+        return {"success": True, "result": {"observed_value": observed_value}}
+    else:
+        unexpected_list = sorted([str(col) for col in unmatched_actual_column_set])
+        missing_list = sorted([str(col) for col in unmatched_expected_column_set])
+
+        mismatched = {}
+        if len(unexpected_list) > 0:
+            mismatched["unexpected"] = unexpected_list
+        if len(missing_list) > 0:
+            mismatched["missing"] = missing_list
+
+        result = {
+            "observed_value": observed_value,
+            "details": {"mismatched": mismatched},
+        }
+
+        return_success = {
+            "success": True,
+            "result": result,
+        }
+        return_failed = {
+            "success": False,
+            "result": result,
+        }
+
+        if exact_match:
+            return return_failed
+        else:  # noqa: PLR5501 # FIXME CoP
+            # Failed if there are items in the missing list (but OK to have unexpected_list)
+            if len(missing_list) > 0:
+                return return_failed
+            # Passed if there are no items in the missing list
+            else:
+                return return_success

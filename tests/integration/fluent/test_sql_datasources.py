@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import pathlib
 import shutil
 import sys
@@ -47,9 +46,7 @@ from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context import EphemeralDataContext
 from great_expectations.datasource.fluent import (
-    DatabricksSQLDatasource,
     PostgresDatasource,
-    SnowflakeDatasource,
     SQLDatasource,
     SqliteDatasource,
 )
@@ -59,6 +56,7 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
     quote_str,
 )
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
+from tests.integration.fluent.conftest import TEST_TABLE_NAME
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -75,8 +73,6 @@ PYTHON_VERSION: Final[Literal["py38", "py39", "py310", "py311"]] = (
 SQLA_VERSION: Final = Version(sqlalchemy_version or "0.0.0")
 LOGGER: Final = logging.getLogger("tests")
 
-TEST_TABLE_NAME: Final[str] = "test_table"
-# trino container ships with default test tables
 TRINO_TABLE: Final[str] = "customer"
 
 # NOTE: can we create tables in trino?
@@ -85,7 +81,7 @@ DO_NOT_CREATE_TABLES: set[str] = {"trino"}
 # sqlite db files should be using fresh tmp_path on every test
 DO_NOT_DROP_TABLES: set[str] = {"sqlite"}
 
-DatabaseType: TypeAlias = Literal["databricks_sql", "postgres", "snowflake", "sqlite", "trino"]
+DatabaseType: TypeAlias = Literal["postgres", "sqlite", "trino"]
 TableNameCase: TypeAlias = Literal[
     "quoted_lower",
     "quoted_mixed",
@@ -115,22 +111,6 @@ TABLE_NAME_MAPPING: Final[Mapping[DatabaseType, Mapping[TableNameCase, str]]] = 
         # "quoted_upper": f"'{TRINO_TABLE.upper()}'",
         # "quoted_mixed": f"'TRINO_TABLE.title()'",
         # "unquoted_mixed": TRINO_TABLE.title(),
-    },
-    "databricks_sql": {
-        "unquoted_lower": TEST_TABLE_NAME.lower(),
-        "quoted_lower": f"`{TEST_TABLE_NAME.lower()}`",
-        "unquoted_upper": TEST_TABLE_NAME.upper(),
-        "quoted_upper": f"`{TEST_TABLE_NAME.upper()}`",
-        "quoted_mixed": f"`{TEST_TABLE_NAME.title()}`",
-        "unquoted_mixed": TEST_TABLE_NAME.title(),
-    },
-    "snowflake": {
-        "unquoted_lower": TEST_TABLE_NAME.lower(),
-        "quoted_lower": f'"{TEST_TABLE_NAME.lower()}"',
-        "unquoted_upper": TEST_TABLE_NAME.upper(),
-        "quoted_upper": f'"{TEST_TABLE_NAME.upper()}"',
-        "quoted_mixed": f'"{TEST_TABLE_NAME.title()}"',
-        # "unquoted_mixed": TEST_TABLE_NAME.title(),
     },
     "sqlite": {
         "unquoted_lower": TEST_TABLE_NAME.lower(),
@@ -314,33 +294,39 @@ COLUMN_DDL: Final[Mapping[ColNameParams, str]] = {
 FAILS_EXPECTATION: Final[Mapping[ColNameParamId, list[DatabaseType]]] = {
     # DDL: unquoted_lower_col ------
     "str unquoted_lower_col": [],
-    'str "unquoted_lower_col"': ["postgres", "snowflake", "sqlite"],
-    "str UNQUOTED_LOWER_COL": ["databricks_sql", "postgres", "sqlite"],
-    'str "UNQUOTED_LOWER_COL"': ["snowflake", "sqlite"],
+    'str "unquoted_lower_col"': ["postgres", "sqlite"],
+    "str UNQUOTED_LOWER_COL": ["postgres", "sqlite"],
+    'str "UNQUOTED_LOWER_COL"': ["sqlite"],
     # DDL: UNQUOTED_UPPER_COL ------
-    "str unquoted_upper_col": ["databricks_sql", "sqlite"],
+    "str unquoted_upper_col": ["sqlite"],
     'str "unquoted_upper_col"': ["postgres", "sqlite"],
     "str UNQUOTED_UPPER_COL": ["postgres"],
-    'str "UNQUOTED_UPPER_COL"': ["postgres", "snowflake", "sqlite"],
+    'str "UNQUOTED_UPPER_COL"': ["postgres", "sqlite"],
     # DDL: "quoted_lower_col" -----
-    'str "quoted_lower_col"': ["postgres", "snowflake", "sqlite"],
-    "str quoted_lower_col": ["snowflake"],
-    "str QUOTED_LOWER_COL": ["databricks_sql", "postgres", "snowflake", "sqlite"],
+    'str "quoted_lower_col"': ["postgres", "sqlite"],
+    "str QUOTED_LOWER_COL": ["postgres", "sqlite"],
     'str "QUOTED_LOWER_COL"': ["sqlite"],
     # DDl: "QUOTED_UPPER_COL" ----
-    "str quoted_upper_col": ["databricks_sql", "sqlite", "postgres"],
+    "str quoted_upper_col": ["sqlite", "postgres"],
     'str "quoted_upper_col"': ["sqlite"],
     "str QUOTED_UPPER_COL": [],
-    'str "QUOTED_UPPER_COL"': ["postgres", "snowflake", "sqlite"],
+    'str "QUOTED_UPPER_COL"': ["postgres", "sqlite"],
     # DDL: "quotedMixed" -----
-    "str quotedmixed": ["databricks_sql", "postgres", "sqlite", "snowflake"],
-    "str quotedMixed": ["snowflake"],
-    'str "quotedMixed"': ["databricks_sql", "postgres", "sqlite", "snowflake"],
-    "str QUOTEDMIXED": ["databricks_sql", "postgres", "sqlite", "snowflake"],
+    "str quotedmixed": [
+        "postgres",
+        "sqlite",
+    ],
+    'str "quotedMixed"': [
+        "postgres",
+        "sqlite",
+    ],
+    "str QUOTEDMIXED": [
+        "postgres",
+        "sqlite",
+    ],
     # DDL: "quoted.w.dots" -------
-    "str quoted.w.dots": ["databricks_sql"],
-    'str "quoted.w.dots"': ["databricks_sql", "postgres", "snowflake", "sqlite"],
-    "str QUOTED.W.DOTS": ["databricks_sql", "snowflake", "sqlite", "postgres"],
+    'str "quoted.w.dots"': ["postgres", "sqlite"],
+    "str QUOTED.W.DOTS": ["sqlite", "postgres"],
     'str "QUOTED.W.DOTS"': ["sqlite"],
 }
 
@@ -460,52 +446,6 @@ def postgres_ds(context: EphemeralDataContext) -> PostgresDatasource:
 
 
 @pytest.fixture
-def databricks_creds_populated() -> bool:
-    return bool(
-        os.getenv("DATABRICKS_TOKEN")
-        or os.getenv("DATABRICKS_HOST")
-        or os.getenv("DATABRICKS_HTTP_PATH")
-    )
-
-
-@pytest.fixture
-def databricks_sql_ds(
-    context: EphemeralDataContext, databricks_creds_populated: bool
-) -> DatabricksSQLDatasource:
-    if not databricks_creds_populated:
-        pytest.skip("no databricks credentials")
-    ds = context.data_sources.add_databricks_sql(
-        "databricks_sql",
-        connection_string="databricks://token:"
-        "${DATABRICKS_TOKEN}@${DATABRICKS_HOST}:443"
-        "?http_path=${DATABRICKS_HTTP_PATH}&catalog=ci&schema=" + RAND_SCHEMA,
-    )
-    return ds
-
-
-@pytest.fixture
-def snowflake_creds_populated() -> bool:
-    return bool(os.getenv("SNOWFLAKE_CI_USER_PASSWORD") or os.getenv("SNOWFLAKE_CI_ACCOUNT"))
-
-
-@pytest.fixture
-def snowflake_ds(
-    context: EphemeralDataContext,
-    snowflake_creds_populated: bool,
-) -> SnowflakeDatasource:
-    if not snowflake_creds_populated:
-        pytest.skip("no snowflake credentials")
-    ds = context.data_sources.add_snowflake(
-        "snowflake",
-        connection_string="snowflake://ci:${SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci"
-        f"/{RAND_SCHEMA}?warehouse=ci&role=ci",
-        # NOTE: uncomment this and set SNOWFLAKE_USER to run tests against your own snowflake account  # noqa: E501 # FIXME CoP
-        # connection_string="snowflake://${SNOWFLAKE_USER}@oca29081.us-east-1/DEMO_DB/RESTAURANTS?warehouse=COMPUTE_WH&role=PUBLIC&authenticator=externalbrowser",
-    )
-    return ds
-
-
-@pytest.fixture
 def sqlite_ds(context: EphemeralDataContext, tmp_path: pathlib.Path) -> SqliteDatasource:
     ds = context.data_sources.add_sqlite(
         "sqlite", connection_string=f"sqlite:///{tmp_path}/test.db"
@@ -523,12 +463,10 @@ def sqlite_ds(context: EphemeralDataContext, tmp_path: pathlib.Path) -> SqliteDa
             ],
         ),
         param("postgres", marks=[pytest.mark.postgresql]),
-        param("databricks_sql", marks=[pytest.mark.databricks]),
-        param("snowflake", marks=[pytest.mark.snowflake]),
         param("sqlite", marks=[pytest.mark.sqlite]),
     ]
 )
-def all_sql_datasources(
+def self_hosted_sql_datasources(
     request: pytest.FixtureRequest,
     capture_engine_logs: pytest.LogCaptureFixture,
 ) -> Generator[SQLDatasource, None, None]:
@@ -577,57 +515,6 @@ class TestTableIdentifiers:
 
         postgres_ds.add_table_asset(asset_name, table_name=table_name)
 
-    @pytest.mark.databricks
-    def test_databricks_sql(
-        self,
-        databricks_sql_ds: DatabricksSQLDatasource,
-        asset_name: TableNameCase,
-        table_factory: TableFactory,
-    ):
-        table_name = TABLE_NAME_MAPPING["databricks_sql"].get(asset_name)
-        if not table_name:
-            pytest.skip(f"no '{asset_name}' table_name for databricks")
-        # create table
-        table_factory(
-            gx_engine=databricks_sql_ds.get_execution_engine(),
-            table_names={table_name},
-            schema=RAND_SCHEMA,
-        )
-
-        table_names: list[str] = inspect(databricks_sql_ds.get_engine()).get_table_names(
-            schema=RAND_SCHEMA
-        )
-        print(f"databricks tables:\n{pf(table_names)}))")
-
-        databricks_sql_ds.add_table_asset(
-            asset_name, table_name=table_name, schema_name=RAND_SCHEMA
-        )
-
-    @pytest.mark.snowflake
-    def test_snowflake(
-        self,
-        snowflake_ds: SnowflakeDatasource,
-        asset_name: TableNameCase,
-        table_factory: TableFactory,
-    ):
-        table_name = TABLE_NAME_MAPPING["snowflake"].get(asset_name)
-        if not table_name:
-            pytest.skip(f"no '{asset_name}' table_name for snowflake")
-        if not snowflake_ds:
-            pytest.skip("no snowflake datasource")
-        # create table
-        schema = RAND_SCHEMA
-        table_factory(
-            gx_engine=snowflake_ds.get_execution_engine(),
-            table_names={table_name},
-            schema=schema,
-        )
-
-        table_names: list[str] = inspect(snowflake_ds.get_engine()).get_table_names(schema=schema)
-        print(f"snowflake tables:\n{pf(table_names)}))")
-
-        snowflake_ds.add_table_asset(asset_name, table_name=table_name)
-
     @pytest.mark.sqlite
     def test_sqlite(
         self,
@@ -655,12 +542,6 @@ class TestTableIdentifiers:
         [
             param("trino", None, marks=[pytest.mark.trino]),
             param("postgres", None, marks=[pytest.mark.postgresql]),
-            param("snowflake", RAND_SCHEMA, marks=[pytest.mark.snowflake]),
-            param(
-                "databricks_sql",
-                RAND_SCHEMA,
-                marks=[pytest.mark.databricks],
-            ),
             param("sqlite", None, marks=[pytest.mark.sqlite]),
         ],
     )
@@ -794,7 +675,7 @@ class TestColumnExpectations:
     def test_unquoted_params(
         self,
         context: EphemeralDataContext,
-        all_sql_datasources: SQLDatasource,
+        self_hosted_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
         request: pytest.FixtureRequest,
@@ -806,20 +687,13 @@ class TestColumnExpectations:
         Test fails if the expectation fails regardless of dialect.
         """
         param_id = request.node.callspec.id
-        datasource = all_sql_datasources
-        dialect = datasource.get_engine().dialect.name
+        datasource = self_hosted_sql_datasources
 
         if column_name[0] in ("'", '"', "`"):
             pytest.skip(f"see _desired_state tests for {column_name!r}")
         elif _fails_expectation(param_id):
             # apply marker this way so that xpasses can be seen in the report
             request.applymarker(pytest.mark.xfail(run=False))
-
-        schema: str | None = (
-            RAND_SCHEMA
-            if GXSqlDialect(dialect) in (GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS)
-            else None
-        )
 
         print(f"\ncolumn DDL:\n  {COLUMN_DDL[column_name]}")  # type: ignore[index] # FIXME
         print(f"\n`column_name` parameter __repr__:\n  {column_name!r}")
@@ -828,7 +702,6 @@ class TestColumnExpectations:
         table_factory(
             gx_engine=datasource.get_execution_engine(),
             table_names={TEST_TABLE_NAME},
-            schema=schema,
             data=[
                 {
                     "id": 1,
@@ -843,9 +716,7 @@ class TestColumnExpectations:
             ],
         )
 
-        asset = datasource.add_table_asset(
-            "my_asset", table_name=TEST_TABLE_NAME, schema_name=schema
-        )
+        asset = datasource.add_table_asset("my_asset", table_name=TEST_TABLE_NAME)
         print(f"asset:\n{asset!r}\n")
 
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))
@@ -894,7 +765,7 @@ class TestColumnExpectations:
     def test_quoted_params(
         self,
         context: EphemeralDataContext,
-        all_sql_datasources: SQLDatasource,
+        self_hosted_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
         request: pytest.FixtureRequest,
@@ -906,7 +777,7 @@ class TestColumnExpectations:
         Test fails if the expectation fails regardless of dialect.
         """
         param_id = request.node.callspec.id
-        datasource = all_sql_datasources
+        datasource = self_hosted_sql_datasources
         dialect = GXSqlDialect(datasource.get_engine().dialect.name)
 
         if column_name[0] not in ("'", '"', "`"):
@@ -917,11 +788,7 @@ class TestColumnExpectations:
             # apply marker this way so that xpasses can be seen in the report
             request.applymarker(pytest.mark.xfail(run=False))
 
-        schema: str | None = (
-            RAND_SCHEMA
-            if GXSqlDialect(dialect) in (GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS)
-            else None
-        )
+        schema: str | None = None
 
         print(f"\ncolumn DDL:\n  {COLUMN_DDL[column_name]}")  # type: ignore[index] # FIXME
         print(f"\n`column_name` parameter __repr__:\n  {column_name!r}")
@@ -1012,7 +879,7 @@ class TestColumnExpectations:
     def test_desired_state(
         self,
         context: EphemeralDataContext,
-        all_sql_datasources: SQLDatasource,
+        self_hosted_sql_datasources: SQLDatasource,
         table_factory: TableFactory,
         column_name: str | quoted_name,
         request: pytest.FixtureRequest,
@@ -1029,19 +896,13 @@ class TestColumnExpectations:
         However currently, GX does not behave the same way as the databases in all cases.
         """
         param_id = request.node.callspec.id
-        datasource = all_sql_datasources
+        datasource = self_hosted_sql_datasources
         dialect = GXSqlDialect(datasource.get_engine().dialect.name)
 
         original_column_name = column_name
         if column_name.startswith('"') and column_name.endswith('"'):
             # databricks uses backticks for quoting
             column_name = quote_str(column_name[1:-1], dialect=dialect)
-
-        schema: str | None = (
-            RAND_SCHEMA
-            if GXSqlDialect(dialect) in (GXSqlDialect.SNOWFLAKE, GXSqlDialect.DATABRICKS)
-            else None
-        )
 
         print(f"\ncolumn DDL:\n  {COLUMN_DDL[original_column_name]}")  # type: ignore[index] # FIXME
         print(f"\n`column_name` parameter __repr__:\n  {column_name!r}")
@@ -1050,7 +911,6 @@ class TestColumnExpectations:
         table_factory(
             gx_engine=datasource.get_execution_engine(),
             table_names={TEST_TABLE_NAME},
-            schema=schema,
             data=[
                 {
                     "id": 1,
@@ -1065,7 +925,7 @@ class TestColumnExpectations:
             ],
         )
 
-        qualified_table_name: str = f"{schema}.{TEST_TABLE_NAME}" if schema else TEST_TABLE_NAME
+        qualified_table_name: str = TEST_TABLE_NAME
         # check the column exists so that we know what if the expectation should succeed or fail
         column_exists = _raw_query_check_column_exists(
             column_name,
@@ -1073,9 +933,7 @@ class TestColumnExpectations:
             datasource.get_execution_engine(),
         )
 
-        asset = datasource.add_table_asset(
-            "my_asset", table_name=TEST_TABLE_NAME, schema_name=schema
-        )
+        asset = datasource.add_table_asset("my_asset", table_name=TEST_TABLE_NAME)
         print(f"asset:\n{asset!r}\n")
 
         suite = context.suites.add(ExpectationSuite(name=f"{datasource.name}-{asset.name}"))

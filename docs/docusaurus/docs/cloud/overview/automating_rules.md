@@ -5,16 +5,18 @@ description: Generate AI-recommended data quality rules and use Anomaly Detectio
 
 With GX Cloud, you can automatically generate data quality rules to more quickly achieve test coverage for your data. This page provides an overview of the following options:
 
-- Automating [Anomaly Detection](#anomaly-detection) rules as part of adding a new Data Asset.
-- Generating [personalized AI-recommended rules](#personalized-recommendations-with-expectai-beta) for an existing Data Asset.
+- Automating [Anomaly Detection](#anomaly-detection) rules.
+- Generating [personalized AI-recommended rules](#personalized-recommendations-with-expectai-beta).
 
 ## Anomaly Detection
 
-When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cloud by default generates Expectations to detect anomalies in the following:
+When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cloud by default generates Expectations to detect anomalies in the following data quality issues. You can also automate Anomaly Detection for these when you [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
+
 - [Schema](#schema)
 - [Volume](#volume)
 - [Completeness](#completeness)
 - Uniqueness (coming soon)
+
 
 
 ### Schema
@@ -23,7 +25,8 @@ To detect schema anomalies, we automatically generate a rule to [**expect table 
 
 ### Volume
 
-To detect non-increasing volume, we automatically generate a rule to [**expect table row count to be between**](/reference/learn/data_quality_use_cases/volume.md#expect-table-row-count-to-be-between) with dynamic parameters that test that the current validation run has more rows than the previous run. If the row count shrinks or stays the same between runs, this Expectation will fail.
+To detect anomalies in row count, we automatically generate a rule to [**expect table row count to be between**](/reference/learn/data_quality_use_cases/volume.md#expect-table-row-count-to-be-between) a forecasted range that tests that the current validation run doesn’t deviate significantly from historical patterns. For example, if there is a sudden increase when volume has been stable or stagnation in a season when volume typically grows, then this Expectation will fail.
+
 
 ### Completeness
 
