@@ -83,7 +83,7 @@ The optional `{batch}` named query references the Batch of data under test. When
 
 To simplify working with custom SQL Expectations, you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
 
-For example, imagine you have a New York City taxi trip dataset with columns named `pickup_borough`, `vehicle_type`, and `passenger_count`. If you [add a custom SQL Expectation](#add-an-expectation) with a **Prompt for SQL generation** like `Write an Expectation that checks that sedan rides in Manhattan have no more than 4 passengers.` then ExpectAI would generate a SQL query similar to the following:
+For example, imagine you have a New York City taxi trip dataset with columns named `pickup_borough`, `vehicle_type`, and `passenger_count`. If you [add a custom SQL Expectation](#add-an-expectation) with a **Prompt for SQL generation** like `sedan rides in Manhattan shouldn't have more than 4 passengers` then ExpectAI would generate a SQL query similar to the following:
 
 ```sql title="SQL query"
 SELECT
