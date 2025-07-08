@@ -5,11 +5,6 @@ To test, run:
 # TODO: This needs to be put under test when the GX Cloud docs snippet testing environment has been created.
 """
 
-
-def set_up_context_for_example(context):
-    pass
-
-
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - full code example">
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - get cloud context">
@@ -24,16 +19,15 @@ print(type(context).__name__)
 # Hide this
 assert type(context).__name__ == "CloudDataContext"
 # Hide this
-set_up_context_for_example(context)
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - list data sources">
 print(context.list_datasources())
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - retrieve a data asset">
-data_source_name = "my_data_source"
-asset_name = "my_data_asset"
-batch_definition_name = "my_batch_definition"
+data_source_name = "local_mercury_db"
+asset_name = "local-mercury-db-organizations-table"
+batch_definition_name = "local-mercury-db-organizations-table"
 batch = (
     context.data_sources.get(data_source_name)
     .get_asset(asset_name)
