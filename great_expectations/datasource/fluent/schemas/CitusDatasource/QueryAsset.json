@@ -1,0 +1,9 @@
+{
+    "title": "QueryAsset",
+    "description": "--Public API--An asset made from a SQL query\n\nArgs:\n    query: The query to be used to construct the underlying Data Asset",
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false,
+    "definitions": {}
+}
