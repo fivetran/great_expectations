@@ -10,7 +10,6 @@ from tests.datasource.fluent.conftest import (
     CreateSourceFixture,
 )
 
-
 # We set a default time range that we use for testing.
 
 LOGGER = logging.getLogger(__name__)
