@@ -23,10 +23,18 @@ from great_expectations.core.batch_definition import BatchDefinition
 
 BatchDefinition.update_forward_refs(DataAsset=DataAsset)
 
-
+from great_expectations.datasource.fluent.alloy_datasource import (
+    AlloyDatasource,
+)
+from great_expectations.datasource.fluent.aurora_datasource import (
+    AuroraDatasource,
+)
 from great_expectations.datasource.fluent.batch_request import (
     BatchRequest,
     BatchParameters,
+)
+from great_expectations.datasource.fluent.citus_datasource import (
+    CitusDatasource,
 )
 from great_expectations.datasource.fluent.pandas_datasource import (
     PandasDatasource,
@@ -53,6 +61,9 @@ from great_expectations.datasource.fluent.pandas_azure_blob_storage_datasource i
 from great_expectations.datasource.fluent.fabric import FabricPowerBIDatasource
 from great_expectations.datasource.fluent.postgres_datasource import (
     PostgresDatasource,
+)
+from great_expectations.datasource.fluent.neon_datasource import (
+    NeonDatasource,
 )
 from great_expectations.datasource.fluent.redshift_datasource import RedshiftDatasource
 from great_expectations.datasource.fluent.spark_datasource import (
