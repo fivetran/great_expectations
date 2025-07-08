@@ -44,5 +44,5 @@ Only current Data Assets are considered in coverage health metrics. Deleted Data
 ## Next steps
 - If **Active Data Assets** are low, [schedule recurring Validations](/cloud/schedules/manage_schedules.md).
 - If **Schema**, **Volume**, or **Completeness** coverage is low, [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation).
-- When adding new Data Assets, [automate rules for Anomaly Detection](/cloud/overview/automating_rules.md).
+- When adding new Data Assets, [automate rules for Anomaly Detection](/cloud/overview/accelerating_test_coverage.md).
 
