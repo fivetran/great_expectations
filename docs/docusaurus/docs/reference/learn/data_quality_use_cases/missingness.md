@@ -5,7 +5,7 @@ title: 'Manage missing data with GX'
 
 Missing data, also known as missingness, poses a significant challenge in data quality management. Missing data occurs when expected information is absent from a dataset, often appearing as `NULL` values in databases or manifesting differently across various systems. Effectively managing this issue is crucial for maintaining data integrity and reliability since unaddressed missing data can lead to disrupted calculations, skewed analyses, and compromised data analytics tasks.
 
-Great Expectations (GX) offers a robust solution for addressing missing data through a comprehensive collection of Expectations that allow users to define and enforce data quality rules. You can enable Anomaly Detection to automatically generate these Expectations when you add a new Data Asset in GX Cloud. By integrating GX into your data pipelines, you can establish robust validation processes that catch issues early, ensuring your dataset remains clean, consistent, and ready for accurate reporting, predictive modeling, and other advanced analytics applications.
+Great Expectations (GX) offers a robust solution for addressing missing data through a comprehensive collection of Expectations that allow users to define and enforce data quality rules. By integrating GX into your data pipelines, you can establish robust validation processes that catch issues early, ensuring your dataset remains clean, consistent, and ready for accurate reporting, predictive modeling, and other advanced analytics applications.
 
 In this guide, you will learn how to leverage GX to effectively handle missing data. This includes applying Expectations and making informed decisions about managing various types of missingness. By following these steps, you can ensure your datasets maintain high quality, thus enabling more accurate and reliable data-driven insights.
 
@@ -43,7 +43,7 @@ This Expectation validates that the proportion of non-null values in a column is
 <br/>
 
 :::tip Automate this rule with GX Cloud
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can enable Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs.
+When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can enable Anomaly Detection on each column to test that column completeness doesn't change drastically between Validation runs.
 :::
 
 

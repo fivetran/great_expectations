@@ -371,11 +371,6 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             renderer_configuration=renderer_configuration,
         )
 
-        expected_column_set = set(renderer_configuration.kwargs.get("column_set", []))
-        observed_column_set = set(
-            result.get("result", {}).get("observed_value", []) if result else []
-        )
-
         observed_columns = (
             (name, sch)
             for name, sch in renderer_configuration.params
@@ -386,19 +381,26 @@ class ExpectTableColumnsToMatchSet(BatchExpectation):
             for name, sch in renderer_configuration.params
             if name.startswith(expected_param_prefix)
         )
+        mismatched_columns = {"unexpected": [], "missing": []}
+        if (
+            "details" in result["result"]
+            and "mismatched" in result["result"]["details"]
+            and result["result"]["details"]["mismatched"]
+        ):
+            mismatched_columns.update(result["result"]["details"]["mismatched"])
 
         template_str_list = []
         for name, schema in observed_columns:
             render_state = (
-                ObservedValueRenderState.EXPECTED.value
-                if schema.value in expected_column_set
-                else ObservedValueRenderState.UNEXPECTED.value
+                ObservedValueRenderState.UNEXPECTED.value
+                if schema.value in mismatched_columns["unexpected"]
+                else ObservedValueRenderState.EXPECTED.value
             )
             renderer_configuration.params.__dict__[name].render_state = render_state
             template_str_list.append(f"${name}")
 
         for name, schema in expected_columns:
-            if schema.value not in observed_column_set:
+            if schema.value in mismatched_columns["missing"]:
                 renderer_configuration.params.__dict__[
                     name
                 ].render_state = ObservedValueRenderState.MISSING.value
@@ -540,15 +542,15 @@ def _validate_result(
     exact_match: bool,
 ) -> Dict[str, Any]:
     empty_set = set()
-    observed_value = sorted(list(actual_column_set))
+    observed_value = sorted([str(col) for col in actual_column_set])
 
     if ((expected_column_set is None) and (exact_match is not True)) or (
         unmatched_expected_column_set == empty_set and unmatched_actual_column_set == empty_set
     ):
         return {"success": True, "result": {"observed_value": observed_value}}
     else:
-        unexpected_list = sorted(list(unmatched_actual_column_set))
-        missing_list = sorted(list(unmatched_expected_column_set))
+        unexpected_list = sorted([str(col) for col in unmatched_actual_column_set])
+        missing_list = sorted([str(col) for col in unmatched_expected_column_set])
 
         mismatched = {}
         if len(unexpected_list) > 0:

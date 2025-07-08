@@ -234,7 +234,7 @@ You can either press the b button on your keyboard or press the “Insert a cell
 :::
 
 
-A Data Source is the GX representation of a data store. In this tutorial, you are using a PostgreSQL data source, but you can adapt the examples to any other [supported Data Source](docs/application_integration_support.md#integrations). A Data Asset is the GX representation of a collection of records within a Data Source which are usually grouped based on the underlying data system. In this tutorial, you create a Batch Definition for the whole `customers` table, but you can also create batches based on a date column within the table.
+A Data Source is the GX representation of a data store. In this tutorial, you are using a PostgreSQL data source, but you can adapt the examples to any other [supported Data Source](docs/help/compatibility_reference.md). A Data Asset is the GX representation of a collection of records within a Data Source which are usually grouped based on the underlying data system. In this tutorial, you create a Batch Definition for the whole `customers` table, but you can also create batches based on a date column within the table.
 ```python title="Python"
 ## Connect to your data
 
