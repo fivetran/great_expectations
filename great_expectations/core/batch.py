@@ -417,6 +417,10 @@ class BatchRequestBase(SerializableDictDot):
         return self.id == other.id
 
     @override
+    def __hash__(self) -> int:
+        return hash(self.id)
+
+    @override
     def __repr__(self) -> str:
         """
         # TODO: <Alex>2/4/2022</Alex>

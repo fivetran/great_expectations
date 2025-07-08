@@ -43,6 +43,10 @@ class Renderer:
         # Renderers do not have any state, so they are equal if they are the same class
         return type(self) is type(other)
 
+    @override
+    def __hash__(self) -> int:
+        return hash(type(self))
+
     def serialize(self) -> dict:
         # Necessary to enable proper serialization within an Action (and additionally, within a Checkpoint)  # noqa: E501 # FIXME CoP
         # TODO: Renderers should be ported over to Pydantic to prevent this fork in logic
