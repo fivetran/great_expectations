@@ -29,7 +29,9 @@ def test_add_neon_datasource(
 ):
     test_datasource_name = "test_datasource"
     test_connection_string = "postgresql://username:@project_id.region.neon.tech/database_name"
-    source = empty_data_context.data_sources.add_neon(name=test_datasource_name, connection_string=test_connection_string)
+    source = empty_data_context.data_sources.add_neon(
+        name=test_datasource_name, connection_string=test_connection_string
+    )
     assert source.type == "neon"
     assert source.name == test_datasource_name
     assert source.execution_engine_type is SqlAlchemyExecutionEngine

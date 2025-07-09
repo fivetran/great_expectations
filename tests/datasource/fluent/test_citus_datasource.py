@@ -29,7 +29,9 @@ def test_add_citus_datasource(
 ):
     test_datasource_name = "test_datasource"
     test_connection_string = "postgresql://username:@coordinator_hostname:/database_name"
-    source = empty_data_context.data_sources.add_citus(name=test_datasource_name, connection_string=test_connection_string)
+    source = empty_data_context.data_sources.add_citus(
+        name=test_datasource_name, connection_string=test_connection_string
+    )
     assert source.type == "citus"
     assert source.name == test_datasource_name
     assert source.execution_engine_type is SqlAlchemyExecutionEngine
