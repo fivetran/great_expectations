@@ -16,8 +16,8 @@ class AlloyDatasource(SQLDatasource):
         name: The name of this alloy datasource.
         connection_string: The connection string used to connect to the postgres database.
             For example: "postgresql://<username>:<password>@<hostname>:<port>/<database_name>"
-        assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values
-            are TableAsset or QueryAsset objects.
+        assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose
+            values are TableAsset or QueryAsset objects.
     """
 
     type: Literal["alloy"] = "alloy"  # type: ignore[assignment]
