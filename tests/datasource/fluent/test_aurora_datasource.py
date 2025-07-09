@@ -28,9 +28,10 @@ def mock_test_connection(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(AuroraDatasource, "test_connection", _mock_test_connection)
 
 
-@pytest.mark.postgresql
+@pytest.mark.unit
 def test_construct_aurora_datasource(create_source: CreateSourceFixture):
     with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
+        assert source.type == "aurora"
         assert source.name == "my_datasource"
         assert source.execution_engine_type is SqlAlchemyExecutionEngine
         assert source.assets == []

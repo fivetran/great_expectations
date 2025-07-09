@@ -18,7 +18,7 @@ class NeonDatasource(SQLDatasource):
             For example: "postgresql://<username>:<password>@<project-id>.<region>.neon.tech/<database_name>"
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values
             are TableAsset or QueryAsset objects.
-    """  # noqa: E501 # FIXME CoP
+    """
 
-    type: Literal["neon"] = "neon"  # type: ignore[assignment] # FIXME CoP
+    type: Literal["neon"] = "neon"  # type: ignore[assignment]
     connection_string: Union[ConfigStr, PostgresDsn]

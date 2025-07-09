@@ -18,7 +18,7 @@ class AuroraDatasource(SQLDatasource):
             For example: "postgresql://<username>:<password>@<cluster-endpoint>.amazonaws.com:<port>/<database_name>"
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values
             are TableAsset or QueryAsset objects.
-    """  # noqa: E501 # FIXME CoP
+    """
 
-    type: Literal["aurora"] = "aurora"  # type: ignore[assignment] # FIXME CoP
+    type: Literal["aurora"] = "aurora"  # type: ignore[assignment]
     connection_string: Union[ConfigStr, PostgresDsn]

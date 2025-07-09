@@ -28,9 +28,10 @@ def mock_test_connection(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(NeonDatasource, "test_connection", _mock_test_connection)
 
 
-@pytest.mark.postgresql
+@pytest.mark.unit
 def test_construct_neon_datasource(create_source: CreateSourceFixture):
     with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
+        assert source.type == "neon"
         assert source.name == "my_datasource"
         assert source.execution_engine_type is SqlAlchemyExecutionEngine
         assert source.assets == []

@@ -18,7 +18,7 @@ class AlloyDatasource(SQLDatasource):
             For example: "postgresql://<username>:<password>@<hostname>:<port>/<database_name>"
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose values
             are TableAsset or QueryAsset objects.
-    """  # noqa: E501 # FIXME CoP
+    """
 
-    type: Literal["alloy"] = "alloy"  # type: ignore[assignment] # FIXME CoP
+    type: Literal["alloy"] = "alloy"  # type: ignore[assignment]
     connection_string: Union[ConfigStr, PostgresDsn]
