@@ -37,4 +37,4 @@ For a more nuanced understanding of what you’re testing, you can filter the **
 
 ## Next steps for improving data health
 
-If **Active Coverage** is low, drill into it for a list of **Inactive Data Assets**. Thenschedule [recurring Validations](/docs/cloud/schedules/manage_schedules.md) and/or [add Expectations](/docs/cloud/expectations/manage_expectations.md#add-an-expectation) for those Data Assets to improve your coverage both overall and for specific data quality issues.
+If **Active Coverage** is low, drill into it for a list of **Inactive Data Assets**. Then [schedule recurring Validations](/docs/cloud/schedules/manage_schedules.md) and/or [add Expectations](/docs/cloud/expectations/manage_expectations.md#add-an-expectation) for those Data Assets to improve your coverage both overall and for specific data quality issues.
