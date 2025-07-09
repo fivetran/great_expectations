@@ -1,16 +1,10 @@
-from __future__ import annotations
-
 import logging
 
 import pytest
 
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent import NeonDatasource
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
-from tests.datasource.fluent.conftest import (
-    CreateSourceFixture,
-)
-
-# We set a default time range that we use for testing.
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,9 +23,14 @@ def mock_test_connection(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.mark.unit
-def test_construct_neon_datasource(create_source: CreateSourceFixture):
-    with create_source(validate_batch_spec=lambda _: None, dialect="postgresql") as source:
-        assert source.type == "neon"
-        assert source.name == "my_datasource"
-        assert source.execution_engine_type is SqlAlchemyExecutionEngine
-        assert source.assets == []
+def test_add_neon_datasource(
+    mock_test_connection,
+    empty_data_context: AbstractDataContext,
+):
+    test_datasource_name = "test_datasource"
+    test_connection_string = "postgresql://username:@project_id.region.neon.tech/database_name"
+    source = empty_data_context.data_sources.add_neon(name=test_datasource_name, connection_string=test_connection_string)
+    assert source.type == "neon"
+    assert source.name == test_datasource_name
+    assert source.execution_engine_type is SqlAlchemyExecutionEngine
+    assert source.assets == []
