@@ -9,14 +9,14 @@ from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
 
 @public_api
 class BigQueryDatasource(SQLDatasource):
-    """Adds a big query datasource to the data context.
+    """Adds a bigquery datasource to the data context.
     Args:
         name: The name of this big query datasource.
         connection_string: The connection string used to connect to the database.
-            For example: "bigquery://<gcp_project_name>/<big_query_dataset>"
+            For example: "bigquery://<gcp_project_name>/<bigquery_dataset>"
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose
             values are TableAsset or QueryAsset objects.
     """
 
-    type: Literal["big_query"] = "big_query"  # type: ignore[assignment]
+    type: Literal["bigquery"] = "bigquery"  # type: ignore[assignment]
     connection_string: Union[ConfigStr, str]

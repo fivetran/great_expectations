@@ -23,16 +23,16 @@ def mock_test_connection(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.mark.unit
-def test_add_big_query_datasource(
+def test_add_bigquery_datasource(
     mock_test_connection,
     empty_data_context: AbstractDataContext,
 ):
     test_datasource_name = "test_datasource"
-    test_connection_string = "bigquery://gcp_project_name/big_query_dataset"
-    source = empty_data_context.data_sources.add_big_query(
+    test_connection_string = "bigquery://gcp_project_name/bigquery_dataset"
+    source = empty_data_context.data_sources.add_bigquery(
         name=test_datasource_name, connection_string=test_connection_string
     )
-    assert source.type == "big_query"
+    assert source.type == "bigquery"
     assert source.name == test_datasource_name
     assert source.execution_engine_type is SqlAlchemyExecutionEngine
     assert source.assets == []
