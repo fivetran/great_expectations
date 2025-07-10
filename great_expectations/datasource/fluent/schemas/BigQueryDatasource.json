@@ -1,13 +1,13 @@
 {
     "title": "BigQueryDatasource",
-    "description": "--Public API--Adds a big query datasource to the data context.\nArgs:\n    name: The name of this big query datasource.\n    connection_string: The connection string used to connect to the database.\n        For example: \"bigquery://<gcp_project_name>/<big_query_dataset>\"\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
+    "description": "--Public API--Adds a bigquery datasource to the data context.\nArgs:\n    name: The name of this big query datasource.\n    connection_string: The connection string used to connect to the database.\n        For example: \"bigquery://<gcp_project_name>/<bigquery_dataset>\"\n    assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose\n        values are TableAsset or QueryAsset objects.",
     "type": "object",
     "properties": {
         "type": {
             "title": "Type",
-            "default": "big_query",
+            "default": "bigquery",
             "enum": [
-                "big_query"
+                "bigquery"
             ],
             "type": "string"
         },
