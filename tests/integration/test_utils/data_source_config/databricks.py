@@ -91,7 +91,9 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
         with engine.connect() as conn, conn.begin():
             # create schema if needed - with timestamp metadata for Databricks
             if self.schema:
-                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                current_time = datetime.datetime.now(datetime.timezone.utc).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
                 logger.info(f"CREATING SCHEMA {self.schema} with timestamp metadata")
 
                 # Create schema with custom properties including timestamp
