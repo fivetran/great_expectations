@@ -8,10 +8,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-
-# SQL LIKE doesn't support regex quantifiers like {10}, so we expand it manually
-# This is the SQL LIKE equivalent of the regex pattern SCHEMA_PATTERN = r"^test_[a-z]{10}$"
-SCHEMA_LIKE_PATTERN = "test_" + "[a-z]" * 10
+SCHEMA_PATTERN = r"^test_[a-z]{10}$"
 CATALOG_NAME = "ci"
 
 
@@ -32,13 +29,18 @@ class DatabricksConnectionConfig(BaseSettings):
 def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
     engine = create_engine(url=config.connection_string)
     with engine.connect() as conn, conn.begin():
-        # Get schemas that match the test pattern using LIKE clause
+        # Get schemas that match the test pattern and are older than 2 hours using INFORMATION_SCHEMA
         results = conn.execute(
             TextClause(
-                f"""
-                SHOW SCHEMAS FROM {CATALOG_NAME} LIKE 'test_[a-z]{{10}}'
                 """
-            )
+                SELECT schema_name
+                FROM information_schema.schemata
+                WHERE catalog_name = :catalog_name
+                AND schema_name REGEXP :schema_pattern
+                AND created < CURRENT_TIMESTAMP() - INTERVAL 2 HOURS
+                """
+            ),
+            {"catalog_name": CATALOG_NAME, "schema_pattern": SCHEMA_PATTERN},
         ).fetchall()
 
         if results:
