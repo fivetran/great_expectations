@@ -31,7 +31,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
         results = conn.execute(
             TextClause(
                 """
-                SHOW SCHEMAS
+                SHOW SCHEMAS from ci
                 """
             )
         ).fetchall()
