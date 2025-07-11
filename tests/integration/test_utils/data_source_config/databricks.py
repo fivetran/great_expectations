@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import datetime
+import logging
 from functools import cached_property
 from typing import TYPE_CHECKING, Mapping, Optional
 
+import numpy as np
 import pytest
 
 from great_expectations.compatibility.pydantic import BaseSettings
-from great_expectations.compatibility.sqlalchemy import sqltypes
+from great_expectations.compatibility.sqlalchemy import TextClause, insert, sqltypes
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
@@ -78,6 +81,46 @@ class DatabricksBatchTestSetup(SQLBatchTestSetup[DatabricksDatasourceTestConfig]
     @cached_property
     def _databrics_connection_config(self) -> DatabricksConnectionConfig:
         return DatabricksConnectionConfig()  # type: ignore[call-arg]  # retrieves env vars
+
+    @override
+    def setup(self) -> None:
+        """Override setup to add timestamp metadata for Databricks schemas."""
+        logger = logging.getLogger(__name__)
+        engine, cleanup = self._get_engine()
+
+        with engine.connect() as conn, conn.begin():
+            # create schema if needed - with timestamp metadata for Databricks
+            if self.schema:
+                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                logger.info(f"CREATING SCHEMA {self.schema} with timestamp metadata")
+
+                # Create schema with custom properties including timestamp
+                conn.execute(
+                    TextClause(
+                        f"""
+                    CREATE SCHEMA IF NOT EXISTS {self.schema}
+                    WITH PROPERTIES (
+                        'created_timestamp' = '{current_time}'
+                    )
+                    """
+                    )
+                )
+
+            # create tables
+            all_table_data = self._ensure_all_table_data_created()
+            self.metadata.create_all(engine)
+
+            # insert data
+            for table_data in all_table_data:
+                # pd.DataFrame(...).to_dict("index") returns a dictionary where the keys are the row
+                # index and the values are a dict of column names mapped to column values.
+                # Then we pass that list of dicts in as parameters to our insert statement.
+                #   INSERT INTO test_table (my_int_column, my_str_column) VALUES (?, ?)
+                #   [...] [('1', 'foo'), ('2', 'bar')]
+                df = table_data.df.replace(np.nan, None)
+                values = list(df.to_dict("index").values())
+                conn.execute(insert(table_data.table), values)
+        cleanup()
 
     @override
     def make_asset(self) -> TableAsset:
