@@ -34,6 +34,9 @@ from great_expectations.datasource.fluent.batch_request import (
     BatchRequest,
     BatchParameters,
 )
+from great_expectations.datasource.fluent.bigquery_datasource import (
+    BigQueryDatasource,
+)
 from great_expectations.datasource.fluent.citus_datasource import (
     CitusDatasource,
 )
