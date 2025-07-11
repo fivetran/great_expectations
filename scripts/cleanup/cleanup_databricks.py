@@ -8,10 +8,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-
-# SQL LIKE doesn't support regex quantifiers like {10}, so we expand it manually
-# This is the SQL LIKE equivalent of the regex pattern SCHEMA_PATTERN = r"^test_[a-z]{10}$"
-SCHEMA_LIKE_PATTERN = "test_" + "[a-z]" * 10
+SCHEMA_PATTERN = "test_[a-z]{10}"
 CATALOG_NAME = "ci"
 
 
@@ -36,7 +33,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
         results = conn.execute(
             TextClause(
                 f"""
-                SHOW SCHEMAS FROM {CATALOG_NAME} LIKE 'test_[a-z]{{10}}'
+                SHOW SCHEMAS FROM {CATALOG_NAME} LIKE '{SCHEMA_PATTERN}'
                 """
             )
         ).fetchall()
