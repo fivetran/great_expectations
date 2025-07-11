@@ -13,7 +13,7 @@ To give you these insights into the health of your data, GX Cloud provides the f
    - If an Expectation fails near the start of the day and succeeds near the end of the day, it will be counted as a successful distinct Expectation.
    - If an Expectation succeeds near the start of the day and fails near the end of the day, it will not count as a successful distinct Expectation.
 
-- **Distinct Expectations per day:** A 30-day average of the number of distinct Expectations validated each day. 
+- **Daily distinct Expectations:** A 30-day average of the number of distinct Expectations validated each day. 
 
 - **Daily Data Health:** The number of successful distinct Expectations in a day divided by the number of distinct Expectations validated in that day.
 
@@ -29,7 +29,7 @@ Only current Data Assets are considered in these metrics. Deleted Data Assets ar
 
 For a more nuanced understanding of what you’re testing, you can filter the **Data Health** dashboard to focus on different data quality issues such as **Schema** or **Volume**. When you apply a filter, the metrics shown are impacted as follows:
 
-- For **Data Health**, **Distinct Expectations per day**, and **Daily Data Health**, only Expectations belonging to the selected data quality issue will be considered when counting both successful distinct Expectations and distinct Expectation validations.
+- For **Data Health**, **Daily distinct Expectations**, and **Daily Data Health**, only Expectations belonging to the selected data quality issue will be considered when counting both successful distinct Expectations and distinct Expectation validations.
 
 - The **Active Coverage** percentage will be scoped to Data Assets that have been validated with at least one Expectation for the selected data quality issue in the last 30 days.
 
