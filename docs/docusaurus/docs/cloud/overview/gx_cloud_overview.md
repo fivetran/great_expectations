@@ -28,7 +28,7 @@ You can also integrate GX Cloud with version control systems and with data at re
 
 - **Exploration:** enable your stakeholders to create and run ad hoc tests to get a better understanding of the data they’re consuming.
 
-For a full list of data sources and other tools supported by GX Cloud, visit the [compatibility reference](/help/compatibility_reference/).
+For a full list of data sources and other tools supported by GX Cloud, visit the [compatibility reference](/help/compatibility_reference.md).
 
 ## GX Cloud concepts
 
