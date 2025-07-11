@@ -1,3 +1,4 @@
+import datetime
 import logging
 import sys
 
@@ -39,17 +40,62 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
         ).fetchall()
 
         if results:
-            for row in results:
-                schema_name = f"{CATALOG_NAME}.{row[0]}"
-                try:
-                    # conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
-                    logger.info(f"Dropped schema: {schema_name}")
-                except Exception as e:
-                    logger.error(f"Failed to drop schema {schema_name}: {e}")
+            schemas_to_drop = []
+            current_time = datetime.datetime.now(datetime.timezone.utc)
 
-            logger.info(f"Cleaned up {len(results)} Databricks schema(s)")
+            for row in results:
+                schema_name = row[0]
+                full_schema_name = f"{CATALOG_NAME}.{schema_name}"
+
+                try:
+                    describe_results = conn.execute(
+                        TextClause(f"DESCRIBE SCHEMA EXTENDED {full_schema_name}")
+                    ).fetchall()
+
+                    # Look for custom created_timestamp property
+                    created_timestamp = None
+
+                    for desc_row in describe_results:
+                        if len(desc_row) >= 2:
+                            property_name = str(desc_row[0]).strip()
+                            property_value = str(desc_row[1]).strip()
+
+                            if property_name == "created_timestamp":
+                                try:
+                                    created_timestamp = datetime.datetime.strptime(
+                                        property_value, "%Y-%m-%d %H:%M:%S"
+                                    ).replace(tzinfo=datetime.timezone.utc)
+                                    break
+                                except ValueError:
+                                    logger.warning(
+                                        f"Could not parse timestamp for {schema_name}: {property_value}"
+                                    )
+
+                    # If we found a timestamp, check if it's older than 2 hours
+                    if created_timestamp:
+                        age = current_time - created_timestamp
+                        if age.total_seconds() > 7200:  # 2 hours = 7200 seconds
+                            schemas_to_drop.append(full_schema_name)
+                    else:
+                        # No timestamp found - could be old schema or missing metadata
+                        logger.warning(f"No created_timestamp found for {schema_name}, skipping")
+
+                except Exception as e:
+                    logger.exception(f"Error checking schema {schema_name}: {e}")
+
+            if schemas_to_drop:
+                for schema_name in schemas_to_drop:
+                    try:
+                        # conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
+                        logger.info(f"Dropped schema: {schema_name}")
+                    except Exception as e:
+                        logger.exception(f"Failed to drop schema {schema_name}: {e}")
+
+                logger.info(f"Cleaned up {len(schemas_to_drop)} Databricks schema(s)")
+            else:
+                logger.info("No Databricks schemas old enough to clean up!")
         else:
-            logger.info("No Databricks schemas to clean up!")
+            logger.info("No Databricks schemas found matching pattern!")
 
     engine.dispose()
 
