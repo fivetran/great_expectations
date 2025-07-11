@@ -49,8 +49,10 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
             for schema_name in schemas_to_drop:
                 formatted_schema_name = f"ci.{schema_name}"
                 try:
-                    conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
-                    logger.info(f"Dropped schema: {schema_name}")
+                    conn.execute(
+                        TextClause(f"DROP SCHEMA IF EXISTS {formatted_schema_name} CASCADE")
+                    )
+                    logger.info(f"Dropped schema: {formatted_schema_name}")
                 except Exception as e:
                     logger.error(f"Failed to drop schema {formatted_schema_name}: {e}")
 
