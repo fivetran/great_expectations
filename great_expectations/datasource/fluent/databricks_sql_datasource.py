@@ -139,6 +139,8 @@ class DatabricksTableAsset(SqlTableAsset):
     @pydantic.validator("table_name")
     @override
     def _resolve_quoted_name(cls, table_name: str) -> str | quoted_name:
+        import re
+        
         table_name_is_quoted: bool = cls._is_bracketed_by_quotes(table_name)
 
         from great_expectations.compatibility import sqlalchemy
@@ -147,17 +149,68 @@ class DatabricksTableAsset(SqlTableAsset):
             if isinstance(table_name, sqlalchemy.quoted_name):
                 return table_name
 
-            if table_name_is_quoted:
-                # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.quoted_name.quote
-                # Remove the quotes and add them back using the sqlalchemy.quoted_name function
-                # TODO: We need to handle nested quotes
-                table_name = table_name.strip("`")
-
-            return sqlalchemy.quoted_name(
-                value=table_name,
-                quote=table_name_is_quoted,
+            # Check if the table name needs special escaping for Databricks
+            # This includes names that start with digits or contain special characters
+            table_name_str = str(table_name)
+            needs_quoting = (
+                table_name_is_quoted or 
+                re.match(r"^\d", table_name_str) or 
+                re.search(r"[.\s\-#@]", table_name_str)
             )
+
+            if needs_quoting:
+                # Remove any existing quotes and add them back using sqlalchemy.quoted_name
+                clean_table_name = table_name_str.strip('"').strip("'").strip("`")
+                return sqlalchemy.quoted_name(
+                    value=clean_table_name,
+                    quote=True,
+                )
+            else:
+                # Standard table that doesn't need special escaping
+                return sqlalchemy.quoted_name(
+                    value=table_name,
+                    quote=False,
+                )
         return table_name
+
+    @pydantic.validator("schema_name")
+    def _resolve_quoted_schema_name(cls, schema_name: str | None) -> str | quoted_name | None:
+        if schema_name is None:
+            return schema_name
+            
+        import re
+        
+        schema_name_is_quoted: bool = cls._is_bracketed_by_quotes(schema_name)
+
+        from great_expectations.compatibility import sqlalchemy
+
+        if sqlalchemy.quoted_name:  # type: ignore[truthy-function] # FIXME CoP
+            if isinstance(schema_name, sqlalchemy.quoted_name):
+                return schema_name
+
+            # Check if the schema name needs special escaping for Databricks
+            # This includes names that start with digits or contain special characters
+            schema_name_str = str(schema_name)
+            needs_quoting = (
+                schema_name_is_quoted or 
+                re.match(r"^\d", schema_name_str) or 
+                re.search(r"[.\s\-#@]", schema_name_str)
+            )
+
+            if needs_quoting:
+                # Remove any existing quotes and add them back using sqlalchemy.quoted_name
+                clean_schema_name = schema_name_str.strip('"').strip("'").strip("`")
+                return sqlalchemy.quoted_name(
+                    value=clean_schema_name,
+                    quote=True,
+                )
+            else:
+                # Standard schema that doesn't need special escaping
+                return sqlalchemy.quoted_name(
+                    value=schema_name,
+                    quote=False,
+                )
+        return schema_name
 
     @staticmethod
     @override
