@@ -36,7 +36,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
         results = conn.execute(
             TextClause(
                 f"""
-                SHOW SCHEMAS FROM {CATALOG_NAME} LIKE '{SCHEMA_LIKE_PATTERN}'
+                SHOW SCHEMAS FROM {CATALOG_NAME} LIKE 'test_[a-z]{{10}}'
                 """
             )
         ).fetchall()
@@ -45,7 +45,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
             for row in results:
                 schema_name = f"{CATALOG_NAME}.{row[0]}"
                 try:
-                    conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
+                    # conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
                     logger.info(f"Dropped schema: {schema_name}")
                 except Exception as e:
                     logger.error(f"Failed to drop schema {schema_name}: {e}")
