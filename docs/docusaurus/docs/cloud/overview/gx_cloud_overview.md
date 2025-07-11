@@ -18,7 +18,7 @@ You can integrate GX Cloud at any point in your data pipeline to manage and moni
 
 - **Delivery:** ensure unexpected patterns reveal business insights rather than data quality issues.
 
-Here’s an example of where these three common integration points fit in a generic data pipeline
+Here’s an example of where these three common integration points fit in a generic data pipeline:
 
 ![Incoming data from PostgreSQL, Databricks, and BigQuery are validated by GX Cloud before being written as raw data in a Snowflake data warehouse. Transformations are validated within the Snowflake data pipeline. Finalized data is validated before being served by BI tools such as Tableau, Power BI, and Looker.](./overview_images/gx_cloud_pipeline.png)
 
@@ -27,6 +27,8 @@ You can also integrate GX Cloud with version control systems and with data at re
 - **CI/CD:** test changes to your transformation code before merging it to production so that code changes don’t have negative downstream impacts on data.
 
 - **Exploration:** enable your stakeholders to create and run ad hoc tests to get a better understanding of the data they’re consuming.
+
+For a full list of data sources and other tools supported by GX Cloud, visit the [compatibility reference](/help/compatibility_reference/).
 
 ## GX Cloud concepts
 
