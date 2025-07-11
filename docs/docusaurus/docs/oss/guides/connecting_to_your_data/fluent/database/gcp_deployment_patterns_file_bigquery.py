@@ -232,14 +232,14 @@ with open(great_expectations_yaml_file_path, "w") as f:
 
 CONNECTION_STRING = f"bigquery://{GCP_PROJECT_NAME}/{BIGQUERY_DATASET}"
 # <snippet name="docs/docusaurus/docs/oss/guides/connecting_to_your_data/fluent/database/gcp_deployment_patterns_file_bigquery.py add_bigquery_datasource">
-datasource = context.data_sources.add_or_update_sql(
+datasource = context.data_sources.add_or_update_bigquery(
     name="my_bigquery_datasource",
     connection_string="bigquery://<GCP_PROJECT_NAME>/<BIGQUERY_DATASET>",
 )
 # </snippet>
 
 # For tests, we are replacing the `connection_string`
-datasource = context.data_sources.add_or_update_sql(
+datasource = context.data_sources.add_or_update_bigquery(
     name="my_bigquery_datasource", connection_string=CONNECTION_STRING
 )
 
