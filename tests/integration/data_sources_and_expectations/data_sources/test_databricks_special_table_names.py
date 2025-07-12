@@ -126,31 +126,42 @@ class TestDatabricksSpecialTableNames:
 
     def test_custom_sql_expectation_with_special_table_name(self, context, databricks_datasource):
         """Test that Custom SQL Expectations work with table names requiring special quoting."""
-        
+
         # Create a table asset for a table starting with a digit (the main bug case)
         table_asset = databricks_datasource.add_table_asset(
             name="247_asset_class_cumulative_returns",
-            table_name="247_asset_class_cumulative_returns"
+            table_name="247_asset_class_cumulative_returns",
         )
-        
+
         # Create a batch definition
         batch_definition: BatchDefinition = table_asset.add_batch_definition_whole_table(
             "full_table_batch"
         )
-        
+
         # Get a batch
         batch = table_asset.get_batch(batch_definition.build_batch_request())
-        
-        # Test a Custom SQL Expectation - this was the main failing case
+
+        # Test a regular expectation first
         result = batch.expect_column_values_to_be_in_set(
             column="some_column",  # Assume this column exists
-            value_set=["expected_value_1", "expected_value_2"]
+            value_set=["expected_value_1", "expected_value_2"],
         )
-        
+
         # The expectation should execute without SQL syntax errors
         assert isinstance(result, ExpectationValidationResult)
         # We don't assert on success since we don't know the actual data
         # But it should not raise a SQL syntax error about double quotes
+        
+        # Test a Custom SQL Expectation using query expectations
+        # This is the main case that was failing before our fix
+        custom_sql_result = batch.expect_query_row_count_to_equal(
+            query="SELECT COUNT(*) FROM {batch} WHERE some_condition = true",
+            expected_count=0,  # We don't care about the actual count for this test
+        )
+        
+        # The custom SQL expectation should execute without SQL syntax errors
+        assert isinstance(custom_sql_result, ExpectationValidationResult)
+        # The key is that it doesn't throw a PARSE_SYNTAX_ERROR about double quotes
 
     def test_schema_and_table_name_both_special(self, context, databricks_datasource):
         """Test schema and table names that both require special quoting."""

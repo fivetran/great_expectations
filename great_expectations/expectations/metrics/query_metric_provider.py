@@ -98,14 +98,29 @@ class QueryMetricProvider(MetricProvider):
     ) -> str:
         parameters = cls._get_parameters_dict_from_query_parameters(query_parameters)
 
-        if isinstance(batch_selectable, sa.Table):
-            query = query.format(batch=batch_selectable, **parameters)
+        if isinstance(batch_selectable, (sa.Table, sa.sql.selectable.TableClause)):
+            # Format the table with proper dialect-specific quoting
+            # Use the dialect's identifier preparer to ensure correct quote characters
+            preparer = execution_engine.dialect.identifier_preparer
+            
+            # Handle schema if present
+            if batch_selectable.schema:
+                schema_name = preparer.quote(batch_selectable.schema)
+                table_name = preparer.quote(batch_selectable.name)
+                formatted_table = f"{schema_name}.{table_name}"
+            else:
+                formatted_table = preparer.quote(batch_selectable.name)
+            
+            query = query.format(batch=formatted_table, **parameters)
         elif isinstance(
             batch_selectable, (sa.sql.Select, get_sqlalchemy_subquery_type())
         ):  # specifying a row_condition returns the active batch as a Select
             # specifying an unexpected_rows_query returns the active batch as a Subquery or Alias
             # this requires compilation & aliasing when formatting the parameterized query
-            batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
+            batch = batch_selectable.compile(
+                dialect=execution_engine.dialect,
+                compile_kwargs={"literal_binds": True}
+            )
             # all join queries require the user to have taken care of aliasing themselves
             if "JOIN" in query.upper():
                 query = query.format(batch=f"({batch})", **parameters)
