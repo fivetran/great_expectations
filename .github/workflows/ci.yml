@@ -126,10 +126,10 @@ jobs:
   docs-snippets:
     needs: [unit-tests, doc-checks, check-actor-permissions]
     # run on non-draft PRs with docs changes
-    #    if: |
-    #      (github.event.pull_request.draft == false && github.base_ref == 'develop') ||
-    #      (github.event_name == 'push' && contains(github.ref, 'refs/tags/1.')) ||
-    #      github.event_name == 'merge_group'
+    if: |
+      (github.event.pull_request.draft == false && github.base_ref == 'develop') ||
+      (github.event_name == 'push' && contains(github.ref, 'refs/tags/1.')) ||
+      github.event_name == 'merge_group'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -180,7 +180,6 @@ jobs:
       SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
       SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
       # cloud-specific
-      PACT_BROKER_READ_WRITE_TOKEN: ${{secrets.PACT_BROKER_READ_WRITE_TOKEN}}
       AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
       AUTH0_API_AUDIENCE: ${{secrets.AUTH0_API_AUDIENCE}}
       AUTH0_MERCURY_API_CLIENT_ID: ${{secrets.AUTH0_MERCURY_API_CLIENT_ID}}
@@ -193,7 +192,6 @@ jobs:
       LOCALSTACK_AWS_ENDPOINT_URL: ${{secrets.LOCALSTACK_AWS_ENDPOINT_URL}}
       LOCALSTACK_AWS_SECRET_ACCESS_KEY: ${{secrets.LOCALSTACK_AWS_SECRET_ACCESS_KEY}}
       LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
-      PACT_DO_NOT_TRACK: true
       SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
       SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
       CLOUD_AMQP_CONNECTION_STRING: ${{secrets.CLOUD_AMQP_CONNECTION_STRING}}

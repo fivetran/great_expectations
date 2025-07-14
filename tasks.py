@@ -836,9 +836,9 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         ),
         services=("postgresql", "mssql", "mysql", "trino"),
         extra_pytest_args=(
-            "--postgresql",
             "--mssql",
             "--mysql",
+            "--postgresql",
             "--trino",
             "--docs-tests",
         ),

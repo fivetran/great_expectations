@@ -25,9 +25,9 @@ print(context.list_datasources())
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - retrieve a data asset">
-data_source_name = "local_mercury_db"
-asset_name = "local-mercury-db-organizations-table"
-batch_definition_name = "local-mercury-db-organizations-table"
+data_source_name = "my_data_source"
+asset_name = "my_data_asset"
+batch_definition_name = "my_batch_definition"
 batch = (
     context.data_sources.get(data_source_name)
     .get_asset(asset_name)

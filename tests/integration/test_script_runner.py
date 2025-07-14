@@ -27,6 +27,49 @@ from great_expectations.data_context.data_context.file_data_context import (
 from great_expectations.data_context.util import file_relative_path
 from tests.integration.backend_dependencies import BackendDependencies
 from tests.integration.integration_test_fixture import IntegrationTestFixture
+from tests.integration.test_definitions.abs.integration_tests import (
+    abs_integration_tests,
+)
+from tests.integration.test_definitions.athena.integration_tests import (
+    athena_integration_tests,
+)
+from tests.integration.test_definitions.aws_glue.integration_tests import (
+    aws_glue_integration_tests,
+)
+from tests.integration.test_definitions.bigquery.integration_tests import (
+    bigquery_integration_tests,
+)
+from tests.integration.test_definitions.gcs.integration_tests import (
+    gcs_integration_tests,
+)
+from tests.integration.test_definitions.mssql.integration_tests import (
+    mssql_integration_tests,
+)
+from tests.integration.test_definitions.multiple_backend.integration_tests import (
+    multiple_backend,
+)
+from tests.integration.test_definitions.mysql.integration_tests import (
+    mysql_integration_tests,
+)
+from tests.integration.test_definitions.postgresql.integration_tests import (
+    postgresql_integration_tests,
+)
+from tests.integration.test_definitions.redshift.integration_tests import (
+    redshift_integration_tests,
+)
+from tests.integration.test_definitions.s3.integration_tests import s3_integration_tests
+from tests.integration.test_definitions.snowflake.integration_tests import (
+    snowflake_integration_tests,
+)
+from tests.integration.test_definitions.spark.integration_tests import (
+    spark_integration_tests,
+)
+from tests.integration.test_definitions.sqlite.integration_tests import (
+    sqlite_integration_tests,
+)
+from tests.integration.test_definitions.trino.integration_tests import (
+    trino_integration_tests,
+)
 
 pytestmark = pytest.mark.docs
 
@@ -262,25 +305,25 @@ failed_rows_tests = [
 
 # populate docs_test_matrix with sub-lists
 docs_test_matrix += docs_tests  # this has to go first. TODO: Fix in V1-481
-# docs_test_matrix += local_tests
-# docs_test_matrix += quickstart
-# docs_test_matrix += fluent_datasources
-# docs_test_matrix += spark_integration_tests
-# docs_test_matrix += sqlite_integration_tests
-# docs_test_matrix += mysql_integration_tests
-# docs_test_matrix += postgresql_integration_tests
-# docs_test_matrix += mssql_integration_tests
-# docs_test_matrix += trino_integration_tests
-# docs_test_matrix += snowflake_integration_tests
-# docs_test_matrix += redshift_integration_tests
-# docs_test_matrix += bigquery_integration_tests
-# docs_test_matrix += gcs_integration_tests
-# docs_test_matrix += abs_integration_tests
-# docs_test_matrix += s3_integration_tests
-# docs_test_matrix += athena_integration_tests
-# docs_test_matrix += aws_glue_integration_tests
-# docs_test_matrix += multiple_backend
-# docs_test_matrix += failed_rows_tests
+docs_test_matrix += local_tests
+docs_test_matrix += quickstart
+docs_test_matrix += fluent_datasources
+docs_test_matrix += spark_integration_tests
+docs_test_matrix += sqlite_integration_tests
+docs_test_matrix += mysql_integration_tests
+docs_test_matrix += postgresql_integration_tests
+docs_test_matrix += mssql_integration_tests
+docs_test_matrix += trino_integration_tests
+docs_test_matrix += snowflake_integration_tests
+docs_test_matrix += redshift_integration_tests
+docs_test_matrix += bigquery_integration_tests
+docs_test_matrix += gcs_integration_tests
+docs_test_matrix += abs_integration_tests
+docs_test_matrix += s3_integration_tests
+docs_test_matrix += athena_integration_tests
+docs_test_matrix += aws_glue_integration_tests
+docs_test_matrix += multiple_backend
+docs_test_matrix += failed_rows_tests
 
 pandas_integration_tests: List[IntegrationTestFixture] = []
 
@@ -298,19 +341,36 @@ def pytest_parsed_arguments(request):
     return request.config.option
 
 
+@pytest.fixture
+def prepare_cloud_env_vars(monkeypatch):
+    """Fixture that returns a callable to prepare cloud environment variables."""
+
+    def _prepare_cloud_env_vars_callable(backend_dependencies: list[BackendDependencies]):
+        # This is necessary because Cloud environment variables
+        # are always set in the pipeline (ci.yml).
+        # Non-Cloud tests will try to instantiate
+        # CloudDataContexts if these env vars are set, resulting in test failures
+        if BackendDependencies.CLOUD not in backend_dependencies:
+            monkeypatch.delenv(GXCloudEnvironmentVariable.BASE_URL, raising=False)
+            monkeypatch.delenv(GXCloudEnvironmentVariable.ACCESS_TOKEN, raising=False)
+            monkeypatch.delenv(GXCloudEnvironmentVariable.ORGANIZATION_ID, raising=False)
+
+    return _prepare_cloud_env_vars_callable
+
+
 @flaky(rerun_filter=delay_rerun, max_runs=3, min_passes=1)
 @pytest.mark.parametrize("integration_test_fixture", docs_test_matrix, ids=idfn)
 def test_docs(
     integration_test_fixture: IntegrationTestFixture,
     tmp_path: pathlib.Path,
     pytest_parsed_arguments,
-    monkeypatch,
+    prepare_cloud_env_vars,
 ):
     _check_for_skipped_tests(pytest_parsed_arguments, integration_test_fixture)
     _execute_integration_test(
         integration_test_fixture=integration_test_fixture,
         tmp_path=tmp_path,
-        monkeypatch=monkeypatch,
+        prepare_cloud_env_vars=prepare_cloud_env_vars,
     )
 
 
@@ -320,20 +380,20 @@ def test_integration_tests(
     test_configuration: IntegrationTestFixture,
     tmp_path: pathlib.Path,
     pytest_parsed_arguments,
-    monkeypatch,
+    prepare_cloud_env_vars,
 ):
     _check_for_skipped_tests(pytest_parsed_arguments, test_configuration)
     _execute_integration_test(
         integration_test_fixture=test_configuration,
         tmp_path=tmp_path,
-        monkeypatch=monkeypatch,
+        prepare_cloud_env_vars=prepare_cloud_env_vars,
     )
 
 
 def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
     integration_test_fixture: IntegrationTestFixture,
     tmp_path: pathlib.Path,
-    monkeypatch,
+    prepare_cloud_env_vars,
 ):
     """
     Prepare and environment and run integration tests from a list of tests.
@@ -409,9 +469,8 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
             util_script_path = tmp_path / "tests/test_utils.py"
             shutil.copyfile(script_source, util_script_path)
 
-        _prepare_cloud_env_vars(
+        prepare_cloud_env_vars(
             backend_dependencies=integration_test_fixture.backend_dependencies,
-            monkeypatch=monkeypatch,
         )
 
         # Run script as module, using python's importlib machinery (https://docs.python.org/3/library/importlib.htm)
@@ -430,16 +489,6 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
             raise
     finally:
         os.chdir(workdir)
-
-
-def _prepare_cloud_env_vars(backend_dependencies: list[BackendDependencies], monkeypatch):
-    # This is necessary because Cloud environment variables are always set in the pipeline (ci.yml).
-    # Non-Cloud tests will try to instantiate CloudDataContexts if these env vars are set,
-    # resulting in test failures .
-    if BackendDependencies.CLOUD not in backend_dependencies:
-        monkeypatch.delenv(GXCloudEnvironmentVariable.BASE_URL, raising=False)
-        monkeypatch.delenv(GXCloudEnvironmentVariable.ACCESS_TOKEN, raising=False)
-        monkeypatch.delenv(GXCloudEnvironmentVariable.ORGANIZATION_ID, raising=False)
 
 
 def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
