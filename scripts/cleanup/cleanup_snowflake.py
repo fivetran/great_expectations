@@ -14,20 +14,14 @@ class SnowflakeConnectionConfig(BaseSettings):
     These are injected in via CI, but when running locally, you may use your own credentials.
     """
 
-    SNOWFLAKE_ACCOUNT: str
-    SNOWFLAKE_USER: str
-    SNOWFLAKE_PW: str
-    SNOWFLAKE_DATABASE: str
-    SNOWFLAKE_SCHEMA: str
-    SNOWFLAKE_WAREHOUSE: str
-    SNOWFLAKE_ROLE: str
+    SNOWFLAKE_CI_USER_PASSWORD: str
+    SNOWFLAKE_CI_ACCOUNT: str
 
     @property
     def connection_string(self) -> str:
         return (
-            f"snowflake://{self.SNOWFLAKE_USER}:{self.SNOWFLAKE_PW}@"
-            f"{self.SNOWFLAKE_ACCOUNT}/{self.SNOWFLAKE_DATABASE}?"
-            f"warehouse={self.SNOWFLAKE_WAREHOUSE}&role={self.SNOWFLAKE_ROLE}"
+            f"snowflake://ci:{self.SNOWFLAKE_CI_USER_PASSWORD}@oca29081.us-east-1/ci?"
+            f"warehouse=ci&role=ci"
         )
 
 
