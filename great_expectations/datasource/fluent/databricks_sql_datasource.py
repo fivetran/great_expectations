@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING, ClassVar, List, Literal, Type, Union, overload
 from urllib import parse
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.compatibility import pydantic
-from great_expectations.compatibility import sqlalchemy
+from great_expectations.compatibility import pydantic, sqlalchemy
 from great_expectations.compatibility.pydantic import AnyUrl
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -144,13 +143,13 @@ class DatabricksTableAsset(SqlTableAsset):
     @override
     def _resolve_quoted_name(cls, table_name: str) -> str | quoted_name:
         """Resolve quoted names and handle Databricks special table names.
-        
+
         With databricks-sqlalchemy installed, returning quoted_name(quote=True)
         ensures the Databricks dialect uses backticks for special identifiers.
         """
         # If it's already a quoted_name object, return as-is
-        if hasattr(sqlalchemy, 'quoted_name') and hasattr(table_name, '__class__'):  # type: ignore[truthy-function]
-            if table_name.__class__.__name__ == 'quoted_name':
+        if hasattr(sqlalchemy, "quoted_name") and hasattr(table_name, "__class__"):  # type: ignore[truthy-function]
+            if table_name.__class__.__name__ == "quoted_name":
                 return table_name
 
         # Check if table name is already quoted with backticks
@@ -163,7 +162,7 @@ class DatabricksTableAsset(SqlTableAsset):
 
         # Check if table name needs special quoting for Databricks
         needs_quoting = cls._needs_databricks_backticks(table_name)
-        
+
         if needs_quoting:
             # Strip any existing quotes first
             clean_name = table_name.strip('"').strip("'").strip("`")
@@ -177,16 +176,16 @@ class DatabricksTableAsset(SqlTableAsset):
     @pydantic.validator("schema_name")
     def _resolve_quoted_schema_name(cls, schema_name: str | None) -> str | quoted_name | None:
         """Resolve quoted names and handle Databricks special schema names.
-        
+
         With databricks-sqlalchemy installed, returning quoted_name(quote=True)
         ensures the Databricks dialect uses backticks for special identifiers.
         """
         if schema_name is None:
             return schema_name
-            
+
         # If it's already a quoted_name object, return as-is
-        if hasattr(sqlalchemy, 'quoted_name') and hasattr(schema_name, '__class__'):  # type: ignore[truthy-function]
-            if schema_name.__class__.__name__ == 'quoted_name':
+        if hasattr(sqlalchemy, "quoted_name") and hasattr(schema_name, "__class__"):  # type: ignore[truthy-function]
+            if schema_name.__class__.__name__ == "quoted_name":
                 return schema_name
 
         # Check if schema name is already quoted with backticks
@@ -210,7 +209,7 @@ class DatabricksTableAsset(SqlTableAsset):
     @staticmethod
     def _needs_databricks_backticks(table_name: str) -> bool:
         """Check if a table name requires backtick quoting in Databricks.
-        
+
         Databricks requires backticks for table names that:
         - Start with a digit
         - Contain spaces, hyphens, dots, hash, or @ symbols
@@ -219,16 +218,13 @@ class DatabricksTableAsset(SqlTableAsset):
         # Don't process already-quoted names
         if table_name.startswith("`") and table_name.endswith("`"):
             return False
-            
+
         # Check if name starts with a digit
         if re.match(r"^\d", table_name):
             return True
-            
+
         # Check if name contains special characters that need escaping
-        if re.search(r"[.\s\-#@]", table_name):
-            return True
-            
-        return False
+        return bool(re.search(r"[.\s\-#@]", table_name))
 
     @staticmethod
     @override

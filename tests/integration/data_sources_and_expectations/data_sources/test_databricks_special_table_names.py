@@ -159,7 +159,7 @@ class TestDatabricksSpecialTableNames:
         table_asset = databricks_datasource.add_table_asset(
             name="special_schema_and_table",
             schema_name="123_schema",  # Schema starts with digit
-            table_name="456_table",     # Table starts with digit
+            table_name="456_table",  # Table starts with digit
         )
 
         # Create a batch definition
