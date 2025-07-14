@@ -26,11 +26,13 @@ class MissingElementError(TypeError):
             "element from which query parameters can be extracted."
         )
 
+
 class QueryParameters(TypedDict):
     column: NotRequired[str]
     column_A: NotRequired[str]
     column_B: NotRequired[str]
     columns: NotRequired[list[str]]
+
 
 class QueryMetricProvider(MetricProvider):
     """Base class for all Query Metrics, which define metrics to construct SQL queries.
@@ -104,7 +106,7 @@ class QueryMetricProvider(MetricProvider):
             # specifying an unexpected_rows_query returns the active batch as a Subquery or Alias
             # this requires compilation & aliasing when formatting the parameterized query
             batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
-            
+        
             # all join queries require the user to have taken care of aliasing themselves
             if "JOIN" in query.upper():
                 query = query.format(batch=f"({batch})", **parameters)
