@@ -1144,7 +1144,6 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         return sa.select("*").select_from(selectable).where(partition_clause)  # type: ignore[arg-type] # FIXME CoP
 
-
     def _subselectable(self, batch_spec: BatchSpec) -> sqlalchemy.Selectable:
         table_name = batch_spec.get("table_name")
         query = batch_spec.get("query")
