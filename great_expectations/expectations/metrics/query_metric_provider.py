@@ -112,7 +112,7 @@ class QueryMetricProvider(MetricProvider):
             # Format the table with proper dialect-specific quoting
             # Use the dialect's identifier preparer to ensure correct quote characters
             preparer = execution_engine.dialect.identifier_preparer
-            
+
             # Handle schema if present
             if batch_selectable.schema:
                 schema_name = preparer.quote(batch_selectable.schema)
@@ -120,7 +120,7 @@ class QueryMetricProvider(MetricProvider):
                 formatted_table = f"{schema_name}.{table_name}"
             else:
                 formatted_table = preparer.quote(batch_selectable.name)
-            
+
             query = query.format(batch=formatted_table, **parameters)
         elif isinstance(
             batch_selectable, (sa.sql.Select, get_sqlalchemy_subquery_type())
@@ -138,9 +138,6 @@ class QueryMetricProvider(MetricProvider):
                 query = query.format(batch=f"({batch}) AS subselect", **parameters)
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
-
-        if getattr(execution_engine, "dialect_name", None) == "mssql":  # fix for batch error
-            query = query.replace("WHERE true", "WHERE 1=1")
 
         return query
 
