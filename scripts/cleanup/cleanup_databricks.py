@@ -10,7 +10,6 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 SCHEMA_PATTERN = "test_[a-z]{10}"
-CATALOG_NAME = "ci"
 
 
 class DatabricksConnectionConfig(BaseSettings):
@@ -24,7 +23,7 @@ class DatabricksConnectionConfig(BaseSettings):
 
     @property
     def connection_string(self) -> str:
-        return f"databricks://token:{self.DATABRICKS_TOKEN}@{self.DATABRICKS_HOST}?http_path={self.DATABRICKS_HTTP_PATH}&catalog=hive_metastore"
+        return f"databricks://token:{self.DATABRICKS_TOKEN}@{self.DATABRICKS_HOST}?http_path={self.DATABRICKS_HTTP_PATH}&catalog=ci"
 
 
 def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
@@ -34,7 +33,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
         results = conn.execute(
             TextClause(
                 f"""
-                SHOW SCHEMAS FROM {CATALOG_NAME} LIKE '{SCHEMA_PATTERN}'
+                SHOW SCHEMAS LIKE '{SCHEMA_PATTERN}'
                 """
             )
         ).fetchall()
@@ -49,7 +48,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
 
                 try:
                     describe_results = conn.execute(
-                        TextClause(f"DESCRIBE SCHEMA EXTENDED {full_schema_name}")
+                        TextClause(f"DESCRIBE SCHEMA EXTENDED {schema_name}")
                     ).fetchall()
 
                     # Look for custom created_timestamp property
@@ -75,7 +74,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
                     if created_timestamp:
                         age = current_time - created_timestamp
                         if age.total_seconds() > 7200:  # 2 hours = 7200 seconds
-                            schemas_to_drop.append(full_schema_name)
+                            schemas_to_drop.append(schema_name)
                     else:
                         # No timestamp found - could be old schema or missing metadata
                         logger.warning(f"No created_timestamp found for {schema_name}, skipping")
