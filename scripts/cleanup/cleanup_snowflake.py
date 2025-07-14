@@ -25,7 +25,8 @@ class SnowflakeConnectionConfig(BaseSettings):
         )
 
 
-# Update regex to match uppercase schema names (Snowflake converts unquoted identifiers to uppercase)
+# Regex to match uppercase schema names
+# (Snowflake converts unquoted identifiers to uppercase)
 SCHEMA_FORMAT = "^TEST_[A-Z]{10}$"
 
 
