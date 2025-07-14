@@ -99,33 +99,33 @@ jobs:
         run: |
           python ./scripts/cleanup/cleanup_databricks.py
 
-  # cleanup-snowflake:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     # snowflake
-  #     SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
-  #     SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
-  #     SNOWFLAKE_PW: ${{secrets.SNOWFLAKE_PW}}
-  #     SNOWFLAKE_DATABASE: ${{secrets.SNOWFLAKE_DATABASE}}
-  #     SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
-  #     SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
-  #     SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.12"
-  #         cache: "pip"
-  #         cache-dependency-path: |
-  #           reqs/requirements-dev-test.txt
-  #           setup.py
-  #     - name: Install dependencies
-  #       run: |
-  #         pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
-  #         invoke deps --gx-install -m snowflake
-  #         pip install -e .
-  #     - name: Run Snowflake cleanup script
-  #       run: |
-  #         python ./scripts/cleanup/cleanup_snowflake.py
+  cleanup-snowflake:
+    runs-on: ubuntu-latest
+    env:
+      # snowflake
+      SNOWFLAKE_ACCOUNT: ${{secrets.SNOWFLAKE_ACCOUNT}}
+      SNOWFLAKE_USER: ${{secrets.SNOWFLAKE_USER}}
+      SNOWFLAKE_PW: ${{secrets.SNOWFLAKE_PW}}
+      SNOWFLAKE_DATABASE: ${{secrets.SNOWFLAKE_DATABASE}}
+      SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
+      SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
+      SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m snowflake
+          pip install -e .
+      - name: Run Snowflake cleanup script
+        run: |
+          python ./scripts/cleanup/cleanup_snowflake.py
