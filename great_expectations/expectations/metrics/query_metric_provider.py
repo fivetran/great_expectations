@@ -26,23 +26,11 @@ class MissingElementError(TypeError):
             "element from which query parameters can be extracted."
         )
 
-
-class MissingParameterError(ValueError):
-    def __init__(self, parameter_name: str):
-        super().__init__(f"Must provide `{parameter_name}` to `{self.__class__.__name__}` metric.")
-
-
-class InvalidParameterTypeError(TypeError):
-    def __init__(self, parameter_name: str, expected_type: type):
-        super().__init__(f"`{parameter_name}` must be provided as type `{expected_type}`.")
-
-
 class QueryParameters(TypedDict):
     column: NotRequired[str]
     column_A: NotRequired[str]
     column_B: NotRequired[str]
     columns: NotRequired[list[str]]
-
 
 class QueryMetricProvider(MetricProvider):
     """Base class for all Query Metrics, which define metrics to construct SQL queries.
@@ -79,9 +67,9 @@ class QueryMetricProvider(MetricProvider):
             query_param
         )
         if not query:
-            raise MissingParameterError(query_param)
+            raise ValueError(f"Must provide `{query_param}` to `{cls.__name__}` metric.")  # noqa: TRY003 # FIXME CoP
         if not isinstance(query, str):
-            raise InvalidParameterTypeError(query_param, str)
+            raise TypeError(f"`{query_param}` must be provided as a string.")  # noqa: TRY003 # FIXME CoP
 
         return query
 
@@ -108,29 +96,15 @@ class QueryMetricProvider(MetricProvider):
     ) -> str:
         parameters = cls._get_parameters_dict_from_query_parameters(query_parameters)
 
-        if isinstance(batch_selectable, (sa.Table, sa.sql.selectable.TableClause)):
-            # Format the table with proper dialect-specific quoting
-            # Use the dialect's identifier preparer to ensure correct quote characters
-            preparer = execution_engine.dialect.identifier_preparer
-            
-            # Handle schema if present
-            if batch_selectable.schema:
-                schema_name = preparer.quote(batch_selectable.schema)
-                table_name = preparer.quote(batch_selectable.name)
-                formatted_table = f"{schema_name}.{table_name}"
-            else:
-                formatted_table = preparer.quote(batch_selectable.name)
-            
-            query = query.format(batch=formatted_table, **parameters)
+        if isinstance(batch_selectable, sa.Table):
+            query = query.format(batch=batch_selectable, **parameters)
         elif isinstance(
             batch_selectable, (sa.sql.Select, get_sqlalchemy_subquery_type())
         ):  # specifying a row_condition returns the active batch as a Select
             # specifying an unexpected_rows_query returns the active batch as a Subquery or Alias
             # this requires compilation & aliasing when formatting the parameterized query
-            batch = batch_selectable.compile(
-                dialect=execution_engine.dialect,
-                compile_kwargs={"literal_binds": True},
-            )
+            batch = batch_selectable.compile(compile_kwargs={"literal_binds": True})
+            
             # all join queries require the user to have taken care of aliasing themselves
             if "JOIN" in query.upper():
                 query = query.format(batch=f"({batch})", **parameters)
@@ -138,9 +112,6 @@ class QueryMetricProvider(MetricProvider):
                 query = query.format(batch=f"({batch}) AS subselect", **parameters)
         else:
             query = query.format(batch=f"({batch_selectable})", **parameters)
-
-        if getattr(execution_engine, "dialect_name", None) == "mssql":  # fix for batch error
-            query = query.replace("WHERE true", "WHERE 1=1")
 
         return query
 
