@@ -253,7 +253,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
         if self.batch_manager.active_batch_data is None:
             raise ValueError("Batch has not been loaded - please run load_batch() to load a batch.")  # noqa: TRY003 # FIXME CoP
 
-        return cast(SparkDFBatchData, self.batch_manager.active_batch_data).dataframe
+        return cast("SparkDFBatchData", self.batch_manager.active_batch_data).dataframe
 
     @staticmethod
     def get_or_create_spark_session(
@@ -652,7 +652,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         if batch_id is None:
             # We allow no batch id specified if there is only one batch
             if self.batch_manager.active_batch_data:
-                data = cast(SparkDFBatchData, self.batch_manager.active_batch_data).dataframe
+                data = cast("SparkDFBatchData", self.batch_manager.active_batch_data).dataframe
             else:
                 raise ValidationError(  # noqa: TRY003 # FIXME CoP
                     "No batch is specified, but could not identify a loaded batch."
@@ -660,7 +660,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         else:  # noqa: PLR5501 # FIXME CoP
             if batch_id in self.batch_manager.batch_data_cache:
                 data = cast(
-                    SparkDFBatchData, self.batch_manager.batch_data_cache[batch_id]
+                    "SparkDFBatchData", self.batch_manager.batch_data_cache[batch_id]
                 ).dataframe
             else:
                 raise ValidationError(f"Unable to find batch with batch_id {batch_id}")  # noqa: TRY003 # FIXME CoP

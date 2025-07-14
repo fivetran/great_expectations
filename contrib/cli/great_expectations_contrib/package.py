@@ -5,11 +5,12 @@ import os
 import sys
 from dataclasses import asdict, dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
-import pkg_resources
 from ruamel.yaml import YAML
 
+from great_expectations.compatibility.pip import InstallRequirement, PipSession, parse_requirements
 from great_expectations.core.expectation_diagnostics.expectation_diagnostics import (
     ExpectationDiagnostics,
 )
@@ -208,11 +209,11 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
             logger.warning(f"Could not find requirements file {path}")
             return
 
-        with open(path) as f:
-            requirements = [req for req in pkg_resources.parse_requirements(f)]
+        session = PipSession()
+        requirements = [req for req in parse_requirements(path, session=session)]
 
         def _convert_to_dependency(
-            requirement: pkg_resources.Requirement,
+            requirement: InstallRequirement,
         ) -> Dependency:
             name = requirement.project_name
             pypi_url = f"https://pypi.org/project/{name}"
@@ -264,9 +265,7 @@ class GreatExpectationsContribPackageManifest(SerializableDictDot):
     def _identify_user_package() -> str:
         # Guaranteed to have a dir named '<MY_PACKAGE>_expectations' through Cookiecutter validation
         packages = [
-            d
-            for d in os.listdir()
-            if os.path.isdir(d) and d.endswith("_expectations")  # noqa: PTH112
+            d.name for d in Path().iterdir() if d.is_dir() and d.name.endswith("_expectations")
         ]
 
         # A sanity check in case the user modifies the Cookiecutter template in unexpected ways

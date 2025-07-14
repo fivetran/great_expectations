@@ -1,0 +1,92 @@
+{
+  "expectation_type": "expect_column_values_to_be_between",
+  "datasets": [
+    {
+      "dataset_name": "expect_column_values_to_be_between_suite_parameters_1",
+      "data": {
+        "x": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "y": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          "abc"
+        ],
+        "z": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "ts": [
+          "1970-01-01T12:00:01",
+          "1999-12-31T12:00:01",
+          "2000-01-01T12:00:01",
+          "2000-02-01T12:00:01",
+          "2000-03-01T12:00:01",
+          "2000-04-01T12:00:01",
+          "2000-05-01T12:00:01",
+          "2000-06-01T12:00:01",
+          null,
+          "2001-01-01T12:00:01"
+        ],
+        "alpha": [
+          "a",
+          "b",
+          "c",
+          "d",
+          "e",
+          "f",
+          "g",
+          "h",
+          "i",
+          "j"
+        ],
+        "numeric": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10"
+        ]
+      },
+      "schemas": {
+        "postgresql": {
+          "x": "INTEGER",
+          "y": "TEXT",
+          "z": "INTEGER",
+          "ts": "TIMESTAMP",
+          "alpha": "TEXT",
+          "numeric": "INTEGER"
+        }
+      }
+    }
+  ]
+}

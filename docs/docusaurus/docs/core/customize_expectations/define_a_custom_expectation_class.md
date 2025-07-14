@@ -39,13 +39,13 @@ Advantages of subclassing an Expectation and providing customized attributes rat
 
 1. Choose a base Expectation class.
 
-   You can customize any of the core Expectation classes in GX. You can view the available Expectations and their functionality in the [Expectation Gallery](https://greatexpectations.io/expectations).
+   You can customize any of the built-in Expectation classes in GX. You can view the available Expectations and their functionality in the [Expectation Gallery](https://greatexpectations.io/expectations).
 
    In this example, `ExpectColumnValuesToBeBetween` will be customized.
 
 2. Create a new Expectation class that inherits the base Expectation class.
   
-   The core Expectations in GX have names describing their functionality.  When you create a customized Expectation class you can provide a class name that is more indicative of your specific use case:
+   The built-in Expectations in GX have names describing their functionality.  When you create a customized Expectation class you can provide a class name that is more indicative of your specific use case:
 
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/define_a_custom_expectation_class.py - define a custom Expectation subclass"
    ```

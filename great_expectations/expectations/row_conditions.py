@@ -16,6 +16,7 @@ from pyparsing import (
     Suppress,
     Word,
     alphanums,
+    alphas8bit,
 )
 
 import great_expectations.exceptions as gx_exceptions
@@ -44,7 +45,7 @@ ne = Literal("!=")
 ops = (gt ^ lt ^ ge ^ le ^ eq ^ ne).setResultsName("op")
 fnumber = Regex(r"[+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?").setResultsName("fnumber")
 punctuation_without_apostrophe = punctuation.replace('"', "").replace("'", "")
-condition_value_chars = alphanums + punctuation_without_apostrophe + WHITESPACE_CHARS
+condition_value_chars = alphanums + alphas8bit + punctuation_without_apostrophe + WHITESPACE_CHARS
 condition_value = Suppress('"') + Word(f"{condition_value_chars}._").setResultsName(
     "condition_value"
 ) + Suppress('"') ^ Suppress("'") + Word(f"{condition_value_chars}._").setResultsName(

@@ -3,6 +3,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Optional, Union
 
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     render_suite_parameter_string,
@@ -73,7 +76,7 @@ class ExpectColumnValuesToBeIncreasing(ColumnMapExpectation):
         [ExpectColumnValuesToBeDecreasing](https://greatexpectations.io/expectations/expect_column_values_to_be_decreasing)
     """  # noqa: E501 # FIXME CoP
 
-    strictly: Union[bool, None] = None
+    strictly: Union[bool, SuiteParameterDict, None] = None
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata = {
@@ -153,9 +156,10 @@ class ExpectColumnValuesToBeIncreasing(ColumnMapExpectation):
         else:
             template_str = "values must be greater than or equal to previous values"
 
-        if params["mostly"] is not None and params["mostly"] < 1.0:
-            params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-            # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")
+        if params["mostly"] is not None:
+            if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
             template_str += ", at least $mostly_pct % of the time."
         else:
             template_str += "."

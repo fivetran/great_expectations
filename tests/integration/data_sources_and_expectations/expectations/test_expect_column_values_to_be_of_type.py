@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
@@ -15,6 +16,7 @@ from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
     SqliteDatasourceTestConfig,
@@ -69,6 +71,7 @@ def test_success_for_type__int(batch_for_datasource: Batch) -> None:
         MSSQLDatasourceTestConfig(),
         MySQLDatasourceTestConfig(),
         PostgreSQLDatasourceTestConfig(),
+        RedshiftDatasourceTestConfig(),
         SqliteDatasourceTestConfig(),
     ],
     data=DATA,
@@ -141,3 +144,55 @@ def test_failure(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_="NUMBER")
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+# Group datasources with case-insensitive type handling
+@parameterize_batch_for_data_sources(
+    data_source_configs=[
+        DatabricksDatasourceTestConfig(),
+        PostgreSQLDatasourceTestConfig(),
+        SnowflakeDatasourceTestConfig(),
+    ],
+    data=DATA,
+)
+def test_case_insensitive_dialects(batch_for_datasource: Batch) -> None:
+    dialect_name = batch_for_datasource.data.execution_engine.engine.dialect.name.lower()
+
+    expected_dialects = ["snowflake", "databricks", "postgresql"]
+    assert dialect_name in expected_dialects, f"Unexpected dialect: {dialect_name}"
+
+    if dialect_name == "snowflake":
+        base_type = "DECIMAL(38, 0)"
+    elif dialect_name == "databricks":
+        base_type = "INT"
+    elif dialect_name == "postgresql":
+        base_type = "INTEGER"
+    else:
+        raise AssertionError(f"Unexpected dialect: {dialect_name}")
+
+    for type_str in [base_type.lower(), base_type.upper(), base_type.capitalize()]:
+        expectation = gxe.ExpectColumnValuesToBeOfType(column=INTEGER_COLUMN, type_=type_str)
+        result = batch_for_datasource.validate(expectation)
+        assert result.success, f"Expected success for type '{type_str}' on dialect '{dialect_name}'"
+
+
+@pytest.mark.parametrize(
+    "suite_param_value,expected_result",
+    [
+        pytest.param("int", True, id="success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_success_with_suite_param_type_(
+    batch_for_datasource: Batch, suite_param_value: str, expected_result: bool
+) -> None:
+    suite_param_key = "test_expect_column_values_to_be_of_type"
+    expectation = gxe.ExpectColumnValuesToBeOfType(
+        column=INTEGER_COLUMN,
+        type_={"$PARAMETER": suite_param_key},
+        result_format=ResultFormat.SUMMARY,
+    )
+    result = batch_for_datasource.validate(
+        expectation, expectation_parameters={suite_param_key: suite_param_value}
+    )
+    assert result.success == expected_result

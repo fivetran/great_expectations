@@ -3,10 +3,15 @@ include reqs/*.txt
 include LICENSE
 include great_expectations/data_context/checkpoint_template.yml
 include great_expectations/init_notebooks/*/*.ipynb
-recursive-include great_expectations/render *.j2 *.md *.py
-recursive-include great_expectations *.pyi
-graft great_expectations/render/view/static
-graft tests
-global-exclude *.py[co]
 include versioneer.py
 include great_expectations/_version.py
+include py.typed
+
+recursive-include great_expectations/render *.j2 *.md *.py
+recursive-include great_expectations *.pyi
+recursive-include great_expectations py.typed
+
+graft great_expectations/render/view/static
+graft tests
+
+global-exclude *.py[co]

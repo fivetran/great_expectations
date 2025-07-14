@@ -3,6 +3,7 @@ title: Toggle analytics events
 description: Enable or disable the collection of analytics events within GX.
 hide_feedback_survey: false
 hide_title: false
+hide_table_of_contents: true
 ---
 
 

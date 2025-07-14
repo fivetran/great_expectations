@@ -11,6 +11,7 @@ from tests.integration.test_utils.data_source_config import (
     MSSQLDatasourceTestConfig,
     MySQLDatasourceTestConfig,
     PostgreSQLDatasourceTestConfig,
+    RedshiftDatasourceTestConfig,
     SnowflakeDatasourceTestConfig,
     SqliteDatasourceTestConfig,
 )
@@ -23,6 +24,7 @@ DATA = pd.DataFrame({COL_NAME: ["aa", "ab", "ac", None]})
 REGULAR_DATA_SOURCES: Sequence[DataSourceTestConfig] = [
     MySQLDatasourceTestConfig(),
     PostgreSQLDatasourceTestConfig(),
+    RedshiftDatasourceTestConfig(),
     SnowflakeDatasourceTestConfig(),
     SqliteDatasourceTestConfig(),
 ]

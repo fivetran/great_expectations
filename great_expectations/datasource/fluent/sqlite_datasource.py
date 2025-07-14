@@ -192,7 +192,7 @@ class SqliteDatasource(SQLDatasource):
             The SqliteTableAsset added
         """
         return cast(
-            SqliteTableAsset,
+            "SqliteTableAsset",
             super().add_table_asset(
                 name=name,
                 table_name=table_name,
@@ -223,7 +223,7 @@ class SqliteDatasource(SQLDatasource):
         """
 
         return cast(
-            SqliteQueryAsset,
+            "SqliteQueryAsset",
             super().add_query_asset(name=name, query=query, batch_metadata=batch_metadata),
         )
 

@@ -6,4 +6,6 @@ class BatchRowCountResult(MetricResult[int]): ...
 
 
 class BatchRowCount(BatchMetric[BatchRowCountResult]):
+    """Count of rows in a table"""
+
     name = "table.row_count"

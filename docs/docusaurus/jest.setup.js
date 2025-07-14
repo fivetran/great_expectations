@@ -1,9 +1,9 @@
-jest.mock("@docusaurus/useBaseUrl", () =>
+jest.mock('@docusaurus/useBaseUrl', () =>
   jest.fn(() => {
-    const originalModule = jest.requireActual("@docusaurus/useBaseUrl");
+    const originalModule = jest.requireActual('@docusaurus/useBaseUrl')
     return {
       ...originalModule,
-      useBaseUrl: (url) => url,
-    };
+      useBaseUrl: (url) => url
+    }
   })
-);
+)

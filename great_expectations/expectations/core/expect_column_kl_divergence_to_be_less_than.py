@@ -9,6 +9,9 @@ import pandas as pd
 from scipy import stats
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.execution_engine.util import (
     is_valid_categorical_partition_object,
@@ -19,7 +22,7 @@ from great_expectations.expectations.expectation import (
     ColumnAggregateExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
@@ -95,14 +98,15 @@ BUCKETIZE_DATA_DESCRIPTION = (
 MIN_VALUE_DESCRIPTION = "The minimum value for the column."
 MAX_VALUE_DESCRIPTION = "The maximum value for the column."
 SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.REDSHIFT.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
 
@@ -318,15 +322,21 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    partition_object: Union[dict, None] = pydantic.Field(description=PARTITION_OBJECT_DESCRIPTION)
-    threshold: Union[float, None] = pydantic.Field(description=THRESHOLD_DESCRIPTION)
-    internal_weight_holdout: Union[float, None] = pydantic.Field(
+    partition_object: Union[dict, SuiteParameterDict, None] = pydantic.Field(
+        description=PARTITION_OBJECT_DESCRIPTION
+    )
+    threshold: Union[float, SuiteParameterDict, None] = pydantic.Field(
+        description=THRESHOLD_DESCRIPTION
+    )
+    internal_weight_holdout: Union[float, SuiteParameterDict, None] = pydantic.Field(
         default=0, ge=0, le=1, description=INTERNAL_WEIGHT_HOLDOUT_DESCRIPTION
     )
-    tail_weight_holdout: Union[float, None] = pydantic.Field(
+    tail_weight_holdout: Union[float, SuiteParameterDict, None] = pydantic.Field(
         default=0, ge=0, le=1, description=TAIL_WEIGHT_HOLDOUT_DESCRIPTION
     )
-    bucketize_data: bool = pydantic.Field(default=True, description=BUCKETIZE_DATA_DESCRIPTION)
+    bucketize_data: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=True, description=BUCKETIZE_DATA_DESCRIPTION
+    )
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
     )

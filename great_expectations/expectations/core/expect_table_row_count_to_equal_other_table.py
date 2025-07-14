@@ -5,11 +5,14 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_types import (
     ConditionParser,  # noqa: TC001 # FIXME CoP
 )
@@ -45,12 +48,13 @@ OTHER_TABLE_NAME_DESCRIPTION = (
     "The name of the other table. Other table must be located within the same database."
 )
 SUPPORTED_DATA_SOURCES = [
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "Databricks (SQL)",
-    "Snowflake",
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.REDSHIFT.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.SNOWFLAKE.value,
 ]
 DATA_QUALITY_ISSUES = [DataQualityIssues.VOLUME.value]
 
@@ -94,6 +98,7 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -158,7 +163,9 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    other_table_name: str = pydantic.Field(description=OTHER_TABLE_NAME_DESCRIPTION)
+    other_table_name: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=OTHER_TABLE_NAME_DESCRIPTION
+    )
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
 

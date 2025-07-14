@@ -5,7 +5,9 @@ import pandas as pd
 import pytest
 
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
+from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
@@ -30,6 +32,8 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
         request: pytest.FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         tmp_path = request.getfixturevalue("tmp_path")
         assert isinstance(tmp_path, pathlib.Path)
@@ -40,20 +44,31 @@ class SqliteDatasourceTestConfig(DataSourceTestConfig):
             base_dir=tmp_path,
             extra_data=extra_data,
             table_name=self.table_name,
+            context=context,
+            engine_manager=engine_manager,
         )
 
 
 class SqliteBatchTestSetup(SQLBatchTestSetup[SqliteDatasourceTestConfig]):
     def __init__(
         self,
-        config: SqliteDatasourceTestConfig,
         data: pd.DataFrame,
-        base_dir: pathlib.Path,
+        config: SqliteDatasourceTestConfig,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        base_dir: pathlib.Path,
         table_name: Optional[str] = None,
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> None:
         self._base_dir = base_dir
-        super().__init__(config=config, data=data, extra_data=extra_data, table_name=table_name)
+        super().__init__(
+            config=config,
+            data=data,
+            extra_data=extra_data,
+            table_name=table_name,
+            engine_manager=engine_manager,
+            context=context,
+        )
 
     @property
     @override

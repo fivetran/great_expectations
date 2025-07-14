@@ -1,5 +1,5 @@
 import React from 'react'
-import VersionedLink from '@site/src/components/VersionedLink';
+import VersionedLink from '@site/src/components/VersionedLink'
 
 /**
  * A flexible Prerequisites admonition block.

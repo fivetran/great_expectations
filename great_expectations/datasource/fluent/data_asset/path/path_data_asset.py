@@ -101,7 +101,7 @@ class PathDataAsset(DataAsset, Generic[DatasourceT, PartitionerT], ABC):
             )
         ):
             valid_options = self.get_batch_parameters_keys(partitioner=batch_request.partitioner)
-            options = {option: None for option in valid_options}
+            options = dict.fromkeys(valid_options)
             expect_batch_request_form = BatchRequest(
                 datasource_name=self.datasource.name,
                 data_asset_name=self.name,

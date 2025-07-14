@@ -146,6 +146,8 @@
 /docs/reference/anonymous_usage_statistics /docs/core/configure_project_settings/toggle_analytics_events/
 /docs/reference/learn/integrations/airflow_pipeline_tutorial /docs/reference/learn/integrations/data_pipeline_tutorial
 
+
+
 # Redirect from Getting Started Tutorial to Quickstart
 
 /docs/docusaurus/docs/tutorials/getting_started/ /docs/tutorials/quickstart
@@ -448,3 +450,8 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 # abandoned pages
 /docs/0.18/oss/* /docs/0.18/core/introduction/introduction
 /docs/0.18/reference/learn/terms/* /docs/0.18/reference/learn/glossary
+
+## Redirects for renamed resources docs
+
+/docs/resources/get_support /docs/help/get_support
+/docs/application_integration_support /docs/help/compatibility_reference

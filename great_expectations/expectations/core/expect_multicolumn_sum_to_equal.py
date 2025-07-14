@@ -4,10 +4,13 @@ import logging
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Literal, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     MulticolumnMapExpectation,
 )
-from great_expectations.expectations.metadata_types import DataQualityIssues
+from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_LIST_DESCRIPTION,
     IGNORE_ROW_IF_DESCRIPTION,
@@ -41,18 +44,19 @@ EXPECTATION_SHORT_DESCRIPTION = (
     "is the same for each row, and equal to a specified sum total."
 )
 SUM_TOTAL_DESCRIPTION = "Expected sum of columns"
-SUPPORTED_DATA_SOURCES = [
-    "Pandas",
-    "Spark",
-    "SQLite",
-    "PostgreSQL",
-    "MySQL",
-    "MSSQL",
-    "BigQuery",
-    "Snowflake",
-    "Databricks (SQL)",
-]
 DATA_QUALITY_ISSUES = [DataQualityIssues.NUMERIC.value]
+SUPPORTED_DATA_SOURCES = [
+    SupportedDataSources.PANDAS.value,
+    SupportedDataSources.SPARK.value,
+    SupportedDataSources.SQLITE.value,
+    SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.MYSQL.value,
+    SupportedDataSources.MSSQL.value,
+    SupportedDataSources.BIGQUERY.value,
+    SupportedDataSources.SNOWFLAKE.value,
+    SupportedDataSources.DATABRICKS.value,
+    SupportedDataSources.REDSHIFT.value,
+]
 
 
 class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
@@ -182,12 +186,13 @@ class ExpectMulticolumnSumToEqual(MulticolumnMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    sum_total: float = pydantic.Field(description=SUM_TOTAL_DESCRIPTION)
-    ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (
-        pydantic.Field(
-            default="all_values_are_missing",
-            description=IGNORE_ROW_IF_DESCRIPTION,
-        )
+    sum_total: Union[float, SuiteParameterDict] = pydantic.Field(description=SUM_TOTAL_DESCRIPTION)
+    ignore_row_if: Union[
+        Literal["all_values_are_missing", "any_value_is_missing", "never"],
+        SuiteParameterDict,
+    ] = pydantic.Field(
+        default="all_values_are_missing",
+        description=IGNORE_ROW_IF_DESCRIPTION,
     )
 
     # This dictionary contains metadata for display in the public gallery

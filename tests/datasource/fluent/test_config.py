@@ -856,7 +856,7 @@ def test_config_substitution_retains_original_value_on_save(
     print(f"injected env variables:\n{pf(seed_ds_env_vars)}\n")
     my_conn_str = os.environ["MY_CONN_STR"]
 
-    original: dict = cast(dict, yaml.load(file_dc_config_file_with_substitutions.read_text()))[
+    original: dict = cast("dict", yaml.load(file_dc_config_file_with_substitutions.read_text()))[
         _FLUENT_DATASOURCES_KEY
     ]["my_sqlite_ds_w_subs"]
 
@@ -878,7 +878,7 @@ def test_config_substitution_retains_original_value_on_save(
 
     context._save_project_config()
 
-    round_tripped = cast(dict, yaml.load(file_dc_config_file_with_substitutions.read_text()))[
+    round_tripped = cast("dict", yaml.load(file_dc_config_file_with_substitutions.read_text()))[
         _FLUENT_DATASOURCES_KEY
     ]["my_sqlite_ds_w_subs"]
 
@@ -895,7 +895,7 @@ def test_config_substitution_retains_original_value_on_save_w_run_time_mods(
     # show injected env variable
     print(f"injected env variables:\n{pf(seed_ds_env_vars)}")
 
-    original: dict = cast(dict, yaml.load(file_dc_config_file_with_substitutions.read_text()))[
+    original: dict = cast("dict", yaml.load(file_dc_config_file_with_substitutions.read_text()))[
         _FLUENT_DATASOURCES_KEY
     ]
     assert original.get("my_sqlite_ds_w_subs")  # will be modified
@@ -925,7 +925,7 @@ def test_config_substitution_retains_original_value_on_save_w_run_time_mods(
     context._save_project_config()
 
     round_tripped_datasources = cast(
-        dict, yaml.load(file_dc_config_file_with_substitutions.read_text())
+        "dict", yaml.load(file_dc_config_file_with_substitutions.read_text())
     )[_FLUENT_DATASOURCES_KEY]
 
     assert round_tripped_datasources["my_new_one"]

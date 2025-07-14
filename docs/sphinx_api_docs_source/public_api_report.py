@@ -177,10 +177,10 @@ class DocsExampleParser:
                 n.name.startswith("great_expectations") for n in node.names
             )
             if node_is_imported_from_gx:
-                cast(ast.ImportFrom, node)
+                cast("ast.ImportFrom", node)
                 imports.append(node)  # type: ignore[arg-type]
             elif node_is_gx_import:
-                cast(ast.Import, node)
+                cast("ast.Import", node)
                 imports.append(node)  # type: ignore[arg-type]
 
         return imports

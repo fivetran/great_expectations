@@ -46,7 +46,7 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Data Asset profiling.** GX Cloud introspects your data schema by default on Data Asset creation, and also offers one-click fetching of additional descriptive metrics including column type and statistical summaries. Data profiling results are used to suggest parameters for Expectations that you create.
 
-* **Automate rules for common issues.** GX Cloud can automatically generate Expectations that detect column changes, non-increasing data volume, and changes to the percentage of null values in each column. This option is available when [you create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source).
+* **Automate rules for Anomaly Detection.** GX Cloud can automatically generate Expectations that detect column changes, volume changes that deviate from historical patterns, and changes to the proportion of null values in each column. This option is available when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
 
 * **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
@@ -58,14 +58,14 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 ## GX Cloud architecture
 
-GX Cloud architecture comprises a frontend web UI, storage for entity configuration and metadata, a backend application, and a Python client.
+GX Cloud architecture comprises a frontend web UI, storage for entity configuration and metadata, a backend application, and a Python API.
 
-![GX Cloud architecture](./overview_images/gx_cloud_architecture.png)
+![You interact using the UI, API, or both. How GX Cloud connects to your data depends on your deployment pattern.](./overview_images/gx_cloud_architecture.png)
 
-* **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history. The GX Cloud web UI is browser- and platform-independent.
+* **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history.
 
 * **GX Cloud data storage**. Stores the configurations for your organization's Data Sources, Data Assets, Expectations, and Validations alongside your organization's Validation Result histories and Data Asset descriptive metrics.
 
 * **GX Cloud backend application**. Contains the necessary logic and compute to connect to data and run queries. The specifics of how the GX Cloud backend connects to your data is described in [Deployment patterns](/cloud/deploy/deployment_patterns.md).
 
-* **GX Core Python client**. Enables you to interact programmatically with GX Cloud entities and workflows created via the API. The [GX Core Python client](/core/introduction/introduction.mdx) can complement and extend your web UI-created workflows.
+* **GX Cloud API**. Enables you to [interact programmatically](/reference/index.md) with GX Cloud entities and workflows using Python scripts. 

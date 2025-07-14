@@ -7,10 +7,10 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import TYPE_CHECKING, Generator, Generic, Hashable, Mapping, Optional, TypeVar
+from uuid import UUID, uuid4
 
 import pandas as pd
 
-import great_expectations as gx
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
@@ -18,6 +18,8 @@ from great_expectations.datasource.fluent.interfaces import Batch, DataAsset
 if TYPE_CHECKING:
     import pytest
     from pytest import FixtureRequest
+
+    from tests.integration.test_utils.data_source_config.sql import SessionSQLEngineManager
 
 
 _ColumnTypes = TypeVar("_ColumnTypes")
@@ -48,6 +50,16 @@ class DataSourceTestConfig(ABC, Generic[_ColumnTypes]):
         request: FixtureRequest,
         data: pd.DataFrame,
         extra_data: Mapping[str, pd.DataFrame],
+        context: AbstractDataContext,
+        # This violates the interface segration principle (the I in SOLID) since we now make
+        # non-SQL datasources rely on an argument that only SQL datasources are need.
+        # However, this is simpler than adding an additional layer to decouple this interface.
+        # If the SQL and non-SQL test interfaces diverge more significantly we should consider
+        # refactoring these tests.
+        # One possible fix is to remove this method from this class and create a sql and
+        # non-sql subclass. We'd like need to update _ConfigT to be bounded by a union of
+        # these subclasses and update callers of create_batch_setup.
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> BatchTestSetup:
         """Create a batch setup object for this data source."""
 
@@ -93,9 +105,10 @@ _AssetT = TypeVar("_AssetT", bound=DataAsset)
 class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
     """ABC for classes that set up and tear down batches."""
 
-    def __init__(self, config: _ConfigT, data: pd.DataFrame) -> None:
+    def __init__(self, config: _ConfigT, data: pd.DataFrame, context: AbstractDataContext) -> None:
         self.config = config
         self.data = data
+        self.context = context
 
     @abstractmethod
     def make_asset(self) -> _AssetT: ...
@@ -141,8 +154,8 @@ class BatchTestSetup(ABC, Generic[_ConfigT, _AssetT]):
         return "".join(random.choices(string.ascii_lowercase, k=10))
 
     @cached_property
-    def context(self) -> AbstractDataContext:
-        return gx.get_context(mode="ephemeral")
+    def id(self) -> UUID:
+        return uuid4()
 
 
 def dict_to_tuple(d: Mapping[str, Hashable]) -> tuple[tuple[str, Hashable], ...]:

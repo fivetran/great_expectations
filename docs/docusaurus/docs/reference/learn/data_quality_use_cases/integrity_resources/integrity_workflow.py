@@ -10,7 +10,6 @@ pytest --postgresql --docs-tests -k "data_quality_use_case_integrity_workflow" t
 """
 
 
-# ruff: noqa: I001
 # Adding noqa rule so two import sections can be used for two examples.
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/integrity_resources/integrity_workflow.py business logic workflow">
@@ -55,7 +54,7 @@ class ExpectTransfersToArriveWithin45Seconds(gxe.UnexpectedRowsExpectation):
 
     description = "Transfers arrive within 45 seconds"
 
-    unexpected_rows_query = """
+    unexpected_rows_query: str = """
         select *
         from {batch}
         where extract(epoch from (age(received_ts, sent_ts))) > 45
@@ -105,7 +104,7 @@ class ExpectTransferAmountsToMatch(gxe.UnexpectedRowsExpectation):
         "Transfer amounts in integrity_transfers and integrity_transfer_balance match."
     )
 
-    unexpected_rows_query = """
+    unexpected_rows_query: str = """
         select *
         from {batch} t
         join integrity_transfer_balance b using (transfer_balance_id)

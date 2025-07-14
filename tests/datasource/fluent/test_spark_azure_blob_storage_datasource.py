@@ -42,13 +42,13 @@ class MockContainerClient:
 class MockBlobServiceClient:
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def get_container_client(self, container: str) -> azure.ContainerClient:
-        return cast(azure.ContainerClient, MockContainerClient())
+        return cast("azure.ContainerClient", MockContainerClient())
 
 
 def _build_spark_abs_datasource(
     azure_options: Dict[str, Any] | None = None,
 ) -> SparkAzureBlobStorageDatasource:
-    azure_client: azure.BlobServiceClient = cast(azure.BlobServiceClient, MockBlobServiceClient())
+    azure_client: azure.BlobServiceClient = cast("azure.BlobServiceClient", MockBlobServiceClient())
     spark_abs_datasource = SparkAzureBlobStorageDatasource(
         name="spark_abs_datasource",
         azure_options=azure_options or {},

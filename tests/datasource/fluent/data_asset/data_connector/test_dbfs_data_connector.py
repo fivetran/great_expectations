@@ -12,6 +12,9 @@ from great_expectations.core.util import DBFSPath
 from great_expectations.datasource.fluent.data_connector import (
     DBFSDataConnector,
 )
+from great_expectations.datasource.fluent.data_connector.file_path_data_connector import (
+    MissingFilePathTemplateMapFnError,
+)
 from tests.test_utils import create_files_in_directory
 
 if TYPE_CHECKING:
@@ -79,6 +82,21 @@ def test__get_full_file_path_pandas(fs: FakeFilesystem):
     ]
 
 
+@pytest.mark.unit
+def test_dbfs_data_connector_missing_file_path_template_map_fn_error():
+    """Test DBFS data connector raises error when file_path_template_map_fn is None."""
+    data_connector = DBFSDataConnector(
+        datasource_name="my_dbfs_datasource",
+        data_asset_name="my_data_asset",
+        base_directory=pathlib.Path("/dbfs/test"),
+        glob_directive="*.csv",
+        file_path_template_map_fn=None,
+    )
+
+    with pytest.raises(MissingFilePathTemplateMapFnError):
+        data_connector._get_full_file_path("test.csv")
+
+
 @pytest.mark.spark
 def test__get_full_file_path_spark(basic_spark_df_execution_engine, fs):
     """
@@ -112,7 +130,7 @@ def test__get_full_file_path_spark(basic_spark_df_execution_engine, fs):
     )
 
     assert (
-        cast(DBFSDataConnector, my_data_connector)._get_full_file_path(path="bigfile_1.csv")
+        cast("DBFSDataConnector", my_data_connector)._get_full_file_path(path="bigfile_1.csv")
         == f"{base_directory_colon}/test_dir_0/A/B/C/bigfile_1.csv"
     )
 

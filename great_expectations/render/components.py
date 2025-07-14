@@ -133,11 +133,16 @@ class RenderedContent:
         """
         return {}
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         if not isinstance(other, self.__class__):
             # Delegate comparison to the other instance's __eq__.
             return NotImplemented
         return self.to_json_dict() == other.to_json_dict()
+
+    @override
+    def __hash__(self) -> int:
+        return hash(str(sorted(self.to_json_dict())))
 
     @classmethod
     def rendered_content_list_to_json(cls, list_, check_dicts=False):
@@ -494,8 +499,14 @@ class RenderedStringTemplateContent(RenderedComponentContent):
         )
         return string
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         return str(self) == str(other)
+
+    @override
+    def __hash__(self) -> int:
+        """Overrides the default implementation"""
+        return hash(str(self))
 
 
 class RenderedBulletListContent(RenderedComponentContent):

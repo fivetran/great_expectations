@@ -192,10 +192,10 @@ stages:
             displayName: "Update pip"
 
           - script: ./scripts/install_mssql_odbc_driver.sh
-            displayName: "Install mssql odbc driver"
+            displayName: "Install mssql odbc driver and mssql-tools"
 
           - script: |
-              sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;" -o create_db_output.txt
+              /opt/mssql-tools18/bin/sqlcmd -U sa -P "ReallyStrongPwd1234%^&*" -Q "CREATE DATABASE test_ci;" -C
             displayName: "Create mssql database"
 
           - script: |

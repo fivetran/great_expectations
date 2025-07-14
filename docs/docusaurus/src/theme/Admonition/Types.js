@@ -1,7 +1,7 @@
-import DefaultAdmonitionTypes from '@theme-original/Admonition/Types';
+import DefaultAdmonitionTypes from '@theme-original/Admonition/Types'
 
 const AdmonitionTypes = {
-    ...DefaultAdmonitionTypes,
-};
+  ...DefaultAdmonitionTypes
+}
 
-export default AdmonitionTypes;
+export default AdmonitionTypes

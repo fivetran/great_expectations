@@ -10,7 +10,6 @@ import PrereqPythonInstalled from '../_core_components/prerequisites/_python_ins
 import InstallLocal from './_install_gx/_local_installation.md';
 import InstallEmrSpark from './_install_gx/_emr_spark_installation.md';
 import InstallDatabricks from './_install_gx/_databricks_installation.md';
-import InstallGxCloud from './_install_gx/_gx_cloud_installation.md';
 
 import PythonVersion from '../_core_components/_python_version.md';
 
@@ -25,7 +24,7 @@ GX Core is a Python library.  Follow the instructions in this guide to install G
 
 ## Install the GX Python library
 
-<Tabs queryString="install-location" groupId="install-location" defaultValue='local' values={[{label: 'Local', value:'local'}, {label: 'Hosted environment', value:'hosted'}, {label: 'GX Cloud', value:'gx-cloud'}]}>
+<Tabs queryString="install-location" groupId="install-location" defaultValue='local' values={[{label: 'Local', value:'local'}, {label: 'Hosted environment', value:'hosted'}]}>
 
   <TabItem value="local" label="Local">
 <InstallLocal/>
@@ -47,10 +46,6 @@ Hosted environments such as EMR Spark or Databricks clusters do not provide a fi
 
 </Tabs>
 
-  </TabItem>
-
-  <TabItem value="gx-cloud" label="GX Cloud">
-<InstallGxCloud/>
   </TabItem>
 
 </Tabs>
