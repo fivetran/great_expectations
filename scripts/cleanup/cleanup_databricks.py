@@ -1,4 +1,3 @@
-import datetime
 import logging
 import sys
 
@@ -10,6 +9,7 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 SCHEMA_PATTERN = "test_[a-z]{10}"
+CATALOG_NAME = "ci"
 
 
 class DatabricksConnectionConfig(BaseSettings):
@@ -28,73 +28,42 @@ class DatabricksConnectionConfig(BaseSettings):
 
 def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
     engine = create_engine(url=config.connection_string)
+
     with engine.connect() as conn, conn.begin():
-        # Get schemas that match the test pattern using LIKE clause
         results = conn.execute(
             TextClause(
-                f"""
-                SHOW SCHEMAS LIKE '{SCHEMA_PATTERN}'
                 """
-            )
+            SELECT catalog_name, schema_name, created
+            FROM information_schema.schemata
+            WHERE catalog_name = :catalog_name
+            AND schema_name REGEXP :schema_pattern
+            AND created < CURRENT_TIMESTAMP() - INTERVAL 2 HOUR
+            ORDER BY created DESC
+            """
+            ),
+            {"catalog_name": CATALOG_NAME, "schema_pattern": SCHEMA_PATTERN},
         ).fetchall()
 
-        if results:
-            schemas_to_drop = []
-            current_time = datetime.datetime.now(datetime.timezone.utc)
+        if not results:
+            logger.info("No old schemas found to clean up")
+            return
 
-            for row in results:
-                schema_name = row[0]
-                full_schema_name = f"{CATALOG_NAME}.{schema_name}"
+        logger.info(f"Found {len(results)} schemas to clean up:")
+        for row in results:
+            catalog_name, schema_name, created = row
+            logger.info(f"  {catalog_name}.{schema_name} (created: {created})")
 
-                try:
-                    describe_results = conn.execute(
-                        TextClause(f"DESCRIBE SCHEMA EXTENDED {schema_name}")
-                    ).fetchall()
+        # Drop the old schemas
+        for row in results:
+            catalog_name, schema_name, created = row
 
-                    # Look for custom created_timestamp property
-                    created_timestamp = None
+            try:
+                # conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
+                logger.info(f"Dropped schema: {schema_name}")
+            except Exception as e:
+                logger.error(f"Failed to drop schema {schema_name}: {e}")
 
-                    for desc_row in describe_results:
-                        if len(desc_row) >= 2:
-                            property_name = str(desc_row[0]).strip()
-                            property_value = str(desc_row[1]).strip()
-
-                            if property_name == "created_timestamp":
-                                try:
-                                    created_timestamp = datetime.datetime.strptime(
-                                        property_value, "%Y-%m-%d %H:%M:%S"
-                                    ).replace(tzinfo=datetime.timezone.utc)
-                                    break
-                                except ValueError:
-                                    logger.warning(
-                                        f"Could not parse timestamp for {schema_name}: {property_value}"
-                                    )
-
-                    # If we found a timestamp, check if it's older than 2 hours
-                    if created_timestamp:
-                        age = current_time - created_timestamp
-                        if age.total_seconds() > 7200:  # 2 hours = 7200 seconds
-                            schemas_to_drop.append(schema_name)
-                    else:
-                        # No timestamp found - could be old schema or missing metadata
-                        logger.warning(f"No created_timestamp found for {schema_name}, skipping")
-
-                except Exception as e:
-                    logger.exception(f"Error checking schema {schema_name}: {e}")
-
-            if schemas_to_drop:
-                for schema_name in schemas_to_drop:
-                    try:
-                        # conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
-                        logger.info(f"Dropped schema: {schema_name}")
-                    except Exception as e:
-                        logger.exception(f"Failed to drop schema {schema_name}: {e}")
-
-                logger.info(f"Cleaned up {len(schemas_to_drop)} Databricks schema(s)")
-            else:
-                logger.info("No Databricks schemas old enough to clean up!")
-        else:
-            logger.info("No Databricks schemas found matching pattern!")
+        logger.info(f"Cleaned up {len(results)} Databricks schema(s)")
 
     engine.dispose()
 
