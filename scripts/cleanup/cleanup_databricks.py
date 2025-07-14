@@ -48,11 +48,6 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
             logger.info("No old schemas found to clean up")
             return
 
-        logger.info(f"Found {len(results)} schemas to clean up:")
-        for row in results:
-            catalog_name, schema_name, created = row
-            logger.info(f"  {catalog_name}.{schema_name} (created: {created})")
-
         for row in results:
             catalog_name, schema_name, created = row
             full_schema_name = f"{catalog_name}.{schema_name}"
@@ -61,7 +56,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
                 conn.execute(TextClause(f"DROP SCHEMA IF EXISTS {full_schema_name} CASCADE"))
                 logger.info(f"Dropped schema: {full_schema_name}")
             except Exception as e:
-                logger.error(f"Failed to drop schema {full_schema_name}: {e}")
+                logger.exception(f"Failed to drop schema {full_schema_name}: {e}")
 
         logger.info(f"Cleaned up {len(results)} Databricks schema(s)")
 
