@@ -108,7 +108,7 @@ class QueryMetricProvider(MetricProvider):
     ) -> str:
         parameters = cls._get_parameters_dict_from_query_parameters(query_parameters)
 
-        if isinstance(batch_selectable, (sa.Table, sa.sql.selectable.TableClause)):
+        if isinstance(batch_selectable, sa.Table):
             query = query.format(batch=batch_selectable, **parameters)
         elif isinstance(
             batch_selectable, (sa.sql.Select, get_sqlalchemy_subquery_type())
