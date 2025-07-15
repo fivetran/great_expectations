@@ -148,7 +148,7 @@ class DatabricksTableAsset(SqlTableAsset):
         ensures the Databricks dialect uses backticks for special identifiers.
         """
         # If it's already a quoted_name object, return as-is
-        if hasattr(sqlalchemy, "quoted_name") and hasattr(table_name, "__class__"):  # type: ignore[truthy-function]
+        if hasattr(sqlalchemy, "quoted_name") and hasattr(table_name, "__class__"):
             if table_name.__class__.__name__ == "quoted_name":
                 return table_name
 
@@ -184,7 +184,7 @@ class DatabricksTableAsset(SqlTableAsset):
             return schema_name
 
         # If it's already a quoted_name object, return as-is
-        if hasattr(sqlalchemy, "quoted_name") and hasattr(schema_name, "__class__"):  # type: ignore[truthy-function]
+        if hasattr(sqlalchemy, "quoted_name") and hasattr(schema_name, "__class__"):
             if schema_name.__class__.__name__ == "quoted_name":
                 return schema_name
 
