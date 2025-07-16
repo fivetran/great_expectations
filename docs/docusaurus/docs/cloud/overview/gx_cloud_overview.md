@@ -50,6 +50,8 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
+* **Generate code for custom SQL Expectations with ExpectAI (BETA).** To simplify working with [custom SQL Expectations](/cloud/expectations/manage_expectations.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+
 * **Schedule Validations.** GX Cloud enables you to schedule validations, so that you can test and assess your data on a regular cadence and monitor data quality over time. See [Manage schedules](/cloud/schedules/manage_schedules.md) for more detail.
 
 * **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your organization to remain proactively aware of the health of your Data Assets. See [Manage alerts](/cloud/alerts/manage_alerts.md) for more detail.

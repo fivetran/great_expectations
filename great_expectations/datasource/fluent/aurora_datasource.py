@@ -15,7 +15,7 @@ class AuroraDatasource(SQLDatasource):
     Args:
         name: The name of this aurora datasource.
         connection_string: The connection string used to connect to the postgres database.
-            For example: "postgresql://<username>:<password>@<cluster-endpoint>.amazonaws.com:<port>/<database_name>"
+            For example: "postgresql+psycopg2://<username>:<password>@<cluster-endpoint>.amazonaws.com:<port>/<database_name>"
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose
             values are TableAsset or QueryAsset objects.
     """
