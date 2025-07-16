@@ -15,7 +15,7 @@ class NeonDatasource(SQLDatasource):
     Args:
         name: The name of this neon datasource.
         connection_string: The connection string used to connect to the postgres database.
-            For example: "postgresql://<username>:<password>@<project-id>.<region>.neon.tech/<database_name>"
+            For example: "postgresql+psycopg2://<username>:<password>@<project-id>.<region>.neon.tech/<database_name>"
         assets: An optional dictionary whose keys are TableAsset or QueryAsset names and whose
             values are TableAsset or QueryAsset objects.
     """
