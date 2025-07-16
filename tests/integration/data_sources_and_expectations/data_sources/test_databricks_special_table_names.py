@@ -78,7 +78,8 @@ class TestDatabricksSpecialTableNames:
         assert result == "normal_table"
 
     def test_resolve_quoted_name_already_quoted(self):
-        """Test that already quoted names get their quotes stripped and become quoted_name objects."""
+        """Test that already quoted names get their quotes stripped and become
+        quoted_name objects."""
         result = DatabricksTableAsset._resolve_quoted_name("`247_asset_class_returns`")
         assert isinstance(result, quoted_name)
         assert str(result) == "247_asset_class_returns"
@@ -154,13 +155,15 @@ class TestDatabricksSpecialTableNames:
         assert batch is not None
         assert batch.data is not None
 
-    def test_table_asset_integration_schema_and_table_special(self, data_context, databricks_datasource):
+    def test_table_asset_integration_schema_and_table_special(
+        self, data_context, databricks_datasource
+    ):
         """Integration test: both schema and table names with special characters work."""
         # Create a table asset with both schema and table needing quoting
         table_asset = databricks_datasource.add_table_asset(
             name="special_schema_and_table",
             schema_name="123_schema",  # Schema starts with digit
-            table_name="456_table",   # Table starts with digit
+            table_name="456_table",  # Table starts with digit
         )
 
         # Verify both names were processed correctly
