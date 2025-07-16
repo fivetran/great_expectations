@@ -154,7 +154,7 @@ module.exports = {
       link: { type: 'doc', id: 'cloud/gx_cloud_lp' },
       items: [
         'cloud/overview/gx_cloud_overview',
-        'cloud/overview/automating_rules',
+        'cloud/overview/accelerating_test_coverage',
         'cloud/overview/coverage_health'
       ]
     },
