@@ -14,6 +14,13 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.5
+* [FEATURE] Add new Postgres "flavor" Data Source classes ([#11290](https://github.com/great-expectations/great_expectations/pull/11290))
+* [FEATURE] Add BigQuery data source class ([#11296](https://github.com/great-expectations/great_expectations/pull/11296))
+* [BUGFIX] Disable init analytics as it was not really getting entirely disabled when specified on data context config ([#11276](https://github.com/great-expectations/great_expectations/pull/11276)) (thanks @jmcorreia)
+* [DOCS] Correct forecasted range caveat ([#11295](https://github.com/great-expectations/great_expectations/pull/11295))
+* [MAINTENANCE] Bump ruff to 0.12.2 ([#11288](https://github.com/great-expectations/great_expectations/pull/11288))
+
 ### 1.5.4
 * [BUGFIX] B/gx 1174/generalize schema expectation ([#11272](https://github.com/great-expectations/great_expectations/pull/11272))
 * [BUGFIX] Fix renderer for ExpectTableColumnsToMatchSet ([#11281](https://github.com/great-expectations/great_expectations/pull/11281))

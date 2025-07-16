@@ -49,6 +49,20 @@ create_a_data_context = [
     ),
     IntegrationTestFixture(
         # To test, run:
+        # pytest --docs-tests --cloud -k "connect_python" tests/integration/test_script_runner.py
+        name="connect_python",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_python.py",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests --cloud -k "create_a_cloud_data_context" tests/integration/test_script_runner.py
+        name="create_a_cloud_data_context",
+        user_flow_script="docs/docusaurus/docs/core/set_up_a_gx_environment/_create_a_data_context/cloud_data_context.py",
+        backend_dependencies=[BackendDependencies.CLOUD],
+    ),
+    IntegrationTestFixture(
+        # To test, run:
         # pytest --docs-tests -k "create_a_file_data_context" tests/integration/test_script_runner.py
         name="create_a_file_data_context",
         user_flow_script="docs/docusaurus/docs/core/set_up_a_gx_environment/_create_a_data_context/file_data_context.py",
@@ -646,27 +660,16 @@ learn_data_quality_use_cases = [
 # Extend the docs_tests list with the above sublists (only the docs_tests list is imported
 # into `test_script_runner.py` and actually used in CI checks).
 docs_tests.extend(install_gx)
-
 docs_tests.extend(try_gx)
-
 docs_tests.extend(create_a_data_context)
-
 docs_tests.extend(connect_to_filesystem_data_create_a_data_source)
 docs_tests.extend(connect_to_filesystem_data_create_a_data_asset)
 docs_tests.extend(connect_to_filesystem_data_create_a_batch_definition)
-
 docs_tests.extend(connect_to_dataframe_data)
-
 docs_tests.extend(docs_example_scripts_run_validations)
-
 docs_tests.extend(example_scripts_for_define_expectations)
-
 docs_tests.extend(docs_examples_customize_expectations)
-
 docs_tests.extend(docs_examples_trigger_actions_based_on_validation_results)
-
 docs_tests.extend(docs_example_configure_project_settings)
-
 docs_tests.extend(docs_examples_configure_data_docs)
-
 docs_tests.extend(learn_data_quality_use_cases)
