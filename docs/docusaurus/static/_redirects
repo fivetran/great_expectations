@@ -456,3 +456,4 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/resources/get_support /docs/help/get_support
 /docs/application_integration_support /docs/help/compatibility_reference
 /docs/cloud/overview/automating_rules /docs/cloud/overview/accelerating_test_coverage
+/docs/cloud/overview/coverage_health /docs/cloud/overview/data_health

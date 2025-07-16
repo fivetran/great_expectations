@@ -155,7 +155,7 @@ module.exports = {
       items: [
         'cloud/overview/gx_cloud_overview',
         'cloud/overview/accelerating_test_coverage',
-        'cloud/overview/coverage_health'
+        'cloud/overview/data_health'
       ]
     },
     {
