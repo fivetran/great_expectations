@@ -164,7 +164,7 @@ The scenarios in this section outline common real-world use cases for data volum
 
 ## Avoid common volume validation pitfalls
 
-- **Static Thresholds**: Avoid using fixed thresholds for `ExpectTableRowCountToBeBetween` that don't account for natural growth or seasonality. Regularly review and adjust your parameters. Or to save time, automate [Anomaly Detection](/cloud/overview/automating_rules.md#anomaly-detection) with GX Cloud. For example, an e-commerce platform might need different volume thresholds for regular days versus holiday seasons.
+- **Static Thresholds**: Avoid using fixed thresholds for `ExpectTableRowCountToBeBetween` that don't account for natural growth or seasonality. Regularly review and adjust your parameters. Or to save time, automate [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection) with GX Cloud. For example, an e-commerce platform might need different volume thresholds for regular days versus holiday seasons.
 
 - **Ignoring Data Skew**: Data skew refers to the uneven distribution of data across partitions or nodes in a distributed system. Failing to account for data skew when validating volume can lead to misleading results. Monitor volume at the partition level and implement checks to detect and handle data skew.
 

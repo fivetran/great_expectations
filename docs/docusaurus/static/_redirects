@@ -451,7 +451,8 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/0.18/oss/* /docs/0.18/core/introduction/introduction
 /docs/0.18/reference/learn/terms/* /docs/0.18/reference/learn/glossary
 
-## Redirects for renamed resources docs
+## Redirects for renamed docs
 
 /docs/resources/get_support /docs/help/get_support
 /docs/application_integration_support /docs/help/compatibility_reference
+/docs/cloud/overview/automating_rules /docs/cloud/overview/accelerating_test_coverage
