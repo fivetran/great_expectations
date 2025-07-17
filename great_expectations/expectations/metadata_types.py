@@ -27,3 +27,7 @@ class SupportedDataSources(str, Enum):
     SNOWFLAKE = "Snowflake"
     DATABRICKS = "Databricks (SQL)"
     REDSHIFT = "Redshift"
+    AURORA = "Amazon Aurora"
+    CITUS = "CitusDB"
+    ALLOY = "Google AlloyDB"
+    NEON = "NeonDB"
