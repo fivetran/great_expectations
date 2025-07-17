@@ -140,9 +140,7 @@ class TestDatabricksSpecialTableNames:
         # Skip if no real Databricks connection is available
         pytest.skip("Integration test requires real Databricks connection")
 
-    def test_table_asset_integration_schema_and_table_special(
-        self, request, data_context
-    ):
+    def test_table_asset_integration_schema_and_table_special(self, request, data_context):
         """Integration test: both schema and table names with special characters work."""
         # Skip ephemeral backend as it doesn't support these special table name features
         if hasattr(request, "param") and "ephemeral" in str(request.param):
