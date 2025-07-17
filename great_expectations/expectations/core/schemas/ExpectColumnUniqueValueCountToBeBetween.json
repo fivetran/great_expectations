@@ -91,18 +91,10 @@
             "description": "The minimum number of unique values allowed.",
             "anyOf": [
                 {
-                    "type": "number"
+                    "type": "integer"
                 },
                 {
                     "type": "object"
-                },
-                {
-                    "type": "string",
-                    "format": "date"
-                },
-                {
-                    "type": "string",
-                    "format": "date-time"
                 }
             ]
         },
@@ -111,18 +103,10 @@
             "description": "The maximum number of unique values allowed.",
             "anyOf": [
                 {
-                    "type": "number"
+                    "type": "integer"
                 },
                 {
                     "type": "object"
-                },
-                {
-                    "type": "string",
-                    "format": "date"
-                },
-                {
-                    "type": "string",
-                    "format": "date-time"
                 }
             ]
         },
