@@ -8,7 +8,9 @@ import pytest
 from sqlalchemy.sql import quoted_name
 
 from great_expectations.core.batch_definition import BatchDefinition
-from great_expectations.datasource.fluent.databricks_sql_datasource import DatabricksTableAsset
+from great_expectations.datasource.fluent.databricks_sql_datasource import (
+    DatabricksTableAsset,
+)
 from great_expectations.expectations.expectation import ExpectationValidationResult
 
 
@@ -122,10 +124,14 @@ class TestDatabricksSpecialTableNames:
 
     # Integration tests - NO @pytest.mark.databricks decorator
     # These get their markers from fixture parametrization
-    # Skip ephemeral backend as it doesn't support these special table name features
-    @pytest.mark.parametrize("databricks_datasource", ["file", "cloud"], indirect=True)
-    def test_table_asset_integration_digit_start(self, data_context, databricks_datasource):
+    def test_table_asset_integration_digit_start(
+        self, request, data_context, databricks_datasource
+    ):
         """Integration test: table names starting with digits work end-to-end."""
+        # Skip ephemeral backend as it doesn't support these special table name features
+        if hasattr(request, "param") and "ephemeral" in str(request.param):
+            pytest.skip("Ephemeral backend doesn't support special table names")
+
         # Create a table asset for a table starting with a digit
         table_asset = databricks_datasource.add_table_asset(
             name="247_asset_class_cumulative_returns",
@@ -150,9 +156,14 @@ class TestDatabricksSpecialTableNames:
         result = batch.expect_table_row_count_to_be_between(min_value=0, max_value=1000000)
         assert isinstance(result, ExpectationValidationResult)
 
-    @pytest.mark.parametrize("databricks_datasource", ["file", "cloud"], indirect=True)
-    def test_table_asset_integration_special_chars(self, data_context, databricks_datasource):
+    def test_table_asset_integration_special_chars(
+        self, request, data_context, databricks_datasource
+    ):
         """Integration test: table names with special characters work end-to-end."""
+        # Skip ephemeral backend as it doesn't support these special table name features
+        if hasattr(request, "param") and "ephemeral" in str(request.param):
+            pytest.skip("Ephemeral backend doesn't support special table names")
+
         # Create a table asset for a table with spaces
         table_asset = databricks_datasource.add_table_asset(
             name="my_table_with_spaces",
@@ -173,11 +184,14 @@ class TestDatabricksSpecialTableNames:
         assert batch is not None
         assert batch.data is not None
 
-    @pytest.mark.parametrize("databricks_datasource", ["file", "cloud"], indirect=True)
     def test_table_asset_integration_schema_and_table_special(
-        self, data_context, databricks_datasource
+        self, request, data_context, databricks_datasource
     ):
         """Integration test: both schema and table names with special characters work."""
+        # Skip ephemeral backend as it doesn't support these special table name features
+        if hasattr(request, "param") and "ephemeral" in str(request.param):
+            pytest.skip("Ephemeral backend doesn't support special table names")
+
         # Create a table asset with both schema and table needing quoting
         table_asset = databricks_datasource.add_table_asset(
             name="special_schema_and_table",
