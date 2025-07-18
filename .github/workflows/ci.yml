@@ -137,7 +137,18 @@ jobs:
           - docs-creds-needed
           - docs-basic
           - docs-spark
+        include:
+          - doc_step: docs-creds-needed
+            start_services: 1
+          - doc_step: docs-basic
+            start_services: 0
+          - doc_step: docs-spark
+            start_services: 0
     env:
+      # gx cloud
+      GX_CLOUD_BASE_URL: ${{vars.MERCURY_BASE_URL}}
+      GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
+      GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
       # google
       GE_TEST_GCP_CREDENTIALS: ${{secrets.GE_TEST_GCP_CREDENTIALS}}
       GE_TEST_GCP_PROJECT: ${{secrets.GE_TEST_GCP_PROJECT}}
@@ -168,6 +179,27 @@ jobs:
       SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
       SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
       SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
+      # cloud-specific
+      AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
+      AUTH0_API_AUDIENCE: ${{secrets.AUTH0_API_AUDIENCE}}
+      AUTH0_MERCURY_API_CLIENT_ID: ${{secrets.AUTH0_MERCURY_API_CLIENT_ID}}
+      AUTH0_MERCURY_API_CLIENT_SECRET: ${{secrets.AUTH0_MERCURY_API_CLIENT_SECRET}}
+      LD_SDK_KEY: ${{secrets.LD_SDK_KEY}}
+      GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
+      GX_SCHEDULER_EXECUTION_ROLE_ARN: ${{secrets.GX_SCHEDULER_EXECUTION_ROLE_ARN}}
+      GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}}
+      GX_SCHEDULER_EVENTBRIDGE_REGION: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_REGION}}
+      LOCALSTACK_AWS_ENDPOINT_URL: ${{secrets.LOCALSTACK_AWS_ENDPOINT_URL}}
+      LOCALSTACK_AWS_SECRET_ACCESS_KEY: ${{secrets.LOCALSTACK_AWS_SECRET_ACCESS_KEY}}
+      LOCALSTACK_AWS_ACCESS_KEY_ID: ${{secrets.LOCALSTACK_AWS_ACCESS_KEY_ID}}
+      SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
+      SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
+      CLOUD_AMQP_CONNECTION_STRING: ${{secrets.CLOUD_AMQP_CONNECTION_STRING}}
+      LOGGING_LEVEL: DEBUG
+      ENVIRONMENT: local
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -183,10 +215,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
-      - name: Run docs_snippet_checker
-        run: |
-          yarn install
-          python ci/checks/validate_docs_snippets.py
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
 
       - name: Authenticate with GCP
         uses: google-github-actions/auth@v2
@@ -214,24 +245,33 @@ jobs:
       - name: Install mssql odbc driver
         run: ./scripts/install_mssql_odbc_driver.sh
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
-          cache: "pip"
-          cache-dependency-path: |
-            reqs/requirements-dev-test.txt
+      - name: Install cloud dependencies
+        if: ${{ matrix.start_services }}
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m 'cloud' -r test
 
-      - name: Install dependencies
+      - name: Install test matrix dependencies
         run: |
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.doc-step }}'
+
+      - name: Run docs_snippet_checker
+        run: |
+          yarn install
+          python ci/checks/validate_docs_snippets.py
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
         with:
           registries: "258143015559"
+
+      - name: Start services
+        if: ${{ matrix.start_services }}
+        run: |
+          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 150 && \
+          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 90
 
       - name: Run the tests
         run: invoke docs-snippet-tests '${{ matrix.doc-step }}' --up-services --verbose  --reports
@@ -464,8 +504,8 @@ jobs:
 
       - name: Start services
         run: |
-          docker compose -f assets/docker/mercury/docker-compose.yml up -d --quiet-pull --wait --wait-timeout 150 && \
-          docker compose -f assets/docker/spark/docker-compose.yml up -d --quiet-pull --wait --wait-timeout 90
+          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 150 && \
+          docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 90
 
       - name: Show logs for debugging
         if: failure()
