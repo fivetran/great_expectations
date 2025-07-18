@@ -111,10 +111,6 @@
                 },
                 {
                     "type": "object"
-                },
-                {
-                    "type": "string",
-                    "format": "date-time"
                 }
             ]
         },
@@ -127,10 +123,6 @@
                 },
                 {
                     "type": "object"
-                },
-                {
-                    "type": "string",
-                    "format": "date-time"
                 }
             ]
         },
