@@ -1,12 +1,13 @@
 ---
-title: 'Automating data quality rules'
-description: Generate AI-recommended data quality rules and use Anomaly Detection to more quickly achieve test coverage for your data.
+title: 'Accelerating test coverage'
+description: Use automations and AI to more quickly achieve test coverage for your data.
 ---
 
-With GX Cloud, you can automatically generate data quality rules to more quickly achieve test coverage for your data. This page provides an overview of the following options:
+GX Cloud provides several conveniences to help you more quickly achieve test coverage for your data. This page provides an overview of the following options:
 
 - Automating [Anomaly Detection](#anomaly-detection) rules.
-- Generating [personalized AI-recommended rules](#personalized-recommendations-with-expectai-beta).
+- Generating [personalized AI-recommended rules](#personalized-ai-recommended-rules).
+- Generating [code for custom SQL Expectations](#code-for-custom-sql-expectations). 
 
 ## Anomaly Detection
 
@@ -38,9 +39,14 @@ To detect completeness anomalies, we automatically generate rules for every colu
 
 If the proportions change at all for a column that started with all null values or no null values, its generated completeness Expectation will fail. If the proportions change a bit for a column that started with a mix of null and non-null values, its generated completeness Expectation will pass; if the change is drastic, the generated completeness Expectation will fail.
 
+## ExpectAI <span class="beta">Beta</span>
+ExpectAI is an analytical AI tool that powers several features in GX Cloud.
 
 
-## Personalized recommendations with ExpectAI <span class="beta">Beta</span>
+### Personalized AI-recommended rules
+When you [generate Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta), ExpectAI performs deep analysis on a given Data Asset to set Expectations based on patterns in the data. These AI-recommended data quality rules are sometimes based on anomalies detected in the data, so they may fail on the first validation to bring your attention to potential problems.  
 
-[ExpectAI (BETA)](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) performs deep analysis on a given Data Asset to set Expectations based on patterns in the data. These AI-recommended data quality rules are sometimes based on anomalies detected in the data, so they may fail on the first validation to bring your attention to potential problems.  
+### Code for custom SQL Expectations
+To simplify working with [custom SQL Expectations](/cloud/expectations/manage_expectations.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+
 
