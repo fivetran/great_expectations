@@ -98,7 +98,7 @@ AND passenger_count > 4
 
 Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
-- The Data Asset's Data Source must be Databricks SQL, PostgreSQL, Redshift, or Snowflake.
+- The Data Asset's Data Source must be Amazon Aurora, CitusDB, Databricks SQL, Google AlloyDB, NeonDB, PostgreSQL, Redshift, or Snowflake.
 
 
 ## Multi-source Expectations
