@@ -79,6 +79,28 @@ The optional `{batch}` named query references the Batch of data under test. When
 
 :::
 
+### Generate SQL with ExpectAI <span class="beta">Beta</span>
+
+To simplify working with custom SQL Expectations, you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+
+For example, imagine you have a New York City taxi trip dataset with columns named `pickup_borough`, `vehicle_type`, and `passenger_count`. If you [add a custom SQL Expectation](#add-an-expectation) with a **Prompt for SQL generation** like `sedan rides in Manhattan shouldn't have more than 4 passengers` then ExpectAI would generate a SQL query similar to the following:
+
+```sql title="SQL query"
+SELECT
+*
+FROM
+{batch}
+WHERE
+pickup_borough = 'Manhattan'
+AND vehicle_type = 'Sedan'
+AND passenger_count > 4
+```
+
+Keep the following requirements in mind when working with ExpectAI:
+- Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- The Data Asset's Data Source must be Databricks SQL, PostgreSQL, Redshift, or Snowflake.
+
+
 ## Multi-source Expectations
 
 A Multi-source Expectation executes one SQL query for each of two Data Sources and compares their results for equality. This can be helpful for validating consistency between systems during data migration or regular data loading processes. Multi-source Expectations can detect data drift introduced during the ETL process through discrepancies in schemas, counts, time windows, data types, and precision levels between Data Sources. Here are some examples of comparisons you can test:
@@ -162,13 +184,15 @@ To clear the Expectation condition, click the clear button located on the right-
 
 3. Click **New Expectation**.
 
-4. Select a data quality issue to test for.
+4. Select a data quality issue to test for or an option for writing your own test.
+
+   :::tip Options for accelerating test coverage
+   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). If you instead want to create your own rules, click **Manual**.
+   
+   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql-with-expectai-beta). You can **Write your own SQL** if you prefer.
+   :::
 
 5. Select an Expectation type.
-
-   :::tip Automatic rules for Anomaly Detection
-   If you selected the schema, volume, or completeness data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/automating_rules.md#anomaly-detection). If you instead want to create your own rules, click **Manual** and then select an Expectation type.
-   :::
 
 6. Complete the mandatory and optional fields for the Expectation. A recurring [validation schedule](/cloud/schedules/manage_schedules.md) will be applied automatically to your Expectation. 
 

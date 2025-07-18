@@ -71,3 +71,56 @@ jobs:
       - name: Run Redshift cleanup script
         run: |
           python ./scripts/cleanup/cleanup_redshift.py
+
+  cleanup-databricks:
+    runs-on: ubuntu-latest
+    env:
+      # databricks
+      DATABRICKS_TOKEN: ${{secrets.DATABRICKS_SQL_TOKEN}}
+      DATABRICKS_HOST: ${{secrets.DATABRICKS_HOST}}
+      DATABRICKS_HTTP_PATH: ${{secrets.DATABRICKS_HTTP_PATH}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m databricks
+          pip install -e .
+      - name: Run Databricks cleanup script
+        run: |
+          python ./scripts/cleanup/cleanup_databricks.py
+
+  cleanup-snowflake:
+    runs-on: ubuntu-latest
+    env:
+      # snowflake
+      SNOWFLAKE_CI_ACCOUNT: ${{secrets.SNOWFLAKE_CI_ACCOUNT}}
+      SNOWFLAKE_CI_USER_PASSWORD: ${{secrets.SNOWFLAKE_CI_USER_PASSWORD}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            reqs/requirements-dev-test.txt
+            setup.py
+      - name: Install dependencies
+        run: |
+          pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
+          invoke deps --gx-install -m snowflake
+          pip install -e .
+      - name: Run Snowflake cleanup script
+        run: |
+          python ./scripts/cleanup/cleanup_snowflake.py
