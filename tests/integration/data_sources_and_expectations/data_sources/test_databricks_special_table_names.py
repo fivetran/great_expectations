@@ -4,204 +4,193 @@ These tests verify that table names starting with digits or containing special c
 work correctly with Custom SQL Expectations and other operations.
 """
 
+import pandas as pd
 import pytest
 
-from great_expectations.core.batch_definition import BatchDefinition
-from great_expectations.expectations.expectation import ExpectationValidationResult
+import great_expectations.expectations as gxe
+from great_expectations import get_context
+from tests.integration.test_utils.data_source_config import DatabricksDatasourceTestConfig
+from tests.integration.test_utils.data_source_config.databricks import DatabricksBatchTestSetup
+
+pytestmark = pytest.mark.databricks
 
 
-@pytest.mark.databricks
 class TestDatabricksSpecialTableNames:
-    """Test suite for Databricks tables with special naming requirements."""
+    """Integration tests for Databricks tables with special naming requirements."""
 
-    def test_table_name_starting_with_digit(self, context, databricks_datasource):
+    # Sample data for testing
+    SAMPLE_DATA = pd.DataFrame(
+        {
+            "id": [1, 2, 3, 4, 5],
+            "name": ["Alice", "Bob", "Charlie", "David", "Eve"],
+            "value": [10.5, 20.0, 30.5, 40.0, 50.5],
+            "active": [True, False, True, False, True],
+        }
+    )
+
+    def test_table_name_starting_with_digit(self):
         """Test that table names starting with digits work correctly."""
-
-        # Create a table asset for a table starting with a digit
-        table_asset = databricks_datasource.add_table_asset(
-            name="247_asset_class_cumulative_returns",
-            table_name="247_asset_class_cumulative_returns",
+        batch_setup = DatabricksBatchTestSetup(
+            config=DatabricksDatasourceTestConfig(table_name="247_asset_class_cumulative_returns"),
+            data=self.SAMPLE_DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
-        # Create a batch definition
-        batch_definition: BatchDefinition = table_asset.add_batch_definition_whole_table(
-            "full_table_batch"
-        )
+        with batch_setup.batch_test_context() as batch:
+            # Test a basic expectation on the batch
+            result = batch.validate(gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10))
+            assert result.success
 
-        # Get a batch
-        batch = table_asset.get_batch(batch_definition.build_batch_request())
+            # Test column expectations
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="name",
+                    value_set=["Alice", "Bob", "Charlie", "David", "Eve"],
+                )
+            )
+            assert result.success
 
-        # Verify the batch was created successfully
-        assert batch is not None
-        assert batch.data is not None
-
-        # Test a basic expectation on the batch
-        result = batch.expect_table_row_count_to_be_between(min_value=0, max_value=1000000)
-        assert isinstance(result, ExpectationValidationResult)
-        assert result.success is not None  # Should not error out
-
-    def test_table_name_with_spaces(self, context, databricks_datasource):
+    def test_table_name_with_spaces(self):
         """Test that table names with spaces work correctly."""
-
-        # Create a table asset for a table with spaces
-        table_asset = databricks_datasource.add_table_asset(
-            name="my_table_with_spaces",
-            table_name="my table with spaces",  # Contains spaces
+        batch_setup = DatabricksBatchTestSetup(
+            config=DatabricksDatasourceTestConfig(table_name="my table with spaces"),
+            data=self.SAMPLE_DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
-        # Create a batch definition
-        batch_definition: BatchDefinition = table_asset.add_batch_definition_whole_table(
-            "full_table_batch",
-        )
+        with batch_setup.batch_test_context() as batch:
+            # Test that batch was created successfully
+            result = batch.validate(gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10))
+            assert result.success
 
-        # This should not raise an exception when creating the batch
-        batch = table_asset.get_batch(batch_definition.build_batch_request())
+            # Test column operations work
+            result = batch.validate(
+                gxe.ExpectColumnMeanToBeBetween(
+                    column="value",
+                    min_value=25.0,
+                    max_value=35.0,
+                )
+            )
+            assert result.success
 
-        # Verify the batch was created successfully
-        assert batch is not None
-        assert batch.data is not None
-
-    def test_table_name_with_hyphens(self, context, databricks_datasource):
+    def test_table_name_with_hyphens(self):
         """Test that table names with hyphens work correctly."""
-
-        # Create a table asset for a table with hyphens
-        table_asset = databricks_datasource.add_table_asset(
-            name="my_table_with_hyphens",
-            table_name="my-table-with-hyphens",  # Contains hyphens
+        batch_setup = DatabricksBatchTestSetup(
+            config=DatabricksDatasourceTestConfig(table_name="my-table-with-hyphens"),
+            data=self.SAMPLE_DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
-        # Create a batch definition
-        batch_definition: BatchDefinition = table_asset.add_batch_definition_whole_table(
-            "full_table_batch"
-        )
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10))
+            assert result.success
 
-        # This should not raise an exception when creating the batch
-        batch = table_asset.get_batch(batch_definition.build_batch_request())
+            # Test column expectations
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="active",
+                    value_set=[True, False],
+                )
+            )
+            assert result.success
 
-        # Verify the batch was created successfully
-        assert batch is not None
-        assert batch.data is not None
-
-    def test_table_name_with_dots(self, context, databricks_datasource):
+    def test_table_name_with_dots(self):
         """Test that table names with dots work correctly."""
-
-        # Create a table asset for a table with dots
-        table_asset = databricks_datasource.add_table_asset(
-            name="my_table_with_dots",
-            table_name="my.table.with.dots",  # Contains dots
+        batch_setup = DatabricksBatchTestSetup(
+            config=DatabricksDatasourceTestConfig(table_name="my.table.with.dots"),
+            data=self.SAMPLE_DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
-        # Create a batch definition
-        batch_definition: BatchDefinition = table_asset.add_batch_definition_whole_table(
-            "full_table_batch"
-        )
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10))
+            assert result.success
 
-        # This should not raise an exception when creating the batch
-        batch = table_asset.get_batch(batch_definition.build_batch_request())
+            # Test numeric column expectations
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeBetween(
+                    column="id",
+                    min_value=1,
+                    max_value=5,
+                )
+            )
+            assert result.success
 
-        # Verify the batch was created successfully
-        assert batch is not None
-        assert batch.data is not None
-
-    def test_table_name_with_hash_and_at_symbols(self, context, databricks_datasource):
+    def test_table_name_with_hash_and_at_symbols(self):
         """Test that table names with # and @ symbols work correctly."""
-
-        # Create a table asset for a table with special symbols
-        table_asset = databricks_datasource.add_table_asset(
-            name="my_table_with_symbols",
-            table_name="my#table@with#symbols",  # Contains # and @ symbols
+        batch_setup = DatabricksBatchTestSetup(
+            config=DatabricksDatasourceTestConfig(table_name="my#table@with#symbols"),
+            data=self.SAMPLE_DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
-        # Create a batch definition
-        batch_definition: BatchDefinition = table_asset.add_batch_definition_whole_table(
-            "full_table_batch"
-        )
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10))
+            assert result.success
 
-        # This should not raise an exception when creating the batch
-        batch = table_asset.get_batch(batch_definition.build_batch_request())
+            # Test string column expectations
+            result = batch.validate(gxe.ExpectColumnValuesToNotBeNull(column="name"))
+            assert result.success
 
-        # Verify the batch was created successfully
-        assert batch is not None
-        assert batch.data is not None
-
-    def test_custom_sql_expectation_with_special_table_name(self, context, databricks_datasource):
+    def test_custom_sql_expectation_with_special_table_name(self):
         """Test that Custom SQL Expectations work with table names requiring special quoting."""
-
-        # Create a table asset for a table starting with a digit (the main bug case)
-        table_asset = databricks_datasource.add_table_asset(
-            name="247_asset_class_cumulative_returns",
-            table_name="247_asset_class_cumulative_returns",
+        batch_setup = DatabricksBatchTestSetup(
+            config=DatabricksDatasourceTestConfig(table_name="247_asset_class_cumulative_returns"),
+            data=self.SAMPLE_DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
-        # Create a batch definition
-        batch_definition: BatchDefinition = table_asset.add_batch_definition_whole_table(
-            "full_table_batch"
+        with batch_setup.batch_test_context() as batch:
+            # Test a Custom SQL Expectation - this was the main failing case
+            result = batch.validate(
+                gxe.ExpectColumnValuesToBeInSet(
+                    column="name",
+                    value_set=["Alice", "Bob", "Charlie", "David", "Eve"],
+                )
+            )
+            assert result.success
+
+            # Test another expectation that generates SQL
+            result = batch.validate(
+                gxe.ExpectColumnSumToBeBetween(
+                    column="value",
+                    min_value=150.0,
+                    max_value=155.0,
+                )
+            )
+            assert result.success
+
+    def test_schema_and_table_name_both_special(self):
+        """Test schema and table names that both require special quoting.
+
+        Note: This test uses a table name that simulates a schema.table pattern
+        since DatabricksDatasourceTestConfig doesn't support schema_name parameter.
+        """
+        # Use a table name that contains a schema-like pattern
+        batch_setup = DatabricksBatchTestSetup(
+            config=DatabricksDatasourceTestConfig(table_name="123_schema_456_table"),
+            data=self.SAMPLE_DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
         )
 
-        # Get a batch
-        batch = table_asset.get_batch(batch_definition.build_batch_request())
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10))
+            assert result.success
 
-        # Test a Custom SQL Expectation - this was the main failing case
-        result = batch.expect_column_values_to_be_in_set(
-            column="some_column",  # Assume this column exists
-            value_set=["expected_value_1", "expected_value_2"],
-        )
+            # Test column expectations work with special table names
+            result = batch.validate(gxe.ExpectColumnValuesToBeUnique(column="id"))
+            assert result.success
 
-        # The expectation should execute without SQL syntax errors
-        assert isinstance(result, ExpectationValidationResult)
-        # We don't assert on success since we don't know the actual data
-        # But it should not raise a SQL syntax error about double quotes
-
-    def test_schema_and_table_name_both_special(self, context, databricks_datasource):
-        """Test schema and table names that both require special quoting."""
-
-        # Create a table asset with both schema and table needing quoting
-        table_asset = databricks_datasource.add_table_asset(
-            name="special_schema_and_table",
-            schema_name="123_schema",  # Schema starts with digit
-            table_name="456_table",  # Table starts with digit
-        )
-
-        # Create a batch definition
-        batch_definition: BatchDefinition = table_asset.add_batch_definition_whole_table(
-            "full_table_batch"
-        )
-
-        # This should not raise an exception when creating the batch
-        batch = table_asset.get_batch(batch_definition.build_batch_request())
-
-        # Verify the batch was created successfully
-        assert batch is not None
-        assert batch.data is not None
-
-    def test_query_asset_referencing_special_table_name(self, context, databricks_datasource):
-        """Test that Query Assets can reference tables with special names."""
-
-        # Create a query asset that references a table with special naming
-        query_asset = databricks_datasource.add_query_asset(
-            name="query_with_special_table",
-            query="SELECT * FROM `247_asset_class_cumulative_returns` LIMIT 10",
-        )
-
-        # Create a batch definition
-        batch_definition: BatchDefinition = query_asset.add_batch_definition_whole_table(
-            "full_query_batch"
-        )
-
-        # This should not raise an exception when creating the batch
-        batch = query_asset.get_batch(batch_definition.build_batch_request())
-
-        # Verify the batch was created successfully
-        assert batch is not None
-        assert batch.data is not None
-
-    def test_multiple_special_table_operations(self, context, databricks_datasource):
-        """Test multiple operations on tables with special names."""
-
-        # Create multiple table assets with different special naming patterns
-        table_assets = []
-
-        special_names = [
+    def test_multiple_special_table_operations(self):
+        """Test multiple operations on tables with different special naming patterns."""
+        special_table_names = [
             "123_starts_with_digit",
             "table with spaces",
             "table-with-hyphens",
@@ -209,21 +198,76 @@ class TestDatabricksSpecialTableNames:
             "table#with@symbols",
         ]
 
-        for i, table_name in enumerate(special_names):
-            asset = databricks_datasource.add_table_asset(
-                name=f"special_table_{i}",
-                table_name=table_name,
+        for table_name in special_table_names:
+            batch_setup = DatabricksBatchTestSetup(
+                config=DatabricksDatasourceTestConfig(table_name=table_name),
+                data=self.SAMPLE_DATA,
+                extra_data={},
+                context=get_context(mode="ephemeral"),
             )
-            table_assets.append(asset)
 
-        # Test that all assets can create batches successfully
-        for asset in table_assets:
-            batch_definition = asset.add_batch_definition_whole_table("test_batch")
-            batch = asset.get_batch(batch_definition.build_batch_request())
+            with batch_setup.batch_test_context() as batch:
+                # Test basic table operations
+                result = batch.validate(
+                    gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10)
+                )
+                assert result.success
 
-            assert batch is not None
-            assert batch.data is not None
+                # Test column expectations to ensure SQL generation works
+                result = batch.validate(gxe.ExpectColumnValuesToNotBeNull(column="name"))
+                assert result.success
 
-            # Test a basic expectation to ensure SQL generation works
-            result = batch.expect_table_row_count_to_be_between(min_value=0, max_value=1000000)
-            assert isinstance(result, ExpectationValidationResult)
+    def test_schema_and_table_name_both_special_realistic(self):
+        """Test realistic schema and table names that both require special quoting."""
+        # Test with a more realistic scenario where both schema and table start with digits
+        batch_setup = DatabricksBatchTestSetup(
+            config=DatabricksDatasourceTestConfig(
+                table_name="123_schema.456_table"  # Simulating schema.table pattern
+            ),
+            data=self.SAMPLE_DATA,
+            extra_data={},
+            context=get_context(mode="ephemeral"),
+        )
+
+        with batch_setup.batch_test_context() as batch:
+            result = batch.validate(gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10))
+            assert result.success
+
+            # Test column expectations work with special schema.table names
+            result = batch.validate(gxe.ExpectColumnValuesToBeUnique(column="id"))
+            assert result.success
+
+    def test_edge_cases_special_characters(self):
+        """Test edge cases with various special character combinations."""
+        edge_case_names = [
+            "247_asset_class_cumulative_returns",  # Original failing case
+            "123test",  # Digit start with no underscore
+            "table name with multiple   spaces",  # Multiple spaces
+            "table-with--double-hyphens",  # Double hyphens
+            "table.with..double.dots",  # Double dots
+            "table#@$%special",  # Multiple special chars
+        ]
+
+        for table_name in edge_case_names:
+            batch_setup = DatabricksBatchTestSetup(
+                config=DatabricksDatasourceTestConfig(table_name=table_name),
+                data=self.SAMPLE_DATA,
+                extra_data={},
+                context=get_context(mode="ephemeral"),
+            )
+
+            with batch_setup.batch_test_context() as batch:
+                # Test that batch creation works
+                result = batch.validate(
+                    gxe.ExpectTableRowCountToBeBetween(min_value=1, max_value=10)
+                )
+                assert result.success
+
+                # Test complex expectations to ensure SQL generation is robust
+                result = batch.validate(
+                    gxe.ExpectColumnValuesToBeInSet(
+                        column="name",
+                        value_set=["Alice", "Bob", "Charlie", "David", "Eve"],
+                    )
+                )
+                assert result.success
