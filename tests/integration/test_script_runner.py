@@ -20,6 +20,7 @@ from docs.docusaurus.docs.components.examples_under_test import (
 )
 from flaky import flaky
 
+from great_expectations.data_context.cloud_constants import GXCloudEnvironmentVariable
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
@@ -340,22 +341,59 @@ def pytest_parsed_arguments(request):
     return request.config.option
 
 
+@pytest.fixture
+def prepare_cloud_env_vars(monkeypatch):
+    """Fixture that returns a callable to prepare cloud environment variables."""
+
+    def _prepare_cloud_env_vars_callable(backend_dependencies: list[BackendDependencies]):
+        # This is necessary because Cloud environment variables
+        # are always set in the pipeline (ci.yml).
+        # Non-Cloud tests will try to instantiate
+        # CloudDataContexts if these env vars are set, resulting in test failures
+        if BackendDependencies.CLOUD not in backend_dependencies:
+            monkeypatch.delenv(GXCloudEnvironmentVariable.BASE_URL, raising=False)
+            monkeypatch.delenv(GXCloudEnvironmentVariable.ACCESS_TOKEN, raising=False)
+            monkeypatch.delenv(GXCloudEnvironmentVariable.ORGANIZATION_ID, raising=False)
+
+    return _prepare_cloud_env_vars_callable
+
+
 @flaky(rerun_filter=delay_rerun, max_runs=3, min_passes=1)
 @pytest.mark.parametrize("integration_test_fixture", docs_test_matrix, ids=idfn)
-def test_docs(integration_test_fixture, tmp_path, pytest_parsed_arguments):
+def test_docs(
+    integration_test_fixture: IntegrationTestFixture,
+    tmp_path: pathlib.Path,
+    pytest_parsed_arguments,
+    prepare_cloud_env_vars,
+):
     _check_for_skipped_tests(pytest_parsed_arguments, integration_test_fixture)
-    _execute_integration_test(integration_test_fixture, tmp_path)
+    _execute_integration_test(
+        integration_test_fixture=integration_test_fixture,
+        tmp_path=tmp_path,
+        prepare_cloud_env_vars=prepare_cloud_env_vars,
+    )
 
 
 @pytest.mark.parametrize("test_configuration", integration_test_matrix, ids=idfn)
 @pytest.mark.slow  # 79.77s
-def test_integration_tests(test_configuration, tmp_path, pytest_parsed_arguments):
+def test_integration_tests(
+    test_configuration: IntegrationTestFixture,
+    tmp_path: pathlib.Path,
+    pytest_parsed_arguments,
+    prepare_cloud_env_vars,
+):
     _check_for_skipped_tests(pytest_parsed_arguments, test_configuration)
-    _execute_integration_test(test_configuration, tmp_path)
+    _execute_integration_test(
+        integration_test_fixture=test_configuration,
+        tmp_path=tmp_path,
+        prepare_cloud_env_vars=prepare_cloud_env_vars,
+    )
 
 
 def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
-    integration_test_fixture: IntegrationTestFixture, tmp_path: pathlib.Path
+    integration_test_fixture: IntegrationTestFixture,
+    tmp_path: pathlib.Path,
+    prepare_cloud_env_vars,
 ):
     """
     Prepare and environment and run integration tests from a list of tests.
@@ -375,9 +413,7 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
             execute_shell_command("pip install .")
         os.chdir(tmp_path)
 
-        #
         # Build test state
-        # DataContext
         data_context_dir = integration_test_fixture.data_context_dir
         if data_context_dir:
             context_source_dir = base_dir / data_context_dir
@@ -432,6 +468,10 @@ def _execute_integration_test(  # noqa: C901, PLR0915 # FIXME CoP
             tmp_path.joinpath("tests/").mkdir()
             util_script_path = tmp_path / "tests/test_utils.py"
             shutil.copyfile(script_source, util_script_path)
+
+        prepare_cloud_env_vars(
+            backend_dependencies=integration_test_fixture.backend_dependencies,
+        )
 
         # Run script as module, using python's importlib machinery (https://docs.python.org/3/library/importlib.htm)
         loader = importlib.machinery.SourceFileLoader("test_script_module", str(script_path))
@@ -497,3 +537,5 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
         pytest.skip("Skipping Trino tests")
     elif BackendDependencies.ATHENA in dependencies and not pytest_args.athena:
         pytest.skip("Skipping Athena tests")
+    elif BackendDependencies.CLOUD in dependencies and not pytest_args.cloud:
+        pytest.skip("Skipping GX Cloud tests")
