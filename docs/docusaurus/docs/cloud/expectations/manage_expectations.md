@@ -98,7 +98,7 @@ AND passenger_count > 4
 
 Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
-- The Data Asset's Data Source must be Databricks SQL, PostgreSQL, Redshift, or Snowflake.
+- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
 
 
 ## Multi-source Expectations
@@ -207,7 +207,7 @@ To accelerate test coverage, you can use ExpectAI to generate recommended Expect
 
 Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
-- The Data Asset's Data Source must be Databricks SQL, PostgreSQL, Redshift, or Snowflake.
+- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
 
 To add AI-recommended Expectations:
 1. In GX Cloud, click **Data Assets**.
