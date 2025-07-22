@@ -63,6 +63,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.REDSHIFT.value,
@@ -124,6 +128,10 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}

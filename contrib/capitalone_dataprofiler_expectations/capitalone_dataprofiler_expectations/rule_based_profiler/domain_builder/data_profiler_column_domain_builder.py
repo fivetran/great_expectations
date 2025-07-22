@@ -33,8 +33,8 @@ class DataProfilerColumnDomainBuilder(ColumnDomainBuilder):
 
     def __init__(
         self,
-        include_column_names: Optional[Union[str, Optional[List[str]]]] = None,
-        exclude_column_names: Optional[Union[str, Optional[List[str]]]] = None,
+        include_column_names: Union[None, str, List[str]] = None,
+        exclude_column_names: Union[None, str, List[str]] = None,
         include_column_name_suffixes: Optional[Union[str, Iterable, List[str]]] = None,
         exclude_column_name_suffixes: Optional[Union[str, Iterable, List[str]]] = None,
         semantic_type_filter_module_name: Optional[str] = None,

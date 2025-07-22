@@ -249,6 +249,7 @@ class AbstractDataContext(ConfigPeer, ABC):
         self._init_data_source_manager()
 
         self._attach_fluent_config_datasources_and_build_data_connectors(self.fluent_config)
+
         self._init_analytics()
         submit_event(event=DataContextInitializedEvent())
 
@@ -272,15 +273,17 @@ class AbstractDataContext(ConfigPeer, ABC):
         )
 
     def _init_analytics(self) -> None:
-        init_analytics(
-            enable=self._determine_analytics_enabled(),
-            user_id=None,
-            data_context_id=self._data_context_id,
-            organization_id=None,
-            oss_id=self._get_oss_id(),
-            mode=self.mode,
-            user_agent_str=self._user_agent_str,
-        )
+        analytics_enabled = self._determine_analytics_enabled()
+        if analytics_enabled:
+            init_analytics(
+                enable=analytics_enabled,
+                user_id=None,
+                data_context_id=self._data_context_id,
+                organization_id=None,
+                oss_id=self._get_oss_id(),
+                mode=self.mode,
+                user_agent_str=self._user_agent_str,
+            )
 
     def _determine_analytics_enabled(self) -> bool:
         """
@@ -2015,13 +2018,13 @@ class AbstractDataContext(ConfigPeer, ABC):
         """  # noqa: E501 # FIXME CoP
         config = configparser.ConfigParser()
 
-        if not cls._ROOT_CONF_FILE.exists():
-            success = cls._scaffold_root_conf()
-            if not success:
-                return None
-            return cls._set_oss_id(config)
-
         try:
+            if not cls._ROOT_CONF_FILE.exists():
+                success = cls._scaffold_root_conf()
+                if not success:
+                    return None
+                return cls._set_oss_id(config)
+
             config.read(cls._ROOT_CONF_FILE)
         except OSError as e:
             logger.info(f"Something went wrong when trying to read from the user's conf file: {e}")
