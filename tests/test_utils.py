@@ -960,6 +960,8 @@ def add_datasource(
         return context.data_sources.add_postgres(name=name, connection_string=connection_string)
     elif dialect == "redshift":
         return context.data_sources.add_redshift(name=name, connection_string=connection_string)
+    elif dialect == "bigquery":
+        return context.data_sources.add_bigquery(name=name, connection_string=connection_string)
     else:
         return context.data_sources.add_sql(name=name, connection_string=connection_string)
 

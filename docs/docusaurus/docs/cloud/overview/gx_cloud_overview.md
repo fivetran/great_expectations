@@ -1,12 +1,34 @@
 ---
 title: 'GX Cloud overview'
 id: gx_cloud_overview
-description: Explore GX Cloud components, workflows, and architecture.
+description: Explore GX Cloud integration, concepts, workflows, and architecture.
 toc_min_heading_level: 2
 toc_max_heading_level: 2
 ---
 
 GX Cloud is a fully managed SaaS platform that simplifies data quality management and monitoring. With GX Cloud, you and your organization can work collaboratively to define and maintain shared understanding of your data.
+
+## GX Cloud in your environment
+
+You can integrate GX Cloud at any point in your data pipeline to manage and monitor data quality. Common integration points include but are not limited to the following:
+
+- **Ingestion:** validate raw data before writing it to your data warehouse so that you can quarantine bad records and identify bugs in your source system.
+
+- **Transformation:** check the results of transformations in your warehouse and condition pipeline steps based on validation success or failure.
+
+- **Delivery:** ensure unexpected patterns reveal business insights rather than data quality issues.
+
+Here’s an example of where these three common integration points fit in a generic data pipeline:
+
+![Incoming data from Square, Mailchimp, and Salesforce are validated by GX Cloud before being written as raw data in a Snowflake data warehouse. Transformations are validated within the Snowflake data pipeline. Finalized data is validated before being served by BI tools such as Tableau, Power BI, and Looker.](./overview_images/gx_cloud_pipeline.png)
+
+You can also integrate GX Cloud with version control systems and with data at rest. Common workflows that validate data outside the data pipeline include:
+
+- **CI/CD:** test changes to your transformation code before merging it to production so that code changes don’t have negative downstream impacts on data.
+
+- **Exploration:** enable your stakeholders to create and run ad hoc tests to get a better understanding of the data they’re consuming.
+
+For a full list of data sources and other tools supported by GX Cloud, visit the [compatibility reference](/help/compatibility_reference.md).
 
 ## GX Cloud concepts
 
@@ -50,9 +72,13 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
+* **Generate code for custom SQL Expectations with ExpectAI (BETA).** To simplify working with [custom SQL Expectations](/cloud/expectations/manage_expectations.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+
 * **Schedule Validations.** GX Cloud enables you to schedule validations, so that you can test and assess your data on a regular cadence and monitor data quality over time. See [Manage schedules](/cloud/schedules/manage_schedules.md) for more detail.
 
 * **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your organization to remain proactively aware of the health of your Data Assets. See [Manage alerts](/cloud/alerts/manage_alerts.md) for more detail.
+
+* **Monitor Data Health.** GX Cloud provides metric summaries and trends to help you understand and improve test coverage and success across your business. See [Data Health](/cloud/overview/data_health.md) for more detail.
 
 
 
