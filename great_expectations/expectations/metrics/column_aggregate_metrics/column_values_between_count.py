@@ -219,24 +219,24 @@ class ColumnValuesBetweenCount(MetricProvider):
 
         if min_value is None:
             if strict_max:
-                condition = column < max_value
+                condition = column < F.lit(max_value)
             else:
-                condition = column <= max_value
+                condition = column <= F.lit(max_value)
 
         elif max_value is None:
             if strict_min:
-                condition = column > min_value
+                condition = column > F.lit(min_value)
             else:
-                condition = column >= min_value
+                condition = column >= F.lit(min_value)
 
         else:  # noqa: PLR5501 # FIXME CoP
             if strict_min and strict_max:
-                condition = (column > min_value) & (column < max_value)
+                condition = (column > F.lit(min_value)) & (column < F.lit(max_value))
             elif strict_min:
-                condition = (column > min_value) & (column <= max_value)
+                condition = (column > F.lit(min_value)) & (column <= F.lit(max_value))
             elif strict_max:
-                condition = (column >= min_value) & (column < max_value)
+                condition = (column >= F.lit(min_value)) & (column < F.lit(max_value))
             else:
-                condition = (column >= min_value) & (column <= max_value)
+                condition = (column >= F.lit(min_value)) & (column <= F.lit(max_value))
 
         return df.filter(condition).count()
