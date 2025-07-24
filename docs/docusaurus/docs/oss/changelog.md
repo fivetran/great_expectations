@@ -14,6 +14,20 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.6
+* [BUGFIX] Remove incompatible min/max types for some range expectations ([#11305](https://github.com/great-expectations/great_expectations/pull/11305))
+* [DOCS] generate SQL ([#11289](https://github.com/great-expectations/great_expectations/pull/11289))
+* [DOCS] Data Health ([#11294](https://github.com/great-expectations/great_expectations/pull/11294))
+* [DOCS] Add postgres flavors to expectation docstrings ([#11304](https://github.com/great-expectations/great_expectations/pull/11304))
+* [DOCS] pipeline architecture diagram ([#11298](https://github.com/great-expectations/great_expectations/pull/11298))
+* [DOCS] Standardize data source naming in docstrings ([#11306](https://github.com/great-expectations/great_expectations/pull/11306))
+* [DOCS] new Data Sources ([#11293](https://github.com/great-expectations/great_expectations/pull/11293))
+* [DOCS] restore link checker ([#11308](https://github.com/great-expectations/great_expectations/pull/11308))
+* [DOCS] Data Health screenshot ([#11307](https://github.com/great-expectations/great_expectations/pull/11307))
+* [MAINTENANCE] : Add scripts to clean up databricks and snowflake schemas ([#11297](https://github.com/great-expectations/great_expectations/pull/11297))
+* [MAINTENANCE] Update docstring for Postgres flavor data sources ([#11302](https://github.com/great-expectations/great_expectations/pull/11302))
+* [MAINTENANCE] cloud-snippets under test ([#11292](https://github.com/great-expectations/great_expectations/pull/11292))
+
 ### 1.5.5
 * [FEATURE] Add new Postgres "flavor" Data Source classes ([#11290](https://github.com/great-expectations/great_expectations/pull/11290))
 * [FEATURE] Add BigQuery data source class ([#11296](https://github.com/great-expectations/great_expectations/pull/11296))
