@@ -15,6 +15,8 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
 <!-- Additionally, the `UnexpectedRowsExpectation`'s use of SQL or Spark-SQL queries makes it uniquely suitable for customized validation logic.  Although the default behavior of an `UnexpectedRowsExpectation` is to treat returned rows as having failed validation, you can override this default by providing a custom `_validate(...)` method for your customized subclass of `UnexpectedRowsExpectation`. -->
 
+The `UnexpectedRowsExpectation` supports template variables, allowing you to parameterize column names and other values in your SQL queries through the `template_dict` parameter. This makes it easy to create reusable Expectations that can be applied to different columns without rewriting the SQL query.
+
 ## Prerequisites
 
 - <PrereqPythonInstalled/>.
@@ -29,7 +31,8 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
    defaultValue="instructions"
    values={[
       {value: 'instructions', label: 'Instructions'},
-      {value: 'sample_code', label: 'Sample code'}
+      {value: 'sample_code', label: 'Sample code'},
+      {value: 'template_example', label: 'Template example'}
    ]}
 >
 
@@ -39,28 +42,47 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 
    The `UnexpectedRowsExpectation` class takes an `unexpected_rows_query` attribute, which is a SQL or Spark-SQL query that returns a selection of rows from the Batch of data being validated. By default, rows that are returned have failed the validation check.
 
-   The custom SQL query should be written in the SQL dialect your database uses, except that it can also contain the special `{batch}` named query.  When the Expectation is evaluated, the `{batch}` keyword will be replaced with the Batch of data that is configured for your Data Asset.
+   
+   The custom SQL query should be written in the SQL dialect your database uses. It can contain:
+
+   - The special `{batch}` named query that will be replaced with the Batch of data configured for your Data Asset.
+
+   - Custom template variables (e.g., `{column_name}`, `{threshold}`) that can be defined using the `template_dict` parameter.
 
    In this example, the custom query will select any rows where the passenger count is greater than `6` or less than `0`:
 
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define query"
    ```
 
-2. Customize how the Expectation renders in Data Docs.
+
+2. Optional: Use template variables for flexible queries.
+
+   You can make your queries more reusable by using template variables. Define placeholders in your query and provide their values through the `template_dict` parameter:
+
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define template query"
+
+   ```
+
+3. Customize how the Expectation renders in Data Docs.
 
    As with other Expectations, the `description` attribute contains the text describing the Expectation when your results are rendered into Data Docs. You can format the `description` string with Markdown syntax:
 
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define description"
    ```
 
-3. Create a new Expectation using the `UnexpectedRowsExpectation` class and your parameters.
+4. Create a new Expectation using the `UnexpectedRowsExpectation` class and your parameters.
   
    The class name `UnexpectedRowsExpectation` describes the functionality of the Expectation: it finds rows with unexpected values.  When you create your Expectation, you can use a name that is more indicative of your specific use case.  In this example, the customized Expectation will be used to find invalid passenger counts in taxi trip data:
 
    ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - create Expectation"
    ```
 
-4. Use your custom SQL Expectation.
+   Or with template variables:
+
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - create template Expectation"
+   ```
+
+5. Use your custom SQL Expectation.
 
    Now that you've created a custom SQL Expectation, you can [add it to an Expectation Suite](/core/define_expectations/organize_expectation_suites.md) and [validate it](/docs/core/run_validations/run_a_validation_definition.md) like any other Expectation.
 
@@ -69,6 +91,15 @@ Among the available Expectations, the `UnexpectedRowsExpectation` is designed to
 <TabItem value="sample_code" label="Sample code">
 
 ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - full code example"
+```
+
+</TabItem>
+
+
+<TabItem value="template_example" label="Template example">
+
+```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - full template example"
+
 ```
 
 </TabItem>

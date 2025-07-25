@@ -77,3 +77,100 @@ batch = (
 
 batch.validate(expect_passenger_count_to_be_legal)
 # </snippet>
+
+# TEMPLATE EXAMPLE:
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - full template example">
+import great_expectations as gx
+
+# Define a reusable SQL query with template variables.
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - define template query">
+my_template_query = """
+    SELECT
+        *
+    FROM
+        {batch}
+    WHERE
+        {column} > {max_value} or {column} < {min_value}
+    """
+
+# Define the template dictionary with column name and threshold values
+my_template_dict = {"column": "passenger_count", "max_value": "6", "min_value": "0"}
+# </snippet>
+
+# Create an Expectation with template variables
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - create template Expectation">
+expect_column_values_in_range = gx.expectations.UnexpectedRowsExpectation(
+    unexpected_rows_query=my_template_query,
+    template_dict=my_template_dict,
+    description="Values should be within the specified range.",
+)
+# </snippet>
+
+# Test the template-based Expectation
+context = gx.get_context()
+# Hide this
+set_up_context_for_example(context)
+
+batch = (
+    context.data_sources.get("my_sql_data_source")
+    .get_asset("my_data_asset")
+    .get_batch_definition("my_batch_definition")
+    .get_batch()
+)
+
+# Validate with the template-based expectation
+result = batch.validate(expect_column_values_in_range)
+
+# You can also create another expectation for a different column using the same query template
+expect_fare_amount_reasonable = gx.expectations.UnexpectedRowsExpectation(
+    unexpected_rows_query=my_template_query,
+    template_dict={"column": "fare_amount", "max_value": "500", "min_value": "0"},
+    description="Fare amounts should be reasonable.",
+)
+
+# Validate with the new expectation
+result2 = batch.validate(expect_fare_amount_reasonable)
+# </snippet>
+
+# ADVANCED TEMPLATE EXAMPLE WITH MULTIPLE COLUMNS:
+# <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/use_sql_to_define_a_custom_expectation.py - advanced template example">
+# Example: Check consistency between two related columns
+consistency_query = """
+    SELECT
+        *
+    FROM
+        {batch}
+    WHERE
+        {column_a} IS NOT NULL AND {column_b} IS NULL
+        OR
+        {column_a} IS NULL AND {column_b} IS NOT NULL
+"""
+
+# Create an expectation to ensure pickup and dropoff times are both present or both missing
+expect_datetime_consistency = gx.expectations.UnexpectedRowsExpectation(
+    unexpected_rows_query=consistency_query,
+    template_dict={"column_a": "pickup_datetime", "column_b": "dropoff_datetime"},
+    description="Pickup and dropoff times should be both present or both null.",
+)
+
+# Example: Dynamic threshold checking
+threshold_query = """
+    SELECT
+        *
+    FROM
+        {batch}
+    WHERE
+        {metric_column} / NULLIF({base_column}, 0) > {threshold}
+"""
+
+# Create an expectation to check if tips exceed a certain percentage of fare
+expect_reasonable_tip_percentage = gx.expectations.UnexpectedRowsExpectation(
+    unexpected_rows_query=threshold_query,
+    template_dict={
+        "metric_column": "tip_amount",
+        "base_column": "fare_amount",
+        "threshold": "0.5",  # Flag if tip is more than 50% of fare
+    },
+    description="Tips should not exceed 50% of the fare amount.",
+)
+# </snippet>

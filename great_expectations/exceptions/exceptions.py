@@ -235,6 +235,19 @@ class InvalidKeyError(StoreError):
     pass
 
 
+class MissingKeysError(ValidationError):
+    def __init__(self, missing_keys: list[str]):
+        super().__init__(
+            f"The following key{'' if len(missing_keys) == 1 else 's'} must be present:"
+            f" {', '.join(missing_keys)}"
+        )
+
+
+class InvalidQueryError(ValidationError):
+    def __init__(self):
+        super().__init__("Query contains redundant template variables.")
+
+
 class InvalidCacheValueError(GreatExpectationsError):
     def __init__(self, result_dict) -> None:
         template = """\

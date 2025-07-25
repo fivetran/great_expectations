@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 import pytest
 
 from great_expectations.data_context.util import file_relative_path
+from great_expectations.exceptions import InvalidExpectationConfigurationError, MissingKeysError
 from great_expectations.expectations import UnexpectedRowsExpectation
 from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.render.renderer.content_block.content_block import ContentBlockRenderer
@@ -58,6 +59,139 @@ def test_unexpected_rows_expectation_invalid_query_info_message(query: str, capl
     # stdout is printed to console
     out, _ = capfd.readouterr()
     assert "{batch}" in out
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_template_dict_basic():
+    """Test basic template_dict functionality"""
+
+    query = "SELECT * FROM {batch} WHERE {column} IS NULL"
+    template_dict = {"column": "user_id"}
+    expectation = UnexpectedRowsExpectation(
+        unexpected_rows_query=query, template_dict=template_dict
+    )
+
+    assert expectation.template_dict == template_dict
+    assert expectation.unexpected_rows_query == query
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_get_rendered_query():
+    """Test that _get_rendered_query properly replaces template variables"""
+
+    query = "SELECT * FROM {batch} WHERE {column_a} IS NOT NULL AND {column_b} IS NULL"
+    template_dict = {"column_a": "start_date", "column_b": "end_date"}
+    expectation = UnexpectedRowsExpectation(
+        unexpected_rows_query=query, template_dict=template_dict
+    )
+    rendered_query = expectation._get_rendered_query()
+
+    assert (
+        rendered_query == "SELECT * FROM {batch} WHERE start_date IS NOT NULL AND end_date IS NULL"
+    )
+    assert "{column_a}" not in rendered_query
+    assert "{column_b}" not in rendered_query
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_missing_template_variable():
+    """Test that missing template variables raise appropriate errors"""
+
+    query = "SELECT * FROM {batch} WHERE {column} IS NULL"
+    template_dict = {}  # Missing 'column' key
+    expectation = UnexpectedRowsExpectation(
+        unexpected_rows_query=query, template_dict=template_dict
+    )
+
+    with pytest.raises(InvalidExpectationConfigurationError) as exc_info:
+        expectation._get_rendered_query()
+    assert "Query contains template variable that is not in template_dict" in str(exc_info.value)
+
+
+@pytest.mark.unit
+def test_unexpected_rows_expectation_backward_compatibility():
+    """Test that queries without templates still work (backward compatibility)"""
+
+    query = "SELECT * FROM {batch} WHERE status = 'invalid'"
+    expectation = UnexpectedRowsExpectation(unexpected_rows_query=query)
+
+    # Should not raise any errors
+    expectation.validate_configuration()
+    rendered_query = expectation._get_rendered_query()
+    assert rendered_query == query
+
+
+@pytest.mark.unit
+class TestUnexpectedRowsExpectationWithRequiredTemplateKeys:
+    """Test subclassing with required template keys"""
+
+    def test_required_template_keys_validation(self):
+        """Test validation when required_template_keys is defined"""
+
+        class CustomUnexpectedRowsExpectation(UnexpectedRowsExpectation):
+            required_template_keys = ("column_a", "column_b")
+
+        # Should fail without template_dict
+        with pytest.raises(MissingKeysError) as exc_info:
+            CustomUnexpectedRowsExpectation(
+                unexpected_rows_query="SELECT * FROM {batch} WHERE {column_a} = {column_b}"
+            )
+
+        # Should fail with incomplete template_dict
+        with pytest.raises(InvalidExpectationConfigurationError) as exc_info:
+            CustomUnexpectedRowsExpectation(
+                unexpected_rows_query="SELECT * FROM {batch} WHERE {column_a} = {column_b}",
+                template_dict={"column_a": "col1"},  # Missing column_b
+            )
+        assert "column_b" in str(exc_info.value)
+
+        # Should succeed with complete template_dict
+        expectation = CustomUnexpectedRowsExpectation(
+            unexpected_rows_query="SELECT * FROM {batch} WHERE {column_a} = {column_b}",
+            template_dict={"column_a": "col1", "column_b": "col2"},
+        )
+        assert expectation.template_dict == {"column_a": "col1", "column_b": "col2"}
+
+
+@pytest.mark.unit
+def test_additional_template_validations():
+    """Test custom validation logic through get_additional_template_validations"""
+
+    class CustomValidationExpectation(UnexpectedRowsExpectation):
+        required_template_keys = ("column_a", "column_b", "column_c")
+
+        @classmethod
+        def get_additional_template_validations(
+            cls, template_dict: Dict[str, str]
+        ) -> Dict[str, bool]:
+            columns = [template_dict.get(key) for key in cls.required_template_keys]
+            return {
+                "All columns must be different": len(set(columns)) == len(columns),
+                "Column names must not be empty": all(col and col.strip() for col in columns),
+            }
+
+    # Should fail when columns are not different
+    with pytest.raises(InvalidExpectationConfigurationError) as exc_info:
+        CustomValidationExpectation(
+            unexpected_rows_query="SELECT * FROM {batch}",
+            template_dict={"column_a": "col1", "column_b": "col1", "column_c": "col3"},
+        )
+    assert "All columns must be different" in str(exc_info.value)
+
+    # Should fail when column name is empty
+    with pytest.raises(InvalidExpectationConfigurationError) as exc_info:
+        CustomValidationExpectation(
+            unexpected_rows_query="SELECT * FROM {batch}",
+            template_dict={"column_a": "col1", "column_b": "", "column_c": "col3"},
+        )
+    assert "Column names must not be empty" in str(exc_info.value)
+
+    # Should succeed with valid template_dict
+    expectation = CustomValidationExpectation(
+        unexpected_rows_query="SELECT * FROM {batch}",
+        template_dict={"column_a": "col1", "column_b": "col2", "column_c": "col3"},
+    )
+    assert expectation.template_dict["column_a"] == "col1"
 
 
 @pytest.mark.sqlite
