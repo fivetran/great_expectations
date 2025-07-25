@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 from collections import UserDict
 from types import ModuleType
@@ -87,7 +88,7 @@ except ImportError:
     teradatatypes = None
 
 
-MAX_RESULT_RECORDS: Final[int] = 200
+MAX_RESULT_RECORDS: Final[int] = int(os.getenv("GX_MAX_RESULT_RECORDS", "200"))
 
 UnexpectedIndexList: TypeAlias = List[Dict[str, Any]]
 
