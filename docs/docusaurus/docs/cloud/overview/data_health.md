@@ -8,6 +8,8 @@ To understand the health of your data, you need to know whether tests are passin
 ## Metrics
 To give you these insights into the health of your data, GX Cloud provides the following metrics on the **Data Health** page:
 
+![Example metrics: Data Health 71%, Daily distinct Expectations 9167, Active Coverage 98%, Total Data Assets 390. Daily Data Health rollover details include date, Data Health percentage, count of Expectations validated, and count of successful Expectations. Metrics default to overall data and can be filtered to a specific data quality issue, such as schema.](/img/data_health.png)
+
 - **Data Health:** A 30-day average of the following daily percentage: the number of successful distinct Expectations in a day divided by the number of distinct Expectations validated in that day. Here are some scenarios to help you understand the concepts of distinct Expectation validations and successful distinct Expectations as used in calculating data health metrics.
    - If an Expectation is validated multiple times for a given Data Asset in a single day, it will be counted as one distinct Expectation validation.
    - If an Expectation fails near the start of the day and succeeds near the end of the day, it will be counted as a successful distinct Expectation.
