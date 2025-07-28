@@ -1,9 +1,11 @@
-from typing import Sequence
+from enum import Enum
+from typing import Dict, List, Optional, Sequence
 
 import pandas as pd
 import pytest
 
 import great_expectations.expectations as gxe
+from great_expectations.core.expectation_validation_result import ExpectationValidationResult
 from great_expectations.core.result_format import ResultFormat
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
@@ -124,37 +126,8 @@ def test_success_with_suite_param_exact_match_(
 
 
 # Case insenstivity tests
-CASE_INSENSITIVE_DATA = pd.DataFrame(
-    {
-        "column_a": [1],
-        "COLUMN_B": [2],
-        "CoLuMn_C": [3],
-    }
-)
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=SQL_DATA_SOURCES,
-    data=CASE_INSENSITIVE_DATA,
-)
-def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_A", "column_b", "COLumN_c"])
-    result = batch_for_datasource.validate(expectation)
-    assert result.success
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=SQL_DATA_SOURCES,
-    data=CASE_INSENSITIVE_DATA,
-)
-def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
-    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_Az", "column_b", "COLumN_c"])
-    result = batch_for_datasource.validate(expectation)
-    assert not result.success
-
-
-# For most of our tests we use all sql datasources. However, for some of them we exclude
-# snowflake and redshift for the following reasons:
+# For some of our case insensitive tests we break out Snowflake and Redshift into separate
+# tests for the following reasons:
 ##### Snowflake #####
 # In test setup, sqlalchemy's CREATE TABLE will not quote lowercase column names
 # but will quote uppercase. Since snowflake stores case insensitive strings
@@ -168,6 +141,43 @@ def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
 # enable_case_sensitive_identifier, one can apply to make it case sensitive. Our code
 # looks like it would handle this successfully but I haven't verified since I need to
 # change our redshift CI cluster. There is tracked in GX-1197.
+
+CASE_INSENSITIVE_DATA = pd.DataFrame(
+    {
+        "column_a": [1],
+        "COLUMN_B": [2],
+        "CoLuMn_C": [3],
+    }
+)
+
+
+def observed_column_names(datasource_type: str) -> List[str]:
+    """Returns observed column name base on type in A, B, C order."""
+    if datasource_type == "snowflake":
+        # Since SQLAlchemy doesn't quote lowercase names in CREATE TABLE and since uppercase is
+        # case insenstive in Snowflake, both column_a and column_b will be case insensitive.
+        # SQLAlchemy will return case insensitive names in lowercase when inspecting the table.
+        return [
+            "column_a",
+            "column_b",
+            "CoLuMn_C",
+        ]
+    elif datasource_type == "redshift":
+        # Redshift is case insensitive by default
+        # SQLAlchemy will return case insensitive names in lowercase when inspecting the table.
+        return [
+            "column_a",
+            "column_b",
+            "column_c",
+        ]
+    else:
+        # For most datasources we expected the observed column names to match CASE_INSENSITIVE_DATA.
+        return [
+            "column_a",
+            "COLUMN_B",
+            "CoLuMn_C",
+        ]
+
 
 SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT: Sequence[DataSourceTestConfig] = [
     BigQueryDatasourceTestConfig(),
@@ -187,6 +197,106 @@ def test_sql_data_sources_without_snowflake_redshift() -> None:
     assert RedshiftDatasourceTestConfig() not in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT
     for datasource in SQL_DATA_SOURCES_WITHOUT_SNOWFLAKE_REDSHIFT:
         assert datasource in SQL_DATA_SOURCES
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
+    # Arrange
+    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_A", "column_b", "COLumN_c"])
+
+    # Act
+    result = batch_for_datasource.validate(expectation)
+    result.render()  # creates rendered content
+
+    # Assert
+    assert result.success
+
+    # Assert rendered content is as expected
+    observed_values = _extract_observed_state(result)
+    assert observed_values == dict(
+        zip(
+            observed_column_names(batch_for_datasource.datasource.type),
+            ["expected", "expected", "expected"],
+        )
+    )
+    expected_values = _extract_expected_state(result)
+    assert expected_values == {"COLUMN_A": None, "column_b": None, "COLumN_c": None}
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES,
+    data=CASE_INSENSITIVE_DATA,
+)
+def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
+    # Arrange
+    expectation = gxe.ExpectTableColumnsToMatchSet(column_set=["COLUMN_Az", "column_b", "COLumN_c"])
+
+    # Act
+    result = batch_for_datasource.validate(expectation)
+    result.render()  # creates rendered content
+
+    # Assert
+    assert not result.success
+
+    # Assert rendered content is as expected
+    observed_values = _extract_observed_state(result)
+    assert observed_values == dict(
+        zip(
+            observed_column_names(batch_for_datasource.datasource.type),
+            ["unexpected", "expected", "expected"],
+        )
+    )
+    expected_values = _extract_expected_state(result)
+    assert expected_values == {"COLUMN_Az": "missing", "column_b": None, "COLumN_c": None}
+
+
+def _extract_observed_state(result: ExpectationValidationResult) -> Dict[str, str]:
+    """Extracts observed column name to rendered state from validation result"""
+    # ExpectationValidationResult is not narrowly typed so we need to a lot of
+    # isinstance assertions for our expectation.
+    assert isinstance(result.rendered_content, list)
+    assert len(result.rendered_content) == 1
+    value = result.rendered_content[0].to_json_dict()["value"]
+    assert isinstance(value, dict)
+    rendered_params = value["params"]
+    assert isinstance(rendered_params, dict)
+    # We don't use a comprehension because we need to do type assertions with
+    # isinstance calls.
+    observed_state: Dict[str, str] = {}
+    for k, v in rendered_params.items():
+        assert isinstance(v, dict)
+        if k.startswith("ov__"):
+            assert isinstance(v["value"], str)
+            assert isinstance(v["render_state"], Enum)
+            observed_state[v["value"]] = v["render_state"].value
+    return observed_state
+
+
+def _extract_expected_state(result: ExpectationValidationResult) -> Dict[str, Optional[str]]:
+    """Extracts expected column name to rendered state from validation result"""
+    # ExpectationValidationResult is not narrowly typed so we need to a lot of
+    # isinstance assertions for our expectation.
+    assert isinstance(result.rendered_content, list)
+    assert len(result.rendered_content) == 1
+    value = result.rendered_content[0].to_json_dict()["value"]
+    assert isinstance(value, dict)
+    rendered_params = value["params"]
+    assert isinstance(rendered_params, dict)
+    # We don't use a comprehension because we need to do type assertions with
+    # isinstance calls.
+    expected_state: Dict[str, Optional[str]] = {}
+    for k, v in rendered_params.items():
+        assert isinstance(v, dict)
+        if k.startswith("exp__"):
+            assert isinstance(v["value"], str)
+            if "render_state" in v and isinstance(v["render_state"], Enum):
+                expected_state[v["value"]] = v["render_state"].value
+            else:
+                expected_state[v["value"]] = None
+    return expected_state
 
 
 @parameterize_batch_for_data_sources(

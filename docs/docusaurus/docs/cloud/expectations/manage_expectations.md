@@ -16,55 +16,55 @@ An Expectation is a verifiable assertion about your data. They make implicit ass
 
 The following table lists the available GX Cloud Expectations.
 
-| Data quality issue | Expectation                                            | Description                                                                                                                            | Dynamic Parameters? |
-|--------------------|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------|
-| Completeness       | **column proportion of non-null values to be between** | Expect the proportion of non-null values to be between a minimum value and a maximum value.                                            | Yes                 |
-| Completeness       | **column values to be null**                           | Expect the column values to be null.                                                                                                   | Yes                 |
-| Completeness       | **column values to not be null**                       | Expect the column values to not be null.                                                                                               | Yes                 |
-| Multi-source       | **query results to match comparison**                  | Query multiple Data Sources and compare the results for equality.                                                                      | No                  |
-| Numeric            | **column max to be between**                           | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 |
-| Numeric            | **column mean to be between**                          | Expect the column mean to be between a minimum and a maximum value.                                                                    | Yes                 |
-| Numeric            | **column median to be between**                        | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes                 |
-| Numeric            | **column min to be between**                           | Expect the column minimum to be between a minimum value and a maximum value.                                                           | Yes                 |
-| Numeric            | **column pair values A to be greater than B**          | Expect the values in column A to be greater than column B.                                                                             | No                  |
-| Numeric            | **column stdev to be between**                         | Expect the column standard deviation to be between a minimum value and a maximum value.                                                | Yes                 |
-| Numeric            | **column sum to be between**                           | Expect the column sum to be between a minimum value and a maximum value.                                                               | Yes                 |
-| Numeric            | **column values to be between**                        | Expect the column entries to be between a minimum value and a maximum value.                                                           | No                  |
-| Numeric            | **column z scores to be less than**                    | Expect the Z-scores of a column's values to be less than a given threshold.                                                            | No                  |
-| Numeric            | **multicolumn sum to equal**                           | Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.             | No                  |
-| Schema             | **column to exist**                                    | Checks for the existence of a specified column within a table or view.                                                                 | No                  |
-| Schema             | **column values to be in type list**                   | Expect a column to contain values from a specified type list.                                                                          | No                  |
-| Schema             | **column values to be of type**                        | Expect a column to contain values of a specified data type.                                                                            | No                  |
-| Schema             | **table column count to be between**                   | Expect the number of columns in a table or view to be between two values.                                                              | Yes                 |
-| Schema             | **table column count to equal**                        | Expect the number of columns in a table or view to equal a value.                                                                      | No                  |
-| Schema             | **table columns to match ordered list**                | Expect the columns in a table or view to exactly match a specified list.                                                               | No                  |
-| Schema             | **table columns to match set**                         | Expect the columns in a table or view to match an unordered set.                                                                       | No                  |
-| SQL                | **custom Expectation with SQL**                        | Expect a SQL query to return no rows.                                                                                                  | No                  |
-| Uniqueness         | **column distinct values to be in set**                | Expect the set of distinct column values to be contained by a given set.                                                               | No                  |
-| Uniqueness         | **column distinct values to contain set**              | Expect the set of distinct column values to contain a given set.                                                                       | No                  |
-| Uniqueness         | **column distinct values to equal set**                | Expect the set of distinct column values to equal a given set.                                                                         | No                  |
-| Uniqueness         | **column proportion of unique values to be between**   | Expect the proportion of unique values to be between a minimum value and a maximum value.                                              | Yes                 |
-| Uniqueness         | **column unique value count to be between**            | Expect the number of unique values to be between a minimum value and a maximum value.                                                  | Yes                 |
-| Uniqueness         | **column values to be unique**                         | Expect each column value to be unique.                                                                                                 | No                  |
-| Uniqueness         | **compound columns to be unique**                      | Expect the compound columns to be unique.                                                                                              | No                  |
-| Uniqueness         | **select column values to be unique within record**    | Expect the values for each record to be unique across the columns listed. Note that records can be duplicated.                         | No                  |
-| Validity           | **column most common value to be in set**              | Expect the most common value to be within the designated value set.                                                                    | No                  |
-| Validity           | **column pair values to be equal**                     | Expect the values in column A to be the same as column B.                                                                              | No                  |
-| Validity           | **column value lengths to be between**                 | Expect the column entries to be strings with length between a minimum value and a maximum value.                                       | No                  |
-| Validity           | **column value lengths to equal**                      | Expect the column entries to be strings with length equal to the provided value.                                                       | No                  |
-| Validity           | **column values to be in set**                         | Expect each column value to be in a given set.                                                                                         | No                  |
-| Validity           | **column values to not be in set**                     | Expect column entries to not be in the set.                                                                                            | No                  |
-| Validity           | **column values to match like pattern**                | Expect the column entries to be strings that match a given like pattern expression.                                                    | No                  |
-| Validity           | **column values to match like pattern list**           | Expect the column entries to be strings that match any of a provided list of like pattern expressions.                                 | No                  |
-| Validity           | **column values to match regex**                       | Expect the column entries to be strings that match a given regular expression.                                                         | No                  |
-| Validity           | **column values to match regex list**                  | Expect the column entries to be strings that can be matched to either any of or all of a list of regular expressions.                  | No                  |
-| Validity           | **column values to not match like pattern**            | Expect the column entries to be strings that do NOT match a given like pattern expression.                                             | No                  |
-| Validity           | **column values to not match like pattern list**       | Expect the column entries to be strings that do NOT match any of a provided list of like pattern expressions.                          | No                  |
-| Validity           | **column values to not match regex**                   | Expect the column entries to be strings that do NOT match a given regular expression.                                                  | No                  |
-| Validity           | **column values to not match regex list**              | Expect the column entries to be strings that do not match any of a list of regular expressions. Matches can be anywhere in the string. | No                  |
-| Volume             | **table row count to be between**                      | Expect the number of rows to be between two values.                                                                                    | Yes                 |
-| Volume             | **table row count to equal**                           | Expect the number of rows to equal a value.                                                                                            | No                  |
-| Volume             | **table row count to equal other table**               | Expect the number of rows to equal the number in another table or view within the same database.                                       | No                  |
+| Data quality issue | Expectation                                            | Description                                                                                                                            | Dynamic Parameters? | Forecasted range? |
+|--------------------|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------|-------------------|
+| Completeness       | **column proportion of non-null values to be between** | Expect the proportion of non-null values to be between a minimum value and a maximum value.                                            | Yes                 | No                |
+| Completeness       | **column values to be null**                           | Expect the column values to be null.                                                                                                   | Yes                 | No                |
+| Completeness       | **column values to not be null**                       | Expect the column values to not be null.                                                                                               | Yes                 | No                |
+| Multi-source       | **query results to match comparison**                  | Query multiple Data Sources and compare the results for equality.                                                                      | No                  | No                |
+| Numeric            | **column max to be between**                           | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 | No                |
+| Numeric            | **column mean to be between**                          | Expect the column mean to be between a minimum and a maximum value.                                                                    | Yes                 | No                |
+| Numeric            | **column median to be between**                        | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes                 | No                |
+| Numeric            | **column min to be between**                           | Expect the column minimum to be between a minimum value and a maximum value.                                                           | Yes                 | No                |
+| Numeric            | **column pair values A to be greater than B**          | Expect the values in column A to be greater than column B.                                                                             | No                  | No                |
+| Numeric            | **column stdev to be between**                         | Expect the column standard deviation to be between a minimum value and a maximum value.                                                | Yes                 | No                |
+| Numeric            | **column sum to be between**                           | Expect the column sum to be between a minimum value and a maximum value.                                                               | Yes                 | No                |
+| Numeric            | **column values to be between**                        | Expect the column entries to be between a minimum value and a maximum value.                                                           | No                  | No                |
+| Numeric            | **column z scores to be less than**                    | Expect the Z-scores of a column's values to be less than a given threshold.                                                            | No                  | No                |
+| Numeric            | **multicolumn sum to equal**                           | Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.             | No                  | No                |
+| Schema             | **column to exist**                                    | Checks for the existence of a specified column within a table or view.                                                                 | No                  | No                |
+| Schema             | **column values to be in type list**                   | Expect a column to contain values from a specified type list.                                                                          | No                  | No                |
+| Schema             | **column values to be of type**                        | Expect a column to contain values of a specified data type.                                                                            | No                  | No                |
+| Schema             | **table column count to be between**                   | Expect the number of columns in a table or view to be between two values.                                                              | Yes                 | No                |
+| Schema             | **table column count to equal**                        | Expect the number of columns in a table or view to equal a value.                                                                      | No                  | No                |
+| Schema             | **table columns to match ordered list**                | Expect the columns in a table or view to exactly match a specified list.                                                               | No                  | No                |
+| Schema             | **table columns to match set**                         | Expect the columns in a table or view to match an unordered set.                                                                       | No                  | No                |
+| SQL                | **custom Expectation with SQL**                        | Expect a SQL query to return no rows.                                                                                                  | No                  | No                |
+| Uniqueness         | **column distinct values to be in set**                | Expect the set of distinct column values to be contained by a given set.                                                               | No                  | No                |
+| Uniqueness         | **column distinct values to contain set**              | Expect the set of distinct column values to contain a given set.                                                                       | No                  | No                |
+| Uniqueness         | **column distinct values to equal set**                | Expect the set of distinct column values to equal a given set.                                                                         | No                  | No                |
+| Uniqueness         | **column proportion of unique values to be between**   | Expect the proportion of unique values to be between a minimum value and a maximum value.                                              | Yes                 | No                |
+| Uniqueness         | **column unique value count to be between**            | Expect the number of unique values to be between a minimum value and a maximum value.                                                  | Yes                 | No                |
+| Uniqueness         | **column values to be unique**                         | Expect each column value to be unique.                                                                                                 | No                  | No                |
+| Uniqueness         | **compound columns to be unique**                      | Expect the compound columns to be unique.                                                                                              | No                  | No                |
+| Uniqueness         | **select column values to be unique within record**    | Expect the values for each record to be unique across the columns listed. Note that records can be duplicated.                         | No                  | No                |
+| Validity           | **column most common value to be in set**              | Expect the most common value to be within the designated value set.                                                                    | No                  | No                |
+| Validity           | **column pair values to be equal**                     | Expect the values in column A to be the same as column B.                                                                              | No                  | No                |
+| Validity           | **column value lengths to be between**                 | Expect the column entries to be strings with length between a minimum value and a maximum value.                                       | No                  | No                |
+| Validity           | **column value lengths to equal**                      | Expect the column entries to be strings with length equal to the provided value.                                                       | No                  | No                |
+| Validity           | **column values to be in set**                         | Expect each column value to be in a given set.                                                                                         | No                  | No                |
+| Validity           | **column values to not be in set**                     | Expect column entries to not be in the set.                                                                                            | No                  | No                |
+| Validity           | **column values to match like pattern**                | Expect the column entries to be strings that match a given like pattern expression.                                                    | No                  | No                |
+| Validity           | **column values to match like pattern list**           | Expect the column entries to be strings that match any of a provided list of like pattern expressions.                                 | No                  | No                |
+| Validity           | **column values to match regex**                       | Expect the column entries to be strings that match a given regular expression.                                                         | No                  | No                |
+| Validity           | **column values to match regex list**                  | Expect the column entries to be strings that can be matched to either any of or all of a list of regular expressions.                  | No                  | No                |
+| Validity           | **column values to not match like pattern**            | Expect the column entries to be strings that do NOT match a given like pattern expression.                                             | No                  | No                |
+| Validity           | **column values to not match like pattern list**       | Expect the column entries to be strings that do NOT match any of a provided list of like pattern expressions.                          | No                  | No                |
+| Validity           | **column values to not match regex**                   | Expect the column entries to be strings that do NOT match a given regular expression.                                                  | No                  | No                |
+| Validity           | **column values to not match regex list**              | Expect the column entries to be strings that do not match any of a list of regular expressions. Matches can be anywhere in the string. | No                  | No                |
+| Volume             | **table row count to be between**                      | Expect the number of rows to be between two values.                                                                                    | Yes                 | Yes               |
+| Volume             | **table row count to equal**                           | Expect the number of rows to equal a value.                                                                                            | No                  | No                |
+| Volume             | **table row count to equal other table**               | Expect the number of rows to equal the number in another table or view within the same database.                                       | No                  | No                |
 
 
 ## Custom SQL Expectations
@@ -78,6 +78,28 @@ The provided query should be written in the dialect of the Data Source in which 
 The optional `{batch}` named query references the Batch of data under test. When the Expectation is evaluated, the `{batch}` named query will be replaced with the Batch of data that is validated.
 
 :::
+
+### Generate SQL with ExpectAI <span class="beta">Beta</span>
+
+To simplify working with custom SQL Expectations, you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+
+For example, imagine you have a New York City taxi trip dataset with columns named `pickup_borough`, `vehicle_type`, and `passenger_count`. If you [add a custom SQL Expectation](#add-an-expectation) with a **Prompt for SQL generation** like `sedan rides in Manhattan shouldn't have more than 4 passengers` then ExpectAI would generate a SQL query similar to the following:
+
+```sql title="SQL query"
+SELECT
+*
+FROM
+{batch}
+WHERE
+pickup_borough = 'Manhattan'
+AND vehicle_type = 'Sedan'
+AND passenger_count > 4
+```
+
+Keep the following requirements in mind when working with ExpectAI:
+- Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
+
 
 ## Multi-source Expectations
 
@@ -104,8 +126,11 @@ Keep the following limitations in mind when working with Multi-source Expectatio
 - Batches are not supported. To test a time-based interval of data, use timestamp windows in your base and comparison SQL queries.
 - The Expectation configuration and validation results are not reflected on the comparison Data Source. The Expectation is always managed on the Data Asset where you initially configure it.
 
+## Anomaly Detection
 
-## Dynamic Parameters
+Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can automate Anomaly Detection Expectations when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset. You can also manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
+
+### Dynamic Parameters
 
 Dynamic Parameters allow you to create Expectations whose parameters update based on new data. GX Cloud can populate new Expectation parameters at runtime using the last `n` validation results. For example, you can define an Expectation to validate that the maximum value within a column does not exceed 20% above a previously recorded value.
 
@@ -126,6 +151,12 @@ When you select your `n` run count, and:
 - There are `n` runs, the Expectation will take the last `n` runs into account.
 
 - There are `>n` runs, the Expectation will take the last `n` runs into account.
+
+### Forecasted ranges
+
+Forecasted ranges are determined by GX Cloud through a continuous learning algorithm that analyzes historical patterns in your data. For example, a forecasted range for volume Anomaly Detection could detect a sudden increase when volume has been stable or stagnation in a season when volume typically grows. GX Cloud sets and updates forecasted range parameters on your behalf. 
+
+Expectations with forecasted ranges will always succeed for the first 2 validation runs. This is because GX Cloud needs at least 2 data points to produce a forecast.
 
 ## Expectation condition
 
@@ -153,7 +184,13 @@ To clear the Expectation condition, click the clear button located on the right-
 
 3. Click **New Expectation**.
 
-4. Select a data quality issue to test for.
+4. Select a data quality issue to test for or an option for writing your own test.
+
+   :::tip Options for accelerating test coverage
+   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). If you instead want to create your own rules, click **Manual**.
+   
+   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql-with-expectai-beta). You can **Write your own SQL** if you prefer.
+   :::
 
 5. Select an Expectation type.
 
@@ -163,9 +200,6 @@ To clear the Expectation condition, click the clear button located on the right-
 
 8. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 
-:::tip Automate rules for Anomaly Detection
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Anomaly Detection Expectations for that Data Asset that detect column changes, non-increasing volume, and changes to the percentage of null values in each column.
-:::
 
 ## Generate Expectations with ExpectAI <span class="beta">Beta</span>
 
@@ -173,7 +207,7 @@ To accelerate test coverage, you can use ExpectAI to generate recommended Expect
 
 Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
-- The Data Asset's Data Source must be Databricks SQL, PostgreSQL, Redshift, or Snowflake.
+- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
 
 To add AI-recommended Expectations:
 1. In GX Cloud, click **Data Assets**.

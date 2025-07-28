@@ -197,18 +197,18 @@ module.exports = {
         },
         {
           type: 'dropdown',
-          label: 'Resources',
+          label: 'Help',
           items: [
             {
               type: 'doc',
               label: 'Get support',
-              docId: 'resources/get_support',
+              docId: 'help/get_support',
               className: 'non-versioned-section'
             },
             {
               type: 'doc',
-              label: 'Integration support policy',
-              docId: 'application_integration_support',
+              label: 'Compatibility reference',
+              docId: 'help/compatibility_reference',
               className: 'non-versioned-section'
             },
             {
@@ -253,8 +253,8 @@ module.exports = {
               to: 'https://greatexpectations.io/gx-oss'
             },
             {
-              label: 'Integration support policy',
-              to: '/docs/application_integration_support'
+              label: 'Compatibility reference',
+              to: '/docs/help/compatibility_reference'
             }
           ]
         },
@@ -318,7 +318,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.5.3',
+              label: '1.5.6',
             },
             ['0.18']: {
               label: '0.18.21',

@@ -38,8 +38,8 @@ from great_expectations.datasource.fluent.interfaces import (
 from great_expectations.execution_engine.pandas_batch_data import PandasBatchData
 from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchData
 from great_expectations.validator.v1_validator import Validator
-from tests.datasource.fluent.integration.conftest import sqlite_datasource
-from tests.datasource.fluent.integration.integration_test_utils import (
+from tests.integration.fluent.conftest import sqlite_datasource
+from tests.integration.fluent.integration_test_utils import (
     run_batch_head,
     run_checkpoint_and_data_doc,
 )
