@@ -57,8 +57,9 @@ from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
 )
-from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
-from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
+from great_expectations.util import (
+    convert_to_json_serializable,  # noqa: TID251 # Required for SQL result serialization
+)
 
 del get_versions  # isort:skip
 
@@ -96,10 +97,14 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.validator.computed_metric import (
+        MetricValue,
+    )  # FIXME CoP
     from great_expectations.validator.metric_configuration import (
         MetricConfiguration,
         MetricConfigurationID,
     )
+
 
 logger = logging.getLogger(__name__)
 
@@ -148,11 +153,14 @@ except ImportError:
 if TYPE_CHECKING:
     from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251 # FIXME CoP
 
+    from great_expectations.compatibility import sqlalchemy
+
 
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
     GXSqlDialect.MSSQL,
     GXSqlDialect.BIGQUERY,
+    GXSqlDialect.DATABRICKS,
 )
 
 
@@ -516,7 +524,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             try:
                 p_key = serialization.load_pem_private_key(
                     key.read(),
-                    password=private_key_passphrase.encode() if private_key_passphrase else None,
+                    password=(private_key_passphrase.encode() if private_key_passphrase else None),
                     backend=default_backend(),
                 )
             except ValueError as e:
@@ -897,7 +905,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         return PartitionDomainKwargs(compute_domain_kwargs, accessor_domain_kwargs)
 
     @override
-    def resolve_metric_bundle(  # noqa: C901 #  too complex
+    def resolve_metric_bundle(  # noqa: C901 #  too complex # noqa: PLR0915
         self,
         metric_fn_bundle: Iterable[MetricComputationConfiguration],
     ) -> dict[MetricConfigurationID, MetricValue]:
@@ -920,8 +928,6 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         # We need a different query for each Domain (where clause).
         queries: dict[IDDictID, dict] = {}
-
-        query: dict
 
         domain_id: IDDictID
 
@@ -953,8 +959,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 )
             else:
                 queries[domain_id]["select"].append(metric_fn.label(metric_to_resolve.metric_name))
-
             queries[domain_id]["metric_ids"].append(metric_to_resolve.id)
+
+        # For Databricks, split large queries into batches based on parameter count
+        if self.dialect_name == GXSqlDialect.DATABRICKS.value:
+            queries = self._handle_databricks_parameter_limit(queries)
 
         for query in queries.values():
             domain_kwargs: dict = query["domain_kwargs"]
@@ -1031,6 +1040,86 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             self._engine_backup.dispose()
         else:
             self.engine.dispose()
+
+    def _handle_databricks_parameter_limit(self, queries: dict) -> dict:
+        """Handle the Databricks parameter limit.
+
+        Args:
+            queries: The queries to handle.
+
+        Returns:
+            The query with the parameter limit handled.
+        """
+        MAX_PARAMS_PER_QUERY = 256
+        updated_queries: dict[IDDictID, dict] = {}
+        for domain_id, query in queries.items():
+            domain_kwargs: dict = query["domain_kwargs"]
+            selectable: sqlalchemy.Selectable = self.get_domain_records(domain_kwargs=domain_kwargs)
+            total_params = self._count_query_parameters(selectable, query["select"])
+
+            if total_params > MAX_PARAMS_PER_QUERY:
+                select_list = query["select"]
+                metric_ids_list = query["metric_ids"]
+
+                batch_idx = 0
+                current_batch_selects: list[sqlalchemy.Selectable] = []
+                current_batch_ids: list[str] = []
+
+                for _, (select_expr, metric_id) in enumerate(zip(select_list, metric_ids_list)):
+                    test_selects = current_batch_selects + [select_expr]
+                    test_param_count = self._count_query_parameters(selectable, test_selects)
+                    batch_key: IDDictID
+
+                    if test_param_count <= MAX_PARAMS_PER_QUERY:
+                        current_batch_selects.append(select_expr)
+                        current_batch_ids.append(metric_id)
+                    else:
+                        if current_batch_selects:
+                            batch_key = f"{domain_id}_batch_{batch_idx}"
+                            updated_queries[batch_key] = {
+                                "select": current_batch_selects,
+                                "metric_ids": current_batch_ids,
+                                "domain_kwargs": query["domain_kwargs"],
+                            }
+                            batch_idx += 1
+
+                        current_batch_selects = [select_expr]
+                        current_batch_ids = [metric_id]
+
+                if current_batch_selects:
+                    batch_key = f"{domain_id}_batch_{batch_idx}"
+                    updated_queries[batch_key] = {
+                        "select": current_batch_selects,
+                        "metric_ids": current_batch_ids,
+                        "domain_kwargs": query["domain_kwargs"],
+                    }
+            else:
+                updated_queries[domain_id] = query
+        return updated_queries
+
+    def _count_query_parameters(self, selectable: sqlalchemy.Selectable, select_list: list) -> int:
+        """Count the total number of parameters in a query with the given select expressions.
+
+        Args:
+            selectable: The base selectable object
+            select_list: List of SELECT expressions to include in the query
+
+        Returns:
+            Total number of parameters that would be generated when the query is compiled
+        """
+        if isinstance(selectable, sqlalchemy.TextClause):
+            test_query = sa.select(*select_list).select_from(selectable.columns().subquery())
+        elif isinstance(selectable, (sqlalchemy.Select, sqlalchemy.TextualSelect)):
+            test_query = sa.select(*select_list).select_from(selectable.subquery())
+        else:
+            test_query = sa.select(*select_list).select_from(selectable)
+
+        try:
+            compiled = test_query.compile(dialect=self.engine.dialect)
+            return len(compiled.params)
+        except Exception:
+            # If compilation fails, fall back to conservative estimate
+            return len(select_list) * 2  # Assume 2 params per select on average
 
     def _get_partitioner_method(self, partitioner_method_name: str) -> Callable:
         """Get the appropriate partitioner method from the method name.
