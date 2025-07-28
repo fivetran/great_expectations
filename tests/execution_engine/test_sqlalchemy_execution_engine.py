@@ -1384,7 +1384,9 @@ def add_metrics_for_each_column():
 def test_databricks_resolve_metric_bundle_with_large_parameter_set(
     caplog, sa, generate_large_table_for_metrics, add_metrics_for_each_column
 ):
-    COLUMNS = 129
+    COLUMNS = (
+        129  # 129 columns to test the paramenter limit by generating 2 aggregate metrics per each.
+    )
     ROWS = 2
 
     execution_engine, df = generate_large_table_for_metrics(COLUMNS, ROWS)

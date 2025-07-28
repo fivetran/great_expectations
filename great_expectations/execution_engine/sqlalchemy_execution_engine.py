@@ -1107,6 +1107,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         Returns:
             Total number of parameters that would be generated when the query is compiled
         """
+        AVERAGE_PARAMS_PER_SELECT = 2
         if isinstance(selectable, sqlalchemy.TextClause):
             test_query = sa.select(*select_list).select_from(selectable.columns().subquery())
         elif isinstance(selectable, (sqlalchemy.Select, sqlalchemy.TextualSelect)):
@@ -1114,13 +1115,13 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         elif isinstance(selectable, sa.sql.FromClause):
             test_query = sa.select(*select_list).select_from(selectable)
         else:
-            return len(select_list) * 2
+            return len(select_list) * AVERAGE_PARAMS_PER_SELECT
         try:
             compiled = test_query.compile(dialect=self.engine.dialect)
             return len(compiled.params)
         except Exception:
             # If compilation fails, fall back to conservative estimate
-            return len(select_list) * 2  # Assume 2 params per select on average
+            return len(select_list) * AVERAGE_PARAMS_PER_SELECT
 
     def _get_partitioner_method(self, partitioner_method_name: str) -> Callable:
         """Get the appropriate partitioner method from the method name.
