@@ -1111,9 +1111,10 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             test_query = sa.select(*select_list).select_from(selectable.columns().subquery())
         elif isinstance(selectable, (sqlalchemy.Select, sqlalchemy.TextualSelect)):
             test_query = sa.select(*select_list).select_from(selectable.subquery())
-        else:
+        elif isinstance(selectable, sa.sql.FromClause):
             test_query = sa.select(*select_list).select_from(selectable)
-
+        else:
+            return len(select_list) * 2
         try:
             compiled = test_query.compile(dialect=self.engine.dialect)
             return len(compiled.params)
