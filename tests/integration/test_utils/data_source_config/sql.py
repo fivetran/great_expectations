@@ -172,7 +172,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 #   [...] [('1', 'foo'), ('2', 'bar')]
                 df = table_data.df.replace(np.nan, None)
                 values = list(df.to_dict("index").values())
-                conn.execute(insert(table_data.table), values)
+                conn.execute(insert(table_data.table).values(values))
         cleanup()
 
     @override
