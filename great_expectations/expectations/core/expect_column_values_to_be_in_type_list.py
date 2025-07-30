@@ -63,6 +63,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.REDSHIFT.value,
@@ -124,6 +128,10 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -314,7 +322,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
     @override
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
-    def _prescriptive_renderer(
+    def _prescriptive_renderer(  # noqa: C901, PLR0912
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
@@ -334,9 +342,10 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                 params[f"v__{i!s}"] = v
             values_string = " ".join([f"$v__{i!s}" for i, v in enumerate(params["type_list"])])
 
-            if params["mostly"] is not None and params["mostly"] < 1.0:
-                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
+            if params["mostly"] is not None:
+                if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                    params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                    # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 if include_column_name:
                     template_str = (
                         "$column value types must belong to this set: "

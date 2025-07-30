@@ -12,13 +12,13 @@ from typing import (
 
 from great_expectations.core.domain import SemanticDomainTypes
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.experimental.metric_repository.column_filter import ColumnFilter
 from great_expectations.experimental.metric_repository.metrics import (
     ColumnMetric,
     MetricException,
     MetricTypes,
     TableMetric,
 )
-from great_expectations.experimental.rule_based_profiler.domain_builder import ColumnDomainBuilder
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.metric_configuration import (
     MetricConfiguration,
@@ -185,18 +185,16 @@ class MetricRetriever(abc.ABC):
     ) -> list[str]:
         """Get the names of all columns matching semantic types in the batch."""
         validator = self.get_validator(batch_request=batch_request)
-        domain_builder = ColumnDomainBuilder(
-            include_semantic_types=include_semantic_types,  # type: ignore[arg-type]  # ColumnDomainBuilder supports other ways of specifying semantic types
+        column_filter = ColumnFilter(
+            include_semantic_types=include_semantic_types,
             exclude_column_names=exclude_column_names,
         )
         assert isinstance(validator.active_batch, Batch), (
             f"validator.active_batch is type {type(validator.active_batch).__name__} "
             f"instead of type {Batch.__name__}"
         )
-        batch_id = validator.active_batch.id
-        column_names = domain_builder.get_effective_column_names(
+        column_names = column_filter.get_filtered_column_names(
             validator=validator,
-            batch_ids=[batch_id],
         )
         return column_names
 

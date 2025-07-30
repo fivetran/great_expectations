@@ -61,7 +61,7 @@ Environment variables securely store your GX Cloud access credentials.
     ```
 
     :::note Note
-   After you save your **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZTION_ID**, you can use Python scripts to access GX Cloud and complete other tasks. See the [GX Core guides](/core/introduction/introduction.mdx).
+   After you save your **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZTION_ID**, you can use Python scripts to access GX Cloud and complete other tasks. See the [API reference](/reference/index.md).
     :::
 
 2. Optional. If you created a temporary file to record your user access token and Organization ID, delete it.
@@ -79,6 +79,13 @@ Environment variables securely store your GX Cloud access credentials.
     ```
 
 ## Connect to a Data Asset
+
+:::tip Working with Data Sources
+
+The Data Context you created includes a built-in `pandas_default` Data Source. This Data Source gives access to all of the `read_*(...)` methods available in pandas. This allows you to connect to a pandas Data Asset without adding your own Data Source first as demonstrated in this section.
+
+Cloud API instructions for connecting to other Data Sources such as Amazon S3, Azure Blob Storage, Google Cloud Storage, BigQuery, and Spark are under construction. In the meantime, you can refer to the [GX Core docs](/docs/core/connect_to_data/connect_to_data.md) for guidance as the Cloud API uses the same methods for connecting Data Sources.
+:::
 
 - Run the following Python code to connect to existing `.csv` data stored in the `great_expectations` GitHub repository and create a Validator object:
 

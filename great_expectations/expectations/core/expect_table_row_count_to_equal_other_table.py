@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -47,6 +50,10 @@ OTHER_TABLE_NAME_DESCRIPTION = (
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.REDSHIFT.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
@@ -96,6 +103,9 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -160,7 +170,9 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    other_table_name: str = pydantic.Field(description=OTHER_TABLE_NAME_DESCRIPTION)
+    other_table_name: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=OTHER_TABLE_NAME_DESCRIPTION
+    )
     row_condition: Union[str, None] = None
     condition_parser: Union[ConditionParser, None] = None
 

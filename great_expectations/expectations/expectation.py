@@ -370,26 +370,49 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
         return False
 
-    @override
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Expectation):
-            return False
+    def _to_normalized_self_dict(self) -> dict:
+        """Helper method to get normalized dictionary representation for equality and hashing.
 
+        This method:
+        1. Excludes rendered_content (derived property)
+        2. Normalizes notes and meta (falsiness is equivalent)
+        3. Returns a consistent dictionary representation
+        """
         # rendered_content is derived from the rest of the expectation, and can/should
         # be excluded from equality checks
         exclude: set[str] = {"rendered_content"}
 
         self_dict = self.dict(exclude=exclude)
-        other_dict = other.dict(exclude=exclude)
 
         # Simplify notes and meta equality - falsiness is equivalent
         for attr in ("notes", "meta"):
             self_val = self_dict.pop(attr, None) or None
-            other_val = other_dict.pop(attr, None) or None
-            if self_val != other_val:
-                return False
+            self_dict[attr] = self_val
 
-        return self_dict == other_dict
+        return self_dict
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Expectation):
+            return False
+
+        return self._to_normalized_self_dict() == other._to_normalized_self_dict()
+
+    @override
+    def __hash__(self) -> int:
+        def make_hashable(obj):
+            """Convert unhashable types to hashable ones recursively."""
+            if isinstance(obj, (str, int, float, bool, type(None))):
+                return obj
+            elif isinstance(obj, list):
+                return tuple(make_hashable(item) for item in obj)
+            elif isinstance(obj, dict):
+                return tuple(sorted((k, make_hashable(v)) for k, v in obj.items()))
+            else:
+                return str(obj)
+
+        normalized_dict = self._to_normalized_self_dict()
+        return hash(make_hashable(normalized_dict))
 
     @pydantic.validator("result_format")
     def _validate_result_format(cls, result_format: ResultFormat | dict) -> ResultFormat | dict:
@@ -1066,26 +1089,12 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         )
 
         name = "observed_value"
-        param_types = sorted(
-            RendererValueType,
-            key=lambda x: (
-                # in order to infer type correctly
-                # object must be last in the list
-                # as it is permissive to any value
-                x.value == "object",
-                # and string must be second to last
-                # as it is permissive to string-able value
-                x.value == "string",
-                x.value,
-            ),
-        )
         value = result.result.get(name) if result is not None else None
         if value is None:
             value = cls._get_observed_value_from_evr(result=result)
 
         renderer_configuration.add_param(
             name=name,
-            param_type=param_types,
             value=value,
         )
 

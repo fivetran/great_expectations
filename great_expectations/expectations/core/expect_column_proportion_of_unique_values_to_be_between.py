@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # pydantic isinstance
+)
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
@@ -57,6 +59,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
@@ -127,6 +133,10 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[10]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[11]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[12]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -186,14 +196,18 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    min_value: Optional[Comparable] = pydantic.Field(
+    min_value: Optional[Union[float, SuiteParameterDict]] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
     )
-    max_value: Optional[Comparable] = pydantic.Field(
+    max_value: Optional[Union[float, SuiteParameterDict]] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
-    strict_min: bool = pydantic.Field(default=False, description=STRICT_MIN_DESCRIPTION)
-    strict_max: bool = pydantic.Field(default=False, description=STRICT_MAX_DESCRIPTION)
+    strict_min: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MIN_DESCRIPTION
+    )
+    strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=False, description=STRICT_MAX_DESCRIPTION
+    )
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata = {
@@ -277,7 +291,7 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
         params = renderer_configuration.params
 
         if not params.min_value and not params.max_value:
-            template_str = "may have any fraction of unique values."
+            template_str = "may have any proportion of unique values."
         else:
             at_least_str = "greater than or equal to"
             if params.strict_min:
@@ -290,14 +304,14 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
                     renderer_configuration=renderer_configuration
                 )
             if not params.min_value:
-                template_str = f"fraction of unique values must be {at_most_str} $max_value."
+                template_str = f"proportion of unique values must be {at_most_str} $max_value."
             elif not params.max_value:
-                template_str = f"fraction of unique values must be {at_least_str} $min_value."
+                template_str = f"proportion of unique values must be {at_least_str} $min_value."
             else:  # noqa: PLR5501 # FIXME CoP
                 if params.min_value.value != params.max_value.value:
-                    template_str = f"fraction of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
+                    template_str = f"proportion of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
                 else:
-                    template_str = "fraction of unique values must be exactly $min_value."
+                    template_str = "proportion of unique values must be exactly $min_value."
 
         if renderer_configuration.include_column_name:
             template_str = f"$column {template_str}"
@@ -333,18 +347,18 @@ class ExpectColumnProportionOfUniqueValuesToBeBetween(ColumnAggregateExpectation
         )
 
         if params["min_value"] is None and params["max_value"] is None:
-            template_str = "may have any fraction of unique values."
+            template_str = "may have any proportion of unique values."
         else:
             at_least_str, at_most_str = handle_strict_min_max(params)
             if params["min_value"] is None:
-                template_str = f"fraction of unique values must be {at_most_str} $max_value."
+                template_str = f"proportion of unique values must be {at_most_str} $max_value."
             elif params["max_value"] is None:
-                template_str = f"fraction of unique values must be {at_least_str} $min_value."
+                template_str = f"proportion of unique values must be {at_least_str} $min_value."
             else:  # noqa: PLR5501 # FIXME CoP
                 if params["min_value"] != params["max_value"]:
-                    template_str = f"fraction of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
+                    template_str = f"proportion of unique values must be {at_least_str} $min_value and {at_most_str} $max_value."  # noqa: E501 # FIXME CoP
                 else:
-                    template_str = "fraction of unique values must be exactly $min_value."
+                    template_str = "proportion of unique values must be exactly $min_value."
 
         if include_column_name:
             template_str = f"$column {template_str}"

@@ -623,7 +623,8 @@ def type_schema(  # noqa: C901 - too complex
         core.ExpectColumnValuesToNotMatchRegex,
         core.ExpectColumnValuesToNotMatchRegexList,
         core.UnexpectedRowsExpectation,
-        core.ExpectQueryResultsToMatchSource,
+        core.ExpectQueryResultsToMatchComparison,
+        core.ExpectColumnProportionOfNonNullValuesToBeBetween,
     ]
     for x in supported_expectations:
         schema_path = expectation_dir.joinpath(f"{x.__name__}.json")
@@ -848,17 +849,20 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-test.txt",
             "reqs/requirements-dev-azure.txt",
             "reqs/requirements-dev-bigquery.txt",
+            "reqs/requirements-dev-cloud.txt",
             "reqs/requirements-dev-redshift.txt",
             "reqs/requirements-dev-snowflake.txt",
             # "Deprecated API features detected" warning/error for test_docs[split_data_on_whole_table_bigquery] when pandas>=2.0  # noqa: E501
             "reqs/requirements-dev-sqlalchemy1.txt",
         ),
+        services=("mercury",),
         extra_pytest_args=(
             "--aws",
             "--azure",
             "--bigquery",
             "--redshift",
             "--snowflake",
+            "--cloud",
             "--docs-tests",
         ),
     ),
@@ -1213,11 +1217,12 @@ def service(
                 [
                     "docker",
                     "compose",
+                    "--progress",
+                    "quiet",
                     "-f",
                     f"assets/docker/{service_name}/docker-compose.yml",
                     "up",
                     "-d",
-                    "--quiet-pull",
                     "--wait",
                     "--wait-timeout 120",
                 ]

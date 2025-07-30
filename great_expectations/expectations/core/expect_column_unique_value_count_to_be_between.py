@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Optional, Type
+from typing import TYPE_CHECKING, Any, Dict, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
-from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # pydantic isinstance
+)
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
@@ -53,6 +55,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
@@ -120,6 +126,10 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[10]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[11]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[12]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -177,17 +187,17 @@ class ExpectColumnUniqueValueCountToBeBetween(ColumnAggregateExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    min_value: Optional[Comparable] = pydantic.Field(
+    min_value: Optional[Union[int, SuiteParameterDict]] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
     )
-    max_value: Optional[Comparable] = pydantic.Field(
+    max_value: Optional[Union[int, SuiteParameterDict]] = pydantic.Field(
         default=None, description=MAX_VALUE_DESCRIPTION
     )
-    strict_min: bool = pydantic.Field(
+    strict_min: Union[bool, SuiteParameterDict] = pydantic.Field(
         default=False,
         description=STRICT_MIN_DESCRIPTION,
     )
-    strict_max: bool = pydantic.Field(
+    strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
         default=False,
         description=STRICT_MAX_DESCRIPTION,
     )

@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Dict, Literal, Optional, Type, Union
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
     render_suite_parameter_string,
@@ -41,6 +44,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.PANDAS.value,
     SupportedDataSources.SPARK.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
@@ -97,6 +104,10 @@ class ExpectColumnPairValuesAToBeGreaterThanB(ColumnPairMapExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[10]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[11]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
 
     Data Quality Issues:
@@ -180,12 +191,15 @@ class ExpectColumnPairValuesAToBeGreaterThanB(ColumnPairMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    or_equal: Union[bool, None] = pydantic.Field(default=None, description=OR_EQUAL_DESCRIPTION)
-    ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
-        pydantic.Field(
-            default="both_values_are_missing",
-            description=IGNORE_ROW_IF_DESCRIPTION,
-        )
+    or_equal: Union[bool, SuiteParameterDict, None] = pydantic.Field(
+        default=None, description=OR_EQUAL_DESCRIPTION
+    )
+    ignore_row_if: Union[
+        Literal["both_values_are_missing", "either_value_is_missing", "neither"],
+        SuiteParameterDict,
+    ] = pydantic.Field(
+        default="both_values_are_missing",
+        description=IGNORE_ROW_IF_DESCRIPTION,
     )
 
     # This dictionary contains metadata for display in the public gallery

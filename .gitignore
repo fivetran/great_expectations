@@ -163,3 +163,6 @@ assets/docker/mercury/volume/
 
 # cursor
 .cursor/
+
+# mise
+mise.toml

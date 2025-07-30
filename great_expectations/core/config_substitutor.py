@@ -136,7 +136,7 @@ class _ConfigurationSubstitutor:
 
         # 2. Replace the "$"'s that had been escaped
         template_str = template_str.replace(dollar_sign_escape_string, "$")
-        template_str = self._substitute_value_from_secret_store(template_str)
+        template_str = self._secret_store_cache(template_str)
         return template_str
 
     def _substitute_value_from_secret_store(self, value: str) -> str:

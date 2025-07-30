@@ -78,7 +78,7 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
    ```python title="Python" name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_checkpoint_with_actions.py - retrieve a Checkpoint from the Data Context"
    ```
 
-   With a File Data Context or a GX Cloud Data Context you will also be able to retrieve your Checkpoint in future Python sessions.
+   With a File Data Context you will also be able to retrieve your Checkpoint in future Python sessions.
 
 </TabItem>
 

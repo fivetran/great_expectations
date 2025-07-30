@@ -463,6 +463,12 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_proportion_of_non_null_values_to_be_between.py"
+        ),
+        name="ExpectColumnProportionOfNonNullValuesToBeBetween",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
             "great_expectations/expectations/core/expect_column_proportion_of_unique_values_to_be_between.py"
         ),
         name="ExpectColumnProportionOfUniqueValuesToBeBetween",
@@ -526,6 +532,12 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
             "great_expectations/expectations/core/expect_multicolumn_sum_to_equal.py"
         ),
         name="ExpectMulticolumnSumToEqual",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
+            "great_expectations/expectations/core/expect_query_results_to_match_comparison.py"
+        ),
+        name="ExpectQueryResultsToMatchComparison",
     ),
     PrintableDefinition(
         file=pathlib.Path(
@@ -678,18 +690,6 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
             "great_expectations/experimental/metric_repository/metric_retriever.py"
         ),
         name="get_validator",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/experimental/rule_based_profiler/helpers/util.py"
-        ),
-        name="build_batch_request",
-    ),
-    PrintableDefinition(
-        file=pathlib.Path(
-            "great_expectations/experimental/rule_based_profiler/rule_based_profiler.py"
-        ),
-        name="run",
     ),
     PrintableDefinition(
         file=pathlib.Path("great_expectations/render/components.py"),

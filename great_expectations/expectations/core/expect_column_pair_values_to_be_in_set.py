@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import Any, ClassVar, Dict, List, Literal, Tuple, Type, Union
 
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
 )
@@ -23,6 +26,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
@@ -78,6 +85,9 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[10]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[11]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -163,10 +173,11 @@ class ExpectColumnPairValuesToBeInSet(ColumnPairMapExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    value_pairs_set: List[Tuple[Any, Any]]
-    ignore_row_if: Literal["both_values_are_missing", "either_value_is_missing", "neither"] = (
-        "both_values_are_missing"
-    )
+    value_pairs_set: Union[List[Tuple[Any, Any]], SuiteParameterDict]
+    ignore_row_if: Union[
+        Literal["both_values_are_missing", "either_value_is_missing", "neither"],
+        SuiteParameterDict,
+    ] = "both_values_are_missing"
 
     # This dictionary contains metadata for display in the public gallery
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

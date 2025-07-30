@@ -120,7 +120,8 @@ module.exports = {
       items: [
         { type: 'doc', id: 'core/customize_expectations/expectation_conditions' },
         { type: 'doc', id: 'core/customize_expectations/define_a_custom_expectation_class' },
-        { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' }
+        { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' },
+        { type: 'doc', id: 'core/customize_expectations/define_a_multi_source_expectation' }
       ]
     },
     {
@@ -153,8 +154,8 @@ module.exports = {
       link: { type: 'doc', id: 'cloud/gx_cloud_lp' },
       items: [
         'cloud/overview/gx_cloud_overview',
-        'cloud/overview/automating_rules',
-        'cloud/overview/coverage_health'
+        'cloud/overview/accelerating_test_coverage',
+        'cloud/overview/data_health'
       ]
     },
     {

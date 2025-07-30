@@ -12,25 +12,27 @@ from typing import (
     cast,
 )
 
-from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.domain import Domain, SemanticDomainTypes
-from great_expectations.core.metric_domain_types import MetricDomainTypes
-from great_expectations.data_context.util import instantiate_class_from_config
-from great_expectations.experimental.rule_based_profiler.domain_builder import DomainBuilder
 from great_expectations.experimental.rule_based_profiler.exceptions import ProfilerExecutionError
 from great_expectations.experimental.rule_based_profiler.helpers.util import (
     build_domains_from_column_names,
     get_parameter_value_and_validate_return_type,
 )
-from great_expectations.experimental.rule_based_profiler.parameter_container import (
-    ParameterContainer,  # noqa: TC001 # FIXME CoP
-)
-from great_expectations.experimental.rule_based_profiler.semantic_type_filter import (
-    SemanticTypeFilter,  # noqa: TC001 # FIXME CoP
-)
+
+from great_expectations.compatibility.typing_extensions import override
+from great_expectations.core.domain import Domain, SemanticDomainTypes
+from great_expectations.core.metric_domain_types import MetricDomainTypes
+from great_expectations.data_context.util import instantiate_class_from_config
+from great_expectations.experimental.rule_based_profiler.domain_builder import DomainBuilder
 from great_expectations.validator.metric_configuration import MetricConfiguration
 
 if TYPE_CHECKING:
+    from great_expectations.experimental.rule_based_profiler.parameter_container import (
+        ParameterContainer,
+    )
+    from great_expectations.experimental.rule_based_profiler.semantic_type_filter import (
+        SemanticTypeFilter,
+    )
+
     from great_expectations.data_context.data_context.abstract_data_context import (
         AbstractDataContext,
     )
@@ -49,8 +51,8 @@ class ColumnDomainBuilder(DomainBuilder):
 
     def __init__(  # noqa: PLR0913 # FIXME CoP
         self,
-        include_column_names: Optional[Union[str, Optional[List[str]]]] = None,
-        exclude_column_names: Optional[Union[str, Optional[List[str]]]] = None,
+        include_column_names: Union[None, str, List[str]] = None,
+        exclude_column_names: Union[None, str, List[str]] = None,
         include_column_name_suffixes: Optional[Union[str, Iterable, List[str]]] = None,
         exclude_column_name_suffixes: Optional[Union[str, Iterable, List[str]]] = None,
         semantic_type_filter_module_name: Optional[str] = None,
@@ -112,19 +114,19 @@ class ColumnDomainBuilder(DomainBuilder):
     """  # noqa: E501 # FIXME CoP
 
     @property
-    def include_column_names(self) -> Optional[Union[str, Optional[List[str]]]]:
+    def include_column_names(self) -> Union[None, str, List[str]]:
         return self._include_column_names
 
     @include_column_names.setter
-    def include_column_names(self, value: Optional[Union[str, Optional[List[str]]]]) -> None:
+    def include_column_names(self, value: Union[None, str, List[str]]) -> None:
         self._include_column_names = value
 
     @property
-    def exclude_column_names(self) -> Optional[Union[str, Optional[List[str]]]]:
+    def exclude_column_names(self) -> Union[None, str, List[str]]:
         return self._exclude_column_names
 
     @exclude_column_names.setter
-    def exclude_column_names(self, value: Optional[Union[str, Optional[List[str]]]]) -> None:
+    def exclude_column_names(self, value: Union[None, str, List[str]]) -> None:
         self._exclude_column_names = value
 
     @property

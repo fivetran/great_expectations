@@ -30,6 +30,6 @@ import GXCard from '@site/src/components/GXCard';
 
   <LinkCard topIcon label="Learn about GX features" description="Use tutorials and conceptual topics to learn more about GX features and functionality." to="/reference/learn" icon="/img/overview_icon.svg" />
 
-  <LinkCard topIcon label="Reference the GX Core Python API" description="View Python API reference for GX Core classes and methods." to="/reference" icon="/img/api_icon.svg" />
+  <LinkCard topIcon label="Reference the GX API" description="View API reference for details on classes and methods." to="/reference" icon="/img/api_icon.svg" />
 
 </LinkCardGrid>

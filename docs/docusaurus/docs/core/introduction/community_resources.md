@@ -1,7 +1,6 @@
 ---
 title: 'Community resources'
 ---
-import GxCloudAdvert from '/static/docs/_static_components/_gx_cloud_advert.md'
 
 Great Expectations (GX) is committed to building a great application and a great community.
 
@@ -10,7 +9,7 @@ Often, open source (OSS) applications have a reputation for being unfriendly and
 
 ## Ask a question
 
-GX has a [Discourse community forum](https://discourse.greatexpectations.io/) that includes categories for [GX Core Support](https://discourse.greatexpectations.io/c/gx-core-support/) and [GX Cloud Support](https://discourse.greatexpectations.io/c/cloud-support/). Here you'll find guidance on [what information to provide to get your questions answered quickly](https://discourse.greatexpectations.io/t/how-to-get-your-questions-answered/1191).  
+GX has a [Discourse community forum](https://discourse.greatexpectations.io/) that includes a category for [GX Core Support](https://discourse.greatexpectations.io/c/gx-core-support/). Here you'll find guidance on [what information to provide to get your questions answered quickly](https://discourse.greatexpectations.io/t/how-to-get-your-questions-answered/1191).  
 
 <!--
 You can also use [GitHub Discussions](https://github.com/great-expectations/great_expectations/discussions/4951).
@@ -42,7 +41,3 @@ If you're interested in helping out, pick out an issue with a `community-support
 ## Connect with our community
 
 Join the [GX Discourse forum](https://discourse.greatexpectations.io/) to connect with other GX users and see how they're using GX. Before you post for the first time, review the [Discourse guidelines](https://discourse.greatexpectations.io/t/discourse-guidelines/1230).
-
-## GX Cloud
-
-<GxCloudAdvert/>
