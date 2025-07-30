@@ -563,6 +563,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         return json.dumps(self.to_json_dict(), indent=2)
 
     @public_api
+    @override
     def to_json_dict(self):
         """Returns a JSON-serializable dict representation of this ExpectationSuiteValidationResult.
 

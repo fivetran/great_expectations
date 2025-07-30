@@ -71,7 +71,7 @@ class SqlAlchemyBatchData(BatchData):
         temp_table_schema_name: Optional[str] = ...,
         use_quoted_name: bool = ...,
         source_schema_name: Optional[str] = ...,
-        source_table_name: str = ...,
+        source_table_name: Optional[str] = ...,
     ) -> None: ...
 
     def __init__(  # noqa: PLR0913 # FIXME CoP

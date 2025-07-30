@@ -1275,9 +1275,13 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> Union[Dict[str, Union[str, int, bool, List[str], None]], str]:
         default_result_format: Optional[Any] = self._get_default_value("result_format")
+        # defaulting to empty dict to avoid type errors is safe. All uses expect a string or a dict
+        # and if a dict is provided, it is parsed correctly with defaults injected.
+        # TODO: when working in the area, result format should be typed and defaults should be
+        # injected here, rather than other parts of the codebase.
         configuration_result_format: Union[
             Dict[str, Union[str, int, bool, List[str], None]], str
-        ] = self.configuration.kwargs.get("result_format", default_result_format)
+        ] = self.configuration.kwargs.get("result_format", default_result_format or {})
         result_format: Union[Dict[str, Union[str, int, bool, List[str], None]], str]
         if runtime_configuration:
             result_format = runtime_configuration.get(

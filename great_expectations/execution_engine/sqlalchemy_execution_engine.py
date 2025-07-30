@@ -1187,8 +1187,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         )
         temp_table_schema_name: Optional[str] = batch_spec.get("temp_table_schema_name")
 
-        source_schema_name: str = batch_spec.get("schema_name", None)
-        source_table_name: str = batch_spec.get("table_name", None)
+        source_schema_name: Optional[str] = batch_spec.get("schema_name", None)
+        source_table_name: Optional[str] = batch_spec.get("table_name", None)
 
         create_temp_table: bool = batch_spec.get("create_temp_table", self._create_temp_table)
         # this is where partitioner components are added to the selectable
