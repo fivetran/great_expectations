@@ -99,7 +99,7 @@ from great_expectations.util import (
 if TYPE_CHECKING:
     from great_expectations.validator.computed_metric import (
         MetricValue,
-    )  # FIXME CoP
+    )
     from great_expectations.validator.metric_configuration import (
         MetricConfiguration,
         MetricConfigurationID,
@@ -905,7 +905,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         return PartitionDomainKwargs(compute_domain_kwargs, accessor_domain_kwargs)
 
     @override
-    def resolve_metric_bundle(  #  too complex
+    def resolve_metric_bundle(
         self,
         metric_fn_bundle: Iterable[MetricComputationConfiguration],
     ) -> dict[MetricConfigurationID, MetricValue]:
@@ -925,12 +925,6 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         resolved_metrics: dict[MetricConfigurationID, MetricValue] = {}
 
         res: List[sqlalchemy.Row]
-
-        # We need a different query for each Domain (where clause).
-
-        # domain_id: IDDictID
-
-        # bundled_metric_configuration: MetricComputationConfiguration
 
         queries: dict[IDDictID, dict] = self._organize_metrics_by_domain(metric_fn_bundle)
 
@@ -1010,7 +1004,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         else:
             self.engine.dispose()
 
-    def _finalize_batch(
+    def _finalize_domain_query(
         self,
         domain_id: IDDictID,
         domain_batches: dict,
@@ -1018,7 +1012,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         domain_kwargs_map: dict,
         queries: dict,
     ) -> None:
-        """Finalize the current batch for a domain and add it to queries.
+        """Finalize the current accumulated metrics for a domain into a query.
+
+        This method takes the accumulated metrics for a domain and creates a final
+        query entry, then resets the accumulation state for the next parameter batch.
+
         This function mutates the domain_batches,
         batch_counters, and domain_kwargs_map dictionaries.
         """
@@ -1081,7 +1079,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             test_param_count = self._count_query_parameters(selectable, test_selects)
 
             if test_param_count > MAX_PARAMS_PER_QUERY and domain_batches[domain_id]["select"]:
-                self._finalize_batch(
+                self._finalize_domain_query(
                     domain_id, domain_batches, batch_counters, domain_kwargs_map, queries
                 )
 
@@ -1091,7 +1089,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
 
         for domain_id in list(domain_batches.keys()):
-            self._finalize_batch(
+            self._finalize_domain_query(
                 domain_id, domain_batches, batch_counters, domain_kwargs_map, queries
             )
 
@@ -1108,7 +1106,6 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         Args:
             metric_fn_bundle: The metric bundle containing configurations to organize.
-            queries: The queries dictionary to populate with domain-grouped metrics.
         """
         # For Databricks, split large queries into batches based on parameter count
         if self.dialect_name == GXSqlDialect.DATABRICKS.value:
@@ -1116,6 +1113,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 metric_fn_bundle=metric_fn_bundle,
             )
 
+        # We need a different query for each Domain (where clause).
         queries: dict[IDDictID, dict] = {}
 
         for bundled_metric_configuration in metric_fn_bundle:
