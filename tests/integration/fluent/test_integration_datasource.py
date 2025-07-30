@@ -448,7 +448,7 @@ def test_batch_request_error_messages(
         batch_request.options = "not a dictionary"  # type: ignore[assignment] # FIXME CoP
 
     # batch_slice can be updated if it takes the correct form
-    batch_request.batch_slice = "[5:10]"  # type: ignore[assignment] # FIXME CoP
+    batch_request.batch_slice = "[5:10]"
     assert batch_request.batch_slice == slice(5, 10, None)
 
     # batch_slice can be updated via update method
@@ -456,10 +456,10 @@ def test_batch_request_error_messages(
     assert batch_request.batch_slice == slice(2, 10, 2)
 
     with pytest.raises(ValueError):
-        batch_request.batch_slice = "nonsense slice"  # type: ignore[assignment] # FIXME CoP
+        batch_request.batch_slice = "nonsense slice"
 
     with pytest.raises(ValueError):
-        batch_request.batch_slice = True  # type: ignore[assignment] # FIXME CoP
+        batch_request.batch_slice = True
 
 
 @pytest.mark.cloud
