@@ -151,7 +151,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             return engine, engine.dispose
 
     @staticmethod
-    def _safe_bulk_insert(conn: Connection, table: Table, values: list[tuple], max_params: int | None=None) -> None:
+    def _safe_bulk_insert(
+        conn: Connection, table: Table, values: list[tuple], max_params: int | None = None
+    ) -> None:
         """
         Allows insertion of multiple values paying attention to parameter limits
 
@@ -171,7 +173,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
             max_rows = max_params // num_columns
 
             for i in range(0, len(values), max_rows):
-                chunk = values[i:i + max_rows]
+                chunk = values[i : i + max_rows]
                 conn.execute(insert(table).values(chunk))
 
     @override
