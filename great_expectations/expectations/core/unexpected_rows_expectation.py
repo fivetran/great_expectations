@@ -46,6 +46,10 @@ UNEXPECTED_ROWS_QUERY_DESCRIPTION = "A SQL or Spark-SQL query to be executed for
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.REDSHIFT.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.BIGQUERY.value,
@@ -86,6 +90,9 @@ class UnexpectedRowsExpectation(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
     """
