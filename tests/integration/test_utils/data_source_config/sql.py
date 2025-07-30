@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any, Callable, Generic, Mapping, Optional, Seq
 
 import numpy as np
 import pandas as pd
-from sqlalchemy import Connection
 from typing_extensions import override
 
 from great_expectations.compatibility.sqlalchemy import (
@@ -152,7 +151,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
 
     @staticmethod
     def _safe_bulk_insert(
-        conn: Connection, table: Table, values: list[tuple], max_params: int | None = None
+        conn: sa.Connection, table: Table, values: list[tuple], max_params: int | None = None
     ) -> None:
         """
         Allows insertion of multiple values paying attention to parameter limits
