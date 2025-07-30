@@ -107,6 +107,7 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+DATABRICKS_MAX_PARAMS_PER_QUERY = 256
 
 
 if sa:
@@ -926,7 +927,12 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         res: List[sqlalchemy.Row]
 
-        queries: dict[IDDictID, dict] = self._organize_metrics_by_domain(metric_fn_bundle)
+        queries: dict[IDDictID, dict] = self._organize_metrics_by_domain(
+            metric_fn_bundle,
+            limit=DATABRICKS_MAX_PARAMS_PER_QUERY
+            if self.engine.dialect.name == GXSqlDialect.DATABRICKS.value
+            else None,
+        )
 
         for query in queries.values():
             domain_kwargs: dict = query["domain_kwargs"]
@@ -1010,25 +1016,22 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         domain_batches: dict,
         batch_counters: dict,
         domain_kwargs_map: dict,
-        queries: dict,
-    ) -> tuple[dict, dict, dict]:
+    ) -> tuple[IDDictID | None, dict | None, int | None]:
         """Finalize the current accumulated metrics for a domain into a query.
 
-        This method takes the accumulated metrics for a domain and creates a final
-        query entry, then resets the accumulation state for the next parameter batch.
+        This method calculates what new query entry should be added and what
+        batch state should be reset for the next parameter batch.
 
         Returns:
-            Tuple of (new_domain_batches, new_batch_counters, new_queries)
+            Tuple of (final_domain_id, new_query_entry, new_batch_counter)
+            Returns (None, None, None) if no finalization is needed
         """
-        new_domain_batches = {
-            k: {"select": v["select"].copy(), "metric_ids": v["metric_ids"].copy()}
-            for k, v in domain_batches.items()
-        }
-        new_batch_counters = {k: v for k, v in batch_counters.items()}
-        new_queries = {k: v.copy() for k, v in queries.items()}
+        new_query_entry = None
+        new_batch_counter = None
+        final_domain_id = None
 
-        if domain_id in new_domain_batches and new_domain_batches[domain_id]["select"]:
-            batch_idx = new_batch_counters.get(domain_id, 0)
+        if domain_id in domain_batches and domain_batches[domain_id]["select"]:
+            batch_idx = batch_counters.get(domain_id, 0)
             domain_kwargs = domain_kwargs_map[domain_id]
 
             if batch_idx == 0:
@@ -1036,30 +1039,30 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             else:
                 final_domain_id = IDDict({**domain_kwargs, "_batch_idx": batch_idx}).to_id()
 
-            new_queries[final_domain_id] = {
-                "select": new_domain_batches[domain_id]["select"],
-                "metric_ids": new_domain_batches[domain_id]["metric_ids"],
+            new_query_entry = {
+                "select": domain_batches[domain_id]["select"],
+                "metric_ids": domain_batches[domain_id]["metric_ids"],
                 "domain_kwargs": domain_kwargs,
             }
+            new_batch_counter = batch_idx + 1
 
-            new_domain_batches[domain_id] = {"select": [], "metric_ids": []}
-            new_batch_counters[domain_id] = batch_idx + 1
+            return final_domain_id, new_query_entry, new_batch_counter
 
-        return new_domain_batches, new_batch_counters, new_queries
+        return final_domain_id, new_query_entry, new_batch_counter
 
-    def _organize_metrics_with_parameter_limit(
-        self, metric_fn_bundle: Iterable[MetricComputationConfiguration]
+    def _organize_metrics_by_domain(  # noqa: C901 # FIXME
+        self, metric_fn_bundle: Iterable[MetricComputationConfiguration], limit: int | None = None
     ) -> dict[IDDictID, dict]:
-        """Organize metrics from bundle into queries while respecting parameter limits.
+        """Organize metrics from a bundle into domain-grouped queries.
 
         Args:
-            metric_fn_bundle: Iterable of metric configurations to organize into queries.
+            metric_fn_bundle: The metric bundle containing configurations to organize.
+            limit: The maximum number of parameters per query.
 
         Returns:
             Dictionary of domain IDs mapped to query configurations
             with select expressions and metric IDs.
         """
-        MAX_PARAMS_PER_QUERY = 256
         queries: dict[IDDictID, dict] = {}
         domain_batches: dict[IDDictID, dict] = {}
         batch_counters: dict[IDDictID, int] = {}
@@ -1082,78 +1085,51 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 batch_counters[domain_id] = 0
                 domain_kwargs_map[domain_id] = domain_kwargs
 
-            test_selects = domain_batches[domain_id]["select"] + [
-                metric_fn.label(metric_to_resolve.metric_name)
-            ]
-            test_param_count = self._count_query_parameters(selectable, test_selects)
+            if limit:
+                test_selects = domain_batches[domain_id]["select"] + [
+                    metric_fn.label(metric_to_resolve.metric_name)
+                ]
+                test_param_count = self._count_query_parameters(selectable, test_selects)
 
-            if test_param_count > MAX_PARAMS_PER_QUERY and domain_batches[domain_id]["select"]:
-                domain_batches, batch_counters, queries = self._finalize_domain_query(
-                    domain_id, domain_batches, batch_counters, domain_kwargs_map, queries
-                )
+                if test_param_count > limit and domain_batches[domain_id]["select"]:
+                    final_domain_id, new_query_entry, new_batch_counter = (
+                        self._finalize_domain_query(
+                            domain_id, domain_batches, batch_counters, domain_kwargs_map
+                        )
+                    )
+                    if final_domain_id is not None:
+                        assert new_query_entry is not None
+                        assert new_batch_counter is not None
+                        queries[final_domain_id] = new_query_entry
+                        domain_batches[domain_id] = {"select": [], "metric_ids": []}
+                        batch_counters[domain_id] = new_batch_counter
 
-            domain_batches[domain_id]["select"].append(
-                metric_fn.label(metric_to_resolve.metric_name)
-            )
-            domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
-
-        for domain_id in list(domain_batches.keys()):
-            domain_batches, batch_counters, queries = self._finalize_domain_query(
-                domain_id, domain_batches, batch_counters, domain_kwargs_map, queries
-            )
-
-        return queries
-
-    def _organize_metrics_by_domain(
-        self,
-        metric_fn_bundle: Iterable[MetricComputationConfiguration],
-    ) -> dict[IDDictID, dict]:
-        """Organize metrics from a bundle into domain-grouped queries.
-
-        Takes a collection of metrics and groups them by domain, populating the queries
-        dictionary with select expressions and metric IDs organized by domain.
-
-        Args:
-            metric_fn_bundle: The metric bundle containing configurations to organize.
-        """
-        # For Databricks, split large queries into batches based on parameter count
-        if self.dialect_name == GXSqlDialect.DATABRICKS.value:
-            return self._organize_metrics_with_parameter_limit(
-                metric_fn_bundle=metric_fn_bundle,
-            )
-
-        # We need a different query for each Domain (where clause).
-        queries: dict[IDDictID, dict] = {}
-
-        for bundled_metric_configuration in metric_fn_bundle:
-            metric_to_resolve: MetricConfiguration = (
-                bundled_metric_configuration.metric_configuration
-            )
-            metric_fn: Any = bundled_metric_configuration.metric_fn
-            compute_domain_kwargs: dict = bundled_metric_configuration.compute_domain_kwargs or {}
-            if not isinstance(compute_domain_kwargs, IDDict):
-                compute_domain_kwargs = IDDict(compute_domain_kwargs)
-
-            domain_id = compute_domain_kwargs.to_id()
-            if domain_id not in queries:
-                queries[domain_id] = {
-                    "select": [],
-                    "metric_ids": [],
-                    "domain_kwargs": compute_domain_kwargs,
-                }
-
-            if self.engine.dialect.name == "clickhouse":
-                queries[domain_id]["select"].append(
+            if self.engine.dialect.name == GXSqlDialect.CLICKHOUSE.value:
+                domain_batches[domain_id]["select"].append(
                     metric_fn.label(
                         metric_to_resolve.metric_name.join(
                             random.choices(string.ascii_lowercase, k=4)
                         )
                     )
                 )
-                queries[domain_id]["metric_ids"].append(metric_to_resolve.id)
+                domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
             else:
-                queries[domain_id]["select"].append(metric_fn.label(metric_to_resolve.metric_name))
-                queries[domain_id]["metric_ids"].append(metric_to_resolve.id)
+                domain_batches[domain_id]["select"].append(
+                    metric_fn.label(metric_to_resolve.metric_name)
+                )
+                domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
+
+        for domain_id in list(domain_batches.keys()):
+            final_domain_id, new_query_entry, new_batch_counter = self._finalize_domain_query(
+                domain_id, domain_batches, batch_counters, domain_kwargs_map
+            )
+            if final_domain_id is not None:
+                assert new_query_entry is not None
+                assert new_batch_counter is not None
+                queries[final_domain_id] = new_query_entry
+                domain_batches[domain_id] = {"select": [], "metric_ids": []}
+                batch_counters[domain_id] = new_batch_counter
+
         return queries
 
     def _count_query_parameters(self, selectable: sqlalchemy.Selectable, select_list: list) -> int:
