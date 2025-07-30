@@ -1011,17 +1011,24 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         batch_counters: dict,
         domain_kwargs_map: dict,
         queries: dict,
-    ) -> None:
+    ) -> tuple[dict, dict, dict]:
         """Finalize the current accumulated metrics for a domain into a query.
 
         This method takes the accumulated metrics for a domain and creates a final
         query entry, then resets the accumulation state for the next parameter batch.
 
-        This function mutates the domain_batches,
-        batch_counters, and domain_kwargs_map dictionaries.
+        Returns:
+            Tuple of (new_domain_batches, new_batch_counters, new_queries)
         """
-        if domain_id in domain_batches and domain_batches[domain_id]["select"]:
-            batch_idx = batch_counters.get(domain_id, 0)
+        new_domain_batches = {
+            k: {"select": v["select"].copy(), "metric_ids": v["metric_ids"].copy()}
+            for k, v in domain_batches.items()
+        }
+        new_batch_counters = {k: v for k, v in batch_counters.items()}
+        new_queries = {k: v.copy() for k, v in queries.items()}
+
+        if domain_id in new_domain_batches and new_domain_batches[domain_id]["select"]:
+            batch_idx = new_batch_counters.get(domain_id, 0)
             domain_kwargs = domain_kwargs_map[domain_id]
 
             if batch_idx == 0:
@@ -1029,14 +1036,16 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             else:
                 final_domain_id = IDDict({**domain_kwargs, "_batch_idx": batch_idx}).to_id()
 
-            queries[final_domain_id] = {
-                "select": domain_batches[domain_id]["select"],
-                "metric_ids": domain_batches[domain_id]["metric_ids"],
+            new_queries[final_domain_id] = {
+                "select": new_domain_batches[domain_id]["select"],
+                "metric_ids": new_domain_batches[domain_id]["metric_ids"],
                 "domain_kwargs": domain_kwargs,
             }
 
-            domain_batches[domain_id] = {"select": [], "metric_ids": []}
-            batch_counters[domain_id] = batch_idx + 1
+            new_domain_batches[domain_id] = {"select": [], "metric_ids": []}
+            new_batch_counters[domain_id] = batch_idx + 1
+
+        return new_domain_batches, new_batch_counters, new_queries
 
     def _organize_metrics_with_parameter_limit(
         self, metric_fn_bundle: Iterable[MetricComputationConfiguration]
@@ -1079,7 +1088,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             test_param_count = self._count_query_parameters(selectable, test_selects)
 
             if test_param_count > MAX_PARAMS_PER_QUERY and domain_batches[domain_id]["select"]:
-                self._finalize_domain_query(
+                domain_batches, batch_counters, queries = self._finalize_domain_query(
                     domain_id, domain_batches, batch_counters, domain_kwargs_map, queries
                 )
 
@@ -1089,7 +1098,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             domain_batches[domain_id]["metric_ids"].append(metric_to_resolve.id)
 
         for domain_id in list(domain_batches.keys()):
-            self._finalize_domain_query(
+            domain_batches, batch_counters, queries = self._finalize_domain_query(
                 domain_id, domain_batches, batch_counters, domain_kwargs_map, queries
             )
 
@@ -1157,7 +1166,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         Returns:
             Total number of parameters that would be generated when the query is compiled
         """
-        AVERAGE_PARAMS_PER_SELECT = 2
+        DEFAULT_PARAMS_PER_SELECT = 2  # Conservative upper bound
         if isinstance(selectable, sqlalchemy.TextClause):
             test_query = sa.select(*select_list).select_from(selectable.columns().subquery())
         elif isinstance(selectable, (sqlalchemy.Select, sqlalchemy.TextualSelect)):
@@ -1165,13 +1174,13 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
         elif isinstance(selectable, sa.sql.FromClause):
             test_query = sa.select(*select_list).select_from(selectable)
         else:
-            return len(select_list) * AVERAGE_PARAMS_PER_SELECT
+            return len(select_list) * DEFAULT_PARAMS_PER_SELECT
         try:
             compiled = test_query.compile(dialect=self.engine.dialect)
             return len(compiled.params)
         except Exception:
-            # If compilation fails, fall back to conservative estimate
-            return len(select_list) * AVERAGE_PARAMS_PER_SELECT
+            # If compilation fails, fall back to conservative upper bound estimate
+            return len(select_list) * DEFAULT_PARAMS_PER_SELECT
 
     def _get_partitioner_method(self, partitioner_method_name: str) -> Callable:
         """Get the appropriate partitioner method from the method name.

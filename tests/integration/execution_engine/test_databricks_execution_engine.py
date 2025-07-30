@@ -292,3 +292,51 @@ class TestDatabricksExecutionEngineIntegration:
 
         assert expected_total_metrics == actual_total_metrics
         assert len(df.columns) == COLUMNS
+
+    def test_high_volume_metrics_parameter_batching(
+        self, sa, generate_large_table_for_metrics, add_metrics_for_each_column
+    ):
+        """Test parameter limit handling with high volume of metrics (~600)."""
+        COLUMNS = 200  # Will generate ~602 metrics (2 table + 200*3 column metrics)
+        ROWS = 5
+
+        execution_engine, df = generate_large_table_for_metrics(COLUMNS, ROWS)
+
+        (
+            metrics,
+            unexpected_count_metrics,
+            condition_metrics,
+            aggregate_fn_metrics,
+            table_columns_metric,
+        ) = add_metrics_for_each_column(execution_engine, df)
+
+        results = execution_engine.resolve_metrics(
+            metrics_to_resolve=tuple(unexpected_count_metrics), metrics=metrics
+        )
+        metrics.update(results)
+
+        expected_total_metrics = 2 + (3 * COLUMNS)  # 602 total metrics
+        actual_total_metrics = len(metrics)
+
+        assert expected_total_metrics == actual_total_metrics
+
+        assert table_columns_metric.id in metrics
+
+        for i, column in enumerate(df.columns):
+            # Check condition metric
+            condition_metric = condition_metrics[i]
+            assert condition_metric.id in metrics
+            condition_result = metrics[condition_metric.id]
+            assert condition_result is not None
+
+            # Check aggregate function metric
+            aggregate_fn_metric = aggregate_fn_metrics[i]
+            assert aggregate_fn_metric.id in metrics
+            aggregate_result = metrics[aggregate_fn_metric.id]
+            assert aggregate_result is not None
+
+            # Check unexpected count metric
+            unexpected_count_metric = unexpected_count_metrics[i]
+            assert unexpected_count_metric.id in metrics
+            unexpected_result = metrics[unexpected_count_metric.id]
+            assert unexpected_result is not None
