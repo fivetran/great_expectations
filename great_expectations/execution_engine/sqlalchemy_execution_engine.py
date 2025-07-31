@@ -927,14 +927,14 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         res: List[sqlalchemy.Row]
 
-        queries: dict[IDDictID, dict] = self._organize_metrics_by_domain(
+        queries: list[dict] = self._organize_metrics_by_domain(
             metric_fn_bundle,
             limit=DATABRICKS_MAX_PARAMS_PER_QUERY
-            if self.engine.dialect.name == GXSqlDialect.DATABRICKS.value
+            if self.engine.dialect.name.lower() == GXSqlDialect.DATABRICKS
             else None,
         )
 
-        for query in queries.values():
+        for query in queries:
             domain_kwargs: dict = query["domain_kwargs"]
             selectable: sqlalchemy.Selectable = self.get_domain_records(domain_kwargs=domain_kwargs)
 
@@ -1052,7 +1052,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
     def _organize_metrics_by_domain(  # noqa: C901 # FIXME
         self, metric_fn_bundle: Iterable[MetricComputationConfiguration], limit: int | None = None
-    ) -> dict[IDDictID, dict]:
+    ) -> list[dict]:
         """Organize metrics from a bundle into domain-grouped queries.
 
         Args:
@@ -1063,7 +1063,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             Dictionary of domain IDs mapped to query configurations
             with select expressions and metric IDs.
         """
-        queries: dict[IDDictID, dict] = {}
+        queries: list[dict] = []
         domain_batches: dict[IDDictID, dict] = {}
         batch_counters: dict[IDDictID, int] = {}
         domain_kwargs_map: dict[IDDictID, dict] = {}
@@ -1100,11 +1100,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                     if final_domain_id is not None:
                         assert new_query_entry is not None
                         assert new_batch_counter is not None
-                        queries[final_domain_id] = new_query_entry
+                        queries.append(new_query_entry)
                         domain_batches[domain_id] = {"select": [], "metric_ids": []}
                         batch_counters[domain_id] = new_batch_counter
 
-            if self.engine.dialect.name == GXSqlDialect.CLICKHOUSE.value:
+            if self.engine.dialect.name.lower() == GXSqlDialect.CLICKHOUSE:
                 domain_batches[domain_id]["select"].append(
                     metric_fn.label(
                         metric_to_resolve.metric_name.join(
@@ -1126,7 +1126,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
             if final_domain_id is not None:
                 assert new_query_entry is not None
                 assert new_batch_counter is not None
-                queries[final_domain_id] = new_query_entry
+                queries.append(new_query_entry)
                 domain_batches[domain_id] = {"select": [], "metric_ids": []}
                 batch_counters[domain_id] = new_batch_counter
 
