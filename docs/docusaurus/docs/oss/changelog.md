@@ -14,6 +14,18 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.7
+* [BUGFIX] change pyspark column reference from DataFrame.__getitem__ to F.col() ([#11286](https://github.com/great-expectations/great_expectations/pull/11286)) (thanks @alansk97)
+* [MAINTENANCE] Remove link checker step (temporarily) ([#11322](https://github.com/great-expectations/great_expectations/pull/11322))
+* [MAINTENANCE] Fix MSSQL compatibility test CI flow ([#11320](https://github.com/great-expectations/great_expectations/pull/11320))
+* [MAINTENANCE] Bump posthog 6.1.0 ([#11303](https://github.com/great-expectations/great_expectations/pull/11303))
+* [MAINTENANCE] Improve CI speed for marker tests ([#11321](https://github.com/great-expectations/great_expectations/pull/11321))
+* [MAINTENANCE] Bump form-data from 4.0.2 to 4.0.4 in /docs/docusaurus ([#11310](https://github.com/great-expectations/great_expectations/pull/11310))
+* [MAINTENANCE] pre-commit autoupdate ([#11287](https://github.com/great-expectations/great_expectations/pull/11287))
+* [MAINTENANCE] Bump mypy to 1.16.1 ([#11262](https://github.com/great-expectations/great_expectations/pull/11262))
+* [MAINTENANCE] Add typing extensions dependency to build ([#11323](https://github.com/great-expectations/great_expectations/pull/11323))
+* [MAINTENANCE] Update build commands ([#11324](https://github.com/great-expectations/great_expectations/pull/11324))
+
 ### 1.5.6
 * [BUGFIX] Remove incompatible min/max types for some range expectations ([#11305](https://github.com/great-expectations/great_expectations/pull/11305))
 * [DOCS] generate SQL ([#11289](https://github.com/great-expectations/great_expectations/pull/11289))
