@@ -32,10 +32,10 @@ def submit(event: Event) -> None:
             groups.update({"organization": event.organization_id})
 
         posthog.capture(
-            str(event.distinct_id),
-            str(event.action),
-            event.properties(),
-            groups=groups,
+            distinct_id=str(event.distinct_id),
+            event=str(event.action),
+            properties=event.properties(),
+            groups={k: str(v) for k, v in groups.items()},
         )
     except Exception as _:
         # failure to send an analytics event should not be propagated to user

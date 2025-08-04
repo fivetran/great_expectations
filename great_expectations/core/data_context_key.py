@@ -83,6 +83,7 @@ class StringKey(DataContextKey):
         return self.to_tuple()
 
     @classmethod
+    @override
     def from_fixed_length_tuple(cls, tuple_):
         return cls.from_tuple(tuple_)
 

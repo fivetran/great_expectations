@@ -791,7 +791,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         This may be caused by it becoming great_expectations.compatibility.not_imported.NotImported when pyspark is not installed.
         </Alex>
         """  # noqa: E501 # FIXME CoP
-        table: str = domain_kwargs.get("table", None)
+        table: Optional[str] = domain_kwargs.get("table", None)
         if table:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "SparkDFExecutionEngine does not currently support multiple named tables."

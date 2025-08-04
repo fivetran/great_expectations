@@ -86,6 +86,7 @@ class Metric(MetricRepositoryBaseModel, Generic[_ValueType]):
     )
 
     @classmethod
+    @override
     def update_forward_refs(cls):
         from great_expectations.datasource.fluent.interfaces import Batch
 

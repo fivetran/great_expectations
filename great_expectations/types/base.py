@@ -2,18 +2,14 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import TYPE_CHECKING, Callable, List, TypeVar
-
-if TYPE_CHECKING:
-    from typing_extensions import Self
+from typing import Any, List
 
 from ruamel.yaml import YAML, yaml_object
 
+from great_expectations.compatibility.typing_extensions import override
+
 logger = logging.getLogger(__name__)
 yaml = YAML()
-
-_KT = TypeVar("_KT")
-_VT = TypeVar("_VT")
 
 
 @yaml_object(yaml)
@@ -27,8 +23,13 @@ class DotDict(dict):
     def __getattr__(self, item):
         return self.get(item)
 
-    __setattr__: Callable[[Self, _KT, _VT], None] = dict.__setitem__
-    __delattr__: Callable[[Self, _KT], None] = dict.__delitem__
+    @override
+    def __setattr__(self, name: str, value: Any) -> None:
+        self[name] = value
+
+    @override
+    def __delattr__(self, name: str) -> None:
+        del self[name]
 
     def __dir__(self):  # type: ignore[explicit-override] # FIXME
         return self.keys()
