@@ -8,6 +8,7 @@ import traceback
 import tzlocal
 from dateutil.parser import parse
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.render import (
     RenderedBootstrapTableContent,
     RenderedDocumentContent,
@@ -373,6 +374,7 @@ class SiteIndexPageRenderer(Renderer):
         )
 
     @classmethod
+    @override
     def render(cls, index_links_dict):
         sections = []
         cta_object = index_links_dict.pop("cta_object", None)

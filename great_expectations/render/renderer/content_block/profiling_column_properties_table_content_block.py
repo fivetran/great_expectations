@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.expectations.registry import get_renderer_impl
 from great_expectations.render import (
     LegacyDescriptiveRendererType,
@@ -28,6 +29,7 @@ class ProfilingColumnPropertiesTableContentBlockRenderer(ContentBlockRenderer):
     }
 
     @classmethod
+    @override
     def render(cls, ge_object, header_row=None):
         """Each expectation method should return a list of rows"""
         if header_row is None:

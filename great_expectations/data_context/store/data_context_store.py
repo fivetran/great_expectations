@@ -8,7 +8,7 @@ from great_expectations.data_context.data_context_variables import (
     DataContextVariableSchema,
 )
 from great_expectations.data_context.store.configuration_store import ConfigurationStore
-from great_expectations.data_context.types.base import DataContextConfig
+from great_expectations.data_context.types.base import BaseYamlConfig, DataContextConfig
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class DataContextStore(ConfigurationStore):
     A DataContextStore manages persistence around DataContextConfigs.
     """
 
-    _configuration_class = DataContextConfig
+    _configuration_class: type[BaseYamlConfig] = DataContextConfig
 
     cloud_exclude_field_names: Set[DataContextVariableSchema] = {
         DataContextVariableSchema.CHECKPOINT_STORE_NAME,
