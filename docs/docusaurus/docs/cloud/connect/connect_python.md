@@ -33,7 +33,7 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 
 You'll need your user access token and organization ID to set your environment variables. Don't commit your access tokens to your version control software.
 
-1. In GX Cloud, click **Settings** > **Tokens**.
+1. In GX Cloud, click **Tokens**.
 
 2. In the **User access tokens** pane, click **Create user access token**.
 

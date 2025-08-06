@@ -22,7 +22,7 @@ The following table lists GX Cloud roles and responsibilities.
 
 ## Invite a user
 
-1. In GX Cloud, click **Settings** > **Users**.
+1. In GX Cloud, click **Users**.
 
 2. Click **Invite User** and complete the following fields:
 
@@ -36,7 +36,7 @@ The following table lists GX Cloud roles and responsibilities.
 
 ## Edit a user role
 
-1. In GX Cloud, click **Settings** > **Users**.
+1. In GX Cloud, click **Users**.
 
 2. Click the options menu for a user and select **Edit**.
 
@@ -44,7 +44,7 @@ The following table lists GX Cloud roles and responsibilities.
 
 ## Delete a user
 
-1. In GX Cloud, click **Settings** > **Users**.
+1. In GX Cloud, click **Users**.
 
 2. Click the options menu for a user and select **Delete**.
 
@@ -56,7 +56,7 @@ You'll need your user access token and organization ID when you set your environ
 
 Access tokens shouldn't be committed to version control software.
 
-1. In GX Cloud, click **Settings** > **Tokens**.
+1. In GX Cloud, click **Tokens**.
 
 2. In the **User access tokens** pane, click **Create user access token**.
 
@@ -72,7 +72,7 @@ Access tokens shouldn't be committed to version control software.
 
 Organization access tokens are typically required for external application authentication. These external applications complete tasks such as scheduled pipeline runs on behalf of your organization. 
 
-1. In GX Cloud, click **Settings** > **Tokens**.
+1. In GX Cloud, click **Tokens**.
 
 2. In the **Organization access tokens** pane, click **Create organization access token**.
 
@@ -86,7 +86,7 @@ Organization access tokens are typically required for external application authe
 
 ## Delete a user or organization access token
 
-1. In GX Cloud, click **Settings** > **Tokens**.
+1. In GX Cloud, click **Tokens**.
 
 2. In the **User access tokens** or **Organization access tokens** panes, click **Delete Token**.
 
