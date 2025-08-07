@@ -349,9 +349,7 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 
 #redirects for gallery links pointing to .18 content
 /docs/reference/expectations/result_format /docs/core/trigger_actions_based_on_results/choose_a_result_format/
-/docs/reference/expectations/standard_arguments/#catch_exceptions /docs/reference/api/expectations/Expectation_class
-/docs/reference/expectations/standard_arguments/#meta /docs/core/define_expectations/create_an_expectation/
-/docs/reference/expectations/standard_arguments/#mostly /docs/core/define_expectations/create_an_expectation/
+/docs/reference/expectations/standard_arguments /docs/core/define_expectations/create_an_expectation/
 
 # Broken link redirect
 
