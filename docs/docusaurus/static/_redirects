@@ -180,8 +180,8 @@
 /docs/guides/miscellaneous/how_to_template https://github.com/great-expectations/great_expectations/tree/develop/docs
 /docs/integrations/contributing_integration https://github.com/great-expectations/great_expectations/tree/develop/docs
 /docs/integrations/integration_template https://github.com/great-expectations/great_expectations/tree/develop/docs
-docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_great_expectations https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_EXPECTATIONS.md
-/docs/contributing/contributing_package https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_PACKAGES.md
+docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_great_expectations https://github.com/great-expectations/great_expectations/tree/develop?tab=readme-ov-file#levels-of-contribution-readiness
+/docs/contributing/contributing_package https://github.com/great-expectations/great_expectations/tree/develop?tab=readme-ov-file#levels-of-contribution-readiness
 
 # Removing How to Validate data with an in-memory Checkpoint
 
@@ -457,3 +457,9 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/application_integration_support /docs/help/compatibility_reference
 /docs/cloud/overview/automating_rules /docs/cloud/overview/accelerating_test_coverage
 /docs/cloud/overview/coverage_health /docs/cloud/overview/data_health
+
+#redirects for gallery links pointing to .18 content
+/docs/reference/expectations/result_format /docs/core/trigger_actions_based_on_results/choose_a_result_format/
+/docs/reference/expectations/standard_arguments/#catch_exceptions /docs/reference/api/expectations/Expectation_class
+/docs/reference/expectations/standard_arguments/#meta /docs/core/define_expectations/create_an_expectation/
+/docs/reference/expectations/standard_arguments/#mostly /docs/core/define_expectations/create_an_expectation/

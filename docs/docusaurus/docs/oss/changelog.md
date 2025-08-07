@@ -1,6 +1,7 @@
 ---
 title: Changelog
 slug: /core/changelog
+description: Release notes for Great Expectations Core.
 ---
 
 ### Deprecation policy
