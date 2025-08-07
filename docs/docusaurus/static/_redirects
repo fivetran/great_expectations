@@ -347,6 +347,12 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/cloud/try_gx_cloud /docs/cloud/deploy_gx_agent
 /versioned_docs/version-0.18/cloud/try_gx_cloud /versioned_docs/version-0.18/cloud/tdeploy_gx_agent
 
+#redirects for gallery links pointing to .18 content
+/docs/reference/expectations/result_format /docs/core/trigger_actions_based_on_results/choose_a_result_format/
+/docs/reference/expectations/standard_arguments/#catch_exceptions /docs/reference/api/expectations/Expectation_class
+/docs/reference/expectations/standard_arguments/#meta /docs/core/define_expectations/create_an_expectation/
+/docs/reference/expectations/standard_arguments/#mostly /docs/core/define_expectations/create_an_expectation/
+
 # Broken link redirect
 
 /docs/reference/expectations/standard_arguments/* /docs/reference/learn/expectations/standard_arguments/:splat
@@ -457,9 +463,3 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 /docs/application_integration_support /docs/help/compatibility_reference
 /docs/cloud/overview/automating_rules /docs/cloud/overview/accelerating_test_coverage
 /docs/cloud/overview/coverage_health /docs/cloud/overview/data_health
-
-#redirects for gallery links pointing to .18 content
-/docs/reference/expectations/result_format /docs/core/trigger_actions_based_on_results/choose_a_result_format/
-/docs/reference/expectations/standard_arguments/#catch_exceptions /docs/reference/api/expectations/Expectation_class
-/docs/reference/expectations/standard_arguments/#meta /docs/core/define_expectations/create_an_expectation/
-/docs/reference/expectations/standard_arguments/#mostly /docs/core/define_expectations/create_an_expectation/
