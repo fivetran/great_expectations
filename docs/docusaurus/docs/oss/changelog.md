@@ -14,6 +14,14 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.8
+* [BUGFIX] Handle SQL parameter limit for Databricks ([#11317](https://github.com/great-expectations/great_expectations/pull/11317))
+* [DOCS] Move ingestion in diagram ([#11329](https://github.com/great-expectations/great_expectations/pull/11329))
+* [DOCS] Update configure_metadata_stores.md ([#11316](https://github.com/great-expectations/great_expectations/pull/11316)) (thanks @Abdelkrim)
+* [DOCS] User Input to Expectation Generation Retry Workflows ([#11325](https://github.com/great-expectations/great_expectations/pull/11325))
+* [MAINTENANCE] Restore Link Checker CI step ([#11327](https://github.com/great-expectations/great_expectations/pull/11327))
+* [MAINTENANCE] pre-commit autoupdate ([#11330](https://github.com/great-expectations/great_expectations/pull/11330))
+
 ### 1.5.7
 * [BUGFIX] change pyspark column reference from DataFrame.__getitem__ to F.col() ([#11286](https://github.com/great-expectations/great_expectations/pull/11286)) (thanks @alansk97)
 * [MAINTENANCE] Remove link checker step (temporarily) ([#11322](https://github.com/great-expectations/great_expectations/pull/11322))
