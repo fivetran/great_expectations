@@ -1,6 +1,6 @@
 # Great Expectations Contrib Packages.
 
-Welcome to Great Expectations contrib--the place we store experimental and domain-specific contributions to the Great Expectations repository. 
+Welcome to Great Expectations contrib--the place we store experimental and domain-specific contributions to the Great Expectations repository.
 
 Note that we do not guarantee that Expectations in the `experimental` package are semantically correct and we do not plan to maintain them independently. However, Expectations that the community finds valuable can move into domain-specific or core packages in the future.
 
@@ -17,4 +17,3 @@ from great_expectations_contrib.expectations import ExpectNelsonsColumnToExist
 
 validator.expect_nelsons_column_to_exist()
 ```
-
