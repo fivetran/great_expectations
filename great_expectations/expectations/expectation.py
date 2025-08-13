@@ -44,7 +44,6 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.core.result_format import ResultFormat
-from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.core.suite_parameters import (
     get_suite_parameter_key,
     is_suite_parameter,
@@ -58,6 +57,7 @@ from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
     parse_result_format,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -322,8 +322,6 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                 },
             }
 
-
-
             # Add extra fields to schema from custom schema_overrides
             # schema_overrides is not a pydantic concept, but pydantic.Field allows
             # us to pass through arbitrary fields.
@@ -344,7 +342,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
     rendered_content: Optional[List[RenderedAtomicContent]] = None
     severity: FailureSeverity = pydantic.Field(
         default=FailureSeverity.CRITICAL,
-        description="Indicate the impact of this Expectation failing. Severity levels can be used to trigger different alerting patterns and actions."
+        description="Indicate the impact of this Expectation failing. Severity levels can be used to trigger different alerting patterns and actions.",
     )
 
     version: ClassVar[str] = ge_version
