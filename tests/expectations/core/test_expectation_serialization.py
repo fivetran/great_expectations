@@ -60,10 +60,7 @@ from great_expectations.expectations.window import Offset, Window
                         constraint_fn="a",
                         parameter_name="b",
                         range=5,
-                        offset=Offset(
-                            positive=0.2, 
-                            negative=0.2
-                        ),
+                        offset=Offset(positive=0.2, negative=0.2),
                     )
                 ],
             ),
