@@ -342,7 +342,10 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
     rendered_content: Optional[List[RenderedAtomicContent]] = None
     severity: FailureSeverity = pydantic.Field(
         default=FailureSeverity.CRITICAL,
-        description="Indicate the impact of this Expectation failing. Severity levels can be used to trigger different alerting patterns and actions.",
+        description=(
+            "Indicate the impact of this Expectation failing. Severity levels can be "
+            "used to trigger different alerting patterns and actions."
+        ),
     )
 
     version: ClassVar[str] = ge_version
