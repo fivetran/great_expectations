@@ -20,7 +20,7 @@ You can integrate GX Cloud at any point in your data pipeline to manage and moni
 
 Here’s an example of where these three common integration points fit in a generic data pipeline:
 
-![Incoming data from Square, Mailchimp, and Salesforce are validated by GX Cloud before being written as raw data in a Snowflake data warehouse. Transformations are validated within the Snowflake data pipeline. Finalized data is validated before being served by BI tools such as Tableau, Power BI, and Looker.](./overview_images/gx_cloud_pipeline.png)
+![Raw data from Square, Mailchimp, and Salesforce are validated by GX Cloud before being written to a Snowflake data warehouse. Transformations are validated within the Snowflake data pipeline. Finalized data is validated before being served by BI tools such as Tableau, Power BI, and Looker.](./overview_images/gx_cloud_pipeline.png)
 
 You can also integrate GX Cloud with version control systems and with data at rest. Common workflows that validate data outside the data pipeline include:
 

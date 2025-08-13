@@ -105,9 +105,9 @@ def test_ephemeral_context_init(monkeypatch):
         mode="ephemeral",
     )
     mock_submit.assert_called_once_with(
-        mock.ANY,
-        "data_context.initialized",
-        {
+        distinct_id=mock.ANY,
+        event="data_context.initialized",
+        properties={
             "data_context_id": mock.ANY,
             "oss_id": mock.ANY,
             "service": "gx-core",
@@ -129,9 +129,9 @@ def test_ephemeral_context_init_with_optional_fields(monkeypatch):
         _ = gx.get_context(mode="ephemeral", user_agent_str=user_agent_str)
 
     mock_submit.assert_called_once_with(
-        mock.ANY,
-        "data_context.initialized",
-        {
+        distinct_id=mock.ANY,
+        event="data_context.initialized",
+        properties={
             "data_context_id": mock.ANY,
             "oss_id": mock.ANY,
             "service": "gx-core",
@@ -176,9 +176,9 @@ def test_cloud_context_init(
         user_agent_str=user_agent_str,
     )
     mock_submit.assert_called_once_with(
-        mock.ANY,
-        "data_context.initialized",
-        {
+        distinct_id=mock.ANY,
+        event="data_context.initialized",
+        properties={
             "data_context_id": mock.ANY,
             "oss_id": mock.ANY,
             "service": "gx-core",
@@ -368,8 +368,8 @@ def test_remove_profile_setting(remove_profile: bool, monkeypatch):
 
         mock_submit.assert_called_once()
 
-        args = mock_submit.call_args.args
-        properties = args[2]
+        kwargs = mock_submit.call_args.kwargs
+        properties = kwargs["properties"]
 
         if remove_profile:
             assert properties.get("$process_person_profile") is False

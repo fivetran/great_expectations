@@ -189,7 +189,7 @@ To clear the Expectation condition, click the clear button located on the right-
    :::tip Options for accelerating test coverage
    If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). If you instead want to create your own rules, click **Manual**.
    
-   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql-with-expectai-beta). You can **Write your own SQL** if you prefer.
+   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql-with-expectai-beta). You can write your own SQL if you prefer.
    :::
 
 5. Select an Expectation type.

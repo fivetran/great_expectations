@@ -3,7 +3,7 @@ Expectation Docstring Formatting
 
 The content of an Expectation's docstring is the majority of what is rendered on that Expectation's "details page" in the [Expectation Gallery](https://greatexpectations.io/expectations).
 
-The only strictly enforced rule for Expectation docstrings in [the validation checklist](https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_EXPECTATIONS.md#generate-the-expectation-validation-checklist) is that the first line begins with "Expect " and ends with a period. That first line should be directly next to the triple quote, not on a new line.
+The only strictly enforced rule for Expectation docstrings is that the first line begins with "Expect " and ends with a period. That first line should be directly next to the triple quote, not on a new line.
 
 As a part of the [CI pipeline to build the Expectation Gallery](https://github.com/great-expectations/great_expectations/blob/develop/docs/expectation_gallery/1-the-build_gallery.py-script.md#the-build_gallerypy-script-in-ci), there is a [`format_docstring_to_markdown` function](https://github.com/great-expectations/great_expectations/blob/98259c16bd439904da2fd08c2e244b6684821302/assets/scripts/build_gallery.py#L601-L672) that is called to take the raw docstring for an Expectation and convert it to markdown. That function makes a lot of assumptions based on indent-level, newlines, and special character sequences.
 
