@@ -68,9 +68,10 @@ from great_expectations.expectations.window import Offset, Window
                 '{"id": null, "meta": null, "notes": null, "result_format": "BASIC", '
                 '"description": null, "catch_exceptions": true, "rendered_content": null, '
                 '"severity": "critical", "windows": [{"constraint_fn": "a", '
-                '"parameter_name": "b", "offset": {"positive": 0.2, "negative": 0.2}, '
-                '"strict": false}], "range": 5, "batch_id": null, "column": "test_column", '
-                '"mostly": 0.82, "row_condition": null, "condition_parser": null}'
+                '"parameter_name": "b", "range": 5, "offset": {"positive": 0.2, '
+                '"negative": 0.2}, "strict": false}], "batch_id": null, '
+                '"column": "test_column", "mostly": 0.82, "row_condition": null, '
+                '"condition_parser": null}'
             ),
         ),
     ],
