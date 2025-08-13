@@ -180,8 +180,8 @@
 /docs/guides/miscellaneous/how_to_template https://github.com/great-expectations/great_expectations/tree/develop/docs
 /docs/integrations/contributing_integration https://github.com/great-expectations/great_expectations/tree/develop/docs
 /docs/integrations/integration_template https://github.com/great-expectations/great_expectations/tree/develop/docs
-docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_great_expectations https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_EXPECTATIONS.md
-/docs/contributing/contributing_package https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_PACKAGES.md
+docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_great_expectations https://github.com/great-expectations/great_expectations/tree/develop?tab=readme-ov-file#levels-of-contribution-readiness
+/docs/contributing/contributing_package https://github.com/great-expectations/great_expectations/tree/develop?tab=readme-ov-file#levels-of-contribution-readiness
 
 # Removing How to Validate data with an in-memory Checkpoint
 
@@ -346,6 +346,10 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/cloud/set_up_gx_cloud#* /docs/cloud/try_gx_cloud#:splat
 /docs/cloud/try_gx_cloud /docs/cloud/deploy_gx_agent
 /versioned_docs/version-0.18/cloud/try_gx_cloud /versioned_docs/version-0.18/cloud/tdeploy_gx_agent
+
+#redirects for gallery links pointing to .18 content
+/docs/reference/expectations/result_format /docs/core/trigger_actions_based_on_results/choose_a_result_format/
+/docs/reference/expectations/standard_arguments /docs/core/define_expectations/create_an_expectation/
 
 # Broken link redirect
 

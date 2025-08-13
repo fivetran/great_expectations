@@ -22,10 +22,6 @@ To discuss your code change before you implement it, join the [Great Expectation
 
 To request a documentation change, or a change that doesn't require local testing, see the [README](https://github.com/great-expectations/great_expectations/tree/develop/docs) in the `docs` repository.
 
-To create and submit a Custom Expectation to Great Expectations for consideration, see [CONTRIBUTING_EXPECTATIONS](https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_EXPECTATIONS.md) in the `great_expectations` repository.
-
-To submit a custom package to Great Expectations for consideration, see [CONTRIBUTING_PACKAGES](https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_PACKAGES.md) in the `great_expectations` repository.
-
 ## Prerequisites
 
 - A GitHub account.
@@ -496,7 +492,7 @@ Test the performance of code changes to determine they perform as expected. BigQ
 
     - [MAINTENANCE] for PRs that focus on updating repository settings or related changes.
 
-    - [CONTRIB] for the contribution of Custom Expectations and supporting work into the `contrib/` directory.
+    - [CONTRIB] for the contribution of supporting work into the `contrib/` directory.
 
     - [HACKATHON] for submissions to an active Great Expectations Hackathon.
 

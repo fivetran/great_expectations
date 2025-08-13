@@ -7,6 +7,7 @@ from marshmallow import Schema, fields, post_load
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.data_context_key import DataContextKey
 from great_expectations.core.id_dict import BatchKwargs, IDDict
 from great_expectations.core.run_identifier import RunIdentifier, RunIdentifierSchema
@@ -37,10 +38,12 @@ class ExpectationSuiteIdentifier(DataContextKey):
         return (self.name,)
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
         return cls(".".join(tuple_))
 
     @classmethod
+    @override
     def from_fixed_length_tuple(cls, tuple_):
         return cls(name=tuple_[0])
 
@@ -84,6 +87,7 @@ class BatchIdentifier(DataContextKey):
         return (self.batch_identifier,)
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
         return cls(batch_identifier=tuple_[0])
 
@@ -149,6 +153,7 @@ class ValidationResultIdentifier(DataContextKey):
         )
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
         return cls(
             ExpectationSuiteIdentifier.from_tuple(tuple_[0:-3]),
@@ -157,6 +162,7 @@ class ValidationResultIdentifier(DataContextKey):
         )
 
     @classmethod
+    @override
     def from_fixed_length_tuple(cls, tuple_):
         return cls(
             ExpectationSuiteIdentifier(tuple_[0]),
@@ -212,10 +218,12 @@ class MetricIdentifier(DataContextKey):
         )  # We use the placeholder in to_tuple
 
     @classmethod
+    @override
     def from_fixed_length_tuple(cls, tuple_):
         return cls.from_tuple(tuple_)
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
         if tuple_[-1] == "__":
             return cls(*tuple_[:-1], None)
@@ -285,6 +293,7 @@ class ValidationMetricIdentifier(MetricIdentifier):
         )
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
         if len(tuple_) < 6:  # noqa: PLR2004 # FIXME CoP
             raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
@@ -304,6 +313,7 @@ class ValidationMetricIdentifier(MetricIdentifier):
         )
 
     @classmethod
+    @override
     def from_fixed_length_tuple(cls, tuple_):
         if len(tuple_) != 6:  # noqa: PLR2004 # FIXME CoP
             raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
@@ -365,6 +375,7 @@ class GXCloudIdentifier(DataContextKey):
         return self.to_tuple()
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
         # Only add resource name if it exists in the tuple_
         if len(tuple_) == 3:  # noqa: PLR2004 # FIXME CoP
@@ -372,6 +383,7 @@ class GXCloudIdentifier(DataContextKey):
         return cls(resource_type=tuple_[0], id=tuple_[1])
 
     @classmethod
+    @override
     def from_fixed_length_tuple(cls, tuple_):
         return cls.from_tuple(tuple_)
 
@@ -444,6 +456,7 @@ class SiteSectionIdentifier(DataContextKey):
         return tuple(site_section_identifier_tuple_list)
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
         if tuple_[0] == "validations":
             return cls(
@@ -481,12 +494,14 @@ class ConfigurationIdentifier(DataContextKey):
         return (self.configuration_key,)
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
-        return cls(".".join(tuple_))
+        return cls(configuration_key=tuple_[0])
 
     @classmethod
+    @override
     def from_fixed_length_tuple(cls, tuple_):
-        return cls(configuration_key=tuple_[0])
+        return cls.from_tuple(tuple_)
 
     def __repr__(self):  # type: ignore[explicit-override] # FIXME
         return f"{self.__class__.__name__}::{self._configuration_key}"

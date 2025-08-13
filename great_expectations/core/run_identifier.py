@@ -106,10 +106,12 @@ class RunIdentifier(DataContextKey):
         self._run_time = self._run_time.astimezone(tz=tz)
 
     @classmethod
+    @override
     def from_tuple(cls, tuple_):
         return cls(tuple_[0], tuple_[1])
 
     @classmethod
+    @override
     def from_fixed_length_tuple(cls, tuple_):
         return cls(tuple_[0], tuple_[1])
 

@@ -81,6 +81,7 @@ class ConfigStr(SecretStr):
         )
 
     @classmethod
+    @override
     def __get_validators__(cls):
         # one or more validators may be yielded which will be called in the
         # order to validate the input, each validator will receive as an input
@@ -224,6 +225,7 @@ class ConfigUri(AnyUrl, ConfigStr):  # type: ignore[misc] # Mixin "validate" sig
         return parse_obj_as(AnyUrl, raw_value)
 
     @classmethod
+    @override
     def __get_validators__(cls):
         # one or more validators may be yielded which will be called in the
         # order to validate the input, each validator will receive as an input

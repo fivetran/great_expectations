@@ -60,7 +60,7 @@ We will send you a confirmation email when we fulfill your request. You can cont
 
 You need your access token and organization ID to deploy the GX Agent. Access tokens shouldn't be committed to version control software. 
 
-1. In GX Cloud, click **Settings** > **Tokens**.
+1. In GX Cloud, click **Tokens**.
 
 2. In the **User access tokens** pane, click **Create user access token**.
 
