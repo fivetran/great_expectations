@@ -636,7 +636,8 @@ class AbstractDataContext(ConfigPeer, ABC):
         updated_datasource = self.data_sources.all().set_datasource(
             name=datasource_name, ds=updated_datasource
         )
-        updated_datasource._data_context = self  # TODO: move from here?
+        if updated_datasource:
+            updated_datasource._data_context = self
         self._save_project_config()
 
         assert isinstance(updated_datasource, FluentDatasource)

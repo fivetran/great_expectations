@@ -4,6 +4,7 @@ import logging
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Type, Union
 
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.metric_domain_types import MetricDomainTypes
@@ -228,7 +229,7 @@ def column_aggregate_partial(engine: Type[ExecutionEngine], **kwargs):  # noqa: 
 
                 column_name: Union[str, sqlalchemy.quoted_name] = accessor_domain_kwargs["column"]
 
-                column = data[column_name]
+                column = F.col(column_name)
                 metric_aggregate = metric_fn(
                     cls,
                     column=column,

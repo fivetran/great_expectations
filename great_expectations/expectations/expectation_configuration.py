@@ -331,7 +331,9 @@ class ExpectationConfiguration(SerializableDictDot):
         runtime_kwargs = {
             key: lookup_kwargs.get(key, default_kwarg_values.get(key)) for key in runtime_keys
         }
-        runtime_kwargs["result_format"] = parse_result_format(runtime_kwargs["result_format"])
+        result_format = runtime_kwargs["result_format"]
+        if result_format is not None:
+            runtime_kwargs["result_format"] = parse_result_format(result_format)
         runtime_kwargs.update(success_kwargs)
 
         return runtime_kwargs

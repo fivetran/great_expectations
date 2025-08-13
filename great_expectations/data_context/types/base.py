@@ -1818,12 +1818,13 @@ class DataContextConfig(BaseYamlConfig):
 
         return store_configs
 
-    # TODO: <Alex>ALEX (we still need the next two properties)</Alex>
     @classmethod
+    @override
     def get_config_class(cls):
         return cls  # DataContextConfig
 
     @classmethod
+    @override
     def get_schema_class(cls):
         return DataContextConfigSchema
 
