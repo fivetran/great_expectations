@@ -46,6 +46,9 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
     
    Actions can be found in the `great_expectations.checkpoint` module. All action class names end with `*Action`.
 
+   :::tip Setting up an EmailAction is separate from Email alerts controlled through the UI
+   Any `EmailActions` that are added to the list of Actions associated with a Checkpoint will activate separately from the Alerts controlled through the UI. For more information, see [Manage email alerts](docs/cloud/alerts/manage_email_alerts.md)
+
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - define an Action list"
    ```
 
@@ -59,6 +62,9 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - create a Checkpoint"
    ```
+
+   :::tip You must create your own Checkpoint
+   You will not be able to edit the GX-managed Checkpoint that was automatically created for your Data Asset. However, you can use the Validation Definition that was.
 
 1. Add the Checkpoint to your Data Context.
    Once you create a Checkpoint you should save it to your Data Context for future use:
