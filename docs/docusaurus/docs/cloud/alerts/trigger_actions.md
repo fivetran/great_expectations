@@ -23,6 +23,8 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
    ]}
 >
 
+<TabItem value="instructions" label="Instructions">
+
 1. Retrieve the Validation Definition(s) that the Checkpoint will run.
 
    The Validation Definition(s) can be found either by using the Validation Definition name or by iterating through the list of Validation Definitions available through the Data Context. Both approaches are shown below.
@@ -56,4 +58,6 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - save the Checkpoint"
    ```
 
+</TabItem>
 
+</Tabs>
