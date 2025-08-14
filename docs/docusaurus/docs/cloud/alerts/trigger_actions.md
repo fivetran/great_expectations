@@ -7,10 +7,10 @@ description: Create and manage Actions based on the results of Validation runs.
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-import PrereqPythonInstalled from '../core/_core_components/prerequisites/_python_installation.md';
-import PrereqGxInstalled from '../core/_core_components/prerequisites/_gx_installation.md';
-import PrereqPreconfiguredDataContext from '../core/_core_components/prerequisites/_preconfigured_data_context.md';
-import PrereqValidationDefinition from '../core/_core_components/prerequisites/_validation_definition.md';
+import PrereqPythonInstalled from '../../core/_core_components/prerequisites/_python_installation.md';
+import PrereqGxInstalled from '../../core/_core_components/prerequisites/_gx_installation.md';
+import PrereqPreconfiguredDataContext from '../../core/_core_components/prerequisites/_preconfigured_data_context.md';
+import PrereqValidationDefinition from '../../core/_core_components/prerequisites/_validation_definition.md';
 
 A Checkpoint executes one or more Validation Definitions and then performs a set of Actions based on the Validation Results each Validation Definition returns. This example will demonstrate how to create a [`SlackNotificationAction`](/reference/api/checkpoint/slacknotificationaction_class/).
 
