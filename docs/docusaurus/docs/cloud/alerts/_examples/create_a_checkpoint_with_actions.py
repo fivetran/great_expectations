@@ -4,6 +4,7 @@ This is an example script for how to create a Checkpoint with Actions.
 To test, run:
 pytest --docs-tests -k "docs_example_create_a_checkpoint" tests/integration/test_script_runner.py
 """
+
 # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - full code example">
 import great_expectations as gx
 from great_expectations.checkpoint import (
