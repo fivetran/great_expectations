@@ -12,7 +12,7 @@ import PrereqGxInstalled from '../../core/_core_components/prerequisites/_gx_ins
 import PrereqPreconfiguredDataContext from '../../core/_core_components/prerequisites/_preconfigured_data_context.md';
 import PrereqValidationDefinition from '../../core/_core_components/prerequisites/_validation_definition.md';
 
-A Checkpoint executes one or more Validation Definitions and then performs a set of Actions based on the Validation Results each Validation Definition returns. This example will demonstrate how to create a [`SlackNotificationAction`](/reference/api/checkpoint/slacknotificationaction_class/).
+A Checkpoint executes one or more Validation Definitions and then performs a set of Actions based on the Validation Results each Validation Definition returns. This example will demonstrate how to create a `SlackNotificationAction`.
 
 ## Prerequisites
 - A [GX Cloud account](https://greatexpectations.io/cloud) with your Cloud access token and Cloud organization token saved in your environment variables
@@ -53,7 +53,7 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
     
    When a Checkpoint is created you can adjust the verbosity of the Validation Results it generates by setting a Result Format. A Checkpoint's Result Format will be applied to all Validation Results in the Checkpoint every time they are run. By default, a Checkpoint uses a `SUMMARY` result format: it indicates the success or failure of each Expectation in a Validation Definition, along with a partial set of the observed values and metrics that indicate why the Expectation succeeded or failed.
     
-   For more information on configuring a Result Format, see Choose a [Result Format](docs/core/trigger_actions_based_on_results/choose_a_result_format/).
+   For more information on configuring a Result Format, see Choose a [Result Format](docs/core/trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format.md).
 
 1. The Checkpoint class is available from the great_expectations module. You instantiate a Checkpoint by providing the lists of Validation Definitions and Actions that you previously created, as well as a unique name for the Checkpoint, to the Checkpoint class. The Checkpoint's Result Format can optionally be set, as well:
 
