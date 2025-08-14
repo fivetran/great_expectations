@@ -51,6 +51,6 @@ checkpoint = gx.Checkpoint(
 # </snippet>
 
 # Save the Checkpoint to the Data Context
-# <snippet name="docs/docusaurus/docs/core/trigger_actions_based_on_results/_examples/create_a_checkpoint_with_actions.py - save the Checkpoint">
+# <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - save the Checkpoint">
 context.checkpoints.add(checkpoint)
 # </snippet>
