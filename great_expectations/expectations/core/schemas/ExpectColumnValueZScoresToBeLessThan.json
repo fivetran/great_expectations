@@ -54,6 +54,15 @@
                 "type": "object"
             }
         },
+        "severity": {
+            "description": "Indicate the impact of this Expectation failing. Severity levels can be used to trigger different alerting patterns and actions.",
+            "default": "critical",
+            "allOf": [
+                {
+                    "$ref": "#/definitions/FailureSeverity"
+                }
+            ]
+        },
         "windows": {
             "title": "Windows",
             "description": "Definition(s) for evaluation of temporal windows",
@@ -212,6 +221,16 @@
                 "BASIC",
                 "COMPLETE",
                 "SUMMARY"
+            ],
+            "type": "string"
+        },
+        "FailureSeverity": {
+            "title": "FailureSeverity",
+            "description": "Severity levels for expectation failures.",
+            "enum": [
+                "critical",
+                "warning",
+                "info"
             ],
             "type": "string"
         },
