@@ -68,4 +68,11 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
 
 </TabItem>
 
+<TabItem value="sample_code" label="Sample code">
+
+```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - full code example" 
+```
+
+</TabItem>
+
 </Tabs>
