@@ -16,6 +16,7 @@ from great_expectations.core.expectation_validation_result import (
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 
 
 @pytest.mark.unit
@@ -701,7 +702,6 @@ class TestGetMaximumSeverityFailure:
     @pytest.mark.unit
     def test_get_maximum_severity_failure_multiple_failures(self):
         """Test that the highest severity is returned among multiple failures."""
-        from great_expectations.expectations.metadata_types import FailureSeverity
         
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null", 
@@ -731,7 +731,6 @@ class TestGetMaximumSeverityFailure:
     @pytest.mark.unit
     def test_get_maximum_severity_failure_mixed_success_failure(self):
         """Test that only failed expectations are considered."""
-        from great_expectations.expectations.metadata_types import FailureSeverity
         
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null", 
@@ -757,7 +756,6 @@ class TestGetMaximumSeverityFailure:
     def test_get_maximum_severity_failure_no_severity_defaults_to_critical(self, caplog):
         """Test that expectations without severity default to critical."""
         import logging
-        from great_expectations.expectations.metadata_types import FailureSeverity
         
         config = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null", 
@@ -788,7 +786,6 @@ class TestGetMaximumSeverityFailure:
     def test_get_maximum_severity_failure_invalid_severity_skipped(self, caplog):
         """Test that expectations with invalid severity are skipped."""
         import logging
-        from great_expectations.expectations.metadata_types import FailureSeverity
         
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null", 

@@ -26,7 +26,6 @@ from great_expectations.render import (
     RenderedAtomicContentSchema,
 )
 from great_expectations.types import SerializableDictDot
-from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.util import (
     convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
     ensure_json_serializable,  # noqa: TID251 # FIXME CoP
@@ -36,6 +35,7 @@ if TYPE_CHECKING:
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
+    from great_expectations.expectations.metadata_types import FailureSeverity
     from great_expectations.render.renderer.inline_renderer import InlineRendererConfig
 
 logger = logging.getLogger(__name__)
@@ -669,16 +669,18 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         Returns:
             The highest severity failure level, or None if no failures exist.
         """
+        from great_expectations.expectations.metadata_types import FailureSeverity
+
         if not self.results:
             return None
-            
+
         # Define severity order (higher index = higher severity)
         severity_order = {
             FailureSeverity.INFO: 0,
             FailureSeverity.WARNING: 1, 
             FailureSeverity.CRITICAL: 2
         }
-        
+
         max_severity = None
         max_severity_level = -1
         
@@ -690,7 +692,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                     logger.warning(
                         f"No severity value found in expectation "
                         f"'{result.expectation_config.type}' "
-                        f"(ID: {result.expectation_config.ge_cloud_id or 'unknown'}). "
+                        f"(Validation Result ID: {self.id}). "
                         f"Defaulting to CRITICAL severity."
                     )
                     severity_str = "critical"
@@ -711,7 +713,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                     logger.error(
                         f"Invalid severity value '{severity_str}' found in expectation "
                         f"'{result.expectation_config.type}' "
-                        f"(ID: {result.expectation_config.ge_cloud_id or 'unknown'}). "
+                        f"(Validation Result ID: {self.id}). "
                         f"Skipping this result."
                     )
         
