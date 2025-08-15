@@ -110,11 +110,11 @@ Dynamic Parameters allow you to create Expectations whose parameters update base
 
 You will be able to input:
 
-1. Sensitivity: `X%` of the average of previous values
+- Sensitivity: `X%` of the average of previous values
 
-2. Constraint: `Above`, `below`, or `above and below` for the sensitivity threshold
+- Constraint: `Above`, `below`, or `above and below` for the sensitivity threshold
 
-3. Run count: `n` previous validation results
+- Run count: `n` previous validation results
 
 When you select your `n` run count, and: 
 
@@ -138,15 +138,11 @@ The Expectation condition is an optional field that applies to any Expectation v
 
 You will need to select:
 
-1. A column to check the condition against.
-2. An operator that is used to compare the column against a parameter value.
-3. A parameter that will be compared against each row in the selected column.
-
-To clear the Expectation condition, click the clear button located on the right-hand side of the condition field.
-
+- A column to check the condition against.
+- An operator that is used to compare the column against a parameter value.
+- A parameter that will be compared against each row in the selected column.
 
 ![GX Cloud Expectation condition field](./expectation_images/expectation_condition_field.png)
-
 
 ![GX Cloud Expectation with condition](./expectation_images/expectation_with_condition.png)
 
