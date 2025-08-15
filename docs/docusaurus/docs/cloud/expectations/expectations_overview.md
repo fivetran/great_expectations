@@ -6,7 +6,7 @@ description: Learn about Expectations - declarative, verifiable assumptions abou
 
 An Expectation is a verifiable assertion about your data. They make implicit assumptions about your data explicit, and they provide a flexible, declarative language for describing expected behavior. They can help you better understand your data and help you improve data quality.
 
-This page provides an overview of Expectation types and options. For instructions on working with Expecations, see [Manage Expectations](/cloud/expectations/manage_expectations.md).
+This page provides an overview of Expectation types and options. For instructions on working with Expectations, see [Manage Expectations](/cloud/expectations/manage_expectations.md).
 
 ## Available Expectations
 

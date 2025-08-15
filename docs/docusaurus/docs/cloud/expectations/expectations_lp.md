@@ -11,7 +11,7 @@ import LinkCard from '@site/src/components/LinkCard';
 import OverviewCard from '@site/src/components/OverviewCard';
 
 <OverviewCard title={frontMatter.title}>
-  Expectations
+  An Expectation is a declarative, verifiable assumption about your data.
 </OverviewCard>
 
 <LinkCardGrid>
