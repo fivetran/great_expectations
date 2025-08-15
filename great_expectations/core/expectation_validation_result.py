@@ -710,7 +710,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
 
                 except ValueError:
                     # If severity is invalid, log error and skip this result
-                    logger.error(
+                    logger.exception(
                         f"Invalid severity value '{severity_str}' found in expectation "
                         f"'{result.expectation_config.type}' "
                         f"(Validation Result ID: {self.id}). "
