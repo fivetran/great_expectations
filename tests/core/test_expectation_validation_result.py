@@ -674,164 +674,189 @@ class TestGetMaximumSeverityFailure:
             success=True,
             results=[],
         )
-        
+
         assert result.get_maximum_severity_failure() is None
 
     @pytest.mark.unit
     def test_get_maximum_severity_failure_no_failures(self):
         """Test that None is returned when all expectations pass."""
         config = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null", 
-            kwargs={"column": "test_column", "severity": "critical"}
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column", "severity": "critical"},
         )
-        
+
         evr = ExpectationValidationResult(
-            success=True, 
-            expectation_config=config, 
-            result={"observed_value": 100}
+            success=True, expectation_config=config, result={"observed_value": 100}
         )
-        
+
         result = ExpectationSuiteValidationResult(
             suite_name="test_suite",
             success=True,
             results=[evr],
         )
-        
+
         assert result.get_maximum_severity_failure() is None
 
     @pytest.mark.unit
     def test_get_maximum_severity_failure_multiple_failures(self):
         """Test that the highest severity is returned among multiple failures."""
-        
+
         config1 = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null", 
-            kwargs={"column": "test_column", "severity": "info"}
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column", "severity": "info"},
         )
         config2 = ExpectationConfiguration(
-            type="expect_column_values_to_be_between", 
-            kwargs={"column": "test_column", "min_value": 0, "max_value": 100, "severity": "warning"}
+            type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "test_column",
+                "min_value": 0,
+                "max_value": 100,
+                "severity": "warning",
+            },
         )
         config3 = ExpectationConfiguration(
-            type="expect_column_values_to_be_unique", 
-            kwargs={"column": "test_column", "severity": "critical"}
+            type="expect_column_values_to_be_unique",
+            kwargs={"column": "test_column", "severity": "critical"},
         )
-        
+
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
         evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
         evr3 = ExpectationValidationResult(success=False, expectation_config=config3, result={})
-        
+
         result = ExpectationSuiteValidationResult(
             suite_name="test_suite",
             success=False,
             results=[evr1, evr2, evr3],
         )
-        
+
         assert result.get_maximum_severity_failure() == FailureSeverity.CRITICAL
 
     @pytest.mark.unit
     def test_get_maximum_severity_failure_mixed_success_failure(self):
         """Test that only failed expectations are considered."""
-        
+
         config1 = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null", 
-            kwargs={"column": "test_column", "severity": "critical"}
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column", "severity": "critical"},
         )
         config2 = ExpectationConfiguration(
-            type="expect_column_values_to_be_between", 
-            kwargs={"column": "test_column", "min_value": 0, "max_value": 100, "severity": "warning"}
+            type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "test_column",
+                "min_value": 0,
+                "max_value": 100,
+                "severity": "warning",
+            },
         )
-        
+
         evr1 = ExpectationValidationResult(success=True, expectation_config=config1, result={})
         evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
-        
+
         result = ExpectationSuiteValidationResult(
             suite_name="test_suite",
             success=False,
             results=[evr1, evr2],
         )
-        
+
         assert result.get_maximum_severity_failure() == FailureSeverity.WARNING
 
     @pytest.mark.unit
     def test_get_maximum_severity_failure_no_severity_defaults_to_critical(self, caplog):
         """Test that expectations without severity default to critical."""
         import logging
-        
+
         config = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null", 
-            kwargs={"column": "test_column"}  # No severity specified
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column"},  # No severity specified
         )
-        
+
         evr = ExpectationValidationResult(
-            success=False, 
-            expectation_config=config, 
-            result={"observed_value": 100}
+            success=False, expectation_config=config, result={"observed_value": 100}
         )
-        
+
         result = ExpectationSuiteValidationResult(
             suite_name="test_suite",
             success=False,
             results=[evr],
         )
-        
+
         # Capture log messages
         with caplog.at_level(logging.WARNING):
             assert result.get_maximum_severity_failure() == FailureSeverity.CRITICAL
-        
+
         # Verify that a warning was logged about missing severity
-        assert any("No severity value found in expectation" in record.message for record in caplog.records)
-        assert any("expect_column_values_to_not_be_null" in record.message for record in caplog.records)
+        assert any(
+            "No severity value found in expectation" in record.message for record in caplog.records
+        )
+        assert any(
+            "expect_column_values_to_not_be_null" in record.message for record in caplog.records
+        )
 
     @pytest.mark.unit
     def test_get_maximum_severity_failure_invalid_severity_skipped(self, caplog):
         """Test that expectations with invalid severity are skipped."""
         import logging
-        
+
         config1 = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null", 
-            kwargs={"column": "test_column", "severity": "invalid_severity"}
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column", "severity": "invalid_severity"},
         )
         config2 = ExpectationConfiguration(
-            type="expect_column_values_to_be_between", 
-            kwargs={"column": "test_column", "min_value": 0, "max_value": 100, "severity": "warning"}
+            type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "test_column",
+                "min_value": 0,
+                "max_value": 100,
+                "severity": "warning",
+            },
         )
-        
+
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
         evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
-        
+
         result = ExpectationSuiteValidationResult(
             suite_name="test_suite",
             success=False,
             results=[evr1, evr2],
         )
-        
+
         # Capture log messages
         with caplog.at_level(logging.ERROR):
             assert result.get_maximum_severity_failure() == FailureSeverity.WARNING
-        
+
         # Verify that an error was logged about invalid severity
-        assert any("Invalid severity value 'invalid_severity'" in record.message for record in caplog.records)
-        assert any("expect_column_values_to_not_be_null" in record.message for record in caplog.records)
+        assert any(
+            "Invalid severity value 'invalid_severity'" in record.message
+            for record in caplog.records
+        )
+        assert any(
+            "expect_column_values_to_not_be_null" in record.message for record in caplog.records
+        )
 
     @pytest.mark.unit
     def test_get_maximum_severity_failure_all_invalid_severities(self):
         """Test that None is returned when all failures have invalid severity."""
         config1 = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null", 
-            kwargs={"column": "test_column", "severity": "invalid_severity_1"}
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column", "severity": "invalid_severity_1"},
         )
         config2 = ExpectationConfiguration(
-            type="expect_column_values_to_be_between", 
-            kwargs={"column": "test_column", "min_value": 0, "max_value": 100, "severity": "invalid_severity_2"}
+            type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "test_column",
+                "min_value": 0,
+                "max_value": 100,
+                "severity": "invalid_severity_2",
+            },
         )
-        
+
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
         evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
-        
+
         result = ExpectationSuiteValidationResult(
             suite_name="test_suite",
             success=False,
             results=[evr1, evr2],
         )
-        
+
         assert result.get_maximum_severity_failure() is None

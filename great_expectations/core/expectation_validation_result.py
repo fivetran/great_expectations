@@ -662,10 +662,10 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
     @public_api
     def get_maximum_severity_failure(self) -> FailureSeverity | None:
         """Get the highest severity failure for Expectations in the validation result.
-        
+
         Returns the highest severity level among failed expectations. The severity levels
         are ordered as: CRITICAL > WARNING > INFO. If no failures exist, returns None.
-        
+
         Returns:
             The highest severity failure level, or None if no failures exist.
         """
@@ -677,13 +677,13 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         # Define severity order (higher index = higher severity)
         severity_order = {
             FailureSeverity.INFO: 0,
-            FailureSeverity.WARNING: 1, 
-            FailureSeverity.CRITICAL: 2
+            FailureSeverity.WARNING: 1,
+            FailureSeverity.CRITICAL: 2,
         }
 
         max_severity = None
         max_severity_level = -1
-        
+
         for result in self.results:
             # Only consider failed expectations
             if not result.success:
@@ -699,11 +699,11 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                 try:
                     severity = FailureSeverity(severity_str)
                     severity_level = severity_order[severity]
-                    
+
                     # Short-circuit: CRITICAL found, return immediately
                     if severity == FailureSeverity.CRITICAL:
                         return severity
-                    
+
                     if severity_level > max_severity_level:
                         max_severity = severity
                         max_severity_level = severity_level
@@ -716,7 +716,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                         f"(Validation Result ID: {self.id}). "
                         f"Skipping this result."
                     )
-        
+
         return max_severity
 
 
