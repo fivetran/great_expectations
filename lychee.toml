@@ -1,19 +1,7 @@
 # Lychee configuration to handle transient network errors
-[accept]
-status = [200]
 
-# Set timeouts to handle slow networks
-[request]
+accept = ["200"]
+
 timeout = 20
 
-# User agent to avoid being blocked
-user_agent = "lychee/GreatExpectations"
-
-# Retry configuration
-[retry]
 max_retries = 3
-wait_time = 2
-
-# Output configuration
-[output]
-verbose = true
