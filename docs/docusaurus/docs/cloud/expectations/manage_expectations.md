@@ -4,7 +4,9 @@ title: "Manage Expectations"
 description: Create and manage Expectations in GX Cloud.
 ---
 
-You can manually create Expecatations and use several different GX Cloud features to generate Expecations. This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview]](/cloud/expectations/expectations_overview.md).
+You can manually create Expecatations and use several different GX Cloud features to generate Expecations.
+
+This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md).
 
 ## Prerequisites
 
@@ -25,7 +27,7 @@ You can manually create Expecatations and use several different GX Cloud feature
    :::tip Options for accelerating test coverage
    If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). If you instead want to create your own rules, click **Manual**.
    
-   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql-with-expectai-beta). You can write your own SQL if you prefer.
+   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
    :::
 
 5. Select an Expectation type.
@@ -62,7 +64,7 @@ To add AI-recommended Expectations:
 
 ### Generate SQL
 
-To simplify working with [custom SQL Expectations](/docs/cloud/expectations/manage_expectations/#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+To simplify working with [custom SQL Expectations](/docs/cloud/expectations/expectations_overview.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
 
 For example, imagine you have a New York City taxi trip dataset with columns named `pickup_borough`, `vehicle_type`, and `passenger_count`. If you [add a custom SQL Expectation](#add-an-expectation) with a **Prompt for SQL generation** like `sedan rides in Manhattan shouldn't have more than 4 passengers` then ExpectAI would generate a SQL query similar to the following:
 

@@ -6,6 +6,8 @@ description: Learn about Expectations - declarative, verifiable assumptions abou
 
 An Expectation is a verifiable assertion about your data. They make implicit assumptions about your data explicit, and they provide a flexible, declarative language for describing expected behavior. They can help you better understand your data and help you improve data quality.
 
+This page provides an overview of Expectation types and options. For instructions on working with Expecations, see [Manage Expectations](/cloud/expectations/manage_expectations.md).
+
 ## Available Expectations
 
 The following table lists the available GX Cloud Expectations.
@@ -63,9 +65,9 @@ The following table lists the available GX Cloud Expectations.
 
 ## Custom SQL Expectations
 
-GX Cloud also offers the ability to write a custom Expectation using SQL. It is designed to fail validation if the provided SQL query returns one or more rows.
+GX Cloud offers the ability to write a custom Expectation using SQL. It is designed to fail validation if the provided SQL query returns one or more rows.
 
-The provided query should be written in the dialect of the Data Source in which a given Data Asset lives.
+The provided query should be written in the dialect of the Data Source in which a given Data Asset lives. To simplify working with custom SQL Expectations, you can use ExpectAI to [generate a SQL query](/docs/cloud/expectations/manage_expectation.md#generate-sql) based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
 
 :::info Optional `{batch}` named query
 
@@ -91,7 +93,7 @@ The percentage of identical rows is computed by dividing the number of matching 
 | 100                   | 25                          | 1            | 1%                           |
 | 0                     | 0                           | 0            | 100%                         |
 
-To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](#add-an-expectation) on the base Data Source. Each provided query should be written in the dialect of the associated Data Source.
+To create a Multi-source Expectation, [add the **expect query results to match comparison** Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) on the base Data Source. Each provided query should be written in the dialect of the associated Data Source.
 
 Keep the following limitations in mind when working with Multi-source Expectations:
 - The comparison is limited to the first 200 rows of each query result. If you anticipate that a query will return more than 200 rows, use an `ORDER BY` clause to control what is surfaced first for comparison.
