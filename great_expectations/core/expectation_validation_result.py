@@ -660,7 +660,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         return json.dumps(self.describe_dict(), indent=4)
 
     @public_api
-    def get_maximum_severity_failure(self) -> FailureSeverity | None:
+    def get_highest_severity_failure(self) -> FailureSeverity | None:  # noqa: C901
         """Get the highest severity failure for Expectations in the validation result.
 
         Returns the highest severity level among failed expectations. The severity levels
@@ -689,7 +689,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
             if not result.success:
                 # None check to avoid type error
                 if result.expectation_config is None:
-                    logger.exception(
+                    logger.error(
                         f"Expectation configuration is None for failed expectation "
                         f"(Validation Result ID: {self.id}). "
                         f"Skipping this result."
