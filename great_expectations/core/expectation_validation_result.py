@@ -687,6 +687,15 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         for result in self.results:
             # Only consider failed expectations
             if not result.success:
+                # None check to avoid type error
+                if result.expectation_config is None:
+                    logger.exception(
+                        f"Expectation configuration is None for failed expectation "
+                        f"(Validation Result ID: {self.id}). "
+                        f"Skipping this result."
+                    )
+                    continue
+
                 severity_str = result.expectation_config.kwargs.get("severity")
                 if severity_str is None:
                     logger.warning(
