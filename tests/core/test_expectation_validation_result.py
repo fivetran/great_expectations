@@ -16,6 +16,7 @@ from great_expectations.core.expectation_validation_result import (
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 
 
 @pytest.mark.unit
@@ -48,9 +49,9 @@ def test_expectation_validation_result_describe_returns_expected_description():
         },
     )
     # act
-    description = evr.describe()
+    from_describe = evr.describe()
     # assert
-    assert description == json.dumps(
+    assert from_describe == json.dumps(
         {
             "expectation_type": "expect_column_values_to_be_between",
             "success": False,
@@ -425,6 +426,60 @@ def test_render_updates_rendered_content():
     evr.render()
 
     assert evr.rendered_content is not None
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "severity_enum,expected_string",
+    [
+        (FailureSeverity.WARNING, "warning"),
+        (FailureSeverity.CRITICAL, "critical"), 
+        (FailureSeverity.INFO, "info"),
+    ],
+)
+def test_expectation_validation_result_with_severity_enum_serializes_properly(severity_enum, expected_string):
+    """Test that expectation validation results with severity enums serialize without errors."""
+    
+    # Create an expectation config with severity enum in kwargs
+    config = ExpectationConfiguration(
+        type="expect_table_row_count_to_be_between",
+        kwargs={
+            "min_value": 0,
+            "max_value": 100,
+            "severity": severity_enum
+        }
+    )
+    
+    evr = ExpectationValidationResult(
+        success=True,
+        expectation_config=config,
+        result={
+            "observed_value": 50,
+            "element_count": 1000,
+            "missing_count": 0,
+            "missing_percent": 0.0,
+        },
+        exception_info={
+            "raised_exception": False,
+            "exception_traceback": None,
+            "exception_message": None,
+        },
+    )
+    
+    # Test that the full validation result serializes without errors
+    description = evr.describe()
+    
+    # Parse the JSON to verify the severity was converted to string
+    import json
+    description_dict = json.loads(description)
+    
+    # Verify the severity was converted to string in the kwargs
+    assert description_dict["kwargs"]["severity"] == expected_string
+    
+    # Also test the to_json_dict method
+    json_dict = evr.to_json_dict()
+    # The to_json_dict method has expectation_config, not kwargs directly
+    assert json_dict["expectation_config"]["kwargs"]["severity"] == expected_string
 
 
 class TestSerialization:
