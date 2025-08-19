@@ -20,9 +20,9 @@ from great_expectations.expectations.window import Offset, Window
             (
                 '{"id": null, "meta": null, "notes": null, "result_format": "BASIC", '
                 '"description": null, "catch_exceptions": false, "rendered_content": null, '
-                '"windows": null, "batch_id": null, "column": "test_column", '
-                '"row_condition": null, "condition_parser": null, "min_value": 1.0, '
-                '"max_value": null, "strict_min": false, "strict_max": false}'
+                '"severity": "critical", "windows": null, "batch_id": null, '
+                '"column": "test_column", "row_condition": null, "condition_parser": null, '
+                '"min_value": 1.0, "max_value": null, "strict_min": false, "strict_max": false}'
             ),
         ),
         (
@@ -33,8 +33,9 @@ from great_expectations.expectations.window import Offset, Window
             (
                 '{"id": null, "meta": null, "notes": null, "result_format": "BASIC", '
                 '"description": null, "catch_exceptions": true, "rendered_content": null, '
-                '"windows": null, "batch_id": null, "column": "test_column", "mostly": 0.82, '
-                '"row_condition": null, "condition_parser": null}'
+                '"severity": "critical", "windows": null, "batch_id": null, '
+                '"column": "test_column", "mostly": 0.82, "row_condition": null, '
+                '"condition_parser": null}'
             ),
         ),
         (
@@ -45,8 +46,8 @@ from great_expectations.expectations.window import Offset, Window
             (
                 '{"id": null, "meta": null, "notes": null, "result_format": "BASIC", '
                 '"description": "Data shouldn\'t be bad.", "catch_exceptions": false, '
-                '"rendered_content": null, "windows": null, "batch_id": null, '
-                '"unexpected_rows_query": "SELECT * FROM '
+                '"rendered_content": null, "severity": "critical", "windows": null, '
+                '"batch_id": null, "unexpected_rows_query": "SELECT * FROM '
                 "my_table WHERE data='bad'\"}"
             ),
         ),
@@ -66,10 +67,11 @@ from great_expectations.expectations.window import Offset, Window
             (
                 '{"id": null, "meta": null, "notes": null, "result_format": "BASIC", '
                 '"description": null, "catch_exceptions": true, "rendered_content": null, '
-                '"windows": [{"constraint_fn": "a", "parameter_name": "b", "range": 5, '
-                '"offset": {"positive": 0.2, "negative": 0.2}, "strict": false}], '
-                '"batch_id": null, "column": "test_column", "mostly": 0.82, '
-                '"row_condition": null, "condition_parser": null}'
+                '"severity": "critical", "windows": [{"constraint_fn": "a", '
+                '"parameter_name": "b", "range": 5, "offset": {"positive": 0.2, '
+                '"negative": 0.2}, "strict": false}], "batch_id": null, '
+                '"column": "test_column", "mostly": 0.82, "row_condition": null, '
+                '"condition_parser": null}'
             ),
         ),
     ],

@@ -57,6 +57,7 @@ from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
     parse_result_format,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -339,6 +340,13 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
     catch_exceptions: bool = False
     rendered_content: Optional[List[RenderedAtomicContent]] = None
+    severity: FailureSeverity = pydantic.Field(
+        default=FailureSeverity.CRITICAL,
+        description=(
+            "Indicate the impact of this Expectation failing. Severity levels can be "
+            "used to trigger different alerting patterns and actions."
+        ),
+    )
 
     version: ClassVar[str] = ge_version
     domain_keys: ClassVar[Tuple[str, ...]] = ()
