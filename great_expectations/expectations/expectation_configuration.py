@@ -29,6 +29,7 @@ from great_expectations.exceptions import (
     InvalidExpectationConfigurationError,
     InvalidExpectationKwargsError,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.expectations.registry import get_expectation_impl
 from great_expectations.render import RenderedAtomicContent, RenderedAtomicContentSchema
 from great_expectations.types import SerializableDictDot
@@ -108,6 +109,7 @@ class ExpectationConfiguration(SerializableDictDot):
         meta: A dictionary of metadata to attach to the expectation.
         notes: Notes about this expectation.
         description: The description of the expectation. This will be rendered instead of the default template.
+        severity: The severity of the expectation failure.
         success_on_last_run: Whether the expectation succeeded on the last run.
         id: The corresponding GX Cloud ID for the expectation.
         expectation_context: The context for the expectation.
@@ -131,6 +133,7 @@ class ExpectationConfiguration(SerializableDictDot):
         meta: Optional[dict] = None,
         notes: str | list[str] | None = None,
         description: str | None = None,
+        severity: FailureSeverity = FailureSeverity.CRITICAL,
         success_on_last_run: Optional[bool] = None,
         id: Optional[str] = None,
         expectation_context: Optional[ExpectationContext] = None,
@@ -153,6 +156,7 @@ class ExpectationConfiguration(SerializableDictDot):
         self.meta = meta
         self.notes = notes
         self.description = description
+        self.severity = severity
         self.success_on_last_run = success_on_last_run
         self._id = id
         self._expectation_context = expectation_context
