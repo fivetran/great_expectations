@@ -433,23 +433,21 @@ def test_render_updates_rendered_content():
     "severity_enum,expected_string",
     [
         (FailureSeverity.WARNING, "warning"),
-        (FailureSeverity.CRITICAL, "critical"), 
+        (FailureSeverity.CRITICAL, "critical"),
         (FailureSeverity.INFO, "info"),
     ],
 )
-def test_expectation_validation_result_with_severity_enum_serializes_properly(severity_enum, expected_string):
+def test_expectation_validation_result_with_severity_enum_serializes_properly(
+    severity_enum, expected_string
+):
     """Test that expectation validation results with severity enums serialize without errors."""
-    
+
     # Create an expectation config with severity enum in kwargs
     config = ExpectationConfiguration(
         type="expect_table_row_count_to_be_between",
-        kwargs={
-            "min_value": 0,
-            "max_value": 100,
-            "severity": severity_enum
-        }
+        kwargs={"min_value": 0, "max_value": 100, "severity": severity_enum},
     )
-    
+
     evr = ExpectationValidationResult(
         success=True,
         expectation_config=config,
@@ -465,17 +463,18 @@ def test_expectation_validation_result_with_severity_enum_serializes_properly(se
             "exception_message": None,
         },
     )
-    
+
     # Test that the full validation result serializes without errors
     description = evr.describe()
-    
+
     # Parse the JSON to verify the severity was converted to string
     import json
+
     description_dict = json.loads(description)
-    
+
     # Verify the severity was converted to string in the kwargs
     assert description_dict["kwargs"]["severity"] == expected_string
-    
+
     # Also test the to_json_dict method
     json_dict = evr.to_json_dict()
     # The to_json_dict method has expectation_config, not kwargs directly
