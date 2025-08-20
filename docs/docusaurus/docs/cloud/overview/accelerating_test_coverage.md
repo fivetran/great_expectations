@@ -44,9 +44,9 @@ ExpectAI is an analytical AI tool that powers several features in GX Cloud.
 
 
 ### Personalized AI-recommended rules
-When you [generate Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta), ExpectAI performs deep analysis on a given Data Asset to set Expectations based on patterns in the data. These AI-recommended data quality rules are sometimes based on anomalies detected in the data, so they may fail on the first validation to bring your attention to potential problems.  
+When you [generate Expectations](/cloud/expectations/manage_expectations.md#generate-expectations), ExpectAI performs deep analysis on a given Data Asset to set Expectations based on patterns in the data. These AI-recommended data quality rules are sometimes based on anomalies detected in the data, so they may fail on the first validation to bring your attention to potential problems.  
 
 ### Code for custom SQL Expectations
-To simplify working with [custom SQL Expectations](/cloud/expectations/manage_expectations.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+To simplify working with [custom SQL Expectations](/cloud/expectations/expectations_overview.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
 
 
