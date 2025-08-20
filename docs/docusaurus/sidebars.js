@@ -186,9 +186,13 @@ module.exports = {
       id: 'cloud/data_assets/manage_data_assets'
     },
     {
-      type: 'doc',
-      label: 'Manage Expectations',
-      id: 'cloud/expectations/manage_expectations'
+      type: 'category',
+      label: 'Expectations',
+      link: { type: 'doc', id: 'cloud/expectations/expectations_lp' },
+      items: [
+        'cloud/expectations/expectations_overview',
+        'cloud/expectations/manage_expectations'
+      ]
     },
     {
       type: 'doc',
