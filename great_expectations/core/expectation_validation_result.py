@@ -696,7 +696,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                     )
                     continue
 
-                severity_str = result.expectation_config.kwargs.get("severity")
+                severity_str = result.expectation_config.get("severity")
                 if severity_str is None:
                     logger.warning(
                         f"No severity value found in expectation "

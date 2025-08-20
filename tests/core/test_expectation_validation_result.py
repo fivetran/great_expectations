@@ -682,7 +682,8 @@ class TestGetHighestSeverityFailure:
         """Test that None is returned when all expectations pass."""
         config = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column", "severity": "critical"},
+            kwargs={"column": "test_column"},
+            severity="critical",
         )
 
         evr = ExpectationValidationResult(
@@ -703,7 +704,8 @@ class TestGetHighestSeverityFailure:
 
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column", "severity": "info"},
+            kwargs={"column": "test_column"},
+            severity="info",
         )
         config2 = ExpectationConfiguration(
             type="expect_column_values_to_be_between",
@@ -711,12 +713,13 @@ class TestGetHighestSeverityFailure:
                 "column": "test_column",
                 "min_value": 0,
                 "max_value": 100,
-                "severity": "warning",
             },
+            severity="warning",
         )
         config3 = ExpectationConfiguration(
             type="expect_column_values_to_be_unique",
-            kwargs={"column": "test_column", "severity": "critical"},
+            kwargs={"column": "test_column"},
+            severity="critical",
         )
 
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
@@ -737,7 +740,8 @@ class TestGetHighestSeverityFailure:
 
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column", "severity": "critical"},
+            kwargs={"column": "test_column"},
+            severity="critical",
         )
         config2 = ExpectationConfiguration(
             type="expect_column_values_to_be_between",
@@ -745,8 +749,8 @@ class TestGetHighestSeverityFailure:
                 "column": "test_column",
                 "min_value": 0,
                 "max_value": 100,
-                "severity": "warning",
             },
+            severity="warning",
         )
 
         evr1 = ExpectationValidationResult(success=True, expectation_config=config1, result={})
@@ -799,7 +803,8 @@ class TestGetHighestSeverityFailure:
 
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column", "severity": "invalid_severity"},
+            kwargs={"column": "test_column"},
+            severity="invalid_severity",
         )
         config2 = ExpectationConfiguration(
             type="expect_column_values_to_be_between",
@@ -807,8 +812,8 @@ class TestGetHighestSeverityFailure:
                 "column": "test_column",
                 "min_value": 0,
                 "max_value": 100,
-                "severity": "warning",
             },
+            severity="warning",
         )
 
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
@@ -838,7 +843,8 @@ class TestGetHighestSeverityFailure:
         """Test that None is returned when all failures have invalid severity."""
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column", "severity": "invalid_severity_1"},
+            kwargs={"column": "test_column"},
+            severity="invalid_severity_1",
         )
         config2 = ExpectationConfiguration(
             type="expect_column_values_to_be_between",
@@ -846,8 +852,8 @@ class TestGetHighestSeverityFailure:
                 "column": "test_column",
                 "min_value": 0,
                 "max_value": 100,
-                "severity": "invalid_severity_2",
             },
+            severity="invalid_severity_2",
         )
 
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
