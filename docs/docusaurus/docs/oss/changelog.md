@@ -15,6 +15,15 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.9
+* [FEATURE] Update JSON schemas for Expectations to incorporate failure severity ([#11337](https://github.com/great-expectations/great_expectations/pull/11337))
+* [DOCS] remove "settings" from nav paths ([#11332](https://github.com/great-expectations/great_expectations/pull/11332))
+* [DOCS] env var typo ([#11335](https://github.com/great-expectations/great_expectations/pull/11335))
+* [DOCS] Sunset Cloud API version 0.18 ([#11334](https://github.com/great-expectations/great_expectations/pull/11334))
+* [DOCS] temporarily remove link checker ([#11342](https://github.com/great-expectations/great_expectations/pull/11342))
+* [DOCS] Split manage expectations page ([#11340](https://github.com/great-expectations/great_expectations/pull/11340))
+* [MAINTENANCE] Fix webpack-dev-server and form-data vulnerabilities ([#11339](https://github.com/great-expectations/great_expectations/pull/11339))
+
 ### 1.5.8
 * [BUGFIX] Handle SQL parameter limit for Databricks ([#11317](https://github.com/great-expectations/great_expectations/pull/11317))
 * [DOCS] Move ingestion in diagram ([#11329](https://github.com/great-expectations/great_expectations/pull/11329))
