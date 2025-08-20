@@ -445,7 +445,8 @@ def test_expectation_validation_result_with_severity_enum_serializes_properly(
     # Create an expectation config with severity enum in kwargs
     config = ExpectationConfiguration(
         type="expect_table_row_count_to_be_between",
-        kwargs={"min_value": 0, "max_value": 100, "severity": severity_enum},
+        kwargs={"min_value": 0, "max_value": 100},
+        severity=severity_enum,
     )
 
     evr = ExpectationValidationResult(
