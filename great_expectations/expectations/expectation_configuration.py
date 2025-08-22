@@ -549,6 +549,7 @@ class ExpectationConfigurationSchema(Schema):
         )
     )
     description = fields.Str(required=False, allow_none=True)
+    severity = fields.Enum(FailureSeverity, required=False, allow_none=True, by_value=True)
 
     REMOVE_KEYS_IF_NONE = [
         "id",
@@ -556,12 +557,20 @@ class ExpectationConfigurationSchema(Schema):
         "rendered_content",
         "notes",
         "description",
+        "severity",
     ]
 
     @pre_dump
     def convert_result_to_serializable(self, data, **kwargs):
         data = copy.deepcopy(data)
         data["kwargs"] = convert_to_json_serializable(data.get("kwargs", {}))
+        # If severity is already a string (from convert_to_json_serializable), convert it back to enum
+        # so marshmallow's Enum field can handle it properly
+        if "severity" in data and isinstance(data["severity"], str):
+            try:
+                data["severity"] = FailureSeverity(data["severity"])
+            except ValueError:
+                raise InvalidExpectationConfigurationError("Invalid severity value. Must be one of: " + ", ".join(FailureSeverity.values()))
         return data
 
     @post_dump
