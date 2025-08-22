@@ -564,7 +564,7 @@ class ExpectationConfigurationSchema(Schema):
     def convert_result_to_serializable(self, data, **kwargs):
         data = copy.deepcopy(data)
         data["kwargs"] = convert_to_json_serializable(data.get("kwargs", {}))
-        # If severity is already a string (from convert_to_json_serializable), convert 
+        # If severity is already a string (from convert_to_json_serializable), convert
         # it back to enum so marshmallow's Enum field can handle it properly
         if "severity" in data and isinstance(data["severity"], str):
             try:
