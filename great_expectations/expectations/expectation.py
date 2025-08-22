@@ -1367,6 +1367,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         meta = kwargs.pop("meta", None)
         notes = kwargs.pop("notes", None)
         description = kwargs.pop("description", None)
+        severity = kwargs.pop("severity", FailureSeverity.CRITICAL)
         id = kwargs.pop("id", None)
         rendered_content = kwargs.pop("rendered_content", None)
         return ExpectationConfiguration(
@@ -1375,6 +1376,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             meta=meta,
             notes=notes,
             description=description,
+            severity=severity,
             id=id,
             rendered_content=rendered_content,
         )
