@@ -570,7 +570,9 @@ class ExpectationConfigurationSchema(Schema):
             try:
                 data["severity"] = FailureSeverity(data["severity"])
             except ValueError:
-                raise InvalidExpectationConfigurationError("Invalid severity value. Must be one of: " + ", ".join(FailureSeverity.values()))
+                raise InvalidExpectationConfigurationError(
+                    "Invalid severity value. Must be one of: " + ", ".join(FailureSeverity.values())
+                )
         return data
 
     @post_dump
