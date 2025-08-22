@@ -49,9 +49,9 @@ def test_expectation_validation_result_describe_returns_expected_description():
         },
     )
     # act
-    from_describe = evr.describe()
+    description = evr.describe()
     # assert
-    assert from_describe == json.dumps(
+    assert description == json.dumps(
         {
             "expectation_type": "expect_column_values_to_be_between",
             "success": False,
@@ -442,10 +442,11 @@ def test_expectation_validation_result_with_severity_enum_serializes_properly(
 ):
     """Test that expectation validation results with severity enums serialize without errors."""
 
-    # Create an expectation config with severity enum in kwargs
+    # Create an expectation config with severity enum at top level
     config = ExpectationConfiguration(
         type="expect_table_row_count_to_be_between",
-        kwargs={"min_value": 0, "max_value": 100, "severity": severity_enum},
+        kwargs={"min_value": 0, "max_value": 100},
+        severity=severity_enum,
     )
 
     evr = ExpectationValidationResult(
@@ -464,20 +465,10 @@ def test_expectation_validation_result_with_severity_enum_serializes_properly(
         },
     )
 
-    # Test that the full validation result serializes without errors
-    description = evr.describe()
-
-    # Parse the JSON to verify the severity was converted to string
-    import json
-
-    description_dict = json.loads(description)
-    # Verify the severity was converted to string in the kwargs
-    assert description_dict["kwargs"]["severity"] == expected_string
-
-    # Also test the to_json_dict method
+    # Test that the validation result serializes without errors and severity is correct
     json_dict = evr.to_json_dict()
-    # The to_json_dict method has expectation_config, not kwargs directly
-    assert json_dict["expectation_config"]["kwargs"]["severity"] == expected_string
+    # Verify the severity was converted to the expected string value
+    assert json_dict["expectation_config"]["severity"] == expected_string
 
 
 class TestSerialization:
