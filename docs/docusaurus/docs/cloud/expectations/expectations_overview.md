@@ -132,7 +132,7 @@ Forecasted ranges are determined by GX Cloud through a continuous learning algor
 
 Keep the following in mind when working with forecasted ranges:
 - Expectations with forecasted ranges will always succeed for the first 2 validation runs. This is because GX Cloud needs at least 2 data points to produce a forecast.
-- Forecasted ranges are not supported for incrementally validated batched data.
+- Forecasted ranges are not supported for incrementally validated Batches of data.
 
 ## Expectation condition
 
