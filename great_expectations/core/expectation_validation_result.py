@@ -669,25 +669,14 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         Returns:
             The highest severity failure level, or None if no failures exist.
         """
-        from great_expectations.expectations.metadata_types import FailureSeverity
-
         if not self.results:
             return None
 
-        # Define severity order (higher index = higher severity)
-        severity_order = {
-            FailureSeverity.INFO: 0,
-            FailureSeverity.WARNING: 1,
-            FailureSeverity.CRITICAL: 2,
-        }
-
         max_severity = None
-        max_severity_level = -1
 
         for result in self.results:
             # Only consider failed expectations
             if not result.success:
-                # None check to avoid type error
                 if result.expectation_config is None:
                     logger.error(
                         f"Expectation configuration is None for failed expectation "
@@ -707,18 +696,16 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                     severity_str = "critical"
                 try:
                     severity = FailureSeverity(severity_str)
-                    severity_level = severity_order[severity]
 
-                    # Short-circuit: CRITICAL found, return immediately
+                    # Short-circuit: highest possible severity level found
                     if severity == FailureSeverity.CRITICAL:
                         return severity
 
-                    if severity_level > max_severity_level:
+                    # Direct comparison - string enums can be compared lexicographically
+                    if max_severity is None or severity > max_severity:
                         max_severity = severity
-                        max_severity_level = severity_level
 
                 except ValueError:
-                    # If severity is invalid, log error and skip this result
                     logger.exception(
                         f"Invalid severity value '{severity_str}' found in expectation "
                         f"'{result.expectation_config.type}' "
