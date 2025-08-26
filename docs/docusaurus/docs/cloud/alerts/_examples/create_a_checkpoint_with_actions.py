@@ -5,6 +5,7 @@ To test, run:
 pytest --docs-tests -k "cloud_docs_example_create_a_checkpoint" tests/integration/test_script_runner.py
 """
 
+
 def set_up_context_for_example(context):
     # Create a Batch Definition
     batch_definition = (
@@ -27,10 +28,10 @@ def set_up_context_for_example(context):
     )
 
     vd = gx.ValidationDefinition(
-            data=batch_definition,
-            suite=expectation_suite,
-            name="my_validation_definition",
-        )
+        data=batch_definition,
+        suite=expectation_suite,
+        name="my_validation_definition",
+    )
 
     # Create a Validation Definition
     context.validation_definitions.add(vd)
@@ -39,9 +40,9 @@ def set_up_context_for_example(context):
         name="my_checkpoint",
         validation_definitions=validation_definitions,
         actions=action_list,
-        result_format={"result_format": "COMPLETE"}
+        result_format={"result_format": "COMPLETE"},
     )
-    
+
     context.checkpoints.add(checkpoint)
 
 
