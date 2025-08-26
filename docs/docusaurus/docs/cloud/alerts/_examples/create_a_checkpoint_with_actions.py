@@ -38,9 +38,9 @@ def set_up_context_for_example(context):
 
     checkpoint = gx.Checkpoint(
         name="my_checkpoint",
-        validation_definitions=validation_definitions,
-        actions=action_list,
-        result_format={"result_format": "COMPLETE"},
+        validation_definitions=[vd],
+        actions=[],
+        result_format={"result_format": "COMPLETE"}
     )
 
     context.checkpoints.add(checkpoint)
