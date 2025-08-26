@@ -40,7 +40,7 @@ def set_up_context_for_example(context):
         name="my_checkpoint",
         validation_definitions=[vd],
         actions=[],
-        result_format={"result_format": "COMPLETE"}
+        result_format={"result_format": "COMPLETE"},
     )
 
     context.checkpoints.add(checkpoint)
