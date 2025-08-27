@@ -42,6 +42,7 @@ class ExpectationConfigurationDTO(pydantic.BaseModel):
     kwargs: dict
     meta: Union[dict, None]
     description: Union[str, None]
+    severity: Union[str, None] = None
     expectation_context: Union[dict, None]
 
 
