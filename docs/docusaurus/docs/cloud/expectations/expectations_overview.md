@@ -130,7 +130,9 @@ When you select your `n` run count, and:
 
 Forecasted ranges are determined by GX Cloud through a continuous learning algorithm that analyzes historical patterns in your data. For example, a forecasted range for volume Anomaly Detection could detect a sudden increase when volume has been stable or stagnation in a season when volume typically grows. GX Cloud sets and updates forecasted range parameters on your behalf. 
 
-Expectations with forecasted ranges will always succeed for the first 2 validation runs. This is because GX Cloud needs at least 2 data points to produce a forecast.
+Keep the following in mind when working with forecasted ranges:
+- Expectations with forecasted ranges will always succeed for the first 2 validation runs. This is because GX Cloud needs at least 2 data points to produce a forecast.
+- Forecasted ranges are not supported for incrementally validated Batches of data.
 
 ## Expectation condition
 
