@@ -15,6 +15,11 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.10
+* [DOCS] Completeness anomaly detection now uses forecasted range ([#11346](https://github.com/great-expectations/great_expectations/pull/11346))
+* [DOCS] forecasted range limitation ([#11349](https://github.com/great-expectations/great_expectations/pull/11349))
+* [MAINTENANCE] Bump mermaid from 11.9.0 to 11.10.1 in /docs/docusaurus ([#11348](https://github.com/great-expectations/great_expectations/pull/11348))
+
 ### 1.5.9
 * [FEATURE] Update JSON schemas for Expectations to incorporate failure severity ([#11337](https://github.com/great-expectations/great_expectations/pull/11337))
 * [DOCS] remove "settings" from nav paths ([#11332](https://github.com/great-expectations/great_expectations/pull/11332))
