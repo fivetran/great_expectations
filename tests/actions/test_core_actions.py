@@ -18,12 +18,14 @@ from great_expectations.checkpoint.actions import (
     APINotificationAction,
     EmailAction,
     MicrosoftTeamsNotificationAction,
+    NotifyOn,
     OpsgenieAlertAction,
     PagerdutyAlertAction,
     SlackNotificationAction,
     SNSNotificationAction,
     UpdateDataDocsAction,
     ValidationAction,
+    should_notify,
 )
 from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
 from great_expectations.core.batch import IDDict, LegacyBatchDefinition
@@ -52,6 +54,8 @@ from great_expectations.util import is_library_loadable
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
     from typing_extensions import Never
+
+    from great_expectations.expectations.metadata_types import FailureSeverity
 
 logger = logging.getLogger(__name__)
 
@@ -915,3 +919,87 @@ class TestCustomActions:
 
             class CustomSlackAction(ValidationAction):
                 type: Literal["slack"] = "slack"  # Shadows existing value
+
+
+class TestShouldNotify:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "success, notify_on, expected",
+        [
+            pytest.param(True, "all", True, id="all_success"),
+            pytest.param(False, "all", True, id="all_failure"),
+        ],
+    )
+    def test_all_always_true(self, success: bool, notify_on: NotifyOn, expected: bool):
+        assert should_notify(success=success, notify_on=notify_on) is expected
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "success, expected",
+        [
+            pytest.param(True, True, id="success_true"),
+            pytest.param(False, False, id="success_false"),
+        ],
+    )
+    def test_success_mode(self, success: bool, expected: bool):
+        assert should_notify(success=success, notify_on="success") is expected
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "success, expected",
+        [
+            pytest.param(True, False, id="failure_mode_success_true"),
+            pytest.param(False, True, id="failure_mode_success_false"),
+        ],
+    )
+    def test_failure_mode(self, success: bool, expected: bool):
+        assert should_notify(success=success, notify_on="failure") is expected
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "notify_on",
+        [
+            pytest.param("info", id="info"),
+            pytest.param("warning", id="warning"),
+            pytest.param("critical", id="critical"),
+        ],
+    )
+    def test_severity_modes_do_not_notify_on_success(self, notify_on: NotifyOn):
+        assert should_notify(success=True, notify_on=notify_on) is False
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "notify_on, max_severity, expected",
+        [
+            # default max_severity is "critical"
+            pytest.param("critical", "critical", True, id="default_max_critical"),
+            pytest.param("warning", "critical", False, id="default_max_warning"),
+            pytest.param("info", "critical", False, id="default_max_info"),
+            # custom max_severity = warning
+            pytest.param("warning", "warning", True, id="max_warning_match"),
+            pytest.param("critical", "warning", False, id="max_warning_critical"),
+            pytest.param("info", "warning", False, id="max_warning_info"),
+            # custom max_severity = info
+            pytest.param("info", "info", True, id="max_info_match"),
+            pytest.param("warning", "info", False, id="max_info_warning"),
+            pytest.param("critical", "info", False, id="max_info_critical"),
+        ],
+    )
+    def test_severity_modes_on_failure(
+        self, notify_on: NotifyOn, max_severity: FailureSeverity, expected: bool
+    ):
+        assert (
+            should_notify(success=False, notify_on=notify_on, max_severity=max_severity) is expected
+        )
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "notify_on",
+        [
+            pytest.param("info", id="info"),
+            pytest.param("warning", id="warning"),
+            pytest.param("critical", id="critical"),
+        ],
+    )
+    def test_severity_modes_on_failure_with_none_max(self, notify_on: NotifyOn):
+        assert should_notify(success=False, notify_on=notify_on, max_severity=None) is False
