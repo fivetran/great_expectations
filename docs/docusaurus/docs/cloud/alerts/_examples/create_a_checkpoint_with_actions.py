@@ -51,6 +51,7 @@ import great_expectations as gx
 from great_expectations.checkpoint import SlackNotificationAction
 
 context = gx.get_context()
+# Hide this
 set_up_context_for_example(context)
 
 # Retrieve the Checkpoint
