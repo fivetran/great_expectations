@@ -237,14 +237,15 @@ class ExpectationConfiguration(SerializableDictDot):
             try:
                 self._severity = FailureSeverity(value)
             except ValueError:
-                raise InvalidExpectationConfigurationError(
-                    f"Invalid severity value '{value}'. Must be one of: {', '.join([member.value for member in FailureSeverity])}"
+                valid_values = ", ".join([member.value for member in FailureSeverity])
+                raise InvalidExpectationConfigurationError(  # noqa: TRY003
+                    f"Invalid severity '{value}'. Must be one of: {valid_values}"
                 )
         else:
             # Validate that it's a valid FailureSeverity enum
             if not isinstance(value, FailureSeverity):
-                raise InvalidExpectationConfigurationError(
-                    f"Severity must be a string or FailureSeverity enum, got {type(value).__name__}"
+                raise InvalidExpectationConfigurationError(  # noqa: TRY003
+                    f"Severity must be string or enum, got {type(value).__name__}"
                 )
             self._severity = value
 
