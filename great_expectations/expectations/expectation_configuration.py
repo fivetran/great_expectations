@@ -226,6 +226,28 @@ class ExpectationConfiguration(SerializableDictDot):
     def rendered_content(self, value: Optional[List[RenderedAtomicContent]]) -> None:
         self._rendered_content = value
 
+    @property
+    def severity(self) -> FailureSeverity:
+        return self._severity
+
+    @severity.setter
+    def severity(self, value: Union[FailureSeverity, str]) -> None:
+        # Convert string severity to enum and validate
+        if isinstance(value, str):
+            try:
+                self._severity = FailureSeverity(value)
+            except ValueError:
+                raise InvalidExpectationConfigurationError(
+                    f"Invalid severity value '{value}'. Must be one of: {', '.join([member.value for member in FailureSeverity])}"
+                )
+        else:
+            # Validate that it's a valid FailureSeverity enum
+            if not isinstance(value, FailureSeverity):
+                raise InvalidExpectationConfigurationError(
+                    f"Severity must be a string or FailureSeverity enum, got {type(value).__name__}"
+                )
+            self._severity = value
+
     def _get_default_custom_kwargs(self) -> KWargDetailsDict:
         # NOTE: this is a holdover until class-first expectations control their
         # defaults, and so defaults are inherited.
@@ -557,7 +579,6 @@ class ExpectationConfigurationSchema(Schema):
         "rendered_content",
         "notes",
         "description",
-        "severity",
     ]
 
     @pre_dump
@@ -567,12 +588,7 @@ class ExpectationConfigurationSchema(Schema):
         # If severity is already a string (from convert_to_json_serializable), convert
         # it back to enum so marshmallow's Enum field can handle it properly
         if "severity" in data and isinstance(data["severity"], str):
-            try:
-                data["severity"] = FailureSeverity(data["severity"])
-            except ValueError:
-                raise InvalidExpectationConfigurationError(
-                    "Invalid severity value. Must be one of: " + ", ".join([member.value for member in FailureSeverity])
-                )
+            data["severity"] = FailureSeverity(data["severity"])
         return data
 
     @post_dump
