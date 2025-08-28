@@ -229,3 +229,80 @@ class TestExpectationConfigurationHash:
         hash3 = hash(config1)
 
         assert hash1 == hash2 == hash3
+
+
+@pytest.mark.unit
+def test_expectation_configuration_severity_functionality():
+    """Test that severity is properly handled in ExpectationConfiguration."""
+    from great_expectations.expectations.metadata_types import FailureSeverity
+
+    # Test default severity
+    config = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+    )
+    assert config.severity == FailureSeverity.CRITICAL
+
+    # Test setting severity via constructor
+    config = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        severity=FailureSeverity.WARNING,
+    )
+    assert config.severity == FailureSeverity.WARNING
+
+    # Test setting severity via property setter
+    config.severity = FailureSeverity.INFO
+    assert config.severity == FailureSeverity.INFO
+
+    # Test setting severity via string
+    config.severity = "warning"
+    assert config.severity == FailureSeverity.WARNING
+
+    # Test that severity is included in serialization
+    json_dict = config.to_json_dict()
+    assert "severity" in json_dict
+    assert json_dict["severity"] == "warning"
+
+    # Test that severity is preserved in to_domain_obj conversion
+    expectation = config.to_domain_obj()
+    assert expectation.severity == FailureSeverity.WARNING
+
+    # Test that severity is included in configuration property
+    expectation_config = expectation.configuration
+    assert expectation_config.severity == FailureSeverity.WARNING
+
+    # Test invalid severity values
+    from great_expectations.exceptions import InvalidExpectationConfigurationError
+    
+    with pytest.raises(InvalidExpectationConfigurationError, match="Invalid severity"):
+        config.severity = "invalid_severity"
+
+    with pytest.raises(InvalidExpectationConfigurationError, match="Severity must be string or enum"):
+        config.severity = 123
+
+
+@pytest.mark.unit
+def test_expectation_configuration_severity_equality():
+    """Test that severity is NOT considered in equality comparisons (current implementation)."""
+    config1 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        severity="critical",
+    )
+    config2 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        severity="warning",
+    )
+    config3 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        severity="critical",
+    )
+
+    # Note: Current implementation doesn't include severity in equality comparison
+    assert config1 == config2  # Same type and kwargs, different severity
+    assert config1 == config3  # Same type and kwargs, same severity
+    assert hash(config1) == hash(config2)  # Same hash (severity not included)
+    assert hash(config1) == hash(config3)  # Same hash
