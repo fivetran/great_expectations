@@ -504,6 +504,7 @@ class ExpectationConfiguration(SerializableDictDot):
             "meta": self.meta,
             "notes": self.notes,
             "rendered_content": self.rendered_content,
+            "severity": self.severity,
         }
         # it's possible description could be subclassed as a class variable,
         # because we have documented it that way in the past.
