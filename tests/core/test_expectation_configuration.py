@@ -274,11 +274,13 @@ def test_expectation_configuration_severity_functionality():
 
     # Test invalid severity values
     from great_expectations.exceptions import InvalidExpectationConfigurationError
-    
+
     with pytest.raises(InvalidExpectationConfigurationError, match="Invalid severity"):
         config.severity = "invalid_severity"
 
-    with pytest.raises(InvalidExpectationConfigurationError, match="Severity must be string or enum"):
+    with pytest.raises(
+        InvalidExpectationConfigurationError, match="Severity must be string or enum"
+    ):
         config.severity = 123
 
 
