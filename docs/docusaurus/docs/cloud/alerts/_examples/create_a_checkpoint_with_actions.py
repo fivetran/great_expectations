@@ -54,15 +54,14 @@ context = gx.get_context()
 # Hide this
 set_up_context_for_example(context)
 
-# Retrieve the Checkpoint
+# Retrieve the Checkpoint.
 # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - retrieve the Checkpoint">
 checkpoint_name = "my_checkpoint"
 checkpoint = context.checkpoints.get(checkpoint_name)
 # </snippet>
 
-# Create a SlackNotificationAction for the Checkpoint to perform
+# Create a SlackNotificationAction for the Checkpoint to perform.
 # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - create a SlackNotificationAction">
-# This Action sends a Slack Notification if an Expectation fails.
 action = SlackNotificationAction(
     name="send_slack_notification_on_failed_expectations",
     slack_token="${validation_notification_slack_webhook}",
