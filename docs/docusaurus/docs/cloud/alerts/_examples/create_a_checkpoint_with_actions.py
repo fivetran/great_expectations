@@ -47,6 +47,8 @@ def set_up_context_for_example(context):
 
 
 # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - full code example">
+# Instantiate the Context.
+# <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - instantiate the Context">
 import great_expectations as gx
 from great_expectations.checkpoint import SlackNotificationAction
 

@@ -12,13 +12,14 @@ import PrereqGxInstalled from '../../core/_core_components/prerequisites/_gx_ins
 import PrereqPreconfiguredDataContext from '../../core/_core_components/prerequisites/_preconfigured_data_context.md';
 import PrereqValidationDefinition from '../../core/_core_components/prerequisites/_validation_definition.md';
 
-A Checkpoint executes one or more Validation Definitions and then performs a set of Actions based on the Validation Results each Validation Definition returns. This example will demonstrate how to create a `SlackNotificationAction`.
+Use Actions to notify the appropriate parties of the results of your Validation runs. These Actions can be triggered for either successful or failed validation runs. Validations are executed using Checkpoints, which each have a list of Actions that will be executed when each run has finished. By default, GX creates a Checkpoint for each Data Asset that you create. Optionally, you can also use a Checkpoint that you have created manually. This example will demonstrate how to create a `SlackNotificationAction` and append it to the list of Actions on a given Checkpoint.
 
 ## Prerequisites
-- A [GX Cloud account](https://greatexpectations.io/cloud) with your Cloud access token and Cloud organization token saved in your environment variables
-- A Checkpoint.
-- <PrereqPythonInstalled/>.
-- <PrereqGxInstalled/>.
+- A [GX Cloud account](https://greatexpectations.io/cloud)
+- Your [Cloud access token and Cloud organization ID](docs/cloud/connect/connect_python#get-your-user-access-token-and-organization-id) saved in your environment variables.
+- A Checkpoint (either an automatically created GX-managed one or a manually created one).
+- [Python version 3.9 to 3.12](https://www.python.org/downloads/)
+- [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/)
 
 ## Procedure
 
@@ -32,29 +33,33 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
 >
 
 <TabItem value="instructions" label="Instructions">
-1. Retrieve the Checkpoint to append the Action to.
+1. Import the relevant modules and instantiate your Context.
+   ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - instantiate the Context"
+   ```
+
+2. Retrieve the Checkpoint to append the Action to.
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - retrieve the Checkpoint"
    ```
 
-1. Determine the Actions that the Checkpoint will automate.
+   :::tip The GX-managed Checkpoint name can be found through the UI
+   For the Data Asset of interest, go to the **Validations** tab, select the appropriate **Expectation Suite**, click the code snippet icon next to the **Validate** button, and then click **Generate snippet**.
 
-   After a Checkpoint receives Validation Results from running a Validation Definition, it executes a list of Actions. The returned Validation Results determine what task is performed for each Action. Actions can include sending alerts when validations fail, or your own custom logic. The Actions list is executed once for each Validation Definition in a Checkpoint. The following is an example of how to append a `SlackNotificationAction` to the Action list of your Checkpoint.
+3. Define the Actions that the Checkpoint will trigger.
     
-   Actions can be found in the `great_expectations.checkpoint` module. All Action class names end with `*Action`.
+   The following is an example of how to append a [`SlackNotificationAction`](docs/reference/api/checkpoint/SlackNotificationAction_class) to the Action list of your Checkpoint.
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - create a SlackNotificationAction"
    ```
 
-   :::tip Setting up an EmailAction is separate from Email alerts controlled through the UI
-   Any `EmailActions` that are added to the list of Actions associated with a Checkpoint will activate separately from the Alerts controlled through the UI. For more information, see [Manage email alerts](docs/cloud/alerts/manage_email_alerts.md)
+4. Append the Action to the Checkpoint Action list.
 
-1. Append the Action to the Checkpoint Action list
    Append the newly-created Action to the Checkpoint Action list and save the Checkpoint.
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - save the Checkpoint"
    ```
 
+5. Optional. Run a Validation to ensure the newly-created Action is triggered as expected.
 </TabItem>
 
 <TabItem value="sample_code" label="Sample code">
