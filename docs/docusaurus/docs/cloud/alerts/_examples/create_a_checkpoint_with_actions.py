@@ -64,14 +64,14 @@ checkpoint = context.checkpoints.get(checkpoint_name)
 # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - create a SlackNotificationAction">
 action = SlackNotificationAction(
     name="send_slack_notification_on_failed_expectations",
-    slack_token="${validation_notification_slack_webhook}",
-    slack_channel="${validation_notification_slack_channel}",
+    slack_token="${bot_user_oauth_token}",
+    slack_channel="#my_chennel",
     notify_on="failure",
     show_failed_expectations=True,
 )
 # </snippet>
 
-# Append the action to the Checkpoint and save it.
+# Append the Action to the Checkpoint and save it.
 # <snippet name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - save the Checkpoint">
 checkpoint.actions.append(action)
 checkpoint.save()
