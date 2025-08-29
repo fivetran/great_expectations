@@ -16,7 +16,7 @@ Use Actions to notify the appropriate parties of the results of your Validation 
 
 ## Prerequisites
 - A [GX Cloud account](https://greatexpectations.io/cloud)
-- Your [Cloud access token and Cloud organization ID](docs/cloud/connect/connect_python#get-your-user-access-token-and-organization-id) saved in your environment variables.
+- Your [Cloud access token and Cloud organization ID](connect/connect_python#get-your-user-access-token-and-organization-id) saved in your environment variables.
 - A Checkpoint (either an automatically created GX-managed one or a manually created one).
 - [Python version 3.9 to 3.12](https://www.python.org/downloads/)
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/)
@@ -47,7 +47,7 @@ Use Actions to notify the appropriate parties of the results of your Validation 
 
 3. Define the Actions that the Checkpoint will trigger.
     
-   The following is an example of how to append a [`SlackNotificationAction`](docs/reference/api/checkpoint/SlackNotificationAction_class) to the Action list of your Checkpoint.
+   The following is an example of how to append a [`SlackNotificationAction`](../../reference/api/checkpoint/SlackNotificationAction_class) to the Action list of your Checkpoint.
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - create a SlackNotificationAction"
    ```
