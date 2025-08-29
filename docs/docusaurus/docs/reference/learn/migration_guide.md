@@ -89,6 +89,7 @@ Here is a side-by-side comparison of a suite called `suite_for_yellow_tripdata`:
                     "min_value": 0.0
                 },
                 "meta": {},
+                "severity": "critical",
                 "id": "24dc475c-38a3-4234-ab47-b13d0f233242"
             },
             {
@@ -103,6 +104,7 @@ Here is a side-by-side comparison of a suite called `suite_for_yellow_tripdata`:
                     ]
                 },
                 "meta": {},
+                "severity": "critical",
                 "id": "d8b3b4e9-296f-4dd5-bd29-aac6a00cba1c"
             }
         ],
@@ -128,6 +130,8 @@ Here is a side-by-side comparison of a suite called `suite_for_yellow_tripdata`:
 > **expectation_type**: This has been changed to type.
 
 > **kwargs**: This is unchanged
+
+> **severity (new field)**: This new top-level field is used to indicate the impact of the Expectation failing. Possible values are `critical`, `warning`, and `info`. Defaults to `critical` if not explicitly set.
 
 > **meta**: This dictionary that a user can populate with whatever metadata they would like. The notes key that Great Expectations Cloud used has been pulled out into a top level key.
 
@@ -178,8 +182,8 @@ The suites above were created with the following API calls. This example demonst
             id="77373d6f-3561-4d62-b150-96c36dccbe55",
         )
     )
-    suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="passenger_count", min_value=0, max_value=4))
-    suite.add_expectation(gxe.ExpectColumnValuesToBeInSet(column="VendorID", value_set=[1,2,3,4]))
+    suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="passenger_count", min_value=0, max_value=4, severity="critical"))
+    suite.add_expectation(gxe.ExpectColumnValuesToBeInSet(column="VendorID", value_set=[1,2,3,4]), severity="critical")
     ```
     </TabItem>
 </Tabs>
@@ -1480,7 +1484,7 @@ We provide a mapping from the V0 fields to the V1 fields along with any new V1 f
     monthly = file_csv_asset.add_batch_definition_monthly(name="monthly_batches", regex=r"sampled_yellow_tripdata_(?P<year>\d{4})-(?P<month>\d{2})\.csv")
 
     suite = context.suites.add(gx.ExpectationSuite(name="my_suite"))
-    suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="passenger_count", min_value=0, max_value=10))
+    suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="passenger_count", min_value=0, max_value=10, severity="critical"))
 
     validation_definition = context.validation_definitions.add(
         gx.ValidationDefinition(data=monthly, suite=suite, name="my_validation_definition")

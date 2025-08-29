@@ -61,8 +61,8 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
    - `warning`: Trigger the Action when there's a warning-level Expecation failure and no critical failures.
    - `info`: Trigger the Action when there's an info-level Expectation failure and no warning or critical failures. 
 
-   :::tip Severity triggers are based on the highest-level failure
-   If a Validation Result includes a mix of warning and info failures, only Actions configured to notify on `warning`, `failure`, or `all` will be triggered. 
+   :::note The highest severity takes precedence
+   If a Validation Result includes a mix of warning and info failures, only Actions configured to notify on `warning`, `failure`, or `all` will be triggered. Any Actions configured to run on `info` will not be triggered.
    :::
 
 
