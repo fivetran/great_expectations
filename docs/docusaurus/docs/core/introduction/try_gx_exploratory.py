@@ -43,7 +43,7 @@ batch = batch_definition.get_batch(batch_parameters={"dataframe": df})
 # Create Expectation.
 # <snippet name="docs/docusaurus/docs/core/introduction/try_gx_exploratory.py create expectation">
 expectation = gx.expectations.ExpectColumnValuesToBeBetween(
-    column="passenger_count", min_value=1, max_value=6
+    column="passenger_count", min_value=1, max_value=6, severity="warning"
 )
 # </snippet>
 
@@ -62,6 +62,7 @@ exploratory_output = """
   "success": true,
   "expectation_config": {
     "type": "expect_column_values_to_be_between",
+    "severity": "warning",
     "kwargs": {
       "batch_id": "pandas-pd dataframe asset",
       "column": "passenger_count",
