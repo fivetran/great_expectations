@@ -44,7 +44,9 @@ suite.add_expectation(
     )
 )
 suite.add_expectation(
-    gx.expectations.ExpectColumnValuesToBeBetween(column="fare_amount", min_value=0, severity="critical")
+    gx.expectations.ExpectColumnValuesToBeBetween(
+        column="fare_amount", min_value=0, severity="critical"
+    )
 )
 # </snippet>
 
