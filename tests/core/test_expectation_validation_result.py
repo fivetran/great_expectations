@@ -884,10 +884,12 @@ class TestGetHighestSeverityFailure:
     @pytest.mark.unit
     def test_get_highest_severity_failure_all_invalid_severities(self):
         """Test that None is returned when all failures have invalid severity."""
+
+        # Create valid configurations
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
             kwargs={"column": "test_column"},
-            severity="invalid_severity_1",
+            severity="critical",
         )
         config2 = ExpectationConfiguration(
             type="expect_column_values_to_be_between",
@@ -896,9 +898,10 @@ class TestGetHighestSeverityFailure:
                 "min_value": 0,
                 "max_value": 100,
             },
-            severity="invalid_severity_2",
+            severity="warning",
         )
 
+        # Create validation results with valid configurations
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
         evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
 
@@ -908,4 +911,13 @@ class TestGetHighestSeverityFailure:
             results=[evr1, evr2],
         )
 
+        # Test that with valid severities, we get the highest one (CRITICAL)
+        assert result.get_highest_severity_failure() == FailureSeverity.CRITICAL
+
+        # Now test with invalid severity by directly setting the severity attribute
+        # This simulates what would happen if the data contained invalid severity values
+        config1._severity = "invalid_severity_1"
+        config2._severity = "invalid_severity_2"
+
+        # Test that the method returns None when all severities are invalid
         assert result.get_highest_severity_failure() is None

@@ -660,7 +660,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         return json.dumps(self.describe_dict(), indent=4)
 
     @public_api
-    def get_highest_severity_failure(self) -> FailureSeverity | None:  # noqa: C901
+    def get_highest_severity_failure(self) -> FailureSeverity | None:
         """Get the highest severity failure for Expectations in the validation result.
 
         Returns the highest severity level among failed expectations. The severity levels
@@ -669,6 +669,8 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         Returns:
             The highest severity failure level, or None if no failures exist.
         """
+        import great_expectations.expectations.metadata_types as metadata_types
+
         if not self.results:
             return None
 
@@ -695,10 +697,10 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                     )
                     severity_str = "critical"
                 try:
-                    severity = FailureSeverity(severity_str)
+                    severity = metadata_types.FailureSeverity(severity_str)
 
                     # Short-circuit: highest possible severity level found
-                    if severity == FailureSeverity.CRITICAL:
+                    if severity == metadata_types.FailureSeverity.CRITICAL:
                         return severity
 
                     # Direct comparison - string enums can be compared lexicographically
