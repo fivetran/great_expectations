@@ -31,3 +31,11 @@ class SupportedDataSources(str, Enum):
     CITUS = "Citus"
     ALLOY = "AlloyDB"
     NEON = "Neon"
+
+
+class FailureSeverity(str, Enum):
+    """Severity levels for expectation failures."""
+
+    CRITICAL = "critical"
+    WARNING = "warning"
+    INFO = "info"

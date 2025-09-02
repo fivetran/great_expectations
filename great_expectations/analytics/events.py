@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import ClassVar, List, Literal
+from typing import TYPE_CHECKING, ClassVar, List, Literal
 
 from great_expectations.analytics.actions import (
     CHECKPOINT_CREATED,
@@ -21,6 +21,9 @@ from great_expectations.analytics.actions import (
 )
 from great_expectations.analytics.base_event import Action, Event
 from great_expectations.compatibility.typing_extensions import override
+
+if TYPE_CHECKING:
+    from great_expectations.checkpoint.actions import NotifyOn
 
 
 @dataclass
@@ -308,7 +311,7 @@ class NotificationActionRanEvent(Event):
     def __init__(
         self,
         type: Literal["slack", "microsoft", "email"],
-        notify_type: Literal["all", "failure", "success"],
+        notify_type: NotifyOn,
         checkpoint_id: str | None,
     ):
         self.type = type
