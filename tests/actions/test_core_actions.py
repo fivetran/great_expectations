@@ -51,13 +51,12 @@ from great_expectations.data_context.types.resource_identifiers import (
 )
 from great_expectations.exceptions.exceptions import ValidationActionAlreadyRegisteredError
 from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
+from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.util import is_library_loadable
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
     from typing_extensions import Never
-
-    from great_expectations.expectations.metadata_types import FailureSeverity
 
 logger = logging.getLogger(__name__)
 
