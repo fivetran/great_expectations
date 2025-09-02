@@ -828,7 +828,7 @@ class TestGetHighestSeverityFailure:
         )
 
         # Capture log messages
-        caplog.set_level(logging.WARNING, logger="great_expectations.core")
+        caplog.set_level(logging.WARNING, logger="great_expectations.core.expectation_validation_result")
         assert result.get_highest_severity_failure() == FailureSeverity.CRITICAL
 
         # Verify that a warning was logged about missing severity
@@ -882,7 +882,7 @@ class TestGetHighestSeverityFailure:
         )
 
         # Capture log messages
-        caplog.set_level(logging.ERROR, logger="great_expectations.core")
+        caplog.set_level(logging.ERROR, logger="great_expectations.core.expectation_validation_result")
         assert result.get_highest_severity_failure() == FailureSeverity.WARNING
 
         # Verify that an error was logged about invalid severity
