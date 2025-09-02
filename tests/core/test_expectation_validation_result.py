@@ -708,9 +708,9 @@ class TestExpectationSuiteValidationResultHash:
         assert hash1 == hash2 == hash3
 
 
-class TestGetHighestSeverityFailure:
+class TestGetMaxSeverityFailure:
     @pytest.mark.unit
-    def test_get_highest_severity_failure_no_results(self):
+    def test_get_max_severity_failure_no_results(self):
         """Test that None is returned when there are no results."""
         result = ExpectationSuiteValidationResult(
             suite_name="test_suite",
@@ -718,10 +718,10 @@ class TestGetHighestSeverityFailure:
             results=[],
         )
 
-        assert result.get_highest_severity_failure() is None
+        assert result.get_max_severity_failure() is None
 
     @pytest.mark.unit
-    def test_get_highest_severity_failure_no_failures(self):
+    def test_get_max_severity_failure_no_failures(self):
         """Test that None is returned when all expectations pass."""
         config = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
@@ -739,10 +739,10 @@ class TestGetHighestSeverityFailure:
             results=[evr],
         )
 
-        assert result.get_highest_severity_failure() is None
+        assert result.get_max_severity_failure() is None
 
     @pytest.mark.unit
-    def test_get_highest_severity_failure_multiple_failures(self):
+    def test_get_max_severity_failure_multiple_failures(self):
         """Test that the highest severity is returned among multiple failures."""
 
         config1 = ExpectationConfiguration(
@@ -775,10 +775,10 @@ class TestGetHighestSeverityFailure:
             results=[evr1, evr2, evr3],
         )
 
-        assert result.get_highest_severity_failure() == FailureSeverity.CRITICAL
+        assert result.get_max_severity_failure() == FailureSeverity.CRITICAL
 
     @pytest.mark.unit
-    def test_get_highest_severity_failure_mixed_success_failure(self):
+    def test_get_max_severity_failure_mixed_success_failure(self):
         """Test that only failed expectations are considered."""
 
         config1 = ExpectationConfiguration(
@@ -805,10 +805,10 @@ class TestGetHighestSeverityFailure:
             results=[evr1, evr2],
         )
 
-        assert result.get_highest_severity_failure() == FailureSeverity.WARNING
+        assert result.get_max_severity_failure() == FailureSeverity.WARNING
 
     @pytest.mark.unit
-    def test_get_highest_severity_failure_invalid_severity_skipped(self, caplog):
+    def test_get_max_severity_failure_invalid_severity_skipped(self, caplog):
         """Test that expectations with invalid severity are skipped."""
         import logging
 
@@ -855,7 +855,7 @@ class TestGetHighestSeverityFailure:
         )
 
         # Now call the method that should generate the log
-        assert result.get_highest_severity_failure() == FailureSeverity.WARNING
+        assert result.get_max_severity_failure() == FailureSeverity.WARNING
 
         # Verify that an error was logged about invalid severity
         assert any(
@@ -867,7 +867,7 @@ class TestGetHighestSeverityFailure:
         )
 
     @pytest.mark.unit
-    def test_get_highest_severity_failure_all_invalid_severities(self):
+    def test_get_max_severity_failure_all_invalid_severities(self):
         """Test that None is returned when all failures have invalid severity."""
 
         # Create valid configurations first, then mock returning an invalid severity to
@@ -917,4 +917,4 @@ class TestGetHighestSeverityFailure:
         config2.get = mock_get_invalid2
 
         # Test that the method returns None when all severities are invalid
-        assert result.get_highest_severity_failure() is None
+        assert result.get_max_severity_failure() is None

@@ -660,14 +660,14 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         return json.dumps(self.describe_dict(), indent=4)
 
     @public_api
-    def get_highest_severity_failure(self) -> FailureSeverity | None:
-        """Get the highest severity failure for Expectations in the validation result.
+    def get_max_severity_failure(self) -> FailureSeverity | None:
+        """Get the maximum severity failure for Expectations in the validation result.
 
-        Returns the highest severity level among failed expectations. The severity levels
+        Returns the maximum severity level among failed expectations. The severity levels
         are ordered as: CRITICAL > WARNING > INFO. If no failures exist, returns None.
 
         Returns:
-            The highest severity failure level, or None if no failures exist.
+            The maximum severity failure level, or None if no failures exist.
         """
         from great_expectations.expectations import metadata_types
 
