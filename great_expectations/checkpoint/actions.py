@@ -698,6 +698,7 @@ class OpsgenieAlertAction(ValidationAction):
         self, checkpoint_result: CheckpointResult, action_context: ActionContext | None = None
     ) -> dict:
         validation_success = checkpoint_result.success or False
+        checkpoint_name = checkpoint_result.checkpoint_config.name
         max_severity = self._get_max_severity_failure_from_checkpoint_result(checkpoint_result)
 
         if should_notify(
