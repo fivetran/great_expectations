@@ -150,7 +150,7 @@ You will need to select:
 
 ## Failure severity
 
-Every Expectation is assigned a severity level of critical, warning, or info that indicates the impact of the Expectation failing. Failure severity indicators are surfaced throughout GX Cloud to help your team understand the quality of your data. This includes high-level information like the overall status of a Data Asset as well as granular details like individual results in Validation run history.  You can use severity levels to [trigger different alerting patterns and actions](/cloud/alerts/trigger_actions.md).
+Every Expectation is assigned a severity level of critical, warning, or info that indicates the impact of the Expectation failing. Failure severity indicators are surfaced throughout GX Cloud to help your team understand the quality of your data. This includes high-level information like the overall status of a Data Asset as well as granular details like individual results in Validation run history.  You can use severity levels to [trigger different alerting patterns and actions](/cloud/alerts/manage_alerts.md).
 
 You decide the severity when you manually create an Expectation. When you have GX Cloud generate Expectations, they default to warning severity which you can edit later. If an Expectation fails to execute, the failure will be recorded as critical regardless of the Expectation configuration to bring your attention to the fact that your data is not being tested as intended.
 
