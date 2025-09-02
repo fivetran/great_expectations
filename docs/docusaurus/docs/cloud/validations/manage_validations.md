@@ -7,7 +7,7 @@ description: Create and manage Validations in GX Cloud.
 You can manually run a Validation using the GX Cloud UI. This is useful for exploring your data and fine-tuning your Expectations. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/cloud/connect/connect_airflow.md).
 
 :::tip Manual validations are for GX-managed Expectations only
-To run a validation for an [API-managed Expectation](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations), use the GX Cloud UI to generate the necessary code. For the Data Asset of interest, go to the **Validations** tab, select the **Expectation Suite** that contains your API-managed Expectation, click the code snippet icon next to the **Validate** button, and then click **Generate snippet**.
+To run a validation for an [API-managed Expectation](/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations), use the GX Cloud UI to generate the necessary code. For the Data Asset of interest, go to the **Validations** tab, select the **Expectation Suite** that contains your API-managed Expectation, click the code snippet icon next to the **Validate** button, and then click **Generate snippet**.
 :::
 
 <!-- [//]: # (TODO: To learn more about Validations, see Validator.) -->

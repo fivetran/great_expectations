@@ -16,6 +16,7 @@ from great_expectations.core.expectation_validation_result import (
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 
 
 @pytest.mark.unit
@@ -425,6 +426,49 @@ def test_render_updates_rendered_content():
     evr.render()
 
     assert evr.rendered_content is not None
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "severity_enum,expected_string",
+    [
+        (FailureSeverity.WARNING, "warning"),
+        (FailureSeverity.CRITICAL, "critical"),
+        (FailureSeverity.INFO, "info"),
+    ],
+)
+def test_expectation_validation_result_with_severity_enum_serializes_properly(
+    severity_enum, expected_string
+):
+    """Test that expectation validation results with severity enums serialize without errors."""
+
+    # Create an expectation config with severity enum at top level
+    config = ExpectationConfiguration(
+        type="expect_table_row_count_to_be_between",
+        kwargs={"min_value": 0, "max_value": 100},
+        severity=severity_enum,
+    )
+
+    evr = ExpectationValidationResult(
+        success=True,
+        expectation_config=config,
+        result={
+            "observed_value": 50,
+            "element_count": 1000,
+            "missing_count": 0,
+            "missing_percent": 0.0,
+        },
+        exception_info={
+            "raised_exception": False,
+            "exception_traceback": None,
+            "exception_message": None,
+        },
+    )
+
+    # Test that the validation result serializes without errors and severity is correct
+    json_dict = evr.to_json_dict()
+    # Verify the severity was converted to the expected string value
+    assert json_dict["expectation_config"]["severity"] == expected_string
 
 
 class TestSerialization:
