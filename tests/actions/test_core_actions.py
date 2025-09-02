@@ -127,11 +127,11 @@ def checkpoint_result_with_failure(mocker: MockerFixture):
         expectation_config=ExpectationConfiguration(
             expectation_type="expect_column_values_to_be_between",
             kwargs={"column": "test_column", "min_value": 0, "max_value": 100},
-            severity="warning"
+            severity="warning",
         ),
         result={},
         exception_info=None,
-        meta={}
+        meta={},
     )
 
     return CheckpointResult(
@@ -456,14 +456,17 @@ class TestMicrosoftTeamsNotificationAction:
         mock_send_notification.assert_called_once_with(url=MS_TEAMS_WEBHOOK_VALUE, json=mock.ANY)
 
     @pytest.mark.integration
-    @pytest.mark.parametrize("notify_on, expected_notification", [
-        ("all", True),
-        ("success", True),
-        ("failure", False),
-        ("critical", False),
-        ("warning", False),
-        ("info", False),
-    ])
+    @pytest.mark.parametrize(
+        "notify_on, expected_notification",
+        [
+            ("all", True),
+            ("success", True),
+            ("failure", False),
+            ("critical", False),
+            ("warning", False),
+            ("info", False),
+        ],
+    )
     def test_run_integration_success_with_severity_filtering(
         self,
         notify_on: str,
@@ -491,19 +494,20 @@ class TestMicrosoftTeamsNotificationAction:
                 "microsoft_teams_notification_result": "Microsoft Teams notification succeeded."
             }
         else:
-            assert result == {
-                "microsoft_teams_notification_result": None
-            }
+            assert result == {"microsoft_teams_notification_result": None}
 
     @pytest.mark.integration
-    @pytest.mark.parametrize("notify_on, expected_notification", [
-        ("all", True),
-        ("success", False),
-        ("failure", True),
-        ("critical", False),
-        ("warning", True),
-        ("info", False),
-    ])
+    @pytest.mark.parametrize(
+        "notify_on, expected_notification",
+        [
+            ("all", True),
+            ("success", False),
+            ("failure", True),
+            ("critical", False),
+            ("warning", True),
+            ("info", False),
+        ],
+    )
     def test_run_integration_failure_with_severity_filtering(
         self,
         notify_on: str,
@@ -532,9 +536,7 @@ class TestMicrosoftTeamsNotificationAction:
                 "microsoft_teams_notification_result": "Microsoft Teams notification succeeded."
             }
         else:
-            assert result == {
-                "microsoft_teams_notification_result": None
-            }
+            assert result == {"microsoft_teams_notification_result": None}
 
     @pytest.mark.integration
     def test_run_integration_failure(
