@@ -33,7 +33,6 @@ from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
     ExpectationValidationResult,
 )
-from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
@@ -51,6 +50,7 @@ from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )
 from great_expectations.exceptions.exceptions import ValidationActionAlreadyRegisteredError
+from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
 from great_expectations.util import is_library_loadable
 
 if TYPE_CHECKING:
