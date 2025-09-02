@@ -118,16 +118,16 @@ def checkpoint_result(mocker: MockerFixture):
 
 @pytest.fixture
 def checkpoint_result_with_failure(mocker: MockerFixture):
-    """Create a checkpoint result with failed validations (warning severity)."""
+    """Create a checkpoint result with failed validations (warning-level severity)."""
     utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzinfo=timezone.utc)
 
     # Create a real failed expectation validation result
     failed_evr = ExpectationValidationResult(
         success=False,
         expectation_config=ExpectationConfiguration(
-            expectation_type="expect_column_values_to_be_between",
+            "expect_column_values_to_be_between",
             kwargs={"column": "test_column", "min_value": 0, "max_value": 100},
-            severity="warning",
+            severity=FailureSeverity.WARNING,
         ),
         result={},
         exception_info=None,
@@ -516,7 +516,7 @@ class TestMicrosoftTeamsNotificationAction:
     ):
         """
         Test that notify_on filtering works with failed checkpoint results.
-        For this test, we are using a failed checkpoint result with warning-level
+        For this test, we are using a failed checkpoint result with WARNING-level
         severity, so we expect a notification for the "all", "failure" and "warning"
         cases only.
         """
