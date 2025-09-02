@@ -52,7 +52,7 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
    In the above example, string substitution is used to pull the value of `slack_token` from an environment variable.  For more information on securely storing credentials and access tokens see [Configure credentials](/core/configure_project_settings/configure_credentials/configure_credentials.md).
 
 
-   In this example, `notify_on="failure"` means that the Slack notification will be triggered when the Validation Results include any [severity](/core/define_expectations/create_an_expectation#severity) of Expectation failure. Accepted values for `notify_on` are as follows:
+   In this example, `notify_on="failure"` means that the Slack notification will be triggered when the Validation Results include any [severity](/core/define_expectations/create_an_expectation.md#severity) of Expectation failure. Accepted values for `notify_on` are as follows:
    
    - `all`: Always trigger the Action when Validation Results are recieved.
    - `success`: Trigger the Action only when all Expectations succeed.

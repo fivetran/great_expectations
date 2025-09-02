@@ -11,7 +11,7 @@ GX Cloud sends email alerts on the following events:
 - [ExpectAI (BETA)](/cloud/expectations/manage_expectations.md#generate-expectations) generates recommended Expectations for a Data Asset. 
 
 :::tip Want notifications based on failure severity?
-Use [Actions](/cloud/alerts/manage_alerts.md) to create notification patterns based on [failure severity](/cloud/expectations/expectations_overview/#failure-severity).
+Use [Actions](/cloud/alerts/manage_alerts.md) to create notification patterns based on [failure severity](/cloud/expectations/expectations_overview.md#failure-severity).
 :::
 
 ## Email alert default settings

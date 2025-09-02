@@ -155,7 +155,7 @@ Every Expectation is assigned a severity level of critical, warning, or info tha
 You decide the severity when you manually create an Expectation. When you have GX Cloud generate Expectations, they default to warning severity which you can edit later. If an Expectation fails to execute, the failure will be recorded as critical regardless of the Expectation configuration to bring your attention to the fact that your data is not being tested as intended.
 
 :::note Default severity for Expectations created before September 10, 2025
-Expectations created before severity levels were introduced have been backfilled with critical severity. You can change this by [editing your Expectations](/cloud/expectations/manage_expectations#edit-an-expectation).
+Expectations created before severity levels were introduced have been backfilled with critical severity. You can change this by [editing your Expectations](/cloud/expectations/manage_expectations.md#edit-an-expectation).
 :::
 
 ## GX-managed vs. API-managed Expectations

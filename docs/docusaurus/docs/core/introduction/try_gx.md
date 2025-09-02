@@ -168,7 +168,7 @@ Run the following steps in a Python interpreter, IDE, notebook, or script.
 
 4. Create an Expectation Suite.
 
-   Expectations are a fundamental component of GX. They allow you to explicitly define the state to which your data should conform and the [severity](/core/define_expectations/create_an_expectation#severity) of the impact to your business if data fails to conform. Expectation Suites are collections of Expectations.
+   Expectations are a fundamental component of GX. They allow you to explicitly define the state to which your data should conform and the [severity](/core/define_expectations/create_an_expectation.md#severity) of the impact to your business if data fails to conform. Expectation Suites are collections of Expectations.
 
    Run the following code to define an Expectation Suite containing two Expectations. The first is a warning-level Expectation that the column `passenger_count` consists of values ranging from `1` to `6`, and the second is a critical-level Expectation that the column `fare_amount` contains non-negative values.
 
