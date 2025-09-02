@@ -807,8 +807,6 @@ class TestGetHighestSeverityFailure:
 
         assert result.get_highest_severity_failure() == FailureSeverity.WARNING
 
-
-
     @pytest.mark.unit
     def test_get_highest_severity_failure_invalid_severity_skipped(self, caplog):
         """Test that expectations with invalid severity are skipped."""
@@ -855,7 +853,7 @@ class TestGetHighestSeverityFailure:
         caplog.set_level(
             logging.ERROR, logger="great_expectations.core.expectation_validation_result"
         )
-        
+
         # Now call the method that should generate the log
         assert result.get_highest_severity_failure() == FailureSeverity.WARNING
 

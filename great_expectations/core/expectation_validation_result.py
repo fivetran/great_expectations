@@ -660,7 +660,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         return json.dumps(self.describe_dict(), indent=4)
 
     @public_api
-    def get_highest_severity_failure(self) -> FailureSeverity | None:  # noqa: C901
+    def get_highest_severity_failure(self) -> FailureSeverity | None:
         """Get the highest severity failure for Expectations in the validation result.
 
         Returns the highest severity level among failed expectations. The severity levels
