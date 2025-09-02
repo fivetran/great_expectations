@@ -99,7 +99,7 @@ Run the following steps in a Python interpreter, IDE, notebook, or script.
 
 5. Create an Expectation.
 
-   Expectations are a fundamental component of GX. They allow you to explicitly define the state to which your data should conform and the [severity](/core/define_expectations/create_an_expectation#severity) of the impact to your business if data fails to conform.
+   Expectations are a fundamental component of GX. They allow you to explicitly define the state to which your data should conform and the [severity](/core/define_expectations/create_an_expectation.md#severity) of the impact to your business if data fails to conform.
 
    Run the following code to define a warning-level Expectation that the contents of the column `passenger_count` consist of values ranging from `1` to `6`:
 
