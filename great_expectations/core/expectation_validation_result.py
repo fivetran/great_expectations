@@ -688,14 +688,6 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                     continue
 
                 severity_str = result.expectation_config.get("severity")
-                if severity_str is None:
-                    logger.warning(
-                        f"No severity value found in expectation "
-                        f"'{result.expectation_config.type}' "
-                        f"(Validation Result ID: {self.id}). "
-                        f"Defaulting to CRITICAL severity."
-                    )
-                    severity_str = "critical"
                 try:
                     severity = metadata_types.FailureSeverity(severity_str)
 
