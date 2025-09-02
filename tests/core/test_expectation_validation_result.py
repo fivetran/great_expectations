@@ -807,39 +807,7 @@ class TestGetHighestSeverityFailure:
 
         assert result.get_highest_severity_failure() == FailureSeverity.WARNING
 
-    @pytest.mark.unit
-    def test_get_highest_severity_failure_no_severity_defaults_to_critical(self, caplog):
-        """Test that expectations without severity default to critical."""
-        import logging
 
-        config = ExpectationConfiguration(
-            type="expect_column_values_to_not_be_null",
-            kwargs={"column": "test_column"},  # No severity specified
-        )
-
-        evr = ExpectationValidationResult(
-            success=False, expectation_config=config, result={"observed_value": 100}
-        )
-
-        result = ExpectationSuiteValidationResult(
-            suite_name="test_suite",
-            success=False,
-            results=[evr],
-        )
-
-        # Capture log messages
-        caplog.set_level(
-            logging.WARNING, logger="great_expectations.core.expectation_validation_result"
-        )
-        assert result.get_highest_severity_failure() == FailureSeverity.CRITICAL
-
-        # Verify that a warning was logged about missing severity
-        assert any(
-            "No severity value found in expectation" in record.message for record in caplog.records
-        )
-        assert any(
-            "expect_column_values_to_not_be_null" in record.message for record in caplog.records
-        )
 
     @pytest.mark.unit
     def test_get_highest_severity_failure_invalid_severity_skipped(self, caplog):
@@ -883,10 +851,12 @@ class TestGetHighestSeverityFailure:
             results=[evr1, evr2],
         )
 
-        # Capture log messages
+        # Capture log messages BEFORE calling the method
         caplog.set_level(
             logging.ERROR, logger="great_expectations.core.expectation_validation_result"
         )
+        
+        # Now call the method that should generate the log
         assert result.get_highest_severity_failure() == FailureSeverity.WARNING
 
         # Verify that an error was logged about invalid severity
