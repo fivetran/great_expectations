@@ -29,6 +29,7 @@ from great_expectations.exceptions import (
     InvalidExpectationConfigurationError,
     InvalidExpectationKwargsError,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.expectations.registry import get_expectation_impl
 from great_expectations.render import RenderedAtomicContent, RenderedAtomicContentSchema
 from great_expectations.types import SerializableDictDot
@@ -108,6 +109,7 @@ class ExpectationConfiguration(SerializableDictDot):
         meta: A dictionary of metadata to attach to the expectation.
         notes: Notes about this expectation.
         description: The description of the expectation. This will be rendered instead of the default template.
+        severity: The severity of the expectation failure.
         success_on_last_run: Whether the expectation succeeded on the last run.
         id: The corresponding GX Cloud ID for the expectation.
         expectation_context: The context for the expectation.
@@ -131,6 +133,7 @@ class ExpectationConfiguration(SerializableDictDot):
         meta: Optional[dict] = None,
         notes: str | list[str] | None = None,
         description: str | None = None,
+        severity: FailureSeverity = FailureSeverity.CRITICAL,
         success_on_last_run: Optional[bool] = None,
         id: Optional[str] = None,
         expectation_context: Optional[ExpectationContext] = None,
@@ -153,6 +156,7 @@ class ExpectationConfiguration(SerializableDictDot):
         self.meta = meta
         self.notes = notes
         self.description = description
+        self.severity = severity
         self.success_on_last_run = success_on_last_run
         self._id = id
         self._expectation_context = expectation_context
@@ -221,6 +225,29 @@ class ExpectationConfiguration(SerializableDictDot):
     @rendered_content.setter
     def rendered_content(self, value: Optional[List[RenderedAtomicContent]]) -> None:
         self._rendered_content = value
+
+    @property
+    def severity(self) -> FailureSeverity:
+        return self._severity
+
+    @severity.setter
+    def severity(self, value: Union[FailureSeverity, str]) -> None:
+        # Convert string severity to enum and validate
+        if isinstance(value, str):
+            try:
+                self._severity = FailureSeverity(value)
+            except ValueError:
+                valid_values = ", ".join([member.value for member in FailureSeverity])
+                raise InvalidExpectationConfigurationError(  # noqa: TRY003
+                    f"Invalid severity '{value}'. Must be one of: {valid_values}"
+                )
+        else:
+            # Validate that it's a valid FailureSeverity enum
+            if not isinstance(value, FailureSeverity):
+                raise InvalidExpectationConfigurationError(  # noqa: TRY003
+                    f"Severity must be string or enum, got {type(value).__name__}"
+                )
+            self._severity = value
 
     def _get_default_custom_kwargs(self) -> KWargDetailsDict:
         # NOTE: this is a holdover until class-first expectations control their
@@ -477,6 +504,7 @@ class ExpectationConfiguration(SerializableDictDot):
             "meta": self.meta,
             "notes": self.notes,
             "rendered_content": self.rendered_content,
+            "severity": self.severity,
         }
         # it's possible description could be subclassed as a class variable,
         # because we have documented it that way in the past.
@@ -545,6 +573,7 @@ class ExpectationConfigurationSchema(Schema):
         )
     )
     description = fields.Str(required=False, allow_none=True)
+    severity = fields.Enum(FailureSeverity, required=False, allow_none=True, by_value=True)
 
     REMOVE_KEYS_IF_NONE = [
         "id",
@@ -558,6 +587,10 @@ class ExpectationConfigurationSchema(Schema):
     def convert_result_to_serializable(self, data, **kwargs):
         data = copy.deepcopy(data)
         data["kwargs"] = convert_to_json_serializable(data.get("kwargs", {}))
+        # If severity is already a string (from convert_to_json_serializable), convert
+        # it back to enum so marshmallow's Enum field can handle it properly
+        if "severity" in data and isinstance(data["severity"], str):
+            data["severity"] = FailureSeverity(data["severity"])
         return data
 
     @post_dump

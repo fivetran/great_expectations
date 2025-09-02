@@ -14,6 +14,7 @@ import sys
 import time
 import uuid
 from collections import OrderedDict
+from enum import Enum
 from functools import wraps
 from inspect import (
     BoundArguments,
@@ -1150,6 +1151,9 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     if isinstance(data, (str, int, float, bool)):
         # No problem to encode json
         return data
+
+    if isinstance(data, Enum):
+        return data.value
 
     if isinstance(data, range):
         return list(data)
