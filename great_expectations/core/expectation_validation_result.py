@@ -669,7 +669,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         Returns:
             The highest severity failure level, or None if no failures exist.
         """
-        import great_expectations.expectations.metadata_types as metadata_types
+        from great_expectations.expectations import metadata_types
 
         if not self.results:
             return None
