@@ -254,7 +254,9 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
         else:
             return value
 
-    def _get_max_severity_failure_from_checkpoint_result(self, checkpoint_result: CheckpointResult) -> Optional[FailureSeverity]:
+    def _get_max_severity_failure_from_checkpoint_result(
+        self, checkpoint_result: CheckpointResult
+    ) -> Optional[FailureSeverity]:
         """Get the maximum severity failure across all validation results in a checkpoint result."""
         if not checkpoint_result.run_results:
             return None
@@ -543,9 +545,17 @@ class PagerdutyAlertAction(ValidationAction):
             summary += "failed"
         max_severity = self._get_max_severity_failure_from_checkpoint_result(checkpoint_result)
 
-        return self._run_pypd_alert(dedup_key=checkpoint_name, message=summary, success=success, max_severity=max_severity)
+        return self._run_pypd_alert(
+            dedup_key=checkpoint_name, message=summary, success=success, max_severity=max_severity
+        )
 
-    def _run_pypd_alert(self, dedup_key: str, message: str, success: bool, max_severity: Optional[FailureSeverity] = None):
+    def _run_pypd_alert(
+        self,
+        dedup_key: str,
+        message: str,
+        success: bool,
+        max_severity: Optional[FailureSeverity] = None,
+    ):
         if should_notify(success=success, notify_on=self.notify_on, max_severity=max_severity):
             pypd.api_key = self.api_key
             pypd.EventV2.create(
@@ -690,7 +700,9 @@ class OpsgenieAlertAction(ValidationAction):
         validation_success = checkpoint_result.success or False
         max_severity = self._get_max_severity_failure_from_checkpoint_result(checkpoint_result)
 
-        if should_notify(success=validation_success, notify_on=self.notify_on, max_severity=max_severity):
+        if should_notify(
+            success=validation_success, notify_on=self.notify_on, max_severity=max_severity
+        ):
             settings = {
                 "api_key": self.api_key,
                 "region": self.region,
