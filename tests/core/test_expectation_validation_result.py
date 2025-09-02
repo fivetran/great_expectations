@@ -864,10 +864,12 @@ class TestGetHighestSeverityFailure:
 
         # Mock the get method to return invalid severity for testing
         original_get = config1.get
+
         def mock_get_invalid(key, default=None):
             if key == "severity":
                 return "invalid_severity"
             return original_get(key, default)
+
         config1.get = mock_get_invalid
 
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
@@ -925,17 +927,21 @@ class TestGetHighestSeverityFailure:
 
         # Mock the get method to return invalid severity for testing
         original_get1 = config1.get
+
         def mock_get_invalid1(key, default=None):
             if key == "severity":
                 return "invalid_severity_1"
             return original_get1(key, default)
+
         config1.get = mock_get_invalid1
 
         original_get2 = config2.get
+
         def mock_get_invalid2(key, default=None):
             if key == "severity":
                 return "invalid_severity_2"
             return original_get2(key, default)
+
         config2.get = mock_get_invalid2
 
         # Test that the method returns None when all severities are invalid
