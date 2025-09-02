@@ -844,10 +844,13 @@ class TestGetHighestSeverityFailure:
         """Test that expectations with invalid severity are skipped."""
         import logging
 
+        # Create valid configurations first, then mock returning an invalid severity to
+        # work around ValueError that is raised when attempting to set an invalid
+        # severity in the constructor
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
             kwargs={"column": "test_column"},
-            severity="invalid_severity",
+            severity="critical",  # Start with valid severity
         )
         config2 = ExpectationConfiguration(
             type="expect_column_values_to_be_between",
@@ -858,6 +861,14 @@ class TestGetHighestSeverityFailure:
             },
             severity="warning",
         )
+
+        # Mock the get method to return invalid severity for testing
+        original_get = config1.get
+        def mock_get_invalid(key, default=None):
+            if key == "severity":
+                return "invalid_severity"
+            return original_get(key, default)
+        config1.get = mock_get_invalid
 
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
         evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
@@ -885,7 +896,9 @@ class TestGetHighestSeverityFailure:
     def test_get_highest_severity_failure_all_invalid_severities(self):
         """Test that None is returned when all failures have invalid severity."""
 
-        # Create valid configurations
+        # Create valid configurations first, then mock returning an invalid severity to
+        # work around ValueError that is raised when attempting to set an invalid
+        # severity in the constructor
         config1 = ExpectationConfiguration(
             type="expect_column_values_to_not_be_null",
             kwargs={"column": "test_column"},
@@ -901,7 +914,6 @@ class TestGetHighestSeverityFailure:
             severity="warning",
         )
 
-        # Create validation results with valid configurations
         evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
         evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
 
@@ -911,13 +923,20 @@ class TestGetHighestSeverityFailure:
             results=[evr1, evr2],
         )
 
-        # Test that with valid severities, we get the highest one (CRITICAL)
-        assert result.get_highest_severity_failure() == FailureSeverity.CRITICAL
+        # Mock the get method to return invalid severity for testing
+        original_get1 = config1.get
+        def mock_get_invalid1(key, default=None):
+            if key == "severity":
+                return "invalid_severity_1"
+            return original_get1(key, default)
+        config1.get = mock_get_invalid1
 
-        # Now test with invalid severity by directly setting the severity attribute
-        # This simulates what would happen if the data contained invalid severity values
-        config1._severity = "invalid_severity_1"
-        config2._severity = "invalid_severity_2"
+        original_get2 = config2.get
+        def mock_get_invalid2(key, default=None):
+            if key == "severity":
+                return "invalid_severity_2"
+            return original_get2(key, default)
+        config2.get = mock_get_invalid2
 
         # Test that the method returns None when all severities are invalid
         assert result.get_highest_severity_failure() is None
