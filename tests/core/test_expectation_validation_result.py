@@ -820,20 +820,38 @@ class TestGetMaxSeverityFailure:
         sorted_severities = sorted(severity_values)
 
         # Verify the semantic order: info < warning < critical
-        assert sorted_severities[0] == FailureSeverity.INFO, f"Expected INFO first, got {sorted_severities[0]}"
-        assert sorted_severities[1] == FailureSeverity.WARNING, f"Expected WARNING second, got {sorted_severities[1]}"
-        assert sorted_severities[2] == FailureSeverity.CRITICAL, f"Expected CRITICAL third, got {sorted_severities[2]}"
+        assert sorted_severities[0] == FailureSeverity.INFO, (
+            f"Expected INFO first, got {sorted_severities[0]}"
+        )
+        assert sorted_severities[1] == FailureSeverity.WARNING, (
+            f"Expected WARNING second, got {sorted_severities[1]}"
+        )
+        assert sorted_severities[2] == FailureSeverity.CRITICAL, (
+            f"Expected CRITICAL third, got {sorted_severities[2]}"
+        )
 
         # Test individual comparisons - these should work semantically, not lexicographically
-        assert FailureSeverity.INFO < FailureSeverity.WARNING, "INFO should be less than WARNING semantically"
-        assert FailureSeverity.WARNING < FailureSeverity.CRITICAL, "WARNING should be less than CRITICAL semantically"
-        assert FailureSeverity.INFO < FailureSeverity.CRITICAL, "INFO should be less than CRITICAL semantically"
+        assert FailureSeverity.INFO < FailureSeverity.WARNING, (
+            "INFO should be less than WARNING semantically"
+        )
+        assert FailureSeverity.WARNING < FailureSeverity.CRITICAL, (
+            "WARNING should be less than CRITICAL semantically"
+        )
+        assert FailureSeverity.INFO < FailureSeverity.CRITICAL, (
+            "INFO should be less than CRITICAL semantically"
+        )
 
         # Test that the string values can be in any order - the semantic ordering should still work
         # Even though "critical" < "info" < "warning" lexicographically
-        assert FailureSeverity.CRITICAL > FailureSeverity.INFO, "CRITICAL should be greater than INFO semantically"
-        assert FailureSeverity.CRITICAL > FailureSeverity.WARNING, "CRITICAL should be greater than WARNING semantically"
-        assert FailureSeverity.WARNING > FailureSeverity.INFO, "WARNING should be greater than INFO semantically"
+        assert FailureSeverity.CRITICAL > FailureSeverity.INFO, (
+            "CRITICAL should be greater than INFO semantically"
+        )
+        assert FailureSeverity.CRITICAL > FailureSeverity.WARNING, (
+            "CRITICAL should be greater than WARNING semantically"
+        )
+        assert FailureSeverity.WARNING > FailureSeverity.INFO, (
+            "WARNING should be greater than INFO semantically"
+        )
 
     @pytest.mark.unit
     def test_get_max_severity_failure_invalid_severity_skipped(self, caplog):
