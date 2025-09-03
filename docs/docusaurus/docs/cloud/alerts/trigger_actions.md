@@ -7,7 +7,7 @@ description: Create and manage Actions based on the results of Validation runs.
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-Use Actions to notify the appropriate parties of the results of your Validation runs. Actions can be triggered based on failure severity, Validation success, or all Validations. Validations are executed using Checkpoints, which each have a list of Actions that will be executed when each run has finished. By default, GX Cloud creates a Checkpoint for each Data Asset that you create. Optionally, you can also use a Checkpoint that you have created manually. This example will demonstrate how to create a `SlackNotificationAction` and append it to the list of Actions on a given Checkpoint.
+Use Actions to notify the appropriate parties of the results of your Validation runs. Actions can be triggered on failure severity, Validation success, or all Validations. Validations are executed using Checkpoints, which each have a list of Actions that will be executed when each run has finished. By default, GX Cloud creates a Checkpoint for each Data Asset that you create. Optionally, you can also use a Checkpoint that you have created manually. This example will demonstrate how to create a `SlackNotificationAction` and append it to the list of Actions on a given Checkpoint.
 
 ## Prerequisites
 - A [GX Cloud account](https://greatexpectations.io/cloud).
