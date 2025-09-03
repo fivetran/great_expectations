@@ -25,7 +25,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 4. Select a data quality issue to test for or an option for writing your own test.
 
    :::tip Options for accelerating test coverage
-   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will be assigned a failure severity level of warning which you can edit later. If you instead want to create your own rules, click **Manual**.
+   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will be assigned a failure severity level of warning, which you can edit later. If you instead want to create your own rules, click **Manual**.
    
    If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
    :::
@@ -50,7 +50,7 @@ To accelerate test coverage, you can use ExpectAI to generate recommended Expect
 Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
-- Generated Expectations will be assigned a failure severity level of warning which you can edit later.
+- Generated Expectations will be assigned a failure severity level of warning, which you can edit later.
 
 To add AI-recommended Expectations:
 1. In GX Cloud, click **Data Assets**.

@@ -54,11 +54,11 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
 
    In this example, `notify_on="failure"` means that the Slack notification will be triggered when the Validation Results include any [severity](/core/define_expectations/create_an_expectation.md#severity) of Expectation failure. Accepted values for `notify_on` are as follows:
    
-   - `all`: Always trigger the Action when Validation Results are recieved.
+   - `all`: Always trigger the Action when Validation Results are received.
    - `success`: Trigger the Action only when all Expectations succeed.
-   - `failure`: Trigger the Action when any Expectation fails regardless of failure severity.
+   - `failure`: Trigger the Action when any Expectation fails, regardless of failure severity.
    - `critical`: Trigger the Action when there's a critical Expectation failure. This may be an Expectation configured with critical severity or an Expectation of any severity that failed to execute. 
-   - `warning`: Trigger the Action when there's a warning-level Expecation failure and no critical failures.
+   - `warning`: Trigger the Action when there's a warning-level Expectation failure and no critical failures.
    - `info`: Trigger the Action when there's an info-level Expectation failure and no warning or critical failures. 
 
  
