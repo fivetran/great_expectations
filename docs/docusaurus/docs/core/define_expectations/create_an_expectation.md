@@ -55,7 +55,12 @@ An Expectation is a verifiable assertion about your data. Expectations make impl
    These parameters are:
    - `meta`: A dictionary of user-supplied metadata to store with an Expectation. This dictionary can be used to add notes about the purpose and intended use of an Expectation.
    - `mostly`: A special argument that allows for _fuzzy_ validation based on a percentage of successfully validated rows. If the percentage is at least the value set in the `mostly` parameter, the Expectation will return a `success` value of `true`.
-   - `severity`: Indicates the impact of the Expectation failing. Accepted values are `critical`, `warning`, or `info`. Defaults to `critical` if not explicitly set. You can use severity levels to [trigger different alerting patterns and actions](/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions.md). Note that if an Expectation fails to execute, the failure will be recorded as critical regardless of the Expectation configuration to bring your attention to the fact that your data is not being tested as intended.
+   - `severity`: Indicates the impact of the Expectation failing. Accepted values are `critical`, `warning`, or `info`. Defaults to `critical` if not explicitly set. You can [trigger actions](/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions.md) based on severity levels or you can condition your data pipeline with the `get_maximum_severity_failure` helper method in the [`ExpectationSuiteValidationResult` class](/reference/api/core//ExpectationSuiteValidationResult_class.mdx). Note that if an Expectation fails to execute, the failure will be recorded as critical regardless of the Expectation configuration to bring your attention to the fact that your data is not being tested as intended.
+
+   You use the following to create severity-based responses to results:
+
+Actions that send notifictions to Slack, Microsoft Teams, and Email.
+Pipeline conditioning with the get_maximum_severity_failure helper method in the ExpectationSuiteValidationResult class.
 
 
 4. Create the Expectation.
