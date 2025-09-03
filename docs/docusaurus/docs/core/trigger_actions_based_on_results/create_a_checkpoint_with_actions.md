@@ -57,10 +57,11 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
    - `all`: Always trigger the Action when Validation Results are recieved.
    - `success`: Trigger the Action only when all Expectations succeed.
    - `failure`: Trigger the Action when any Expectation fails regardless of failure severity.
-   - `critical`: Trigger the Action when there's a critical Expectation failure. This may be an Expectation configured with `critical` severity or an Expectation of any severity that failed to execute. 
+   - `critical`: Trigger the Action when there's a critical Expectation failure. This may be an Expectation configured with critical severity or an Expectation of any severity that failed to execute. 
    - `warning`: Trigger the Action when there's a warning-level Expecation failure and no critical failures.
    - `info`: Trigger the Action when there's an info-level Expectation failure and no warning or critical failures. 
 
+ 
    :::note The highest severity takes precedence
    If a Validation Result includes a mix of warning and info failures, only Actions configured to notify on `warning`, `failure`, or `all` will be triggered. Any Actions configured to run on `info` will not be triggered.
    :::
