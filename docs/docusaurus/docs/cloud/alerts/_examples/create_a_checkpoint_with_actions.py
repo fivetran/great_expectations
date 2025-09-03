@@ -53,6 +53,7 @@ import great_expectations as gx
 from great_expectations.checkpoint import SlackNotificationAction
 
 context = gx.get_context()
+# </snippet>
 # Hide this
 set_up_context_for_example(context)
 
@@ -67,7 +68,7 @@ checkpoint = context.checkpoints.get(checkpoint_name)
 action = SlackNotificationAction(
     name="send_slack_notification_on_failed_expectations",
     slack_token="${bot_user_oauth_token}",
-    slack_channel="#my_chennel",
+    slack_channel="#my_channel",
     notify_on="failure",
     show_failed_expectations=True,
 )
