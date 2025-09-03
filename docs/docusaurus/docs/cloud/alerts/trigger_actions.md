@@ -15,7 +15,7 @@ import PrereqValidationDefinition from '../../core/_core_components/prerequisite
 Use Actions to notify the appropriate parties of the results of your Validation runs. These Actions can be triggered for either successful or failed Validation runs. Validations are executed using Checkpoints, which each have a list of Actions that will be executed when each run has finished. By default, GX Cloud creates a Checkpoint for each Data Asset that you create. Optionally, you can also use a Checkpoint that you have created manually. This example will demonstrate how to create a `SlackNotificationAction` and append it to the list of Actions on a given Checkpoint.
 
 ## Prerequisites
-- A [GX Cloud account](https://greatexpectations.io/cloud)
+- A [GX Cloud account](https://greatexpectations.io/cloud).
 - Your [Cloud user access token and Cloud organization ID](/cloud/connect/connect_python.md#get-your-user-access-token-and-organization-id) saved in your [environment variables](/cloud/connect/connect_python.md#set-the-gx-cloud-organization-id-and-user-access-token-as-environment-variables).
 - A Checkpoint (either an automatically created GX-managed one or a manually created one).
 - [Python version 3.9 to 3.12](https://www.python.org/downloads/).
