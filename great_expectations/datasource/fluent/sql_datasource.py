@@ -1280,7 +1280,6 @@ class SQLDatasource(Datasource):
 
     @override
     def test_connection(self, test_assets: bool = True) -> None:
-        return None
         """Test the connection for the SQLDatasource.
 
         Args:
