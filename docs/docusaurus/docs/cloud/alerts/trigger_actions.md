@@ -43,11 +43,11 @@ Use Actions to notify the appropriate parties of the results of your Validation 
    ```
 
    :::tip The GX-managed Checkpoint name can be found through the UI
-   For the Data Asset of interest, go to the **Validations** tab. If you have more than one **Expectation Suite**, select the **GX-managed** one. Then, click the code snippet icon next to the **Validate** button, and then click **Generate snippet**.
+   For the Data Asset of interest, go to the **Validations** tab. If you have more than one **Expectation Suite**, select the **GX-managed** one. Then, click the code snippet icon next to the **Validate** button and click **Generate snippet**.
 
 3. Define the Actions that the Checkpoint will trigger.
     
-   The following is an example of how to define a [`SlackNotificationAction`](/reference/api/checkpoint/SlackNotificationAction_class.mdx) to the Action list of your Checkpoint.
+   The following is an example of how to define a [`SlackNotificationAction`](/reference/api/checkpoint/SlackNotificationAction_class.mdx).
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - create a SlackNotificationAction"
    ```
