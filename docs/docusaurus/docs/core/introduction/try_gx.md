@@ -106,7 +106,7 @@ Run the following steps in a Python interpreter, IDE, notebook, or script.
    ```python title="Python input" name="docs/docusaurus/docs/core/introduction/try_gx_exploratory.py create expectation"
    ```
 
-6. Run the following code to validate the sample data against your Expectation and view the results:
+6. Run the following code to validate the sample data against your Expectation and view the results: 
 
    ```python title="Python input" name="docs/docusaurus/docs/core/introduction/try_gx_exploratory.py validate batch"
    ```
