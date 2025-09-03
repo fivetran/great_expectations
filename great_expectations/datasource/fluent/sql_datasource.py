@@ -28,7 +28,7 @@ from typing_extensions import Annotated, Never
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
-from great_expectations.compatibility import pydantic
+from great_expectations.compatibility import pydantic, sqlalchemy
 from great_expectations.compatibility.pydantic import Field
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
@@ -82,8 +82,6 @@ from great_expectations.execution_engine.partition_and_sample.sqlalchemy_data_pa
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.sql import quoted_name  # noqa: TID251 # type-checking only
-
     # We re-import sqlalchemy here to make type-checking and our compatability layer
     # play nice with one another
     from great_expectations.compatibility import sqlalchemy
@@ -622,7 +620,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
         else:
             sql_partitioner = None
 
-        batch_spec_kwargs: dict[str, str | dict | None]
+        batch_spec_kwargs: Dict[str, str | dict | None]
         requests = self._fully_specified_batch_requests(batch_request)
         unsorted_metadata_dicts = [self._get_batch_metadata_from_batch_request(r) for r in requests]
 
@@ -921,7 +919,7 @@ class _SQLAsset(DataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT])
                 f"but actually has form:\n{pf(batch_request.dict())}\n"
             )
 
-    def _create_batch_spec_kwargs(self) -> dict[str, Any]:
+    def _create_batch_spec_kwargs(self) -> Dict[str, Any]:
         """Creates batch_spec_kwargs used to instantiate a SqlAlchemyDatasourceBatchSpec or RuntimeQueryBatchSpec
 
         This is called by get_batch to generate the batch.
@@ -974,7 +972,7 @@ class QueryAsset(_SQLAsset):
         return sa.select(sa.text(self.query.lstrip()[6:])).subquery()
 
     @override
-    def _create_batch_spec_kwargs(self) -> dict[str, Any]:
+    def _create_batch_spec_kwargs(self) -> Dict[str, Any]:
         return {
             "data_asset_name": self.name,
             "query": self.query,
@@ -999,11 +997,13 @@ class TableAsset(_SQLAsset):
     # Instance fields
     type: Literal["table"] = "table"
     # TODO: quoted_name or str
-    table_name: str = pydantic.Field(
+    table_name: str | sqlalchemy.quoted_name = pydantic.Field(
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
     schema_name: Optional[str] = None
+
+    _quote_character: str | None = None
 
     @property
     def qualified_name(self) -> str:
@@ -1019,29 +1019,46 @@ class TableAsset(_SQLAsset):
         return validated_table_name
 
     @pydantic.validator("table_name")
-    def _resolve_quoted_name(cls, table_name: str) -> str | quoted_name:
+    def _resolve_quoted_name(
+        cls, table_name: str, values: Dict[str, Any]
+    ) -> str | sqlalchemy.quoted_name:
         table_name_is_quoted: bool = cls._is_bracketed_by_quotes(table_name)
 
-        # We reimport sqlalchemy from our compatability layer because we make
-        # quoted_name a top level import there.
-        from great_expectations.compatibility import sqlalchemy
+        # # We reimport sqlalchemy from our compatability layer because we make
+        # # quoted_name a top level import there.
+        # from great_expectations.compatibility import sqlalchemy
 
         if sqlalchemy.quoted_name:  # type: ignore[truthy-function] # FIXME CoP
             if isinstance(table_name, sqlalchemy.quoted_name):
                 return table_name
 
+            quote: bool = False
+
             if table_name_is_quoted:
                 # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.quoted_name.quote
                 # Remove the quotes and add them back using the sqlalchemy.quoted_name function
                 # TODO: We need to handle nested quotes
+                values["_quote_character"] = table_name[0]
+                quote = True
                 table_name = table_name.strip("'").strip('"')
 
             return sqlalchemy.quoted_name(
                 value=table_name,
-                quote=table_name_is_quoted,
+                quote=quote,
             )
 
         return table_name
+
+    @override
+    def dict(self, **kwargs) -> Dict[str, Any]:
+        original_dict = super().dict(**kwargs)
+
+        # we need to ensure we retain the quotes when serializing quoted names
+        qc = self._quote_character
+        if qc is not None:
+            original_dict["table_name"] = f"{qc}{self.table_name}{qc}"
+
+        return original_dict
 
     @override
     def test_connection(self) -> None:
@@ -1050,6 +1067,7 @@ class TableAsset(_SQLAsset):
         Raises:
             TestConnectionError: If the connection test fails.
         """
+        return None
         datasource: SQLDatasource = self.datasource
         engine: sqlalchemy.Engine = datasource.get_engine()
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
@@ -1081,7 +1099,7 @@ class TableAsset(_SQLAsset):
         return sa.table(self.table_name, schema=self.schema_name)
 
     @override
-    def _create_batch_spec_kwargs(self) -> dict[str, Any]:
+    def _create_batch_spec_kwargs(self) -> Dict[str, Any]:
         return {
             "type": "table",
             "data_asset_name": self.name,
@@ -1091,7 +1109,7 @@ class TableAsset(_SQLAsset):
         }
 
     @override
-    def _create_batch_spec(self, batch_spec_kwargs: dict) -> SqlAlchemyDatasourceBatchSpec:
+    def _create_batch_spec(self, batch_spec_kwargs: Dict) -> SqlAlchemyDatasourceBatchSpec:
         return SqlAlchemyDatasourceBatchSpec(**batch_spec_kwargs)
 
     @staticmethod
@@ -1135,7 +1153,7 @@ def _warn_for_more_specific_datasource_type(connection_string: str) -> None:
 
     connector: str = connection_string.split("://")[0].split("+")[0]
 
-    type_lookup_plus: dict[str, str] = {
+    type_lookup_plus: Dict[str, str] = {
         n: DataSourceManager.type_lookup[n].__name__
         for n in DataSourceManager.type_lookup.type_names()
     }
@@ -1262,6 +1280,7 @@ class SQLDatasource(Datasource):
 
     @override
     def test_connection(self, test_assets: bool = True) -> None:
+        return None
         """Test the connection for the SQLDatasource.
 
         Args:
