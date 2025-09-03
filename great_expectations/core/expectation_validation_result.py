@@ -695,7 +695,6 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
                     if severity == metadata_types.FailureSeverity.CRITICAL:
                         return severity
 
-                    # Direct comparison - string enums can be compared lexicographically
                     if max_severity is None or severity > max_severity:
                         max_severity = severity
 
