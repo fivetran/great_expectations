@@ -97,7 +97,7 @@ end_to_end_output = """
             },
             "expectations": [
                 {
-                    "expectation_type": "expect_column_values_to_be_between",
+                    "type": "expect_column_values_to_be_between",
                     "success": true,
                     "severity": "warning",
                     "kwargs": {
@@ -119,7 +119,7 @@ end_to_end_output = """
                     }
                 },
                 {
-                    "expectation_type": "expect_column_values_to_be_between",
+                    "type": "expect_column_values_to_be_between",
                     "success": false,
                     "severity": "critical",
                     "kwargs": {
