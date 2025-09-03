@@ -43,12 +43,14 @@ An Expectation is a verifiable assertion about your data. Expectations make impl
    To determine the parameters your Expectation uses to evaluate data, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with the a description of the value that should be provided.
 
    Parameters that indicate a column, list of columns, table, Data Source, or severity must be provided when the Expectation is created. All other parameters can be set when the Expectation is created or be assigned a dictionary lookup that will allow them to be set at runtime.
-   
+
+   <a id="severity"></a>
+
 3. Optional. Determine the Expectation's other parameters
 
    In addition to the parameters that are required for an Expectation to evaluate data, Expectations also support some optional parameters.  In the Expectations Gallery these are found under each Expectation's **Other Parameters** section.
 
-   <a id="severity"></a>
+
 
    These parameters are:
    - `meta`: A dictionary of user-supplied metadata to store with an Expectation. This dictionary can be used to add notes about the purpose and intended use of an Expectation.
