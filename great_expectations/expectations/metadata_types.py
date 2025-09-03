@@ -51,6 +51,7 @@ class FailureSeverity(str, Enum):
         # Semantic ordering: INFO < WARNING < CRITICAL
         order = {FailureSeverity.INFO: 0, FailureSeverity.WARNING: 1, FailureSeverity.CRITICAL: 2}
         return order[self] < order[other]
+
     @override
     def __gt__(self, other):
         """Implement semantic ordering: CRITICAL > WARNING > INFO"""
