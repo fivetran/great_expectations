@@ -1063,7 +1063,6 @@ class TableAsset(_SQLAsset):
         Raises:
             TestConnectionError: If the connection test fails.
         """
-        return None
         datasource: SQLDatasource = self.datasource
         engine: sqlalchemy.Engine = datasource.get_engine()
         inspector: sqlalchemy.Inspector = sa.inspect(engine)
