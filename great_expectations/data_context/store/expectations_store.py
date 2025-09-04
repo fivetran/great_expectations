@@ -42,6 +42,7 @@ class ExpectationConfigurationDTO(pydantic.BaseModel):
     kwargs: dict
     meta: Union[dict, None]
     description: Union[str, None]
+    severity: Union[str, None]
     expectation_context: Union[dict, None]
 
 
@@ -138,7 +139,14 @@ class ExpectationsStore(Store):
                 kwargs.pop("result_format")
 
         suite_dto = ExpectationSuiteDTO.parse_obj(data)
-        return suite_dto.dict()
+        result = suite_dto.dict()
+
+        # Remove severity field if it's None to maintain backwards compatibility
+        for expectation in result.get("expectations", []):
+            if "severity" in expectation and expectation["severity"] is None:
+                expectation.pop("severity")
+
+        return result
 
     def add_expectation(self, suite: ExpectationSuite, expectation: _TExpectation) -> _TExpectation:
         suite_identifier, fetched_suite = self._refresh_suite(suite)

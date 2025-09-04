@@ -1,14 +1,14 @@
 ---
-sidebar_label: 'Manage alerts'
-title: 'Manage alerts'
-description: Create and manage alerts in GX Cloud.
+sidebar_label: 'Manage email alerts'
+title: 'Manage email alerts'
+description: Create and manage email alerts in GX Cloud.
 ---
 
 Stay informed about the health of the Data Assets that you care about by enabling alerts in GX Cloud. 
 
 GX Cloud sends email alerts on the following events:
 - A Data Asset fails a validation run.
-- [ExpectAI (BETA)](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) generates recommended Expectations for a Data Asset. 
+- [ExpectAI (BETA)](/cloud/expectations/manage_expectations.md#generate-expectations) generates recommended Expectations for a Data Asset. 
 
 
 ## Email alert default settings

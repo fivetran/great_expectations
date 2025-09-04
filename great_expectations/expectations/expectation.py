@@ -57,6 +57,7 @@ from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
     parse_result_format,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -339,6 +340,13 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
     catch_exceptions: bool = False
     rendered_content: Optional[List[RenderedAtomicContent]] = None
+    severity: FailureSeverity = pydantic.Field(
+        default=FailureSeverity.CRITICAL,
+        description=(
+            "Indicate the impact of this Expectation failing. Severity levels can be "
+            "used to trigger different alerting patterns and actions."
+        ),
+    )
 
     version: ClassVar[str] = ge_version
     domain_keys: ClassVar[Tuple[str, ...]] = ()
@@ -1275,9 +1283,13 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> Union[Dict[str, Union[str, int, bool, List[str], None]], str]:
         default_result_format: Optional[Any] = self._get_default_value("result_format")
+        # defaulting to empty dict to avoid type errors is safe. All uses expect a string or a dict
+        # and if a dict is provided, it is parsed correctly with defaults injected.
+        # TODO: when working in the area, result format should be typed and defaults should be
+        # injected here, rather than other parts of the codebase.
         configuration_result_format: Union[
             Dict[str, Union[str, int, bool, List[str], None]], str
-        ] = self.configuration.kwargs.get("result_format", default_result_format)
+        ] = self.configuration.kwargs.get("result_format", default_result_format or {})
         result_format: Union[Dict[str, Union[str, int, bool, List[str], None]], str]
         if runtime_configuration:
             result_format = runtime_configuration.get(
@@ -1355,6 +1367,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         meta = kwargs.pop("meta", None)
         notes = kwargs.pop("notes", None)
         description = kwargs.pop("description", None)
+        severity = kwargs.pop("severity", FailureSeverity.CRITICAL)
         id = kwargs.pop("id", None)
         rendered_content = kwargs.pop("rendered_content", None)
         return ExpectationConfiguration(
@@ -1363,6 +1376,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             meta=meta,
             notes=notes,
             description=description,
+            severity=severity,
             id=id,
             rendered_content=rendered_content,
         )

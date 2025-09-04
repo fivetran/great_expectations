@@ -72,7 +72,7 @@ def get_table_columns_metric(
         metric_domain_kwargs={},
         metric_value_kwargs=None,
     )
-    table_columns_metric.metric_dependencies = {  # type: ignore[assignment] # FIXME CoP
+    table_columns_metric.metric_dependencies = {
         "table.column_types": table_column_types_metric,
     }
     results = execution_engine.resolve_metrics(

@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 import numpy as np
 
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.core.util import get_sql_dialect_floating_point_infinity_value
@@ -208,7 +209,7 @@ class ColumnValuesBetweenCount(MetricProvider):
         ) = execution_engine.get_compute_domain(
             domain_kwargs=metric_domain_kwargs, domain_type=MetricDomainTypes.COLUMN
         )
-        column = df[accessor_domain_kwargs["column"]]
+        column = F.col(accessor_domain_kwargs["column"])
 
         if min_value is not None and max_value is not None and min_value > max_value:
             raise ValueError("min_value cannot be greater than max_value")  # noqa: TRY003 # FIXME CoP
@@ -218,24 +219,24 @@ class ColumnValuesBetweenCount(MetricProvider):
 
         if min_value is None:
             if strict_max:
-                condition = column < max_value
+                condition = column < F.lit(max_value)
             else:
-                condition = column <= max_value
+                condition = column <= F.lit(max_value)
 
         elif max_value is None:
             if strict_min:
-                condition = column > min_value
+                condition = column > F.lit(min_value)
             else:
-                condition = column >= min_value
+                condition = column >= F.lit(min_value)
 
         else:  # noqa: PLR5501 # FIXME CoP
             if strict_min and strict_max:
-                condition = (column > min_value) & (column < max_value)
+                condition = (column > F.lit(min_value)) & (column < F.lit(max_value))
             elif strict_min:
-                condition = (column > min_value) & (column <= max_value)
+                condition = (column > F.lit(min_value)) & (column <= F.lit(max_value))
             elif strict_max:
-                condition = (column >= min_value) & (column < max_value)
+                condition = (column >= F.lit(min_value)) & (column < F.lit(max_value))
             else:
-                condition = (column >= min_value) & (column <= max_value)
+                condition = (column >= F.lit(min_value)) & (column <= F.lit(max_value))
 
         return df.filter(condition).count()

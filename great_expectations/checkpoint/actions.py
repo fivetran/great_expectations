@@ -69,8 +69,12 @@ if TYPE_CHECKING:
     from great_expectations.core.expectation_validation_result import (
         ExpectationSuiteValidationResult,
     )
+    from great_expectations.expectations.metadata_types import FailureSeverity
 
 logger = logging.getLogger(__name__)
+
+
+NotifyOn = Literal["all", "success", "failure", "info", "warning", "critical"]
 
 
 def _build_renderer(config: dict) -> Renderer:
@@ -251,12 +255,18 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
             return value
 
 
-def _should_notify(success: bool, notify_on: Literal["all", "failure", "success"]) -> bool:
-    return (
-        notify_on == "all"
-        or (notify_on == "success" and success)
-        or (notify_on == "failure" and not success)
-    )
+def should_notify(
+    success: bool, notify_on: NotifyOn, max_severity: Optional[FailureSeverity] = None
+) -> bool:
+    if notify_on in {"all", "success", "failure"}:
+        return (
+            notify_on == "all"
+            or (notify_on == "success" and success)
+            or (notify_on == "failure" and not success)
+        )
+    if success is False and max_severity:
+        return notify_on == max_severity
+    return False
 
 
 class DataDocsAction(ValidationAction):
@@ -329,7 +339,7 @@ class SlackNotificationAction(DataDocsAction):
     slack_webhook: Optional[Union[ConfigStr, str]] = None
     slack_token: Optional[Union[ConfigStr, str]] = None
     slack_channel: Optional[Union[ConfigStr, str]] = None
-    notify_on: Literal["all", "failure", "success"] = "all"
+    notify_on: NotifyOn = "all"
     notify_with: Optional[List[str]] = None
     show_failed_expectations: bool = False
     renderer: SlackRenderer = Field(default_factory=SlackRenderer)
@@ -368,7 +378,7 @@ class SlackNotificationAction(DataDocsAction):
         checkpoint_name = checkpoint_result.checkpoint_config.name
         result = {"slack_notification_result": "none required"}
 
-        if not _should_notify(success=success, notify_on=self.notify_on):
+        if not should_notify(success=success, notify_on=self.notify_on):
             return result
 
         checkpoint_text_blocks: list[dict] = []
@@ -496,7 +506,7 @@ class PagerdutyAlertAction(ValidationAction):
 
     api_key: str
     routing_key: str
-    notify_on: Literal["all", "failure", "success"] = "failure"
+    notify_on: NotifyOn = "failure"
     severity: Literal["critical", "error", "warning", "info"] = "critical"
 
     @override
@@ -514,7 +524,7 @@ class PagerdutyAlertAction(ValidationAction):
         return self._run_pypd_alert(dedup_key=checkpoint_name, message=summary, success=success)
 
     def _run_pypd_alert(self, dedup_key: str, message: str, success: bool):
-        if _should_notify(success=success, notify_on=self.notify_on):
+        if should_notify(success=success, notify_on=self.notify_on):
             pypd.api_key = self.api_key
             pypd.EventV2.create(
                 data={
@@ -546,7 +556,7 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
     type: Literal["microsoft"] = "microsoft"
 
     teams_webhook: Union[ConfigStr, str]
-    notify_on: Literal["all", "failure", "success"] = "all"
+    notify_on: NotifyOn = "all"
     renderer: MicrosoftTeamsRenderer = Field(default_factory=MicrosoftTeamsRenderer)
 
     @validator("renderer", pre=True)
@@ -563,7 +573,7 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
     @override
     def run(self, checkpoint_result: CheckpointResult, action_context: ActionContext | None = None):
         success = checkpoint_result.success or False
-        if not _should_notify(success=success, notify_on=self.notify_on):
+        if not should_notify(success=success, notify_on=self.notify_on):
             return {"microsoft_teams_notification_result": None}
 
         data_docs_pages = self._get_data_docs_pages_from_prior_action(action_context=action_context)
@@ -634,7 +644,7 @@ class OpsgenieAlertAction(ValidationAction):
     api_key: str
     region: Optional[str] = None
     priority: Literal["P1", "P2", "P3", "P4", "P5"] = "P3"
-    notify_on: Literal["all", "failure", "success"] = "failure"
+    notify_on: NotifyOn = "failure"
     tags: Optional[List[str]] = None
     renderer: OpsgenieRenderer = Field(default_factory=OpsgenieRenderer)
 
@@ -656,7 +666,7 @@ class OpsgenieAlertAction(ValidationAction):
         validation_success = checkpoint_result.success or False
         checkpoint_name = checkpoint_result.checkpoint_config.name
 
-        if _should_notify(success=validation_success, notify_on=self.notify_on):
+        if should_notify(success=validation_success, notify_on=self.notify_on):
             settings = {
                 "api_key": self.api_key,
                 "region": self.region,
@@ -772,7 +782,7 @@ class EmailAction(ValidationAction):
     sender_alias: Optional[Union[ConfigStr, str]] = None
     use_tls: Optional[bool] = None
     use_ssl: Optional[bool] = None
-    notify_on: Literal["all", "failure", "success"] = "all"
+    notify_on: NotifyOn = "all"
     notify_with: Optional[List[str]] = None
     renderer: EmailRenderer = Field(default_factory=EmailRenderer)
 
@@ -812,7 +822,7 @@ class EmailAction(ValidationAction):
         action_context: ActionContext | None = None,
     ) -> dict:
         success = checkpoint_result.success or False
-        if not _should_notify(success=success, notify_on=self.notify_on):
+        if not should_notify(success=success, notify_on=self.notify_on):
             return {"email_result": ""}
 
         title, html = self.renderer.render(checkpoint_result=checkpoint_result)

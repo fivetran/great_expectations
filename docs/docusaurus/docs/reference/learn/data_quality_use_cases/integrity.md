@@ -66,8 +66,8 @@ Validating the integrity of this financial data involves checking the consistenc
 To validate data relationships across multiple tables, you have three options:
 
 1. Create a database view that joins the tables you want to validate, and then use built-in Expectations to validate columns within the view.
-2. Create a [custom SQL Expectation](/cloud/expectations/manage_expectations.md#custom-sql-expectations) to validate relationships directly using a SQL query that references multiple tables from a single Data Source.
-3. Use a [Multi-source Expectation](/cloud/expectations/manage_expectations.md#multi-source-expectations) to execute one SQL query for each of two Data Sources and compare their results for equality.
+2. Create a [custom SQL Expectation](/cloud/expectations/expectations_overview.md#custom-sql-expectations) to validate relationships directly using a SQL query that references multiple tables from a single Data Source.
+3. Use a [Multi-source Expectation](/cloud/expectations/expectations_overview.md#multi-source-expectations) to execute one SQL query for each of two Data Sources and compare their results for equality.
 
 This section covers the first option and presents built-in Expectations that can be applied to single tables, or SQL views that query multiple tables. The second option is explored in the [Example: Validate cross-table data integrity](#validate-cross-table-data-integrity) section that showcases how to create and use custom SQL Expectations for validating relationships across separate tables in a single Data Source.
 
@@ -227,7 +227,7 @@ Run the following GX Core workflow.
 **GX solution**: Both GX Cloud and GX Core can be used to implement comprehensive integrity checks that span multiple tables within a single Data Source and validate complex business rules.
 
 :::tip Need to compare different Data Sources?
-You can use [Multi-source Expectations](/cloud/expectations/manage_expectations.md#multi-source-expectations) to validate integrity across two different Data Sources.
+You can use [Multi-source Expectations](/cloud/expectations/expectations_overview.md#multi-source-expectations) to validate integrity across two different Data Sources.
 :::
 
 ## Scenarios

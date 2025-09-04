@@ -619,7 +619,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
               - a dictionary of accessor_domain_kwargs, describing any accessors needed to
                 identify the Domain within the compute domain
         """  # noqa: E501 # FIXME CoP
-        table: str = domain_kwargs.get("table", None)
+        table: Optional[str] = domain_kwargs.get("table", None)
         if table:
             raise ValueError(  # noqa: TRY003 # FIXME CoP
                 "PandasExecutionEngine does not currently support multiple named tables."

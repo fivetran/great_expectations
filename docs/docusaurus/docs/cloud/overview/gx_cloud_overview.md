@@ -20,7 +20,7 @@ You can integrate GX Cloud at any point in your data pipeline to manage and moni
 
 Here’s an example of where these three common integration points fit in a generic data pipeline:
 
-![Incoming data from Square, Mailchimp, and Salesforce are validated by GX Cloud before being written as raw data in a Snowflake data warehouse. Transformations are validated within the Snowflake data pipeline. Finalized data is validated before being served by BI tools such as Tableau, Power BI, and Looker.](./overview_images/gx_cloud_pipeline.png)
+![Raw data from Square, Mailchimp, and Salesforce are validated by GX Cloud before being written to a Snowflake data warehouse. Transformations are validated within the Snowflake data pipeline. Finalized data is validated before being served by BI tools such as Tableau, Power BI, and Looker.](./overview_images/gx_cloud_pipeline.png)
 
 You can also integrate GX Cloud with version control systems and with data at rest. Common workflows that validate data outside the data pipeline include:
 
@@ -70,13 +70,13 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 * **Automate rules for Anomaly Detection.** GX Cloud can automatically generate Expectations that detect column changes, volume changes that deviate from historical patterns, and changes to the proportion of null values in each column. This option is available when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
 
-* **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
+* **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
-* **Generate code for custom SQL Expectations with ExpectAI (BETA).** To simplify working with [custom SQL Expectations](/cloud/expectations/manage_expectations.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+* **Generate code for custom SQL Expectations with ExpectAI (BETA).** To simplify working with [custom SQL Expectations](/cloud/expectations/expectations_overview.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
 
 * **Schedule Validations.** GX Cloud enables you to schedule validations, so that you can test and assess your data on a regular cadence and monitor data quality over time. See [Manage schedules](/cloud/schedules/manage_schedules.md) for more detail.
 
-* **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your organization to remain proactively aware of the health of your Data Assets. See [Manage alerts](/cloud/alerts/manage_alerts.md) for more detail.
+* **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your organization to remain proactively aware of the health of your Data Assets. See [Respond to results](/cloud/alerts/alerts_lp.md) for more detail.
 
 * **Monitor Data Health.** GX Cloud provides metric summaries and trends to help you understand and improve test coverage and success across your business. See [Data Health](/cloud/overview/data_health.md) for more detail.
 
