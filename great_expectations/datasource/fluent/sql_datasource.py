@@ -97,6 +97,7 @@ LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 DEFAULT_QUOTE_CHARACTERS: Final[Tuple[str, str]] = ('"', "'")
 
 
+
 @overload
 def to_lower_if_not_quoted(value: str, quote_characters: Sequence[str] = ...) -> str: ...
 
@@ -997,7 +998,7 @@ class TableAsset(_SQLAsset):
     # Instance fields
     type: Literal["table"] = "table"
     # TODO: quoted_name or str
-    table_name: str | sqlalchemy.quoted_name = pydantic.Field(
+    table_name: Union[str, sqlalchemy.quoted_name] = pydantic.Field(
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
@@ -1022,25 +1023,19 @@ class TableAsset(_SQLAsset):
     def _resolve_quoted_name(
         cls, table_name: str, values: Dict[str, Any]
     ) -> str | sqlalchemy.quoted_name:
-        table_name_is_quoted: bool = cls._is_bracketed_by_quotes(table_name)
-
-        # # We reimport sqlalchemy from our compatability layer because we make
-        # # quoted_name a top level import there.
-        # from great_expectations.compatibility import sqlalchemy
-
         if sqlalchemy.quoted_name:  # type: ignore[truthy-function] # FIXME CoP
             if isinstance(table_name, sqlalchemy.quoted_name):
                 return table_name
 
-            quote: bool = False
+            quote: bool =  cls._is_bracketed_by_quotes(table_name)
 
-            if table_name_is_quoted:
+            if quote:
                 # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.quoted_name.quote
                 # Remove the quotes and add them back using the sqlalchemy.quoted_name function
                 # TODO: We need to handle nested quotes
                 values["_quote_character"] = table_name[0]
                 quote = True
-                table_name = table_name.strip("'").strip('"')
+                table_name = table_name.strip("".join(DEFAULT_QUOTE_CHARACTERS))
 
             return sqlalchemy.quoted_name(
                 value=table_name,

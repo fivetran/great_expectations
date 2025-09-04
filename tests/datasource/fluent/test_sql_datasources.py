@@ -380,7 +380,7 @@ class TestTableAsset:
         assert table_asset.schema_name == schema_name.lower()
 
     @pytest.mark.parametrize("table_name", ["my_table", "MY_TABLE", "My_Table"])
-    def test_unquoted_table_names_are_unqouted(
+    def test_unquoted_table_names_are_unquoted(
         self,
         sql_datasource_table_asset_test_connection_noop: SQLDatasource,
         table_name: str,
