@@ -229,10 +229,10 @@ class UnexpectedRowsExpectation(BatchExpectation):
     def _get_rendered_query(self, configuration: Optional[ExpectationConfiguration] = None) -> str:
         """Get the query with template variables replaced."""
         configuration = configuration or self.configuration
-        query = configuration.kwargs.get("unexpected_rows_query")
+        query = configuration.kwargs.get("unexpected_rows_query", "")
         template_dict = configuration.kwargs.get("template_dict")
 
-        if query is not None and template_dict is not None:
+        if query and template_dict is not None:
             # {batch} is a special placeholder that should not be replaced by the template_dict
             if "batch" not in template_dict:
                 template_dict["batch"] = "{batch}"
