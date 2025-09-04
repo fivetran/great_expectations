@@ -1003,7 +1003,7 @@ class TableAsset(_SQLAsset):
     )
     schema_name: Optional[str] = None
 
-    _quote_character: str | None = None
+    _quote_character: Optional[str] = None
 
     @property
     def qualified_name(self) -> str:
