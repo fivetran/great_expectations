@@ -18,9 +18,6 @@ from great_expectations.compatibility.bigquery import (
 )
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
-from great_expectations.core.metric_function_types import (
-    SummarizationMetricNameSuffixes,
-)
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
@@ -29,11 +26,7 @@ from great_expectations.execution_engine.sqlalchemy_dialect import (
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
-    _format_map_output,
     render_suite_parameter_string,
-)
-from great_expectations.expectations.expectation_configuration import (
-    parse_result_format,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
@@ -605,97 +598,20 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                 "O",
                 None,
             ]:
-                # this calls ColumnMapMetric._validate which handles unexpected_rows properly
+                # this calls ColumnMapMetric._validate
                 return super()._validate(metrics, runtime_configuration, execution_engine)
-
-            # For aggregate validation, handle unexpected_rows manually
-            result_format = self._get_result_format(runtime_configuration=runtime_configuration)
-            parsed_result_format = parse_result_format(result_format)
-
-            validation_result = self._validate_pandas(
+            return self._validate_pandas(
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
-
-            # Handle unexpected_rows for include_unexpected_rows feature
-            unexpected_rows = None
-            if parsed_result_format.get("include_unexpected_rows", False):
-                unexpected_rows = metrics.get(
-                    f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
-                )
-
-            # For aggregate expectations, we need to build the full result format
-            return _format_map_output(
-                result_format=parsed_result_format,
-                success=validation_result.get("success", True),
-                element_count=metrics.get("table.row_count"),
-                nonnull_count=None,
-                unexpected_count=0
-                if validation_result.get("success", True)
-                else metrics.get("table.row_count", 0),
-                unexpected_list=[],
-                unexpected_index_list=[],
-                unexpected_index_query=None,
-                unexpected_rows=unexpected_rows,
-            )
-
         elif isinstance(execution_engine, SqlAlchemyExecutionEngine):
-            result_format = self._get_result_format(runtime_configuration=runtime_configuration)
-            parsed_result_format = parse_result_format(result_format)
-
-            validation_result = self._validate_sqlalchemy(
+            return self._validate_sqlalchemy(
                 actual_column_type=actual_column_type,
                 expected_type=expected_type,
                 execution_engine=execution_engine,
             )
-
-            # Handle unexpected_rows for include_unexpected_rows feature
-            unexpected_rows = None
-            if parsed_result_format.get("include_unexpected_rows", False):
-                unexpected_rows = metrics.get(
-                    f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
-                )
-
-            return _format_map_output(
-                result_format=parsed_result_format,
-                success=validation_result.get("success", True),
-                element_count=metrics.get("table.row_count"),
-                nonnull_count=None,
-                unexpected_count=0
-                if validation_result.get("success", True)
-                else metrics.get("table.row_count", 0),
-                unexpected_list=[],
-                unexpected_index_list=[],
-                unexpected_index_query=None,
-                unexpected_rows=unexpected_rows,
-            )
-
         elif isinstance(execution_engine, SparkDFExecutionEngine):
-            result_format = self._get_result_format(runtime_configuration=runtime_configuration)
-            parsed_result_format = parse_result_format(result_format)
-
-            validation_result = self._validate_spark(
+            return self._validate_spark(
                 actual_column_type=actual_column_type, expected_type=expected_type
-            )
-
-            # Handle unexpected_rows for include_unexpected_rows feature
-            unexpected_rows = None
-            if parsed_result_format.get("include_unexpected_rows", False):
-                unexpected_rows = metrics.get(
-                    f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
-                )
-
-            return _format_map_output(
-                result_format=parsed_result_format,
-                success=validation_result.get("success", True),
-                element_count=metrics.get("table.row_count"),
-                nonnull_count=None,
-                unexpected_count=0
-                if validation_result.get("success", True)
-                else metrics.get("table.row_count", 0),
-                unexpected_list=[],
-                unexpected_index_list=[],
-                unexpected_index_query=None,
-                unexpected_rows=unexpected_rows,
             )
 
 
