@@ -48,7 +48,7 @@ from great_expectations.expectations.window import Offset, Window
                 '"description": "Data shouldn\'t be bad.", "catch_exceptions": false, '
                 '"rendered_content": null, "severity": "critical", "windows": null, '
                 '"batch_id": null, "unexpected_rows_query": "SELECT * FROM '
-                "my_table WHERE data='bad'\"}"
+                "my_table WHERE data='bad'\", \"template_dict\": null}"
             ),
         ),
         (

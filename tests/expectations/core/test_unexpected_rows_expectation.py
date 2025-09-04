@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Dict
 import pytest
 
 from great_expectations.data_context.util import file_relative_path
-from great_expectations.exceptions import InvalidQueryError, MissingKeysError
+from great_expectations.exceptions import InvalidQueryError, MissingKeysError, ValidationError
 from great_expectations.expectations import UnexpectedRowsExpectation
 from great_expectations.expectations.metrics.util import MAX_RESULT_RECORDS
 from great_expectations.render.renderer.content_block.content_block import ContentBlockRenderer
@@ -105,7 +105,7 @@ def test_unexpected_rows_expectation_missing_template_variable():
 
     with pytest.raises(InvalidQueryError) as exc_info:
         expectation._get_rendered_query()
-    assert "Query contains template variable that is not in template_dict" in str(exc_info.value)
+    assert "Query contains redundant template variables" in str(exc_info.value)
 
 
 @pytest.mark.unit
@@ -138,7 +138,7 @@ class TestUnexpectedRowsExpectationWithRequiredTemplateKeys:
             )
 
         # Should fail with incomplete template_dict
-        with pytest.raises(InvalidQueryError) as exc_info:
+        with pytest.raises(MissingKeysError) as exc_info:
             CustomUnexpectedRowsExpectation(
                 unexpected_rows_query="SELECT * FROM {batch} WHERE {column_a} = {column_b}",
                 template_dict={"column_a": "col1"},  # Missing column_b
@@ -171,7 +171,7 @@ def test_additional_template_validations():
             }
 
     # Should fail when columns are not different
-    with pytest.raises(MissingKeysError) as exc_info:
+    with pytest.raises(ValidationError) as exc_info:
         CustomValidationExpectation(
             unexpected_rows_query="SELECT * FROM {batch}",
             template_dict={"column_a": "col1", "column_b": "col1", "column_c": "col3"},
@@ -179,7 +179,7 @@ def test_additional_template_validations():
     assert "All columns must be different" in str(exc_info.value)
 
     # Should fail when column name is empty
-    with pytest.raises(MissingKeysError) as exc_info:
+    with pytest.raises(ValidationError) as exc_info:
         CustomValidationExpectation(
             unexpected_rows_query="SELECT * FROM {batch}",
             template_dict={"column_a": "col1", "column_b": "", "column_c": "col3"},
