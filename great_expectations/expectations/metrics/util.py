@@ -373,7 +373,7 @@ class CaseInsensitiveNameDict(UserDict):
 
 def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
     execution_engine: SqlAlchemyExecutionEngine,
-    table_selectable: sqlalchemy.Select | str,
+    table_selectable: sqlalchemy.Select,
     schema_name: Optional[str] = None,
 ) -> Sequence[Mapping[str, Any]] | None:
     try:
@@ -452,14 +452,11 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
 
 
 def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
-    selectable: sqlalchemy.Select | str,
+    selectable: sqlalchemy.Select,
     dialect: sqlalchemy.Dialect,
     sqlalchemy_engine: sqlalchemy.Engine,
 ) -> List[Dict[str, str]]:
     """If we can't reflect the table, use a query to at least get column names."""
-    if isinstance(selectable, str):
-        raise TypeError("selectable cannot be a string")  # noqa: TRY003
-
     if isinstance(sqlalchemy_engine.engine, sqlalchemy.Engine):
         connection = sqlalchemy_engine.engine.connect()
     else:
