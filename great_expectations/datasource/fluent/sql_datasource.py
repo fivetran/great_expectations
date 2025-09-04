@@ -97,7 +97,6 @@ LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 DEFAULT_QUOTE_CHARACTERS: Final[Tuple[str, str]] = ('"', "'")
 
 
-
 @overload
 def to_lower_if_not_quoted(value: str, quote_characters: Sequence[str] = ...) -> str: ...
 
@@ -1027,7 +1026,7 @@ class TableAsset(_SQLAsset):
             if isinstance(table_name, sqlalchemy.quoted_name):
                 return table_name
 
-            quote: bool =  cls._is_bracketed_by_quotes(table_name)
+            quote: bool = cls._is_bracketed_by_quotes(table_name)
 
             if quote:
                 # https://docs.sqlalchemy.org/en/20/core/sqlelement.html#sqlalchemy.sql.expression.quoted_name.quote
