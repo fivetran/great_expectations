@@ -28,7 +28,7 @@ from typing_extensions import Annotated, Never
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
-from great_expectations.compatibility import pydantic, sqlalchemy
+from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import Field
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.compatibility.typing_extensions import override
@@ -997,7 +997,7 @@ class TableAsset(_SQLAsset):
     # Instance fields
     type: Literal["table"] = "table"
     # TODO: quoted_name or str
-    table_name: Union[str, sqlalchemy.quoted_name] = pydantic.Field(
+    table_name: str = pydantic.Field(
         "",
         description="Name of the SQL table. Will default to the value of `name` if not provided.",
     )
@@ -1019,9 +1019,11 @@ class TableAsset(_SQLAsset):
         return validated_table_name
 
     @pydantic.validator("table_name")
-    def _resolve_quoted_name(
-        cls, table_name: str, values: Dict[str, Any]
-    ) -> str | sqlalchemy.quoted_name:
+    def _resolve_quoted_name(cls, table_name: str, values: Dict[str, Any]) -> str:
+        # We reimport sqlalchemy from our compatability layer because we make
+        # quoted_name a top level import there.
+        from great_expectations.compatibility import sqlalchemy
+
         if sqlalchemy.quoted_name:  # type: ignore[truthy-function] # FIXME CoP
             if isinstance(table_name, sqlalchemy.quoted_name):
                 return table_name
