@@ -22,12 +22,12 @@ Agent-enabled deployments do not support [ExpectAI](/cloud/overview/accelerating
 
 ## Prerequisites
 
-- You have a [GX Cloud account](https://greatexpectations.io/cloud).
+- You are an [Organization Owner](/cloud/access/manage_access.md#roles-and-permissions).
 - You have a [Docker instance](https://docs.docker.com/get-docker/) or [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
 ## Enable the GX Agent
 
-The GX Agent is not enabled by default in GX Cloud. To enable the GX Agent for your GX Cloud organization, request the Agent when adding a Data Source. The workflow depends on whether or not your organization has any Data Sources yet.
+The GX Agent is not enabled by default in GX Cloud. To enable the GX Agent for your GX Cloud organization, request the Agent when adding a Data Source. The workflow depends on whether or not your workspace has any Data Sources yet.
 
 <Tabs
   groupId="request-agent"
@@ -234,16 +234,6 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
 
 </TabItem>
 </Tabs>
-
-## View GX Cloud logs
-
-If you encounter an issue deploying the GX Agent or performing a GX Cloud task, review log information to troubleshoot the cause and determine a fix.
-
-1. In GX Cloud, click **Logs**.
-
-2. Click **Show log** next to a log entry to display additional log details.
-
-3. Optional. Click **Hide log** to close the log details view.
 
 ## GX Agent versioning
 GX uses a date-based versioning format for its weekly GX Agent Docker image releases: `YYYYMMMDD.#` for stable releases and `YYYYMMDD.#.dev#` for pre-releases. GX uses the `stable` and `dev` Docker image tags to identify the release type. The `stable` tag indicates the image is fully tested and ready for use. The `dev` tag indicates a pre-release image.

@@ -9,7 +9,7 @@ import Tabs from '@theme/Tabs';
 
 ## Prerequisites
 
-- You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
+- You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 - You have a Snowflake database, schema, and table or view.
 
@@ -74,7 +74,7 @@ To connect to a Snowflake Data Source using key-pair authentication instead of a
 Then, you can use the GX Cloud UI to [add a Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) from that Data Source.
 :::
 
-1. In GX Cloud, click **Data Assets** > **New Data Asset** > **New Data Source** > **Snowflake**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets** > **New Data Asset** > **New Data Source** > **Snowflake**.
 
 2. Enter a meaningful name for the Data Source in the **Data Source name** field.
 

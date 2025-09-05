@@ -29,7 +29,7 @@ Now you can [invite users](#invite-a-user) to collaborate in the workspace. Note
 
 ### Edit a workspace 
 
-To change the name of a workspace, follow the below instructions. To change the membership of a workspace, [edit users](#edit-a-user-role).
+To change the name of a workspace, follow the below instructions. To change the membership of a workspace, [edit users](#edit-a-workspace-users-role).
 
 1. In GX Cloud, click **Workspaces**.
 2. Click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit workspace** for the workspace that you want to rename.

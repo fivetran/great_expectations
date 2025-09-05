@@ -6,7 +6,7 @@ description: Understand and improve data quality test coverage and success acros
 To understand the health of your data, you need to know whether tests are passing or failing as well as what you're testing and how often.
 
 ## Metrics
-To give you these insights into the health of your data, GX Cloud provides the following metrics on the **Data Health** page:
+To give you these insights into the health of your data, GX Cloud provides the following workspace-level metrics on the **Data Health** page:
 
 ![Example metrics: Data Health 71%, Daily distinct Expectations 9167, Active Coverage 98%, Total Data Assets 390. Daily Data Health rollover details include date, Data Health percentage, count of Expectations validated, and count of successful Expectations. Metrics default to overall data and can be filtered to a specific data quality issue, such as schema.](/img/data_health.png)
 
@@ -21,7 +21,7 @@ To give you these insights into the health of your data, GX Cloud provides the f
 
 - **Active Coverage:** The percentage of Data Assets that have been validated in the last 30 days.
 
-- **Total Data Assets:** The current number of Data Assets in your GX Cloud Organization.
+- **Total Data Assets:** The current number of Data Assets in your GX Cloud workspace.
 
 Days as used in these metrics are segmented by midnight UTC.
 
@@ -35,7 +35,7 @@ For a more nuanced understanding of what you’re testing, you can filter the **
 
 - The **Active Coverage** percentage will be scoped to Data Assets that have been validated with at least one Expectation for the selected data quality issue in the last 30 days.
 
-- The number of **Total Data Assets** will not change. This always shows the current number of Data Assets in your GX Cloud Organization regardless of what if any Expectations they have.
+- The number of **Total Data Assets** will not change. This always shows the current number of Data Assets in your GX Cloud workspace regardless of what if any Expectations they have.
 
 ## Next steps for improving data health
 

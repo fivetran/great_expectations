@@ -16,7 +16,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 ## Add an Expectation
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
@@ -52,7 +52,7 @@ Keep the following requirements in mind when working with ExpectAI:
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
 
 To add AI-recommended Expectations:
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 2. In the **Data Assets** list, click the Data Asset name.
 3. Click **Generate Expectations**.
    :::note This might take a few minutes
@@ -88,7 +88,7 @@ Keep the following requirements in mind when working with ExpectAI:
 
 If your Data Asset has at least one DATE or DATETIME column, you can define a Batch to validate your data incrementally.
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
@@ -100,7 +100,7 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 ## Edit an Expectation
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
@@ -114,7 +114,7 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 ## Delete an Expectation
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
