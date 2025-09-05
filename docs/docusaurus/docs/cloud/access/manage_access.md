@@ -1,7 +1,7 @@
 ---
 sidebar_label: 'Manage access'
 title: 'Manage access'
-description: Manage GX Cloud users and access tokens.
+description: Manage your organization's access to GX Cloud.
 ---
 
 With GX Cloud’s access control options, you can ensure security and make collaboration more efficient. This page covers configuration for multiple workspaces, individual users, and access tokens. 
@@ -66,13 +66,7 @@ The following table lists GX Cloud roles and permissions.
 | Manage Data Sources, Data Assets, and Expectations* | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
 | View Validation Results*                            | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
 
-
-
-
-
-
-
-
+* Scoped to the workspace(s) the user belongs to.
 
 ## Invite a user
 
@@ -82,67 +76,88 @@ The following table lists GX Cloud roles and permissions.
 
     - **Email** - Enter the user's email address.
 
-    - **Organization Role** - Select **Viewer**, **Editor**, or **Admin**. Viewers can view Validation Results, Editors can create and edit Expectations and can create access tokens, and Admins can perform all GX Cloud administrative functions.
+    - **Role** - See [roles and permissions](#roles-and-permissions) for details on the options.
+
+    - **Workspace** - If you’re adding a Workspace Admin, Editor, or Viewer, select a workspace. If you’re adding an Organization Owner, they will automatically have full access to all current and future workspaces. 
 
 3. Click **Invite**.
 
     An email invitation is sent to the user.
 
-## Edit a user role
+## Edit a workspace user’s role
+
+Workspace user permissions are managed on a workspace basis. To edit a user’s role across multiple workspaces, repeat the following steps. You can search for a user by email to make it easier to find all the workspaces they belong to.
 
 1. In GX Cloud, click **Users**.
 
-2. Click the options menu for a user and select **Edit**.
+2. Find the workspace for which you want to edit a user’s role
 
-3. Select an organization role and then click **Update User**. 
+3. Click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit user**  for the person you want to update.
 
-## Delete a user
+4. Select a role and then click **Update User**. 
+
+### Edit an Organization Owner’s role
+
+Organization Owners have access to all workspaces. When you downgrade an Organization Owner’s role, you select one workspace for them to belong to. After that, you can [invite](#invite-a-user) them to additional workspaces as needed. 
 
 1. In GX Cloud, click **Users**.
+2. Click  <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit user** for the Organization Owner you want to update.
+3. Select a workspace **Role**.
+4. Select a **Workspace**.
+5. Click **Update User**.
 
-2. Click the options menu for a user and select **Delete**.
+### Delete a user’s access
 
-3. Click **Yes, Remove This User**.
+Workspace user access is managed on a workspace basis. To remove a workspace user’s access across multiple workspaces, repeat the following steps. You can search for a user by email to make it easier to find all the workspaces they belong to. If you delete an Organization Owner, they lose access to all workspaces immediately.
+
+1. In GX Cloud, click **Users**.
+2. If you’re removing a workspace-level user’s access, find the workspace from which you want to remove the user.
+3. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Remove user** for the person you want to remove.
+4. Click **Yes, Remove This User**.
+
+
+## Tokens
+
+Tokens provide secure access to your GX Cloud entities though the GX Cloud API. 
+
+:::tip Keep your tokens secure
+Access tokens shouldn't be committed to version control software.
+:::
+ 
+Here is an overview of the different types of tokens.
+
+| Token type                                  | User access token                                                                                                                                               | Organization access token                                                                                                                                                                       |
+|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Token [permissions](#roles-and-permissions) | Inherited from the user a token belongs to.<br>If a user’s permissions are changed after a token is created, the token’s permissions are changed as well.       | Workspace Editor.                                                                                                                                                                               |
+| Workspace scope                             | Inherited from the user a token belongs to.<br> <br>If a user’s workspace membership is changed after a token is created, the token’s scope is changed as well. | All workspaces.                                                                                                                                                                                 |
+| Common use cases                            | Connecting Data Sources, adding Data Assets, and creating Expectations.                                                                                         | External application authentication for tasks such as orchestrating validation runs.                                                                                                            |
+| Ownership                                   | Each Workspace Editor, Workspace Admin, or Organization Owner manages their own user access tokens.                                                             | Organization Owners collectively manage a pool of organization access tokens.<br> <br>If an Organization Owner is removed or demoted, organization access tokens they created are not affected. |
 
 ## Create a user access token
 
-You'll need your user access token and organization ID when you set your environment variables.
-
-Access tokens shouldn't be committed to version control software.
+You can create your own user access tokens if you are a Workspace Editor, Workspace Admin, or Organization Owner.
 
 1. In GX Cloud, click **Tokens**.
-
-2. In the **User access tokens** pane, click **Create user access token**.
-
-3. In the **Token name** field, enter a name for the token that will help you quickly identify it.
-
+2. In the **User access token**s pane, click **Create user access token**.
+3. In the **Token nam**e field, enter a name for the token that will help you quickly identify it.
 4. Click **Create**.
-
 5. Copy, paste, and then save the user access token as a text file or similar. The token can't be retrieved after you close the dialog.
-
 6. Click **Close**.
 
 ## Create an organization access token
 
-Organization access tokens are typically required for external application authentication. These external applications complete tasks such as scheduled pipeline runs on behalf of your organization. 
+You must be an Organization Owner to create an organization access token. 
 
 1. In GX Cloud, click **Tokens**.
-
 2. In the **Organization access tokens** pane, click **Create organization access token**.
-
 3. In the **Token name** field, enter a name for the token that will help you quickly identify it.
-
 4. Click **Create**.
-
 5. Copy, paste, and then save the organization access token as a text file or similar. The token can't be retrieved after you close the dialog.
-
 6. Click **Close**.
 
 ## Delete a user or organization access token
 
 1. In GX Cloud, click **Tokens**.
-
-2. In the **User access tokens** or **Organization access tokens** panes, click **Delete Token**.
-
-3. Click **Delete**.
+2. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Delete token** for the token you want to remove.
+3. Click **Delete** to confirm.
 
