@@ -390,9 +390,9 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
                 else:
                     # Implicit subquery for columns().column was deprecated in SQLAlchemy 1.4
                     # We must explicitly create a subquery
-                    columns = table_selectable.columns().subquery().columns  # type: ignore[assignment]
+                    columns = table_selectable.columns().subquery().columns
             elif sqlalchemy.quoted_name and isinstance(table_selectable, sqlalchemy.quoted_name):  # type: ignore[truthy-function]
-                columns = inspector.get_columns(  # type: ignore[assignment]
+                columns = inspector.get_columns(
                     table_name=table_selectable,
                     schema=schema_name,
                 )
