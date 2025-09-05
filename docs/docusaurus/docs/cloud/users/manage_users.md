@@ -56,15 +56,16 @@ To change the name of a workspace, follow the below instructions. To change the 
 
 The following table lists GX Cloud roles and permissions.
 
-| User Role                                           | Organization Owner | Workspace Admin | Workspace Editor | Workspace Viewer |
-|-----------------------------------------------------|--------------------|-----------------|------------------|------------------|
-| Manage workspaces                                   | <span role="img" aria-label="Yes">✅</span>                  | ❌               | ❌                | ❌                |
-| Manage Organization Owners                          | ✅                  | ❌               | ❌                | ❌                |
-| Manage organization access tokens                   | ✅                  | ❌               | ❌                | ❌                |
-| Manage workspace users*                             | ✅                  | ✅               | ❌                | ❌                |
-| Manage user access tokens*                          | ✅                  | ✅               | ✅                | ❌                |
-| Manage Data Sources, Data Assets, and Expectations* | ✅                  | ✅               | ✅                | ❌                |
-| View Validation Results*                            | ✅                  | ✅               | ✅                | ✅                |
+| User Role                                           | Organization Owner                          | Workspace Admin                             | Workspace Editor                           | Workspace Viewer                           |
+|-----------------------------------------------------|---------------------------------------------|---------------------------------------------|--------------------------------------------|--------------------------------------------|
+| Manage workspaces                                   | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage Organization Owners                          | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage organization access tokens                   | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage workspace users*                             | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage user access tokens*                          | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
+| Manage Data Sources, Data Assets, and Expectations* | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
+| View Validation Results*                            | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
+
 
 
 
