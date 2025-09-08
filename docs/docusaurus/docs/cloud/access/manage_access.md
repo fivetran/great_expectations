@@ -12,13 +12,13 @@ SSO is available on the Enterprise plan. Contact sales to [upgrade to Enterprise
 
 ## Workspaces
 
- GX Cloud helps you spread the work of managing data quality across your business, so you can use knowledge from various stakeholders to ensure high standards. GX Cloud offers multiple workspaces to organizations on the [Enterprise plan](https://greatexpectations.io/pricing/) to support collaborating with many teams in GX Cloud without compromising on security or structure within the application. With workspaces, you can group your Data Sources, Data Assets, and users in flexible ways. For example, you might create different workspaces based on the following:
+GX Cloud helps you spread the work of managing data quality across your business, so you can use knowledge from various stakeholders to ensure high standards. GX Cloud offers multiple workspaces to organizations on the [Enterprise plan](https://greatexpectations.io/pricing/) to support collaborating with many teams in GX Cloud without compromising on security or structure within the application. With workspaces, you can group your Data Sources, Data Assets, and users in flexible ways. For example, you might create different workspaces based on the following:
 
- - Functions (e.g. engineering and finance) 
- - Environments (e.g. staging and production)
- - Projects (e.g. a product launch and a customer event) 
+- Functions (e.g. engineering and finance) 
+- Environments (e.g. staging and production)
+- Projects (e.g. a product launch and a customer event) 
 
- Workspaces help keep your data quality efforts clear, relevant, and secure no matter how complex your business is. Here's one example of how an organization might use multiple workspaces.
+Workspaces help keep your data quality efforts clear, relevant, and secure no matter how complex your business is. Here's one example of how an organization might use multiple workspaces.
 
 ![Example organization with two workspaces that demonstrates the following principles. Organization Owners have full access to all workspaces. Other users have permissions granted on a workspace basis. Each Data Source and Data Asset belongs to a single workspace. A given table can be added as a Data Asset in multiple workspaces. Expectations are specific to each Data Asset.](/img/workspaces.png)
 
@@ -47,11 +47,11 @@ To change the name of a workspace, follow the below instructions. To change the 
 3. Change the **Workspace name**.
 4. Click **Save**.
 
- When you rename a workspace, old links and integrations for that workspace will still function. But, you may want to let your team know about the change so they can find what they’re looking for in the GX Cloud UI. 
+When you rename a workspace, old links and integrations for that workspace will still function. But, you may want to let your team know about the change so they can find what they’re looking for in the GX Cloud UI. 
 
 ### Delete a workspace
 
- Note that you cannot delete the default workspace. To delete a non-default workspace, follow the below instructions.
+Note that you cannot delete the default workspace. To delete a non-default workspace, follow the below instructions.
 
 1. In GX Cloud, click **Workspaces**.
 2. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Delete workspace** for the workspace that you want to remove.
@@ -60,7 +60,7 @@ To change the name of a workspace, follow the below instructions. To change the 
 
 ## Users
 
- Workspace users can be members of multiple workspaces with different permissions. Organization Owners are always members of all workspaces with full permissions.
+Workspace users can be members of multiple workspaces with different permissions. Organization Owners are always members of all workspaces with full permissions.
 
 ### Roles and permissions
 
