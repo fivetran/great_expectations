@@ -67,15 +67,15 @@ Workspace users can be members of multiple workspaces with different permissions
 
 The following table lists GX Cloud roles and permissions.
 
-| User Role                                           | Organization Owner                          | Workspace Admin                             | Workspace Editor                           | Workspace Viewer                           |
-|-----------------------------------------------------|---------------------------------------------|---------------------------------------------|--------------------------------------------|--------------------------------------------|
-| Manage workspaces                                   | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
-| Manage Organization Owners                          | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
-| Manage organization access tokens                   | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
-| Manage workspace users*                             | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
-| Manage user access tokens*                          | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
-| Manage Data Sources, Data Assets, and Expectations* | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
-| View Validation Results*                            | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
+| User Role                                            | Organization Owner                          | Workspace Admin                             | Workspace Editor                           | Workspace Viewer                           |
+|------------------------------------------------------|---------------------------------------------|---------------------------------------------|--------------------------------------------|--------------------------------------------|
+| Manage workspaces                                    | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage Organization Owners                           | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage organization access tokens                    | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage workspace users *                             | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
+| Manage user access tokens *                          | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
+| Manage Data Sources, Data Assets, and Expectations * | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> |
+| View Validation Results *                            | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="Yes">✅</span> |
 
 \* Scoped to the workspace(s) the user belongs to.
 
