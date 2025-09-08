@@ -1061,7 +1061,9 @@ class TableAsset(_SQLAsset):
         # we need to ensure we retain the quotes when serializing quoted names
         qc = self._quote_character
         if qc is not None:
-            original_dict["table_name"] = f"{qc}{self.table_name}{DEFAULT_FINAL_QUOTE_CHARACTERS[qc]}"
+            original_dict["table_name"] = (
+                f"{qc}{self.table_name}{DEFAULT_FINAL_QUOTE_CHARACTERS[qc]}"
+            )
 
         return original_dict
 
