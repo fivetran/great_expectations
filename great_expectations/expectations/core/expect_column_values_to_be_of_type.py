@@ -502,8 +502,14 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
 
         configuration = self.configuration
 
-        # Only PandasExecutionEngine supports the column map version of the expectation.
+        # Check if we need ColumnMap dependencies for include_unexpected_rows
         kwargs = configuration.kwargs if configuration else {}
+
+        # Check if row-level validation is requested
+        result_format = self._get_result_format(runtime_configuration=runtime_configuration)
+        include_unexpected_rows = False
+        if isinstance(result_format, dict):
+            include_unexpected_rows = result_format.get("include_unexpected_rows", False)
 
         if isinstance(execution_engine, PandasExecutionEngine):
             column_name = kwargs.get("column")
@@ -548,6 +554,11 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                 validation_dependencies = super().get_validation_dependencies(
                     execution_engine, runtime_configuration
                 )
+        elif include_unexpected_rows:
+            # For SQL/Spark engines, set up ColumnMap dependencies when include_unexpected_rows=True
+            validation_dependencies = super().get_validation_dependencies(
+                execution_engine, runtime_configuration
+            )
 
         # this adds table.column_types dependency for both aggregate and map versions of expectation
         column_types_metric_kwargs = get_metric_kwargs(
@@ -604,15 +615,37 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
         elif isinstance(execution_engine, SqlAlchemyExecutionEngine):
-            return self._validate_sqlalchemy(
-                actual_column_type=actual_column_type,
-                expected_type=expected_type,
-                execution_engine=execution_engine,
-            )
+            # Check if row-level validation is requested via include_unexpected_rows
+            result_format = self._get_result_format(runtime_configuration=runtime_configuration)
+            include_unexpected_rows = False
+            if isinstance(result_format, dict):
+                include_unexpected_rows = result_format.get("include_unexpected_rows", False)
+
+            if include_unexpected_rows:
+                # Use row-level validation to support unexpected_rows
+                return super()._validate(metrics, runtime_configuration, execution_engine)
+            else:
+                # Use schema-level validation (original behavior)
+                return self._validate_sqlalchemy(
+                    actual_column_type=actual_column_type,
+                    expected_type=expected_type,
+                    execution_engine=execution_engine,
+                )
         elif isinstance(execution_engine, SparkDFExecutionEngine):
-            return self._validate_spark(
-                actual_column_type=actual_column_type, expected_type=expected_type
-            )
+            # Check if row-level validation is requested via include_unexpected_rows
+            result_format = self._get_result_format(runtime_configuration=runtime_configuration)
+            include_unexpected_rows = False
+            if isinstance(result_format, dict):
+                include_unexpected_rows = result_format.get("include_unexpected_rows", False)
+
+            if include_unexpected_rows:
+                # Use row-level validation to support unexpected_rows
+                return super()._validate(metrics, runtime_configuration, execution_engine)
+            else:
+                # Use schema-level validation (original behavior)
+                return self._validate_spark(
+                    actual_column_type=actual_column_type, expected_type=expected_type
+                )
 
 
 def _get_potential_sqlalchemy_types(execution_engine, expected_type):
