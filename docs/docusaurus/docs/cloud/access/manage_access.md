@@ -20,12 +20,13 @@ SSO is available on the Enterprise plan. Contact sales to [upgrade to Enterprise
 
  Workspaces help keep your data quality efforts clear, relevant, and secure no matter how complex your business is. Here's one example of how an organization might use multiple workspaces.
 
-![Example organization with two workspaces - default and finance. Organization Owners have full access to all workspaces. Other users have permissions granted on a workspace basis. A single table can be added as a Data Asset in multiple workspaces. Expectations are specific to each Data Asset.](/img/workspaces.png)
+![Example organization with two workspaces that demonstrates the following principles. Organization Owners have full access to all workspaces. Other users have permissions granted on a workspace basis. Each Data Source and Data Asset belongs to a single workspace. A given table can be added as a Data Asset in multiple workspaces. Expectations are specific to each Data Asset.](/img/workspaces.png)
 
 
-Keep the following requirements in mind when using workspaces:
+Keep the following in mind when using workspaces:
 - Your organization must be on the Enterprise plan to use multiple workspaces. Contact sales to [upgrade to Enterprise](https://greatexpectations.io/pricing/). 
 - You must be an [Organization Owner](#roles-and-permissions) to manage workspaces.
+
 
 
 ### Create a workspace
