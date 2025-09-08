@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, cast
 
 import pandas as pd
@@ -815,28 +816,29 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
 @parameterize_batch_for_data_sources(
     data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
 )
-def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
-    """Test include_unexpected_rows for ExpectColumnValuesToBeInTypeList with SQL data sources."""
-    expectation = gxe.ExpectColumnValuesToBeInTypeList(column=STRING_COLUMN, type_list=["INTEGER"])
-    result = batch_for_datasource.validate(
-        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
-    )
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch, caplog) -> None:
+    """Test that include_unexpected_rows triggers an error log for ExpectColumnValuesToBeInTypeList with SQL data sources."""
+    with caplog.at_level(
+        logging.ERROR,
+        logger="great_expectations.expectations.core.expect_column_values_to_be_in_type_list",
+    ):
+        expectation = gxe.ExpectColumnValuesToBeInTypeList(
+            column=STRING_COLUMN, type_list=["INTEGER"]
+        )
+        result = batch_for_datasource.validate(
+            expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+        )
 
-    assert not result.success
-    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+        # Verify that the error log was triggered
+        assert len(caplog.records) > 0
+        error_messages = [
+            record.message for record in caplog.records if record.levelno == logging.ERROR
+        ]
+        assert any(
+            "Result format parameter `unexpected_rows` is not supported for "
+            "ExpectColumnValuesToBeInTypeList when used with a SQL data source." in msg
+            for msg in error_messages
+        ), f"Expected error log not found. Error messages: {error_messages}"
 
-    # Verify that unexpected_rows is present and contains the expected data
-    assert "unexpected_rows" in result_dict
-    assert result_dict["unexpected_rows"] is not None
-
-    unexpected_rows_data = result_dict["unexpected_rows"]
-    assert isinstance(unexpected_rows_data, list)
-
-    # Should contain 5 rows where STRING_COLUMN is not of type INTEGER
-    assert len(unexpected_rows_data) == 5
-
-    # For SQL data sources, the values are typically returned as string tuples
-    # Check that all string values appear in the unexpected rows data
-    unexpected_rows_str = str(unexpected_rows_data)
-    for value in ["a", "b", "c", "d", "e"]:
-        assert value in unexpected_rows_str
+        # The validation should still proceed and return a result
+        assert not result.success
