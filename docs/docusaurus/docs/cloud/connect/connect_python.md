@@ -75,12 +75,16 @@ Environment variables securely store your GX Cloud access credentials.
 
 ## Create a Data Context
 
-- Run the following Python code to create a Data Context object:
+1. Run the following Python code to create a Data Context object:
 
-    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - get cloud context"
-    ```
-  
-    The Data Context will detect the previously set environment variables and connect to your GX Cloud account.  You can verify that you have a GX Cloud Data Context with:
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - get cloud context"
+   ```
+   
+   The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
+
+   If you are a member of multiple [workspaces](/cloud/access/manage_access#workspaces), note that you can pass a workspace ID in the `get_context` call to override the workspace ID set in your environment variables.
+   
+2. Optional. Verify that you have a GX Cloud Data Context:
 
     ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - verify context type"
     ```

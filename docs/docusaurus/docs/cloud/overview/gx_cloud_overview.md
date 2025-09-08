@@ -64,7 +64,7 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 ![GX Cloud workflow enhanced with product features](./overview_images/gx_cloud_workflow_enhanced.png)
 
-* **GX Cloud user management.** GX Cloud functions as a shared portal to manage and monitor your organization's data quality. Users can be invited to your GX Cloud organization and assigned a role that governs their ability to view and edit components and workflows in GX Cloud. See [Manage users and access tokens](/cloud/access/manage_access.md) for more details.
+* **GX Cloud user management.** GX Cloud functions as a shared portal to manage and monitor your business's data quality. Users can be invited to your GX Cloud organization and assigned a role that governs their ability to view and edit components and workflows in GX Cloud. Enterprise organizations can use workspaces for more control over what users can access and do. See [Manage users and access tokens](/cloud/access/manage_access.md) for more details.
 
 * **Data Asset profiling.** GX Cloud introspects your data schema by default on Data Asset creation, and also offers one-click fetching of additional descriptive metrics including column type and statistical summaries. Data profiling results are used to suggest parameters for Expectations that you create.
 
