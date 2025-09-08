@@ -93,8 +93,9 @@ class WorkspacesKeyError(Exception):
 class WorkspaceNotSetError(Exception):
     def __init__(self):
         super().__init__(
-            "Workspace id is not set and this user belongs to more than 1 workspace. Please set "
-            f"{GXCloudEnvironmentVariable.WORKSPACE_ID} or set it when instantiating the context."
+            "Workspace id is not set and this user does not belong to exactly 1 workspace. "
+            f"Please set {GXCloudEnvironmentVariable.WORKSPACE_ID.value} or set it when "
+            "instantiating the context."
         )
 
 

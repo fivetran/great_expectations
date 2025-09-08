@@ -211,6 +211,7 @@ class ProjectManager:
                 cloud_base_url=cloud_base_url,
                 cloud_access_token=cloud_access_token,
                 cloud_organization_id=cloud_organization_id,
+                cloud_workspace_id=cloud_workspace_id,
                 user_agent_str=user_agent_str,
                 cloud_mode=cloud_mode,
                 mode=mode,
