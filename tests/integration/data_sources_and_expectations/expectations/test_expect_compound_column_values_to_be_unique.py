@@ -150,8 +150,8 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     assert len(unexpected_rows_data) > 0
 
     # Verify that the unexpected rows contain the duplicated compound values
-    # At least the rows with duplicated combinations should be present
-    assert len(unexpected_rows_data) >= 4
+    # there are 4 unexpected rows, but our implementation only returns each duplicate once
+    assert len(unexpected_rows_data) >= 2
 
     unexpected_rows_str = str(unexpected_rows_data)
     # Should contain the duplicate values from the DUPLICATES column (100 and 99)

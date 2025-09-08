@@ -628,7 +628,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             )
         elif isinstance(execution_engine, SqlAlchemyExecutionEngine):
             if runtime_configuration:
-                # Check if unexpected_rows is requested in either the top level or nested in result_format
+                # Check if unexpected_rows is requested top level or nested in result_format
                 result_format_config = runtime_configuration.get("result_format", {})
                 if (
                     runtime_configuration.get("include_unexpected_rows")

@@ -817,7 +817,9 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
 )
 def test_include_unexpected_rows_sql(batch_for_datasource: Batch, caplog) -> None:
-    """Test that include_unexpected_rows triggers an error log for ExpectColumnValuesToBeInTypeList with SQL data sources."""
+    """Test that include_unexpected_rows triggers an error log for
+    ExpectColumnValuesToBeInTypeList with SQL data sources.
+    """
     with caplog.at_level(
         logging.ERROR,
         logger="great_expectations.expectations.core.expect_column_values_to_be_in_type_list",
