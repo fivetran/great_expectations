@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import uuid
+from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -78,12 +79,47 @@ class NoUserIdError(Exception):
         super().__init__("No user id in /account/me response")
 
 
+class NoWorkspacesError(Exception):
+    def __init__(self):
+        super().__init__("No workspaces in /account/me response")
+
+
+class WorkspacesKeyError(Exception):
+    def __init__(self):
+        super().__init__(
+            "Workspaces returned in /account/me response don't have required keys: (id, role)"
+        )
+
+
+class WorkspaceNotSetError(Exception):
+    def __init__(self):
+        super().__init__(
+            "Workspace id is not set and this user belongs to more than 1 workspace. Please set "
+            f"{GXCloudEnvironmentVariable.WORKSPACE_ID} or set it when instantiating the context."
+        )
+
+
 class OrganizationIdNotSpecifiedError(Exception):
     def __init__(self):
         super().__init__(
             "A request to GX Cloud is being attempted without an organization id configured. "
             "Maybe you need to set the environment variable GX_CLOUD_ORGANIZATION_ID?"
         )
+
+
+OPTIONAL_CLOUD_CONFIG_KEYS = [GXCloudEnvironmentVariable.WORKSPACE_ID]
+
+
+@dataclass
+class Workspace:
+    id: str
+    role: str
+
+
+@dataclass
+class CloudUserInfo:
+    user_id: uuid.UUID
+    workspaces: list[Workspace]
 
 
 @public_api
@@ -99,6 +135,7 @@ class CloudDataContext(SerializableDataContext):
         cloud_base_url: Optional[str] = None,
         cloud_access_token: Optional[str] = None,
         cloud_organization_id: Optional[str] = None,
+        cloud_workspace_id: Optional[str] = None,
         user_agent_str: Optional[str] = None,
     ) -> None:
         """
@@ -111,11 +148,23 @@ class CloudDataContext(SerializableDataContext):
             cloud_config (GXCloudConfig): GXCloudConfig corresponding to current CloudDataContext
         """  # noqa: E501 # FIXME CoP
         self._check_if_latest_version()
-        self._cloud_config = self.get_cloud_config(
+        self._cloud_user_info = None
+
+        # We get the cloud_config based on based on passed in parameters or env variables.
+        self._cloud_config = CloudDataContext.get_cloud_config(
             cloud_base_url=cloud_base_url,
             cloud_access_token=cloud_access_token,
             cloud_organization_id=cloud_organization_id,
+            cloud_workspace_id=cloud_workspace_id,
         )
+        # The workspace id is not required to be passed in or be in env variable. If we don't have
+        #  it, we try to infer it and set it.
+        if not self._cloud_config.workspace_id:
+            if len(self.cloud_user_info().workspaces) == 1:
+                self._cloud_config.workspace_id = self.cloud_user_info().workspaces[0].id
+            else:
+                raise WorkspaceNotSetError()
+
         self._context_root_directory = self.determine_context_root_directory(
             context_root_dir=context_root_dir,
             project_root_dir=project_root_dir,
@@ -148,7 +197,7 @@ class CloudDataContext(SerializableDataContext):
         if analytics_enabled:
             init_analytics(
                 enable=analytics_enabled,
-                user_id=self._get_cloud_user_id(),
+                user_id=self.cloud_user_info().user_id,
                 data_context_id=self._data_context_id,
                 organization_id=uuid.UUID(organization_id) if organization_id else None,
                 oss_id=self._get_oss_id(),
@@ -157,10 +206,7 @@ class CloudDataContext(SerializableDataContext):
                 user_agent_str=self._user_agent_str,
             )
 
-    def _get_cloud_user_id(self) -> uuid.UUID | None:
-        if not ENV_CONFIG.gx_analytics_enabled:
-            return None
-
+    def _get_cloud_user_info(self) -> CloudUserInfo:
         response = self._request_cloud_backend(
             cloud_config=self.ge_cloud_config, resource="accounts/me"
         )
@@ -168,7 +214,22 @@ class CloudDataContext(SerializableDataContext):
         user_id = data.get("user_id") or data.get("id")
         if not user_id:
             raise NoUserIdError()
-        return uuid.UUID(user_id)
+        response_workspaces = data.get("workspaces")
+        if not response_workspaces:
+            raise NoWorkspacesError()
+        workspaces = []
+        for response_workspace in response_workspaces:
+            if "id" not in response_workspace or "role" not in response_workspace:
+                raise WorkspacesKeyError()
+            workspaces.append(
+                Workspace(id=response_workspace["id"], role=response_workspace["role"])
+            )
+        return CloudUserInfo(user_id=uuid.UUID(user_id), workspaces=workspaces)
+
+    def cloud_user_info(self, force_refresh: bool = False) -> CloudUserInfo:
+        if self._cloud_user_info is None or force_refresh:
+            self._cloud_user_info = self._get_cloud_user_info()
+        return self._cloud_user_info
 
     @override
     def _init_project_config(
@@ -198,6 +259,7 @@ class CloudDataContext(SerializableDataContext):
         cloud_base_url: Optional[str] = None,
         cloud_access_token: Optional[str] = None,
         cloud_organization_id: Optional[str] = None,
+        cloud_workspace_id: Optional[str] = None,
     ) -> bool:
         """
         Helper method called by gx.get_context() method to determine whether all the information needed
@@ -206,7 +268,8 @@ class CloudDataContext(SerializableDataContext):
         If provided as explicit arguments, cloud_base_url, cloud_access_token and
         cloud_organization_id will use runtime values instead of environment variables or conf files.
 
-        If any of the values are missing, the method will return False. It will return True otherwise.
+        If any of the values are missing but workspace id, the method will return False.
+        It will return True otherwise.
 
         Args:
             cloud_base_url: Optional, you may provide this alternatively via
@@ -215,6 +278,8 @@ class CloudDataContext(SerializableDataContext):
                 via environment variable GX_CLOUD_ACCESS_TOKEN or within a config file.
             cloud_organization_id: Optional, you may provide this alternatively
                 via environment variable GX_CLOUD_ORGANIZATION_ID or within a config file.
+            cloud_workspace_id: Optional, you may provide this alternatively
+                via environment variable GX_CLOUD_WORKSPACE_ID or within a config file.
 
         Returns:
             bool: Is all the information needed to build a cloud_config is available?
@@ -223,8 +288,10 @@ class CloudDataContext(SerializableDataContext):
             cloud_base_url=cloud_base_url,
             cloud_access_token=cloud_access_token,
             cloud_organization_id=cloud_organization_id,
+            cloud_workspace_id=cloud_workspace_id,
         )
-        return all(val for val in cloud_config_dict.values())
+
+        return all((v for k, v in cloud_config_dict.items() if k not in OPTIONAL_CLOUD_CONFIG_KEYS))
 
     @classmethod
     def determine_context_root_directory(
@@ -371,6 +438,7 @@ class CloudDataContext(SerializableDataContext):
         cloud_base_url: Optional[str] = None,
         cloud_access_token: Optional[str] = None,
         cloud_organization_id: Optional[str] = None,
+        cloud_workspace_id: Optional[str] = None,
     ) -> GXCloudConfig:
         """
         Build a GXCloudConfig object. Config attributes are collected from any combination of args passed in at
@@ -386,6 +454,8 @@ class CloudDataContext(SerializableDataContext):
                 via environment variable GX_CLOUD_ACCESS_TOKEN or within a config file.
             cloud_organization_id: Optional, you may provide this alternatively
                 via environment variable GX_CLOUD_ORGANIZATION_ID or within a config file.
+            cloud_workspace_id: Optional, you may provide this alternatively
+                via environment variable GX_CLOUD_WORKSPACE_ID or within a config file.
 
         Returns:
             GXCloudConfig
@@ -397,11 +467,12 @@ class CloudDataContext(SerializableDataContext):
             cloud_base_url=cloud_base_url,
             cloud_access_token=cloud_access_token,
             cloud_organization_id=cloud_organization_id,
+            cloud_workspace_id=cloud_workspace_id,
         )
 
         missing_keys = []
         for key, val in cloud_config_dict.items():
-            if not val:
+            if key not in OPTIONAL_CLOUD_CONFIG_KEYS and not val:
                 missing_keys.append(key)
         if len(missing_keys) > 0:
             missing_keys_str = [f'"{key}"' for key in missing_keys]
@@ -415,11 +486,13 @@ class CloudDataContext(SerializableDataContext):
         assert base_url is not None
         access_token = cloud_config_dict[GXCloudEnvironmentVariable.ACCESS_TOKEN]
         organization_id = cloud_config_dict[GXCloudEnvironmentVariable.ORGANIZATION_ID]
+        workspace_id = cloud_config_dict[GXCloudEnvironmentVariable.WORKSPACE_ID]
 
         return GXCloudConfig(
             base_url=base_url,
             access_token=access_token,
             organization_id=organization_id,
+            workspace_id=workspace_id,
         )
 
     @classmethod
@@ -428,6 +501,7 @@ class CloudDataContext(SerializableDataContext):
         cloud_base_url: Optional[str] = None,
         cloud_access_token: Optional[str] = None,
         cloud_organization_id: Optional[str] = None,
+        cloud_workspace_id: Optional[str] = None,
     ) -> Dict[GXCloudEnvironmentVariable, Optional[str]]:
         cloud_base_url = (
             cloud_base_url
@@ -448,10 +522,16 @@ class CloudDataContext(SerializableDataContext):
             conf_file_section="ge_cloud_config",
             conf_file_option="access_token",
         )
+        cloud_workspace_id = cloud_workspace_id or cls._get_global_config_value(
+            environment_variable=GXCloudEnvironmentVariable.WORKSPACE_ID,
+            conf_file_section="ge_cloud_config",
+            conf_file_option="workspace_id",
+        )
         return {
             GXCloudEnvironmentVariable.BASE_URL: cloud_base_url,
             GXCloudEnvironmentVariable.ORGANIZATION_ID: cloud_organization_id,
             GXCloudEnvironmentVariable.ACCESS_TOKEN: cloud_access_token,
+            GXCloudEnvironmentVariable.WORKSPACE_ID: cloud_workspace_id,
         }
 
     @override
@@ -526,6 +606,7 @@ class CloudDataContext(SerializableDataContext):
     def _init_variables(self) -> CloudDataContextVariables:
         ge_cloud_base_url: str = self.ge_cloud_config.base_url
         ge_cloud_organization_id: str = self.ge_cloud_config.organization_id  # type: ignore[assignment] # FIXME CoP
+        ge_cloud_workspace_id: str = self.ge_cloud_config.workspace_id
         ge_cloud_access_token: str = self.ge_cloud_config.access_token
 
         variables = CloudDataContextVariables(
@@ -533,6 +614,7 @@ class CloudDataContext(SerializableDataContext):
             config_provider=self.config_provider,
             ge_cloud_base_url=ge_cloud_base_url,
             ge_cloud_organization_id=ge_cloud_organization_id,
+            ge_cloud_workspace_id=ge_cloud_workspace_id,
             ge_cloud_access_token=ge_cloud_access_token,
         )
         return variables

@@ -334,11 +334,13 @@ class FileDataContextVariables(DataContextVariables):
                 )
 
 
+# BDIRKS to be backwards compatible with old versions, we can't write out workspace id...?
 @dataclass(repr=False)
 class CloudDataContextVariables(DataContextVariables):
     ge_cloud_base_url: str = None  # type: ignore[assignment] # post_init ensures field always set
     ge_cloud_organization_id: str = None  # type: ignore[assignment] # post_init ensures field always set
     ge_cloud_access_token: str = None  # type: ignore[assignment] # post_init ensures field always set
+    ge_cloud_workspace_id: str = None  # type: ignore[assignment] # post_init ensures field always set
 
     def __post_init__(self) -> None:
         # Chetan - 20220607 - Although the above arguments are not truly optional, we are
@@ -354,10 +356,15 @@ class CloudDataContextVariables(DataContextVariables):
                 self.ge_cloud_base_url,
                 self.ge_cloud_organization_id,
                 self.ge_cloud_access_token,
+                self.ge_cloud_workspace_id,
             )
         ):
             raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"All of the following attributes are required for{self.__class__.__name__}:\n  self.ge_cloud_base_url\n  self.ge_cloud_organization_id\n  self.ge_cloud_access_token"  # noqa: E501 # FIXME CoP
+                f"All of the following attributes are required for{self.__class__.__name__}:\n"
+                "  self.ge_cloud_base_url\n"
+                "  self.ge_cloud_organization_id\n"
+                "  self.ge_cloud_access_token\n"
+                "  self.ge_cloud_workspace_id\n"
             )
 
     @override
