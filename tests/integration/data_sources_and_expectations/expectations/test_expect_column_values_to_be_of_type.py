@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Dict, cast
 
 import pandas as pd
@@ -229,34 +228,3 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     # The unexpected rows should contain all the string values
     unexpected_values = sorted(unexpected_rows_df[STRING_COLUMN].tolist())
     assert unexpected_values == ["a", "b", "c", "d", "e"]
-
-
-@parameterize_batch_for_data_sources(
-    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
-)
-def test_include_unexpected_rows_sql(batch_for_datasource: Batch, caplog) -> None:
-    """Test that include_unexpected_rows triggers an error log for
-    ExpectColumnValuesToBeOfType with SQL data sources.
-    """
-    with caplog.at_level(
-        logging.ERROR,
-        logger="great_expectations.expectations.core.expect_column_values_to_be_of_type",
-    ):
-        expectation = gxe.ExpectColumnValuesToBeOfType(column=STRING_COLUMN, type_="INTEGER")
-        result = batch_for_datasource.validate(
-            expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
-        )
-
-        # Verify that the error log was triggered
-        assert len(caplog.records) > 0
-        error_messages = [
-            record.message for record in caplog.records if record.levelno == logging.ERROR
-        ]
-        assert any(
-            "Result format parameter `unexpected_rows` is not supported for "
-            "ExpectColumnValuesToBeOfType when used with a SQL data source." in msg
-            for msg in error_messages
-        ), f"Expected error log not found. Error messages: {error_messages}"
-
-        # The validation should still proceed and return a result
-        assert not result.success

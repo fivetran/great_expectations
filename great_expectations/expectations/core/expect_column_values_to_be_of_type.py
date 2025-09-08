@@ -604,38 +604,12 @@ class ExpectColumnValuesToBeOfType(ColumnMapExpectation):
                 actual_column_type=actual_column_type, expected_type=expected_type
             )
         elif isinstance(execution_engine, SqlAlchemyExecutionEngine):
-            if runtime_configuration:
-                # Check if unexpected_rows is requested top level or nested in result_format
-                result_format_config = runtime_configuration.get("result_format", {})
-                if (
-                    runtime_configuration.get("include_unexpected_rows")
-                    or runtime_configuration.get("unexpected_rows")
-                    or (
-                        isinstance(result_format_config, dict)
-                        and (
-                            result_format_config.get("include_unexpected_rows")
-                            or result_format_config.get("unexpected_rows")
-                        )
-                    )
-                ):
-                    logger.error(
-                        "Result format parameter `unexpected_rows` is not supported for "
-                        "ExpectColumnValuesToBeOfType when used with a SQL data source."
-                    )
             return self._validate_sqlalchemy(
                 actual_column_type=actual_column_type,
                 expected_type=expected_type,
                 execution_engine=execution_engine,
             )
         elif isinstance(execution_engine, SparkDFExecutionEngine):
-            result_format: str | dict[str, Any] = self._get_result_format(
-                runtime_configuration=runtime_configuration
-            )
-            if result_format.get("unexpected_rows"):
-                logger.error(
-                    "Result format parameter `unexpected_rows` is not supported for "
-                    "ExpectColumnValuesToBeOfType when used with a Spark data source."
-                )
             return self._validate_spark(
                 actual_column_type=actual_column_type, expected_type=expected_type
             )

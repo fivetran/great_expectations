@@ -627,24 +627,6 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                 expected_types_list=expected_types_list,
             )
         elif isinstance(execution_engine, SqlAlchemyExecutionEngine):
-            if runtime_configuration:
-                # Check if unexpected_rows is requested top level or nested in result_format
-                result_format_config = runtime_configuration.get("result_format", {})
-                if (
-                    runtime_configuration.get("include_unexpected_rows")
-                    or runtime_configuration.get("unexpected_rows")
-                    or (
-                        isinstance(result_format_config, dict)
-                        and (
-                            result_format_config.get("include_unexpected_rows")
-                            or result_format_config.get("unexpected_rows")
-                        )
-                    )
-                ):
-                    logger.error(
-                        "Result format parameter `unexpected_rows` is not supported for "
-                        "ExpectColumnValuesToBeInTypeList when used with a SQL data source."
-                    )
             return self._validate_sqlalchemy(
                 actual_column_type=actual_column_type,
                 expected_types_list=expected_types_list,
