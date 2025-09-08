@@ -16,6 +16,9 @@ If your organization is on the [Enterprise plan](https://greatexpectations.io/pr
 
 When you create a Data Source or Data Asset, you create it within a single given workspace. They cannot be moved to different workspaces or associated with multiple workspaces. Users however can be granted access to any number of workspaces. A user can have different permissions in the different workspaces they belong to. 
 
+![Organization Owners have full access to all workspaces. A single table can be added as a Data Asset in multiple workspaces. Expectations are specific to each Data Asset, they are not shared across workspaces.](/img/workspaces.png)
+
+
 You must be an [Organization Owner](#roles-and-permissions) to manage workspaces.
 
 ### Create a workspace
