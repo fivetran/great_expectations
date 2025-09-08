@@ -82,7 +82,7 @@ Environment variables securely store your GX Cloud access credentials.
    
    The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
 
-   If you are a member of multiple [workspaces](/cloud/access/manage_access#workspaces), note that you can pass a workspace ID in the `get_context` call to override the workspace ID set in your environment variables.
+   If you are a member of multiple [workspaces](/cloud/access/manage_access.md#workspaces), note that you can pass a workspace ID in the `get_context` call to override the workspace ID set in your environment variables.
    
 2. Optional. Verify that you have a GX Cloud Data Context:
 
