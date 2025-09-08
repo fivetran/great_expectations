@@ -1,3 +1,5 @@
+from typing import Any, Dict, cast
+
 import pandas as pd
 import pytest
 import sqlalchemy.types as sqltypes
@@ -778,3 +780,63 @@ def test_success_complete_redshift(
         assert result_dict["observed_value"] in expectation.type_list
     else:
         assert "DECIMAL" in expectation.type_list
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToBeInTypeList with pandas."""
+    expectation = gxe.ExpectColumnValuesToBeInTypeList(column=STRING_COLUMN, type_list=["int"])
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For pandas data sources, unexpected_rows should be directly usable
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Convert directly to DataFrame for pandas data sources
+    unexpected_rows_df = pd.DataFrame(unexpected_rows_data)
+
+    # Should contain 5 rows where STRING_COLUMN is not of type int (all string values)
+    assert len(unexpected_rows_df) == 5
+
+    # The unexpected rows should contain all the string values
+    unexpected_values = sorted(unexpected_rows_df[STRING_COLUMN].tolist())
+    assert unexpected_values == ["a", "b", "c", "d", "e"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToBeInTypeList with SQL data sources."""
+    expectation = gxe.ExpectColumnValuesToBeInTypeList(column=STRING_COLUMN, type_list=["INTEGER"])
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 5 rows where STRING_COLUMN is not of type INTEGER
+    assert len(unexpected_rows_data) == 5
+
+    # For SQL data sources, the values are typically returned as string tuples
+    # Check that all string values appear in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    for value in ["a", "b", "c", "d", "e"]:
+        assert value in unexpected_rows_str

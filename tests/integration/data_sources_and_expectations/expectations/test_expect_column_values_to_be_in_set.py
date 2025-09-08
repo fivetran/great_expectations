@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, Dict, cast
 from unittest.mock import ANY
 
 import pandas as pd
@@ -13,6 +14,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
 
 NUMBERS_COLUMN = "numbers"
 STRINGS_COLUMN = "strings"
@@ -139,3 +141,66 @@ def test_empty_data_empty_set(batch_for_datasource: Batch) -> None:
     expectation = gxe.ExpectColumnValuesToBeInSet(column=NUMBERS_COLUMN, value_set=[])
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToBeInSet with pandas data sources."""
+    expectation = gxe.ExpectColumnValuesToBeInSet(column=NUMBERS_COLUMN, value_set=[1, 2])
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For pandas data sources, unexpected_rows should be directly usable
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Convert directly to DataFrame for pandas data sources
+    unexpected_rows_df = pd.DataFrame(unexpected_rows_data)
+
+    # Should contain 1 row where NUMBERS_COLUMN has value 3 (not in set [1, 2])
+    assert len(unexpected_rows_df) == 1
+    assert list(unexpected_rows_df.index) == [0]
+
+    # The unexpected row should have value 3 in NUMBERS_COLUMN
+    assert unexpected_rows_df.loc[0, NUMBERS_COLUMN] == 3
+
+    # Other columns should have their original values from row with index 2
+    assert unexpected_rows_df.loc[0, STRINGS_COLUMN] == "c"
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToBeInSet with SQL data sources."""
+    expectation = gxe.ExpectColumnValuesToBeInSet(column=NUMBERS_COLUMN, value_set=[1, 2])
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 1 row where NUMBERS_COLUMN has value 3 (not in set [1, 2])
+    assert len(unexpected_rows_data) == 1
+
+    # For SQL data sources, the values are typically returned as string tuples
+    # Check that the unexpected value 3 and corresponding string "c" appear
+    unexpected_rows_str = str(unexpected_rows_data)
+    assert "3" in unexpected_rows_str
+    assert "c" in unexpected_rows_str
