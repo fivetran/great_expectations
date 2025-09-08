@@ -12,14 +12,21 @@ SSO is available on the Enterprise plan. Contact sales to [upgrade to Enterprise
 
 ## Workspaces
 
-If your organization is on the [Enterprise plan](https://greatexpectations.io/pricing/), you can use workspaces to group your Data Assets and users by team or environment. Beyond improving security, this makes it easier for people to find and focus on what’s relevant to them.
+ GX Cloud helps you spread the work of managing data quality across your business, so you can use knowledge from various stakeholders to ensure high standards. GX Cloud offers multiple workspaces to organizations on the [Enterprise plan](https://greatexpectations.io/pricing/) to support collaborating with many teams in GX Cloud without compromising on security or structure within the application. With workspaces, you can group your Data Sources, Data Assets, and users in flexible ways. For example, you might create different workspaces based on the following:
 
-When you create a Data Source or Data Asset, you create it within a single given workspace. They cannot be moved to different workspaces or associated with multiple workspaces. Users however can be granted access to any number of workspaces. A user can have different permissions in the different workspaces they belong to. 
+ - Functions (e.g. engineering and finance) 
+ - Environments (e.g. staging and production)
+ - Projects (e.g. a product launch and a customer event) 
 
-![Organization Owners have full access to all workspaces. A single table can be added as a Data Asset in multiple workspaces. Expectations are specific to each Data Asset, they are not shared across workspaces.](/img/workspaces.png)
+ Workspaces help keep your data quality efforts clear, relevant, and secure no matter how complex your business is. Here's one example of how an organization might use multiple workspaces.
+
+![Example organization with two workspaces - default and finance. Organization Owners have full access to all workspaces. Other users have permissions granted on a workspace basis. A single table can be added as a Data Asset in multiple workspaces. Expectations are specific to each Data Asset.](/img/workspaces.png)
 
 
-You must be an [Organization Owner](#roles-and-permissions) to manage workspaces.
+Keep the following requirements in mind when using workspaces:
+- Your organization must be on the Enterprise plan to use multiple workspaces. Contact sales to [upgrade to Enterprise](https://greatexpectations.io/pricing/). 
+- You must be an [Organization Owner](#roles-and-permissions) to manage workspaces.
+
 
 ### Create a workspace
 
