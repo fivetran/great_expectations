@@ -21,7 +21,6 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations import __version__
 from great_expectations._docs_decorators import public_api
 from great_expectations.analytics.client import init as init_analytics
-from great_expectations.analytics.config import ENV_CONFIG
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.config_provider import (
     _CloudConfigurationProvider,
