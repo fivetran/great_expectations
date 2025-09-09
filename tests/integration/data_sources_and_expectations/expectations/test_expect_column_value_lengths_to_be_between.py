@@ -181,7 +181,7 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Should contain 2 rows where COL_NAME has length outside range [0,1]
     assert len(unexpected_rows_data) == 2
 
-    # For SQL data sources, the values are typically returned as string tuples
+    
     # Check that both "AA" and "AAA" appear in the unexpected rows data
     unexpected_rows_str = str(unexpected_rows_data)
     assert "AA" in unexpected_rows_str

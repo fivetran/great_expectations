@@ -183,7 +183,7 @@ class TestNormalSql:
         # Should contain 3 rows where COL_A matches regex_list ["^a[abc]$"]
         assert len(unexpected_rows_data) == 3
 
-        # For SQL data sources, the values are typically returned as string tuples
+        
         # Check that all matching values appear in the unexpected rows data
         unexpected_rows_str = str(unexpected_rows_data)
         for value in ["aa", "ab", "ac"]:
