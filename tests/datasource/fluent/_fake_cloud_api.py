@@ -9,6 +9,7 @@ import uuid
 from pprint import pformat as pf
 from typing import (
     TYPE_CHECKING,
+    Any,
     Dict,
     Final,
     Generator,
@@ -101,7 +102,7 @@ FakeDBTypedDict = TypedDict(
     # using alternative syntax for creating type dict because of key names with hyphens
     # https://peps.python.org/pep-0589/#alternative-syntax
     {
-        "me": Dict[str, str],
+        "me": Dict[str, Any],
         "data-context-configuration": Dict[str, Union[str, dict]],
         "DATASOURCE_NAMES": Set[str],
         "datasources": Dict[str, dict],
