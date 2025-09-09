@@ -148,7 +148,6 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Should contain 3 rows where COL_A matches regex ^a[abc]$ ("aa", "ab", "ac" all match)
     assert len(unexpected_rows_data) == 3
 
-    
     # Check that all matching values appear in the unexpected rows data
     unexpected_rows_str = str(unexpected_rows_data)
     for value in ["aa", "ab", "ac"]:

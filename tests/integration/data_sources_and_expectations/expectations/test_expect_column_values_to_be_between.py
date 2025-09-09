@@ -362,7 +362,6 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Should contain 2 rows where NUMERIC_COLUMN is outside range [2,4] (values 1 and 5)
     assert len(unexpected_rows_data) == 2
 
-    
     # Check that values 1 and 5 appear in the unexpected rows data
     unexpected_rows_str = str(unexpected_rows_data)
     assert "1" in unexpected_rows_str

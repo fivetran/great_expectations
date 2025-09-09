@@ -244,7 +244,6 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Should contain 2 rows where COMPLEX_STRINGS doesn't match regex ^[a-z]+$ ("a1b2" and "123")
     assert len(unexpected_rows_data) == 2
 
-    
     # Check that both non-matching values appear in the unexpected rows data
     unexpected_rows_str = str(unexpected_rows_data)
     assert "123" in unexpected_rows_str

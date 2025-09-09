@@ -158,7 +158,6 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Should contain 1 row where DIFFERENT_COL doesn't have length 3 ("FOOD" has length 4)
     assert len(unexpected_rows_data) == 1
 
-    
     # Check that "FOOD" and "FOO" appear in the unexpected rows data
     unexpected_rows_str = str(unexpected_rows_data)
     assert "FOOD" in unexpected_rows_str

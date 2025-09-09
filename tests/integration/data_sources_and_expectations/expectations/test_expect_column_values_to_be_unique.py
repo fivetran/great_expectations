@@ -204,7 +204,6 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # (both occurrences are flagged)
     assert len(unexpected_rows_data) == 2
 
-    
     # Check that the duplicate values appear in the unexpected rows data
     unexpected_rows_str = str(unexpected_rows_data)
     assert "3" in unexpected_rows_str

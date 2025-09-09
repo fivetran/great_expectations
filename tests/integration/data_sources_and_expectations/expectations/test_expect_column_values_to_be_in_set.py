@@ -198,7 +198,6 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Should contain 1 row where NUMBERS_COLUMN has value 3 (not in set [1, 2])
     assert len(unexpected_rows_data) == 1
 
-    
     # Check that the unexpected value 3 and corresponding string "c" appear
     unexpected_rows_str = str(unexpected_rows_data)
     assert "3" in unexpected_rows_str
