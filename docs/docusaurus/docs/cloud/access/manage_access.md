@@ -150,7 +150,7 @@ Here is an overview of the different types of tokens.
 You can create your own user access tokens if you are a Workspace Editor, Workspace Admin, or Organization Owner.
 
 1. In GX Cloud, click **Tokens**.
-2. In the **User access token**s pane, click **Create user access token**.
+2. In the **User access tokens** pane, click **Create user access token**.
 3. In the **Token name** field, enter a name for the token that will help you quickly identify it.
 4. Click **Create**.
 5. Copy, paste, and then save the user access token as a text file or similar. The token can't be retrieved after you close the dialog.
