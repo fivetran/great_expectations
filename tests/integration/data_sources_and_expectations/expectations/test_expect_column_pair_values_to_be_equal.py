@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, Dict, cast
 from unittest.mock import ANY
 
 import pandas as pd
@@ -220,3 +221,32 @@ def test_success_with_suite_param_ignore_row_if_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows(batch_for_datasource: Batch) -> None:
+    """Test that include_unexpected_rows works correctly for ExpectColumnPairValuesToBeEqual."""
+    expectation = gxe.ExpectColumnPairValuesToBeEqual(
+        column_A=EQUAL_STRINGS_A, column_B=UNEQUAL_STRINGS
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # Convert to DataFrame for easier comparison
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+    unexpected_rows_df = pd.DataFrame(unexpected_rows_data)
+
+    # Should contain 1 row where column_A != column_B
+    assert len(unexpected_rows_df) == 1
+
+    # The unexpected row should have different values in column_A and column_B
+    assert unexpected_rows_df.loc[0, EQUAL_STRINGS_A] != unexpected_rows_df.loc[0, UNEQUAL_STRINGS]

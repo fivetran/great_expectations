@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
+    from great_expectations.expectations.metadata_types import FailureSeverity
     from great_expectations.render.renderer.inline_renderer import InlineRendererConfig
 
 logger = logging.getLogger(__name__)
@@ -657,6 +658,55 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
     def describe(self) -> str:
         """JSON string description of this ExpectationSuiteValidationResult"""
         return json.dumps(self.describe_dict(), indent=4)
+
+    @public_api
+    def get_max_severity_failure(self) -> FailureSeverity | None:
+        """Get the maximum severity failure for Expectations in the validation result.
+
+        Returns the maximum severity level among failed expectations. The severity levels
+        are ordered as: CRITICAL > WARNING > INFO. If no failures exist, returns None.
+
+        Returns:
+            The maximum severity failure level, or None if no failures exist.
+        """
+        from great_expectations.expectations import metadata_types
+
+        if not self.results:
+            return None
+
+        max_severity = None
+
+        for result in self.results:
+            # Only consider failed expectations
+            if not result.success:
+                if result.expectation_config is None:
+                    logger.error(
+                        f"Expectation configuration is None for failed expectation "
+                        f"(Validation Result ID: {self.id}). "
+                        f"Skipping this result."
+                    )
+                    continue
+
+                severity_str = result.expectation_config.get("severity")
+                try:
+                    severity = metadata_types.FailureSeverity(severity_str)
+
+                    # Short-circuit: highest possible severity level found
+                    if severity == metadata_types.FailureSeverity.CRITICAL:
+                        return severity
+
+                    if max_severity is None or severity > max_severity:
+                        max_severity = severity
+
+                except ValueError:
+                    logger.exception(
+                        f"Invalid severity value '{severity_str}' found in expectation "
+                        f"'{result.expectation_config.type}' "
+                        f"(Validation Result ID: {self.id}). "
+                        f"Skipping this result."
+                    )
+
+        return max_severity
 
 
 class ExpectationSuiteValidationResultSchema(Schema):

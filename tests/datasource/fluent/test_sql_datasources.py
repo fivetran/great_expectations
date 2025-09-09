@@ -379,6 +379,23 @@ class TestTableAsset:
         )
         assert table_asset.schema_name == schema_name.lower()
 
+    @pytest.mark.parametrize("table_name", ["my_table", "MY_TABLE", "My_Table"])
+    def test_unquoted_table_names_are_unquoted(
+        self,
+        sql_datasource_table_asset_test_connection_noop: SQLDatasource,
+        table_name: str,
+    ):
+        my_datasource: SQLDatasource = sql_datasource_table_asset_test_connection_noop
+
+        table_asset = my_datasource.add_table_asset(
+            name="my_table_asset",
+            table_name=table_name,
+            schema_name="my_schema",
+        )
+        assert isinstance(table_asset.table_name, sqlalchemy.quoted_name)
+        assert table_asset.table_name == table_name
+        assert not table_asset.table_name.quote
+
     @pytest.mark.parametrize(
         "schema_name",
         [
@@ -403,6 +420,55 @@ class TestTableAsset:
             schema_name=schema_name,
         )
         assert table_asset.schema_name == schema_name
+
+    @pytest.mark.parametrize(
+        "table_name",
+        [
+            '"my_table"',
+            '"MY_TABLE"',
+            '"My_Table"',
+            "'my_table'",
+            "'MY_TABLE'",
+            "'My_Table'",
+        ],
+    )
+    def test_quoted_table_names_are_quoted(
+        self,
+        sql_datasource_table_asset_test_connection_noop: SQLDatasource,
+        table_name: str,
+    ):
+        my_datasource: SQLDatasource = sql_datasource_table_asset_test_connection_noop
+
+        table_asset = my_datasource.add_table_asset(
+            name="my_table_asset",
+            table_name=table_name,
+            schema_name="my_schema",
+        )
+        assert isinstance(table_asset.table_name, sqlalchemy.quoted_name)
+        assert table_asset.table_name == table_name.lstrip("\"'").rstrip("\"'")
+        assert table_asset.table_name.quote
+
+    @pytest.mark.parametrize(
+        "table_name",
+        [
+            '"my_table"',
+            '"MY_TABLE"',
+            '"My_Table"',
+            "'my_table'",
+            "'MY_TABLE'",
+            "'My_Table'",
+            "my_table",
+            "MY_TABLE",
+            "My_Table",
+        ],
+    )
+    def test_table_name_serialization_preserves_quotes(
+        self,
+        table_name: str,
+    ):
+        table_asset = TableAsset(name="my_table_asset", table_name=table_name)
+        serialized = table_asset.dict()
+        assert serialized["table_name"] == table_name
 
 
 if __name__ == "__main__":

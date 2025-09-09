@@ -15,6 +15,15 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.5.11
+* [FEATURE] Checkpoint actions notify on severity ([#11347](https://github.com/great-expectations/great_expectations/pull/11347))
+* [FEATURE] Add handling for severity to ExpectationConfiguration serialization ([#11343](https://github.com/great-expectations/great_expectations/pull/11343))
+* [FEATURE] Add new method to ExpectationSuiteValidationResult class to return highest severity failure ([#11341](https://github.com/great-expectations/great_expectations/pull/11341))
+* [BUGFIX] ensure unexpected_rows are included if requested ([#11358](https://github.com/great-expectations/great_expectations/pull/11358))
+* [BUGFIX] Preserve quoting when serializing quoted table names ([#11357](https://github.com/great-expectations/great_expectations/pull/11357))
+* [DOCS] Cloud docs for built-in actions ([#11338](https://github.com/great-expectations/great_expectations/pull/11338))
+* [MAINTENANCE] Update ports that mercury runs on ([#11351](https://github.com/great-expectations/great_expectations/pull/11351))
+
 ### 1.5.10
 * [DOCS] Completeness anomaly detection now uses forecasted range ([#11346](https://github.com/great-expectations/great_expectations/pull/11346))
 * [DOCS] forecasted range limitation ([#11349](https://github.com/great-expectations/great_expectations/pull/11349))

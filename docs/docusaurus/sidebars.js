@@ -205,9 +205,13 @@ module.exports = {
       id: 'cloud/schedules/manage_schedules'
     },
     {
-      type: 'doc',
-      label: 'Manage alerts',
-      id: 'cloud/alerts/manage_alerts'
+      type: 'category',
+      label: 'Respond to results',
+      link: { type: 'doc', id: 'cloud/alerts/alerts_lp' },
+      items: [
+        { type: 'doc', id: 'cloud/alerts/manage_email_alerts' },
+        { type: 'doc', id: 'cloud/alerts/trigger_actions' }
+      ]
     },
     {
       type: 'doc',
