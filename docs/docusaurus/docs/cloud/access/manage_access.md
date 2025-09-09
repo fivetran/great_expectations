@@ -101,7 +101,7 @@ Workspace user permissions are managed on a workspace basis. To edit a user’s 
 
 1. In GX Cloud, click **Users**.
 
-2. Find the workspace for which you want to edit a user’s role
+2. Find the workspace for which you want to edit a user’s role.
 
 3. Click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit user**  for the person you want to update.
 
@@ -109,12 +109,12 @@ Workspace user permissions are managed on a workspace basis. To edit a user’s 
 
 ### Edit an Organization Owner’s role
 
-Organization Owners have access to all workspaces. When you downgrade an Organization Owner’s role, you select one workspace for them to belong to. After that, you can [invite](#invite-a-user) them to additional workspaces as needed. 
+Organization Owners have access to all workspaces. When you downgrade an Organization Owner’s role, you select one workspace for them to continue to belong to. After that, you can [invite](#invite-a-user) them to additional workspaces as needed. 
 
 1. In GX Cloud, click **Users**.
-2. Click  <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit user** for the Organization Owner you want to update.
-3. Select a workspace **Role**.
-4. Select a **Workspace**.
+2. Find the workspace you want the downgraded user to continue to belong to.
+3. Click  <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit user** for the Organization Owner you want to update.
+4. Select a workspace **Role**.
 5. Click **Update user**.
 
 ### Delete a user’s access
