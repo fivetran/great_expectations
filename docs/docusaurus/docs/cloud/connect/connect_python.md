@@ -10,7 +10,7 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 ## Prerequisites
 
 - You have internet access and download permissions.
-- You have a GX Cloud user with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater
+- You have a GX Cloud user with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 ## Prepare your environment
 

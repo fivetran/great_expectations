@@ -14,11 +14,11 @@ SSO is available on the Enterprise plan. Contact sales to [upgrade to Enterprise
 
 GX Cloud helps you spread the work of managing data quality across your business, so you can use knowledge from various stakeholders to ensure high standards. GX Cloud offers multiple workspaces to organizations on the [Enterprise plan](https://greatexpectations.io/pricing/) to support collaborating with many teams in GX Cloud without compromising on security or structure within the application. With workspaces, you can group your Data Sources, Data Assets, and users in flexible ways. For example, you might create different workspaces based on the following:
 
-- Functions (e.g. engineering and finance) 
-- Environments (e.g. staging and production)
-- Projects (e.g. a product launch and a customer event) 
+- Functions (e.g., engineering and finance) 
+- Environments (e.g., staging and production)
+- Projects (e.g., a product launch and a customer event) 
 
-Workspaces help keep your data quality efforts clear, relevant, and secure no matter how complex your business is. Here's one example of how an organization might use multiple workspaces.
+Workspaces help keep your data quality efforts clear, relevant, and secure, no matter how complex your business is. Here's one example of how an organization might use multiple workspaces.
 
 ![Example organization with two workspaces that demonstrates the following principles. Organization Owners have full access to all workspaces. Other users have permissions granted on a workspace basis. Each Data Source and Data Asset belongs to a single workspace. A given table can be added as a Data Asset in multiple workspaces. Expectations are specific to each Data Asset.](/img/workspaces.png)
 
@@ -40,7 +40,7 @@ Now you can [invite users](#invite-a-user) to collaborate in the workspace. Note
 
 ### Edit a workspace 
 
-To change the name of a workspace, follow the below instructions. To change the membership of a workspace, [edit users](#edit-a-workspace-users-role).
+To change the name of a workspace, follow the instructions below. To change the membership of a workspace, [edit users](#edit-a-workspace-users-role).
 
 1. In GX Cloud, click **Workspaces**.
 2. Click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit workspace** for the workspace that you want to rename.
@@ -51,7 +51,7 @@ When you rename a workspace, old links and integrations for that workspace will 
 
 ### Delete a workspace
 
-Note that you cannot delete the default workspace. To delete a non-default workspace, follow the below instructions.
+Note that you cannot delete the default workspace. To delete a non-default workspace, follow the instructions below.
 
 1. In GX Cloud, click **Workspaces**.
 2. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Delete workspace** for the workspace that you want to remove.
@@ -129,7 +129,7 @@ Workspace user access is managed on a workspace basis. To remove a workspace use
 
 ## Tokens
 
-Tokens provide secure access to your GX Cloud entities though the GX Cloud API. 
+Tokens provide secure access to your GX Cloud entities through the GX Cloud API. 
 
 :::tip Keep your tokens secure
 Access tokens shouldn't be committed to version control software.
@@ -142,7 +142,7 @@ Here is an overview of the different types of tokens.
 | Token [permissions](#roles-and-permissions) | Inherited from the user the token belongs to, capped by the user's role at the time the token was created.<br /><br />If a user’s permissions are changed after a token was created, the token’s permissions are changed as well, except that token permissions will never exceed the role the user had when the token was created. | Workspace Editor.                                                                                                                                                                                   |
 | Workspace scope                             | Inherited from the user a token belongs to.<br /> <br />If a user’s workspace membership is changed after a token is created, the token’s scope is changed as well.                                                                                                                                                       | All workspaces.                                                                                                                                                                                     |
 | Common use cases                            | Connecting Data Sources, adding Data Assets, and creating Expectations.                                                                                                                                                                                                                                                   | External application authentication for tasks such as orchestrating validation runs.                                                                                                                |
-| Ownership                                   | Each Workspace Editor, Workspace Admin, or Organization Owner manages their own user access tokens.                                                                                                                                                                                                                       | Organization Owners collectively manage a pool of organization access tokens.<br /> <br />If an Organization Owner is removed or demoted, organization access tokens they created are not affected. |
+| Ownership                                   | Each Workspace Editor, Workspace Admin, or Organization Owner manages their own user access tokens.                                                                                                                                                                                                                       | Organization Owners collectively manage a pool of organization access tokens.<br /> <br />If an Organization Owner is removed or demoted, any organization access tokens they created are not affected. |
 
 
 ## Create a user access token
