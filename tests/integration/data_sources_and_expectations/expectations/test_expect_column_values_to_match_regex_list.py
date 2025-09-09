@@ -280,7 +280,6 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Should contain 3 rows where BASIC_STRINGS doesn't match regex_list ["^xyz.*"] (none match)
     assert len(unexpected_rows_data) == 3
 
-    
     # Check that all non-matching values appear in the unexpected rows data
     unexpected_rows_str = str(unexpected_rows_data)
     for value in ["abc", "def", "ghi"]:
