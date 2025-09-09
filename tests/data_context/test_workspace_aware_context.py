@@ -99,7 +99,7 @@ class TestGetContextWithoutSettingWorkspaceId:
     @pytest.mark.unit
     def test_get_context_fails_with_no_workspaces(
         self,
-        unset_gx_env_variables,
+        unset_gx_env_variables: None,
         mock_cloud_config_params: dict[str, Any],
         sample_user_with_no_workspaces: CloudUserInfo,
     ):
@@ -120,7 +120,7 @@ class TestGetContextWithoutSettingWorkspaceId:
     @pytest.mark.unit
     def test_get_context_succeeds_with_one_workspace(
         self,
-        unset_gx_env_variables,
+        unset_gx_env_variables: None,
         mock_cloud_config_params_with_cloud_mode: dict[str, Any],
         sample_user_with_one_workspace: CloudUserInfo,
         mock_project_config: dict[str, Any],
@@ -151,7 +151,7 @@ class TestGetContextWithoutSettingWorkspaceId:
     @pytest.mark.unit
     def test_get_context_fails_with_multiple_workspaces(
         self,
-        unset_gx_env_variables,
+        unset_gx_env_variables: None,
         mock_cloud_config_params_with_cloud_mode: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
     ):
@@ -177,7 +177,7 @@ class TestCloudDataContextDirectInstantiationWithoutWorkspaceId:
     @pytest.mark.unit
     def test_cloud_data_context_fails_with_no_workspaces(
         self,
-        unset_gx_env_variables,
+        unset_gx_env_variables: None,
         mock_cloud_config_params: dict[str, Any],
         sample_user_with_no_workspaces: CloudUserInfo,
     ):
@@ -197,7 +197,7 @@ class TestCloudDataContextDirectInstantiationWithoutWorkspaceId:
     @pytest.mark.unit
     def test_cloud_data_context_succeeds_with_one_workspace(
         self,
-        unset_gx_env_variables,
+        unset_gx_env_variables: None,
         mock_cloud_config_params: dict[str, Any],
         sample_user_with_one_workspace: CloudUserInfo,
         mock_project_config: dict[str, Any],
@@ -227,7 +227,7 @@ class TestCloudDataContextDirectInstantiationWithoutWorkspaceId:
     @pytest.mark.unit
     def test_cloud_data_context_fails_with_multiple_workspaces(
         self,
-        unset_gx_env_variables,
+        unset_gx_env_variables: None,
         mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
     ):
@@ -252,8 +252,8 @@ class TestContextWithWorkspaceIdEnvironmentVariable:
     @pytest.mark.unit
     def test_get_context_uses_env_workspace_id(
         self,
-        unset_gx_env_variables,
-        monkeypatch,
+        unset_gx_env_variables: None,
+        monkeypatch: pytest.MonkeyPatch,
         mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
         mock_project_config: dict[str, Any],
@@ -286,8 +286,8 @@ class TestContextWithWorkspaceIdEnvironmentVariable:
     @pytest.mark.unit
     def test_cloud_data_context_uses_env_workspace_id(
         self,
-        unset_gx_env_variables,
-        monkeypatch,
+        unset_gx_env_variables: None,
+        monkeypatch: pytest.MonkeyPatch,
         mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
         mock_project_config: dict[str, Any],
@@ -324,7 +324,7 @@ class TestContextWithWorkspaceIdArgument:
     @pytest.mark.unit
     def test_get_context_uses_argument_workspace_id(
         self,
-        unset_gx_env_variables,
+        unset_gx_env_variables: None,
         mock_cloud_config_params_with_cloud_mode: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
         mock_project_config: dict[str, Any],
@@ -361,7 +361,7 @@ class TestContextWithWorkspaceIdArgument:
     @pytest.mark.unit
     def test_cloud_data_context_uses_argument_workspace_id(
         self,
-        unset_gx_env_variables,
+        unset_gx_env_variables: None,
         mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
         mock_project_config: dict[str, Any],
@@ -397,8 +397,8 @@ class TestContextWithWorkspaceIdArgument:
     @pytest.mark.unit
     def test_argument_workspace_id_overrides_env_variable(
         self,
-        unset_gx_env_variables,
-        monkeypatch,
+        unset_gx_env_variables: None,
+        monkeypatch: pytest.MonkeyPatch,
         mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
         mock_project_config: dict[str, Any],

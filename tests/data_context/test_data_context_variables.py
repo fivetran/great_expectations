@@ -111,11 +111,13 @@ def cloud_data_context_variables(
     data_context_config: DataContextConfig,
     ge_cloud_base_url: str,
     ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
     ge_cloud_access_token: str,
 ) -> CloudDataContextVariables:
     return CloudDataContextVariables(
         ge_cloud_base_url=ge_cloud_base_url,
         ge_cloud_organization_id=ge_cloud_organization_id,
+        ge_cloud_workspace_id=ge_cloud_workspace_id,
         ge_cloud_access_token=ge_cloud_access_token,
         config=data_context_config,
         config_provider=StubConfigurationProvider(),

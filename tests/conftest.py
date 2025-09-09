@@ -88,6 +88,7 @@ from great_expectations.validator.validator import Validator
 from tests.datasource.fluent._fake_cloud_api import (
     DUMMY_JWT_TOKEN,
     FAKE_ORG_ID,
+    FAKE_WORKSPACE_ID,
     GX_CLOUD_MOCK_BASE_URL,
     CloudDetails,
     gx_cloud_api_fake_ctx,
@@ -1665,6 +1666,11 @@ def ge_cloud_organization_id() -> str:
 
 
 @pytest.fixture
+def ge_cloud_workspace_id() -> str:
+    return FAKE_WORKSPACE_ID
+
+
+@pytest.fixture
 def ge_cloud_access_token() -> str:
     return DUMMY_JWT_TOKEN
 
@@ -1679,10 +1685,13 @@ def request_headers(ge_cloud_access_token: str) -> Dict[str, str]:
 
 
 @pytest.fixture
-def ge_cloud_config(ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token):
+def ge_cloud_config(
+    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_workspace_id, ge_cloud_access_token
+):
     return GXCloudConfig(
         base_url=ge_cloud_base_url,
         organization_id=ge_cloud_organization_id,
+        workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
 
@@ -1855,11 +1864,12 @@ def empty_cloud_data_context(
 
 @pytest.fixture
 def cloud_details(
-    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token
+    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_workspace_id, ge_cloud_access_token
 ) -> CloudDetails:
     return CloudDetails(
         base_url=ge_cloud_base_url,
         org_id=ge_cloud_organization_id,
+        workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
 

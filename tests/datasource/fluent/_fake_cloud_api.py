@@ -51,6 +51,8 @@ DUMMY_JWT_TOKEN: Final[str] = (
 # https://github.com/getsentry/responses/tree/master#dynamic-responses
 FAKE_USER_ID: Final[str] = "00000000-0000-0000-0000-000000000000"
 FAKE_ORG_ID: Final[str] = str(uuid.UUID("12345678123456781234567812345678"))
+FAKE_WORKSPACE_ID: Final[str] = str(uuid.UUID("fffff6781234567812345678123fffff"))
+FAKE_WORKSPACE_ROLE: Final[str] = "editor"
 FAKE_DATA_CONTEXT_ID: Final[str] = str(uuid.uuid4())
 UUID_REGEX: Final[str] = r"[a-f0-9-]{36}"
 
@@ -90,6 +92,7 @@ ErrorPayloadSchema.update_forward_refs(ErrorDetail=ErrorDetail)
 class CloudDetails(NamedTuple):
     base_url: str
     org_id: str
+    workspace_id: str
     access_token: str
 
 
@@ -136,7 +139,10 @@ def create_fake_db_seed_data(fds_config: Optional[GxConfig] = None) -> FakeDBTyp
         datasources_by_id[id] = ds_response_json
 
     return {
-        "me": {"user_id": FAKE_USER_ID},
+        "me": {
+            "user_id": FAKE_USER_ID,
+            "workspaces": [{"id": FAKE_WORKSPACE_ID, "role": FAKE_WORKSPACE_ROLE}],
+        },
         "DATASOURCE_NAMES": datasource_names,
         "datasources": datasources_by_id,
         "EXPECTATION_SUITE_NAMES": set(),
@@ -207,7 +213,7 @@ def create_fake_db_seed_data(fds_config: Optional[GxConfig] = None) -> FakeDBTyp
 _CLOUD_API_FAKE_DB: FakeDBTypedDict = {}  # type: ignore[typeddict-item] # will be assigned in `create_fake_db_seed_data`
 
 
-def get_user_id(request: PreparedRequest) -> CallbackResult:
+def get_user_info(request: PreparedRequest) -> CallbackResult:
     if not request.url:
         raise NotImplementedError("request.url should not be empty")
     LOGGER.debug(f"{request.method} {request.url}")
@@ -916,7 +922,7 @@ def gx_cloud_api_fake_ctx(
     with responses.RequestsMock(
         assert_all_requests_are_fired=assert_all_requests_are_fired
     ) as resp_mocker:
-        resp_mocker.add_callback(responses.GET, me_url, get_user_id)
+        resp_mocker.add_callback(responses.GET, me_url, get_user_info)
         resp_mocker.add_callback(responses.GET, dc_config_url, get_dc_configuration_cb)
         resp_mocker.add_callback(
             responses.GET,
