@@ -424,11 +424,17 @@ class CloudDataContext(SerializableDataContext):
         access_token = cloud_config.access_token
         base_url = cloud_config.base_url
         organization_id = cloud_config.organization_id
+        workspace_id = cloud_config.workspace_id
         if not organization_id:
             raise OrganizationIdNotSpecifiedError()
 
         with create_session(access_token=access_token) as session:
-            url = GXCloudStoreBackend.construct_versioned_url(base_url, organization_id, resource)
+            url = GXCloudStoreBackend.construct_versioned_url(
+                base_url=base_url,
+                organization_id=organization_id,
+                resource_name=resource,
+                workspace_id=workspace_id,
+            )
             response = session.get(url)
 
         try:
@@ -768,10 +774,17 @@ class CloudDataContext(SerializableDataContext):
 
         base_url = self.ge_cloud_config.base_url
         org_id = self.ge_cloud_config.organization_id
-        expectation_parameters_url = urljoin(
-            base=base_url,
-            url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
-        )
+        workspace_id = self.ge_cloud_config.workspace_id
+        if workspace_id:
+            expectation_parameters_url = urljoin(
+                base=base_url,
+                url=f"/api/v1/organizations/{org_id}/workspaces/{workspace_id}/checkpoints/{checkpoint.id}/expectation-parameters",
+            )
+        else:
+            expectation_parameters_url = urljoin(
+                base=base_url,
+                url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
+            )
         with create_session(access_token=self.ge_cloud_config.access_token) as session:
             response = session.get(url=expectation_parameters_url)
 

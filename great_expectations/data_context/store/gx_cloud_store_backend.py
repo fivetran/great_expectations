@@ -213,6 +213,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             base_url=self.ge_cloud_base_url,
             organization_id=self.ge_cloud_credentials["organization_id"],
             resource_name=self.ge_cloud_resource_name,
+            workspace_id=self.ge_cloud_credentials.get("workspace_id"),
         )
 
         payload = self._send_get_request_to_api(url=url)
@@ -276,6 +277,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             base_url=self.ge_cloud_base_url,
             organization_id=organization_id,
             resource_name=self.ge_cloud_resource_name,
+            workspace_id=self.ge_cloud_credentials.get("workspace_id"),
         )
 
         if id:
@@ -368,6 +370,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         resource_type = self.ge_cloud_resource_type
         resource_name = self.ge_cloud_resource_name
         organization_id = self.ge_cloud_credentials["organization_id"]
+        workspace_id = self.ge_cloud_credentials.get("workspace_id")
 
         attributes_key = self.PAYLOAD_ATTRIBUTES_KEYS[resource_type]
 
@@ -384,6 +387,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             base_url=self.ge_cloud_base_url,
             organization_id=organization_id,
             resource_name=resource_name,
+            workspace_id=workspace_id,
         )
 
         try:
@@ -439,6 +443,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             base_url=self.ge_cloud_base_url,
             organization_id=self.ge_cloud_credentials["organization_id"],
             resource_name=self.ge_cloud_resource_name,
+            workspace_id=self.ge_cloud_credentials.get("workspace_id"),
         )
 
         resource_type = self.ge_cloud_resource_type
@@ -478,6 +483,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             organization_id=self.ge_cloud_credentials["organization_id"],
             resource_name=self.ge_cloud_resource_name,
             id=id,
+            workspace_id=self.ge_cloud_credentials.get("workspace_id"),
         )
         return url
 
@@ -499,6 +505,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
                     organization_id=self.ge_cloud_credentials["organization_id"],
                     resource_name=self.ge_cloud_resource_name,
                     id=id,
+                    workspace_id=self.ge_cloud_credentials.get("workspace_id"),
                 )
                 response = self._session.delete(url)
                 response.raise_for_status()
@@ -509,6 +516,7 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
                     base_url=self.ge_cloud_base_url,
                     organization_id=self.ge_cloud_credentials["organization_id"],
                     resource_name=self.ge_cloud_resource_name,
+                    workspace_id=self.ge_cloud_credentials.get("workspace_id"),
                 )
                 response = self._session.delete(url, params={"name": resource_object_name})
                 response.raise_for_status()
@@ -641,15 +649,22 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
         organization_id: str,
         resource_name: str,
         id: Optional[str] = None,
+        workspace_id: Optional[str] = None,
     ) -> str:
         """Construct the correct url for a given resource."""
         version = cls._ENDPOINT_VERSION_LOOKUP.get(resource_name, EndpointVersion.V0)
 
         if version == EndpointVersion.V1:
-            url = urljoin(
-                base_url,
-                f"api/v1/organizations/{organization_id}/{hyphen(resource_name)}",
-            )
+            if workspace_id:
+                url = urljoin(
+                    base_url,
+                    f"api/v1/organizations/{organization_id}/workspaces/{workspace_id}/{hyphen(resource_name)}",
+                )
+            else:
+                url = urljoin(
+                    base_url,
+                    f"api/v1/organizations/{organization_id}/{hyphen(resource_name)}",
+                )
         else:  # default to EndpointVersion.V0
             url = urljoin(
                 base_url,
