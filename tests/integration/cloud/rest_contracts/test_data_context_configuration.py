@@ -8,6 +8,7 @@ import pytest
 import great_expectations as gx
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
+    EXISTING_WORKSPACE_ID,
     PACT_MOCK_SERVICE_URL,
 )
 
@@ -60,6 +61,7 @@ def test_data_context_configuration(
             mode="cloud",
             cloud_base_url=PACT_MOCK_SERVICE_URL,
             cloud_organization_id=EXISTING_ORGANIZATION_ID,
+            cloud_workspace_id=EXISTING_WORKSPACE_ID,
             cloud_access_token=cloud_access_token,
         )
 
