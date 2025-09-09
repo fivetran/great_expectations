@@ -36,6 +36,7 @@ def set_up_cloud_envs(monkeypatch):
     monkeypatch.setenv("GX_CLOUD_BASE_URL", "localhost:7000")
     monkeypatch.setenv("GX_CLOUD_ORGANIZATION_ID", "bd20fead-2c31-4392-bcd1-f1e87ad5a79c")
     monkeypatch.setenv("GX_CLOUD_ACCESS_TOKEN", "i_am_a_token")
+    monkeypatch.setenv("GX_CLOUD_WORKSPACE_ID", "fffff6781234567812345678123fffff")
 
 
 @pytest.fixture
