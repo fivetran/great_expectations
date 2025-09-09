@@ -14,6 +14,7 @@ from typing import (
     Generic,
     List,
     Literal,
+    Mapping,
     Optional,
     Protocol,
     Sequence,
@@ -94,7 +95,13 @@ if TYPE_CHECKING:
 
 LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
-DEFAULT_QUOTE_CHARACTERS: Final[Tuple[str, str]] = ('"', "'")
+DEFAULT_INITIAL_QUOTE_CHARACTERS: Final[Tuple[str, str, str, str]] = ('"', "'", "`", "[")
+DEFAULT_FINAL_QUOTE_CHARACTERS: Final[Mapping[str, str]] = {
+    '"': '"',
+    "'": "'",
+    "`": "`",
+    "[": "]",
+}
 
 
 @overload
@@ -107,7 +114,7 @@ def to_lower_if_not_quoted(value: None, quote_characters: Sequence[str] = ...) -
 
 def to_lower_if_not_quoted(
     value: str | None,
-    quote_characters: Sequence[str] = DEFAULT_QUOTE_CHARACTERS,
+    quote_characters: Sequence[str] = DEFAULT_INITIAL_QUOTE_CHARACTERS,
 ) -> str | None:
     """
     Convert a string to lowercase if it is not enclosed in quotes.
@@ -115,7 +122,7 @@ def to_lower_if_not_quoted(
     if not value:
         return value
     for char in quote_characters:
-        if value.startswith(char) and value.endswith(char):
+        if value.startswith(char) and value.endswith(DEFAULT_FINAL_QUOTE_CHARACTERS[char]):
             LOGGER.warning(
                 f"The {value} string is bracketed by quotes,"
                 " so it will not be converted to lowercase."
@@ -1036,7 +1043,9 @@ class TableAsset(_SQLAsset):
                 # TODO: We need to handle nested quotes
                 values["_quote_character"] = table_name[0]
                 quote = True
-                table_name = table_name.strip("".join(DEFAULT_QUOTE_CHARACTERS))
+                table_name = table_name.lstrip("".join(DEFAULT_INITIAL_QUOTE_CHARACTERS)).rstrip(
+                    "".join(DEFAULT_FINAL_QUOTE_CHARACTERS.values())
+                )
 
             return sqlalchemy.quoted_name(
                 value=table_name,
@@ -1052,7 +1061,9 @@ class TableAsset(_SQLAsset):
         # we need to ensure we retain the quotes when serializing quoted names
         qc = self._quote_character
         if qc is not None:
-            original_dict["table_name"] = f"{qc}{self.table_name}{qc}"
+            original_dict["table_name"] = (
+                f"{qc}{self.table_name}{DEFAULT_FINAL_QUOTE_CHARACTERS[qc]}"
+            )
 
         return original_dict
 
@@ -1122,8 +1133,8 @@ class TableAsset(_SQLAsset):
             True if the target string is bracketed by quotes.
         """
         return any(
-            target.startswith(quote) and target.endswith(quote)
-            for quote in DEFAULT_QUOTE_CHARACTERS
+            target.startswith(quote) and target.endswith(DEFAULT_FINAL_QUOTE_CHARACTERS[quote])
+            for quote in DEFAULT_INITIAL_QUOTE_CHARACTERS
         )
 
     @classmethod
@@ -1137,7 +1148,7 @@ class TableAsset(_SQLAsset):
         Returns:
             The target string in lowercase if it is not bracketed by quotes.
         """
-        return to_lower_if_not_quoted(target, quote_characters=DEFAULT_QUOTE_CHARACTERS)
+        return to_lower_if_not_quoted(target, quote_characters=DEFAULT_INITIAL_QUOTE_CHARACTERS)
 
 
 def _warn_for_more_specific_datasource_type(connection_string: str) -> None:
