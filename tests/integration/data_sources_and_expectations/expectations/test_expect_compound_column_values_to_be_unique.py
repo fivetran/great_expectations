@@ -103,7 +103,7 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     )
 
     assert not result.success
-    result_dict = result["result"]  # type: ignore[index]
+    result_dict = result["result"]
 
     # Verify that unexpected_rows is present and contains the expected data
     assert "unexpected_rows" in result_dict
@@ -135,7 +135,7 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     )
 
     assert not result.success
-    result_dict = result["result"]  # type: ignore[index]
+    result_dict = result["result"]
 
     # Verify that unexpected_rows is present and contains the expected data
     assert "unexpected_rows" in result_dict
