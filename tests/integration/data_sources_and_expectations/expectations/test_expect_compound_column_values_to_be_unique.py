@@ -1,5 +1,3 @@
-from typing import Any, Dict, cast
-
 import pandas as pd
 import pytest
 
@@ -105,7 +103,7 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     )
 
     assert not result.success
-    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+    result_dict = result["result"]  # type: ignore[index]
 
     # Verify that unexpected_rows is present and contains the expected data
     assert "unexpected_rows" in result_dict
@@ -113,8 +111,8 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
 
     # Convert to DataFrame for easier comparison
     unexpected_rows_data = result_dict["unexpected_rows"]
-    assert isinstance(unexpected_rows_data, list)
-    unexpected_rows_df = pd.DataFrame(unexpected_rows_data)
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+    unexpected_rows_df = unexpected_rows_data
 
     # Should contain duplicate compound values
     # (rows where the combination of INT_COL and DUPLICATES is duplicated)
@@ -137,7 +135,7 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     )
 
     assert not result.success
-    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+    result_dict = result["result"]  # type: ignore[index]
 
     # Verify that unexpected_rows is present and contains the expected data
     assert "unexpected_rows" in result_dict

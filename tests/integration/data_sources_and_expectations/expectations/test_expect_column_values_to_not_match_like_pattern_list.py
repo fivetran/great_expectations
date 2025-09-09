@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence, cast
+from typing import Sequence
 
 import pandas as pd
 import pytest
@@ -96,7 +96,7 @@ class TestNormalSql:
         )
 
         assert not result.success
-        result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+        result_dict = result["result"]  # type: ignore[index]
 
         # Verify that unexpected_rows is present and contains the expected data
         assert "unexpected_rows" in result_dict

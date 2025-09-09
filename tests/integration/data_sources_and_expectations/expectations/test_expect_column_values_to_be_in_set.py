@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any, Dict, cast
 from unittest.mock import ANY
 
 import pandas as pd
@@ -152,7 +151,7 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     )
 
     assert not result.success
-    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+    result_dict = result["result"]  # type: ignore[index]
 
     # Verify that unexpected_rows is present and contains the expected data
     assert "unexpected_rows" in result_dict
@@ -160,20 +159,20 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
 
     # For pandas data sources, unexpected_rows should be directly usable
     unexpected_rows_data = result_dict["unexpected_rows"]
-    assert isinstance(unexpected_rows_data, list)
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
 
     # Convert directly to DataFrame for pandas data sources
-    unexpected_rows_df = pd.DataFrame(unexpected_rows_data)
+    unexpected_rows_df = unexpected_rows_data
 
     # Should contain 1 row where NUMBERS_COLUMN has value 3 (not in set [1, 2])
     assert len(unexpected_rows_df) == 1
-    assert list(unexpected_rows_df.index) == [0]
+    assert list(unexpected_rows_df.index) == [2]
 
     # The unexpected row should have value 3 in NUMBERS_COLUMN
-    assert unexpected_rows_df.loc[0, NUMBERS_COLUMN] == 3
+    assert unexpected_rows_df.loc[2, NUMBERS_COLUMN] == 3
 
     # Other columns should have their original values from row with index 2
-    assert unexpected_rows_df.loc[0, STRINGS_COLUMN] == "c"
+    assert unexpected_rows_df.loc[2, STRINGS_COLUMN] == "c"
 
 
 @parameterize_batch_for_data_sources(
@@ -187,7 +186,7 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     )
 
     assert not result.success
-    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+    result_dict = result["result"]  # type: ignore[index]
 
     # Verify that unexpected_rows is present and contains the expected data
     assert "unexpected_rows" in result_dict

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence, cast
+from typing import Sequence
 
 import pandas as pd
 import pytest
@@ -139,7 +139,7 @@ class TestNormalSql:
         )
 
         assert not result.success
-        result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+        result_dict = result["result"]  # type: ignore[index]
 
         # Verify that unexpected_rows is present and contains the expected data
         assert "unexpected_rows" in result_dict
@@ -147,8 +147,8 @@ class TestNormalSql:
 
         # Convert to DataFrame for easier comparison
         unexpected_rows_data = result_dict["unexpected_rows"]
-        assert isinstance(unexpected_rows_data, list)
-        unexpected_rows_df = pd.DataFrame(unexpected_rows_data)
+        assert isinstance(unexpected_rows_data, pd.DataFrame)
+        unexpected_rows_df = unexpected_rows_data
 
         # Should contain 3 rows where COL_A matches regex_list ["^a[abc]$"]
         # ("aa", "ab", "ac" all match)
@@ -171,7 +171,7 @@ class TestNormalSql:
         )
 
         assert not result.success
-        result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+        result_dict = result["result"]  # type: ignore[index]
 
         # Verify that unexpected_rows is present and contains the expected data
         assert "unexpected_rows" in result_dict
