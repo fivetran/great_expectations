@@ -383,7 +383,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
         inspector = execution_engine.get_inspector()
         try:
             # if a custom query was passed
-            if sqlalchemy.TextClause and isinstance(table_selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
+            if sqlalchemy.TextClause and isinstance(table_selectable, sqlalchemy.TextClause):  # type: ignore[truthy-function]
                 if hasattr(table_selectable, "selected_columns"):
                     # New in version 1.4.
                     columns = table_selectable.selected_columns.columns
@@ -391,13 +391,15 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
                     # Implicit subquery for columns().column was deprecated in SQLAlchemy 1.4
                     # We must explicitly create a subquery
                     columns = table_selectable.columns().subquery().columns
+            elif sqlalchemy.quoted_name and isinstance(table_selectable, sqlalchemy.quoted_name):  # type: ignore[truthy-function]
+                columns = inspector.get_columns(
+                    table_name=table_selectable,
+                    schema=schema_name,
+                )
             else:
-                # TODO: remove cast to a string once [this](https://github.com/snowflakedb/snowflake-sqlalchemy/issues/157) issue is resovled  # noqa: E501 # FIXME CoP
-                table_name = str(table_selectable)
-                if execution_engine.dialect_name == GXSqlDialect.SNOWFLAKE:
-                    table_name = table_name.lower()
-                columns = inspector.get_columns(  # type: ignore[assignment] # FIXME CoP
-                    table_name=table_name,
+                logger.warning("unexpected table_selectable type")
+                columns = inspector.get_columns(  # type: ignore[assignment]
+                    table_name=str(table_selectable),
                     schema=schema_name,
                 )
         except (
@@ -455,7 +457,6 @@ def column_reflection_fallback(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
     sqlalchemy_engine: sqlalchemy.Engine,
 ) -> List[Dict[str, str]]:
     """If we can't reflect the table, use a query to at least get column names."""
-
     if isinstance(sqlalchemy_engine.engine, sqlalchemy.Engine):
         connection = sqlalchemy_engine.engine.connect()
     else:
