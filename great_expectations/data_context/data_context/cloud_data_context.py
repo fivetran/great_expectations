@@ -107,6 +107,14 @@ class OrganizationIdNotSpecifiedError(Exception):
         )
 
 
+class GXCloudConfigError(Exception):
+    def __init__(self, missing_keys: list[str]):
+        super().__init__(
+            "At least one of the following required keys are missing from the GX Cloud config: "
+            f"{missing_keys}"
+        )
+
+
 OPTIONAL_CLOUD_CONFIG_KEYS = [GXCloudEnvironmentVariable.WORKSPACE_ID]
 
 
@@ -148,7 +156,7 @@ class CloudDataContext(SerializableDataContext):
             cloud_config (GXCloudConfig): GXCloudConfig corresponding to current CloudDataContext
         """  # noqa: E501 # FIXME CoP
         self._check_if_latest_version()
-        self._cloud_user_info = None
+        self._cloud_user_info: CloudUserInfo | None = None
 
         # We get the cloud_config based on based on passed in parameters or env variables.
         self._cloud_config = CloudDataContext.get_cloud_config(
@@ -605,7 +613,9 @@ class CloudDataContext(SerializableDataContext):
     @override
     def _init_variables(self) -> CloudDataContextVariables:
         ge_cloud_base_url: str = self.ge_cloud_config.base_url
-        ge_cloud_organization_id: str = self.ge_cloud_config.organization_id  # type: ignore[assignment] # FIXME CoP
+        if not self.ge_cloud_config.organization_id or not self.ge_cloud_config.workspace_id:
+            raise GXCloudConfigError(missing_keys=["organization_id", "workspace_id"])
+        ge_cloud_organization_id: str = self.ge_cloud_config.organization_id
         ge_cloud_workspace_id: str = self.ge_cloud_config.workspace_id
         ge_cloud_access_token: str = self.ge_cloud_config.access_token
 

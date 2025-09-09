@@ -9,7 +9,7 @@ and proper error handling when workspace_id is not set and multiple workspaces e
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -25,8 +25,16 @@ from great_expectations.data_context.data_context.cloud_data_context import (
 
 
 @pytest.fixture
-def mock_cloud_config_params() -> Dict[str, str]:
-    """Standard cloud config parameters for testing."""
+def mock_cloud_config_params() -> dict[str, Any]:
+    """Standard cloud config parameters for testing.
+
+    Note: Returns dict[str, Any] instead of dict[str, str] even though all values
+    are strings. This is required for mypy compatibility when unpacking these
+    parameters as **kwargs to functions that expect various parameter types
+    (e.g., Optional[str], Optional[dict[Any, Any]]). Using dict[str, str] causes
+    mypy to reject the unpacking since it can't verify type compatibility across
+    all possible target parameters.
+    """
     return {
         "cloud_base_url": "https://api.test.greatexpectations.io",
         "cloud_access_token": "test_token_123",
@@ -36,14 +44,14 @@ def mock_cloud_config_params() -> Dict[str, str]:
 
 @pytest.fixture
 def mock_cloud_config_params_with_cloud_mode(
-    mock_cloud_config_params: Dict[str, str],
-) -> Dict[str, str]:
+    mock_cloud_config_params: dict[str, Any],
+) -> dict[str, Any]:
     mock_cloud_config_params["mode"] = "cloud"
     return {**mock_cloud_config_params}
 
 
 @pytest.fixture
-def mock_project_config() -> Dict[str, Any]:
+def mock_project_config() -> dict[str, Any]:
     """Mock project config to return from retrieve_data_context_config_from_cloud."""
     return {
         "data_context_id": "12345678-1234-1234-1234-123456789012",
@@ -92,7 +100,7 @@ class TestGetContextWithoutSettingWorkspaceId:
     def test_get_context_fails_with_no_workspaces(
         self,
         unset_gx_env_variables,
-        mock_cloud_config_params: Dict[str, str],
+        mock_cloud_config_params: dict[str, Any],
         sample_user_with_no_workspaces: CloudUserInfo,
     ):
         """Test that get_context() raises WorkspaceNotSetError when user has 0 workspaces."""
@@ -113,9 +121,9 @@ class TestGetContextWithoutSettingWorkspaceId:
     def test_get_context_succeeds_with_one_workspace(
         self,
         unset_gx_env_variables,
-        mock_cloud_config_params_with_cloud_mode: Dict[str, str],
+        mock_cloud_config_params_with_cloud_mode: dict[str, Any],
         sample_user_with_one_workspace: CloudUserInfo,
-        mock_project_config: Dict[str, Any],
+        mock_project_config: dict[str, Any],
     ):
         """Test that get_context() succeeds and auto-sets workspace_id when user has 1 workspace."""
 
@@ -144,7 +152,7 @@ class TestGetContextWithoutSettingWorkspaceId:
     def test_get_context_fails_with_multiple_workspaces(
         self,
         unset_gx_env_variables,
-        mock_cloud_config_params_with_cloud_mode: Dict[str, str],
+        mock_cloud_config_params_with_cloud_mode: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
     ):
         """Test that get_context() raises WorkspaceNotSetError when user has >1 workspaces."""
@@ -170,7 +178,7 @@ class TestCloudDataContextDirectInstantiationWithoutWorkspaceId:
     def test_cloud_data_context_fails_with_no_workspaces(
         self,
         unset_gx_env_variables,
-        mock_cloud_config_params: Dict[str, str],
+        mock_cloud_config_params: dict[str, Any],
         sample_user_with_no_workspaces: CloudUserInfo,
     ):
         """Test that CloudDataContext raises WorkspaceNotSetError when user has 0 workspaces."""
@@ -190,9 +198,9 @@ class TestCloudDataContextDirectInstantiationWithoutWorkspaceId:
     def test_cloud_data_context_succeeds_with_one_workspace(
         self,
         unset_gx_env_variables,
-        mock_cloud_config_params: Dict[str, str],
+        mock_cloud_config_params: dict[str, Any],
         sample_user_with_one_workspace: CloudUserInfo,
-        mock_project_config: Dict[str, Any],
+        mock_project_config: dict[str, Any],
     ):
         """Test that CloudDataContext succeeds and auto-sets workspace_id when user has 1 workspace."""  # noqa: E501
         with (
@@ -220,7 +228,7 @@ class TestCloudDataContextDirectInstantiationWithoutWorkspaceId:
     def test_cloud_data_context_fails_with_multiple_workspaces(
         self,
         unset_gx_env_variables,
-        mock_cloud_config_params: Dict[str, str],
+        mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
     ):
         """Test that CloudDataContext raises WorkspaceNotSetError when user has >1 workspaces."""
@@ -246,9 +254,9 @@ class TestContextWithWorkspaceIdEnvironmentVariable:
         self,
         unset_gx_env_variables,
         monkeypatch,
-        mock_cloud_config_params: Dict[str, str],
+        mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
-        mock_project_config: Dict[str, Any],
+        mock_project_config: dict[str, Any],
     ):
         """Test that get_context() uses workspace_id from environment variable."""
         expected_workspace_id = "env-workspace-123"
@@ -280,9 +288,9 @@ class TestContextWithWorkspaceIdEnvironmentVariable:
         self,
         unset_gx_env_variables,
         monkeypatch,
-        mock_cloud_config_params: Dict[str, str],
+        mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
-        mock_project_config: Dict[str, Any],
+        mock_project_config: dict[str, Any],
     ):
         """Test that CloudDataContext uses workspace_id from environment variable."""
         expected_workspace_id = "env-workspace-456"
@@ -317,9 +325,9 @@ class TestContextWithWorkspaceIdArgument:
     def test_get_context_uses_argument_workspace_id(
         self,
         unset_gx_env_variables,
-        mock_cloud_config_params_with_cloud_mode: Dict[str, str],
+        mock_cloud_config_params_with_cloud_mode: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
-        mock_project_config: Dict[str, Any],
+        mock_project_config: dict[str, Any],
     ):
         """Test that get_context() uses workspace_id from argument."""
 
@@ -354,9 +362,9 @@ class TestContextWithWorkspaceIdArgument:
     def test_cloud_data_context_uses_argument_workspace_id(
         self,
         unset_gx_env_variables,
-        mock_cloud_config_params: Dict[str, str],
+        mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
-        mock_project_config: Dict[str, Any],
+        mock_project_config: dict[str, Any],
     ):
         """Test that CloudDataContext uses workspace_id from argument."""
         expected_workspace_id = "arg-workspace-abc"
@@ -391,9 +399,9 @@ class TestContextWithWorkspaceIdArgument:
         self,
         unset_gx_env_variables,
         monkeypatch,
-        mock_cloud_config_params: Dict[str, str],
+        mock_cloud_config_params: dict[str, Any],
         sample_user_with_multiple_workspaces: CloudUserInfo,
-        mock_project_config: Dict[str, Any],
+        mock_project_config: dict[str, Any],
     ):
         """Test that workspace_id argument takes precedence over environment variable."""
         env_workspace_id = "env-workspace-should-be-ignored"
