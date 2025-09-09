@@ -67,7 +67,7 @@ Workspace users can be members of multiple workspaces with different permissions
 
 The following table lists GX Cloud roles and permissions.
 
-| User Role                                            | Organization Owner                          | Workspace Admin                             | Workspace Editor                           | Workspace Viewer                           |
+| User role                                            | Organization Owner                          | Workspace Admin                             | Workspace Editor                           | Workspace Viewer                           |
 |------------------------------------------------------|---------------------------------------------|---------------------------------------------|--------------------------------------------|--------------------------------------------|
 | Manage workspaces                                    | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
 | Manage Organization Owners                           | <span role="img" aria-label="Yes">✅</span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> | <span role="img" aria-label="No">❌ </span> |
@@ -83,7 +83,7 @@ The following table lists GX Cloud roles and permissions.
 
 1. In GX Cloud, click **Users**.
 
-2. Click **Invite User** and complete the following fields:
+2. Click **Invite user** and complete the following fields:
 
     - **Email** - Enter the user's email address.
 
@@ -105,7 +105,7 @@ Workspace user permissions are managed on a workspace basis. To edit a user’s 
 
 3. Click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit user**  for the person you want to update.
 
-4. Select a role and then click **Update User**. 
+4. Select a role and then click **Update user**. 
 
 ### Edit an Organization Owner’s role
 
@@ -115,7 +115,7 @@ Organization Owners have access to all workspaces. When you downgrade an Organiz
 2. Click  <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit user** for the Organization Owner you want to update.
 3. Select a workspace **Role**.
 4. Select a **Workspace**.
-5. Click **Update User**.
+5. Click **Update user**.
 
 ### Delete a user’s access
 
@@ -124,7 +124,7 @@ Workspace user access is managed on a workspace basis. To remove a workspace use
 1. In GX Cloud, click **Users**.
 2. If you’re removing a workspace-level user’s access, find the workspace from which you want to remove the user.
 3. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Remove user** for the person you want to remove.
-4. Click **Yes, Remove This User**.
+4. Click **Yes, remove this user**.
 
 
 ## Tokens
@@ -151,7 +151,7 @@ You can create your own user access tokens if you are a Workspace Editor, Worksp
 
 1. In GX Cloud, click **Tokens**.
 2. In the **User access token**s pane, click **Create user access token**.
-3. In the **Token nam**e field, enter a name for the token that will help you quickly identify it.
+3. In the **Token name** field, enter a name for the token that will help you quickly identify it.
 4. Click **Create**.
 5. Copy, paste, and then save the user access token as a text file or similar. The token can't be retrieved after you close the dialog.
 6. Click **Close**.
