@@ -38,6 +38,7 @@ PactBody: TypeAlias = Union[
 
 
 EXISTING_ORGANIZATION_ID: Final[str] = os.environ.get("GX_CLOUD_ORGANIZATION_ID", "")
+EXISTING_WORKSPACE_ID: Final[str] = os.environ.get("GX_CLOUD_WORKSPACE_ID", "")
 
 
 class RequestMethods(str, enum.Enum):
@@ -82,6 +83,7 @@ def cloud_data_context(
     cloud_data_context = CloudDataContext(
         cloud_base_url=cloud_base_url,
         cloud_organization_id=EXISTING_ORGANIZATION_ID,
+        cloud_workspace_id=EXISTING_WORKSPACE_ID,
         cloud_access_token=cloud_access_token,
     )
     # we can't override the base url to use the mock service due to
@@ -90,6 +92,7 @@ def cloud_data_context(
     context = CloudDataContext(
         cloud_base_url=PACT_MOCK_SERVICE_URL,
         cloud_organization_id=EXISTING_ORGANIZATION_ID,
+        cloud_workspace_id=EXISTING_WORKSPACE_ID,
         cloud_access_token=cloud_access_token,
         project_config=project_config,
     )
