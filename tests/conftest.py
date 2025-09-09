@@ -1798,6 +1798,7 @@ def empty_base_data_context_in_cloud_mode(
         cloud_base_url=ge_cloud_config.base_url,
         cloud_access_token=ge_cloud_config.access_token,
         cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
     )
     set_context(context)
     return context
@@ -1857,6 +1858,7 @@ def empty_cloud_data_context(
         cloud_base_url=ge_cloud_config.base_url,
         cloud_access_token=ge_cloud_config.access_token,
         cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
     )
     set_context(context)
     return context
@@ -1917,6 +1919,7 @@ def empty_base_data_context_in_cloud_mode_custom_base_url(
         cloud_base_url=custom_ge_cloud_config.base_url,
         cloud_access_token=custom_ge_cloud_config.access_token,
         cloud_organization_id=custom_ge_cloud_config.organization_id,
+        cloud_workspace_id=custom_ge_cloud_config.workspace_id,
     )
     assert context.list_datasources() == []
     assert context.ge_cloud_config.base_url != ge_cloud_config.base_url
