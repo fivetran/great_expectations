@@ -71,7 +71,7 @@ Environment variables securely store your GX Cloud access credentials.
    After you save your credentials as environment variables, you can use Python scripts to access GX Cloud and complete other tasks. See the [API reference](/reference/index.md).
     :::
 
-2. Optional. If you created a temporary file to record your credentials, delete it.
+2. Optional. If you created a temporary file to record your credentials, delete it. 
 
 ## Create a Data Context
 

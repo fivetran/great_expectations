@@ -13,7 +13,7 @@ import great_expectations as gx
 context = gx.get_context(mode="cloud")
 
 # Optional. Specify a workspace ID.
-# context = gx.get_context(mode="cloud", cloud_workspace_id="abc123")
+# context = gx.get_context(mode="cloud", workspace_id="abc123")
 # </snippet>
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - verify context type">
 print(type(context).__name__)
