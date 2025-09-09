@@ -2335,9 +2335,14 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
             self._get_result_format(runtime_configuration=runtime_configuration)
         )
 
+        include_unexpected_rows: bool
         unexpected_index_column_names = None
         if isinstance(result_format, dict):
+            include_unexpected_rows = bool(result_format.get("include_unexpected_rows", False))
             unexpected_index_column_names = result_format.get("unexpected_index_column_names", None)
+        else:
+            include_unexpected_rows = False
+
         total_count: Optional[int] = metrics.get("table.row_count")
         unexpected_count: Optional[int] = metrics.get(
             f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
@@ -2354,6 +2359,12 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
         filtered_row_count: Optional[int] = metrics.get(
             f"{self.map_metric}.{SummarizationMetricNameSuffixes.FILTERED_ROW_COUNT.value}"
         )
+
+        unexpected_rows = None
+        if include_unexpected_rows:
+            unexpected_rows = metrics.get(
+                f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
+            )
 
         if (
             total_count is None
@@ -2381,6 +2392,7 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
             unexpected_index_list=unexpected_index_list,
             unexpected_index_query=unexpected_index_query,
             unexpected_index_column_names=unexpected_index_column_names,
+            unexpected_rows=unexpected_rows,
         )
 
 
@@ -2540,9 +2552,6 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
             ),
         )
 
-        if result_format_str == ResultFormat.BASIC:
-            return validation_dependencies
-
         if include_unexpected_rows:
             metric_kwargs = get_metric_kwargs(
                 metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}",
@@ -2557,6 +2566,9 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
                     metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
                 ),
             )
+
+        if result_format_str == ResultFormat.BASIC:
+            return validation_dependencies
 
         from great_expectations.execution_engine import (
             SqlAlchemyExecutionEngine,
@@ -2605,9 +2617,14 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
         execution_engine: Optional[ExecutionEngine] = None,
     ):
         result_format = self._get_result_format(runtime_configuration=runtime_configuration)
+
+        include_unexpected_rows: bool
         unexpected_index_column_names = None
         if isinstance(result_format, dict):
+            include_unexpected_rows = bool(result_format.get("include_unexpected_rows", False))
             unexpected_index_column_names = result_format.get("unexpected_index_column_names", None)
+        else:
+            include_unexpected_rows = False
 
         total_count: Optional[int] = metrics.get("table.row_count")
         unexpected_count: Optional[int] = metrics.get(
@@ -2625,6 +2642,12 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
         unexpected_index_query: Optional[str] = metrics.get(
             f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}"
         )
+
+        unexpected_rows = None
+        if include_unexpected_rows:
+            unexpected_rows = metrics.get(
+                f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
+            )
 
         if (
             total_count is None
@@ -2652,6 +2675,7 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
             unexpected_index_list=unexpected_index_list,
             unexpected_index_query=unexpected_index_query,
             unexpected_index_column_names=unexpected_index_column_names,
+            unexpected_rows=unexpected_rows,
         )
 
 

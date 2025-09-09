@@ -254,6 +254,28 @@ class ValidationAction(BaseModel, metaclass=MetaValidationAction):
         else:
             return value
 
+    def _get_max_severity_failure_from_checkpoint_result(
+        self, checkpoint_result: CheckpointResult
+    ) -> Optional[FailureSeverity]:
+        """Get the maximum severity failure across all validation results in a checkpoint result."""
+        if not checkpoint_result.run_results:
+            return None
+
+        from great_expectations.expectations import metadata_types
+
+        max_severity = None
+
+        for validation_result in checkpoint_result.run_results.values():
+            severity = validation_result.get_max_severity_failure()
+            if severity is not None:
+                # Short-circuit if we find CRITICAL (highest possible)
+                if severity == metadata_types.FailureSeverity.CRITICAL:
+                    return severity
+                if max_severity is None or severity > max_severity:
+                    max_severity = severity
+
+        return max_severity
+
 
 def should_notify(
     success: bool, notify_on: NotifyOn, max_severity: Optional[FailureSeverity] = None
@@ -377,8 +399,9 @@ class SlackNotificationAction(DataDocsAction):
         success = checkpoint_result.success or False
         checkpoint_name = checkpoint_result.checkpoint_config.name
         result = {"slack_notification_result": "none required"}
+        max_severity = self._get_max_severity_failure_from_checkpoint_result(checkpoint_result)
 
-        if not should_notify(success=success, notify_on=self.notify_on):
+        if not should_notify(success=success, notify_on=self.notify_on, max_severity=max_severity):
             return result
 
         checkpoint_text_blocks: list[dict] = []
@@ -520,11 +543,20 @@ class PagerdutyAlertAction(ValidationAction):
             summary += "succeeded"
         else:
             summary += "failed"
+        max_severity = self._get_max_severity_failure_from_checkpoint_result(checkpoint_result)
 
-        return self._run_pypd_alert(dedup_key=checkpoint_name, message=summary, success=success)
+        return self._run_pypd_alert(
+            dedup_key=checkpoint_name, message=summary, success=success, max_severity=max_severity
+        )
 
-    def _run_pypd_alert(self, dedup_key: str, message: str, success: bool):
-        if should_notify(success=success, notify_on=self.notify_on):
+    def _run_pypd_alert(
+        self,
+        dedup_key: str,
+        message: str,
+        success: bool,
+        max_severity: Optional[FailureSeverity] = None,
+    ):
+        if should_notify(success=success, notify_on=self.notify_on, max_severity=max_severity):
             pypd.api_key = self.api_key
             pypd.EventV2.create(
                 data={
@@ -573,7 +605,9 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
     @override
     def run(self, checkpoint_result: CheckpointResult, action_context: ActionContext | None = None):
         success = checkpoint_result.success or False
-        if not should_notify(success=success, notify_on=self.notify_on):
+        max_severity = self._get_max_severity_failure_from_checkpoint_result(checkpoint_result)
+
+        if not should_notify(success=success, notify_on=self.notify_on, max_severity=max_severity):
             return {"microsoft_teams_notification_result": None}
 
         data_docs_pages = self._get_data_docs_pages_from_prior_action(action_context=action_context)
@@ -665,8 +699,11 @@ class OpsgenieAlertAction(ValidationAction):
     ) -> dict:
         validation_success = checkpoint_result.success or False
         checkpoint_name = checkpoint_result.checkpoint_config.name
+        max_severity = self._get_max_severity_failure_from_checkpoint_result(checkpoint_result)
 
-        if should_notify(success=validation_success, notify_on=self.notify_on):
+        if should_notify(
+            success=validation_success, notify_on=self.notify_on, max_severity=max_severity
+        ):
             settings = {
                 "api_key": self.api_key,
                 "region": self.region,
@@ -822,7 +859,9 @@ class EmailAction(ValidationAction):
         action_context: ActionContext | None = None,
     ) -> dict:
         success = checkpoint_result.success or False
-        if not should_notify(success=success, notify_on=self.notify_on):
+        max_severity = self._get_max_severity_failure_from_checkpoint_result(checkpoint_result)
+
+        if not should_notify(success=success, notify_on=self.notify_on, max_severity=max_severity):
             return {"email_result": ""}
 
         title, html = self.renderer.render(checkpoint_result=checkpoint_result)
