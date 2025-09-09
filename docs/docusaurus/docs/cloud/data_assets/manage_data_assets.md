@@ -34,7 +34,7 @@ Then you can [add an Expectation](/cloud/expectations/manage_expectations.md#add
 
 Data Asset metrics provide you with insight into the data you can use for your data validations. When you create a new Data Asset, schema data is automatically fetched.
 
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets** and then select a Data Asset in the **Data Assets** list.
+1. In GX Cloud, select the relevant **Workspace**, click **Data Assets**, and then select a Data Asset in the **Data Assets** list.
 
 2. Click the **Metrics** tab.
 
@@ -110,7 +110,7 @@ To connect to your Data Source in GX Cloud, there are two methods for managing c
 
 If you encounter an issue performing a GX Cloud task, review log information to troubleshoot the cause and determine a fix.
 
-1. In GX Cloud, click **Logs**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Logs**.
 
 2. Click **Show log** next to a log entry to display additional log details.
 
