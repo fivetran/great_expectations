@@ -85,13 +85,13 @@ The following table lists GX Cloud roles and permissions.
 
 2. Click **Invite user** and complete the following fields:
 
+    - **Workspace** - If you’re adding a Workspace Admin, Editor, or Viewer, select a workspace. If you’re adding an Organization Owner, they will automatically have full access to all current and future workspaces. 
+
     - **Email** - Enter the user's email address.
 
     - **Role** - See [roles and permissions](#roles-and-permissions) for details on the options.
 
-    - **Workspace** - If you’re adding a Workspace Admin, Editor, or Viewer, select a workspace. If you’re adding an Organization Owner, they will automatically have full access to all current and future workspaces. 
-
-3. Click **Invite**.
+3. Click **Send invitation**.
 
     An email invitation is sent to the user.
 
@@ -124,7 +124,7 @@ Workspace user access is managed on a workspace basis. To remove a workspace use
 1. In GX Cloud, click **Users**.
 2. If you’re removing a workspace-level user’s access, find the workspace from which you want to remove the user.
 3. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Remove user** for the person you want to remove.
-4. Click **Yes, remove this user**.
+4. Click **Remove**.
 
 
 ## Tokens
