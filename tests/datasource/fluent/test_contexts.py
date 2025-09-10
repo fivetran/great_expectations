@@ -201,7 +201,8 @@ def test_context_update_datasource(
 
     # TODO: adjust call counts as needed
     datasources_url = urllib.parse.urljoin(
-        GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/datasources"
+        GX_CLOUD_MOCK_BASE_URL,
+        f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
     )
     cloud_api_fake.assert_call_count(
         datasources_url,
@@ -246,7 +247,8 @@ def test_context_add_or_update_datasource(
     if isinstance(empty_contexts, CloudDataContext):
         # TODO: adjust call counts as needed
         datasources_url = urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/datasources"
+            GX_CLOUD_MOCK_BASE_URL,
+            f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
         )
         cloud_api_fake.assert_call_count(
             datasources_url,
@@ -348,7 +350,8 @@ def test_cloud_context_delete_datasource(
         name="delete_ds_test", base_directory=taxi_data_samples_dir
     )
     datasources_url = urllib.parse.urljoin(
-        GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/datasources"
+        GX_CLOUD_MOCK_BASE_URL,
+        f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
     )
 
     # check cloud_api_fake items

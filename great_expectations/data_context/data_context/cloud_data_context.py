@@ -429,11 +429,16 @@ class CloudDataContext(SerializableDataContext):
             raise OrganizationIdNotSpecifiedError()
 
         with create_session(access_token=access_token) as session:
+            if resource in ["accounts/me", "data-context-configuration"]:
+                url_workspace_id = None
+            else:
+                url_workspace_id = workspace_id
+
             url = GXCloudStoreBackend.construct_versioned_url(
                 base_url=base_url,
                 organization_id=organization_id,
                 resource_name=resource,
-                workspace_id=workspace_id,
+                workspace_id=url_workspace_id,
             )
             response = session.get(url)
 

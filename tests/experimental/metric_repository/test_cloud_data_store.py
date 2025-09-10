@@ -71,7 +71,7 @@ class TestCloudDataStoreMetricRun:
         expected_data = '{"data":{"data_asset_id":"4469ed3b-61d4-421f-9635-8339d2558b0f","metrics":[{"batch_id":"batch_id","metric_name":"metric_name","value":[0.25,0.5,0.75],"exception":null,"column":"column","quantiles":[0.25,0.5,0.75],"allow_relative_error":0.001,"value_type":"list[float]","metric_type":"ColumnQuantileValuesMetric"}]}}'  # noqa: E501 # FIXME CoP
 
         cloud_data_store._session.post.assert_called_once_with(
-            url="https://app.greatexpectations.fake.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/metric-runs",
+            url="https://app.greatexpectations.fake.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/workspaces/fffff678-1234-5678-1234-5678123fffff/metric-runs",
             data=expected_data,
         )
         assert uuid_from_add == response_metric_run_id
@@ -123,7 +123,7 @@ class TestCloudDataStoreMetricRun:
         expected_data = '{"data":{"data_asset_id":"4469ed3b-61d4-421f-9635-8339d2558b0f","metrics":[{"batch_id":"batch_id","metric_name":"metric_name","value":1,"exception":null,"column":"column","value_type":"int","metric_type":"ColumnMetric"}]}}'  # noqa: E501 # FIXME CoP
 
         cloud_data_store._session.post.assert_called_once_with(
-            url="https://app.greatexpectations.fake.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/metric-runs",
+            url="https://app.greatexpectations.fake.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/workspaces/fffff678-1234-5678-1234-5678123fffff/metric-runs",
             data=expected_data,
         )
         assert uuid_from_add == response_metric_run_id
@@ -178,7 +178,7 @@ class TestCloudDataStoreMetricRun:
         expected_data = '{"data":{"data_asset_id":"4469ed3b-61d4-421f-9635-8339d2558b0f","metrics":[{"batch_id":"batch_id","metric_name":"metric_name","value":1,"exception":{"type":"exception type","message":"exception message"},"column":"column","value_type":"int","metric_type":"ColumnMetric"}]}}'  # noqa: E501 # FIXME CoP
 
         cloud_data_store._session.post.assert_called_once_with(
-            url="https://app.greatexpectations.fake.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/metric-runs",
+            url="https://app.greatexpectations.fake.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/workspaces/fffff678-1234-5678-1234-5678123fffff/metric-runs",
             data=expected_data,
         )
         assert uuid_from_add == response_metric_run_id
@@ -230,7 +230,7 @@ class TestCloudDataStoreMetricRun:
         expected_data = '{"data":{"data_asset_id":"4469ed3b-61d4-421f-9635-8339d2558b0f","metrics":[{"batch_id":"batch_id","metric_name":"metric_name","value":2.5,"exception":null,"column":"column","value_type":"float64","metric_type":"ColumnMetric"}]}}'  # noqa: E501 # FIXME CoP
 
         cloud_data_store._session.post.assert_called_once_with(
-            url="https://app.greatexpectations.fake.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/metric-runs",
+            url="https://app.greatexpectations.fake.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/workspaces/fffff678-1234-5678-1234-5678123fffff/metric-runs",
             data=expected_data,
         )
         assert uuid_from_add == response_metric_run_id
