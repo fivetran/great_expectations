@@ -380,7 +380,6 @@ class GXCloudStoreBackend(StoreBackend, metaclass=ABCMeta):
             attributes_key=attributes_key,
             attributes_value=value,
             organization_id=organization_id,
-            workspace_id=workspace_id,
             **kwargs,
         )
 

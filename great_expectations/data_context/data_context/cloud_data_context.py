@@ -67,6 +67,7 @@ if TYPE_CHECKING:
     from great_expectations.alias_types import PathStr
     from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
     from great_expectations.core.suite_parameters import SuiteParameterDict
+    from great_expectations.data_context.store.store import StoreConfigTypedDict
     from great_expectations.datasource.fluent import Datasource as FluentDatasource
     from great_expectations.render.renderer.site_builder import SiteBuilder
 
@@ -561,6 +562,14 @@ class CloudDataContext(SerializableDataContext):
             context=self,
             datasource_store=self._datasource_store,
         )
+
+    @override
+    def _init_primary_stores(self, store_configs: Dict[str, StoreConfigTypedDict]) -> None:
+        for store_name, store_config in store_configs.items():
+            store_config["store_backend"]["ge_cloud_credentials"]["workspace_id"] = (
+                self.ge_cloud_config.workspace_id
+            )
+        super()._init_primary_stores(store_configs)
 
     @override
     def _init_datasource_store(self) -> DatasourceStore:
