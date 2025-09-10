@@ -961,73 +961,79 @@ def gx_cloud_api_fake_ctx(
         )
         resp_mocker.add_callback(
             responses.GET,
-            urllib.parse.urljoin(org_url_base_V1, "expectation-suites"),
+            urllib.parse.urljoin(workspace_url_base_V1, "expectation-suites"),
             get_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            re.compile(urllib.parse.urljoin(org_url_base_V1, f"expectation-suites/{UUID_REGEX}")),
+            re.compile(
+                urllib.parse.urljoin(workspace_url_base_V1, f"expectation-suites/{UUID_REGEX}")
+            ),
             get_expectation_suite_by_id_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(org_url_base_V1, "expectation-suites"),
+            urllib.parse.urljoin(workspace_url_base_V1, "expectation-suites"),
             post_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.PUT,
-            re.compile(urllib.parse.urljoin(org_url_base_V1, f"expectation-suites/{UUID_REGEX}")),
+            re.compile(
+                urllib.parse.urljoin(workspace_url_base_V1, f"expectation-suites/{UUID_REGEX}")
+            ),
             put_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            re.compile(urllib.parse.urljoin(org_url_base_V1, f"expectation-suites/{UUID_REGEX}")),
+            re.compile(
+                urllib.parse.urljoin(workspace_url_base_V1, f"expectation-suites/{UUID_REGEX}")
+            ),
             delete_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            urllib.parse.urljoin(org_url_base_V1, "checkpoints"),
+            urllib.parse.urljoin(workspace_url_base_V1, "checkpoints"),
             get_checkpoints_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(org_url_base_V1, "checkpoints"),
+            urllib.parse.urljoin(workspace_url_base_V1, "checkpoints"),
             post_checkpoints_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            re.compile(urllib.parse.urljoin(org_url_base_V1, f"checkpoints/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"checkpoints/{UUID_REGEX}")),
             delete_checkpoint_by_id_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            urllib.parse.urljoin(org_url_base_V1, "checkpoints"),
+            urllib.parse.urljoin(workspace_url_base_V1, "checkpoints"),
             delete_checkpoint_by_name_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            re.compile(urllib.parse.urljoin(org_url_base_V1, f"checkpoints/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"checkpoints/{UUID_REGEX}")),
             get_checkpoint_by_id_cb,
         )
         resp_mocker.add_callback(
             responses.PUT,
-            re.compile(urllib.parse.urljoin(org_url_base_V1, f"checkpoints/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"checkpoints/{UUID_REGEX}")),
             put_checkpoint_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(org_url_base_V1, "validation-results"),
+            urllib.parse.urljoin(workspace_url_base_V1, "validation-results"),
             post_validation_results_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(org_url_base_V1, "validation-definitions"),
+            urllib.parse.urljoin(workspace_url_base_V1, "validation-definitions"),
             post_validation_definitions_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
             re.compile(
-                urllib.parse.urljoin(org_url_base_V1, f"validation-definitions/{UUID_REGEX}")
+                urllib.parse.urljoin(workspace_url_base_V1, f"validation-definitions/{UUID_REGEX}")
             ),
             get_validation_definition_by_id_cb,
         )
