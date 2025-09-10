@@ -39,8 +39,7 @@ def test_data_context_configuration(
         "user_id": "12345678-1234-1234-1234-123456789012",
         "workspaces": [{"id": "fffff6781234567812345678123fffff", "role": "editor"}],
     }
-    print(f"BDIRKS headers: {gx_cloud_session.headers}")
-    print(f"BDIRKS headers: {gx_cloud_session.auth}")
+
     # Then, set up the data context configuration endpoint interaction
     (
         pact_test.given(provider_state="the user account exists")

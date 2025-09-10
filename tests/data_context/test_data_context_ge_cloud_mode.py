@@ -60,11 +60,11 @@ def test_data_context_ge_cloud_mode_makes_successful_request_to_cloud_api(
 @pytest.mark.cloud
 @mock.patch("requests.Session.get")
 def test_data_context_ge_cloud_mode_with_bad_request_to_cloud_api_should_throw_error(
-    mock_request,
-    ge_cloud_runtime_base_url,
-    ge_cloud_runtime_organization_id,
-    ge_cloud_workspace_id,
-    ge_cloud_access_token,
+    mock_request: mock.MagicMock,
+    ge_cloud_runtime_base_url: str,
+    ge_cloud_runtime_organization_id: str,
+    ge_cloud_workspace_id: str,
+    ge_cloud_access_token: str,
 ):
     # Ensure that the request fails
     mock_response = Response()
