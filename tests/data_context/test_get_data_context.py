@@ -1,6 +1,7 @@
 import pathlib
 import shutil
 import uuid
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -159,7 +160,9 @@ def test_cloud_context_params(
     unset_gx_env_variables: None,
     monkeypatch: pytest.MonkeyPatch,
     empty_ge_cloud_data_context_config: DataContextConfig,
-    params: dict[str, str],
+    # params is annotated with Any since mypy will fail with str values when checking
+    # gx.get_context(**params) because there are no str only value variants.
+    params: dict[str, Any],
 ):
     with (
         mock.patch.object(
