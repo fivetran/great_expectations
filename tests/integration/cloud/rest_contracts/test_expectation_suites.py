@@ -10,6 +10,7 @@ from great_expectations.data_context import CloudDataContext
 from great_expectations.exceptions import DataContextError
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
+    EXISTING_WORKSPACE_ID,
     ContractInteraction,
 )
 
@@ -122,6 +123,8 @@ def test_get_expectation_suite(
         "v1",
         "organizations",
         EXISTING_ORGANIZATION_ID,
+        "workspaces",
+        EXISTING_WORKSPACE_ID,
         "expectation-suites",
     )
     status = 200
@@ -160,6 +163,8 @@ def test_get_non_existent_expectation_suite(
         "v1",
         "organizations",
         EXISTING_ORGANIZATION_ID,
+        "workspaces",
+        EXISTING_WORKSPACE_ID,
         "expectation-suites",
     )
 
@@ -198,6 +203,8 @@ def test_get_expectation_suites(
         "v1",
         "organizations",
         EXISTING_ORGANIZATION_ID,
+        "workspaces",
+        EXISTING_WORKSPACE_ID,
         "expectation-suites",
     )
     status = 200
@@ -233,6 +240,8 @@ def test_get_expectation_suites(
                 "v1",
                 "organizations",
                 EXISTING_ORGANIZATION_ID,
+                "workspaces",
+                EXISTING_WORKSPACE_ID,
                 "expectation-suites",
             ),
             upon_receiving="a request to post an Expectation Suite",
@@ -273,6 +282,8 @@ def test_post_expectation_suite_request(
                 "api",
                 "v1organizations",
                 EXISTING_ORGANIZATION_ID,
+                "workspaces",
+                EXISTING_WORKSPACE_ID,
                 "expectation-suites",
                 PUT_EXPECTATION_SUITE_ID,
             ),
@@ -315,6 +326,8 @@ def test_put_expectation_suite_request(
                 "v1",
                 "organizations",
                 EXISTING_ORGANIZATION_ID,
+                "workspaces",
+                EXISTING_WORKSPACE_ID,
                 "expectation-suites",
                 NON_EXISTENT_EXPECTATION_SUITE_ID,
             ),
