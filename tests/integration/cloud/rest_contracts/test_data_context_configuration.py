@@ -8,6 +8,7 @@ import pytest
 import great_expectations as gx
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
+    EXISTING_WORKSPACE_ID,
     PACT_MOCK_SERVICE_URL,
 )
 
@@ -33,6 +34,28 @@ def test_data_context_configuration(
     pact_test: pact.Pact,
 ) -> None:
     # arrange
+    # First, set up the accounts/me endpoint interaction
+    accounts_me_response_body: Final[dict] = {
+        "user_id": "12345678-1234-1234-1234-123456789012",
+        "workspaces": [{"id": "fffff6781234567812345678123fffff", "role": "editor"}],
+    }
+
+    # Then, set up the data context configuration endpoint interaction
+    (
+        pact_test.given(provider_state="the user account exists")
+        .upon_receiving(scenario="a request for user account information")
+        .with_request(
+            headers=dict(gx_cloud_session.headers),
+            method="GET",
+            path=f"/organizations/{EXISTING_ORGANIZATION_ID}/accounts/me",
+        )
+        .will_respond_with(
+            status=200,
+            body=accounts_me_response_body,
+        )
+    )
+
+    # Then, set up the data context configuration endpoint interaction
     provider_state = "the Data Context exists"
     scenario = "a request for a Data Context"
     method = "GET"
@@ -60,6 +83,7 @@ def test_data_context_configuration(
             mode="cloud",
             cloud_base_url=PACT_MOCK_SERVICE_URL,
             cloud_organization_id=EXISTING_ORGANIZATION_ID,
+            cloud_workspace_id=EXISTING_WORKSPACE_ID,
             cloud_access_token=cloud_access_token,
         )
 

@@ -334,7 +334,6 @@ class FileDataContextVariables(DataContextVariables):
                 )
 
 
-# BDIRKS to be backwards compatible with old versions, we can't write out workspace id...?
 @dataclass(repr=False)
 class CloudDataContextVariables(DataContextVariables):
     ge_cloud_base_url: str = None  # type: ignore[assignment] # post_init ensures field always set
@@ -377,7 +376,7 @@ class CloudDataContextVariables(DataContextVariables):
             GXCloudStoreBackend,
         )
 
-        # TODO: Investigate if store is every called on any subclass of DataContextVariables.
+        # TODO: Investigate if store is ever called on any subclass of DataContextVariables.
         # I started plumbing workspace_id into store_backend but don't think this is used.
         # We should remove it everywhere if it is not.
         store_backend: dict = {
@@ -387,8 +386,6 @@ class CloudDataContextVariables(DataContextVariables):
             "ge_cloud_credentials": {
                 "access_token": self.ge_cloud_access_token,
                 "organization_id": self.ge_cloud_organization_id,
-                # TODO: Investigate if this is ever used
-                # "workspace_id": self.ge_cloud_workspace_id,
             },
             "suppress_store_backend_id": True,
         }

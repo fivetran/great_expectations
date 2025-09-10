@@ -1686,7 +1686,10 @@ def request_headers(ge_cloud_access_token: str) -> Dict[str, str]:
 
 @pytest.fixture
 def ge_cloud_config(
-    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_workspace_id, ge_cloud_access_token
+    ge_cloud_base_url: str,
+    ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
+    ge_cloud_access_token: str,
 ):
     return GXCloudConfig(
         base_url=ge_cloud_base_url,
@@ -1866,7 +1869,10 @@ def empty_cloud_data_context(
 
 @pytest.fixture
 def cloud_details(
-    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_workspace_id, ge_cloud_access_token
+    ge_cloud_base_url: str,
+    ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
+    ge_cloud_access_token: str,
 ) -> CloudDetails:
     return CloudDetails(
         base_url=ge_cloud_base_url,
