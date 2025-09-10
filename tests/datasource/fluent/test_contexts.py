@@ -30,6 +30,7 @@ from great_expectations.datasource.fluent.pandas_filesystem_datasource import (
 from tests.datasource.fluent._fake_cloud_api import (
     DEFAULT_HEADERS,
     FAKE_ORG_ID,
+    FAKE_WORKSPACE_ID,
     GX_CLOUD_MOCK_BASE_URL,
     UUID_REGEX,
     CallbackResult,
@@ -77,7 +78,8 @@ def test_add_fluent_datasource_are_persisted(
     assert set_spy.call_count == 1
     cloud_api_fake.assert_call_count(
         urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/datasources"
+            GX_CLOUD_MOCK_BASE_URL,
+            f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
         ),
         2,
     )
