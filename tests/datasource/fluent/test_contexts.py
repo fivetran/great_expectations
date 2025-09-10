@@ -30,6 +30,7 @@ from great_expectations.datasource.fluent.pandas_filesystem_datasource import (
 from tests.datasource.fluent._fake_cloud_api import (
     DEFAULT_HEADERS,
     FAKE_ORG_ID,
+    FAKE_WORKSPACE_ID,
     GX_CLOUD_MOCK_BASE_URL,
     UUID_REGEX,
     CallbackResult,
@@ -77,7 +78,8 @@ def test_add_fluent_datasource_are_persisted(
     assert set_spy.call_count == 1
     cloud_api_fake.assert_call_count(
         urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/datasources"
+            GX_CLOUD_MOCK_BASE_URL,
+            f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
         ),
         2,
     )
@@ -170,7 +172,8 @@ def test_delete_asset_with_cloud_data_context(
 
     cloud_api_fake.assert_call_count(
         urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/data-assets/{asset.id}"
+            GX_CLOUD_MOCK_BASE_URL,
+            f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/data-assets/{asset.id}",
         ),
         1,
     )
@@ -199,7 +202,8 @@ def test_context_update_datasource(
 
     # TODO: adjust call counts as needed
     datasources_url = urllib.parse.urljoin(
-        GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/datasources"
+        GX_CLOUD_MOCK_BASE_URL,
+        f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
     )
     cloud_api_fake.assert_call_count(
         datasources_url,
@@ -244,7 +248,8 @@ def test_context_add_or_update_datasource(
     if isinstance(empty_contexts, CloudDataContext):
         # TODO: adjust call counts as needed
         datasources_url = urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/datasources"
+            GX_CLOUD_MOCK_BASE_URL,
+            f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
         )
         cloud_api_fake.assert_call_count(
             datasources_url,
@@ -346,7 +351,8 @@ def test_cloud_context_delete_datasource(
         name="delete_ds_test", base_directory=taxi_data_samples_dir
     )
     datasources_url = urllib.parse.urljoin(
-        GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/datasources"
+        GX_CLOUD_MOCK_BASE_URL,
+        f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/datasources",
     )
 
     # check cloud_api_fake items
@@ -509,7 +515,7 @@ class TestPandasDefaultWithCloud:
         assert verify_asset_names_mock.assert_call_count(
             urllib.parse.urljoin(
                 cloud_details.base_url,
-                f"api/v1/organizations/{cloud_details.org_id}/datasources/{pandas_default_id}",
+                f"api/v1/organizations/{cloud_details.org_id}/workspaces/{cloud_details.workspace_id}/datasources/{pandas_default_id}",
             ),
             1,
         )

@@ -216,7 +216,7 @@ class CloudDataContext(SerializableDataContext):
 
     def _get_cloud_user_info(self) -> CloudUserInfo:
         response = self._request_cloud_backend(
-            cloud_config=self.ge_cloud_config, resource="accounts/me"
+            cloud_config=self.ge_cloud_config, resource=GXCloudRESTResource.ACCOUNTS_ME
         )
         data = response.json()
         user_id = data.get("user_id") or data.get("id")
@@ -424,11 +424,22 @@ class CloudDataContext(SerializableDataContext):
         access_token = cloud_config.access_token
         base_url = cloud_config.base_url
         organization_id = cloud_config.organization_id
+        workspace_id = cloud_config.workspace_id
         if not organization_id:
             raise OrganizationIdNotSpecifiedError()
 
         with create_session(access_token=access_token) as session:
-            url = GXCloudStoreBackend.construct_versioned_url(base_url, organization_id, resource)
+            if resource in [GXCloudRESTResource.ACCOUNTS_ME, GXCloudRESTResource.DATA_CONTEXT]:
+                url_workspace_id = None
+            else:
+                url_workspace_id = workspace_id
+
+            url = GXCloudStoreBackend.construct_versioned_url(
+                base_url=base_url,
+                organization_id=organization_id,
+                resource_name=resource,
+                workspace_id=url_workspace_id,
+            )
             response = session.get(url)
 
         try:
@@ -768,10 +779,17 @@ class CloudDataContext(SerializableDataContext):
 
         base_url = self.ge_cloud_config.base_url
         org_id = self.ge_cloud_config.organization_id
-        expectation_parameters_url = urljoin(
-            base=base_url,
-            url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
-        )
+        workspace_id = self.ge_cloud_config.workspace_id
+        if workspace_id:
+            expectation_parameters_url = urljoin(
+                base=base_url,
+                url=f"/api/v1/organizations/{org_id}/workspaces/{workspace_id}/checkpoints/{checkpoint.id}/expectation-parameters",
+            )
+        else:
+            expectation_parameters_url = urljoin(
+                base=base_url,
+                url=f"/api/v1/organizations/{org_id}/checkpoints/{checkpoint.id}/expectation-parameters",
+            )
         with create_session(access_token=self.ge_cloud_config.access_token) as session:
             response = session.get(url=expectation_parameters_url)
 
