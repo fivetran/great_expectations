@@ -906,18 +906,15 @@ def gx_cloud_api_fake_ctx(
     assert_all_requests_are_fired: bool = False,
 ) -> Generator[responses.RequestsMock, None, None]:
     """Mock the GX Cloud API for the lifetime of the context manager."""
-    org_url_base_V0 = urllib.parse.urljoin(
+    url_base_V0 = urllib.parse.urljoin(
         cloud_details.base_url, f"organizations/{cloud_details.org_id}/"
     )
-    org_url_base_V1 = urllib.parse.urljoin(
-        cloud_details.base_url, f"api/v1/organizations/{cloud_details.org_id}/"
-    )
-    workspace_url_base_V1 = urllib.parse.urljoin(
+    url_base_V1 = urllib.parse.urljoin(
         cloud_details.base_url,
         f"api/v1/organizations/{cloud_details.org_id}/workspaces/{cloud_details.workspace_id}/",
     )
-    dc_config_url = urllib.parse.urljoin(org_url_base_V1, "data-context-configuration")
-    me_url = urllib.parse.urljoin(org_url_base_V0, "accounts/me")
+    dc_config_url = urllib.parse.urljoin(url_base_V1, "data-context-configuration")
+    me_url = urllib.parse.urljoin(url_base_V0, "accounts/me")
 
     assert not _CLOUD_API_FAKE_DB, "_CLOUD_API_FAKE_DB should be empty"
     _CLOUD_API_FAKE_DB.update(create_fake_db_seed_data(fds_config))
@@ -931,110 +928,102 @@ def gx_cloud_api_fake_ctx(
         resp_mocker.add_callback(responses.GET, dc_config_url, get_dc_configuration_cb)
         resp_mocker.add_callback(
             responses.GET,
-            urllib.parse.urljoin(workspace_url_base_V1, "datasources"),
+            urllib.parse.urljoin(url_base_V1, "datasources"),
             get_datasources_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(workspace_url_base_V1, "datasources"),
+            urllib.parse.urljoin(url_base_V1, "datasources"),
             post_datasources_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"datasources/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"datasources/{UUID_REGEX}")),
             get_datasource_by_id_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"datasources/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"datasources/{UUID_REGEX}")),
             delete_datasources_cb,
         )
         resp_mocker.add_callback(
             responses.PUT,
-            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"datasources/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"datasources/{UUID_REGEX}")),
             put_datasource_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"data-assets/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"data-assets/{UUID_REGEX}")),
             delete_data_assets_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            urllib.parse.urljoin(workspace_url_base_V1, "expectation-suites"),
+            urllib.parse.urljoin(url_base_V1, "expectation-suites"),
             get_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            re.compile(
-                urllib.parse.urljoin(workspace_url_base_V1, f"expectation-suites/{UUID_REGEX}")
-            ),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"expectation-suites/{UUID_REGEX}")),
             get_expectation_suite_by_id_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(workspace_url_base_V1, "expectation-suites"),
+            urllib.parse.urljoin(url_base_V1, "expectation-suites"),
             post_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.PUT,
-            re.compile(
-                urllib.parse.urljoin(workspace_url_base_V1, f"expectation-suites/{UUID_REGEX}")
-            ),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"expectation-suites/{UUID_REGEX}")),
             put_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            re.compile(
-                urllib.parse.urljoin(workspace_url_base_V1, f"expectation-suites/{UUID_REGEX}")
-            ),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"expectation-suites/{UUID_REGEX}")),
             delete_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            urllib.parse.urljoin(workspace_url_base_V1, "checkpoints"),
+            urllib.parse.urljoin(url_base_V1, "checkpoints"),
             get_checkpoints_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(workspace_url_base_V1, "checkpoints"),
+            urllib.parse.urljoin(url_base_V1, "checkpoints"),
             post_checkpoints_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"checkpoints/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"checkpoints/{UUID_REGEX}")),
             delete_checkpoint_by_id_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            urllib.parse.urljoin(workspace_url_base_V1, "checkpoints"),
+            urllib.parse.urljoin(url_base_V1, "checkpoints"),
             delete_checkpoint_by_name_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"checkpoints/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"checkpoints/{UUID_REGEX}")),
             get_checkpoint_by_id_cb,
         )
         resp_mocker.add_callback(
             responses.PUT,
-            re.compile(urllib.parse.urljoin(workspace_url_base_V1, f"checkpoints/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"checkpoints/{UUID_REGEX}")),
             put_checkpoint_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(workspace_url_base_V1, "validation-results"),
+            urllib.parse.urljoin(url_base_V1, "validation-results"),
             post_validation_results_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(workspace_url_base_V1, "validation-definitions"),
+            urllib.parse.urljoin(url_base_V1, "validation-definitions"),
             post_validation_definitions_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            re.compile(
-                urllib.parse.urljoin(workspace_url_base_V1, f"validation-definitions/{UUID_REGEX}")
-            ),
+            re.compile(urllib.parse.urljoin(url_base_V1, f"validation-definitions/{UUID_REGEX}")),
             get_validation_definition_by_id_cb,
         )
 
