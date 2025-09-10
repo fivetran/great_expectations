@@ -565,9 +565,9 @@ class CloudDataContext(SerializableDataContext):
 
     @override
     def _init_primary_stores(self, store_configs: Dict[str, StoreConfigTypedDict]) -> None:
-        for store_name, store_config in store_configs.items():
-            store_config["store_backend"]["ge_cloud_credentials"]["workspace_id"] = (
-                self.ge_cloud_config.workspace_id
+        for store_config in store_configs.values():
+            store_config.get("store_backend", {}).get("ge_cloud_credentials", {}).setdefault(
+                "workspace_id", self.ge_cloud_config.workspace_id
             )
         super()._init_primary_stores(store_configs)
 
