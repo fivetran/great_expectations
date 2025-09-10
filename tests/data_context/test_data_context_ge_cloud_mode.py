@@ -1,6 +1,7 @@
 from unittest import mock
 
 import pytest
+import requests_mock
 import responses
 from requests import Response
 
@@ -60,7 +61,7 @@ def test_data_context_ge_cloud_mode_makes_successful_request_to_cloud_api(
 @pytest.mark.cloud
 @mock.patch("requests.Session.get")
 def test_data_context_ge_cloud_mode_with_bad_request_to_cloud_api_should_throw_error(
-    mock_request: mock.MagicMock,
+    mock_request: requests_mock.Mocker,
     ge_cloud_runtime_base_url: str,
     ge_cloud_runtime_organization_id: str,
     ge_cloud_workspace_id: str,
