@@ -429,7 +429,7 @@ class CloudDataContext(SerializableDataContext):
             raise OrganizationIdNotSpecifiedError()
 
         with create_session(access_token=access_token) as session:
-            if resource in ["accounts/me", "data-context-configuration"]:
+            if resource in ["accounts/me", "data_context_configuration"]:
                 url_workspace_id = None
             else:
                 url_workspace_id = workspace_id
