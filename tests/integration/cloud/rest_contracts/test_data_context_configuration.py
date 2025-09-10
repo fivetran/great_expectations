@@ -35,26 +35,23 @@ def test_data_context_configuration(
 ) -> None:
     # arrange
     # First, set up the accounts/me endpoint interaction
-    accounts_me_provider_state = "the user exists"
-    accounts_me_scenario = "a request for user account information"
-    accounts_me_method = "GET"
-    accounts_me_path = f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/accounts/me"
-    accounts_me_status = 200
     accounts_me_response_body: Final[dict] = {
         "user_id": "12345678-1234-1234-1234-123456789012",
         "workspaces": [{"id": "fffff6781234567812345678123fffff", "role": "editor"}],
     }
-
+    print(f"BDIRKS headers: {gx_cloud_session.headers}")
+    print(f"BDIRKS headers: {gx_cloud_session.auth}")
+    # Then, set up the data context configuration endpoint interaction
     (
-        pact_test.given(provider_state=accounts_me_provider_state)
-        .upon_receiving(scenario=accounts_me_scenario)
+        pact_test.given(provider_state="the user account exists")
+        .upon_receiving(scenario="a request for user account information")
         .with_request(
             headers=dict(gx_cloud_session.headers),
-            method=accounts_me_method,
-            path=accounts_me_path,
+            method="GET",
+            path=f"/organizations/{EXISTING_ORGANIZATION_ID}/accounts/me",
         )
         .will_respond_with(
-            status=accounts_me_status,
+            status=200,
             body=accounts_me_response_body,
         )
     )
