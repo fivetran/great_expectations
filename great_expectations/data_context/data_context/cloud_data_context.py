@@ -336,7 +336,7 @@ class CloudDataContext(SerializableDataContext):
         :return: the configuration object retrieved from the Cloud API
         """  # noqa: E501 # FIXME CoP
         response = cls._request_cloud_backend(
-            cloud_config=cloud_config, resource="data_context_configuration"
+            cloud_config=cloud_config, resource=GXCloudRESTResource.DATA_CONTEXT
         )
         config = cls._prepare_v1_config(config=response.json())
         return DataContextConfig(**config)
