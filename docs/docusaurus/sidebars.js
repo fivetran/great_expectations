@@ -183,6 +183,11 @@ module.exports = {
     },
     {
       type: 'doc',
+      label: 'Manage Data Sources',
+      id: 'cloud/data_sources/manage_sources'
+    },
+    {
+      type: 'doc',
       label: 'Manage Data Assets',
       id: 'cloud/data_assets/manage_data_assets'
     },

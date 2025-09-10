@@ -57,6 +57,7 @@ You'll need your user access token and organization ID to set your environment v
 If your organization has [multiple workspaces](/cloud/access/manage_access.md#workspaces), you'll also need your workspace ID.
 
 1. In GX Cloud, select the relevant **Workspace**.
+
 2. Observe the URL in your browser and copy the first segment after `/workspaces/`. For example, if the URL is `app.greatexpectations.io/organizations/my-org/workspaces/abc123/data-health`, copy `abc123` into the temporary file with your other credentials and then save the file. 
 
 GX recommends deleting the temporary file after you set the environment variables.
@@ -75,73 +76,68 @@ Environment variables securely store your GX Cloud and AWS credentials.
     export S3_SECRET_KEY=<secret_key>
     ```
 
-3. Optional. If you created a temporary file to record your credentials, delete it. 
+2. Optional. If you created a temporary file to record your credentials, delete it. 
 
 ## Connect an Amazon S3 Data Source and add a Data Asset
 
 1. Run the following Python code to create a Data Context object:
 
-   ```
-   import great_expectations as gx
-   context = gx.get_context(mode="cloud")
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - get cloud context" 
    ```
    
    The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
 
 2. Verify that you have a GX Cloud Data Context:
 
-   ```
-   print(type(context).__name__)
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - verify context type" 
    ```
 
 3. Define the Data Source's parameters.
+   
    The following information is required when you create an Amazon S3 Data Source:
+
    - `name`: A descriptive name used to reference the Data Source. This should be unique within your Cloud organization.
    - `bucket_name`: The Amazon S3 bucket name.
    - `boto3_options`: Your AWS credentials passed as `aws_access_key_id` and `aws_secret_access_key`.
      
    Replace the `data_source_name` and `bucket_name` variable values with your own and run the following Python code. In this example, the strings `"${S3_KEY_ID}"` and `"${S3_SECRET_KEY}"` will be replaced with the values of the environment variables you set earlier:
 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - define source" 
    ```
-   data_source_name = "S3 Data Source"
-   bucket_name = "my-bucket"
-   boto3_options = {"aws_access_key_id": "${S3_KEY_ID}", "aws_secret_access_key": "${S3_SECRET_KEY}"}
-   ```
+
 
 4. Add an S3 Data Source to your Data Context by executing the following code:
    
-   ```
-   data_source = context.data_sources.add_pandas_s3(
-       name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
-   )
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - add source" 
    ```
    
    GX Cloud uses pandas as the backend for your S3 Data Source.  
 
-Define your Data Asset's parameters.
-The following information is required when you create an Amazon S3 Data Asset:
-`asset_name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
-`s3_prefix`: The path to the data files for the Data Asset, relative to the root of the S3 bucket.
-With S3 Data Sources, Data Assets are used to retrieve data from individual files in formats such as `.csv` or `.parquet`. The file format that can be read by a S3 Data Asset is determined when the Data Asset is created. The specific file that is read is determined by batch parameters you pass when validating the Data Asset.
-This example uses taxi trip data stored in `.csv` files in the `data/taxi_yellow_tripdata_samples/` folder within the Data Source’s S3 bucket.
-Replace the variable values with your own and run the following Python code to define your Data Asset's parameters:
-```
-asset_name = "s3_taxi_csv_file_asset"
-s3_prefix = "data/taxi_yellow_tripdata_samples/"
-```
-Add the Data Asset to your Data Source. A new Data Asset is created and added to a Data Source simultaneously. The file format that the Data Asset can read is determined by the method used when the Data Asset is added to the Data Source. To see the file formats supported by a S3 Data Source, refer to the .add_*_asset(...) methods in the PandasFilesystemDatasource reference page.
-The following example creates a Data Asset that can read .csv file data:
-```
-s3_file_data_asset = data_source.add_csv_asset(name=asset_name, s3_prefix=s3_prefix)
-```
-Optional. Pick a file to validate. 
+5. Define your Data Asset's parameters.
+   
+   The following information is required when you create an Amazon S3 Data Asset:
 
-If your Data Asset has more than one data file, use batch parameters to specify which file to validate. Define your batch parameters and then pass them when you validate the Data Asset by running its default checkpoint.
-```
-batch_parameters = {"path": "taxi_zone_lookup.csv"}
-checkpoint.run(batch_parameters=batch_parameters)
-				```
+   - `asset_name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
+   - `s3_prefix`: The path to the data files for the Data Asset, relative to the root of the S3 bucket.
+   
+   With S3 Data Sources, Data Assets are used to retrieve data from individual files in formats such as `.csv` or `.parquet`. The file format that can be read by a S3 Data Asset is determined when the Data Asset is created. The specific file that is read is determined by batch parameters you pass when validating the Data Asset.
 
+   This example uses taxi trip data stored in `.csv` files in the `data/taxi_yellow_tripdata_samples/` folder within the Data Source’s S3 bucket.
+
+   Replace the variable values with your own and run the following Python code to define your Data Asset's parameters:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - define asset" 
+   ```
+
+6. Add the Data Asset to your Data Source.
+
+   A new Data Asset is created and added to a Data Source simultaneously. The file format that the Data Asset can read is determined by the method used when the Data Asset is added to the Data Source. To see the file formats supported by a S3 Data Source, refer to the `.add_*_asset(...)` methods in the [PandasFilesystemDatasource reference page](/reference/api/datasource/fluent/PandasFilesystemDatasource_class.mdx).
+
+   The following example creates a Data Asset that can read .csv file data:
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - add asset" 
+   ```
 
 </TabItem>
 
@@ -153,3 +149,19 @@ checkpoint.run(batch_parameters=batch_parameters)
 </TabItem>
 
 </Tabs>
+
+## Next steps
+
+- [Add an Expectation](/docs/cloud/expectations/manage_expectations) 
+- [Run a Validation](/docs/cloud/validations/manage_validations)
+
+## Limitations
+
+Keep the following limitations in mind when working with S3 Data Sources.
+
+- S3 Data Source connections cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](/cloud/data_sources/manage_data_sources).
+- S3 Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to add Data Assets as described above.
+- ExpectAI is not supported.
+- Data Asset metrics are not automatically fetched. You can [manually profile data](/docs/cloud/data_assets/manage_data_assets.mdx#view-data-asset-metrics) to return all available metrics for an S3 Data Asset.
+- Custom SQL and multi-source Expectations are not supported.
+

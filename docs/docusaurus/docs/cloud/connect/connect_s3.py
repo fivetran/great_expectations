@@ -7,15 +7,12 @@ pytest --docs-tests -k "cloud_docs_connect_s3" tests/integration/test_script_run
 
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - full code example">
-# <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - get cloud context">
+# <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - get cloud context">
 import great_expectations as gx
 
 context = gx.get_context(mode="cloud")
-
-# Optional. Specify a workspace ID.
-# context = gx.get_context(mode="cloud", workspace_id="abc123")
 # </snippet>
-# <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - verify context type">
+# <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - verify context type">
 print(type(context).__name__)
 # </snippet>
 
@@ -23,20 +20,25 @@ print(type(context).__name__)
 assert type(context).__name__ == "CloudDataContext"
 # Hide this
 
-# <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - list data sources">
-print(context.list_datasources())
+# <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - define source">
+data_source_name = "S3 Data Source"
+bucket_name = "my-bucket"
+boto3_options = {"aws_access_key_id": "${S3_KEY_ID}", "aws_secret_access_key": "${S3_SECRET_KEY}"}
 # </snippet>
 
-# <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - retrieve a data asset">
-data_source_name = "my_data_source"
-asset_name = "my_data_asset"
-batch_definition_name = "my_batch_definition"
-batch = (
-    context.data_sources.get(data_source_name)
-    .get_asset(asset_name)
-    .get_batch_definition(batch_definition_name)
-    .get_batch()
+# <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - add source">
+data_source = context.data_sources.add_pandas_s3(
+    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
 )
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - define asset">
+asset_name = "s3_taxi_csv_file_asset"
+s3_prefix = "data/taxi_yellow_tripdata/"
+# </snippet>
+
+# <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - add asset">
+s3_file_data_asset = data_source.add_csv_asset(name=asset_name, s3_prefix=s3_prefix)
 # </snippet>
 
 # </snippet>
