@@ -13,7 +13,7 @@ from great_expectations.compatibility import sqlalchemy
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.datasource.fluent import GxDatasourceWarning, SQLDatasource
 from great_expectations.datasource.fluent.sql_datasource import (
-    DEFAULT_QUOTE_CHARACTERS,
+    DEFAULT_INITIAL_QUOTE_CHARACTERS,
     TableAsset,
     to_lower_if_not_quoted,
 )
@@ -340,19 +340,20 @@ def test_specific_datasource_warnings(
 @pytest.mark.parametrize(
     ["input_", "expected_output", "quote_characters"],
     [
-        ("my_schema", "my_schema", DEFAULT_QUOTE_CHARACTERS),
-        ("MY_SCHEMA", "my_schema", DEFAULT_QUOTE_CHARACTERS),
-        ("My_Schema", "my_schema", DEFAULT_QUOTE_CHARACTERS),
-        ('"my_schema"', '"my_schema"', DEFAULT_QUOTE_CHARACTERS),
-        ('"MY_SCHEMA"', '"MY_SCHEMA"', DEFAULT_QUOTE_CHARACTERS),
-        ('"My_Schema"', '"My_Schema"', DEFAULT_QUOTE_CHARACTERS),
-        ("'my_schema'", "'my_schema'", DEFAULT_QUOTE_CHARACTERS),
-        ("'MY_SCHEMA'", "'MY_SCHEMA'", DEFAULT_QUOTE_CHARACTERS),
-        ("'My_Schema'", "'My_Schema'", DEFAULT_QUOTE_CHARACTERS),
-        (None, None, DEFAULT_QUOTE_CHARACTERS),
-        ("", "", DEFAULT_QUOTE_CHARACTERS),
-        ("`My_Schema`", "`My_Schema`", ("`",)),
-        ("'My_Schema'", "'my_schema'", ("`",)),
+        ("my_schema", "my_schema", DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ("MY_SCHEMA", "my_schema", DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ("My_Schema", "my_schema", DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ('"my_schema"', '"my_schema"', DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ('"MY_SCHEMA"', '"MY_SCHEMA"', DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ('"My_Schema"', '"My_Schema"', DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ("'my_schema'", "'my_schema'", DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ("'MY_SCHEMA'", "'MY_SCHEMA'", DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ("'My_Schema'", "'My_Schema'", DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        (None, None, DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ("", "", DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ("`My_Schema`", "`My_Schema`", DEFAULT_INITIAL_QUOTE_CHARACTERS),
+        ("'My_Schema'", "'my_schema'", ("`")),
+        ("[My_Schema]", "[My_Schema]", DEFAULT_INITIAL_QUOTE_CHARACTERS),
     ],
     ids=lambda x: str(x),
 )
@@ -405,6 +406,8 @@ class TestTableAsset:
             "'my_schema'",
             "'MY_SCHEMA'",
             "'My_Schema'",
+            "`My_Schema`",
+            "[My_Schema]",
         ],
     )
     def test_quoted_schema_names_are_not_modified(
@@ -430,6 +433,8 @@ class TestTableAsset:
             "'my_table'",
             "'MY_TABLE'",
             "'My_Table'",
+            "`my_table`",
+            "[my_table]",
         ],
     )
     def test_quoted_table_names_are_quoted(
@@ -445,30 +450,42 @@ class TestTableAsset:
             schema_name="my_schema",
         )
         assert isinstance(table_asset.table_name, sqlalchemy.quoted_name)
-        assert table_asset.table_name == table_name.lstrip("\"'").rstrip("\"'")
+        assert table_asset.table_name == table_name[1:-1]
         assert table_asset.table_name.quote
 
     @pytest.mark.parametrize(
-        "table_name",
+        "table_name,serialized_name",
         [
-            '"my_table"',
-            '"MY_TABLE"',
-            '"My_Table"',
-            "'my_table'",
-            "'MY_TABLE'",
-            "'My_Table'",
-            "my_table",
-            "MY_TABLE",
-            "My_Table",
+            pytest.param('"my_table"', '"my_table"'),
+            pytest.param('"MY_TABLE"', '"MY_TABLE"'),
+            pytest.param('"My_Table"', '"My_Table"'),
+            pytest.param("'my_table'", "'my_table'"),
+            pytest.param("'MY_TABLE'", "'MY_TABLE'"),
+            pytest.param("'My_Table'", "'My_Table'"),
+            pytest.param("[My_Table]", "[My_Table]"),
+            pytest.param("`My_Table`", "`My_Table`"),
+            pytest.param("my_table", "my_table"),
+            pytest.param("MY_TABLE", "MY_TABLE"),
+            pytest.param("My_Table", "My_Table"),
         ],
     )
     def test_table_name_serialization_preserves_quotes(
         self,
         table_name: str,
+        serialized_name: str,
     ):
         table_asset = TableAsset(name="my_table_asset", table_name=table_name)
-        serialized = table_asset.dict()
-        assert serialized["table_name"] == table_name
+
+        with mock.patch(
+            "great_expectations.datasource.fluent.sql_datasource.TableAsset.datasource",
+            new_callable=mock.PropertyMock,
+            return_value=SQLDatasource(
+                name="my_snowflake_datasource",
+                connection_string="snowflake://<user_login_name>:<password>@<account_identifier>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>",
+            ),
+        ):
+            serialized = table_asset.dict()
+            assert serialized["table_name"] == serialized_name
 
 
 if __name__ == "__main__":
