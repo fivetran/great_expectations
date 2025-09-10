@@ -172,7 +172,8 @@ def test_delete_asset_with_cloud_data_context(
 
     cloud_api_fake.assert_call_count(
         urllib.parse.urljoin(
-            GX_CLOUD_MOCK_BASE_URL, f"api/v1/organizations/{FAKE_ORG_ID}/data-assets/{asset.id}"
+            GX_CLOUD_MOCK_BASE_URL,
+            f"api/v1/organizations/{FAKE_ORG_ID}/workspaces/{FAKE_WORKSPACE_ID}/data-assets/{asset.id}",
         ),
         1,
     )
@@ -514,7 +515,7 @@ class TestPandasDefaultWithCloud:
         assert verify_asset_names_mock.assert_call_count(
             urllib.parse.urljoin(
                 cloud_details.base_url,
-                f"api/v1/organizations/{cloud_details.org_id}/datasources/{pandas_default_id}",
+                f"api/v1/organizations/{cloud_details.org_id}/workspaces/{cloud_details.workspace_id}/datasources/{pandas_default_id}",
             ),
             1,
         )
