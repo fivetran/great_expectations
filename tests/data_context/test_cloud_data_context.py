@@ -11,8 +11,7 @@ ACCESS_TOKEN = "my-secret-access-token"
 ORG_ID = str(uuid.uuid4())
 WORKSPACE_ID = str(uuid.uuid4())
 CONTEXT_CONFIGURATION_URL = (
-    f"{CLOUD_BASE_URL}/api/v1/organizations/{ORG_ID}"
-    f"/workspaces/{WORKSPACE_ID}/data-context-configuration"
+    f"{CLOUD_BASE_URL}/api/v1/organizations/{ORG_ID}/data-context-configuration"
 )
 
 
