@@ -16,6 +16,7 @@ class GXCloudEnvironmentVariable(str, Enum):
 
 
 class GXCloudRESTResource(str, Enum):
+    ACCOUNTS_ME = "accounts/me"
     CHECKPOINT = "checkpoint"
     DATASOURCE = "datasource"
     DATA_ASSET = "data_asset"

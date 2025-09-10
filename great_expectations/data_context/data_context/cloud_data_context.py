@@ -216,7 +216,7 @@ class CloudDataContext(SerializableDataContext):
 
     def _get_cloud_user_info(self) -> CloudUserInfo:
         response = self._request_cloud_backend(
-            cloud_config=self.ge_cloud_config, resource="accounts/me"
+            cloud_config=self.ge_cloud_config, resource=GXCloudRESTResource.ACCOUNTS_ME
         )
         data = response.json()
         user_id = data.get("user_id") or data.get("id")
@@ -429,7 +429,7 @@ class CloudDataContext(SerializableDataContext):
             raise OrganizationIdNotSpecifiedError()
 
         with create_session(access_token=access_token) as session:
-            if resource in ["accounts/me", "data_context_configuration"]:
+            if resource in [GXCloudRESTResource.ACCOUNTS_ME, GXCloudRESTResource.DATA_CONTEXT]:
                 url_workspace_id = None
             else:
                 url_workspace_id = workspace_id
