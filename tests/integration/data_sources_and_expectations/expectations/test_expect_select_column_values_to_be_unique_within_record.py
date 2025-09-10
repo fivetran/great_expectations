@@ -1,5 +1,3 @@
-from typing import Any, Dict, cast
-
 import pandas as pd
 import pytest
 
@@ -11,6 +9,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
 
 INT_COL_A = "INT_COL_A"
 INT_COL_B = "INT_COL_B"
@@ -127,7 +126,7 @@ def test_include_unexpected_rows(batch_for_datasource: Batch) -> None:
     )
 
     assert not result.success
-    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+    result_dict = result["result"]
 
     # Verify that unexpected_rows is present and contains the expected data
     assert "unexpected_rows" in result_dict
@@ -135,8 +134,8 @@ def test_include_unexpected_rows(batch_for_datasource: Batch) -> None:
 
     # Convert to DataFrame for easier comparison
     unexpected_rows_data = result_dict["unexpected_rows"]
-    assert isinstance(unexpected_rows_data, list)
-    unexpected_rows_df = pd.DataFrame(unexpected_rows_data)
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+    unexpected_rows_df = unexpected_rows_data
 
     # Should contain rows that have non-unique values in the selected columns
     assert len(unexpected_rows_df) > 0
@@ -145,3 +144,29 @@ def test_include_unexpected_rows(batch_for_datasource: Batch) -> None:
     assert INT_COL_A in unexpected_rows_df.columns
     assert INT_COL_B in unexpected_rows_df.columns
     assert INT_COL_C in unexpected_rows_df.columns
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectSelectColumnValuesToBeUniqueWithinRecord with SQL."""
+    expectation = gxe.ExpectSelectColumnValuesToBeUniqueWithinRecord(
+        column_list=[INT_COL_A, INT_COL_B, INT_COL_C]
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For SQL data sources, unexpected_rows should be a list
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    assert unexpected_rows_data == [(3, 4, 4, "d", "a")]

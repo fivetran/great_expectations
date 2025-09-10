@@ -223,3 +223,64 @@ def test_success_with_suite_param_match_on_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test that include_unexpected_rows works correctly for ExpectColumnValuesToMatchRegexList."""
+    expectation = gxe.ExpectColumnValuesToMatchRegexList(
+        column=BASIC_STRINGS, regex_list=["^xyz.*"]
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # Convert to DataFrame for easier comparison
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain 3 rows where BASIC_STRINGS doesn't match regex_list ["^xyz.*"] (none match)
+    assert len(unexpected_rows_df) == 3
+
+    # The unexpected rows should contain all the non-matching values
+    unexpected_values = sorted(unexpected_rows_df[BASIC_STRINGS].tolist())
+    assert unexpected_values == ["abc", "def", "ghi"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToMatchRegexList with SQL data sources."""
+    expectation = gxe.ExpectColumnValuesToMatchRegexList(
+        column=BASIC_STRINGS, regex_list=["^xyz.*"]
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 3 rows where BASIC_STRINGS doesn't match regex_list ["^xyz.*"] (none match)
+    assert len(unexpected_rows_data) == 3
+
+    # Check that all non-matching values appear in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    for value in ["abc", "def", "ghi"]:
+        assert value in unexpected_rows_str

@@ -12,6 +12,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
 
 BASIC_COL = "basic"
 DISTRIBUTION_WITH_OUTLIER = "with_outlier"
@@ -128,3 +129,63 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValueZScoresToBeLessThan."""
+    expectation = gxe.ExpectColumnValueZScoresToBeLessThan(
+        column=DISTRIBUTION_WITH_OUTLIER, threshold=1, double_sided=True
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # Convert to DataFrame for easier comparison
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain 1 row with the extreme outlier (-1000000 has high z-score)
+    assert len(unexpected_rows_df) == 1
+    assert list(unexpected_rows_df.index) == [0]
+
+    # The unexpected row should have the outlier value
+    assert unexpected_rows_df.loc[0, DISTRIBUTION_WITH_OUTLIER] == -1000000
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValueZScoresToBeLessThan with SQL."""
+    expectation = gxe.ExpectColumnValueZScoresToBeLessThan(
+        column=DISTRIBUTION_WITH_OUTLIER, threshold=1, double_sided=True
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 1 row with the extreme outlier (-1000000 has high z-score)
+    assert len(unexpected_rows_data) == 1
+
+    # Check that "-1000000" appears in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    assert "-1000000" in unexpected_rows_str

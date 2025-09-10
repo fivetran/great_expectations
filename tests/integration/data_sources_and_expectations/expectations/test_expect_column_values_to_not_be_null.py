@@ -1,4 +1,3 @@
-from typing import Any, Dict, cast
 from unittest.mock import ANY
 
 import pandas as pd
@@ -15,6 +14,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 from tests.integration.test_utils.data_source_config import (
     PandasDataFrameDatasourceTestConfig,
     PandasFilesystemCsvDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
     SparkFilesystemCsvDatasourceTestConfig,
 )
 
@@ -186,7 +186,7 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     )
 
     assert not result.success
-    result_dict = cast("Dict[str, Any]", result.to_json_dict()["result"])
+    result_dict = result["result"]
 
     # Verify that unexpected_rows is present and contains the expected data
     assert "unexpected_rows" in result_dict
@@ -194,8 +194,8 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
 
     # Convert to DataFrame for easier comparison
     unexpected_rows_data = result_dict["unexpected_rows"]
-    assert isinstance(unexpected_rows_data, list)
-    unexpected_rows_df = pd.DataFrame(unexpected_rows_data)
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+    unexpected_rows_df = unexpected_rows_data
 
     # Should contain 4 rows where MOSTLY_NULL_COLUMN is null
     assert len(unexpected_rows_df) == 4
@@ -207,3 +207,31 @@ def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
     # In the unexpected_rows result, these get re-indexed starting from 0
     assert list(unexpected_rows_df[NON_NULL_COLUMN]) == [2, 3, 4, 5]
     assert list(unexpected_rows_df[ALL_NULL_COLUMN].isnull()) == [True, True, True, True]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToNotBeNull with SQL."""
+    expectation = gxe.ExpectColumnValuesToNotBeNull(column=MOSTLY_NULL_COLUMN)
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 4 rows where MOSTLY_NULL_COLUMN is null
+    assert len(unexpected_rows_data) == 4
+
+    # Check that null values appear in the unexpected rows data (represented as None)
+    unexpected_rows_str = str(unexpected_rows_data)
+    assert "None" in unexpected_rows_str or "null" in unexpected_rows_str.lower()
