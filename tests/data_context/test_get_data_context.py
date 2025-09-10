@@ -1,5 +1,6 @@
 import pathlib
 import shutil
+import types
 from unittest import mock
 
 import pytest
@@ -165,10 +166,19 @@ def test_cloud_context_params(monkeypatch, empty_ge_cloud_data_context_config, p
 def test_cloud_context_with_in_memory_config_overrides(
     monkeypatch, empty_ge_cloud_data_context_config
 ):
-    with mock.patch.object(
-        CloudDataContext,
-        "retrieve_data_context_config_from_cloud",
-        return_value=empty_ge_cloud_data_context_config,
+    with (
+        mock.patch.object(
+            CloudDataContext,
+            "retrieve_data_context_config_from_cloud",
+            return_value=empty_ge_cloud_data_context_config,
+        ),
+        mock.patch.object(
+            CloudDataContext,
+            "_get_cloud_user_info",
+            return_value=types.SimpleNamespace(
+                workspaces=[types.SimpleNamespace(id="workspace-id", name="Test Workspace")]
+            ),
+        ),
     ):
         context = gx.get_context(
             cloud_base_url="localhost:7000",
