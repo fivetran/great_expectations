@@ -386,6 +386,7 @@ class CloudDataContextVariables(DataContextVariables):
             "ge_cloud_credentials": {
                 "access_token": self.ge_cloud_access_token,
                 "organization_id": self.ge_cloud_organization_id,
+                "workspace_id": self.ge_cloud_workspace_id,
             },
             "suppress_store_backend_id": True,
         }
