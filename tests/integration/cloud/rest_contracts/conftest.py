@@ -84,7 +84,7 @@ def cloud_data_context(
     # Set up the /accounts/me contract that CloudDataContext will call during initialization
     accounts_me_response_body = {
         "user_id": "df665fc4-1891-4ef7-9a12-a0c46015c92c",
-        "workspaces": [{"id": "44444444-4444-4bdd-8a42-3c35cce574c6", "role": "editor"}],
+        "workspaces": [{"id": EXISTING_WORKSPACE_ID, "role": "editor"}],
     }
 
     (
