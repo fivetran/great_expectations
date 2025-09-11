@@ -21,7 +21,7 @@ To connect to the following data locations, you must use the GX Cloud API. These
 - [Spark](/docs/cloud/connect/python)
 
 All of these Data Sources have the following limitations, regardless of your GX Cloud [deployment pattern](/docs/cloud/deploy/deployment_patterns):
-- The Data Source configuration cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](/cloud/data_sources/manage_data_sources).
+- The Data Source configuration cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](#edit-data-source-settings).
 - Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to add Data Assets.
 - ExpectAI is not supported.
 
@@ -158,12 +158,49 @@ Depending on your [deployment pattern](/docs/cloud/deploy/deployment_patterns), 
 
 Credentials you use with the GX Cloud API should be stored securely outside of version control. Whether they are connection strings for your Data Sources or tokens for Actions with third party apps such as Slack, credentials used with the GX Cloud API can be supplied with string substitution. Do the following to store any type of credential as an environment variable on a local system and then reference it by variable name in your version controlled code:
 
-1. Assign the credentials to a reference variable.
+1. Assign the credentials to environment variables.
 
-   <EnvironmentVariables/>
+   Save your credentials as environment variables by entering `export ENV_VAR_NAME=env_var_value` in the terminal or adding the command to your `~/.bashrc` or `~/.zshrc` file. If you use the `export` command from the terminal, the environment variables will not persist beyond the current session.  However, if you add them to your shell config file (`~/.bashrc` for Bash, `~./zshrc` for Z Shell), the variables will be exported each time you log in.
 
-2. Access your credentials in Python strings.
+    You can export credentials as individual components, or as a complete Data Source connection string.  For example:
 
-   <AccessCredentials/>
+    ```bash title="Terminal, ~/.bashrc, or ~/.zshrc"
+    export MY_POSTGRES_USERNAME=<USERNAME>
+    export MY_POSTGRES_PASSWORD=<PASSWORD>
+    ```
 
+    or:
 
+    ```bash title="Terminal or ~/.bashrc"
+    export POSTGRES_CONNECTION_STRING=postgresql+psycopg2://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DATABASE>
+    ```
+
+    You can also reference your stored credentials within a stored connection string by wrapping their corresponding variable in `${` and `}`. For example:
+
+    ```bash title="Terminal or ~/.bashrc"
+    export MY_POSTGRES_USERNAME=<USERNAME>
+    export MY_POSTGRES_PASSWORD=<PASSWORD>
+    export POSTGRES_CONNECTION_STRING=postgresql+psycopg2://${MY_POSTGRES_USERNAME}:${MY_POSTGRES_PASSWORD}@<HOST>:<PORT>/<DATABASE>
+    ```
+
+    Because the dollar sign character `$` is used to indicate the start of a string substitution, it should be escaped using a backslash `\` if it is part of your credentials. For example, if your password is `pa$$word` then in the previous examples you would use the command:
+
+    ```bash title="Terminal or ~/.bashrc"
+    export MY_POSTGRES_PASSWORD=pa\$\$word
+    ```
+
+2. Use your environment variables in your Python code.
+
+   To use securely stored credentials, reference the variable names they are assigned to wrapped in `${` and `}`.
+   
+   You can combine individual components into a connection string:
+
+   ```python title="Python"
+   my_connection_string="postgresql+psycopg2://${MY_POSTGRES_USERNAME}:${MY_POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}",
+   ```
+  Or you can reference a complete string:
+
+   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/my_connection_string = "${POSTGRESQL_CONNECTION_STRING}"
+   ```
+
+  When you pass the GX Cloud API a parameter that references your environment variables, GX Cloud will use the corresponding stored values.
