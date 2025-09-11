@@ -38,10 +38,7 @@ PactBody: TypeAlias = Union[
 
 
 EXISTING_ORGANIZATION_ID: Final[str] = os.environ.get("GX_CLOUD_ORGANIZATION_ID", "")
-EXISTING_WORKSPACE_ID: Final[str] = (
-    # BDIRKS - hardcode this to see if this makes tests pass
-    "44444444-4444-4bdd-8a42-3c35cce574c6"  # os.environ.get("GX_CLOUD_WORKSPACE_ID", "")
-)
+EXISTING_WORKSPACE_ID: Final[str] = os.environ.get("GX_CLOUD_WORKSPACE_ID", "")
 
 
 class RequestMethods(str, enum.Enum):
