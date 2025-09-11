@@ -34,49 +34,17 @@ def test_data_context_configuration(
     pact_test: pact.Pact,
 ) -> None:
     # arrange
-    # First, set up the accounts/me endpoint interaction
-    accounts_me_response_body: Final[dict] = {
-        "user_id": "12345678-1234-1234-1234-123456789012",
-        "workspaces": [{"id": EXISTING_WORKSPACE_ID, "role": "editor"}],
-    }
-
-    # Then, set up the data context configuration endpoint interaction
     (
-        pact_test.given(provider_state="the Data Context exists")
-        .upon_receiving(scenario="a request for user account information")
+        pact_test.given("the Data Context exists")
+        .upon_receiving("a request for a Data Context")
         .with_request(
             headers=dict(gx_cloud_session.headers),
             method="GET",
-            path=f"/organizations/{EXISTING_ORGANIZATION_ID}/accounts/me",
+            path=f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration",
         )
         .will_respond_with(
             status=200,
-            body=accounts_me_response_body,
-        )
-    )
-
-    # Then, set up the data context configuration endpoint interaction
-    provider_state = "the Data Context exists"
-    scenario = "a request for a Data Context"
-    method = "GET"
-    path = (
-        f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}"
-        f"/workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration"
-    )
-    status = 200
-    response_body = GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY
-
-    (
-        pact_test.given(provider_state=provider_state)
-        .upon_receiving(scenario=scenario)
-        .with_request(
-            headers=dict(gx_cloud_session.headers),
-            method=method,
-            path=path,
-        )
-        .will_respond_with(
-            status=status,
-            body=response_body,
+            body=GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY,
         )
     )
 
