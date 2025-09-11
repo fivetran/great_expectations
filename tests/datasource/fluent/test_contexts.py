@@ -433,6 +433,7 @@ def test_cloud_context_delete_datasource(
     ],
 )
 def test_invalid_datasource_config_does_not_break_cloud_context(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     cloud_details: CloudDetails,
     cloud_api_fake_db: dict,

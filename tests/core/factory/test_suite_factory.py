@@ -223,7 +223,11 @@ def _test_suite_factory_delete_success(context):
         pytest.param("empty_data_context", id="filesystem", marks=pytest.mark.filesystem),
     ],
 )
-def test_suite_factory_all(context_fixture_name: str, request: pytest.FixtureRequest):
+def test_suite_factory_all(
+    unset_gx_env_variables: None,
+    context_fixture_name: str,
+    request: pytest.FixtureRequest,
+):
     context: AbstractDataContext = request.getfixturevalue(context_fixture_name)
 
     # Arrange

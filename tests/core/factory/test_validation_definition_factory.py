@@ -332,7 +332,9 @@ def _test_validation_definition_factory_delete_success(
     ],
 )
 def test_validation_definition_factory_all(
-    context_fixture_name: str, request: pytest.FixtureRequest
+    unset_gx_env_variables: None,
+    context_fixture_name: str,
+    request: pytest.FixtureRequest,
 ):
     context: AbstractDataContext = request.getfixturevalue(context_fixture_name)
 
