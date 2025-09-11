@@ -18,6 +18,7 @@ To add a Data Asset from a new Data Source, refer to [Connect GX Cloud](/cloud/c
 ## Add a Data Asset from an existing Data Source
 
 You can use the GX Cloud UI to add a Data Asset from an existing Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Source. You can use the GX Cloud API to add a Data Asset from any Data Source. 
+
 <Tabs 
    queryString="interface"
    defaultValue="ui"

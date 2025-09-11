@@ -6,9 +6,16 @@ description: Create and manage schedules for Validations in GX Cloud.
 
 Use a schedule to automate data quality checks with GX-managed Expectations. When you add your first Expectation in the GX Cloud UI for a Data Asset, including when you choose to auto-generate Expectations for Anomaly Detection, we enable a default schedule for that Asset's GX-managed Expectations. By default, GX-managed Expectations are scheduled to run every 24 hours. The first run will be at the start of the next hour after you add your first Expectation in the Cloud UI. You can keep the default schedule, edit it, or disable it.
 
-:::note Schedules are for GX-managed Expectations only
+## Limitations
+
+Schedules are for GX-managed Expectations only
 To automate data quality checks for [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations), use an [orchestrator](/cloud/connect/connect_airflow.md).
-:::
+
+Recurring validations cannot be scheduled for the following:
+- [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations)
+- Data Assets from Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, or Spark Data Sources.
+
+To automate data quality checks for these, use an [orchestrator](/cloud/connect/connect_airflow.md).
 
 
 ## Edit a schedule

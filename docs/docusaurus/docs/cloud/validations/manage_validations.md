@@ -4,53 +4,64 @@ title: 'Manage Validations'
 description: Create and manage Validations in GX Cloud.
 ---
 
-You can manually run a Validation using the GX Cloud UI. This is useful for exploring your data and fine-tuning your Expectations. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/cloud/connect/connect_airflow.md).
+import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs';
 
-:::tip Manual validations are for GX-managed Expectations only
-To run a validation for an [API-managed Expectation](/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations), use the GX Cloud UI to generate the necessary code. For the Data Asset of interest, go to the **Validations** tab, select the **Expectation Suite** that contains your API-managed Expectation, click the code snippet icon next to the **Validate** button, and then click **Generate snippet**.
-:::
+You can manually run a Validation to explore your data and fine-tune your Expectations. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/cloud/connect/connect_airflow.md).
 
-<!-- [//]: # (TODO: To learn more about Validations, see Validator.) -->
-
-## Prerequisites
-
-- You have created an [Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
 
 ## Run a Validation
 
+Note that the following cannot be validated with the GX Cloud UI. Use the GX Cloud API to validate the following:
+- [API-managed Expectations](/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations)
+- Data Assets from Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, or Spark Data Sources
+
+<Tabs 
+   queryString="interface"
+   defaultValue="ui"
+   values={[
+      {value: 'ui', label: 'UI'},
+      {value: 'api', label: 'API'}
+   ]}
+>
+
+<TabItem value="ui" label="UI">
+
+### Prerequisites
+
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- An Amazon S3, Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Asset](docs/cloud/data_assets/manage_data_assets) with at least one [GX-managed Expectation](/cloud/expectations/expectations_overview#gx-managed-vs-api-managed-expectations).
+
+### Procedure
+
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. Click a Data Asset in the **Data Assets** list.
 
 3. Click **Validate**.
 
-4. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
+4. If you've [defined a Batch](/cloud/expectations/manage_expectations.md#optional-define-a-batch), you can run a Validation on the latest Batch of data, or you can select a specific year, year and month, or year, month, and day period for the Validation. 
 
-5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
-
-## Run a Validation on a subset of a Data Asset
-
-If you've [defined a Batch](/cloud/expectations/manage_expectations.md#optional-define-a-batch), you can run a Validation on the latest Batch of data, or you can select a specific year, year and month, or year, month, and day period for the Validation. If a Batch is defined, Batch information appears on the **Validations** page in the **Batches & run history** pane.
-
-To run a Validation for a specific Batch, do the following:
-
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
-
-2. Click a Data Asset in the **Data Assets** list.
-
-3. Click **Validate**.
-
-4. Select one of the following options:
+   If you've defined a Batch, select one of the following options:
 
     - **Latest** - Run the Validation on the latest Batch of data.
 
     - **Custom** - Select the **year**, **month**, or **day** to run the Validation on a Batch of data for a specific period.
 
-5. Click **Run**.
+    Then click **Run**.
 
-6. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
+5. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
-7. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
+6. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
+</TabItem>
+
+<TabItem value="api" label="API">
+
+</TabItem>
+
+</Tabs>
+
+
 
 ## View Validation run history
 
@@ -68,10 +79,10 @@ To run a Validation for a specific Batch, do the following:
     
     - To view the run history of all Validations, select **All Runs** to view a graph showing the Validation run history for all columns.
 
-   :::tip Tip
-
-   Items in run history with a calendar icon are run on a GX-managed schedule.
-
+   :::tip Run history details
+   Depending on how your Data Assets are validated, you may find the following information on items in the **Batches & run history** pane.
+   - A <img src="/img/calendar.png" alt="pencil icon" width="20" height="20"/> calendar icon indicates a Valdation ran by a GX-managed schedule.
+   - **Batch** information is included for any Validation ran on a subset of a Data Asset. 
    :::
 
 5. Optional. Hover over a circle in the Validation timeline to view details about a specific Validation run, including the observed values.
