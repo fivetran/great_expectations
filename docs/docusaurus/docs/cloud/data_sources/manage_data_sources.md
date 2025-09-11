@@ -2,6 +2,7 @@
 sidebar_label: 'Manage Data Sources'
 title: 'Manage Data Sources'
 description: Manage data connections in GX Cloud.
+toc_max_heading_level: 2
 ---
 
 import TabItem from '@theme/TabItem';
@@ -46,6 +47,15 @@ You can use the GX Cloud UI to edit settings for Databricks SQL, PostgreSQL, Red
 
 <TabItem value="ui" label="UI">
 
+When editing a Data Source in the GX Cloud UI, you can change the name and connection details.
+
+### Prerequisites
+
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- A Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Source](/docs/cloud/connect/connect_lp).
+
+### Procedure
+
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. Click **Manage Data Sources**.
@@ -60,7 +70,49 @@ You can use the GX Cloud UI to edit settings for Databricks SQL, PostgreSQL, Red
 
 <TabItem value="api" label="API">
 
-TBD
+When editing a Data Source with the GX Cloud API, you can change the connection details but not the name.
+
+### Prerequisites
+
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
+- A [Data Source](/docs/cloud/connect/connect_lp).
+- [Python version 3.9 to 3.12](https://www.python.org/downloads/).
+- [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+
+### Procedure
+
+1. Run the following Python code to create a Data Context object.
+
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_sources.py - get cloud context" 
+   ```
+   
+   The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
+
+2. Verify that you have a GX Cloud Data Context.
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_source.py - verify context type" 
+   ```   
+
+3. Pick a Data Source to update.
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_source.py - pick source" 
+   ```   
+
+4. Define the Data Source's parameters.
+
+   Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/cloud/connect/connect_lp.md) to your source type.
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_source.py - define source updates" 
+   ```   
+
+5. Update the Data Source.
+
+   There is a `context.data_sources.update_*` method for each type of Data Source. These mirror the names of the `context.data_sources.add_*` methods for adding Data Sources. This example shows how to update an S3 Data Source with the `update_pandas_s3` method.
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_source.py - update source" 
+   ```   
 
 </TabItem>
 
