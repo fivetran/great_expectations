@@ -10,6 +10,7 @@ import pytest
     ],
 )
 def test_fluent_datasources_show_when_printed(
+    unset_gx_env_variables: None,
     context_fixture_name: str,
     request,
 ) -> None:
@@ -46,6 +47,7 @@ def test_fluent_datasources_show_when_printed(
     ],
 )
 def test_deleted_fluent_datasources_do_not_show_when_printed(
+    unset_gx_env_variables: None,
     context_fixture_name: str,
     request,
 ) -> None:

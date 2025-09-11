@@ -33,23 +33,33 @@ def test_data_context_configuration(
     cloud_access_token: str,
     pact_test: pact.Pact,
 ) -> None:
-    # arrange
+    # Arrange: set up the data context configuration endpoint interaction
+    provider_state = "the Data Context exists"
+    scenario = "a request for a Data Context"
+    method = "GET"
+    path = (
+        f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/"
+        f"workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration"
+    )
+    status = 200
+    response_body = GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY
+
     (
-        pact_test.given("the Data Context exists")
-        .upon_receiving("a request for a Data Context")
+        pact_test.given(provider_state=provider_state)
+        .upon_receiving(scenario=scenario)
         .with_request(
             headers=dict(gx_cloud_session.headers),
-            method="GET",
-            path=f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration",
+            method=method,
+            path=path,
         )
         .will_respond_with(
-            status=200,
-            body=GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY,
+            status=status,
+            body=response_body,
         )
     )
 
+    # Act
     with pact_test:
-        # act
         ctx = gx.get_context(
             mode="cloud",
             cloud_base_url=PACT_MOCK_SERVICE_URL,
@@ -58,5 +68,5 @@ def test_data_context_configuration(
             cloud_access_token=cloud_access_token,
         )
 
-    # assert
+    # Assert
     assert ctx.data_sources.all() is not None

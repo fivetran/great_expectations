@@ -60,6 +60,7 @@ def taxi_data_samples_dir() -> pathlib.Path:
 
 @pytest.mark.cloud
 def test_add_fluent_datasource_are_persisted(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     empty_cloud_context_fluent: CloudDataContext,
     db_file: pathlib.Path,
@@ -105,6 +106,7 @@ def test_add_fluent_datasource_are_persisted_without_duplicates(
 
 @pytest.mark.cloud
 def test_partitioners_are_persisted_on_creation(
+    unset_gx_env_variables: None,
     empty_cloud_context_fluent: CloudDataContext,
     cloud_api_fake_db: FakeDBTypedDict,
     db_file: pathlib.Path,
@@ -156,6 +158,7 @@ def test_assets_are_persisted_on_creation_and_removed_on_deletion(
 
 @pytest.mark.cloud
 def test_delete_asset_with_cloud_data_context(
+    unset_gx_env_variables: None,
     seeded_cloud_context: CloudDataContext,
     cloud_api_fake_db: FakeDBTypedDict,
     cloud_api_fake: RequestsMock,
@@ -188,6 +191,7 @@ def test_delete_asset_with_cloud_data_context(
 
 @pytest.mark.cloud
 def test_context_update_datasource(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     empty_cloud_context_fluent: CloudDataContext,
     # db_file: pathlib.Path, TODO: sqlite deser broken
@@ -230,6 +234,7 @@ def test_context_update_datasource(
 # This test is parameterized by the fixture `empty_context`. This fixture will mark the test as
 # cloud or filesystem as appropriate
 def test_context_add_or_update_datasource(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     empty_contexts: CloudDataContext | FileDataContext,
     # db_file: pathlib.Path, TODO: sqlite deser broken
@@ -273,6 +278,7 @@ def test_context_add_or_update_datasource(
 
 @pytest.mark.cloud
 def test_cloud_add_or_update_datasource_kw_vs_positional(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     empty_cloud_context_fluent: CloudDataContext,
     taxi_data_samples_dir: pathlib.Path,
@@ -299,6 +305,7 @@ def test_cloud_add_or_update_datasource_kw_vs_positional(
 # This test is parameterized by the fixture `empty_context`. This fixture will mark the test as
 # cloud or filesystem as appropriate
 def test_context_add_and_then_update_datasource(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     empty_contexts: CloudDataContext | FileDataContext,
     taxi_data_samples_dir: pathlib.Path,
@@ -327,6 +334,7 @@ def test_context_add_and_then_update_datasource(
 # This test is parameterized by the fixture `empty_context`. This fixture will mark the test as
 # cloud or filesystem as appropriate
 def test_update_non_existant_datasource(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     empty_contexts: CloudDataContext | FileDataContext,
     taxi_data_samples_dir: pathlib.Path,
@@ -341,6 +349,7 @@ def test_update_non_existant_datasource(
 
 @pytest.mark.cloud
 def test_cloud_context_delete_datasource(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     empty_cloud_context_fluent: CloudDataContext,
     taxi_data_samples_dir: pathlib.Path,
@@ -424,6 +433,7 @@ def test_cloud_context_delete_datasource(
     ],
 )
 def test_invalid_datasource_config_does_not_break_cloud_context(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     cloud_details: CloudDetails,
     cloud_api_fake_db: dict,
@@ -500,6 +510,7 @@ class TestPandasDefaultWithCloud:
     @pytest.mark.cloud
     def test_payload_sent_to_cloud(
         self,
+        unset_gx_env_variables: None,
         cloud_details: CloudDetails,
         empty_cloud_context_fluent: CloudDataContext,
         verify_asset_names_mock: RequestsMock,

@@ -147,7 +147,11 @@ def test_ephemeral_context_init_with_optional_fields(monkeypatch):
 @pytest.mark.parametrize("user_agent_str", [None, "test / x.x.x"])
 @pytest.mark.cloud
 def test_cloud_context_init(
-    user_agent_str: Optional[str], cloud_api_fake, cloud_details, monkeypatch
+    unset_gx_env_variables: None,
+    user_agent_str: Optional[str],
+    cloud_api_fake,
+    cloud_details,
+    monkeypatch,
 ):
     monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
 
