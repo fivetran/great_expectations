@@ -22,6 +22,7 @@ from great_expectations.experimental.metric_repository.metrics import (
 class TestCloudDataStoreMetricRun:
     def test_add_metric_run_non_generic_metric_type(
         self,
+        unset_gx_env_variables: None,
         empty_cloud_context_fluent: CloudDataContext,  # used as a fixture
     ):
         cloud_data_store = CloudDataStore(context=empty_cloud_context_fluent)
@@ -78,6 +79,7 @@ class TestCloudDataStoreMetricRun:
 
     def test_add_metric_run_generic_metric_type(
         self,
+        unset_gx_env_variables: None,
         empty_cloud_context_fluent: CloudDataContext,  # used as a fixture
     ):
         cloud_data_store = CloudDataStore(context=empty_cloud_context_fluent)
@@ -130,6 +132,7 @@ class TestCloudDataStoreMetricRun:
 
     def test_add_metric_run_generic_metric_type_with_exception(
         self,
+        unset_gx_env_variables: None,
         empty_cloud_context_fluent: CloudDataContext,  # used as a fixture
     ):
         cloud_data_store = CloudDataStore(context=empty_cloud_context_fluent)
@@ -185,6 +188,7 @@ class TestCloudDataStoreMetricRun:
 
     def test_add_metric_run_generic_metric_type_numpy(
         self,
+        unset_gx_env_variables: None,
         empty_cloud_context_fluent: CloudDataContext,  # used as a fixture
     ):
         cloud_data_store = CloudDataStore(context=empty_cloud_context_fluent)
@@ -238,6 +242,7 @@ class TestCloudDataStoreMetricRun:
 
 @pytest.mark.cloud
 def test_closes_session(
+    unset_gx_env_variables: None,
     empty_cloud_context_fluent: CloudDataContext,  # used as a fixture
 ):
     """Make sure that when the CloudDataStore object is garbage collected,
