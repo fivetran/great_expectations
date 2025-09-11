@@ -37,7 +37,7 @@ def test_data_context_configuration(
     # First, set up the accounts/me endpoint interaction
     accounts_me_response_body: Final[dict] = {
         "user_id": "12345678-1234-1234-1234-123456789012",
-        "workspaces": [{"id": "fffff6781234567812345678123fffff", "role": "editor"}],
+        "workspaces": [{"id": EXISTING_WORKSPACE_ID, "role": "editor"}],
     }
 
     # Then, set up the data context configuration endpoint interaction
