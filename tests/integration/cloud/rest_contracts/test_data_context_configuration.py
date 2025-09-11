@@ -59,7 +59,10 @@ def test_data_context_configuration(
     provider_state = "the Data Context exists"
     scenario = "a request for a Data Context"
     method = "GET"
-    path = f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration"
+    path = (
+        f"/api/v1/organizations/{EXISTING_ORGANIZATION_ID}/"
+        f"workspaces/{EXISTING_WORKSPACE_ID}/data-context-configuration"
+    )
     status = 200
     response_body = GET_DATA_CONTEXT_CONFIGURATION_MIN_RESPONSE_BODY
 

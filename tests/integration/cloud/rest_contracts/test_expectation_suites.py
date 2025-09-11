@@ -177,6 +177,7 @@ def test_get_non_existent_expectation_suite(
             method=method,
             path=str(path),
             headers=dict(gx_cloud_session.headers),
+            query={"name": "non_existent"},
         )
         .will_respond_with(
             status=status,
