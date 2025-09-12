@@ -21,6 +21,7 @@ print(type(context).__name__)
 # You cannot change the Data Source name with the API.
 data_source_name = "S3 Data Source"
 # </snippet>
+
 # <snippet name="docs/docusaurus/docs/cloud/connect/manage_data_sources.py - define source updates">
 # You can change some or all connection details.
 bucket_name = "my-new-bucket"
