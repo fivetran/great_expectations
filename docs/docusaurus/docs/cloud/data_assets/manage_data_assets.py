@@ -13,11 +13,13 @@ context = gx.get_context(mode="cloud")
 # </snippet>
 
 
-
 # define source
 data_source_name = "my_data_source"
 bucket_name = "my-bucket"
-boto3_options = {"aws_access_key_id": "${S3_KEY_ID}", "aws_secret_access_key": "${S3_SECRET_KEY}"}
+boto3_options = {
+    "aws_access_key_id": "${S3_KEY_ID}",
+    "aws_secret_access_key": "${S3_SECRET_KEY}",
+}
 
 
 # add source
