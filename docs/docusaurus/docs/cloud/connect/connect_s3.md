@@ -7,7 +7,7 @@ description: Add an Amazon S3 Data Source in GX Cloud.
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-To Connect GX Cloud to filesystem data stored in Amazon S3, use the GX Cloud API.
+To connect GX Cloud to filesystem data stored in Amazon S3, use the GX Cloud API.
 
 ## Prerequisites
 
@@ -121,7 +121,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
    - `asset_name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
    - `s3_prefix`: The path to the folder containing the data file for the Data Asset, relative to the root of the S3 bucket.
    
-   With S3 Data Sources, Data Assets are used to retrieve data from individual files in formats such as `.csv` or `.parquet`. The file format that can be read by a S3 Data Asset is determined when the Data Asset is created. The specific file that is read is determined by batch parameters you pass when validating the Data Asset.
+   With S3 Data Sources, Data Assets are used to retrieve data from individual files in formats such as `.csv` or `.parquet`. The file format that can be read by an S3 Data Asset is determined when the Data Asset is created. 
 
    This example uses taxi trip data stored in a `.csv` file in the `data/taxi_yellow_tripdata/` folder within the Data Source’s S3 bucket.
 
@@ -132,7 +132,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
 
 6. Add the Data Asset to your Data Source.
 
-   A new Data Asset is created and added to a Data Source simultaneously. The file format that the Data Asset can read is determined by the method used when the Data Asset is added to the Data Source. To see the file formats supported by a S3 Data Source, refer to the `.add_*_asset(...)` methods in the [PandasFilesystemDatasource reference page](/reference/api/datasource/fluent/PandasFilesystemDatasource_class.mdx).
+   A new Data Asset is created and added to a Data Source simultaneously. The file format that the Data Asset can read is determined by the method used when the Data Asset is added to the Data Source. To see the file formats supported by an S3 Data Source, refer to the `.add_*_asset(...)` methods in the [PandasFilesystemDatasource reference page](/reference/api/datasource/fluent/PandasFilesystemDatasource_class.mdx).
 
    The following example creates a Data Asset that can read `.csv` file data:
 

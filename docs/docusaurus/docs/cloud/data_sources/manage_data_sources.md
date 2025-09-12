@@ -8,7 +8,7 @@ toc_max_heading_level: 2
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-A Data Source is an object that tells GX Cloud how to connect to a specific location of data and provides an entry point for organizing that data into Data Assets which can be validated. Visit the [compatibility reference](/docs/help/compatibility_reference) for a full list of supported Data Sources. Contact us to [request support for additional sources](mailto:sales@greatexpectations.io).
+A Data Source is an object that tells GX Cloud how to connect to a specific location of data and provides an entry point for organizing that data into Data Assets, which can be validated. Visit the [compatibility reference](/docs/help/compatibility_reference) for a full list of supported Data Sources. Contact us to [request support for additional sources](mailto:sales@greatexpectations.io).
 
 ## Data Source limitations
 
@@ -29,7 +29,7 @@ Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, and Spark have the f
 - Data Asset metrics are not supported.
 - You cannot define a batch in the UI. You can use the GX Cloud API to create a [Batch Definition](/docs/reference/api/core/batch_definition/BatchDefinition_class.mdx).
 - Expectations for [Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection) cannot be automatically generated. You can manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
-- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the UI to [generate a Validation code snippet](/docs/cloud/validations/manage_validations.md) that you can use to run an ad hoc Validation through the GX Cloud API
+- Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the UI to [generate a Validation code snippet](/docs/cloud/validations/manage_validations.md) that you can use to run an ad hoc Validation through the GX Cloud API.
 - Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator](/docs/reference/learn/integrations/data_pipeline_tutorial) to run recurring Validations. 
 
 ## Edit Data Source settings
@@ -158,13 +158,13 @@ Depending on your [deployment pattern](/docs/cloud/deploy/deployment_patterns), 
 
 <TabItem value="api" label="API">
 
-Credentials you use with the GX Cloud API should be stored securely outside of version control. Whether they are connection strings for your Data Sources or tokens for Actions with third party apps such as Slack, credentials used with the GX Cloud API can be supplied with string substitution. Do the following to store any type of credential as an environment variable on a local system and then reference it by variable name in your version controlled code:
+Credentials you use with the GX Cloud API should be stored securely outside of version control. Whether they are connection strings for your Data Sources or tokens for Actions with third-party apps such as Slack, credentials used with the GX Cloud API can be supplied with string substitution. Do the following to store any type of credential as an environment variable on a local system and then reference it by variable name in your version-controlled code:
 
 1. Assign the credentials to environment variables.
 
    Save your credentials as environment variables by entering `export ENV_VAR_NAME=env_var_value` in the terminal or adding the command to your `~/.bashrc` or `~/.zshrc` file. If you use the `export` command from the terminal, the environment variables will not persist beyond the current session.  However, if you add them to your shell config file (`~/.bashrc` for Bash, `~./zshrc` for Z Shell), the variables will be exported each time you log in.
 
-    You can export credentials as individual components, or as a complete Data Source connection string.  For example:
+    You can export credentials as individual components or as a complete Data Source connection string.  For example:
 
     ```bash title="Terminal, ~/.bashrc, or ~/.zshrc"
     export MY_POSTGRES_USERNAME=<USERNAME>
@@ -185,7 +185,7 @@ Credentials you use with the GX Cloud API should be stored securely outside of v
     export POSTGRES_CONNECTION_STRING=postgresql+psycopg2://${MY_POSTGRES_USERNAME}:${MY_POSTGRES_PASSWORD}@<HOST>:<PORT>/<DATABASE>
     ```
 
-    Because the dollar sign character `$` is used to indicate the start of a string substitution, it should be escaped using a backslash `\` if it is part of your credentials. For example, if your password is `pa$$word` then in the previous examples you would use the command:
+    Because the dollar sign character `$` is used to indicate the start of a string substitution, it should be escaped using a backslash `\` if it is part of your credentials. For example, if your password is `pa$$word`, then in the previous examples you would use the command:
 
     ```bash title="Terminal or ~/.bashrc"
     export MY_POSTGRES_PASSWORD=pa\$\$word

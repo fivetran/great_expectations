@@ -86,7 +86,7 @@ Keep the following requirements in mind when working with ExpectAI:
 
 ## Optional. Define a Batch
 
-If your Data Asset has at least one DATE or DATETIME column, and has been [profiled](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics), you can define a Batch to validate your data incrementally.
+If your Data Asset has at least one DATE or DATETIME column and has been [profiled](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics), you can define a Batch to validate your data incrementally.
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
