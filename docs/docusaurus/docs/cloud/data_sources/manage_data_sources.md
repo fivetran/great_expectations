@@ -64,7 +64,7 @@ When editing a Data Source in the GX Cloud UI, you can change the name and conne
 
 4. Edit the configuration as needed. Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/docs/cloud/connect/connect_lp.md) to your source type.
 
-6. Click **Save**.
+5. Click **Save**.
 
 </TabItem>
 
