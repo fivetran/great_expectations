@@ -51,7 +51,7 @@ When editing a Data Source in the GX Cloud UI, you can change the name and conne
 
 ### Prerequisites
 
-- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - A Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Source](/docs/cloud/connect/connect_lp).
 
 ### Procedure
@@ -62,7 +62,7 @@ When editing a Data Source in the GX Cloud UI, you can change the name and conne
 
 3. Click **Edit Data Source** for the Data Source you want to edit.
 
-4. Edit the configuration as needed. Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/cloud/connect/connect_lp.md) to your source type.
+4. Edit the configuration as needed. Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/docs/cloud/connect/connect_lp.md) to your source type.
 
 6. Click **Save**.
 
@@ -74,8 +74,8 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
 
 ### Prerequisites
 
-- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
-- Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - A [Data Source](/docs/cloud/connect/connect_lp).
 - [Python version 3.9 to 3.12](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
@@ -99,7 +99,7 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
 
 4. Define the Data Source's parameters.
 
-   Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/cloud/connect/connect_lp.md) to your source type.
+   Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/docs/cloud/connect/connect_lp.md) to your source type.
 
 
 
