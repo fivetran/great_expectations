@@ -14,11 +14,11 @@ A Data Source is an object that tells GX Cloud how to connect to a specific loca
 
 To connect to the following data locations, you must use the GX Cloud API. These are not available for connection in the GX Cloud UI:
 - [Amazon S3](/docs/cloud/connect/connect_s3)
-- [Azure Blob Storage](/docs/cloud/connect/python)
-- [BigQuery](/docs/cloud/connect/python)
-- [Google Cloud Storage](/docs/cloud/connect/python)
-- [Pandas](/docs/cloud/connect/python)
-- [Spark](/docs/cloud/connect/python)
+- [Azure Blob Storage](/docs/cloud/connect/connect_python)
+- [BigQuery](/docs/cloud/connect/connect_python)
+- [Google Cloud Storage](/docs/cloud/connect/connect_python)
+- [Pandas](/docs/cloud/connect/connect_python)
+- [Spark](/docs/cloud/connect/connect_python)
 
 All of these Data Sources have the following limitations, regardless of your GX Cloud [deployment pattern](/docs/cloud/deploy/deployment_patterns):
 - The Data Source configuration cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](#edit-data-source-settings).
