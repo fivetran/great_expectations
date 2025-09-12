@@ -24,14 +24,19 @@ data_source_name = "S3 Data Source"
 # <snippet name="docs/docusaurus/docs/cloud/connect/manage_data_sources.py - define source updates">
 # You can change some or all connection details.
 bucket_name = "my-new-bucket"
-boto3_options = {"aws_access_key_id": "${MY_NEW_S3_KEY_ID}", "aws_secret_access_key": "${MY_NEW_S3_SECRET_KEY}"}
+boto3_options = {
+    "aws_access_key_id": "${MY_NEW_S3_KEY_ID}",
+    "aws_secret_access_key": "${MY_NEW_S3_SECRET_KEY}",
+}
 # </snippet>
 
-#add a source to update
+# add a source to update
 data_source = context.data_sources.add_pandas_s3(
     name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
 )
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/manage_data_sources.py - update source>
-context.data_sources.update_pandas_s3(name=data_source_name, bucket=bucket_name, boto3_options=boto3_options)
+context.data_sources.update_pandas_s3(
+    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
+)
 # </snippet>

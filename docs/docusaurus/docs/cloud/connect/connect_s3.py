@@ -23,7 +23,10 @@ assert type(context).__name__ == "CloudDataContext"
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - define source">
 data_source_name = "S3 Data Source"
 bucket_name = "my-bucket"
-boto3_options = {"aws_access_key_id": "${S3_KEY_ID}", "aws_secret_access_key": "${S3_SECRET_KEY}"}
+boto3_options = {
+    "aws_access_key_id": "${S3_KEY_ID}",
+    "aws_secret_access_key": "${S3_SECRET_KEY}",
+}
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_s3.py - add source">
