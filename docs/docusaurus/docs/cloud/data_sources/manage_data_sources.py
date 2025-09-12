@@ -5,24 +5,23 @@ To test, run:
 pytest --docs-tests -k "cloud_docs_manage_data_sources" tests/integration/test_script_runner.py
 """
 
-
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - get cloud context">
-a ="a"
+a = "a"
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - verify context type">
-a ="a"
+a = "a"
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - pick source">
-a ="a"
+a = "a"
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - define source updates">
-a ="a"
+a = "a"
 # </snippet>
 
 
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - update source>
-a ="a"
+a = "a"
 # </snippet>
