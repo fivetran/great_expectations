@@ -9,7 +9,7 @@ Use a schedule to automate data quality checks with GX-managed Expectations. Whe
 ## Limitations
 
 Schedules are for GX-managed Expectations only
-To automate data quality checks for [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations), use an [orchestrator](/cloud/connect/connect_airflow.md).
+To automate data quality checks for [API-managed Expectations](/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations), use an [orchestrator](/cloud/connect/connect_airflow.md).
 
 Recurring validations cannot be scheduled for the following:
 - [API-managed Expectations](/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations)

@@ -17,7 +17,7 @@ print(type(context).__name__)
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - pick source">
-# The name identitifes which Data Source to update.
+# The name identifies which Data Source to update.
 # You cannot change the Data Source name with the API.
 data_source_name = "S3 Data Source"
 # </snippet>
