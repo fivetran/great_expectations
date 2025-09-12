@@ -184,7 +184,7 @@ module.exports = {
     {
       type: 'doc',
       label: 'Manage Data Sources',
-      id: 'cloud/data_sources/manage_sources'
+      id: 'cloud/data_sources/manage_data_sources'
     },
     {
       type: 'doc',
