@@ -97,7 +97,7 @@ Then you can [add an Expectation](/cloud/expectations/manage_expectations.md#add
 
 ## View Data Asset metrics
 
-Data Asset metrics provide insights into your data that you can use to inform your Expectations. Schema data is automatically fetched when you create a new Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Asset. For Amazon s3 Data Assets, you can manually fetch metrics. 
+Data Asset metrics provide insights into your data that you can use to inform your Expectations. Schema data is automatically fetched when you create a new Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Asset. For Amazon S3 Data Assets, you can manually fetch metrics. 
 
 To view Data Asset metrics, do the following:
 

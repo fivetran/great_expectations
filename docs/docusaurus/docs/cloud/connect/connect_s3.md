@@ -12,7 +12,7 @@ To Connect GX Cloud to filesystem data stored in Amazon S3, use the GX Cloud API
 ## Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
-- AWS credentials with read access to data files on an S3 bucket.
+- AWS credentials with read access to a data file on an S3 bucket.
 - [Python](https://www.python.org/downloads/) version 3.9 to 3.12.
 - Recommended. A [Python virtual environment](https://docs.python.org/3/library/venv.html).
 
@@ -119,11 +119,11 @@ Environment variables securely store your GX Cloud and AWS credentials.
    The following information is required when you create an Amazon S3 Data Asset:
 
    - `asset_name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
-   - `s3_prefix`: The path to the data files for the Data Asset, relative to the root of the S3 bucket.
+   - `s3_prefix`: The path to the folder containing the data file for the Data Asset, relative to the root of the S3 bucket.
    
    With S3 Data Sources, Data Assets are used to retrieve data from individual files in formats such as `.csv` or `.parquet`. The file format that can be read by a S3 Data Asset is determined when the Data Asset is created. The specific file that is read is determined by batch parameters you pass when validating the Data Asset.
 
-   This example uses taxi trip data stored in `.csv` files in the `data/taxi_yellow_tripdata_samples/` folder within the Data Source’s S3 bucket.
+   This example uses taxi trip data stored in a `.csv` file in the `data/taxi_yellow_tripdata/` folder within the Data Source’s S3 bucket.
 
    Replace the variable values with your own and run the following Python code to define your Data Asset's parameters:
 
@@ -134,7 +134,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
 
    A new Data Asset is created and added to a Data Source simultaneously. The file format that the Data Asset can read is determined by the method used when the Data Asset is added to the Data Source. To see the file formats supported by a S3 Data Source, refer to the `.add_*_asset(...)` methods in the [PandasFilesystemDatasource reference page](/reference/api/datasource/fluent/PandasFilesystemDatasource_class.mdx).
 
-   The following example creates a Data Asset that can read .csv file data:
+   The following example creates a Data Asset that can read `.csv` file data:
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_s3.py - add asset" 
    ```

@@ -8,7 +8,7 @@ toc_max_heading_level: 2
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-A Data Source is an object that tells GX Cloud how to connect to a specific location of data and provides an entry point for organizing that data into Data Assets which can be validated. Visit the [compatibility reference](/docs/help/compatibility_reference) for a full list of supported Data Sources. [Contact us](mailto:sales@greatexpectations.io) to request support for additional sources.
+A Data Source is an object that tells GX Cloud how to connect to a specific location of data and provides an entry point for organizing that data into Data Assets which can be validated. Visit the [compatibility reference](/docs/help/compatibility_reference) for a full list of supported Data Sources. Contact us to [request support for additional sources](mailto:sales@greatexpectations.io).
 
 ## Data Source limitations
 
@@ -136,21 +136,23 @@ Depending on your [deployment pattern](/docs/cloud/deploy/deployment_patterns), 
 
 -  **Direct input** is supported for all GX Cloud deployment patterns. You can input credentials directly into the GX Cloud UI. These credentials are stored in GX Cloud and securely encrypted at rest and in transit. 
 
-- **Environment variable substitution** is supported for agent-enabled and read-only deployments. To enhance security, you can use environment variables to manage sensitive connection parameters or strings. For example, instead of directly including your database password in configuration settings, you can use a variable reference like `${MY_DATABASE_PASSWORD}`. When using environment variable substitution, your credentials are not stored or transmitted to GX Cloud. To use environment variable substitution, do the following:
+- **Environment variable substitution** is supported for agent-enabled and read-only deployments. To enhance security, you can use environment variables to manage sensitive connection parameters or strings. For example, instead of directly including your database password in configuration settings, you can use a variable reference like `${MY_DATABASE_PASSWORD}`. When using environment variable substitution, your credentials are not stored or transmitted to GX Cloud.
 
-   1. Inject the variable into your GX Agent container or environment.
+   To use environment variable substitution, do the following:
+
+1. Inject the variable into your GX Agent container or environment.
    
-      When running the GX Agent Docker container, include the environment variable in the command. For example:
+   When running the GX Agent Docker container, include the environment variable in the command. For example:
    
-      ```bash title="Terminal input"
-      docker run -it -e MY_DATABASE_PASSWORD=<YOUR_DATABASE_PASSWORD> -e GX_CLOUD_ACCESS_TOKEN=<YOUR_ACCESS_TOKEN> -e GX_CLOUD_ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> greatexpectations/agent:stable
-      ```
+   ```bash title="Terminal input"
+   docker run -it -e MY_DATABASE_PASSWORD=<YOUR_DATABASE_PASSWORD> -e GX_CLOUD_ACCESS_TOKEN=<YOUR_ACCESS_TOKEN> -e GX_CLOUD_ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> greatexpectations/agent:stable
+   ```
 
-      When running the GX Agent in another container-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
+   When running the GX Agent in another container-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
 
-      When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Cloud API Python client is running.
+   When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Cloud API Python client is running.
 
-   2. In the Data Source setup form in the GX Cloud UI, enter the name of your environment variable, enclosed in `${}`. For example, `${MY_DATABASE_PASSWORD}`.
+2. In the Data Source setup form in the GX Cloud UI, enter the name of your environment variable, enclosed in `${}`. For example, `${MY_DATABASE_PASSWORD}`.
 
 </TabItem>
 
@@ -198,13 +200,14 @@ Credentials you use with the GX Cloud API should be stored securely outside of v
    ```python title="Python"
    my_connection_string="postgresql+psycopg2://${MY_POSTGRES_USERNAME}:${MY_POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DATABASE}",
    ```
-  Or you can reference a complete string:
+
+   Or you can reference a complete string:
 
    ```python title="Python"
    my_connection_string = "${POSTGRESQL_CONNECTION_STRING}"
    ```
 
-  When you pass the GX Cloud API a parameter that references your environment variables, GX Cloud will use the corresponding stored values.
+   When you pass the GX Cloud API a parameter that references your environment variables, GX Cloud will use the corresponding stored values.
 
   </TabItem>
 
