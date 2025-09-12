@@ -12,7 +12,7 @@ Schedules are for GX-managed Expectations only
 To automate data quality checks for [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations), use an [orchestrator](/cloud/connect/connect_airflow.md).
 
 Recurring validations cannot be scheduled for the following:
-- [API-managed Expectations](/cloud/expectations/manage_expectations.md#gx-managed-vs-api-managed-expectations)
+- [API-managed Expectations](/cloud/expectations/manage_overview.md#gx-managed-vs-api-managed-expectations)
 - Data Assets from Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, or Spark Data Sources.
 
 To automate data quality checks for these, use an [orchestrator](/cloud/connect/connect_airflow.md).
