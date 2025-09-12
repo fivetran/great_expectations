@@ -204,3 +204,7 @@ Credentials you use with the GX Cloud API should be stored securely outside of v
    ```
 
   When you pass the GX Cloud API a parameter that references your environment variables, GX Cloud will use the corresponding stored values.
+
+  </TabItem>
+
+</Tabs>

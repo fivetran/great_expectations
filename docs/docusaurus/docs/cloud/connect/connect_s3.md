@@ -162,6 +162,6 @@ Keep the following limitations in mind when working with S3 Data Sources.
 - S3 Data Source connections cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](/cloud/data_sources/manage_data_sources.md#edit-data-source-settings).
 - S3 Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to add Data Assets as described above.
 - ExpectAI is not supported.
-- Data Asset metrics are not automatically fetched. You can [manually profile data](/docs/cloud/data_assets/manage_data_assets.mdx#view-data-asset-metrics) to return all available metrics for an S3 Data Asset.
+- Data Asset metrics are not automatically fetched. You can [manually profile data](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics) to return all available metrics for an S3 Data Asset.
 - Custom SQL and multi-source Expectations are not supported.
 
