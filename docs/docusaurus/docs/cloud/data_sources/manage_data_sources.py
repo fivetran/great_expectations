@@ -32,7 +32,6 @@ boto3_options = {
 # </snippet>
 
 
-
 # <snippet name="docs/docusaurus/docs/cloud/connect/manage_data_sources.py - update source>
 context.data_sources.update_pandas_s3(
     name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
