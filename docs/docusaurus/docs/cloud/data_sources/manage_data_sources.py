@@ -1,4 +1,3 @@
-
 """
 This is an example script for how to edit a Data Source
 To test, run:
