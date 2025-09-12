@@ -85,33 +85,33 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
 1. Run the following Python code to create a Data Context object.
 
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_sources.py - get cloud context" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - get cloud context" 
    ```
    
    The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
 
 2. Verify that you have a GX Cloud Data Context.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_source.py - verify context type" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py s/manage_data_source.py- verify context type" 
    ```   
 
 3. Pick a Data Source to update.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_source.py - pick source" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py s/manage_data_source.py- pick source" 
    ```   
 
 4. Define the Data Source's parameters.
 
    Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/cloud/connect/connect_lp.md) to your source type.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_source.py - define source updates" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py s/manage_data_source.py- define source updates" 
    ```   
 
 5. Update the Data Source.
 
    There is a `context.data_sources.update_*` method for each type of Data Source. These mirror the names of the `context.data_sources.add_*` methods for adding Data Sources. This example shows how to update an S3 Data Source with the `update_pandas_s3` method.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_source.py - update source" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py s/manage_data_source.py- update source" 
    ```   
 
 </TabItem>
@@ -200,7 +200,8 @@ Credentials you use with the GX Cloud API should be stored securely outside of v
    ```
   Or you can reference a complete string:
 
-   ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/my_connection_string = "${POSTGRESQL_CONNECTION_STRING}"
+   ```python title="Python"
+   my_connection_string = "${POSTGRESQL_CONNECTION_STRING}"
    ```
 
   When you pass the GX Cloud API a parameter that references your environment variables, GX Cloud will use the corresponding stored values.
