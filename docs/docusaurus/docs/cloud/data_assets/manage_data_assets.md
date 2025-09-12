@@ -81,7 +81,7 @@ To add a Data Asset from an existing Data Source using the GX Cloud API, complet
 
 3. Define your Data Asset's parameters. Refer to the [API reference](/docs/reference/) for your Data Source for details on required and optional parameters. Here’s an example for a Data Asset on an S3 Data Source.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_assets.py - get define asset" 
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/manage_data_assets.py - define asset" 
    ```
 
 4. Add the Data Asset to your Data Source. Refer to the  [API reference](/docs/reference/) for your Data Source for method details. Here’s an example for a `.csv` file Data Asset on an S3 Data Source.
