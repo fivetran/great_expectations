@@ -648,7 +648,7 @@ learn_data_quality_use_cases = [
         user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py",
         data_dir="tests/test_sets/learn_data_quality_use_cases/",
         util_script="tests/test_utils.py",
-        backend_dependencies=[BackendDependencies.POSTGRESQL],
+        backend_dependencies=[BackendDependencies.POSTGRESQL, ],
     ),
     # Volume.
     IntegrationTestFixture(
@@ -667,6 +667,41 @@ learn_data_quality_use_cases = [
     ),
 ]
 
+cloud_s3 = [
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_connect_s3" tests/integration/test_script_runner.py
+        name="cloud_docs_connect_s3",
+        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_s3.py",
+        # data_dir="",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.AWS, BackendDependencies.CLOUD]
+    ),
+]
+
+cloud_data_assets = [
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_manage_data_assets" tests/integration/test_script_runner.py
+        name="cloud_docs_manage_data_assets",
+        user_flow_script="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py",
+        # data_dir="",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.AWS, BackendDependencies.CLOUD],
+    ),
+]
+
+cloud_data_sources = [
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_manage_data_sources" tests/integration/test_script_runner.py
+        name="cloud_docs_manage_data_sources",
+        user_flow_script="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py",
+        # data_dir="",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.AWS, BackendDependencies.CLOUD],
+    ),
+]
 # Extend the docs_tests list with the above sublists (only the docs_tests list is imported
 # into `test_script_runner.py` and actually used in CI checks).
 docs_tests.extend(install_gx)
@@ -683,3 +718,6 @@ docs_tests.extend(docs_examples_trigger_actions_based_on_validation_results)
 docs_tests.extend(docs_example_configure_project_settings)
 docs_tests.extend(docs_examples_configure_data_docs)
 docs_tests.extend(learn_data_quality_use_cases)
+docs_tests.extend(cloud_s3)
+docs_tests.extend(cloud_data_assets)
+docs_tests.extend(cloud_data_sources)
