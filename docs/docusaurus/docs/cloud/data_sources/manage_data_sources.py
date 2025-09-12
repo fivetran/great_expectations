@@ -6,7 +6,6 @@ pytest --docs-tests -k "cloud_docs_manage_data_sources" tests/integration/test_s
 """
 
 # EXAMPLE SCRIPT STARTS HERE:
-# <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - full code example">
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - get cloud context">
 import great_expectations as gx
 
@@ -32,17 +31,15 @@ boto3_options = {
 }
 # </snippet>
 
-# Hide this
+
 # add a source to update
 data_source = context.data_sources.add_pandas_s3(
     name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
 )
-# Hide this
 
-# <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - update source>
+# <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - update source">
 context.data_sources.update_pandas_s3(
     name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
 )
 # </snippet>
 
-# </snippet>

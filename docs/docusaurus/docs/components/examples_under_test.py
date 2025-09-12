@@ -693,7 +693,17 @@ cloud_data_assets = [
     ),
 ]
 
-
+cloud_data_sources = [
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_manage_data_sources" tests/integration/test_script_runner.py
+        name="cloud_docs_manage_data_sources",
+        user_flow_script="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py",
+        # data_dir="",
+        # data_context_dir="",
+        backend_dependencies=[BackendDependencies.AWS, BackendDependencies.CLOUD],
+    ),
+]
 # Extend the docs_tests list with the above sublists (only the docs_tests list is imported
 # into `test_script_runner.py` and actually used in CI checks).
 docs_tests.extend(install_gx)
