@@ -15,8 +15,7 @@ SSO is available on the Enterprise plan. Contact sales to [upgrade to Enterprise
 GX Cloud helps you spread the work of managing data quality across your business, so you can use knowledge from various stakeholders to ensure high standards. GX Cloud offers multiple workspaces to organizations on the [Enterprise plan](https://greatexpectations.io/pricing/) to support collaborating with many teams in GX Cloud without compromising on security or structure within the application. With workspaces, you can group your Data Sources, Data Assets, and users in flexible ways. For example, you might create different workspaces based on the following:
 
 - Functions (e.g., engineering and finance) 
-- Environments (e.g., staging and production)
-- Projects (e.g., a product launch and a customer event) 
+- Medallion architecture (e.g., Bronze, Silver, and Gold layers)
 
 Workspaces help keep your data quality efforts clear, relevant, and secure, no matter how complex your business is. Here's one example of how an organization might use multiple workspaces.
 
@@ -51,7 +50,7 @@ When you rename a workspace, old links and integrations for that workspace will 
 
 ### Delete a workspace
 
-Note that you cannot delete the default workspace. To delete a non-default workspace, follow the instructions below.
+To delete a workspace, follow the instructions below.
 
 1. In GX Cloud, click **Workspaces**.
 2. Click <img src="/img/trash.png" alt="trash icon" width="20" height="20"/> **Delete workspace** for the workspace that you want to remove.
@@ -119,7 +118,7 @@ Organization Owners have access to all workspaces. When you downgrade an Organiz
 
 ### Delete a user’s access
 
-Workspace user access is managed on a workspace basis. To remove a workspace user’s access across multiple workspaces, repeat the following steps. You can search for a user by email to make it easier to find all the workspaces they belong to. If you delete an Organization Owner, they lose access to all workspaces immediately.
+Workspace user access is managed on a workspace basis. To remove a workspace user’s access across multiple workspaces, repeat the following steps. You can search for a user by email to make it easier to find all the workspaces they belong to. If you delete an Organization Owner, they lose access to all workspaces immediately. If you delete a user from all of their workspaces, they lose all access to GX Cloud.
 
 1. In GX Cloud, click **Users**.
 2. If you’re removing a workspace-level user’s access, find the workspace from which you want to remove the user.
