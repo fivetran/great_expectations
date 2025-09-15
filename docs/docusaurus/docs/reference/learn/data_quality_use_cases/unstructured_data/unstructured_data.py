@@ -9,13 +9,15 @@ pytest --docs-tests -k "cloud_docs_example_create_a_checkpoint" tests/integratio
 # Import the libraries.
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - import the libraries">
 
-from datasets import load_dataset  # Load PDF OCR dataset from Hugging Face
 import pandas as pd  # Data manipulation
-from pdf2image import convert_from_bytes  # Convert PDF pages to images
 import pytesseract  # OCR engine
+from datasets import load_dataset  # Load PDF OCR dataset from Hugging Face
+from pdf2image import convert_from_bytes  # Convert PDF pages to images
 from pytesseract import Output  # Structured OCR output
+
 import great_expectations as gx  # Data validation
 import great_expectations.expectations as gxe  # for Expectations
+
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - load the dataset">
@@ -55,26 +57,30 @@ for sample in ds:
         ocr_text = pytesseract.image_to_string(image)
         all_ocr_text.append(ocr_text)
         # Collect confidences and heights for each page
-        all_confidences.extend([
-            float(c) for t, c in zip(ocr_data["text"], ocr_data["conf"])
-            if t.strip() and c != "-1"
-        ])
-        all_heights.extend([
-            int(h) for t, h in zip(ocr_data["text"], ocr_data["height"])
-            if t.strip()
-        ])
+        all_confidences.extend(
+            [
+                float(c)
+                for t, c in zip(ocr_data["text"], ocr_data["conf"])
+                if t.strip() and c != "-1"
+            ]
+        )
+        all_heights.extend(
+            [int(h) for t, h in zip(ocr_data["text"], ocr_data["height"]) if t.strip()]
+        )
 
     full_text = "\n".join(all_ocr_text)
     avg_conf = sum(all_confidences) / len(all_confidences) if all_confidences else 0
     header_count = sum(1 for h in all_heights if h > 20)
 
     # Store metrics for validation
-    records.append({
-        "file_name": sample.get("ids", "unknown"),
-        "text_length": len(full_text),
-        "ocr_confidence": round(avg_conf, 2),
-        "num_detected_headers": header_count
-    })
+    records.append(
+        {
+            "file_name": sample.get("ids", "unknown"),
+            "text_length": len(full_text),
+            "ocr_confidence": round(avg_conf, 2),
+            "num_detected_headers": header_count,
+        }
+    )
 
 # </snippet>
 
@@ -107,9 +113,15 @@ try:
 except:
     suite = gx.ExpectationSuite("OCR Confidence")
     suite = context.suites.add(suite)
-    suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="text_length", min_value=500))         # at least 500 characters
-    suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="ocr_confidence", min_value=70))       # at least 70% confidence
-    suite.add_expectation(gxe.ExpectColumnValuesToBeBetween(column="num_detected_headers", min_value=2))  # at least 2 headers
+    suite.add_expectation(
+        gxe.ExpectColumnValuesToBeBetween(column="text_length", min_value=500)
+    )  # at least 500 characters
+    suite.add_expectation(
+        gxe.ExpectColumnValuesToBeBetween(column="ocr_confidence", min_value=70)
+    )  # at least 70% confidence
+    suite.add_expectation(
+        gxe.ExpectColumnValuesToBeBetween(column="num_detected_headers", min_value=2)
+    )  # at least 2 headers
     suite.save()
 # </snippet>
 
@@ -117,7 +129,9 @@ except:
 try:
     vd = context.validation_definitions.get("OCR Results VD")
 except:
-    vd = gx.ValidationDefinition(data=batch_definition, suite=suite, name="OCR Results VD")
+    vd = gx.ValidationDefinition(
+        data=batch_definition, suite=suite, name="OCR Results VD"
+    )
     context.validation_definitions.add(vd)
 try:
     checkpoint = context.checkpoints.get("OCR Checkpoint")
