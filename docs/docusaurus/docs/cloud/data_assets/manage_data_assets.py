@@ -32,7 +32,9 @@ boto3_options = {
 data_source = context.data_sources.add_pandas_s3(
     # Hide this
     name=data_source_name,
+    # Hide this
     bucket=bucket_name,
+    # Hide this
     boto3_options=boto3_options,
     # Hide this
 )
