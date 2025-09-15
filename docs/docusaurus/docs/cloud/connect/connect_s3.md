@@ -99,7 +99,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
    
    The following information is required when you create an Amazon S3 Data Source:
 
-   - `name`: A descriptive name used to reference the Data Source. This should be unique within your Cloud organization.
+   - `name`: A descriptive name used to reference the Data Source. This should be unique within your workspace.
    - `bucket`: The Amazon S3 bucket name.
    - `boto3_options`: Your AWS credentials passed as `aws_access_key_id` and `aws_secret_access_key`.
      
@@ -120,7 +120,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
    
    The following information is required when you create an Amazon S3 Data Asset:
 
-   - `asset_name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
+   - `name`: A name by which you can reference the Data Asset in the future. This should be unique within the Data Source.
    - `s3_prefix`: The path to the folder containing the data file for the Data Asset, relative to the root of the S3 bucket.
    
    With S3 Data Sources, Data Assets are used to retrieve data from individual files in formats such as `.csv` or `.parquet`. The file format that can be read by an S3 Data Asset is determined when the Data Asset is created. 
@@ -162,7 +162,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
 Keep the following limitations in mind when working with S3 Data Sources.
 
 - S3 Data Source connections cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](/cloud/data_sources/manage_data_sources.md#edit-data-source-settings).
-- S3 Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to add Data Assets as described above.
+- S3 Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to [add more Data Assets](/docs/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) from your S3 Data Source.
 - ExpectAI is not supported.
 - Data Asset metrics are not automatically fetched. You can [manually profile data](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics) to return all available metrics for an S3 Data Asset.
 - Custom SQL and multi-source Expectations are not supported.
