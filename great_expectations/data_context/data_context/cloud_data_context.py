@@ -76,19 +76,7 @@ logger = logging.getLogger(__name__)
 
 class NoUserIdError(Exception):
     def __init__(self):
-        super().__init__("No user id in /account/me response")
-
-
-class NoWorkspacesError(Exception):
-    def __init__(self):
-        super().__init__("No workspaces in /account/me response")
-
-
-class WorkspacesKeyError(Exception):
-    def __init__(self):
-        super().__init__(
-            "Workspaces returned in /account/me response don't have required keys: (id, role)"
-        )
+        super().__init__("No user id in /accounts/me response")
 
 
 class WorkspaceNotSetError(Exception):
