@@ -16,16 +16,6 @@ To connect GX Cloud to filesystem data stored in Amazon S3, use the GX Cloud API
 - [Python](https://www.python.org/downloads/) version 3.9 to 3.12.
 - Recommended. A [Python virtual environment](https://docs.python.org/3/library/venv.html).
 
-<Tabs 
-   queryString="verbosity"
-   defaultValue="instructions"
-   values={[
-      {value: 'instructions', label: 'Instructions'},
-      {value: 'sample_code', label: 'Sample code'}
-   ]}
->
-
-<TabItem value="instructions" label="Instructions">
 
 ## Install GX Cloud
 
@@ -79,6 +69,18 @@ Environment variables securely store your GX Cloud and AWS credentials.
 2. Optional. If you created a temporary file to record your credentials, delete it. 
 
 ## Connect an Amazon S3 Data Source and add a Data Asset
+
+<Tabs 
+   queryString="verbosity"
+   defaultValue="instructions"
+   values={[
+      {value: 'instructions', label: 'Instructions'},
+      {value: 'sample_code', label: 'Sample code'}
+   ]}
+>
+
+<TabItem value="instructions" label="Instructions">
+
 
 1. Run the following Python code to create a Data Context object:
 
