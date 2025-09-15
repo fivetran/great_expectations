@@ -102,10 +102,10 @@ To add a Data Asset from an existing Data Source using the GX Cloud API, complet
 
 </TabItem>
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - full sample" 
-   ```
-
 <TabItem value="sample_code" label="Sample code">
+
+```python title="Python" name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - full sample" 
+```
 
 </TabItem>
 

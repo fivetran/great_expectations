@@ -128,8 +128,8 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
 
 <TabItem value="sample_code" label="Sample code">
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - full sample" 	
-   ```
+```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - full sample" 	
+```
 
 </TabItem>
 
