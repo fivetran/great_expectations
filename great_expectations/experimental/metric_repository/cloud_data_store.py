@@ -75,10 +75,16 @@ class CloudDataStore(DataStore[StorableTypes]):
     def _build_url(self, value: StorableTypes) -> str:
         assert self._context.ge_cloud_config is not None
         config = self._context.ge_cloud_config
-        return urllib.parse.urljoin(
-            config.base_url,
-            f"api/v1/organizations/{config.organization_id}/metric-runs",
-        )
+        if config.workspace_id:
+            return urllib.parse.urljoin(
+                config.base_url,
+                f"api/v1/organizations/{config.organization_id}/workspaces/{config.workspace_id}/metric-runs",
+            )
+        else:
+            return urllib.parse.urljoin(
+                config.base_url,
+                f"api/v1/organizations/{config.organization_id}/metric-runs",
+            )
 
     @override
     def add(self, value: T) -> uuid.UUID:

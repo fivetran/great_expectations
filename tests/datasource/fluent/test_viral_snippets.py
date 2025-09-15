@@ -144,6 +144,7 @@ def test_file_context_add_and_save_fluent_datasource(
 
 # Test markers come from empty_contexts fixture
 def test_context_add_and_save_fluent_datasource(
+    unset_gx_env_variables: None,
     empty_contexts: CloudDataContext | FileDataContext,
     sqlite_database_path: pathlib.Path,
 ):
@@ -160,6 +161,7 @@ def test_context_add_and_save_fluent_datasource(
 
 # Test markers come from empty_contexts fixture
 def test_context_add_or_update_datasource(
+    unset_gx_env_variables: None,
     empty_contexts: CloudDataContext | FileDataContext,
     sqlite_database_path: pathlib.Path,
 ):
@@ -224,6 +226,7 @@ def test_ctx_delete_removes_datasource_from_yaml(
 
 # Test markers come from empty_contexts fixture
 def test_quickstart_workflow(
+    unset_gx_env_variables: None,
     empty_contexts: CloudDataContext | FileDataContext,
     csv_path: pathlib.Path,
     mocker: MockerFixture,

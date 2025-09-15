@@ -136,7 +136,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
 4. Optional. Run the following command to use the GX Agent image as the base image and optionally add custom commands:
 
    ```bash title="Terminal input"
-   FROM greatexpectations/agent
+   FROM greatexpectations/agent:stable
    RUN echo "custom_commands"
    ```
 5. Optional. Run the following command to rebuild the Docker image:
@@ -216,7 +216,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
 2. Run the following code to set the `GX_CLOUD_ACCESS_TOKEN` and `GX_CLOUD_ORGANIZATION_ID` environment variables, install GX Cloud and its dependencies, and start the GX Agent:
 
     ```bash title="Terminal input"
-    docker run --rm --pull=always -e GX_CLOUD_ACCESS_TOKEN="<user_access_token>" -e GX_CLOUD_ORGANIZATION_ID="<organization_id>" greatexpectations/agent
+    docker run --rm --pull=always -e GX_CLOUD_ACCESS_TOKEN="<user_access_token>" -e GX_CLOUD_ORGANIZATION_ID="<organization_id>" greatexpectations/agent:stable
     ```
    Replace `<user_access_token>` and `<organization_id>` with the [access token and organization ID](#get-your-access-token-and-organization-id) values that you copied previously.
 

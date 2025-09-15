@@ -88,6 +88,7 @@ from great_expectations.validator.validator import Validator
 from tests.datasource.fluent._fake_cloud_api import (
     DUMMY_JWT_TOKEN,
     FAKE_ORG_ID,
+    FAKE_WORKSPACE_ID,
     GX_CLOUD_MOCK_BASE_URL,
     CloudDetails,
     gx_cloud_api_fake_ctx,
@@ -1665,6 +1666,11 @@ def ge_cloud_organization_id() -> str:
 
 
 @pytest.fixture
+def ge_cloud_workspace_id() -> str:
+    return FAKE_WORKSPACE_ID
+
+
+@pytest.fixture
 def ge_cloud_access_token() -> str:
     return DUMMY_JWT_TOKEN
 
@@ -1679,10 +1685,16 @@ def request_headers(ge_cloud_access_token: str) -> Dict[str, str]:
 
 
 @pytest.fixture
-def ge_cloud_config(ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token):
+def ge_cloud_config(
+    ge_cloud_base_url: str,
+    ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
+    ge_cloud_access_token: str,
+):
     return GXCloudConfig(
         base_url=ge_cloud_base_url,
         organization_id=ge_cloud_organization_id,
+        workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
 
@@ -1789,6 +1801,7 @@ def empty_base_data_context_in_cloud_mode(
         cloud_base_url=ge_cloud_config.base_url,
         cloud_access_token=ge_cloud_config.access_token,
         cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
     )
     set_context(context)
     return context
@@ -1848,6 +1861,7 @@ def empty_cloud_data_context(
         cloud_base_url=ge_cloud_config.base_url,
         cloud_access_token=ge_cloud_config.access_token,
         cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
     )
     set_context(context)
     return context
@@ -1855,11 +1869,15 @@ def empty_cloud_data_context(
 
 @pytest.fixture
 def cloud_details(
-    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token
+    ge_cloud_base_url: str,
+    ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
+    ge_cloud_access_token: str,
 ) -> CloudDetails:
     return CloudDetails(
         base_url=ge_cloud_base_url,
         org_id=ge_cloud_organization_id,
+        workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
 
@@ -1907,6 +1925,7 @@ def empty_base_data_context_in_cloud_mode_custom_base_url(
         cloud_base_url=custom_ge_cloud_config.base_url,
         cloud_access_token=custom_ge_cloud_config.access_token,
         cloud_organization_id=custom_ge_cloud_config.organization_id,
+        cloud_workspace_id=custom_ge_cloud_config.workspace_id,
     )
     assert context.list_datasources() == []
     assert context.ge_cloud_config.base_url != ge_cloud_config.base_url

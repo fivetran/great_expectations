@@ -9,8 +9,10 @@ from great_expectations.data_context.data_context.cloud_data_context import Clou
 CLOUD_BASE_URL = "https://api.greatexpectations.io/fake"
 ACCESS_TOKEN = "my-secret-access-token"
 ORG_ID = str(uuid.uuid4())
+WORKSPACE_ID = str(uuid.uuid4())
 CONTEXT_CONFIGURATION_URL = (
-    f"{CLOUD_BASE_URL}/api/v1/organizations/{ORG_ID}/data-context-configuration"
+    f"{CLOUD_BASE_URL}/api/v1/organizations/{ORG_ID}"
+    f"/workspaces/{WORKSPACE_ID}/data-context-configuration"
 )
 
 
@@ -130,6 +132,7 @@ def test_parses_v0_config_from_cloud(config: dict):
         cloud_base_url=CLOUD_BASE_URL,
         cloud_access_token=ACCESS_TOKEN,
         cloud_organization_id=ORG_ID,
+        cloud_workspace_id=WORKSPACE_ID,
     )
 
     # if we didn't raise when instantiating the context, we are good!
