@@ -22,7 +22,7 @@ To connect to the following data locations, you must use the GX Cloud API. These
 
 All of these Data Sources have the following limitations, regardless of your GX Cloud [deployment pattern](/docs/cloud/deploy/deployment_patterns):
 - The Data Source configuration cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](#edit-data-source-settings).
-- Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to add Data Assets.
+- Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to [add Data Assets](/docs/cloud/data_assets/manage_data_assets.md?interface=api).
 - ExpectAI is not supported.
 
 Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, and Spark have the following additional limitations:
