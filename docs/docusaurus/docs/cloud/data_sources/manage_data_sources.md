@@ -180,7 +180,7 @@ To use environment variable substitution, do the following:
 
 <TabItem value="api" label="API">
 
-Credentials you use with the GX Cloud API should be stored securely outside of version control. Whether they are connection strings for your Data Sources or tokens for Actions with third-party apps such as Slack, credentials used with the GX Cloud API can be supplied with string substitution. Do the following to store any type of credential as an environment variable on a local system and then reference it by variable name in your version-controlled code:
+Credentials you use with the GX Cloud API should be stored securely outside of version control. Whether they are connection strings for your Data Sources or tokens for Actions with third-party apps such as Slack, credentials used with the GX Cloud API can be supplied with string substitution. Do the following to store any type of credential as an environment variable on a local system and then reference it by variable name in your version-controlled code: 
 
 1. Assign the credentials to environment variables.
 
