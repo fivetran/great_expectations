@@ -20,19 +20,21 @@ data_source_name = "my_data_source"
 bucket_name = "my-bucket"
 # Hide this
 boto3_options = {
-# Hide this
+    # Hide this
     "aws_access_key_id": "${S3_KEY_ID}",
-# Hide this
+    # Hide this
     "aws_secret_access_key": "${S3_SECRET_KEY}",
-# Hide this
+    # Hide this
 }
 
 
 # Hide this
 data_source = context.data_sources.add_pandas_s3(
-# Hide this
-    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
-# Hide this
+    # Hide this
+    name=data_source_name,
+    bucket=bucket_name,
+    boto3_options=boto3_options,
+    # Hide this
 )
 
 # Fetch the Data Source.

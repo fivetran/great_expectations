@@ -37,9 +37,11 @@ boto3_options = {
 
 # Hide this
 data_source = context.data_sources.add_pandas_s3(
-# Hide this
-    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
-# Hide this
+    # Hide this
+    name=data_source_name,
+    bucket=bucket_name,
+    boto3_options=boto3_options,
+    # Hide this
 )
 
 # Update the Data Source.
