@@ -6,7 +6,7 @@ pytest --docs-tests -k "cloud_docs_manage_data_assets" tests/integration/test_sc
 """
 
 # EXAMPLE SCRIPT STARTS HERE:
-# <snippet name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - full samples">
+# <snippet name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - full sample">
 # <snippet name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - get cloud context">
 import great_expectations as gx
 
