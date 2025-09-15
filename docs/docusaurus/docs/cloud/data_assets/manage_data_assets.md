@@ -63,7 +63,7 @@ To add a Data Asset from an existing Data Source using the GX Cloud UI, complete
 - A [Data Source](/docs/cloud/connect/connect_lp).
 - [Python version 3.9 to 3.12](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
-
+- Recommended. A [Python virtual environment](https://docs.python.org/3/library/venv.html).
 
 ### Procedure
 
