@@ -85,7 +85,7 @@ To add a Data Asset from an existing Data Source using the GX Cloud API, complet
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - get cloud context" 
    ```
 
-2. Fetch the Data Source.
+2. Fetch the Data Source. 
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - get data source" 
    ```

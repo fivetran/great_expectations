@@ -162,7 +162,7 @@ Depending on your [deployment pattern](/docs/cloud/deploy/deployment_patterns), 
 
 To use environment variable substitution, do the following:
 
-1. Inject the variable into your GX Agent container or environment.
+1. Inject the variable into your GX Agent container or environment. 
    
    When running the GX Agent Docker container, include the environment variable in the command. For example:
    
