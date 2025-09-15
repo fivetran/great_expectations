@@ -223,16 +223,11 @@ class CloudDataContext(SerializableDataContext):
         user_id = data.get("user_id") or data.get("id")
         if not user_id:
             raise NoUserIdError()
-        response_workspaces = data.get("workspaces")
-        if not response_workspaces:
-            raise NoWorkspacesError()
-        workspaces = []
-        for response_workspace in response_workspaces:
-            if "id" not in response_workspace or "role" not in response_workspace:
-                raise WorkspacesKeyError()
-            workspaces.append(
-                Workspace(id=response_workspace["id"], role=response_workspace["role"])
-            )
+        response_workspaces = data.get("workspaces", [])
+        workspaces = [
+            Workspace(id=response_workspace["id"], role=response_workspace["role"])
+            for response_workspace in response_workspaces
+        ]
         return CloudUserInfo(user_id=uuid.UUID(user_id), workspaces=workspaces)
 
     def cloud_user_info(self, force_refresh: bool = False) -> CloudUserInfo:
