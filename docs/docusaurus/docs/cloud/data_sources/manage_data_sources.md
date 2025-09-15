@@ -82,6 +82,17 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
 
 ### Procedure
 
+<Tabs 
+   queryString="verbosity"
+   defaultValue="instructions"
+   values={[
+      {value: 'instructions', label: 'Instructions'},
+      {value: 'sample_code', label: 'Sample code'}
+   ]}
+>
+
+<TabItem value="instructions" label="Instructions">
+
 1. Run the following Python code to create a Data Context object.
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - get cloud context" 	
@@ -113,6 +124,17 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - update source" 	
    ```   
+</TabItem>
+
+<TabItem value="sample_code" label="Sample code">
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - full sample" 	
+   ```
+
+</TabItem>
+
+</Tabs>
+
 
 </TabItem>
 

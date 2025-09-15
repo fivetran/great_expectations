@@ -67,6 +67,17 @@ To add a Data Asset from an existing Data Source using the GX Cloud UI, complete
 
 ### Procedure
 
+<Tabs 
+   queryString="verbosity"
+   defaultValue="instructions"
+   values={[
+      {value: 'instructions', label: 'Instructions'},
+      {value: 'sample_code', label: 'Sample code'}
+   ]}
+>
+
+<TabItem value="instructions" label="Instructions">
+
 To add a Data Asset from an existing Data Source using the GX Cloud API, complete the following steps:
 
 1. Create a Data Context object
@@ -88,6 +99,17 @@ To add a Data Asset from an existing Data Source using the GX Cloud API, complet
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - add asset" 
    ```
+
+</TabItem>
+
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - full sample" 
+   ```
+
+<TabItem value="sample_code" label="Sample code">
+
+</TabItem>
+
+</Tabs>
 
 </TabItem>
 

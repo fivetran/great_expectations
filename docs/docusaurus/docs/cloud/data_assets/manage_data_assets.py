@@ -6,13 +6,14 @@ pytest --docs-tests -k "cloud_docs_manage_data_assets" tests/integration/test_sc
 """
 
 # EXAMPLE SCRIPT STARTS HERE:
+# <snippet name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - full samples">
 # <snippet name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - get cloud context">
 import great_expectations as gx
 
 context = gx.get_context(mode="cloud")
 # </snippet>
 
-
+# Hide this
 # define source
 data_source_name = "my_data_source"
 bucket_name = "my-bucket"
@@ -26,6 +27,7 @@ boto3_options = {
 data_source = context.data_sources.add_pandas_s3(
     name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
 )
+# Hide this
 
 # <snippet name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - get data source">
 data_source = context.data_sources.get("my_data_source")
@@ -39,4 +41,5 @@ s3_prefix = "data/taxi_yellow_tripdata/"
 
 # <snippet name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - add asset">
 s3_file_data_asset = data_source.add_csv_asset(name=asset_name, s3_prefix=s3_prefix)
+# </snippet>
 # </snippet>
