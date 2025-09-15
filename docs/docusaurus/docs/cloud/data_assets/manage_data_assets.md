@@ -115,7 +115,7 @@ To add a Data Asset from an existing Data Source using the GX Cloud API, complet
 
 </Tabs>
 
-Then you can [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) for your new Data Asset.
+Now you can [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) for your new Data Asset.
 
 ## View Data Asset metrics
 
