@@ -160,7 +160,7 @@ Depending on your [deployment pattern](/docs/cloud/deploy/deployment_patterns), 
 
 - **Environment variable substitution** is supported for agent-enabled and read-only deployments. To enhance security, you can use environment variables to manage sensitive connection parameters or strings. For example, instead of directly including your database password in configuration settings, you can use a variable reference like `${MY_DATABASE_PASSWORD}`. When using environment variable substitution, your credentials are not stored or transmitted to GX Cloud.
 
-   To use environment variable substitution, do the following:
+To use environment variable substitution, do the following:
 
 1. Inject the variable into your GX Agent container or environment.
    
