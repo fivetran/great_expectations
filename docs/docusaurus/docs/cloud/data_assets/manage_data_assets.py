@@ -19,11 +19,16 @@ data_source_name = "my_data_source"
 # Hide this
 bucket_name = "my-bucket"
 # Hide this
-boto3_options = {"aws_access_key_id": "${S3_KEY_ID}", "aws_secret_access_key": "${S3_SECRET_KEY}",}
+boto3_options = {
+    "aws_access_key_id": "${S3_KEY_ID}",
+    "aws_secret_access_key": "${S3_SECRET_KEY}",
+}
 
 
 # Hide this
-data_source = context.data_sources.add_pandas_s3(    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options)
+data_source = context.data_sources.add_pandas_s3(
+    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
+)
 
 # Fetch the Data Source.
 # <snippet name="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py - get data source">

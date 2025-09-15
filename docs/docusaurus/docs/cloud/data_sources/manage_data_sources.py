@@ -36,7 +36,9 @@ boto3_options = {
 # </snippet>
 
 # Hide this
-data_source = context.data_sources.add_pandas_s3(    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options)
+data_source = context.data_sources.add_pandas_s3(
+    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
+)
 
 # Update the Data Source.
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - update source">
