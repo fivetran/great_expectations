@@ -13,7 +13,6 @@ import great_expectations as gx
 
 context = gx.get_context(mode="cloud")
 # </snippet>
-
 # Hide this
 data_source_name = "my_data_source"
 # Hide this
@@ -26,8 +25,6 @@ boto3_options = {
     "aws_secret_access_key": "${S3_SECRET_KEY}",
     # Hide this
 }
-
-
 # Hide this
 data_source = context.data_sources.add_pandas_s3(
     # Hide this

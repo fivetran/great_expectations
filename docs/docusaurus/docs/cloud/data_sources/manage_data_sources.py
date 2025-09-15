@@ -34,7 +34,6 @@ boto3_options = {
     "aws_secret_access_key": "${MY_NEW_S3_SECRET_KEY}",
 }
 # </snippet>
-
 # Hide this
 data_source = context.data_sources.add_pandas_s3(
     # Hide this

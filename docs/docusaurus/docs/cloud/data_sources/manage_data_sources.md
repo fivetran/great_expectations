@@ -158,7 +158,7 @@ Depending on your [deployment pattern](/docs/cloud/deploy/deployment_patterns), 
 
 -  **Direct input** is supported for all GX Cloud deployment patterns. You can input credentials directly into the GX Cloud UI. These credentials are stored in GX Cloud and securely encrypted at rest and in transit. 
 
-- **Environment variable substitution** is supported for agent-enabled and read-only deployments. To enhance security, you can use environment variables to manage sensitive connection parameters or strings. For example, instead of directly including your database password in configuration settings, you can use a variable reference like `${MY_DATABASE_PASSWORD}`. When using environment variable substitution, your credentials are not stored or transmitted to GX Cloud.
+- **Environment variable substitution** is supported for agent-enabled and read-only deployments. To enhance security, you can use environment variables to manage sensitive connection parameters or strings. For example, instead of directly including your database password in configuration settings, you can use a variable reference like `${MY_DATABASE_PASSWORD}`. When using environment variable substitution, your credentials are not stored or transmitted to GX Cloud. 
 
 To use environment variable substitution, do the following:
 
