@@ -321,6 +321,7 @@ def test_analytics_enabled_after_setting_explicitly(
 def test_cloud_context_init_with_system_user_no_workspaces(
     unset_gx_env_variables: None,
     monkeypatch,
+    mocker,
 ):
     monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
 
@@ -330,7 +331,7 @@ def test_cloud_context_init_with_system_user_no_workspaces(
 
     # Mock cloud API response for system user with no workspaces
     def mock_request_cloud_backend(*args, **kwargs):
-        mock_response = mock.Mock()
+        mock_response = mocker.MagicMock()
         mock_response.json.return_value = {
             "user_id": str(user_id),
             "workspaces": [],
@@ -373,10 +374,10 @@ def test_cloud_context_init_with_system_user_no_workspaces(
         mock.patch(
             "great_expectations.data_context.data_context.cloud_data_context.init_analytics"
         ) as mock_init,
-        mock.patch("posthog.capture") as mock_submit,
+        mock.patch("posthog.capture"),
     ):
         # This should not raise an error for system users with no workspaces
-        context = gx.get_context(
+        gx.get_context(
             mode="cloud",
             cloud_base_url=mock_config["cloud_base_url"],
             cloud_access_token=mock_config["cloud_access_token"],
