@@ -21,7 +21,7 @@ To connect GX Cloud to filesystem data stored in Amazon S3, use the GX Cloud API
 
 Run the following terminal command to install the GX Cloud library with support for Amazon S3 dependencies:
 
-```
+```bash title="Terminal input"
 pip install 'great_expectations[s3]'
 ```
 
@@ -100,7 +100,7 @@ Environment variables securely store your GX Cloud and AWS credentials.
    The following information is required when you create an Amazon S3 Data Source:
 
    - `name`: A descriptive name used to reference the Data Source. This should be unique within your Cloud organization.
-   - `bucket_name`: The Amazon S3 bucket name.
+   - `bucket`: The Amazon S3 bucket name.
    - `boto3_options`: Your AWS credentials passed as `aws_access_key_id` and `aws_secret_access_key`.
      
    Replace the `data_source_name` and `bucket_name` variable values with your own and run the following Python code. In this example, the strings `"${S3_KEY_ID}"` and `"${S3_SECRET_KEY}"` will be replaced with the values of the environment variables you set earlier:
