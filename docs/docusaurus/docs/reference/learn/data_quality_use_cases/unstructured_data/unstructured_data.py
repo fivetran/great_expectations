@@ -16,6 +16,7 @@ from pdf2image import convert_from_bytes  # Convert PDF pages to images
 from pytesseract import Output  # Structured OCR output
 
 import great_expectations as gx  # Data validation
+import great_expectations.exceptions.exceptions as gxexceptions  # for Exceptions
 import great_expectations.expectations as gxe  # for Expectations
 
 # </snippet>
@@ -92,17 +93,17 @@ df = pd.DataFrame(records)
 context = gx.get_context()
 try:
     datasource = context.data_sources.get("PDF Scans")
-except:
+except KeyError:
     datasource = context.data_sources.add_pandas("PDF Scans")
 
 try:
     asset = datasource.get_asset("OCR Results")
-except:
+except LookupError:
     asset = datasource.add_dataframe_asset("OCR Results")
 
 try:
     batch_definition = asset.get_batch_definition("default")
-except:
+except KeyError:
     batch_definition = asset.add_batch_definition_whole_dataframe("default")
 
 # </snippet>
@@ -110,7 +111,7 @@ except:
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the expectation suite">
 try:
     suite = context.suites.get(name="OCR Confidence")
-except:
+except gxexceptions.DataContextError:
     suite = gx.ExpectationSuite("OCR Confidence")
     suite = context.suites.add(suite)
     suite.add_expectation(
@@ -128,14 +129,14 @@ except:
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the vd and run the checkpoint">
 try:
     vd = context.validation_definitions.get("OCR Results VD")
-except:
+except gxexceptions.DataContextError:
     vd = gx.ValidationDefinition(
         data=batch_definition, suite=suite, name="OCR Results VD"
     )
     context.validation_definitions.add(vd)
 try:
     checkpoint = context.checkpoints.get("OCR Checkpoint")
-except:
+except gxexceptions.DataContextError:
     checkpoint = gx.Checkpoint(name="OCR Checkpoint", validation_definitions=[vd])
     context.checkpoints.add(checkpoint)
 
