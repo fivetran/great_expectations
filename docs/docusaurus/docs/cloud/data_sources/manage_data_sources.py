@@ -50,7 +50,7 @@ data_source_name = "S3 Data Source"
 data_source = context.data_sources.get(name=data_source_name)
 # </snippet>
 
-# Define updates for the Data Source's parameters.
+# Define updates for one or more of the Data Source's parameters.
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - define source updates">
 # You can change some or all connection details.
 data_source.bucket = "my-new-bucket"

@@ -112,7 +112,7 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - get source" 	
    ```    
 
-4. Define updates for the Data Source's parameters.
+4. Define updates for one or more of the Data Source's parameters.
 
    Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/docs/cloud/connect/connect_lp.md) to your source type.
 
