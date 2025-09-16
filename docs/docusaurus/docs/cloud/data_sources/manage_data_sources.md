@@ -119,7 +119,7 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - define source updates" 	
    ``` 
 
-5. Update the Data Source.
+5. Update the Data Source. 
 
    There is a `context.data_sources.update_*` method for each type of Data Source. These mirror the names of the `context.data_sources.add_*` methods for adding Data Sources. This example shows how to update an S3 Data Source with the `update_pandas_s3` method.
 
