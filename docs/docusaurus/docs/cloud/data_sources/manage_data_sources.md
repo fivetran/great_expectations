@@ -94,7 +94,7 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
 
 <TabItem value="instructions" label="Instructions">
 
-1. Run the following Python code to create a Data Context object.
+1. Run the following Python code to create a Data Context object. 
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - get cloud context" 	
    ```
