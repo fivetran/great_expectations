@@ -25,7 +25,7 @@ Workspaces help keep your data quality efforts clear, relevant, and secure, no m
 Keep the following in mind when using workspaces:
 - Your organization must be on the Enterprise plan to use multiple workspaces. Contact sales to [upgrade to Enterprise](https://greatexpectations.io/pricing/). 
 - You must be an [Organization Owner](#roles-and-permissions) to manage workspaces.
-- To use the GX Cloud API in an organization with multiple workspaces, your GX library version must be >= 1.6.0. 
+- To use the GX Cloud API in an organization with multiple workspaces, your [GX library](https://pypi.org/project/great-expectations/) version must be >= 1.6.0. 
 
 
 ### Create a workspace
