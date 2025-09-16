@@ -19,21 +19,19 @@ context = gx.get_context(mode="cloud")
 print(type(context).__name__)
 # </snippet>
 
-# <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - pick source">
-# Identify the Data Source to update by name.
-# You cannot change the Data Source name with the API.
+# Hide this
 data_source_name = "S3 Data Source"
-# </snippet>
-
-# Define the Data Source's parameters.
-# <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - define source updates">
-# You can change some or all connection details.
-bucket_name = "my-new-bucket"
+# Hide this
+bucket_name = "my-bucket"
+# Hide this
 boto3_options = {
-    "aws_access_key_id": "${MY_NEW_S3_KEY_ID}",
-    "aws_secret_access_key": "${MY_NEW_S3_SECRET_KEY}",
+    # Hide this
+    "aws_access_key_id": "${MY_S3_KEY_ID}",
+    # Hide this
+    "aws_secret_access_key": "${MY_S3_SECRET_KEY}",
+# Hide this
 }
-# </snippet>
+
 # Hide this
 data_source = context.data_sources.add_pandas_s3(
     # Hide this
@@ -45,10 +43,21 @@ data_source = context.data_sources.add_pandas_s3(
     # Hide this
 )
 
+# <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - get source">
+# Identify the Data Source to update by name.
+# You cannot change the Data Source name with the API.
+data_source_name = "S3 Data Source"
+data_source = context.data_sources.get(name=data_source_name)
+# </snippet>
+
+# Define updates for the Data Source's parameters.
+# <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - define source updates">
+# You can change some or all connection details.
+data_source.bucket = "my-new-bucket"
+# </snippet>
+
 # Update the Data Source.
 # <snippet name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - update source">
-context.data_sources.update_pandas_s3(
-    name=data_source_name, bucket=bucket_name, boto3_options=boto3_options
-)
+context.data_sources.update_pandas_s3(data_source)
 # </snippet>
 # </snippet>

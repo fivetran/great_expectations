@@ -107,12 +107,12 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
    ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - verify context type" 	
    ```   
 
-3. Pick a Data Source to update.
+3. Get a Data Source to update.
 
-   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - pick source" 	
+   ```python title="Python" name="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py - get source" 	
    ```    
 
-4. Define the Data Source's parameters.
+4. Define updates for the Data Source's parameters.
 
    Available fields vary by source type. For details, refer to the instructions for [connecting GX Cloud](/docs/cloud/connect/connect_lp.md) to your source type.
 
