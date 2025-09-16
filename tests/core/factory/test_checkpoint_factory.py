@@ -165,7 +165,10 @@ def test_checkpoint_factory_add_success_filesystem(empty_data_context):
 
 
 @pytest.mark.cloud
-def test_checkpoint_factory_add_success_cloud(empty_cloud_context_fluent):
+def test_checkpoint_factory_add_success_cloud(
+    unset_gx_env_variables: None,
+    empty_cloud_context_fluent,
+):
     _test_checkpoint_factory_add_success(empty_cloud_context_fluent)
 
 
@@ -201,7 +204,10 @@ def test_checkpoint_factory_delete_success_filesystem(empty_data_context):
 
 
 @pytest.mark.cloud
-def test_checkpoint_factory_delete_success_cloud(empty_cloud_context_fluent):
+def test_checkpoint_factory_delete_success_cloud(
+    unset_gx_env_variables: None,
+    empty_cloud_context_fluent,
+):
     _test_checkpoint_factory_delete_success(empty_cloud_context_fluent)
 
 
@@ -346,7 +352,11 @@ class TestCheckpointFactoryAnalytics:
         self._test_checkpoint_factory_add_emits_event(empty_data_context)
 
     @pytest.mark.cloud
-    def test_checkpoint_factory_add_emits_event_cloud(self, empty_cloud_context_fluent):
+    def test_checkpoint_factory_add_emits_event_cloud(
+        self,
+        unset_gx_env_variables: None,
+        empty_cloud_context_fluent,
+    ):
         self._test_checkpoint_factory_add_emits_event(empty_cloud_context_fluent)
 
     def _test_checkpoint_factory_add_emits_event(self, context):
@@ -385,7 +395,11 @@ class TestCheckpointFactoryAnalytics:
         self._test_checkpoint_factory_delete_emits_event(empty_data_context)
 
     @pytest.mark.cloud
-    def test_checkpoint_factory_delete_emits_event_cloud(self, empty_cloud_context_fluent):
+    def test_checkpoint_factory_delete_emits_event_cloud(
+        self,
+        unset_gx_env_variables: None,
+        empty_cloud_context_fluent,
+    ):
         self._test_checkpoint_factory_delete_emits_event(empty_cloud_context_fluent)
 
     def _test_checkpoint_factory_delete_emits_event(self, context):
@@ -421,7 +435,11 @@ class TestCheckpointFactoryAnalytics:
 class TestCheckpointFactoryAddOrUpdate:
     CHECKPOINT_NAME = "checkpoint A"
 
-    def test_add_empty_new_checkpoint(self, data_context: AbstractDataContext) -> None:
+    def test_add_empty_new_checkpoint(
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
+    ) -> None:
         # arrange
         checkpoint = Checkpoint(name=self.CHECKPOINT_NAME, validation_definitions=[])
 
@@ -432,7 +450,11 @@ class TestCheckpointFactoryAddOrUpdate:
         assert created_checkpoint.id
         data_context.checkpoints.get(self.CHECKPOINT_NAME)
 
-    def test_add_new_checkpoint_with_validations(self, data_context: AbstractDataContext) -> None:
+    def test_add_new_checkpoint_with_validations(
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
+    ) -> None:
         # arrange
         batch_def = (
             data_context.data_sources.add_pandas("data source A")
@@ -471,7 +493,9 @@ class TestCheckpointFactoryAddOrUpdate:
             assert val_def_dict == created_val_def.dict()
 
     def test_update_existing_checkpoint_adds_validations(
-        self, data_context: AbstractDataContext
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
     ) -> None:
         # arrange
         data_context.checkpoints.add(
@@ -514,7 +538,9 @@ class TestCheckpointFactoryAddOrUpdate:
             assert val_def_dict == created_val_def.dict()
 
     def test_update_existing_checkpoint_updates_validations(
-        self, data_context: AbstractDataContext
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
     ) -> None:
         # arrange
         batch_def = (
@@ -556,7 +582,9 @@ class TestCheckpointFactoryAddOrUpdate:
             assert val_def.suite.name == new_suite_name
 
     def test_update_existing_checkpoint_deletes_validations(
-        self, data_context: AbstractDataContext
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
     ) -> None:
         # arrange
         batch_def = (
@@ -609,7 +637,11 @@ class TestCheckpointFactoryAddOrUpdate:
         assert created_checkpoint.validation_definitions[0].name == VALIDATION_DEFINITION_NAME
         assert created_checkpoint.validation_definitions[0].suite.name == SUITE_NAME
 
-    def test_add_or_update_is_idempotent(self, data_context: AbstractDataContext) -> None:
+    def test_add_or_update_is_idempotent(
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
+    ) -> None:
         # arrange
         batch_def = (
             data_context.data_sources.add_pandas("data source A")

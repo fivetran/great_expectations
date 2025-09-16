@@ -1,7 +1,7 @@
 # Mercury Services
 
 Note: Running Mercury services locally requires access to the GX private docker registry.
-      External contributors will not be able to follow these instructions and will only be able to run these tests in CI.
+External contributors will not be able to follow these instructions and will only be able to run these tests in CI.
 
 ## Starting Services and Running Tests
 
@@ -11,6 +11,7 @@ Note: Running Mercury services locally requires access to the GX private docker 
 export GX_CLOUD_BASE_URL=http://localhost:5000
 export GX_CLOUD_ORGANIZATION_ID="0ccac18e-7631-4bdd-8a42-3c35cce574c6"
 export GX_CLOUD_ACCESS_TOKEN="5266c9ac7a844b91994e7bfc443bdeae.V1.UB3fpuYpsqxVX3XSXipYgfzPrvOG7jAhXEUP_m41ZhaEYfn-AYs5HL3r_bn4rTiG_RpOF3EVTiSOWFLkUZ2fuQ"
+export GX_CLOUD_WORKSPACE_ID="44444444-4444-4bdd-8a42-3c35cce574c6"
 ```
 
 - Install cloud testing dependencies by running:

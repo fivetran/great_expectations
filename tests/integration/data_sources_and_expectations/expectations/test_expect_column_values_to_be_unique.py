@@ -12,7 +12,10 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
-from tests.integration.test_utils.data_source_config import MySQLDatasourceTestConfig
+from tests.integration.test_utils.data_source_config import (
+    MySQLDatasourceTestConfig,
+    PostgreSQLDatasourceTestConfig,
+)
 
 UNIQUE_INTS = "unique_integers"
 DUPLICATE_INTS = "duplicate_integers"
@@ -141,3 +144,67 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToBeUnique with pandas data sources."""
+    expectation = gxe.ExpectColumnValuesToBeUnique(column=DUPLICATE_INTS)
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For pandas data sources, unexpected_rows should be directly usable
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+
+    # Convert directly to DataFrame for pandas data sources
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain 2 rows where DUPLICATE_INTS has duplicate value 3
+    # (both occurrences are flagged)
+    assert len(unexpected_rows_df) == 2
+
+    # Both unexpected rows should have value 3 in DUPLICATE_INTS
+    assert all(unexpected_rows_df[DUPLICATE_INTS] == 3)
+
+    # Other columns should have their original values
+    unexpected_strings = sorted(unexpected_rows_df[DUPLICATE_STRINGS].tolist())
+    assert unexpected_strings == ["c", "c"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToBeUnique with SQL data sources."""
+    expectation = gxe.ExpectColumnValuesToBeUnique(column=DUPLICATE_INTS)
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 2 rows where DUPLICATE_INTS has duplicate value 3
+    # (both occurrences are flagged)
+    assert len(unexpected_rows_data) == 2
+
+    # Check that the duplicate values appear in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    assert "3" in unexpected_rows_str
+    assert "c" in unexpected_rows_str

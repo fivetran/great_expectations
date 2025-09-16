@@ -15,6 +15,16 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.6.0
+* [FEATURE] Make GX Context workspace aware ([#11369](https://github.com/great-expectations/great_expectations/pull/11369))
+* [BUGFIX] Fix handling of mixed case table names when computing column metadata ([#11365](https://github.com/great-expectations/great_expectations/pull/11365))
+* [BUGFIX] Make handling of quoted schema and table names more robust ([#11367](https://github.com/great-expectations/great_expectations/pull/11367))
+* [BUGFIX] Enable reading multiple pages of S3 directory by popping ContinuationToken from query_options once it is used in a S3 request ([#11361](https://github.com/great-expectations/great_expectations/pull/11361)) (thanks @pawel99k)
+* [DOCS] Update docs to reflect that custom docker images should use stable agent ([#11353](https://github.com/great-expectations/great_expectations/pull/11353))
+* [MAINTENANCE] Test `unexpected_rows` ([#11368](https://github.com/great-expectations/great_expectations/pull/11368))
+* [MAINTENANCE] Plumb in GX_CLOUD_WORKSPACE_ID into cloud-test ci step. ([#11373](https://github.com/great-expectations/great_expectations/pull/11373))
+* [MAINTENANCE] Add `workspace_id` to `store_backend` dict ([#11371](https://github.com/great-expectations/great_expectations/pull/11371))
+
 ### 1.5.11
 * [FEATURE] Checkpoint actions notify on severity ([#11347](https://github.com/great-expectations/great_expectations/pull/11347))
 * [FEATURE] Add handling for severity to ExpectationConfiguration serialization ([#11343](https://github.com/great-expectations/great_expectations/pull/11343))
