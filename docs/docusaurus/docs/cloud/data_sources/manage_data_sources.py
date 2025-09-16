@@ -29,7 +29,7 @@ boto3_options = {
     "aws_access_key_id": "${MY_S3_KEY_ID}",
     # Hide this
     "aws_secret_access_key": "${MY_S3_SECRET_KEY}",
-# Hide this
+    # Hide this
 }
 
 # Hide this
