@@ -1,8 +1,8 @@
 """
-This is an example script for how to append an Action to a Checkpoint.
+This is an example script for how to validate unstructured data.
 
 To test, run:
-pytest --docs-tests -k "cloud_docs_example_create_a_checkpoint" tests/integration/test_script_runner.py
+pytest --docs-tests -k "unstructured_data_use_case" tests/integration/test_script_runner.py
 """
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - full code example">
@@ -89,7 +89,7 @@ df = pd.DataFrame(records)
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the GX entities">
-context = gx.get_context(mode="cloud")
+context = gx.get_context()
 try:
     datasource = context.data_sources.get("PDF Scans")
 except:
