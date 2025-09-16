@@ -15,6 +15,9 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.6.1
+* [BUGFIX] Make workspaces optional for cloud_user_info ([#11378](https://github.com/great-expectations/great_expectations/pull/11378))
+
 ### 1.6.0
 * [FEATURE] Make GX Context workspace aware ([#11369](https://github.com/great-expectations/great_expectations/pull/11369))
 * [BUGFIX] Fix handling of mixed case table names when computing column metadata ([#11365](https://github.com/great-expectations/great_expectations/pull/11365))
