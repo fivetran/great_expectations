@@ -254,7 +254,8 @@ module.exports = {
         'reference/learn/data_quality_use_cases/missingness',
         'reference/learn/data_quality_use_cases/schema',
         'reference/learn/data_quality_use_cases/uniqueness',
-        'reference/learn/data_quality_use_cases/volume'
+        'reference/learn/data_quality_use_cases/volume',
+        'reference/learn/data_quality_use_cases/unstructured_data'
       ]
     },
     {
