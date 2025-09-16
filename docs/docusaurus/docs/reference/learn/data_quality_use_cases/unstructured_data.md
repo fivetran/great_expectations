@@ -99,6 +99,11 @@ Log into GX Cloud, navigate to the Data Assets page and find the Data Asset that
 
 ![View Data Asset](./unstructured_data/unstructured_data_data_assets.png)
 
-Click into the Data Asset and then to the Validations tab. Select the Expectation Suite that was created above and then select the specific validation result that was just run.
+Click into the Data Asset and then to the Validations tab. Select the Expectation Suite that was created above and then select the specific Validation result that was just run.
 
 ![View Validation Results](./unstructured_data/unstructured_data_validation_results.png)
+
+## The path forward
+Using this tutorial as a framework, you can try plugging in your own unstructured data, as well as add other Expectations from the [Expectation Gallery](https://greatexpectations.io/expectations) to the Expectation Suite. Finally, validating your unstructured data can also be done within a data pipeline, so executing this code using an orchestrator should be explored as well.
+
+Ensuring the quality of your unstructured data is essential for businesses that rely on it, but this is only one of many data quality issues that is relevant to your organization. Explore our other [data quality use cases](/reference/learn/data_quality_use_cases/dq_use_cases_lp.md) for more insights and best practices to expand your data validation to encompass key quality dimensions.
