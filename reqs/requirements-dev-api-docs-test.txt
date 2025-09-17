@@ -1,1 +1,2 @@
 docstring-parser==0.16
+pytesseract>=0.3.13
