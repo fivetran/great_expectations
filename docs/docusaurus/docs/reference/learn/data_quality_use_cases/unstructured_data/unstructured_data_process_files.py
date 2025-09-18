@@ -2,7 +2,7 @@
 from datasets import load_dataset  # Load PDF OCR dataset from Hugging Face
 
 ds = load_dataset("broadfield-dev/pdf-ocr-dataset", split="train[:5]")
-# </snippet
+# </snippet>
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - iterate through the data">
 import pytesseract
