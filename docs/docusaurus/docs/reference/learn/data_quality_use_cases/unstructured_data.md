@@ -61,7 +61,7 @@ This tutorial uses the [broadfield-dev/pdf-ocr-dataset Hugging Face open source 
 
 Load the dataset.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - load the dataset"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - load the dataset"
 ```
 
 Iterate through the PDFs, converting the first page into an image before running OCR and storing the metrics.

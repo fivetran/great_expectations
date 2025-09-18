@@ -1,12 +1,15 @@
-import pytesseract
-import requests
+# <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - load the dataset">
 from datasets import load_dataset  # Load PDF OCR dataset from Hugging Face
+
+ds = load_dataset("broadfield-dev/pdf-ocr-dataset", split="train[:5]")
+# </snippet
+
+# <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - iterate through the data">
+import pytesseract 
+import requests
 from pdf2image import convert_from_bytes  # Convert PDF pages to images
 from pytesseract import Output  # Structured OCR output
 
-ds = load_dataset("broadfield-dev/pdf-ocr-dataset", split="train[:5]")
-
-# <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - iterate through the data">
 records = []
 
 for sample in ds:
