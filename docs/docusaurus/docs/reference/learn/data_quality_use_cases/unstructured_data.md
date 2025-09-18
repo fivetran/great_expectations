@@ -66,7 +66,7 @@ Load the dataset.
 
 Iterate through the PDFs, converting the first page into an image before running OCR and storing the metrics.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - iterate through the data"
+```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - iterate through the data"
 ```
 
 Convert the metrics into a dataframe for validation.

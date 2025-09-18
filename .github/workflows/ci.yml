@@ -256,9 +256,6 @@ jobs:
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.doc-step }}'
 
-      - name: Install poppler and tesseract
-        run: ./scripts/install_poppler_and_tesseract.sh
-
       - name: Run docs_snippet_checker
         run: |
           yarn install
