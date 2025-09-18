@@ -14,6 +14,7 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
+from great_expectations.expectations.model_field_descriptions import FAILURE_SEVERITY_DESCRIPTION
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     RenderedAtomicContent,
@@ -78,6 +79,11 @@ class UnexpectedRowsExpectation(BatchExpectation):
 
     Args:
         unexpected_rows_query (str): {UNEXPECTED_ROWS_QUERY_DESCRIPTION}
+
+    Other Parameters:
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)

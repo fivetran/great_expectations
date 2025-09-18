@@ -12,6 +12,7 @@ from great_expectations.expectations.metadata_types import DataQualityIssues, Su
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
     VALUE_SET_DESCRIPTION,
+    FAILURE_SEVERITY_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
     ValueSetField,  # noqa: TC001  # type needed in pydantic validation
@@ -90,6 +91,9 @@ class ExpectColumnDistinctValuesToContainSet(ColumnAggregateExpectation):
         meta (dict or None): \
             A JSON-serializable dictionary (nesting allowed) that will be included in the output without \
             modification. For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
