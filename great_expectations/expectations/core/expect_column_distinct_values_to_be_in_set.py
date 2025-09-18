@@ -14,9 +14,9 @@ from great_expectations.expectations.expectation import (
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
+    FAILURE_SEVERITY_DESCRIPTION,
     VALUE_SET_DESCRIPTION,
 )
-from great_expectations.expectations.model_field_descriptions import FAILURE_SEVERITY_DESCRIPTION
 from great_expectations.expectations.model_field_types import (
     ValueSetField,  # noqa: TC001  # type needed in pydantic validation
 )

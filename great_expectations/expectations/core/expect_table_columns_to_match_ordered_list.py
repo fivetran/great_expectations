@@ -12,6 +12,7 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
+from great_expectations.expectations.model_field_descriptions import FAILURE_SEVERITY_DESCRIPTION
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     LegacyRendererType,
@@ -19,7 +20,6 @@ from great_expectations.render import (
     RenderedStringTemplateContent,
     renderedAtomicValueSchema,
 )
-from great_expectations.expectations.model_field_descriptions import FAILURE_SEVERITY_DESCRIPTION
 from great_expectations.render.renderer.observed_value_renderer import (
     _prepare_params_for_list_comparison,
 )

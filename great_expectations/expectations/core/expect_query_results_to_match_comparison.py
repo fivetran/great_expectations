@@ -113,7 +113,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         comparison_data_source_name (str): {COMPARISON_DATA_SOURCE_NAME_DESCRIPTION}
         comparison_query (str): {COMPARISON_QUERY_DESCRIPTION}
         mostly (float): {MOSTLY_DESCRIPTION}
-    
+
     Other Parameters:
         severity (str or None): \
             {FAILURE_SEVERITY_DESCRIPTION} \

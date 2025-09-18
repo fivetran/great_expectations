@@ -12,8 +12,8 @@ from great_expectations.expectations.expectation import (
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
-    IGNORE_ROW_IF_DESCRIPTION,
     FAILURE_SEVERITY_DESCRIPTION,
+    IGNORE_ROW_IF_DESCRIPTION,
     MOSTLY_DESCRIPTION,
 )
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
