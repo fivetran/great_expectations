@@ -463,14 +463,24 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             GXSqlDialect.DATABRICKS,
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
+            GXSqlDialect.TRINO,
         ]:
-            success = isinstance(actual_column_type, str) and any(
-                actual_column_type.lower() == expected_type.lower()
-                for expected_type in expected_types_list
-            )
+            if isinstance(actual_column_type, str):
+                success = any(
+                    actual_column_type.lower() == expected_type.lower()
+                    for expected_type in expected_types_list
+                )
+                ret_type = actual_column_type
+            else:
+                ret_type = type(actual_column_type).__name__
+                success = any(
+                    ret_type.lower() == expected_type.lower()
+                    for expected_type in expected_types_list
+                )
+
             return {
                 "success": success,
-                "result": {"observed_value": actual_column_type},
+                "result": {"observed_value": ret_type},
             }
         else:
             types = []
