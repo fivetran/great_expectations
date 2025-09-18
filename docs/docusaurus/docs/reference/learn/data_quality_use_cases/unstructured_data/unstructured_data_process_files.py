@@ -1,4 +1,4 @@
-import pytesseract 
+import pytesseract
 import requests
 from datasets import load_dataset  # Load PDF OCR dataset from Hugging Face
 from pdf2image import convert_from_bytes  # Convert PDF pages to images
