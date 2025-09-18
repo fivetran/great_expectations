@@ -8,3 +8,8 @@ IGNORE_ROW_IF_DESCRIPTION = (
 )
 VALUE_SET_DESCRIPTION = "A set of objects used for comparison."
 WINDOWS_DESCRIPTION = "Definition(s) for evaluation of temporal windows"
+FAILURE_SEVERITY_DESCRIPTION = (
+    "The impact of this Expectation failing: critical, warning, or info. "
+    "Defaults to critical if not set. "
+    "Severity levels can be used to trigger different alerting patterns and actions."
+)
