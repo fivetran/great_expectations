@@ -10,10 +10,6 @@ pytest --docs-tests -k "unstructured_data_use_case" tests/integration/test_scrip
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - import the libraries">
 
 import pandas as pd  # Data manipulation
-<<<<<<< HEAD
-from datasets import load_dataset  # Load PDF OCR dataset from Hugging Face
-=======
->>>>>>> dc913452e (Rearrange the code since unused imports don't get rendered)
 
 import great_expectations as gx  # Data validation
 import great_expectations.exceptions.exceptions as gxexceptions  # for Exceptions
