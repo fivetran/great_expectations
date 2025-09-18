@@ -201,7 +201,7 @@
         },
         "FailureSeverity": {
             "title": "FailureSeverity",
-            "description": "Severity levels for expectation failures.",
+            "description": "Severity levels for Expectation failures.",
             "enum": [
                 "critical",
                 "warning",
