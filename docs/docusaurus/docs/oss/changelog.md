@@ -15,6 +15,11 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.6.2
+* [BUGFIX] Fix ExpectColumnValuesToBeInTypeList for Trino ([#11386](https://github.com/great-expectations/great_expectations/pull/11386))
+* [DOCS] workspaces ([#11366](https://github.com/great-expectations/great_expectations/pull/11366))
+* [MAINTENANCE] Ensure pyarrow wheel on Python 3.12 Snowflake marker tests ([#11388](https://github.com/great-expectations/great_expectations/pull/11388))
+
 ### 1.6.1
 * [BUGFIX] Make workspaces optional for cloud_user_info ([#11378](https://github.com/great-expectations/great_expectations/pull/11378))
 
