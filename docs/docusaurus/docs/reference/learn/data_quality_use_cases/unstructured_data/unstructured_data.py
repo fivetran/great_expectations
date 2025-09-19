@@ -12,8 +12,8 @@ pytest --docs-tests -k "unstructured_data_use_case" tests/integration/test_scrip
 import pandas as pd  # Data manipulation
 
 import great_expectations as gx  # Data validation
-import great_expectations.exceptions.exceptions as gxexceptions  # for Exceptions
-import great_expectations.expectations as gxe  # for Expectations
+import great_expectations.exceptions.exceptions as gxexceptions  # For exceptions
+import great_expectations.expectations as gxe  # For Expectations
 
 # </snippet>
 
