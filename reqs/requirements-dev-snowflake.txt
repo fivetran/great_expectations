@@ -1,5 +1,4 @@
 pandas<2.2.0; python_version >= "3.9"
 pyarrow>=14; python_version >= "3.12"
-snowflake-connector-python>=2.5.0; python_version < "3.11"
-snowflake-connector-python>=3.5.0; python_version >= "3.11" # ensure no hard pyarrow dep
+snowflake-connector-python>=3.5.0
 snowflake-sqlalchemy>=1.2.3,!=1.7.0
