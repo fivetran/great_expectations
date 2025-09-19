@@ -9,7 +9,7 @@ import Tabs from '@theme/Tabs';
 
 ## Prerequisites
 
-- You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
+- You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 - You have a Databricks SQL catalog, schema, and table or view.
 
@@ -17,7 +17,7 @@ import Tabs from '@theme/Tabs';
 
 ## Connect to a Databricks SQL Data Source and add a Data Asset
 
-1. In GX Cloud, click **Data Assets** > **New Data Asset** > **New Data Source** > **Databricks SQL**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets** > **New Data Asset** > **New Data Source** > **Databricks SQL**.
 
 2. Enter a meaningful name for the Data Source in the **Data Source name** field.
 

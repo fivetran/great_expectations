@@ -13,14 +13,14 @@ GX Cloud sends email alerts on the following events:
 
 ## Email alert default settings
 
-Email alerts are configured on a per-user basis; your email alert settings do not affect the email alerts of other users in your organization.
+Email alerts are configured on a per-user basis; your email alert settings do not affect the email alerts of other users in your workspace.
 
 By default, alerts are enabled for you for every Data Asset you create and disabled for all Data Assets created by others. You can change these settings at any time.
 
 
 ## Update an email alert
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 2. Click a Data Asset in the **Data Assets** list.
 3. Click **Alerts**.
 4. Click the **toggle switch** to enable or disable email alerts for the Data Asset.

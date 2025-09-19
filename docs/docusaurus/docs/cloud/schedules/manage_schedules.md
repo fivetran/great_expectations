@@ -13,7 +13,7 @@ To automate data quality checks for [API-managed Expectations](/cloud/expectatio
 
 ## Edit a schedule
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
@@ -25,7 +25,7 @@ To automate data quality checks for [API-managed Expectations](/cloud/expectatio
 
 ## Disable a schedule
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 

@@ -14,6 +14,8 @@ GX Cloud deployment patterns are defined by how GX Cloud connects to your data. 
 | [Agent-enabled](#agent-enabled-deployment) | GX Cloud connects to your data through the GX Agent, a utility that you run in your environment. The Agent serves as an intermediary between GX Cloud and your data; in this deployment pattern, GX Cloud does not connect directly to your data. | You want to connect to Data Sources using your organization's environment and infrastructure, for enhanced control and security. |
 | [Read-only](#read-only-deployment) | GX Cloud does not connect to your data. You use the GX Core Python library to define your GX workflows, to connect to your data, and to run Validations in your environment. GX Cloud serves as a read-only store for your Data Asset and Expectation configurations, and provides a web interface to view Validation Results. | You want to use GX Cloud as a read-only store to view and share Validation Results. |
 
+If your GX Cloud organization has [multiple workspaces](/cloud/access/manage_access.md#workspaces), note that each deployment pattern applies at the organization level. All workspaces in your organization must use the same deployment pattern. 
+
 
 ## Fully-hosted deployment
 
