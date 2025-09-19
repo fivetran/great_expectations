@@ -215,8 +215,8 @@ module.exports = {
     },
     {
       type: 'doc',
-      label: 'Manage users and access tokens',
-      id: 'cloud/users/manage_users'
+      label: 'Manage access',
+      id: 'cloud/access/manage_access'
     },
     {
       type: 'link',

@@ -6,7 +6,7 @@ description: Connect GX Cloud to a Redshift Data Source.
 
 ## Prerequisites
 
-- A [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
+- You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 - A Redshift database, schema, and table or view.
 
@@ -60,7 +60,7 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
 ## Connect to a Redshift Data Source and add a Data Asset
 
 
-1. In GX Cloud, click **Data Assets** > **New Data Asset** > **New Data Source** > **Redshift**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets** > **New Data Asset** > **New Data Source** > **Redshift**.
 
 2. Enter a meaningful name for the Data Source in the **Data Source name** field.
 
