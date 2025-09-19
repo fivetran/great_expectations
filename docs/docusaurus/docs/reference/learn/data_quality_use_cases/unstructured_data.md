@@ -16,7 +16,7 @@ Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) 
 
 Open a terminal window and navigate to the folder you want to use for this tutorial.
 
-Install [poppler](https://poppler.freedesktop.org/) and [tesseract](https://github.com/tesseract-ocr/tesseract).
+Install [poppler](https://poppler.freedesktop.org/) and [tesseract](https://github.com/tesseract-ocr/tesseract). Poppler is a PDF rendering library that this tutorial uses to read the PDFs. Tesseract is an open source OCR engine that this tutorial uses to from OCR on the PDFs.
 
 ```bash title="Terminal input"
 brew install poppler
@@ -39,13 +39,13 @@ pip install pytesseract
 pip install great_expectations
 ```
 
+## Import the required Python libraries
+
 Create the Python file for this project.
 
 ```bash title="Terminal input"
 touch gx_unstructured_data.py
 ```
-
-## Import the required Python libraries
 
 Open the Python file in your code editor of choice. 
 
@@ -56,7 +56,7 @@ Import the libraries you will be using in this tutorial.
 
 ## Load the dataset and convert it into a dataframe
 
-This tutorial uses an [open source dataset of PDFs from Hugging Face](https://huggingface.co/datasets/broadfield-dev/pdf-ocr-dataset). You will convert the first page of each PDF into an image, run OCR on that  page, and finally extract the metrics from it.
+This tutorial uses an [open source dataset of PDFs from Hugging Face](https://huggingface.co/datasets/broadfield-dev/pdf-ocr-dataset). You will convert the first page of the first 5 PDFs into an image, run OCR on that  page, and finally extract the metrics from it.
 
 Load the dataset.
 
@@ -74,7 +74,7 @@ Convert the metrics into a dataframe for validation.
 ```
 
 ## Connect to GX Cloud and define Expectations
-In this tutorial, you will connect to your GX Cloud organization using the GX Cloud API. You will either get or create a pandas Data Source and a dataframe Data Asset. The batch definition will use the whole dataframe that you created in the previous step.
+In this tutorial, you will connect to your GX Cloud organization using the GX Cloud API. You will either get or create a pandas Data Source and a dataframe Data Asset. The Batch Definition will use the whole dataframe that you created in the previous step.
 
 Instantiate the GX Data Context and get or create the Data Source, Data Asset, and Batch Definition.
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the GX entities"
@@ -86,7 +86,7 @@ Get or create an Expectation Suite and create Expectations to validate the metri
 ```
 
 ## Validate your Expectations
-GX uses a Validation Definition to link the Batch Definition and Expectation Suite. The Checkpoint will be used to execute Validations so that you can view the results through the GX Cloud UI.
+GX uses a Validation Definition to link the Batch Definition and Expectation Suite. The Checkpoint will be used to execute Validations. The results of the Validations can be later viewed through the GX Cloud UI.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the vd and run the checkpoint"
 ```

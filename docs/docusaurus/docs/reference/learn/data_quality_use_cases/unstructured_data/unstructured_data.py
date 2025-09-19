@@ -5,8 +5,6 @@ To test, run:
 pytest --docs-tests -k "unstructured_data_use_case" tests/integration/test_script_runner.py
 """
 
-# <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - full code example">
-# Import the libraries.
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - import the libraries">
 
 import pandas as pd  # Data manipulation
@@ -44,9 +42,9 @@ except KeyError:
 
 # <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the expectation suite">
 try:
-    suite = context.suites.get(name="OCR Confidence")
+    suite = context.suites.get(name="OCR Metrics Suite")
 except gxexceptions.DataContextError:
-    suite = gx.ExpectationSuite("OCR Confidence")
+    suite = gx.ExpectationSuite("OCR Metrics Suite")
     suite = context.suites.add(suite)
     suite.add_expectation(
         gxe.ExpectColumnValuesToBeBetween(column="text_length", min_value=500)
@@ -75,5 +73,4 @@ except gxexceptions.DataContextError:
     context.checkpoints.add(checkpoint)
 
 checkpoint.run(batch_parameters={"dataframe": df})
-# </snippet>
 # </snippet>

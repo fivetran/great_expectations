@@ -37,6 +37,7 @@ for sample in ds:
     all_confidences = []
     all_heights = []
     for image in pages:
+        # Run OCR on the PDFs
         ocr_data = pytesseract.image_to_data(image, output_type=Output.DICT)
         ocr_text = pytesseract.image_to_string(image)
         all_ocr_text.append(ocr_text)
