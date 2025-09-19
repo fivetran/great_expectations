@@ -1,6 +1,7 @@
 ---
 sidebar_label: 'Unstructured data'
 title: 'Validate unstructured data with GX Cloud'
+description: 'Learn how to validate metadata from scanned PDFs using GX Cloud'
 ---
 
 This tutorial provides a working, hands-on example of how to validate unstructured data using sample PDF data using GX Cloud. The generated metadata during the OCR process on a PDF contains information like confidence scores, word counts, etc. GX Cloud allows you to set up data quality checks on this metadata to maximize the confidence in your unstructured data, all while allowing your entire organization to view the results. 
@@ -8,12 +9,10 @@ This tutorial provides a working, hands-on example of how to validate unstructur
 ## Prerequisites
 
 - [Python version 3.9 to 3.12](https://www.python.org/downloads/)
-- Bash shell
-- A code editor
 - A [GX Cloud account](https://greatexpectations.io/cloud)
 Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 
-## Step 1: Install dependencies
+## Install dependencies
 
 Open a terminal window and navigate to the folder you want to use for this tutorial.
 
@@ -46,7 +45,7 @@ Create the Python file for this project.
 touch gx_unstructured_data.py
 ```
 
-## Step 2: Import the required Python libraries
+## Import the required Python libraries
 
 Open the Python file in your code editor of choice. 
 
@@ -55,7 +54,7 @@ Import the libraries you will be using in this tutorial.
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - import the libraries"
 ```
 
-## Step 3: Load the dataset and convert it into a dataframe
+## Load the dataset and convert it into a dataframe
 
 This tutorial uses an [open source dataset of PDFs from Hugging Face](https://huggingface.co/datasets/broadfield-dev/pdf-ocr-dataset). You will convert the first page of each PDF into an image, run OCR on that  page, and finally extract the metrics from it.
 
