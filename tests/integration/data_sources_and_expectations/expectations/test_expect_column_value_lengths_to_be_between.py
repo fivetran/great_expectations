@@ -9,6 +9,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
 
 COL_NAME = "my_strings"
 
@@ -124,3 +125,63 @@ def test_success_with_suite_param_strict_max_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValueLengthsToBeBetween with pandas."""
+    expectation = gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, min_value=0, max_value=1)
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For pandas data sources, unexpected_rows should be directly usable
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+
+    # Convert directly to DataFrame for pandas data sources
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain 2 rows where COL_NAME has length outside range [0,1]
+    # ("AA" has length 2, "AAA" has length 3)
+    assert len(unexpected_rows_df) == 2
+
+    # The unexpected rows should have values "AA" and "AAA" in COL_NAME
+    unexpected_values = sorted(unexpected_rows_df[COL_NAME].tolist())
+    assert unexpected_values == ["AA", "AAA"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValueLengthsToBeBetween with SQL."""
+    expectation = gxe.ExpectColumnValueLengthsToBeBetween(column=COL_NAME, min_value=0, max_value=1)
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 2 rows where COL_NAME has length outside range [0,1]
+    assert len(unexpected_rows_data) == 2
+
+    # Check that both "AA" and "AAA" appear in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    assert "AA" in unexpected_rows_str
+    assert "AAA" in unexpected_rows_str

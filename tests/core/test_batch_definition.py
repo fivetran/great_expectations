@@ -200,7 +200,10 @@ def test_is_fresh_is_added(
 
 
 @pytest.mark.cloud
-def test_is_fresh_freshness(empty_cloud_context_fluent):
+def test_is_fresh_freshness(
+    unset_gx_env_variables: None,
+    empty_cloud_context_fluent,
+):
     # Ephemeral/file use a cacheable datasource dict so freshness
     # with batch definitions is a Cloud-only concern
     context = empty_cloud_context_fluent

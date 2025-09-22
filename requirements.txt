@@ -15,7 +15,7 @@ pandas<2.2; python_version >= "3.12"
 posthog>3
 # patch version updates `typing_extensions` to the needed version
 pydantic>=1.10.7
-pyparsing>=2.4
+pyparsing>=2.4,!=3.2.4
 python-dateutil>=2.8.1
 requests>=2.20
 ruamel.yaml>=0.16

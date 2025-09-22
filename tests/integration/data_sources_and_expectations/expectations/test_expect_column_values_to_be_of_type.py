@@ -196,3 +196,33 @@ def test_success_with_suite_param_type_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToBeOfType with pandas data sources."""
+    expectation = gxe.ExpectColumnValuesToBeOfType(column=STRING_COLUMN, type_="int")
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For pandas data sources, unexpected_rows should be directly usable
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+
+    # Use DataFrame directly for pandas data sources
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain 5 rows where STRING_COLUMN is not of type int (all string values)
+    assert len(unexpected_rows_df) == 5
+
+    # The unexpected rows should contain all the string values
+    unexpected_values = sorted(unexpected_rows_df[STRING_COLUMN].tolist())
+    assert unexpected_values == ["a", "b", "c", "d", "e"]

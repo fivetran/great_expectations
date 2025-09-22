@@ -16,6 +16,7 @@ from great_expectations.expectations.expectation_configuration import (
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_DESCRIPTION,
+    FAILURE_SEVERITY_DESCRIPTION,
     MOSTLY_DESCRIPTION,
 )
 from great_expectations.render import (
@@ -93,6 +94,9 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
         meta (dict or None): \
             A JSON-serializable dictionary (nesting allowed) that will be included in the output without \
             modification. For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
@@ -367,8 +371,16 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
 
         nonnull_count = None
 
+        # Handle unexpected_rows for include_unexpected_rows feature
+        parsed_result_format = parse_result_format(result_format)
+        unexpected_rows = None
+        if parsed_result_format.get("include_unexpected_rows", False):
+            unexpected_rows = metrics.get(
+                f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
+            )
+
         return _format_map_output(
-            result_format=parse_result_format(result_format),
+            result_format=parsed_result_format,
             success=success,
             element_count=metrics.get("table.row_count"),
             nonnull_count=nonnull_count,
@@ -384,4 +396,5 @@ class ExpectColumnValuesToBeNull(ColumnMapExpectation):
             unexpected_index_query=metrics.get(
                 f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}"
             ),
+            unexpected_rows=unexpected_rows,
         )

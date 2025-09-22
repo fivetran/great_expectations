@@ -1,2 +1,3 @@
 feather-format>=0.4.1
-pyarrow
+pyarrow>=14; python_version >= "3.12"
+pyarrow; python_version < "3.12"

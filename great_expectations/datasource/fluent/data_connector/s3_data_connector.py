@@ -246,6 +246,7 @@ def list_s3_keys(  # noqa: C901 #  too complex
     logger.debug(f"Fetching objects from S3 with query options: {query_options}")
 
     s3_objects_info: dict = s3.list_objects_v2(**query_options)
+    query_options.pop("ContinuationToken", None)
 
     if not any(key in s3_objects_info for key in ["Contents", "CommonPrefixes"]):
         raise ValueError("S3 query may not have been configured correctly.")  # noqa: TRY003 # FIXME CoP
