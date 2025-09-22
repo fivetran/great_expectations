@@ -133,9 +133,6 @@ To view Data Asset metrics, do the following:
 
     - Click **Refresh** to refresh the Data Asset metrics.
 
-
-
-
 ### Available Data Asset metrics
 
 The following table lists the available Data Asset metrics.
@@ -157,6 +154,7 @@ The following table lists the available Data Asset metrics.
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 2. In the Data Assets list, click **Delete Data Asset** for the Data Asset you want to remove.
 3. Review the warning and click **Delete** to confirm.
+
 
 ## View GX Cloud logs
 

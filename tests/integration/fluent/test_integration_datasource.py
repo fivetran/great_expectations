@@ -464,6 +464,7 @@ def test_batch_request_error_messages(
 
 @pytest.mark.cloud
 def test_pandas_data_adding_dataframe_in_cloud_context(
+    unset_gx_env_variables: None,
     cloud_api_fake: RequestsMock,
     empty_cloud_context_fluent: CloudDataContext,
 ):

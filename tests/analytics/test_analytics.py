@@ -1,6 +1,6 @@
 from typing import Optional
 from unittest import mock
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -147,7 +147,11 @@ def test_ephemeral_context_init_with_optional_fields(monkeypatch):
 @pytest.mark.parametrize("user_agent_str", [None, "test / x.x.x"])
 @pytest.mark.cloud
 def test_cloud_context_init(
-    user_agent_str: Optional[str], cloud_api_fake, cloud_details, monkeypatch
+    unset_gx_env_variables: None,
+    user_agent_str: Optional[str],
+    cloud_api_fake,
+    cloud_details,
+    monkeypatch,
 ):
     monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
 
@@ -311,6 +315,87 @@ def test_analytics_enabled_after_setting_explicitly(
             user_agent_str=mock.ANY,
             mode="ephemeral",
         )
+
+
+@pytest.mark.unit
+def test_cloud_context_init_with_system_user_no_workspaces(
+    unset_gx_env_variables: None,
+    monkeypatch,
+    mocker,
+):
+    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", True)  # Enable usage stats
+
+    user_id = uuid4()
+    organization_id = uuid4()
+    workspace_id = uuid4()
+
+    # Mock cloud API response for system user with no workspaces
+    def mock_request_cloud_backend(*args, **kwargs):
+        mock_response = mocker.MagicMock()
+        mock_response.json.return_value = {
+            "user_id": str(user_id),
+            "workspaces": [],
+        }
+        return mock_response
+
+    mock_config = {
+        "cloud_base_url": "https://api.test.greatexpectations.io",
+        "cloud_access_token": "test_token_123",
+        "cloud_organization_id": str(organization_id),
+        "cloud_workspace_id": str(workspace_id),
+    }
+
+    mock_data_context_config = {
+        "config_version": 4.0,
+        "datasources": {},
+        "stores": {},
+        "expectations_store_name": "expectations_store",
+        "validation_results_store_name": "validation_results_store",
+        "checkpoint_store_name": "checkpoint_store",
+        "data_docs_sites": {},
+        "analytics_enabled": True,
+    }
+
+    with (
+        mock.patch(
+            "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.retrieve_data_context_config_from_cloud",
+            return_value=mock_data_context_config,
+        ),
+        mock.patch(
+            "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext._save_project_config"
+        ),
+        mock.patch(
+            "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext._check_if_latest_version"
+        ),
+        mock.patch(
+            "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext._request_cloud_backend",
+            side_effect=mock_request_cloud_backend,
+        ),
+        mock.patch(
+            "great_expectations.data_context.data_context.cloud_data_context.init_analytics"
+        ) as mock_init,
+        mock.patch("posthog.capture"),
+    ):
+        # This should not raise an error for system users with no workspaces
+        gx.get_context(
+            mode="cloud",
+            cloud_base_url=mock_config["cloud_base_url"],
+            cloud_access_token=mock_config["cloud_access_token"],
+            cloud_organization_id=mock_config["cloud_organization_id"],
+            cloud_workspace_id=mock_config["cloud_workspace_id"],
+        )
+
+    # Verify analytics initialization was called with the system user's ID
+    mock_init.assert_called_once_with(
+        enable=True,
+        user_id=user_id,
+        data_context_id=mock.ANY,
+        organization_id=organization_id,
+        oss_id=mock.ANY,
+        cloud_mode=True,
+        mode="cloud",
+        user_agent_str=None,
+    )
 
 
 @pytest.mark.parametrize("initial_user_agent_str", [None, "old user agent string"])

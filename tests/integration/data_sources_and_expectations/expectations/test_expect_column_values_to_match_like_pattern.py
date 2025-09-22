@@ -195,3 +195,34 @@ def test_msql_fancy_syntax(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToMatchLikePattern with SQL."""
+    expectation = gxe.ExpectColumnValuesToMatchLikePattern(
+        column=BASIC_PATTERNS, like_pattern="%b%"
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 2 rows where BASIC_PATTERNS doesn't match pattern %b%
+    assert len(unexpected_rows_data) == 2
+
+    # Check that "def" and "ghi" appear in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    assert "def" in unexpected_rows_str
+    assert "ghi" in unexpected_rows_str

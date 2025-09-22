@@ -144,7 +144,7 @@ You can deploy the GX Agent in any environment in which you create Kubernetes cl
 4. Optional. Run the following command to use the GX Agent image as the base image and optionally add custom commands:
 
    ```bash title="Terminal input"
-   FROM greatexpectations/agent
+   FROM greatexpectations/agent:stable
    RUN echo "custom_commands"
    ```
 5. Optional. Run the following command to rebuild the Docker image:

@@ -339,6 +339,7 @@ class CloudDataContextVariables(DataContextVariables):
     ge_cloud_base_url: str = None  # type: ignore[assignment] # post_init ensures field always set
     ge_cloud_organization_id: str = None  # type: ignore[assignment] # post_init ensures field always set
     ge_cloud_access_token: str = None  # type: ignore[assignment] # post_init ensures field always set
+    ge_cloud_workspace_id: str = None  # type: ignore[assignment] # post_init ensures field always set
 
     def __post_init__(self) -> None:
         # Chetan - 20220607 - Although the above arguments are not truly optional, we are
@@ -354,10 +355,15 @@ class CloudDataContextVariables(DataContextVariables):
                 self.ge_cloud_base_url,
                 self.ge_cloud_organization_id,
                 self.ge_cloud_access_token,
+                self.ge_cloud_workspace_id,
             )
         ):
             raise ValueError(  # noqa: TRY003 # FIXME CoP
-                f"All of the following attributes are required for{self.__class__.__name__}:\n  self.ge_cloud_base_url\n  self.ge_cloud_organization_id\n  self.ge_cloud_access_token"  # noqa: E501 # FIXME CoP
+                f"All of the following attributes are required for{self.__class__.__name__}:\n"
+                "  ge_cloud_base_url\n"
+                "  ge_cloud_organization_id\n"
+                "  ge_cloud_access_token\n"
+                "  ge_cloud_workspace_id\n"
             )
 
     @override
@@ -370,6 +376,9 @@ class CloudDataContextVariables(DataContextVariables):
             GXCloudStoreBackend,
         )
 
+        # TODO: Investigate if store is ever called on any subclass of DataContextVariables.
+        # I started plumbing workspace_id into store_backend but don't think this is used.
+        # We should remove it everywhere if it is not.
         store_backend: dict = {
             "class_name": GXCloudStoreBackend.__name__,
             "ge_cloud_base_url": self.ge_cloud_base_url,
@@ -377,6 +386,7 @@ class CloudDataContextVariables(DataContextVariables):
             "ge_cloud_credentials": {
                 "access_token": self.ge_cloud_access_token,
                 "organization_id": self.ge_cloud_organization_id,
+                "workspace_id": self.ge_cloud_workspace_id,
             },
             "suppress_store_backend_id": True,
         }

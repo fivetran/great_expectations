@@ -10,6 +10,7 @@ from great_expectations.data_context import CloudDataContext
 from great_expectations.exceptions import DataContextError
 from tests.integration.cloud.rest_contracts.conftest import (
     EXISTING_ORGANIZATION_ID,
+    EXISTING_WORKSPACE_ID,
     ContractInteraction,
 )
 
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
 
 
 NON_EXISTENT_EXPECTATION_SUITE_ID: Final[str] = "6ed9a340-8469-4ee2-a300-ffbe5d09b49d"
-GET_EXPECTATION_SUITE_ID: Final[str] = "c138767f-1d62-4312-bfff-1167891ab76f"
+GET_EXPECTATION_SUITE_ID: Final[str] = "3705d38a-0eec-4bd8-9956-fdb34df924b6"
 PUT_EXPECTATION_SUITE_ID: Final[str] = "9390c24d-e8d6-4944-9411-4d0aaed14915"
 
 POST_EXPECTATION_SUITE_MIN_REQUEST_BODY: Final[PactBody] = {
@@ -61,7 +62,7 @@ GET_EXPECTATION_SUITE_MIN_RESPONSE_BODY: Final[PactBody] = {
     "data": {
         "created_by_id": pact.Format().uuid,
         "organization_id": "0ccac18e-7631-4bdd-8a42-3c35cce574c6",
-        "name": pact.Like("no_checkpoint_suite"),
+        "name": pact.Like("raw_health.critical_1a"),
         "expectations": [
             {
                 "type": "expect_column_values_to_be_between",
@@ -122,6 +123,8 @@ def test_get_expectation_suite(
         "v1",
         "organizations",
         EXISTING_ORGANIZATION_ID,
+        "workspaces",
+        EXISTING_WORKSPACE_ID,
         "expectation-suites",
     )
     status = 200
@@ -142,7 +145,7 @@ def test_get_expectation_suite(
     )
 
     with pact_test:
-        cloud_data_context.suites.get("no_checkpoint_suite")
+        cloud_data_context.suites.get("raw_health.critical_1a")
 
 
 @pytest.mark.cloud
@@ -160,6 +163,8 @@ def test_get_non_existent_expectation_suite(
         "v1",
         "organizations",
         EXISTING_ORGANIZATION_ID,
+        "workspaces",
+        EXISTING_WORKSPACE_ID,
         "expectation-suites",
     )
 
@@ -172,6 +177,7 @@ def test_get_non_existent_expectation_suite(
             method=method,
             path=str(path),
             headers=dict(gx_cloud_session.headers),
+            query={"name": "non_existent"},
         )
         .will_respond_with(
             status=status,
@@ -198,6 +204,8 @@ def test_get_expectation_suites(
         "v1",
         "organizations",
         EXISTING_ORGANIZATION_ID,
+        "workspaces",
+        EXISTING_WORKSPACE_ID,
         "expectation-suites",
     )
     status = 200
@@ -233,6 +241,8 @@ def test_get_expectation_suites(
                 "v1",
                 "organizations",
                 EXISTING_ORGANIZATION_ID,
+                "workspaces",
+                EXISTING_WORKSPACE_ID,
                 "expectation-suites",
             ),
             upon_receiving="a request to post an Expectation Suite",
@@ -273,6 +283,8 @@ def test_post_expectation_suite_request(
                 "api",
                 "v1organizations",
                 EXISTING_ORGANIZATION_ID,
+                "workspaces",
+                EXISTING_WORKSPACE_ID,
                 "expectation-suites",
                 PUT_EXPECTATION_SUITE_ID,
             ),
@@ -315,6 +327,8 @@ def test_put_expectation_suite_request(
                 "v1",
                 "organizations",
                 EXISTING_ORGANIZATION_ID,
+                "workspaces",
+                EXISTING_WORKSPACE_ID,
                 "expectation-suites",
                 NON_EXISTENT_EXPECTATION_SUITE_ID,
             ),

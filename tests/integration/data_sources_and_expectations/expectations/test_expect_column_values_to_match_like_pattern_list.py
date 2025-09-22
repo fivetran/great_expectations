@@ -262,3 +262,36 @@ def test_success_with_suite_param_match_on_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_postgres(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToMatchLikePatternList."""
+    expectation = gxe.ExpectColumnValuesToMatchLikePatternList(
+        column=BASIC_PATTERNS, like_pattern_list=["%xyz%"]
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 3 rows where BASIC_PATTERNS doesn't match like_pattern_list ["%xyz%"]
+    # (none match)
+    assert len(unexpected_rows_data) == 3
+
+    # Check that "abc", "def", and "ghi" appear in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    assert "abc" in unexpected_rows_str
+    assert "def" in unexpected_rows_str
+    assert "ghi" in unexpected_rows_str

@@ -49,6 +49,7 @@ def cloud_context_and_batch_request_with_simple_dataframe(
 
 @pytest.mark.cloud
 def test_get_metrics_table_metrics_only(
+    unset_gx_env_variables: None,
     cloud_context_and_batch_request_with_simple_dataframe: tuple[CloudDataContext, BatchRequest],
 ):
     context, batch_request = cloud_context_and_batch_request_with_simple_dataframe
@@ -107,6 +108,7 @@ def test_get_metrics_table_metrics_only(
 
 @pytest.mark.cloud
 def test_get_metrics_full_cdm(
+    unset_gx_env_variables: None,
     cloud_context_and_batch_request_with_simple_dataframe: tuple[CloudDataContext, BatchRequest],
 ):
     context, batch_request = cloud_context_and_batch_request_with_simple_dataframe
