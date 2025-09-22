@@ -10,7 +10,7 @@ This tutorial provides a working, hands-on example of how to validate unstructur
 
 ## Prerequisite Knowledge
 
-This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](/cloud/overview/gx_cloud_overview.md) and [GX Core](/core/introduction/introduction.md) overviews to familiarize yourself with key concepts and setup procedures.
+This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](/cloud/overview/gx_cloud_overview.md) and [GX Core](/core/introduction/gx_overview.md) overviews to familiarize yourself with key concepts and setup procedures.
 
 ## Prerequisites
 
