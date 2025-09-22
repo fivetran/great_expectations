@@ -7,12 +7,7 @@ description: Create and manage Actions based on the results of Validation runs.
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-import PrereqPythonInstalled from '../../core/_core_components/prerequisites/_python_installation.md';
-import PrereqGxInstalled from '../../core/_core_components/prerequisites/_gx_installation.md';
-import PrereqPreconfiguredDataContext from '../../core/_core_components/prerequisites/_preconfigured_data_context.md';
-import PrereqValidationDefinition from '../../core/_core_components/prerequisites/_validation_definition.md';
-
-Use Actions to notify the appropriate parties of the results of your Validation runs. These Actions can be triggered for either successful or failed Validation runs. Validations are executed using Checkpoints, which each have a list of Actions that will be executed when each run has finished. By default, GX Cloud creates a Checkpoint for each Data Asset that you create. Optionally, you can also use a Checkpoint that you have created manually. This example will demonstrate how to create a `SlackNotificationAction` and append it to the list of Actions on a given Checkpoint.
+Use Actions to notify the appropriate parties of the results of your Validation runs. Actions can be triggered on failure severity, Validation success, or all Validations. Validations are executed using Checkpoints, which each have a list of Actions that will be executed when each run has finished. By default, GX Cloud creates a Checkpoint for each Data Asset that you create. Optionally, you can also use a Checkpoint that you have created manually. This example will demonstrate how to create a `SlackNotificationAction` and append it to the list of Actions on a given Checkpoint.
 
 ## Prerequisites
 - A [GX Cloud account](https://greatexpectations.io/cloud).
@@ -51,6 +46,20 @@ Use Actions to notify the appropriate parties of the results of your Validation 
 
    ```python title="Python" name="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py - create a SlackNotificationAction"
    ```
+
+   In this example, `notify_on="failure"` means that the Slack notification will be triggered when the Validation Results include any [severity](/cloud/expectations/expectations_overview.md#failure-severity) of Expectation failure. Accepted values for `notify_on` are as follows:
+
+   - `all`: Always trigger the Action when Validation Results are received.
+   - `success`: Trigger the Action only when all Expectations succeed.
+   - `failure`: Trigger the Action when any Expectation fails, regardless of failure severity.
+   - `critical`: Trigger the Action when there's a critical Expectation failure. This may be an Expectation configured with critical severity or an Expectation of any severity that failed to execute. 
+   - `warning`: Trigger the Action when there's a warning-level Expectation failure and no critical failures.
+   - `info`: Trigger the Action when there's an info-level Expectation failure and no warning or critical failures. 
+
+
+   :::note The highest severity takes precedence
+   If a Validation Result includes a mix of warning and info failures, only Actions configured to notify on `warning`, `failure`, or `all` will be triggered. Any Actions configured to run on `info` will not be triggered.
+   :::
 
 4. Append the newly-created Action to the Checkpoint Action list and save the Checkpoint.
 

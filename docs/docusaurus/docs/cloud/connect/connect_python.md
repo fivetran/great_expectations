@@ -124,7 +124,7 @@ Cloud API instructions for connecting to other Data Sources such as Amazon S3, A
 
   The first Expectation uses domain knowledge (the `pickup_datetime` shouldn't be null).
 
-  The second Expectation uses explicit kwargs along with the `passenger_count` column.
+  The second Expectation uses explicit kwargs along with the `passenger_count` column. 
 
 ## Validate data
 
