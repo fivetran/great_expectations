@@ -74,6 +74,6 @@ To run a Validation for a specific Batch, do the following:
 
    :::
 
-5. Optional. Hover over a circle in the Validation timeline to view details about a specific Validation run, including the observed values.
+5. Optional. Hover over a success or [failure severity](/cloud/expectations/expectations_overview.md#failure-severity) icon in the Validation timeline to view details about a specific Validation run, including the observed values.
 
     ![Validation timeline detail](/img/view_validation_timeline_detail.png)

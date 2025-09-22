@@ -66,6 +66,7 @@ Data can be validated against individual Expectations.  This workflow is general
      # highlight-end
      "expectation_config": {
        "expectation_type": "expect_column_max_to_be_between",
+       "severity": "critical",
        "kwargs": {
          "batch_id": "2018-06_taxi",
          "column": "passenger_count",
@@ -114,6 +115,7 @@ Data can be validated against individual Expectations.  This workflow is general
      # highlight-end
      "expectation_config": {
        "expectation_type": "expect_column_max_to_be_between",
+       "severity": "critical",
        "kwargs": {
          "batch_id": "2018-06_taxi",
          "column": "passenger_count",

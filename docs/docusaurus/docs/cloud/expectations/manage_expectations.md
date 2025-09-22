@@ -25,7 +25,7 @@ This page provides instructions for working with Expectations. To learn about Ex
 4. Select a data quality issue to test for or an option for writing your own test.
 
    :::tip Options for accelerating test coverage
-   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). If you instead want to create your own rules, click **Manual**.
+   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will default to warning severity, which you can edit later. If you instead want to create your own rules, click **Manual**.
    
    If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
    :::
@@ -50,6 +50,7 @@ To accelerate test coverage, you can use ExpectAI to generate recommended Expect
 Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
+- Generated Expectations will default to warning severity, which you can edit later.
 
 To add AI-recommended Expectations:
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
@@ -111,6 +112,10 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 5. Edit the Expectation configuration.
 
 6. Click **Save**.
+
+:::note Severity changes apply going forward
+If you edit the **Severity** of an Expectation, note that historical validation results will continue to indicate the severity that was recorded at the time of an Expectation failure. The newly assigned severity will apply to future validation failures only. 
+:::
 
 ## Delete an Expectation
 
