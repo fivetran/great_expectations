@@ -56,7 +56,7 @@ touch gx_unstructured_data.py
 
 Open the Python file in your code editor of choice. 
 
-Import the libraries you will be using in this tutorial.
+Import the libraries you will be using for data validation in this tutorial.
 
 ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - import the libraries"
 ```
