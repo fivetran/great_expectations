@@ -36,7 +36,7 @@ python -m venv my_venv
 source my_venv/bin/activate
 ```
 
-Install the Python libraries that you will use in this tutorial, including the Great Expectations library.
+4. Install the Python libraries that you will use in this tutorial, including the Great Expectations library.
 
 ```bash title="Terminal input"
 pip install datasets
