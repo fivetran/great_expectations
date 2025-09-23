@@ -10,7 +10,7 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 ## Prerequisites
 
 - You have internet access and download permissions.
-- You have a [GX Cloud account](https://greatexpectations.io/cloud).
+- You have a GX Cloud user with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 ## Prepare your environment
 
@@ -29,9 +29,10 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 
     It can take several minutes for the installation to complete.
 
-## Get your user access token and organization ID
+## Get your credentials
 
-You'll need your user access token and organization ID to set your environment variables. Don't commit your access tokens to your version control software.
+You'll need your user access token and organization ID to set your environment variables. Don't commit your access token to your version control software.
+
 
 1. In GX Cloud, click **Tokens**.
 
@@ -47,33 +48,43 @@ You'll need your user access token and organization ID to set your environment v
 
 7. Copy the value in the **Organization ID** field into the temporary file with your user access token and then save the file. 
 
-    GX recommends deleting the temporary file after you set the environment variables.
+If your organization has [multiple workspaces](/cloud/access/manage_access.md#workspaces), you'll also need your workspace ID.
 
-## Set the GX Cloud Organization ID and user access token as environment variables
+1. In GX Cloud, select the relevant **Workspace**.
+2. Observe the URL in your browser and copy the first segment after `/workspaces/`. For example, if the URL is `app.greatexpectations.io/organizations/my-org/workspaces/abc123/data-health`, copy `abc123` into the temporary file with your other credentials and then save the file. 
+
+GX recommends deleting the temporary file after you set the environment variables.
+
+## Set your credentials as environment variables
 
 Environment variables securely store your GX Cloud access credentials.
 
-1. Save your **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZATION_ID** as environment variables by entering `export ENV_VAR_NAME=env_var_value` in the terminal or adding the command to your `~/.bashrc` or `~/.zshrc` file. For example:
+1. Save your credentials as **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZATION_ID** environment variables by entering `export ENV_VAR_NAME=env_var_value` in the terminal or adding the command to your `~/.bashrc` or `~/.zshrc` file. If your organization has multiple workspaces, set your **GX_CLOUD_WORKSPACE_ID** as well. For example:
 
     ```bash title="Terminal input"
     export GX_CLOUD_ACCESS_TOKEN=<user_access_token>
     export GX_CLOUD_ORGANIZATION_ID=<organization_id>
+    export GX_CLOUD_WORKSPACE_ID=<workspace_id>
     ```
 
     :::note Note
-   After you save your **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZATION_ID**, you can use Python scripts to access GX Cloud and complete other tasks. See the [API reference](/reference/index.md).
+   After you save your credentials as environment variables, you can use Python scripts to access GX Cloud and complete other tasks. See the [API reference](/reference/index.md).
     :::
 
-2. Optional. If you created a temporary file to record your user access token and Organization ID, delete it.
+2. Optional. If you created a temporary file to record your credentials, delete it. 
 
 ## Create a Data Context
 
-- Run the following Python code to create a Data Context object:
+1. Run the following Python code to create a Data Context object:
 
-    ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - get cloud context"
-    ```
-  
-    The Data Context will detect the previously set environment variables and connect to your GX Cloud account.  You can verify that you have a GX Cloud Data Context with:
+   ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - get cloud context"
+   ```
+   
+   The Data Context will detect the previously set environment variables and connect to your GX Cloud account.
+
+   If you are a member of multiple [workspaces](/cloud/access/manage_access.md#workspaces), note that you can pass a workspace ID in the `get_context` call to override the workspace ID set in your environment variables.
+   
+2. Optional. Verify that you have a GX Cloud Data Context:
 
     ```python title="Python" name="docs/docusaurus/docs/cloud/connect/connect_python.py - verify context type"
     ```
@@ -113,7 +124,7 @@ Cloud API instructions for connecting to other Data Sources such as Amazon S3, A
 
   The first Expectation uses domain knowledge (the `pickup_datetime` shouldn't be null).
 
-  The second Expectation uses explicit kwargs along with the `passenger_count` column.
+  The second Expectation uses explicit kwargs along with the `passenger_count` column. 
 
 ## Validate data
 

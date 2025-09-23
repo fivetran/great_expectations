@@ -16,7 +16,7 @@ To add a Data Asset from a new Data Source, refer to [Connect GX Cloud](/cloud/c
 
 To add a Data Asset from an existing Data Source, complete the following steps:
 
-1. In GX Cloud, click **Data Assets** > **New Data Asset**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets** > **New Data Asset**.
 
 2. In the **Existing Data Source** tab, select the relevant Data Source.
 
@@ -24,7 +24,7 @@ To add a Data Asset from an existing Data Source, complete the following steps:
 
 4. Click **Add x Asset(s)**.
 
-5. Decide which [Anomaly Detection](/docs/cloud/overview/accelerating_test_coverage.md#anomaly-detection) options you want to enable. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
+5. Decide which [Anomaly Detection](/docs/cloud/overview/accelerating_test_coverage.md#anomaly-detection) options you want to enable. By default, GX Cloud adds [warning-severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
 
 6. Click **Start monitoring** or **Finish**.
 
@@ -34,7 +34,7 @@ Then you can [add an Expectation](/cloud/expectations/manage_expectations.md#add
 
 Data Asset metrics provide you with insight into the data you can use for your data validations. When you create a new Data Asset, schema data is automatically fetched.
 
-1. In GX Cloud, click **Data Assets** and then select a Data Asset in the **Data Assets** list.
+1. In GX Cloud, select the relevant **Workspace**, click **Data Assets**, and then select a Data Asset in the **Data Assets** list.
 
 2. Click the **Metrics** tab.
 
@@ -62,7 +62,7 @@ The following table lists the available Data Asset metrics.
 ## Delete a Data Asset
 
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 2. In the Data Assets list, click **Delete Data Asset** for the Data Asset you want to remove.
 3. Review the warning and click **Delete** to confirm.
 
@@ -71,7 +71,7 @@ The following table lists the available Data Asset metrics.
 Edit Data Source settings to update Data Source connection information or access credentials. You can only edit the settings of Data Sources created in GX Cloud.
 
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. Click **Manage Data Sources**.
 
@@ -105,3 +105,13 @@ To connect to your Data Source in GX Cloud, there are two methods for managing c
    When running the GX Agent in another container-based service, including Kubernetes, ECS, ACI, and GCE, use the service's instructions to set and provide environment variables to the running container.
 
    When using environment variable substitution in a read-only deployment, set the environment variable in the environment where the GX Cloud API Python client is running.
+
+## View GX Cloud logs
+
+If you encounter an issue performing a GX Cloud task, review log information to troubleshoot the cause and determine a fix.
+
+1. In GX Cloud, select the relevant **Workspace** and then click **Logs**.
+
+2. Click **Show log** next to a log entry to display additional log details.
+
+3. Optional. Click **Hide log** to close the log details view.

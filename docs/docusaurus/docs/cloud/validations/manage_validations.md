@@ -18,7 +18,7 @@ To run a validation for an [API-managed Expectation](/cloud/expectations/expecta
 
 ## Run a Validation
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. Click a Data Asset in the **Data Assets** list.
 
@@ -26,7 +26,7 @@ To run a validation for an [API-managed Expectation](/cloud/expectations/expecta
 
 4. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
-5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your organization.
+5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
 
 ## Run a Validation on a subset of a Data Asset
 
@@ -34,7 +34,7 @@ If you've [defined a Batch](/cloud/expectations/manage_expectations.md#optional-
 
 To run a Validation for a specific Batch, do the following:
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. Click a Data Asset in the **Data Assets** list.
 
@@ -50,11 +50,11 @@ To run a Validation for a specific Batch, do the following:
 
 6. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
-7. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your organization.
+7. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
 
 ## View Validation run history
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. Click a Data Asset in the **Data Assets** list.
 
@@ -74,6 +74,6 @@ To run a Validation for a specific Batch, do the following:
 
    :::
 
-5. Optional. Hover over a circle in the Validation timeline to view details about a specific Validation run, including the observed values.
+5. Optional. Hover over a success or [failure severity](/cloud/expectations/expectations_overview.md#failure-severity) icon in the Validation timeline to view details about a specific Validation run, including the observed values.
 
-    ![Validation timeline detail](/img/view_validation_timeline_detail.png)
+    ![Provided details are: success, severity, run time, batch interval, batch column, batch name, and observed value.](/img/view_validation_timeline_detail.png)

@@ -22,10 +22,12 @@ import great_expectations.expectations as gxe
 suite_name = "my_suite"
 suite = gx.ExpectationSuite(name=suite_name)
 
-suite.add_expectation(gxe.ExpectColumnValuesToNotBeNull(column="pickup_datetime"))
+suite.add_expectation(
+    gxe.ExpectColumnValuesToNotBeNull(column="pickup_datetime", severity="warning")
+)
 suite.add_expectation(
     gxe.ExpectColumnValuesToBeBetween(
-        column="passenger_count", min_value=1, max_value=6
+        column="passenger_count", min_value=1, max_value=6, severity="info"
     )
 )
 # </snippet>

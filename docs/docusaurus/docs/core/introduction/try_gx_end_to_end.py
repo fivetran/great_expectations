@@ -40,11 +40,13 @@ suite = context.suites.add(
 )
 suite.add_expectation(
     gx.expectations.ExpectColumnValuesToBeBetween(
-        column="passenger_count", min_value=1, max_value=6
+        column="passenger_count", min_value=1, max_value=6, severity="warning"
     )
 )
 suite.add_expectation(
-    gx.expectations.ExpectColumnValuesToBeBetween(column="fare_amount", min_value=0)
+    gx.expectations.ExpectColumnValuesToBeBetween(
+        column="fare_amount", min_value=0, severity="critical"
+    )
 )
 # </snippet>
 
@@ -95,8 +97,9 @@ end_to_end_output = """
             },
             "expectations": [
                 {
-                    "expectation_type": "expect_column_values_to_be_between",
+                    "type": "expect_column_values_to_be_between",
                     "success": true,
+                    "severity": "warning",
                     "kwargs": {
                         "batch_id": "postgres db-taxi data",
                         "column": "passenger_count",
@@ -116,8 +119,9 @@ end_to_end_output = """
                     }
                 },
                 {
-                    "expectation_type": "expect_column_values_to_be_between",
+                    "type": "expect_column_values_to_be_between",
                     "success": false,
+                    "severity": "critical",
                     "kwargs": {
                         "batch_id": "postgres db-taxi data",
                         "column": "fare_amount",

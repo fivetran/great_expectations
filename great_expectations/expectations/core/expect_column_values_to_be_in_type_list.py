@@ -24,7 +24,10 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
-from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
+from great_expectations.expectations.model_field_descriptions import (
+    COLUMN_DESCRIPTION,
+    FAILURE_SEVERITY_DESCRIPTION,
+)
 from great_expectations.expectations.registry import get_metric_kwargs
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -113,6 +116,9 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         meta (dict or None): \
             A JSON-serializable dictionary (nesting allowed) that will be included in the output without \
             modification. For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
@@ -463,14 +469,24 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             GXSqlDialect.DATABRICKS,
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
+            GXSqlDialect.TRINO,
         ]:
-            success = isinstance(actual_column_type, str) and any(
-                actual_column_type.lower() == expected_type.lower()
-                for expected_type in expected_types_list
-            )
+            if isinstance(actual_column_type, str):
+                success = any(
+                    actual_column_type.lower() == expected_type.lower()
+                    for expected_type in expected_types_list
+                )
+                ret_type = actual_column_type
+            else:
+                ret_type = type(actual_column_type).__name__
+                success = any(
+                    ret_type.lower() == expected_type.lower()
+                    for expected_type in expected_types_list
+                )
+
             return {
                 "success": success,
-                "result": {"observed_value": actual_column_type},
+                "result": {"observed_value": ret_type},
             }
         else:
             types = []
