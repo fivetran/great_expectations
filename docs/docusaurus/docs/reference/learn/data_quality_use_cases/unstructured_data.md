@@ -29,7 +29,7 @@ brew install poppler
 brew install tesseract
 ```
 
-Optional. Create a Python virtual environment and start it.
+3. Optional. Create a Python virtual environment and start it.
 
 ```bash title="Terminal input"
 python -m venv my_venv
