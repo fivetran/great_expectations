@@ -24,26 +24,26 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 2. Install [poppler](https://poppler.freedesktop.org/) and [tesseract](https://github.com/tesseract-ocr/tesseract). Poppler is a PDF rendering library that this tutorial uses to read the PDFs. Tesseract is an open source OCR engine that this tutorial uses to perfrom OCR on the PDFs.
 
-```bash title="Terminal input"
-brew install poppler
-brew install tesseract
-```
+   ```bash title="Terminal input"
+   brew install poppler
+   brew install tesseract
+   ```
 
 3. Optional. Create a Python virtual environment and start it.
 
-```bash title="Terminal input"
-python -m venv my_venv
-source my_venv/bin/activate
-```
+   ```bash title="Terminal input"
+   python -m venv my_venv
+   source my_venv/bin/activate
+   ```
 
 4. Install the Python libraries that you will use in this tutorial, including the Great Expectations library.
 
-```bash title="Terminal input"
-pip install datasets
-pip install pdf2image
-pip install pytesseract
-pip install great_expectations
-```
+   ```bash title="Terminal input"
+   pip install datasets
+   pip install pdf2image
+   pip install pytesseract
+   pip install great_expectations
+   ```
 
 ## Import the required Python libraries
 
