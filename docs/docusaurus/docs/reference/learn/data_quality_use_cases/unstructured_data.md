@@ -50,16 +50,16 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 Create the Python file for this project.
 
-```bash title="Terminal input"
-touch gx_unstructured_data.py
-```
+   ```bash title="Terminal input"
+   touch gx_unstructured_data.py
+   ```
 
 Open the Python file in your code editor of choice. 
 
 Import the libraries you will be using for data validation in this tutorial.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - import the libraries"
-```
+   ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - import the libraries"
+   ```
 
 ## Load the dataset and convert it into a dataframe
 
@@ -67,47 +67,47 @@ This tutorial uses an [open source dataset of PDFs from Hugging Face](https://hu
 
 Load the dataset.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - load the dataset"
-```
+   ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - load the dataset"
+   ```
 
 Iterate through the PDFs, converting the first page into an image before running OCR and storing the metrics.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - iterate through the data"
-```
+   ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data_process_files.py - iterate through the data"
+   ```
 
 Convert the metrics into a dataframe for validation.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - convert the data into a dataframe"
-```
+   ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - convert the data into a dataframe"
+   ```
 
 ## Connect to GX Cloud and define Expectations
 In this tutorial, you will connect to your GX Cloud organization using the GX Cloud API. You will either get or create a pandas Data Source and a dataframe Data Asset. Batch Definitions both organize a Data Asset's records into Batches and provide a method for retrieving those records. The Batch Definition in this tutorial will use the whole dataframe that you created in the previous step.
 
 Instantiate the GX Data Context and get or create the Data Source, Data Asset, and Batch Definition.
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the GX entities"
-```
+   ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the GX entities"
+   ```
 
 Get or create an Expectation Suite and create Expectations to validate the metrics generated from the PDFs. This tutorial utilizes the `ExpectColumnValuesToBeBetween` Expectation in order to validate that the metrics we stored in the dataframe meet our parameters. You can also try using different Expectations or value ranges.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the expectation suite"
-```
+   ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the expectation suite"
+   ```
 
 ## Validate your Expectations
 GX uses a Validation Definition to link a Batch Definition and Expectation Suite. A Checkpoint will be used to execute Validations. The results of the Validations can be later viewed through the GX Cloud UI.
 
-```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the vd and run the checkpoint"
-```
+   ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the vd and run the checkpoint"
+   ```
 
 ## Review the results
 Now that you have set up the Data Source, Data Asset, Expectations, and have run the Checkpoint, the Validation Results can be viewed in the GX Cloud UI. 
 
 Log in to GX Cloud, navigate to the **Data Assets** page, and find the `OCR Results` Data Asset that we used earlier in the tutorial.
 
-![The Data Assets page lists all of the Data Assets that have been created. The list can be filtered by using the search function.](./unstructured_data/unstructured_data_data_assets.png)
+   ![The Data Assets page lists all of the Data Assets that have been created. The list can be filtered by using the search function.](./unstructured_data/unstructured_data_data_assets.png)
 
 Click into the Data Asset and then to the **Validations** tab. Under **Expectation Suites**, select the `OCR Metrics Suite` suite that you created above, and then under **Batches & run history**, select the Validation you just ran.
 
-![Data Assets can have multiple Expectation Suites. Each Expectation Suite may have many Validation Results.](./unstructured_data/unstructured_data_validation_results.png)
+   ![Data Assets can have multiple Expectation Suites. Each Expectation Suite may have many Validation Results.](./unstructured_data/unstructured_data_validation_results.png)
 
 ## The path forward
 Using this tutorial as a framework, you can try plugging in your own unstructured data, as well as add other Expectations from the [Expectation Gallery](https://greatexpectations.io/expectations) to the Expectation Suite. You can also explore validating your unstructured data [within a data pipeline](/reference/learn/integrations/data_pipeline_tutorial.md) by using this code with an orchestrator.
