@@ -58,7 +58,7 @@ except gxexceptions.DataContextError:
     suite.save()
 # </snippet>
 
-# <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the vd and run the checkpoint">
+# <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the vd">
 try:
     vd = context.validation_definitions.get("OCR Results VD")
 except gxexceptions.DataContextError:
@@ -66,6 +66,8 @@ except gxexceptions.DataContextError:
         data=batch_definition, suite=suite, name="OCR Results VD"
     )
     context.validation_definitions.add(vd)
+# </snippet>
+# <snippet name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create and run the checkpoint">
 try:
     checkpoint = context.checkpoints.get("OCR Checkpoint")
 except gxexceptions.DataContextError:
