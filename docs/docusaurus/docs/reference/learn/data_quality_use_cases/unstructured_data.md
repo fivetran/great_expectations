@@ -104,7 +104,7 @@ Log in to GX Cloud, navigate to the **Data Assets** page, and find the `OCR Resu
 
 ![The Data Assets page lists all of the Data Assets that have been created. The list can be filtered by using the search function.](./unstructured_data/unstructured_data_data_assets.png)
 
-Click into the Data Asset and then to the **Validations** tab. Under **Expectation Suites**, select the `OCR Confidence` suite that you created above, and then under **Batches & run history**, select the Validation you just ran.
+Click into the Data Asset and then to the **Validations** tab. Under **Expectation Suites**, select the `OCR Metrics Suite` suite that you created above, and then under **Batches & run history**, select the Validation you just ran.
 
 ![Data Assets can have multiple Expectation Suites. Each Expectation Suite may have many Validation Results.](./unstructured_data/unstructured_data_validation_results.png)
 
