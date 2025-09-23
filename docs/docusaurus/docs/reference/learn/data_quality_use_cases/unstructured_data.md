@@ -20,7 +20,7 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 ## Install dependencies
 
-Open a terminal window and navigate to the folder you want to use for this tutorial.
+1. Open a terminal window and navigate to the folder you want to use for this tutorial.
 
 2. Install [poppler](https://poppler.freedesktop.org/) and [tesseract](https://github.com/tesseract-ocr/tesseract). Poppler is a PDF rendering library that this tutorial uses to read the PDFs. Tesseract is an open source OCR engine that this tutorial uses to perfrom OCR on the PDFs.
 
