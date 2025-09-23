@@ -8,7 +8,7 @@ Enterprise data often consists of large amounts of unstructured data such as PDF
 
 This tutorial provides a working, hands-on example of how to validate unstructured data using sample PDF data and GX Cloud. An OCR process on a PDF doesn't just extract text; it produces metadata like confidence scores, and word counts. GX Cloud allows you to set up data quality checks on this metadata to maximize the confidence in your unstructured data, all while allowing your collaborators to view the results. 
 
-## Prerequisite Knowledge
+## Prerequisite knowledge
 
 This article assumes basic familiarity with GX components and workflows. If you're new to GX, start with the [GX Cloud](/cloud/overview/gx_cloud_overview.md) and [GX Core](/core/introduction/gx_overview.md) overviews to familiarize yourself with key concepts and setup procedures.
 
