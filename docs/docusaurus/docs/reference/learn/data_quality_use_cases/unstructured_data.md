@@ -1,7 +1,7 @@
 ---
 sidebar_label: 'Unstructured data'
 title: 'Validate unstructured data with GX Cloud'
-description: 'Learn how to validate metadata from scanned PDFs using GX Cloud'
+description: 'Learn how to validate metadata from scanned PDFs using GX Cloud.'
 ---
 
 Enterprise data often consists of large amounts of unstructured data such as PDFs, images, emails, and sensor logs, but many often find it difficult to validate the quality of it. Data quality issues related to unstructured data can often go unnoticed, leading to downstream problems. For example, an AI model may be compromised if duplicate documents and failed OCR (Optical Character Recognition) do not get immediately flagged, leading to poor outputs.
