@@ -39,6 +39,7 @@ This article assumes basic familiarity with GX components and workflows. If you'
 4. Install the Python libraries that you will use in this tutorial, including the Great Expectations library.
 
    ```bash title="Terminal input"
+   pip install pandas
    pip install datasets
    pip install pdf2image
    pip install pytesseract
