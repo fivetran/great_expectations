@@ -15,6 +15,14 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.6.3
+* [DOCS] severity tagging ([#11354](https://github.com/great-expectations/great_expectations/pull/11354))
+* [DOCS] severity screenshots ([#11394](https://github.com/great-expectations/great_expectations/pull/11394))
+* [DOCS] integration point diagrams ([#11391](https://github.com/great-expectations/great_expectations/pull/11391))
+* [DOCS] Create a tutorial for how to validate unstructured data in GX Cloud ([#11380](https://github.com/great-expectations/great_expectations/pull/11380))
+* [MAINTENANCE] Update databricks cleanup to clean more ([#11398](https://github.com/great-expectations/great_expectations/pull/11398))
+* [MAINTENANCE] add column.non_null_count to MetricTypes ([#11397](https://github.com/great-expectations/great_expectations/pull/11397))
+
 ### 1.6.2
 * [BUGFIX] Fix ExpectColumnValuesToBeInTypeList for Trino ([#11386](https://github.com/great-expectations/great_expectations/pull/11386))
 * [DOCS] workspaces ([#11366](https://github.com/great-expectations/great_expectations/pull/11366))
