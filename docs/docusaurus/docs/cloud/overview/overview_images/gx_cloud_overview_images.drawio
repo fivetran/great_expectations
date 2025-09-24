@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" version="28.0.6" pages="3">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" version="28.0.7" pages="3">
   <diagram name="workflows" id="D7wG57QJHLXb0QdnoCGA">
-    <mxGraphModel dx="1988" dy="1146" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="850" math="0" shadow="0">
+    <mxGraphModel dx="756" dy="1086" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="850" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -145,7 +145,7 @@
         <mxCell id="MKeaaogaEU1yrKxKLzHu-28" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=#3fa298;fontStyle=0;sketch=1;curveFitting=1;jiggle=2;fillColor=none;" parent="1" vertex="1">
           <mxGeometry x="867.05" y="710" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="MKeaaogaEU1yrKxKLzHu-31" value="Invite users to&lt;br&gt;your GX Cloud organization" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=none;fontStyle=0;fillColor=#aae1da;" parent="1" vertex="1">
+        <mxCell id="MKeaaogaEU1yrKxKLzHu-31" value="Invite users to&lt;br&gt;GX Cloud" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=none;fontStyle=0;fillColor=#aae1da;" parent="1" vertex="1">
           <mxGeometry x="20" y="520" width="140" height="160" as="geometry" />
         </mxCell>
         <mxCell id="MKeaaogaEU1yrKxKLzHu-30" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=#3fa298;fontStyle=0;sketch=1;curveFitting=1;jiggle=2;fillColor=none;" parent="1" vertex="1">
@@ -194,13 +194,13 @@
         <mxCell id="MKeaaogaEU1yrKxKLzHu-25" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=#3fa298;fontStyle=0;sketch=1;curveFitting=1;jiggle=2;fillColor=none;" parent="1" vertex="1">
           <mxGeometry x="360.0000000000001" y="406" width="120.33" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="E0XAUHxMH6ZJafoZsSiE-5" value="Monitor&lt;br&gt;Data Health" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=none;fontStyle=0;fillColor=#aae1da;" vertex="1" parent="1">
+        <mxCell id="E0XAUHxMH6ZJafoZsSiE-5" value="Monitor&lt;br&gt;Data Health" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=none;fontStyle=0;fillColor=#aae1da;" parent="1" vertex="1">
           <mxGeometry x="1130" y="520" width="140" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="E0XAUHxMH6ZJafoZsSiE-4" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=#3fa298;fontStyle=0;sketch=1;curveFitting=1;jiggle=2;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="E0XAUHxMH6ZJafoZsSiE-4" value="" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;strokeWidth=3;strokeColor=#3fa298;fontStyle=0;sketch=1;curveFitting=1;jiggle=2;fillColor=none;" parent="1" vertex="1">
           <mxGeometry x="1130" y="520" width="140" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="E0XAUHxMH6ZJafoZsSiE-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#404041;fontSize=16;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="E0XAUHxMH6ZJafoZsSiE-4">
+        <mxCell id="E0XAUHxMH6ZJafoZsSiE-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#404041;fontSize=16;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="E0XAUHxMH6ZJafoZsSiE-4" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1090" y="600" as="sourcePoint" />
             <mxPoint x="980" y="700" as="targetPoint" />

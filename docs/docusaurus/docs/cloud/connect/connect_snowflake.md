@@ -9,7 +9,7 @@ import Tabs from '@theme/Tabs';
 
 ## Prerequisites
 
-- You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Admin or Editor permissions](/cloud/users/manage_users.md#roles-and-responsibilities).
+- You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 
 - You have a Snowflake database, schema, and table or view.
 
@@ -74,7 +74,7 @@ To connect to a Snowflake Data Source using key-pair authentication instead of a
 Then, you can use the GX Cloud UI to [add a Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) from that Data Source.
 :::
 
-1. In GX Cloud, click **Data Assets** > **New Data Asset** > **New Data Source** > **Snowflake**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets** > **New Data Asset** > **New Data Source** > **Snowflake**.
 
 2. Enter a meaningful name for the Data Source in the **Data Source name** field.
 
@@ -112,7 +112,7 @@ Then, you can use the GX Cloud UI to [add a Data Asset](/cloud/data_assets/manag
 
 7. Click **Add x Asset(s)**.
 
-8. Decide which [Anomaly Detection](/docs/cloud/overview/accelerating_test_coverage.md#anomaly-detection) options you want to enable. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
+8. Decide which [Anomaly Detection](/docs/cloud/overview/accelerating_test_coverage.md#anomaly-detection) options you want to enable. By default, GX Cloud adds [warning-severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
 
 9. Click **Start monitoring** or **Finish**.
 

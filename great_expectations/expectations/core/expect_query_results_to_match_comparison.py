@@ -17,7 +17,10 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
-from great_expectations.expectations.model_field_descriptions import MOSTLY_DESCRIPTION
+from great_expectations.expectations.model_field_descriptions import (
+    FAILURE_SEVERITY_DESCRIPTION,
+    MOSTLY_DESCRIPTION,
+)
 from great_expectations.expectations.model_field_types import (
     MostlyField,  # noqa: TC001  # pydantic needs the actual type
 )
@@ -110,6 +113,11 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         comparison_data_source_name (str): {COMPARISON_DATA_SOURCE_NAME_DESCRIPTION}
         comparison_query (str): {COMPARISON_QUERY_DESCRIPTION}
         mostly (float): {MOSTLY_DESCRIPTION}
+
+    Other Parameters:
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)

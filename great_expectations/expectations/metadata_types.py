@@ -36,7 +36,7 @@ class SupportedDataSources(str, Enum):
 
 
 class FailureSeverity(str, Enum):
-    """Severity levels for expectation failures."""
+    """Severity levels for Expectation failures."""
 
     CRITICAL = "critical"
     WARNING = "warning"

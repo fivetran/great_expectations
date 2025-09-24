@@ -215,8 +215,8 @@ module.exports = {
     },
     {
       type: 'doc',
-      label: 'Manage users and access tokens',
-      id: 'cloud/users/manage_users'
+      label: 'Manage access',
+      id: 'cloud/access/manage_access'
     },
     {
       type: 'link',
@@ -254,7 +254,8 @@ module.exports = {
         'reference/learn/data_quality_use_cases/missingness',
         'reference/learn/data_quality_use_cases/schema',
         'reference/learn/data_quality_use_cases/uniqueness',
-        'reference/learn/data_quality_use_cases/volume'
+        'reference/learn/data_quality_use_cases/volume',
+        'reference/learn/data_quality_use_cases/unstructured_data'
       ]
     },
     {

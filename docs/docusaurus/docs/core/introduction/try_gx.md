@@ -99,14 +99,14 @@ Run the following steps in a Python interpreter, IDE, notebook, or script.
 
 5. Create an Expectation.
 
-   Expectations are a fundamental component of GX.  They allow you to explicitly define the state to which your data should conform.
+   Expectations are a fundamental component of GX. They allow you to explicitly define the state to which your data should conform and the [severity](/core/define_expectations/create_an_expectation.md#severity) of the impact to your business if data fails to conform.
 
-   Run the following code to define an Expectation that the contents of the column `passenger_count` consist of values ranging from `1` to `6`:
+   Run the following code to define a warning-level Expectation that the contents of the column `passenger_count` consist of values ranging from `1` to `6`:
 
    ```python title="Python input" name="docs/docusaurus/docs/core/introduction/try_gx_exploratory.py create expectation"
    ```
 
-6. Run the following code to validate the sample data against your Expectation and view the results:
+6. Run the following code to validate the sample data against your Expectation and view the results: 
 
    ```python title="Python input" name="docs/docusaurus/docs/core/introduction/try_gx_exploratory.py validate batch"
    ```
@@ -168,9 +168,9 @@ Run the following steps in a Python interpreter, IDE, notebook, or script.
 
 4. Create an Expectation Suite.
 
-   Expectations are a fundamental component of GX.  They allow you to explicitly define the state to which your data should conform. Expectation Suites are collections of Expectations.
+   Expectations are a fundamental component of GX. They allow you to explicitly define the state to which your data should conform and the [severity](/core/define_expectations/create_an_expectation.md#severity) of the impact to your business if data fails to conform. Expectation Suites are collections of Expectations.
 
-   Run the following code to define an Expectation Suite containing two Expectations. The first Expectation expects that the column `passenger_count` consists of values ranging from `1` to `6`, and the second expects that the column `fare_amount` contains non-negative values.
+   Run the following code to define an Expectation Suite containing two Expectations. The first is a warning-level Expectation that the column `passenger_count` consists of values ranging from `1` to `6`, and the second is a critical-level Expectation that the column `fare_amount` contains non-negative values.
 
    ```python title="Python input" name="docs/docusaurus/docs/core/introduction/try_gx_end_to_end.py create expectation suite"
    ```
@@ -189,7 +189,7 @@ Run the following steps in a Python interpreter, IDE, notebook, or script.
 
    The returned results reflect the passing of one Expectation and the failure of one Expectation.
 
-   When an Expectation fails, the Validation Results of the failed Expectation include metrics to help you assess the severity of the issue:
+   When an Expectation fails, the Validation Results of the failed Expectation include metrics to help you assess the scope of the issue:
 
    ```python title="Python input" name="docs/docusaurus/docs/core/introduction/try_gx_end_to_end.py checkpoint result"
    ```
