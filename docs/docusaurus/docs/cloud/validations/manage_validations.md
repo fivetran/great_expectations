@@ -219,7 +219,7 @@ Create a Validation Definition
 Optional. Create a Checkpoint (lets you trigger actions)
 </TabItem>
 
-/Tabs>
+</Tabs>
 
 
 #### Validate a Batch
