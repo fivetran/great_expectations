@@ -84,21 +84,6 @@ Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
 - The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
 
-
-## Optional. Define a Batch
-
-If your Data Asset has at least one DATE or DATETIME column, you can define a Batch to validate your data incrementally.
-
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
-
-2. In the **Data Assets** list, click the Data Asset name.
-
-3. Next to the current batch configuration, click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit batch**.
-
-4. Choose how to **Validate by**. Select the **Entire Asset** tab to provide all Data Asset records to your Expectations and validations, or select one of the **Year**/**Month**/**Day** tabs to use subsets of Data Asset records for your Expectations and validations. **Year** partitions Data Asset records by year, **Month** partitions Data Asset records by year and month, **Day** partitions Data Asset records by year, month, and day.
-
-5. Select the **Batch column** that contains the DATE or DATETIME data to partition on.
-
 ## Edit an Expectation
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
