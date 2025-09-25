@@ -4,19 +4,35 @@ title: 'Manage Validations'
 description: Create and manage Validations in GX Cloud.
 ---
 
-You can manually run a Validation using the GX Cloud UI. This is useful for exploring your data and fine-tuning your Expectations. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/cloud/connect/connect_airflow.md).
+import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs';
 
-:::tip Manual validations are for GX-managed Expectations only
-To run a validation for an [API-managed Expectation](/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations), use the GX Cloud UI to generate the necessary code. For the Data Asset of interest, go to the **Validations** tab, select the **Expectation Suite** that contains your API-managed Expectation, click the code snippet icon next to the **Validate** button, and then click **Generate snippet**.
-:::
+You can manually run a Validation to explore your data and fine-tune your Expectations. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/cloud/connect/connect_airflow.md).
 
-<!-- [//]: # (TODO: To learn more about Validations, see Validator.) -->
 
-## Prerequisites
+Options for manual Validations depend on whether you are validating [GX-managed or API-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations.)
 
-- You have created an [Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+- GX-managed Expectations can be validated with the GX Cloud UI or API
+- API-managed Expectations can be validated with the GX Cloud API only. 
 
-## Run a Validation
+## Validate GX-managed Expectations
+
+<Tabs 
+   queryString="interface"
+   defaultValue="ui"
+   values={[
+      {value: 'ui', label: 'UI'},
+      {value: 'api', label: 'API'}
+   ]}
+>
+
+<TabItem value="ui" label="UI">
+
+### Prerequisites
+
+- You have created a [GX-managed Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation).
+
+### Run a Validation
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -27,6 +43,8 @@ To run a validation for an [API-managed Expectation](/cloud/expectations/expecta
 4. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
 5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
+
+### Run a Validation on a subset of a Data Asset
 
 ## Run a Validation on a subset of a Data Asset
 
@@ -51,6 +69,19 @@ To run a Validation for a specific Batch, do the following:
 6. When the confirmation message appears, click **See results**, or click the **Validations** tab and select the Validation in the **Batches & run history** pane.
 
 7. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
+
+</TabItem>
+
+<TabItem value="api" label="API">
+
+</TabItem>
+
+</Tabs>
+
+----------
+OLD CONTENT BELOW HERE
+
+
 
 ## View Validation run history
 
