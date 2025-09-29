@@ -112,7 +112,7 @@ class MetricListMetricRetriever(MetricRetriever):
             Sequence[Metric]: List of metrics for non-numeric columns.
         """
         # currently only the null-count is supported. If more metrics are added, this set will need to be updated.  # noqa: E501 # FIXME CoP
-        column_metric_names = {MetricTypes.COLUMN_NULL_COUNT}
+        column_metric_names = {MetricTypes.COLUMN_NON_NULL_COUNT}
         metrics: list[Metric] = []
         metrics_list_as_set = set(metrics_list)
         metrics_to_calculate = sorted(column_metric_names.intersection(metrics_list_as_set))
@@ -246,5 +246,6 @@ class MetricListMetricRetriever(MetricRetriever):
             MetricTypes.COLUMN_MEDIAN,
             MetricTypes.COLUMN_MEAN,
             MetricTypes.COLUMN_NULL_COUNT,
+            MetricTypes.COLUMN_NON_NULL_COUNT,
         ]
         return any(metric in metric_list for metric in column_metrics)

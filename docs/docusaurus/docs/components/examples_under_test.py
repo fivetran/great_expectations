@@ -667,6 +667,14 @@ learn_data_quality_use_cases = [
         util_script="tests/test_utils.py",
         backend_dependencies=[BackendDependencies.POSTGRESQL],
     ),
+    # Unstructured data.
+    IntegrationTestFixture(
+        name="unstructured_data",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[],
+    ),
 ]
 
 cloud_s3 = [

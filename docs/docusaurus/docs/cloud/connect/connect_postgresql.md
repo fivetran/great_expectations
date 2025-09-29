@@ -60,7 +60,7 @@ import Tabs from '@theme/Tabs';
 
 6. Click **Add x Asset(s)**.
 
-7. Decide which [Anomaly Detection](/docs/cloud/overview/accelerating_test_coverage.md#anomaly-detection) options you want to enable. By default, GX Cloud adds Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
+7. Decide which [Anomaly Detection](/docs/cloud/overview/accelerating_test_coverage.md#anomaly-detection) options you want to enable. By default, GX Cloud adds [warning-severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) Expectations to detect **Schema**, **Volume**, and **Completeness** anomalies. You can de-select recommendations you’d like to opt out of.
 
 8. Click **Start monitoring** or **Finish**.
 

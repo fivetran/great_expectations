@@ -8,7 +8,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-SCHEMA_PATTERN = "test_[a-z]{10}"
+# Schema patterns for different test types
+SCHEMA_PATTERN_10_CHAR = "test_[a-z]{10}"  # General SQL testing framework
+SCHEMA_PATTERN_8_CHAR = "test_[a-f0-9]{8}"  # Databricks-specificit tests
+SCHEMA_PATTERN = f"{SCHEMA_PATTERN_10_CHAR}|{SCHEMA_PATTERN_8_CHAR}"
+
 CATALOG_NAME = "ci"
 
 

@@ -40,7 +40,7 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
 
 2. Determine the Actions that the Checkpoint will automate.
 
-   After a Checkpoint receives Validation Results from running a Validation Definition, it executes a list of Actions. The returned Validation Results determine what task is performed for each Action. Actions can include updating Data Docs with the new Validation Results, sending alerts when validations fail, or your own [custom logic](/core/trigger_actions_based_on_results/create_a_custom_action.md). The Actions list is executed once for each Validation Definition in a Checkpoint.
+   After a Checkpoint receives Validation Results from running a Validation Definition, it executes a list of Actions. The returned Validation Results determine what task is performed for each Action. Actions can include updating Data Docs with the new Validation Results, sending different notifications for different failure severities, or your own [custom logic](/core/trigger_actions_based_on_results/create_a_custom_action.md). The Actions list is executed once for each Validation Definition in a Checkpoint.
 
    Actions can be found in the `great_expectations.checkpoint` module.  All Action class names end with `*Action`.
 
@@ -51,7 +51,21 @@ A Checkpoint executes one or more Validation Definitions and then performs a set
 
    In the above example, string substitution is used to pull the value of `slack_token` from an environment variable.  For more information on securely storing credentials and access tokens see [Configure credentials](/core/configure_project_settings/configure_credentials/configure_credentials.md).
 
-   If the list of Actions for a Checkpoint is empty, the Checkpoint can still run. Its Validation Results are saved to the Data Context, but no tasks are executed.
+
+   In this example, `notify_on="failure"` means that the Slack notification will be triggered when the Validation Results include any [severity](/core/define_expectations/create_an_expectation.md#severity) of Expectation failure. Accepted values for `notify_on` are as follows:
+   
+   - `all`: Always trigger the Action when Validation Results are received.
+   - `success`: Trigger the Action only when all Expectations succeed.
+   - `failure`: Trigger the Action when any Expectation fails, regardless of failure severity.
+   - `critical`: Trigger the Action when there's a critical Expectation failure. This may be an Expectation configured with critical severity or an Expectation of any severity that failed to execute. 
+   - `warning`: Trigger the Action when there's a warning-level Expectation failure and no critical failures.
+   - `info`: Trigger the Action when there's an info-level Expectation failure and no warning or critical failures. 
+
+ 
+   :::note The highest severity takes precedence
+   If a Validation Result includes a mix of warning and info failures, only Actions configured to notify on `warning`, `failure`, or `all` will be triggered. Any Actions configured to run on `info` will not be triggered.
+   :::
+
 
 3. Optional. Choose the Result Format
 
