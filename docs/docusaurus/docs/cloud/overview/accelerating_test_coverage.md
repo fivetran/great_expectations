@@ -9,7 +9,7 @@ GX Cloud provides several conveniences to help you more quickly achieve test cov
 - Generating [personalized AI-recommended rules](#personalized-ai-recommended-rules).
 - Generating [code for custom SQL Expectations](#code-for-custom-sql-expectations). 
 
-::: Data Source support
+:::note Data Source support
 Some options aren't supported for some Data Sources. See [Data Source limitations](/docs/cloud/data_sources/manage_data_sources.md#data-source-limitations) for details.
 :::
 
