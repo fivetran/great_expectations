@@ -635,7 +635,8 @@ jobs:
       fail-fast: false
       matrix:
         markers:
-          - athena or openpyxl or pyarrow or project or sqlite or aws_creds
+          - openpyxl or pyarrow or project or sqlite or aws_creds
+          - athena
           - aws_deps
           - big
           - bigquery
