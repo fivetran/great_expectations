@@ -23,12 +23,13 @@ To connect to the following data locations, you must use the GX Cloud API. These
 All of these Data Sources have the following limitations, regardless of your GX Cloud [deployment pattern](/docs/cloud/deploy/deployment_patterns):
 - The Data Source configuration cannot be edited in the GX Cloud UI. Use the GX Cloud API if you need to [edit the connection](#edit-data-source-settings).
 - Data Assets cannot be added through the GX Cloud UI. Use the GX Cloud API to [add Data Assets](/docs/cloud/data_assets/manage_data_assets.md?interface=api).
+- When you add a Data Asset, Expectations for [Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection) are not automatically generated. You can manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
 - ExpectAI is not supported.
 
 Azure Blob Storage, BigQuery, Google Cloud Storage, Pandas, and Spark have the following additional limitations:
 - Data Asset metrics are not supported.
 - You cannot define a batch in the UI. You can use the GX Cloud API to create a [Batch Definition](/docs/reference/api/core/batch_definition/BatchDefinition_class.mdx).
-- Expectations for [Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection) cannot be automatically generated. You can manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
+- When you add an Expectation, you cannot generate Expectations for [Anomaly Detection](/docs/cloud/expectations/expectations_overview.md#anomaly-detection). You can manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
 - Ad hoc Validations cannot be triggered through the GX Cloud UI. Use the UI to [generate a Validation code snippet](/docs/cloud/validations/manage_validations.md) that you can use to run an ad hoc Validation through the GX Cloud API.
 - Recurring Validations cannot be scheduled in GX Cloud. Use an [orchestrator](/docs/reference/learn/integrations/data_pipeline_tutorial) to run recurring Validations. 
 

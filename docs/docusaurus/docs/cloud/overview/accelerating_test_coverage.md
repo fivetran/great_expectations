@@ -9,9 +9,13 @@ GX Cloud provides several conveniences to help you more quickly achieve test cov
 - Generating [personalized AI-recommended rules](#personalized-ai-recommended-rules).
 - Generating [code for custom SQL Expectations](#code-for-custom-sql-expectations). 
 
+::: Data Source support
+Some options aren't supported for some Data Sources. See [Data Source limitations](/docs/cloud/data_sources/manage_data_sources.md#data-source-limitations) for details.
+:::
+
 ## Anomaly Detection
 
-When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md), GX Cloud by default generates Expectations to detect anomalies in the following data quality issues. You can also automate Anomaly Detection for these when you [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
+When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md) with the GX Cloud UI, GX Cloud by default generates Expectations to detect anomalies in the following data quality issues. You can also automate Anomaly Detection for these when you [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) with the GX Cloud UI for an existing Data Asset.
 
 - [Schema](#schema)
 - [Volume](#volume)
