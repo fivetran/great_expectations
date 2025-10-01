@@ -21,11 +21,11 @@ To automate data quality checks for [API-managed Expectations](/cloud/expectatio
 
 4. Turn the Validation schedule **ON**.
 
-4. Select a **Frequency**.
+5. Select a **Frequency**.
 
-5. Select a **Start time** for the first run of the new schedule.
+6. Select a **Start time** for the first run of the new schedule.
 
-5. Click **Save**.
+7. Click **Save**.
 
 ## Edit a schedule
 
