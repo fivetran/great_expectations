@@ -44,7 +44,6 @@ class SparkS3Datasource(_SparkFilePathDatasource):
     # these fields should not be passed to the execution engine
     _EXTRA_EXCLUDED_EXEC_ENG_ARGS: ClassVar[set] = {
         "bucket",
-        "boto3_options",
     }
 
     # instance attributes
