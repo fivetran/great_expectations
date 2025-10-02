@@ -852,7 +852,6 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-redshift.txt",
             "reqs/requirements-dev-snowflake.txt",
             # "Deprecated API features detected" warning/error for test_docs[split_data_on_whole_table_bigquery] when pandas>=2.0  # noqa: E501
-            "reqs/requirements-dev-sqlalchemy1.txt",
         ),
         services=("mercury",),
         extra_pytest_args=(
