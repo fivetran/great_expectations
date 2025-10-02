@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, List
-from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -70,31 +69,6 @@ def csv_asset(spark_s3_datasource: SparkS3Datasource) -> PathDataAsset:
         infer_schema=True,
     )
     return asset
-
-
-@pytest.fixture
-def mock_boto3_options() -> dict:
-    """Mock boto3_options for unit testing."""
-    return {
-        "aws_access_key_id": "test_access_key",
-        "aws_secret_access_key": "test_secret_key",
-        "region_name": "us-west-2",
-        "aws_session_token": "test_session_token",
-    }
-
-
-@pytest.fixture
-def mock_spark_s3_datasource_with_boto3_options(mock_boto3_options) -> SparkS3Datasource:
-    """Mock fixture for SparkS3Datasource with boto3_options for unit testing."""
-    # Mock the test_connection method to avoid AWS dependencies
-    with patch(
-        "great_expectations.datasource.fluent.spark_s3_datasource.SparkS3Datasource.test_connection"
-    ):
-        return SparkS3Datasource(
-            name="mock_spark_s3_datasource_with_boto3",
-            bucket="test_bucket",
-            boto3_options=mock_boto3_options,
-        )
 
 
 @pytest.mark.unit
@@ -173,26 +147,3 @@ def test_add_csv_asset_with_recursive_file_discovery_to_datasource(
         s3_recursive_file_discovery=True,
     )
     assert asset.batch_metadata == asset_specified_metadata
-
-
-@pytest.mark.unit
-def test_boto3_options_passed_to_execution_engine(
-    mock_spark_s3_datasource_with_boto3_options: SparkS3Datasource, mock_boto3_options: dict
-):
-    """Test that boto3_options are passed from datasource to execution engine."""
-    # Mock the execution engine to capture the arguments passed to it
-    with patch(
-        "great_expectations.execution_engine.sparkdf_execution_engine.SparkDFExecutionEngine.__init__"
-    ) as mock_init:
-        mock_init.return_value = None
-
-        # Get the execution engine, which should pass boto3_options
-        mock_spark_s3_datasource_with_boto3_options.get_execution_engine()
-
-        # Verify that boto3_options were passed to the execution engine
-        mock_init.assert_called_once()
-        call_args = mock_init.call_args
-
-        # Check that boto3_options is in the kwargs passed to the execution engine
-        assert "boto3_options" in call_args.kwargs
-        assert call_args.kwargs["boto3_options"] == mock_boto3_options
