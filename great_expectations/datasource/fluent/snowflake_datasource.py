@@ -677,6 +677,8 @@ class SnowflakeDatasource(SQLDatasource):
         return kwargs
 
     class Config:
+        validate_assignment = True
+
         @staticmethod
         def schema_extra(schema: dict, model: type[SnowflakeDatasource]) -> None:
             """

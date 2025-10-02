@@ -20,7 +20,7 @@ from great_expectations.datasource.fluent import (
     SQLDatasource,
     TestConnectionError,
 )
-from great_expectations.datasource.fluent.config_str import ConfigStr
+from great_expectations.datasource.fluent.config_str import ConfigStr, ConfigUri
 from great_expectations.datasource.fluent.snowflake_datasource import (
     AccountIdentifier,
     SnowflakeDatasource,
@@ -800,6 +800,52 @@ def test_invalid_connection_string_raises_dsn_error(
         _ = SnowflakeDatasource(name="my_snowflake", connection_string=connection_string)
 
     assert expected_errors == exc_info.value.errors()
+
+
+@pytest.mark.unit
+def test_connection_updating_templated_connection_string():
+    # Create datasource with templated connection string
+    conn_str = "snowflake://user:${MY_PASSWORD}@account/db/schema?warehouse=wh&role=role"
+    datasource = SnowflakeDatasource(
+        name="my_snowflake",
+        connection_string=conn_str,
+    )
+
+    # Verify initial connection_string is ConfigUri
+    assert isinstance(datasource.connection_string, ConfigUri)
+    assert datasource.connection_string.template_str == conn_str
+
+    # Assign a new templated connection string directly
+    new_conn_str = "snowflake://newuser:${NEW_PASSWORD}@newaccount/newdb/newschema?warehouse=newwh&role=newrole"
+    datasource.connection_string = new_conn_str
+
+    # Verify it's still a ConfigUri after assignment (not a plain str)
+    assert isinstance(datasource.connection_string, ConfigUri), (
+        f"Expected ConfigUri, got {type(datasource.connection_string)}. "
+        "This indicates validate_assignment is not enabled."
+    )
+    assert datasource.connection_string.template_str == new_conn_str
+
+
+@pytest.mark.unit
+def test_connection_updating_plain_connection_string():
+    # Create datasource with templated connection string
+    conn_str = "snowflake://user:${MY_PASSWORD}@account/db/schema?warehouse=wh&role=role"
+    datasource = SnowflakeDatasource(
+        name="my_snowflake",
+        connection_string=conn_str,
+    )
+
+    # Verify initial connection_string is ConfigUri
+    assert isinstance(datasource.connection_string, ConfigUri)
+    assert datasource.connection_string.template_str == conn_str
+
+    plain_conn_str = "snowflake://plainuser:plainpass@plainaccount/plaindb/plainschema?warehouse=plainwh&role=plainrole"
+    datasource.connection_string = plain_conn_str
+    assert isinstance(datasource.connection_string, SnowflakeDsn), (
+        f"Expected SnowflakeDsn for plain connection string, "
+        f"got {type(datasource.connection_string)}"
+    )
 
 
 # TODO: Cleanup how we install test dependencies and remove this skipif
