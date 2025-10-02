@@ -223,7 +223,9 @@ class SparkDFExecutionEngine(ExecutionEngine):
             )
 
         azure_options: dict = kwargs.pop("azure_options", {})
+        boto3_options: dict = kwargs.pop("boto3_options", {})
         self._azure_options = azure_options
+        self._boto3_options = boto3_options
 
         if force_reuse_spark_context is not None:
             # deprecated-v1.0.0
@@ -241,6 +243,7 @@ class SparkDFExecutionEngine(ExecutionEngine):
                 "persist": self._persist,
                 "spark_config": spark_config,
                 "azure_options": azure_options,
+                "boto3_options": boto3_options,
             }
         )
 

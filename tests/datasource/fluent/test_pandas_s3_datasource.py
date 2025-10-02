@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from pprint import pformat as pf
 from typing import TYPE_CHECKING, List
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -82,6 +83,35 @@ def pandas_s3_datasource(empty_data_context, s3_mock, s3_bucket: str) -> PandasS
     pandas_s3_datasource._data_context = empty_data_context
 
     return pandas_s3_datasource
+
+
+@pytest.fixture
+def mock_boto3_options() -> dict:
+    """Mock boto3_options for unit testing."""
+    return {
+        "aws_access_key_id": "test_access_key",
+        "aws_secret_access_key": "test_secret_key",
+        "region_name": "us-west-2",
+        "aws_session_token": "test_session_token",
+    }
+
+
+@pytest.fixture
+def mock_pandas_s3_datasource_with_boto3_options(
+    empty_data_context, mock_boto3_options
+) -> PandasS3Datasource:
+    """Mock fixture for PandasS3Datasource with boto3_options for unit testing."""
+    # Mock the test_connection method to avoid AWS dependencies
+    with patch(
+        "great_expectations.datasource.fluent.pandas_s3_datasource.PandasS3Datasource.test_connection"
+    ):
+        datasource = PandasS3Datasource(
+            name="mock_pandas_s3_datasource_with_boto3",
+            bucket="test_bucket",
+            boto3_options=mock_boto3_options,
+        )
+        datasource._data_context = empty_data_context
+        return datasource
 
 
 @pytest.fixture
@@ -290,3 +320,26 @@ def test_add_csv_asset_with_recursive_file_discovery_to_datasource(
     )
     # Only 1 additional file was added to the subfolder
     assert found_files_without_recursion + 1 == found_files_with_recursion
+
+
+@pytest.mark.unit
+def test_boto3_options_passed_to_execution_engine(
+    mock_pandas_s3_datasource_with_boto3_options: PandasS3Datasource, mock_boto3_options: dict
+):
+    """Test that boto3_options are passed from datasource to execution engine."""
+    # Mock the execution engine to capture the arguments passed to it
+    with patch(
+        "great_expectations.execution_engine.pandas_execution_engine.PandasExecutionEngine.__init__"
+    ) as mock_init:
+        mock_init.return_value = None
+
+        # Get the execution engine, which should pass boto3_options
+        mock_pandas_s3_datasource_with_boto3_options.get_execution_engine()
+
+        # Verify that boto3_options were passed to the execution engine
+        mock_init.assert_called_once()
+        call_args = mock_init.call_args
+
+        # Check that boto3_options is in the kwargs passed to the execution engine
+        assert "boto3_options" in call_args.kwargs
+        assert call_args.kwargs["boto3_options"] == mock_boto3_options
