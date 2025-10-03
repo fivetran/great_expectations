@@ -131,9 +131,9 @@ class PandasExecutionEngine(ExecutionEngine):
             {
                 "discard_subset_failing_expectations": self.discard_subset_failing_expectations,
                 "boto3_options": boto3_options,
-                "s3_client": s3_client,
                 "azure_options": azure_options,
                 "gcs_options": gcs_options,
+                "s3_client": s3_client,
             }
         )
 
