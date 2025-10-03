@@ -19,13 +19,6 @@ import Tabs from '@theme/Tabs';
 
 ## Connect to a Snowflake Data Source and add a Data Asset
 
-
-1. [Create a Cloud Data Context](/cloud/connect/connect_python.md#create-a-data-context).
-2. Pass your private key when you [create a Data Source](/core/connect_to_data/sql_data/sql_data.md) in the Cloud Data Context.
-
-Then, you can use the GX Cloud UI to [add a Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) from that Data Source.
-:::
-
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets** > **New Data Asset** > **New Data Source** > **Snowflake**.
 
 2. Enter a meaningful name for the Data Source in the **Data Source name** field.
