@@ -107,10 +107,11 @@ class PandasS3Datasource(_PandasFilePathDatasource):
     @override
     def get_execution_engine(self) -> PandasExecutionEngine:
         """
-        Overrides get_execution_engine in Datasource to reuse the S3 client from this datasource.
+        Overrides get_execution_engine in Datasource to reuse the S3 client from this
+        PandasS3Datasource.
 
-        The s3_client cannot be serialized, so we can't make it an attribute of the datasource,
-        like we do with other execution engine kwargs.
+        The s3_client cannot be serialized, so we can't make it an attribute of the
+        PandasS3Datasource, like we do with other execution engine kwargs.
         """
         # Follow the same pattern as the base class for caching and kwargs
         current_execution_engine_kwargs = self.dict(
