@@ -11,6 +11,8 @@ from great_expectations.core.partitioners import (
     PartitionerConvertedDatetime,
 )
 from great_expectations.datasource.fluent import SqliteDatasource
+from great_expectations.datasource.fluent.config_str import ConfigStr
+from great_expectations.datasource.fluent.sqlite_datasource import SqliteDsn
 from tests.datasource.fluent.conftest import sqlachemy_execution_engine_mock_cls
 
 if TYPE_CHECKING:
@@ -181,3 +183,48 @@ def test_create_temp_table(empty_data_context, create_sqlite_source):
         asset = source.add_query_asset(name="query_asset", query="SELECT * from table")
         _ = asset.get_batch(asset.build_batch_request())
         assert source._execution_engine._create_temp_table is False
+
+
+@pytest.mark.unit
+def test_connection_updating_templated_connection_string():
+    # Create datasource with templated connection string
+    conn_str = "sqlite:///${MY_DB_PATH}"
+    datasource = SqliteDatasource(
+        name="test_ds",
+        connection_string=conn_str,
+    )
+
+    # Verify initial connection_string is ConfigStr
+    assert isinstance(datasource.connection_string, ConfigStr)
+    assert datasource.connection_string.template_str == conn_str
+
+    # Assign a new templated connection string directly
+    new_conn_str = "sqlite:///${MY_DB_PATH}".replace("MY_", "NEW_")
+    datasource.connection_string = new_conn_str
+
+    # Verify it's still a ConfigStr after assignment (not a plain str)
+    assert isinstance(datasource.connection_string, ConfigStr), (
+        f"Expected ConfigStr, got {type(datasource.connection_string)}. "
+        "This indicates validate_assignment is not enabled."
+    )
+    assert datasource.connection_string.template_str == new_conn_str
+
+
+@pytest.mark.unit
+def test_connection_updating_plain_connection_string():
+    # Create datasource with templated connection string
+    conn_str = "sqlite:///${MY_DB_PATH}"
+    datasource = SqliteDatasource(
+        name="test_ds",
+        connection_string=conn_str,
+    )
+
+    # Verify initial connection_string is ConfigStr
+    assert isinstance(datasource.connection_string, ConfigStr)
+    assert datasource.connection_string.template_str == conn_str
+
+    plain_conn_str = "sqlite:///path/to/my.db"
+    datasource.connection_string = plain_conn_str
+    assert isinstance(datasource.connection_string, SqliteDsn), (
+        f"Expected SqliteDsn for plain connection string, got {type(datasource.connection_string)}"
+    )
