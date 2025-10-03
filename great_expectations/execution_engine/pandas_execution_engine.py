@@ -57,6 +57,7 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_sample
 from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
 
 if TYPE_CHECKING:
+    from botocore.client import BaseClient
     from typing_extensions import TypeAlias
 
     from great_expectations.validator.metric_configuration import MetricConfigurationID
@@ -116,12 +117,13 @@ class PandasExecutionEngine(ExecutionEngine):
         boto3_options: Dict[str, dict] = kwargs.pop("boto3_options", {})
         azure_options: Dict[str, dict] = kwargs.pop("azure_options", {})
         gcs_options: Dict[str, dict] = kwargs.pop("gcs_options", {})
+        s3_client = kwargs.pop("s3_client", None)
 
         # Instantiate cloud provider clients as None at first.
         # They will be instantiated if/when passed cloud-specific in BatchSpec is passed in
-        self._s3 = None
+        self._s3: BaseClient | None = None
         self._azure: azure.BlobServiceClient | None = None
-        self._gcs = None
+        self._gcs: google.Client | None = None
 
         super().__init__(*args, **kwargs)
 
@@ -131,6 +133,7 @@ class PandasExecutionEngine(ExecutionEngine):
                 "boto3_options": boto3_options,
                 "azure_options": azure_options,
                 "gcs_options": gcs_options,
+                "s3_client": s3_client,
             }
         )
 
@@ -151,9 +154,10 @@ class PandasExecutionEngine(ExecutionEngine):
                 pass
 
     def _instantiate_s3_client(self) -> None:
-        # Try initializing cloud provider client. If unsuccessful, we'll die here.
-        boto3_options = self.config.get("boto3_options", {})
-        self._s3 = aws.boto3.client("s3", **boto3_options)
+        # If s3_client was passed in (from data source) use it, otherwise create our own
+        self._s3 = self._config.get("s3_client") or aws.boto3.client(
+            "s3", **self.config.get("boto3_options", {})
+        )
 
     def _instantiate_gcs_client(self) -> None:
         """
