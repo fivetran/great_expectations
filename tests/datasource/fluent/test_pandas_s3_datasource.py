@@ -327,28 +327,15 @@ def test_s3_client_reused_from_datasource(
     mock_pandas_s3_datasource_with_boto3_options: PandasS3Datasource, mock_boto3_options: dict
 ):
     """Test that S3 client from datasource is reused in execution engine."""
-    # Mock the test_connection method to avoid AWS dependencies
-    with patch(
-        "great_expectations.datasource.fluent.data_asset.path.path_data_asset.PathDataAsset.test_connection"
-    ):
-        # Add a CSV asset to trigger data connector creation
-        mock_pandas_s3_datasource_with_boto3_options.add_csv_asset(
-            name="test_asset",
-            header=True,
-        )
+    # Get the execution engine - it should reuse the datasource's S3 client
+    execution_engine = mock_pandas_s3_datasource_with_boto3_options.get_execution_engine()
 
-        # Get the execution engine - it should reuse the datasource's S3 client
-        execution_engine = mock_pandas_s3_datasource_with_boto3_options.get_execution_engine()
+    # Verify that the execution engine has the same S3 client as the datasource
+    datasource_s3_client = mock_pandas_s3_datasource_with_boto3_options._get_s3_client()  # type: ignore[attr-defined]  # mock isn't aware of this method
 
-        # Verify that the execution engine has the same S3 client as the datasource
-        datasource_s3_client = mock_pandas_s3_datasource_with_boto3_options._get_s3_client()  # type: ignore[attr-defined]  # mock isn't aware of this method
+    # Check that the S3 client is stored in the execution engine's config
+    execution_engine_s3_client = execution_engine._config.get("s3_client")
 
-        # Check that the S3 client is stored in the execution engine's config
-        execution_engine_s3_client = execution_engine._config.get("s3_client")
-
-        # Both should be the same instance (not just equal)
-        assert execution_engine_s3_client is datasource_s3_client
-
-        # Verify that the S3 client was created with the correct boto3_options
-        # We can't directly test the credentials, but we can verify the client exists
-        assert execution_engine_s3_client is not None
+    # Both should be the same instance and not None
+    assert execution_engine_s3_client is datasource_s3_client
+    assert execution_engine_s3_client is not None
