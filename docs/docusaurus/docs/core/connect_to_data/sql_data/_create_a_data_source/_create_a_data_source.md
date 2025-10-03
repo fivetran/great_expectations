@@ -57,7 +57,7 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
    ```python title="Python" name="docs/docusaurus/docs/core/connect_to_data/sql_data/_create_a_data_source/postgres.py create data source"
    ```
 
-   Here is an example of creating a Snowflake Data Source using separate parameters for each connection detail and credential
+   Here is an example of creating a Snowflake Data Source using separate parameters for each connection detail and credential.
 
    ```python title="Python"
    account = "accountname.region"
