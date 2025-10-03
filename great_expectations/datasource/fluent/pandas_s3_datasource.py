@@ -17,6 +17,7 @@ from great_expectations.datasource.fluent.data_connector import (
 )
 from great_expectations.datasource.fluent.interfaces import TestConnectionError
 from great_expectations.datasource.fluent.pandas_datasource import PandasDatasourceError
+from great_expectations.execution_engine.pandas_execution_engine import PandasExecutionEngine
 
 if TYPE_CHECKING:
     from botocore.client import BaseClient
@@ -41,6 +42,7 @@ class PandasS3Datasource(_PandasFilePathDatasource):
     # these fields should not be passed to the execution engine
     _EXTRA_EXCLUDED_EXEC_ENG_ARGS: ClassVar[set] = {
         "bucket",
+        "boto3_options",
     }
 
     # instance attributes
@@ -143,3 +145,29 @@ class PandasS3Datasource(_PandasFilePathDatasource):
         )
 
         logger.info(f"{self.data_connector_type.__name__} created for '{data_asset.name}'")
+
+    @override
+    def get_execution_engine(self) -> PandasExecutionEngine:
+        """
+        Overrides get_execution_engine in Datasource to reuse the S3 client from the datasource.
+
+        The s3_client cannot be serialized, so we can't make it an attribute of the datasource,
+        like we do with other execution engine kwargs.
+        """
+        # Follow the same pattern as the base class for caching and kwargs
+        current_execution_engine_kwargs = self.dict(
+            exclude=self._get_exec_engine_excludes(),
+            config_provider=self._config_provider,
+        )
+
+        # Add the S3 client to the kwargs
+        current_execution_engine_kwargs["s3_client"] = self._get_s3_client()
+
+        if (
+            current_execution_engine_kwargs != self._cached_execution_engine_kwargs
+            or not self._execution_engine
+        ):
+            self._execution_engine = PandasExecutionEngine(**current_execution_engine_kwargs)
+            self._cached_execution_engine_kwargs = current_execution_engine_kwargs
+
+        return self._execution_engine

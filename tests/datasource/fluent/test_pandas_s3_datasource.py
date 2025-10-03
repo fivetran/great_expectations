@@ -323,23 +323,32 @@ def test_add_csv_asset_with_recursive_file_discovery_to_datasource(
 
 
 @pytest.mark.unit
-def test_boto3_options_passed_to_execution_engine(
+def test_s3_client_reused_from_datasource(
     mock_pandas_s3_datasource_with_boto3_options: PandasS3Datasource, mock_boto3_options: dict
 ):
-    """Test that boto3_options are passed from datasource to execution engine."""
-    # Mock the execution engine to capture the arguments passed to it
+    """Test that S3 client from datasource is reused in execution engine."""
+    # Mock the test_connection method to avoid AWS dependencies
     with patch(
-        "great_expectations.execution_engine.pandas_execution_engine.PandasExecutionEngine.__init__"
-    ) as mock_init:
-        mock_init.return_value = None
+        "great_expectations.datasource.fluent.data_asset.path.path_data_asset.PathDataAsset.test_connection"
+    ):
+        # Add a CSV asset to trigger data connector creation
+        mock_pandas_s3_datasource_with_boto3_options.add_csv_asset(
+            name="test_asset",
+            header=True,
+        )
 
-        # Get the execution engine, which should pass boto3_options
-        mock_pandas_s3_datasource_with_boto3_options.get_execution_engine()
+        # Get the execution engine - it should reuse the datasource's S3 client
+        execution_engine = mock_pandas_s3_datasource_with_boto3_options.get_execution_engine()
 
-        # Verify that boto3_options were passed to the execution engine
-        mock_init.assert_called_once()
-        call_args = mock_init.call_args
+        # Verify that the execution engine has the same S3 client as the datasource
+        datasource_s3_client = mock_pandas_s3_datasource_with_boto3_options._get_s3_client()  # type: ignore[attr-defined]  # mock isn't aware of this method
 
-        # Check that boto3_options is in the kwargs passed to the execution engine
-        assert "boto3_options" in call_args.kwargs
-        assert call_args.kwargs["boto3_options"] == mock_boto3_options
+        # Check that the S3 client is stored in the execution engine's config
+        execution_engine_s3_client = execution_engine._config.get("s3_client")
+
+        # Both should be the same instance (not just equal)
+        assert execution_engine_s3_client is datasource_s3_client
+
+        # Verify that the S3 client was created with the correct boto3_options
+        # We can't directly test the credentials, but we can verify the client exists
+        assert execution_engine_s3_client is not None
