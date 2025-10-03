@@ -1,0 +1,1 @@
+Follow Snowflake's docs to [configure and store the private and public keys](https://docs.snowflake.com/en/user-guide/key-pair-auth). 
