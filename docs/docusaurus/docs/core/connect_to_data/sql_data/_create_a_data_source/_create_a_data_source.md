@@ -37,7 +37,7 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
 
    You can assign any name to a Data Source as long as it is unique within your Data Context.
 
-   Your connection details or credentials should not be saved in plain text in your code.  Instead, you should reference a securely stored connection details or credentials through string substitution.  The guidance on how to [Configure your credentials](#configure-credentials) covers how to determine the format of your connection details, securely store your connection details or credentials, and how to reference your connection details or credentials in Python.
+   Your connection details or credentials should not be saved in plain text in your code.  Instead, you should reference securely stored connection details or credentials through string substitution.  The guidance on how to [Configure your credentials](#configure-credentials) covers how to determine the format of your connection details, securely store your connection details or credentials, and how to reference your connection details or credentials in Python.
 
    The following code defines a Data Source name and references a PostgreSQL connection string that has been securely stored in its entirety:
 
@@ -82,7 +82,7 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
    ```
    
    :::warning Private key serialized in File Data Context
-   If you're using a [File Data Context](/core/set_up_a_gx_environment/create_a_data_context.md), `kwargs` will be serialized to `great_expectations.yml`, including the private key.
+   If you're using a [File Data Context](/core/set_up_a_gx_environment/create_a_data_context.md), your Data Source configuration will be serialized to `great_expectations.yml`, including the private key.
    :::
 
 

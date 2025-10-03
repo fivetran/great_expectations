@@ -10,7 +10,7 @@ Different types of SQL databases have different formats for their connection det
 
    Other connection string formats are valid provided they are for a SQL database that is supported by SQLAlchemy.  You can find more information on the dialects supported by `SQLAlchemy` on their [dialects](https://docs.sqlalchemy.org/en/20/dialects/index.html) page.
 
-   To connect to Snowflake, you will need supply the following connection details and credentials:
+   To connect to Snowflake, you will need to supply the following connection details and credentials:
 
    - `account`: Your Snowflake organization and account name separated by a hyphen (`oraganizationname-accountname`) or your account name and a legacy account locator separated by a period (`accountname.region`). The legacy account locator value must include the geographical region. For example, `us-east-1`. 
     
