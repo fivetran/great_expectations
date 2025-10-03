@@ -32,7 +32,7 @@ Then, you can use the GX Cloud UI to [add a Data Asset](/cloud/data_assets/manag
 
 3. Confirm that you are entering your **Connection details** as **Input parameters** using **Key-pair** authentication.
 
-4. Supply your connection details. If you created a separate Snowflake user for your GX Cloud connection as recommended above, use those credentials in your connection details.
+4. Supply your connection details.
 
    - **Account identifier**: Enter your Snowflake organization and account name separated by a hyphen (`oraganizationname-accountname`) or your account name and a legacy account locator separated by a period (`accountname.region`). The legacy account locator value must include the geographical region. For example, `us-east-1`. 
     
