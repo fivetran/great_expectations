@@ -23,15 +23,17 @@ To give you these insights into the health of your data, GX Cloud provides the f
 
 - **Total Data Assets:** The current number of Data Assets in your GX Cloud workspace.
 
+- **Failed Expectations**: The number of distinct Expectations that have failed on their most recent run in the last 30 days. This metric is faceted by failure severity into separate counts for **Critical**, **Warning**, and **Info**.
+
 Days as used in these metrics are segmented by midnight UTC.
 
-Only current Data Assets are considered in these metrics. Deleted Data Assets are excluded from the calculations even if they've had Validations within the last 30 days.
+Only current Data Assets and Expectations are considered in these metrics. Deleted Data Assets and Expectations are excluded from the calculations even if they've had Validations within the last 30 days.
 
 ## Data quality issue filters
 
 For a more nuanced understanding of what you’re testing, you can filter the **Data Health** dashboard to focus on different data quality issues such as **Schema** or **Volume**. When you apply a filter, the metrics shown are impacted as follows:
 
-- For **Data Health**, **Daily distinct Expectations**, and **Daily Data Health**, only Expectations belonging to the selected data quality issue will be considered when counting both successful distinct Expectations and distinct Expectation validations.
+- For **Data Health**, **Daily distinct Expectations**, **Daily Data Health**, **Failed Expectations**, and **Most frequently failed Expectations in the last 30 days**, only Expectations belonging to the selected data quality issue will be considered in calculations.
 
 - The **Active Coverage** percentage will be scoped to Data Assets that have been validated with at least one Expectation for the selected data quality issue in the last 30 days.
 
@@ -40,3 +42,5 @@ For a more nuanced understanding of what you’re testing, you can filter the **
 ## Next steps for improving data health
 
 If **Active Coverage** is low, drill into it for a list of **Inactive Data Assets**. Then [schedule recurring Validations](/docs/cloud/schedules/manage_schedules.md) and/or [add Expectations](/docs/cloud/expectations/manage_expectations.md#add-an-expectation) for those Data Assets to improve your coverage both overall and for specific data quality issues.
+
+If **Failed Expectations** are high, drill into **Critical**, **Warning**, or **Info** for a severity-specific list of **Most frequently failed Expectations in the last 30 days**. Then click on Expectations of interest to explore their Validation results so you can determine what action to take. You may find that there are issues in your data pipeline that need to be resolved or you may find that you need to adjust your Expectations. 
