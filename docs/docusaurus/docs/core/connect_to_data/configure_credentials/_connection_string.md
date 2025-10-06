@@ -15,13 +15,13 @@ Different types of SQL databases have different formats for their connection det
     
    - `user`: The username you use to access Snowflake.
 
-   - `role`: Your Snowflake role.
-
    - `database`: The name of the Snowflake database where the data you want to validate is stored. In Snowsight, click **Data** > **Databases**. In the Snowflake Classic Console, click **Databases**.
  
    - `schema`: the name of the Snowflake schema where the data you want to validate is stored.
 
    - `warehouse`: the name of your Snowflake database warehouse. In Snowsight, click **Admin** > **Warehouses**. In the Snowflake Classic Console, click **Warehouses**.
+
+   - `role`: Your Snowflake role.
 
    - `private_key`: Your RSA private key value. Do not include the start and end markers `-----BEGIN ENCRYPTED PRIVATE KEY-----` and `-----END ENCRYPTED PRIVATE KEY-----`.
 
