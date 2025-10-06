@@ -299,7 +299,7 @@ DatasourceT = TypeVar("DatasourceT", bound="Datasource")
 
 
 @public_api
-class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
+class DataAsset(GenericBaseModel, ABC, Generic[DatasourceT, PartitionerT]):
     """
     A Data Asset is a collection of records within a Data Source, which is usually named based
     on the underlying data system and sliced to correspond to a desired specification.

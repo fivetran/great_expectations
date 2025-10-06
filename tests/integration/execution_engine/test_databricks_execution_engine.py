@@ -241,9 +241,9 @@ class TestDatabricksExecutionEngineIntegration:
         (
             metrics,
             unexpected_count_metrics,
-            condition_metrics,
-            aggregate_fn_metrics,
-            table_columns_metric,
+            _,
+            _,
+            _,
         ) = add_metrics_for_each_column(execution_engine, df)
 
         results = execution_engine.resolve_metrics(
@@ -276,9 +276,9 @@ class TestDatabricksExecutionEngineIntegration:
         (
             metrics,
             unexpected_count_metrics,
-            condition_metrics,
-            aggregate_fn_metrics,
-            table_columns_metric,
+            _,
+            _,
+            _,
         ) = add_metrics_for_each_column(execution_engine, df)
 
         results = execution_engine.resolve_metrics(
