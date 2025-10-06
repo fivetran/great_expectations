@@ -20,7 +20,6 @@ from requests import HTTPError, Response
 import great_expectations.exceptions as gx_exceptions
 from great_expectations import __version__
 from great_expectations._docs_decorators import public_api
-from great_expectations.analytics.client import init as init_analytics
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.config_provider import (
     _CloudConfigurationProvider,
@@ -186,22 +185,6 @@ class CloudDataContext(SerializableDataContext):
     @override
     def mode(self) -> Literal["cloud"]:
         return "cloud"
-
-    @override
-    def _init_analytics(self) -> None:
-        organization_id = self.ge_cloud_config.organization_id
-        analytics_enabled = self._determine_analytics_enabled()
-        if analytics_enabled:
-            init_analytics(
-                enable=analytics_enabled,
-                user_id=self.cloud_user_info().user_id,
-                data_context_id=self._data_context_id,
-                organization_id=uuid.UUID(organization_id) if organization_id else None,
-                oss_id=self._get_oss_id(),
-                cloud_mode=True,
-                mode=self.mode,
-                user_agent_str=self._user_agent_str,
-            )
 
     def _get_cloud_user_info(self) -> CloudUserInfo:
         response = self._request_cloud_backend(

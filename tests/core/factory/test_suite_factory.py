@@ -1,22 +1,14 @@
-import re
 from copy import copy
 from typing import Dict
-from unittest import mock
 from unittest.mock import (
     ANY,
     Mock,  # noqa: TID251 # FIXME CoP
 )
-from unittest.mock import ANY as ANY_TEST_ARG
 
 import pytest
 from pytest_mock import MockerFixture
 
 from great_expectations.alias_types import JSONValues
-from great_expectations.analytics.events import (
-    DomainObjectAllDeserializationEvent,
-    ExpectationSuiteCreatedEvent,
-    ExpectationSuiteDeletedEvent,
-)
 from great_expectations.core import ExpectationSuite
 from great_expectations.core.factory.suite_factory import SuiteFactory
 from great_expectations.data_context import AbstractDataContext
@@ -252,10 +244,6 @@ def test_suite_factory_all_with_bad_marshmallow_config(
 ):
     # The difficult part of writing this test was making an expectation I could save
     # in a bad state. To do that I've created this FakeExpectation.
-    analytics_submit_mock = mocker.patch(
-        "great_expectations.data_context.store.store.submit_analytics_event"
-    )
-
     class BadExpectation(SerializableDictDot):
         def __init__(self, id: int):
             self.id = id
@@ -283,14 +271,6 @@ def test_suite_factory_all_with_bad_marshmallow_config(
 
     # Assert
     assert result == [suite_1]
-    analytics_submit_mock.assert_called_once_with(
-        DomainObjectAllDeserializationEvent(
-            error_type=ANY_TEST_ARG,
-            store_name="ExpectationsStore",
-        )
-    )
-    analytics_submit_args = analytics_submit_mock.call_args[0][0]
-    assert re.match("marshmallow.*ValidationError", analytics_submit_args.error_type)
 
 
 @pytest.mark.unit
@@ -298,10 +278,6 @@ def test_suite_factory_all_with_bad_pydantic_config(
     in_memory_runtime_context: AbstractDataContext, mocker: MockerFixture
 ):
     # Arrange
-    analytics_submit_mock = mocker.patch(
-        "great_expectations.data_context.store.store.submit_analytics_event"
-    )
-
     context: AbstractDataContext = in_memory_runtime_context
     mocker.patch.object(
         context.suites._store,
@@ -330,14 +306,6 @@ def test_suite_factory_all_with_bad_pydantic_config(
 
     # Assert
     assert result == []
-    analytics_submit_mock.assert_called_once_with(
-        DomainObjectAllDeserializationEvent(
-            error_type=ANY_TEST_ARG,
-            store_name="ExpectationsStore",
-        )
-    )
-    analytics_submit_args = analytics_submit_mock.call_args[0][0]
-    assert re.match("pydantic.*ValidationError", analytics_submit_args.error_type)
 
 
 class TestSuiteFactoryAddOrUpdate:
@@ -539,46 +507,3 @@ class TestSuiteFactoryAddOrUpdate:
 
         # assert
         assert suite_1 == suite_2 == suite_3
-
-
-class TestSuiteFactoryAnalytics:
-    def test_suite_factory_add_emits_event(
-        self,
-        unset_gx_env_variables: None,
-        data_context: AbstractDataContext,
-    ) -> None:
-        # Arrange
-        name = "test-suite"
-        suite = ExpectationSuite(name=name)
-
-        # Act
-        with mock.patch(
-            "great_expectations.core.factory.suite_factory.submit_event", autospec=True
-        ) as mock_submit:
-            _ = data_context.suites.add(suite=suite)
-
-        # Assert
-        mock_submit.assert_called_once_with(
-            event=ExpectationSuiteCreatedEvent(expectation_suite_id=suite.id)
-        )
-
-    def test_suite_factory_delete_emits_event(
-        self,
-        unset_gx_env_variables: None,
-        data_context: AbstractDataContext,
-    ) -> None:
-        # Arrange
-        name = "test-suite"
-        suite = ExpectationSuite(name=name)
-        suite = data_context.suites.add(suite=suite)
-
-        # Act
-        with mock.patch(
-            "great_expectations.core.factory.suite_factory.submit_event", autospec=True
-        ) as mock_submit:
-            data_context.suites.delete(name=name)
-
-        # Assert
-        mock_submit.assert_called_once_with(
-            event=ExpectationSuiteDeletedEvent(expectation_suite_id=suite.id)
-        )

@@ -21,13 +21,6 @@ from great_expectations import __version__ as ge_version
 from great_expectations._docs_decorators import (
     public_api,
 )
-from great_expectations.analytics.anonymizer import anonymize
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.events import (
-    ExpectationSuiteExpectationCreatedEvent,
-    ExpectationSuiteExpectationDeletedEvent,
-    ExpectationSuiteExpectationUpdatedEvent,
-)
 from great_expectations.compatibility.pydantic import ValidationError as PydanticValidationError
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.freshness_diagnostics import (
@@ -176,23 +169,6 @@ class ExpectationSuite(SerializableDictDot):
         )
         return types_are_equal and attributes_are_equal
 
-    def _submit_expectation_created_event(self, expectation: Expectation) -> None:
-        if expectation.__module__.startswith("great_expectations."):
-            custom_exp_type = False
-            expectation_type = expectation.expectation_type
-        else:
-            custom_exp_type = True
-            expectation_type = anonymize(expectation.expectation_type)
-
-        submit_event(
-            event=ExpectationSuiteExpectationCreatedEvent(
-                expectation_id=expectation.id,
-                expectation_suite_id=self.id,
-                expectation_type=expectation_type,
-                custom_exp_type=custom_exp_type,
-            )
-        )
-
     def _process_expectation(
         self, expectation_like: Union[Expectation, ExpectationConfiguration, dict]
     ) -> Expectation:
@@ -256,12 +232,7 @@ class ExpectationSuite(SerializableDictDot):
                 self.expectations.append(expectation)
                 raise exc  # noqa: TRY201 # FIXME CoP
 
-        submit_event(
-            event=ExpectationSuiteExpectationDeletedEvent(
-                expectation_id=expectation.id,
-                expectation_suite_id=self.id,
-            )
-        )
+        # Analytics removed - expectation deletion tracking disabled
 
         return expectation
 
@@ -322,11 +293,7 @@ class ExpectationSuite(SerializableDictDot):
 
     def _save_expectation(self, expectation) -> Expectation:
         expectation = self._store.update_expectation(suite=self, expectation=expectation)
-        submit_event(
-            event=ExpectationSuiteExpectationUpdatedEvent(
-                expectation_id=expectation.id, expectation_suite_id=self.id
-            )
-        )
+        # Analytics removed - expectation update tracking disabled
         return expectation
 
     @property

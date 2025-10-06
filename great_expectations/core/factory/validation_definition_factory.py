@@ -3,11 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Iterable, cast
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.events import (
-    ValidationDefinitionCreatedEvent,
-    ValidationDefinitionDeletedEvent,
-)
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.factory.factory import Factory
 from great_expectations.core.validation_definition import ValidationDefinition
@@ -47,11 +42,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             )
         self._store.add(key=key, value=validation)
 
-        submit_event(
-            event=ValidationDefinitionCreatedEvent(
-                validation_definition_id=validation.id,
-            )
-        )
+        # Analytics removed - validation definition creation tracking disabled
 
         return validation
 
@@ -76,11 +67,7 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
         key = self._store.get_key(name=validation_definition.name, id=validation_definition.id)
         self._store.remove_key(key=key)
 
-        submit_event(
-            event=ValidationDefinitionDeletedEvent(
-                validation_definition_id=validation_definition.id,
-            )
-        )
+        # Analytics removed - validation definition deletion tracking disabled
 
     @public_api
     @override

@@ -10,7 +10,6 @@ module.exports = {
   tagline: 'Always know what to expect from your data.',
   url: 'https://docs.greatexpectations.io', // Url to your site with no trailing slash
   baseUrl: '/',
-  customFields: { posthogApiKey: process.env.POSTHOG_API_KEY },
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   favicon: '/img/gx-mark.png',
@@ -25,17 +24,6 @@ module.exports = {
         id: 'GTM-K63L45F' // GTM Container ID
       }
     ],
-    [
-      'posthog-docusaurus',
-      {
-        apiKey: process.env.POSTHOG_API_KEY,
-        enableInDevelopment: false,
-        debug: process.env.NODE_ENV === 'development',
-        autocapture: {
-          capture_pageview: false
-        }
-      }
-    ]
   ],
 
   scripts: [

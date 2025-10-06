@@ -70,11 +70,6 @@ utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzin
 
 
 @pytest.fixture
-def mocked_posthog(mocker: MockerFixture):
-    yield mocker.patch("posthog.capture")
-
-
-@pytest.fixture
 def checkpoint_result(mocker: MockerFixture):
     utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzinfo=timezone.utc)
     return CheckpointResult(
@@ -242,7 +237,7 @@ class TestAPINotificationAction:
         assert payload == expected_payload
 
     @pytest.mark.unit
-    def test_run(self, checkpoint_result: CheckpointResult, mocked_posthog):
+    def test_run(self, checkpoint_result: CheckpointResult):
         url = "http://www.example.com"
         action = APINotificationAction(name="my_action", url=url)
 
@@ -308,7 +303,6 @@ class TestEmailAction:
         checkpoint_result: CheckpointResult,
         emails: str,
         expected_email_list: list[str],
-        mocked_posthog,
     ):
         action = EmailAction(
             name="my_action",
@@ -336,9 +330,7 @@ class TestEmailAction:
         assert out == {"email_result": "success"}
 
     @pytest.mark.unit
-    def test_run_smptp_address_substitution(
-        self, checkpoint_result: CheckpointResult, mocked_posthog
-    ):
+    def test_run_smptp_address_substitution(self, checkpoint_result: CheckpointResult):
         config_provider = project_manager.get_config_provider()
         assert isinstance(config_provider, mock.Mock)  # noqa: TID251 # just using for the instance compare
 
@@ -386,7 +378,7 @@ class TestEmailAction:
 
 class TestMicrosoftTeamsNotificationAction:
     @pytest.mark.unit
-    def test_run(self, checkpoint_result: CheckpointResult, mocked_posthog):
+    def test_run(self, checkpoint_result: CheckpointResult):
         action = MicrosoftTeamsNotificationAction(name="my_action", teams_webhook="test")
 
         with mock.patch.object(Session, "post") as mock_post:
@@ -432,7 +424,7 @@ class TestMicrosoftTeamsNotificationAction:
         ]
 
     @pytest.mark.unit
-    def test_run_webhook_substitution(self, checkpoint_result: CheckpointResult, mocked_posthog):
+    def test_run_webhook_substitution(self, checkpoint_result: CheckpointResult):
         config_provider = project_manager.get_config_provider()
         assert isinstance(config_provider, mock.Mock)  # noqa: TID251 # just using for the instance compare
 
@@ -659,7 +651,7 @@ class TestSlackNotificationAction:
         assert a == b
 
     @pytest.mark.unit
-    def test_run(self, checkpoint_result: CheckpointResult, mocked_posthog):
+    def test_run(self, checkpoint_result: CheckpointResult):
         action = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
 
         with mock.patch.object(Session, "post") as mock_post:
@@ -705,7 +697,7 @@ class TestSlackNotificationAction:
         assert output == {"slack_notification_result": "Slack notification succeeded."}
 
     @pytest.mark.unit
-    def test_run_with_assets(self, checkpoint_result_with_assets: CheckpointResult, mocked_posthog):
+    def test_run_with_assets(self, checkpoint_result_with_assets: CheckpointResult):
         action = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
 
         with mock.patch.object(Session, "post") as mock_post:
@@ -751,9 +743,7 @@ class TestSlackNotificationAction:
         assert output == {"slack_notification_result": "Slack notification succeeded."}
 
     @pytest.mark.unit
-    def test_grabs_data_docs_pages(
-        self, checkpoint_result_with_assets: CheckpointResult, mocked_posthog
-    ):
+    def test_grabs_data_docs_pages(self, checkpoint_result_with_assets: CheckpointResult):
         action = SlackNotificationAction(name="my_action", slack_webhook="test", notify_on="all")
 
         site_path = "file:///var/folders/vm/wkw13lnd5vsdh3hjmcv9tym00000gn/T/tmpctw4x7yu/validations/my_suite/__none__/20240910T175850.906745Z/foo-bar.html"
@@ -836,7 +826,7 @@ class TestSlackNotificationAction:
         assert output == {"slack_notification_result": "Slack notification succeeded."}
 
     @pytest.mark.unit
-    def test_variable_substitution_webhook(self, mock_context, checkpoint_result, mocked_posthog):
+    def test_variable_substitution_webhook(self, mock_context, checkpoint_result):
         action = SlackNotificationAction(name="my_action", slack_webhook="${SLACK_WEBHOOK}")
 
         with mock.patch.object(Session, "post"):
@@ -845,9 +835,7 @@ class TestSlackNotificationAction:
         mock_context.config_provider.substitute_config.assert_called_once_with("${SLACK_WEBHOOK}")
 
     @pytest.mark.unit
-    def test_variable_substitution_token_and_channel(
-        self, mock_context, checkpoint_result, mocked_posthog
-    ):
+    def test_variable_substitution_token_and_channel(self, mock_context, checkpoint_result):
         action = SlackNotificationAction(
             name="my_action", slack_token="${SLACK_TOKEN}", slack_channel="${SLACK_CHANNEL}"
         )
@@ -862,7 +850,7 @@ class TestSlackNotificationAction:
 
 class TestSNSNotificationAction:
     @pytest.mark.unit
-    def test_run(self, sns, checkpoint_result: CheckpointResult, mocked_posthog):
+    def test_run(self, sns, checkpoint_result: CheckpointResult):
         subj_topic = "test-subj"
         created_subj = sns.create_topic(Name=subj_topic)
         arn = created_subj.get("TopicArn")
@@ -886,7 +874,7 @@ class TestUpdateDataDocsAction:
         assert a == b
 
     @pytest.mark.unit
-    def test_run(self, mocker: MockerFixture, checkpoint_result: CheckpointResult, mocked_posthog):
+    def test_run(self, mocker: MockerFixture, checkpoint_result: CheckpointResult):
         # Arrange
         context = mocker.Mock(spec=AbstractDataContext)
         set_context(context)
@@ -952,9 +940,7 @@ class TestUpdateDataDocsAction:
         }
 
     @pytest.mark.cloud
-    def test_run_with_cloud(
-        self, mocker: MockerFixture, checkpoint_result: CheckpointResult, mocked_posthog
-    ):
+    def test_run_with_cloud(self, mocker: MockerFixture, checkpoint_result: CheckpointResult):
         # Arrange
         context = mocker.Mock(spec=CloudDataContext)
         set_context(context)

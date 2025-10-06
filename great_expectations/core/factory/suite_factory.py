@@ -3,11 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Iterable
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.events import (
-    ExpectationSuiteCreatedEvent,
-    ExpectationSuiteDeletedEvent,
-)
 from great_expectations.compatibility.pydantic import ValidationError as PydanticValidationError
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import ExpectationSuite
@@ -50,11 +45,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
             )
         self._store.add(key=key, value=suite)
 
-        submit_event(
-            event=ExpectationSuiteCreatedEvent(
-                expectation_suite_id=suite.id,
-            )
-        )
+        # Analytics removed - expectation suite creation tracking disabled
 
         if suite._include_rendered_content:
             suite.render()
@@ -82,11 +73,7 @@ class SuiteFactory(Factory[ExpectationSuite]):
         key = self._store.get_key(name=suite.name, id=suite.id)
         self._store.remove_key(key=key)
 
-        submit_event(
-            event=ExpectationSuiteDeletedEvent(
-                expectation_suite_id=suite.id,
-            )
-        )
+        # Analytics removed - expectation suite deletion tracking disabled
 
     @public_api
     @override

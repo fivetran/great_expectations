@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Optional, Union
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.events import ValidationDefinitionRanEvent
 from great_expectations.compatibility.pydantic import (
     BaseModel,
     Extra,
@@ -332,12 +330,7 @@ class ValidationDefinition(BaseModel):
                 ref
             )
 
-        submit_event(
-            event=ValidationDefinitionRanEvent(
-                validation_definition_id=self.id,
-                checkpoint_id=checkpoint_id,
-            )
-        )
+        # Analytics removed - validation definition run tracking disabled
 
         return results
 
