@@ -23,7 +23,7 @@ To give you these insights into the health of your data, GX Cloud provides the f
 
 - **Total Data Assets:** The current number of Data Assets in your GX Cloud workspace.
 
-- **Failed Expectations**: The number of distinct Expectations that have failed on their most recent run in the last 30 days. This metric is faceted by failure severity into separate counts for **Critical**, **Warning**, and **Info**.
+- **Failed Expectations**: The number of distinct Expectations that have failed on their most recent run in the last 30 days. This metric is faceted by [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) into separate counts for **Critical**, **Warning**, and **Info**.
 
 Days as used in these metrics are segmented by midnight UTC.
 
