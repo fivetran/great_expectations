@@ -47,38 +47,25 @@ GX Core also supports referencing credentials that have been stored in the AWS S
 
    </Tabs>
 
-<Tabs className="hidden" queryString="storage_typet" groupId="storage_type" defaultValue='environment_variables'>
+
+<Tabs className="hidden" queryString="storage_type" groupId="storage_type" defaultValue='environment_variables'>
 
 <TabItem value="environment_variables">
 3. Access your credentials in Python strings.
+   <AccessCredentials/>
 </TabItem>
 
 <TabItem value="config_yml">
 3. Access your credentials in Python strings.
+   <AccessCredentials/>
 </TabItem>
 
 <TabItem value="key_pair">
 3. Access you Snowflake private key in Python.
+   <AccessKeyPair/>
 </TabItem>
 
 </Tabs>
-
-
-   <Tabs className="hidden" queryString="storage_typet" groupId="storage_type" defaultValue='environment_variables'>
-
-      <TabItem value="environment_variables">
-         <AccessCredentials/>
-      </TabItem>
-
-      <TabItem value="config_yml">
-         <AccessCredentials/>
-      </TabItem>
-
-      <TabItem value="key_pair">
-         <AccessKeyPair/>
-      </TabItem>
-
-   </Tabs>
 
 4. Optional. Access credentials stored in a secret manager.
 
