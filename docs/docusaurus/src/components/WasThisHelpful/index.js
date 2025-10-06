@@ -32,7 +32,6 @@ export default function WasThisHelpful () {
   const handleFeedbackReaction = (eventName) => {
     if (!feedbackSent) {
       setFeedbackSent(true)
-      // Analytics removed - feedback tracking disabled
     }
   }
 
@@ -42,7 +41,6 @@ export default function WasThisHelpful () {
   }
 
   const dismissFeedbackModal = () => {
-    // Analytics removed - survey dismissal tracking disabled
     setIsOpen(false)
     setError(false)
   }
@@ -51,7 +49,6 @@ export default function WasThisHelpful () {
     e.preventDefault()
     if (formData.description) {
       setError(false)
-      // Analytics removed - survey response tracking disabled
       try {
         const response = await fetch(CREATE_JIRA_TICKET_IN_DOCS_BOARD_ENDPOINT_URL, {
           method: 'POST',
