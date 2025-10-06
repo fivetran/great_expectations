@@ -9,10 +9,10 @@ from great_expectations.util import convert_to_json_serializable, ensure_json_se
 try:
     from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 except ImportError:
-    Point = None
-    LineString = None
-    Polygon = None
-    MultiPolygon = None
+    Point = None  # type: ignore[misc,assignment]
+    LineString = None  # type: ignore[misc,assignment]
+    Polygon = None  # type: ignore[misc,assignment]
+    MultiPolygon = None  # type: ignore[misc,assignment]
 
 
 @pytest.mark.unit
