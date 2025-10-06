@@ -63,20 +63,20 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
    datasource_name = "my_new_snowflake_datasource"
    account = "accountname.region"
    user = "my_user"
-   role = "my_role"
-   warehouse = "my_wh"
    database = "my_db"
    schema = "my_schema"
+   warehouse = "my_wh"
+   role = "my_role"
    # For details on how to access your private key, refer to "Configure credentials" above 
 
    data_source = context.data_sources.add_snowflake(
       name=datasource_name,
       account=account,
       user=user,
-      role=role,
-      warehouse=warehouse,
       database=database,
       schema=schema,
+      warehouse=warehouse,
+      role=role,
       private_key=pkb
    }
    )
