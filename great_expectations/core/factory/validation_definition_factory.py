@@ -42,8 +42,6 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
             )
         self._store.add(key=key, value=validation)
 
-        # Analytics removed - validation definition creation tracking disabled
-
         return validation
 
     @public_api
@@ -66,8 +64,6 @@ class ValidationDefinitionFactory(Factory[ValidationDefinition]):
 
         key = self._store.get_key(name=validation_definition.name, id=validation_definition.id)
         self._store.remove_key(key=key)
-
-        # Analytics removed - validation definition deletion tracking disabled
 
     @public_api
     @override

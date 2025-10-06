@@ -330,8 +330,6 @@ class ValidationDefinition(BaseModel):
                 ref
             )
 
-        # Analytics removed - validation definition run tracking disabled
-
         return results
 
     def _get_expectation_suite_and_validation_result_ids(

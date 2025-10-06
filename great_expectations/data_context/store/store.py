@@ -275,7 +275,6 @@ class Store:
         return deserializable_objs
 
     def submit_all_deserialization_event(self, e: Exception):
-        # Analytics removed - deserialization error tracking disabled
         pass
 
     def set(self, key: DataContextKey, value: Any, **kwargs) -> Any:

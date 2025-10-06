@@ -338,8 +338,6 @@ class Checkpoint(BaseModel):
         checkpoint_result = self._construct_result(run_id=run_id, run_results=run_results)
         self._run_actions(checkpoint_result=checkpoint_result)
 
-        # Analytics removed - checkpoint run tracking disabled
-
         return checkpoint_result
 
     def _prepare_checkpoint_run_for_context(

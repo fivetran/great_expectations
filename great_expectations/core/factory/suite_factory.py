@@ -45,8 +45,6 @@ class SuiteFactory(Factory[ExpectationSuite]):
             )
         self._store.add(key=key, value=suite)
 
-        # Analytics removed - expectation suite creation tracking disabled
-
         if suite._include_rendered_content:
             suite.render()
 
@@ -72,8 +70,6 @@ class SuiteFactory(Factory[ExpectationSuite]):
 
         key = self._store.get_key(name=suite.name, id=suite.id)
         self._store.remove_key(key=key)
-
-        # Analytics removed - expectation suite deletion tracking disabled
 
     @public_api
     @override

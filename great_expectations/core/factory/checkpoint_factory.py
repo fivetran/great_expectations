@@ -48,8 +48,6 @@ class CheckpointFactory(Factory[Checkpoint]):
         # TODO: Add id adding logic to CheckpointStore to prevent round trip
         persisted_checkpoint = self._get(key=key)
 
-        # Analytics removed - checkpoint creation tracking disabled
-
         return persisted_checkpoint
 
     @public_api
@@ -72,8 +70,6 @@ class CheckpointFactory(Factory[Checkpoint]):
 
         key = self._store.get_key(name=checkpoint.name, id=checkpoint.id)
         self._store.remove_key(key=key)
-
-        # Analytics removed - checkpoint deletion tracking disabled
 
     @public_api
     @override

@@ -149,8 +149,6 @@ class ExpectationSuite(SerializableDictDot):
 
         expectation.register_save_callback(save_callback=self._save_expectation)
 
-        self._submit_expectation_created_event(expectation=expectation)
-
         return expectation
 
     @staticmethod
@@ -232,8 +230,6 @@ class ExpectationSuite(SerializableDictDot):
                 self.expectations.append(expectation)
                 raise exc  # noqa: TRY201 # FIXME CoP
 
-        # Analytics removed - expectation deletion tracking disabled
-
         return expectation
 
     @public_api
@@ -293,7 +289,6 @@ class ExpectationSuite(SerializableDictDot):
 
     def _save_expectation(self, expectation) -> Expectation:
         expectation = self._store.update_expectation(suite=self, expectation=expectation)
-        # Analytics removed - expectation update tracking disabled
         return expectation
 
     @property
