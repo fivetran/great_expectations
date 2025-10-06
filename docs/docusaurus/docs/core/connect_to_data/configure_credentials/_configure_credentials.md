@@ -29,7 +29,7 @@ GX Core also supports referencing credentials that have been stored in the AWS S
 
 2. Store the credentials required for your connection.
 
-   GX supports the following methods of securely storing credentials.  Choose one to implement for your connection:
+   GX supports the following methods of securely storing credentials.
 
    <Tabs queryString="storage_type" groupId="storage_type" defaultValue='environment_variables' values={[{label: 'Environment Variables', value:'environment_variables'}, {label: 'config.yml', value:'config_yml'}, {label: 'Key pair (Snowflake only)', value:'key_pair'}]}>
 
@@ -47,7 +47,22 @@ GX Core also supports referencing credentials that have been stored in the AWS S
 
    </Tabs>
 
+<Tabs className="hidden" queryString="storage_typet" groupId="storage_type" defaultValue='environment_variables'>
+
+<TabItem value="environment_variables">
 3. Access your credentials in Python strings.
+</TabItem>
+
+<TabItem value="config_yml">
+3. Access your credentials in Python strings.
+</TabItem>
+
+<TabItem value="key_pair">
+3. Access you Snowflake private key in Python.
+</TabItem>
+
+</Tabs>
+
 
    <Tabs className="hidden" queryString="storage_typet" groupId="storage_type" defaultValue='environment_variables'>
 

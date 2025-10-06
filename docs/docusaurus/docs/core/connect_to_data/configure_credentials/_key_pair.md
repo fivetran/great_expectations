@@ -1,1 +1,1 @@
-Follow Snowflake's docs to [configure and store the private and public keys](https://docs.snowflake.com/en/user-guide/key-pair-auth). 
+To store the value for `private_key`, follow Snowflake's docs to [configure and store private and public keys](https://docs.snowflake.com/en/user-guide/key-pair-auth). Use Environment Variables or `config.yml` to store your other connection details.

@@ -1,5 +1,3 @@
-Here's an example of how to access your Snowflake private key in Python.
-
 ```python title="Python"
 import pathlib
 
