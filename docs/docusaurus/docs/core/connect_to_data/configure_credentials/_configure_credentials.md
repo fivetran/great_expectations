@@ -61,7 +61,7 @@ GX Core also supports referencing credentials that have been stored in the AWS S
 </TabItem>
 
 <TabItem value="key_pair">
-3. Access you Snowflake private key in Python.
+3. Access your Snowflake private key in Python.
    <AccessKeyPair/>
 </TabItem>
 
