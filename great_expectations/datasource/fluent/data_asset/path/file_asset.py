@@ -66,7 +66,7 @@ class AmbiguousPathError(ValueError):
 
 
 @public_api
-class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], Generic[DatasourceT], ABC):
+class FileDataAsset(PathDataAsset[DatasourceT, FileNamePartitioner], ABC, Generic[DatasourceT]):
     """Base class for PathDataAssets which batch by applying a regex to file names."""
 
     _unnamed_regex_param_prefix: str = pydantic.PrivateAttr(default="batch_request_param_")

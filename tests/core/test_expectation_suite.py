@@ -245,7 +245,7 @@ class TestCRUDMethods:
         ]
         with pytest.raises(
             ValueError,
-            match="Expectations in parameter `expectations` must not belong to another ExpectationSuite.",  # noqa: E501 # FIXME CoP
+            match=r"Expectations in parameter `expectations` must not belong to another ExpectationSuite.",  # noqa: E501 # FIXME CoP
         ):
             ExpectationSuite(name=self.expectation_suite_name, expectations=expectations)
 
@@ -481,7 +481,7 @@ class TestCRUDMethods:
             name="test-suite",
         )
 
-        with pytest.raises(KeyError, match="No matching expectation was found."):
+        with pytest.raises(KeyError, match=r"No matching expectation was found."):
             suite.delete_expectation(expectation=expectation)
 
         context.expectations_store.delete_expectation.assert_not_called()
@@ -574,7 +574,7 @@ class TestCRUDMethods:
 
         with pytest.raises(
             RuntimeError,
-            match="Cannot add Expectation because it already belongs to an ExpectationSuite.",
+            match=r"Cannot add Expectation because it already belongs to an ExpectationSuite.",
         ):
             suite.add_expectation(expectation)
 

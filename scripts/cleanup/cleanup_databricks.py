@@ -53,7 +53,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
             return
 
         for row in results:
-            catalog_name, schema_name, created = row
+            catalog_name, schema_name, _ = row
             full_schema_name = f"{catalog_name}.{schema_name}"
 
             try:
