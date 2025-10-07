@@ -44,6 +44,10 @@ from great_expectations.data_context._version_checker import _VersionChecker
 from great_expectations.data_context.cloud_constants import (
     GXCloudEnvironmentVariable,
 )
+from great_expectations.data_context.data_context.cloud_data_context import (
+    CloudUserInfo,
+    Workspace,
+)
 from great_expectations.data_context.data_context.context_factory import (
     project_manager,
     set_context,
@@ -1818,11 +1822,6 @@ def empty_data_context_in_cloud_mode(
         return ge_cloud_config
 
     def mocked_cloud_user_info(*args, **kwargs):
-        from great_expectations.data_context.data_context.cloud_data_context import (
-            CloudUserInfo,
-            Workspace,
-        )
-
         return CloudUserInfo(
             user_id=uuid.uuid4(),
             workspaces=[Workspace(id=ge_cloud_config.workspace_id, role="editor")],
@@ -1930,11 +1929,6 @@ def empty_base_data_context_in_cloud_mode_custom_base_url(
     custom_ge_cloud_config.base_url = custom_base_url
 
     def mocked_cloud_user_info(*args, **kwargs):
-        from great_expectations.data_context.data_context.cloud_data_context import (
-            CloudUserInfo,
-            Workspace,
-        )
-
         return CloudUserInfo(
             user_id=uuid.uuid4(),
             workspaces=[Workspace(id=custom_ge_cloud_config.workspace_id, role="editor")],
