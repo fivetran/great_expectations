@@ -136,19 +136,9 @@ def test_base_context_invalid_root_dir(clear_env_vars, tmp_path):
 
 @pytest.mark.parametrize("ge_cloud_mode", [True, None])
 @pytest.mark.cloud
-def test_cloud_context_env(set_up_cloud_envs, empty_ge_cloud_data_context_config, ge_cloud_mode):
-    def mocked_cloud_user_info(*args, **kwargs):
-        import uuid
-
-        from great_expectations.data_context.data_context.cloud_data_context import (
-            CloudUserInfo,
-            Workspace,
-        )
-
-        return CloudUserInfo(
-            user_id=uuid.uuid4(), workspaces=[Workspace(id="test-workspace-id", role="editor")]
-        )
-
+def test_cloud_context_env(
+    set_up_cloud_envs, empty_ge_cloud_data_context_config, ge_cloud_mode, mock_cloud_user_info
+):
     with (
         mock.patch.object(
             CloudDataContext,
@@ -159,7 +149,7 @@ def test_cloud_context_env(set_up_cloud_envs, empty_ge_cloud_data_context_config
             CloudDataContext,
             "cloud_user_info",
             autospec=True,
-            side_effect=mocked_cloud_user_info,
+            side_effect=mock_cloud_user_info,
         ),
     ):
         assert isinstance(
@@ -283,20 +273,8 @@ def test_get_context_with_mode_equals_file_returns_file_data_context(
 
 @pytest.mark.cloud
 def test_get_context_with_mode_equals_cloud_returns_cloud_data_context(
-    empty_ge_cloud_data_context_config: DataContextConfig, set_up_cloud_envs
+    empty_ge_cloud_data_context_config: DataContextConfig, set_up_cloud_envs, mock_cloud_user_info
 ):
-    def mocked_cloud_user_info(*args, **kwargs):
-        import uuid
-
-        from great_expectations.data_context.data_context.cloud_data_context import (
-            CloudUserInfo,
-            Workspace,
-        )
-
-        return CloudUserInfo(
-            user_id=uuid.uuid4(), workspaces=[Workspace(id="test-workspace-id", role="editor")]
-        )
-
     with (
         mock.patch.object(
             CloudDataContext,
@@ -307,7 +285,7 @@ def test_get_context_with_mode_equals_cloud_returns_cloud_data_context(
             CloudDataContext,
             "cloud_user_info",
             autospec=True,
-            side_effect=mocked_cloud_user_info,
+            side_effect=mock_cloud_user_info,
         ),
     ):
         context = gx.get_context(mode="cloud")

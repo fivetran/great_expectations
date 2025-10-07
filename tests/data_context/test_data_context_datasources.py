@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pathlib
-import uuid
 from unittest import mock
 
 import pytest
@@ -52,25 +51,15 @@ def test_data_context_instantiates_gx_cloud_store_backend_with_cloud_config(
     tmp_path: pathlib.Path,
     data_context_config_with_datasources: DataContextConfig,
     ge_cloud_config: GXCloudConfig,
+    mock_cloud_user_info,
 ) -> None:
     project_path = tmp_path / "my_data_context"
     project_path.mkdir()
 
-    def mocked_cloud_user_info(*args, **kwargs):
-        from great_expectations.data_context.data_context.cloud_data_context import (
-            CloudUserInfo,
-            Workspace,
-        )
-
-        return CloudUserInfo(
-            user_id=uuid.uuid4(),
-            workspaces=[Workspace(id=ge_cloud_config.workspace_id, role="editor")],
-        )
-
     with mock.patch(
         "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.cloud_user_info",
         autospec=True,
-        side_effect=mocked_cloud_user_info,
+        side_effect=mock_cloud_user_info,
     ):
         context = get_context(
             project_config=data_context_config_with_datasources,
