@@ -10,6 +10,7 @@ import random
 import shutil
 import string
 import urllib.parse
+import uuid
 import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Final, Generator, List, Optional
@@ -1816,6 +1817,17 @@ def empty_data_context_in_cloud_mode(
     def mocked_get_cloud_config(*args, **kwargs) -> GXCloudConfig:
         return ge_cloud_config
 
+    def mocked_cloud_user_info(*args, **kwargs):
+        from great_expectations.data_context.data_context.cloud_data_context import (
+            CloudUserInfo,
+            Workspace,
+        )
+
+        return CloudUserInfo(
+            user_id=uuid.uuid4(),
+            workspaces=[Workspace(id=ge_cloud_config.workspace_id, role="editor")],
+        )
+
     with (
         mock.patch(
             "great_expectations.data_context.data_context.serializable_data_context.SerializableDataContext._save_project_config"
@@ -1829,6 +1841,11 @@ def empty_data_context_in_cloud_mode(
             "great_expectations.data_context.data_context.CloudDataContext.get_cloud_config",
             autospec=True,
             side_effect=mocked_get_cloud_config,
+        ),
+        mock.patch(
+            "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.cloud_user_info",
+            autospec=True,
+            side_effect=mocked_cloud_user_info,
         ),
     ):
         context = CloudDataContext(context_root_dir=project_path)
