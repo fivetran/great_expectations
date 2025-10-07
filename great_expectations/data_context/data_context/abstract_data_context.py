@@ -1972,13 +1972,6 @@ class AbstractDataContext(ConfigPeer, ABC):
         self._config_variables = self._load_config_variables()
 
     @classmethod
-    def _get_oss_id(cls) -> uuid.UUID | None:
-        """
-        Returns None since analytics are disabled.
-        """
-        return None
-
-    @classmethod
     def _scaffold_root_conf(cls) -> bool:
         """
         Set up an empty root conf file ($HOME/.great_expectations/great_expectations.conf)
