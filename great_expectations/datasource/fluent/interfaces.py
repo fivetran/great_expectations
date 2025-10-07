@@ -661,7 +661,7 @@ class Datasource(
     _type_lookup: ClassVar[TypeLookup]  # This attribute is set in `MetaDatasource.__new__`
     # Setting this in a Datasource subclass will override the execution engine type.
     # The primary use case is to inject an execution engine for testing.
-    execution_engine_override: ClassVar[Optional[Type[_ExecutionEngineT]]] = None  # type: ignore[misc]  # ClassVar cannot contain type variables
+    execution_engine_override: ClassVar[Optional[Type[_ExecutionEngineT]]] = None
 
     # instance attrs
     type: str

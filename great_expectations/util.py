@@ -76,10 +76,10 @@ if TYPE_CHECKING:
 try:
     from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 except ImportError:
-    Point = None
-    Polygon = None
-    MultiPolygon = None
-    LineString = None
+    Point = None  # type: ignore[misc,assignment]
+    Polygon = None  # type: ignore[misc,assignment]
+    MultiPolygon = None  # type: ignore[misc,assignment]
+    LineString = None  # type: ignore[misc,assignment]
 
 
 logger = logging.getLogger(__name__)
@@ -1204,7 +1204,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         return str(data)
 
     # noinspection PyTypeChecker
-    if Polygon and isinstance(data, (Point, Polygon, MultiPolygon, LineString)):
+    if Polygon is not None and isinstance(data, (Point, Polygon, MultiPolygon, LineString)):
         return str(data)
 
     # Use built in base type from numpy, https://docs.scipy.org/doc/numpy-1.13.0/user/basics.types.html
