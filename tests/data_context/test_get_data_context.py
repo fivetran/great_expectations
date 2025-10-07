@@ -136,21 +136,11 @@ def test_base_context_invalid_root_dir(clear_env_vars, tmp_path):
 
 @pytest.mark.parametrize("ge_cloud_mode", [True, None])
 @pytest.mark.cloud
-def test_cloud_context_env(
-    set_up_cloud_envs, empty_ge_cloud_data_context_config, ge_cloud_mode, mock_cloud_user_info
-):
-    with (
-        mock.patch.object(
-            CloudDataContext,
-            "retrieve_data_context_config_from_cloud",
-            return_value=empty_ge_cloud_data_context_config,
-        ),
-        mock.patch.object(
-            CloudDataContext,
-            "cloud_user_info",
-            autospec=True,
-            side_effect=mock_cloud_user_info,
-        ),
+def test_cloud_context_env(set_up_cloud_envs, empty_ge_cloud_data_context_config, ge_cloud_mode):
+    with mock.patch.object(
+        CloudDataContext,
+        "retrieve_data_context_config_from_cloud",
+        return_value=empty_ge_cloud_data_context_config,
     ):
         assert isinstance(
             gx.get_context(cloud_mode=ge_cloud_mode),
@@ -273,21 +263,13 @@ def test_get_context_with_mode_equals_file_returns_file_data_context(
 
 @pytest.mark.cloud
 def test_get_context_with_mode_equals_cloud_returns_cloud_data_context(
-    empty_ge_cloud_data_context_config: DataContextConfig, set_up_cloud_envs, mock_cloud_user_info
+    empty_ge_cloud_data_context_config: DataContextConfig, set_up_cloud_envs
 ):
-    with (
-        mock.patch.object(
-            CloudDataContext,
-            "retrieve_data_context_config_from_cloud",
-            return_value=empty_ge_cloud_data_context_config,
-        ) as mock_retrieve_config,
-        mock.patch.object(
-            CloudDataContext,
-            "cloud_user_info",
-            autospec=True,
-            side_effect=mock_cloud_user_info,
-        ),
-    ):
+    with mock.patch.object(
+        CloudDataContext,
+        "retrieve_data_context_config_from_cloud",
+        return_value=empty_ge_cloud_data_context_config,
+    ) as mock_retrieve_config:
         context = gx.get_context(mode="cloud")
 
     mock_retrieve_config.assert_called_once()

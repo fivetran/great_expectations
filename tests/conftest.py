@@ -10,7 +10,6 @@ import random
 import shutil
 import string
 import urllib.parse
-import uuid
 import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Final, Generator, List, Optional
@@ -43,10 +42,6 @@ from great_expectations.data_context import (
 from great_expectations.data_context._version_checker import _VersionChecker
 from great_expectations.data_context.cloud_constants import (
     GXCloudEnvironmentVariable,
-)
-from great_expectations.data_context.data_context.cloud_data_context import (
-    CloudUserInfo,
-    Workspace,
 )
 from great_expectations.data_context.data_context.context_factory import (
     project_manager,
@@ -1780,34 +1775,6 @@ def ge_cloud_config_e2e() -> GXCloudConfig:
 
 
 @pytest.fixture
-def mock_cloud_user_info():
-    """
-    Returns a mock function for CloudDataContext.cloud_user_info() that can be used
-    to avoid making real API calls to /accounts/me during CloudDataContext initialization.
-
-    Usage:
-        with mock.patch(
-            "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.cloud_user_info",
-            autospec=True,
-            side_effect=mock_cloud_user_info,
-        ):
-            context = CloudDataContext(...)
-    """
-
-    def _mock_cloud_user_info(self=None, *args, **kwargs):
-        # Get workspace_id from the context if available, otherwise use a default
-        workspace_id = "test-workspace-id"
-        if self and hasattr(self, "_cloud_config") and self._cloud_config.workspace_id:
-            workspace_id = self._cloud_config.workspace_id
-
-        return CloudUserInfo(
-            user_id=uuid.uuid4(), workspaces=[Workspace(id=workspace_id, role="editor")]
-        )
-
-    return _mock_cloud_user_info
-
-
-@pytest.fixture
 @mock.patch(
     "great_expectations.data_context.store.DatasourceStore.list_keys",
     return_value=[],
@@ -1817,24 +1784,18 @@ def empty_base_data_context_in_cloud_mode(
     tmp_path: pathlib.Path,
     empty_ge_cloud_data_context_config: DataContextConfig,
     ge_cloud_config: GXCloudConfig,
-    mock_cloud_user_info,
 ) -> CloudDataContext:
     project_path = tmp_path / "empty_data_context"
     project_path.mkdir(exist_ok=True)
 
-    with mock.patch(
-        "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.cloud_user_info",
-        autospec=True,
-        side_effect=mock_cloud_user_info,
-    ):
-        context = CloudDataContext(
-            project_config=empty_ge_cloud_data_context_config,
-            context_root_dir=project_path,
-            cloud_base_url=ge_cloud_config.base_url,
-            cloud_access_token=ge_cloud_config.access_token,
-            cloud_organization_id=ge_cloud_config.organization_id,
-            cloud_workspace_id=ge_cloud_config.workspace_id,
-        )
+    context = CloudDataContext(
+        project_config=empty_ge_cloud_data_context_config,
+        context_root_dir=project_path,
+        cloud_base_url=ge_cloud_config.base_url,
+        cloud_access_token=ge_cloud_config.access_token,
+        cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
+    )
     set_context(context)
     return context
 
@@ -1844,7 +1805,6 @@ def empty_data_context_in_cloud_mode(
     tmp_path: pathlib.Path,
     ge_cloud_config: GXCloudConfig,
     empty_ge_cloud_data_context_config: DataContextConfig,
-    mock_cloud_user_info,
 ):
     """This fixture is a DataContext in cloud mode that mocks calls to the cloud backend during setup so that it can be instantiated in tests."""  # noqa: E501 # FIXME CoP
     project_path = tmp_path / "empty_data_context"
@@ -1869,11 +1829,6 @@ def empty_data_context_in_cloud_mode(
             "great_expectations.data_context.data_context.CloudDataContext.get_cloud_config",
             autospec=True,
             side_effect=mocked_get_cloud_config,
-        ),
-        mock.patch(
-            "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.cloud_user_info",
-            autospec=True,
-            side_effect=mock_cloud_user_info,
         ),
     ):
         context = CloudDataContext(context_root_dir=project_path)
@@ -1948,7 +1903,6 @@ def empty_base_data_context_in_cloud_mode_custom_base_url(
     tmp_path: pathlib.Path,
     empty_ge_cloud_data_context_config: DataContextConfig,
     ge_cloud_config: GXCloudConfig,
-    mock_cloud_user_info,
 ) -> CloudDataContext:
     project_path = tmp_path / "empty_data_context"
     project_path.mkdir()
@@ -1958,19 +1912,14 @@ def empty_base_data_context_in_cloud_mode_custom_base_url(
     custom_ge_cloud_config = copy.deepcopy(ge_cloud_config)
     custom_ge_cloud_config.base_url = custom_base_url
 
-    with mock.patch(
-        "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.cloud_user_info",
-        autospec=True,
-        side_effect=mock_cloud_user_info,
-    ):
-        context = CloudDataContext(
-            project_config=empty_ge_cloud_data_context_config,
-            context_root_dir=project_path,
-            cloud_base_url=custom_ge_cloud_config.base_url,
-            cloud_access_token=custom_ge_cloud_config.access_token,
-            cloud_organization_id=custom_ge_cloud_config.organization_id,
-            cloud_workspace_id=custom_ge_cloud_config.workspace_id,
-        )
+    context = CloudDataContext(
+        project_config=empty_ge_cloud_data_context_config,
+        context_root_dir=project_path,
+        cloud_base_url=custom_ge_cloud_config.base_url,
+        cloud_access_token=custom_ge_cloud_config.access_token,
+        cloud_organization_id=custom_ge_cloud_config.organization_id,
+        cloud_workspace_id=custom_ge_cloud_config.workspace_id,
+    )
     assert context.list_datasources() == []
     assert context.ge_cloud_config.base_url != ge_cloud_config.base_url
     assert context.ge_cloud_config.base_url == custom_base_url

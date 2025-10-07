@@ -128,18 +128,6 @@ def test_parses_v0_config_from_cloud(config: dict):
         status=200,
     )
 
-    # Mock the /accounts/me endpoint that CloudDataContext calls during initialization
-    accounts_me_url = f"{CLOUD_BASE_URL}/organizations/{ORG_ID}/accounts/me"
-    responses.add(
-        responses.GET,
-        accounts_me_url,
-        json={
-            "user_id": "df665fc4-1891-4ef7-9a12-a0c46015c92c",
-            "workspaces": [{"id": WORKSPACE_ID, "role": "editor"}],
-        },
-        status=200,
-    )
-
     CloudDataContext(
         cloud_base_url=CLOUD_BASE_URL,
         cloud_access_token=ACCESS_TOKEN,

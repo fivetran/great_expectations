@@ -38,21 +38,6 @@ def test_data_context_ge_cloud_mode_makes_successful_request_to_cloud_api(
         f"organizations/{ge_cloud_runtime_organization_id}/"
         f"workspaces/{ge_cloud_workspace_id}/data-context-configuration"
     )
-
-    # Mock the /accounts/me endpoint that CloudDataContext calls during initialization
-    accounts_me_url = (
-        f"{ge_cloud_runtime_base_url}/organizations/{ge_cloud_runtime_organization_id}/accounts/me"
-    )
-    responses.get(
-        accounts_me_url,
-        status=200,
-        json={
-            "user_id": "df665fc4-1891-4ef7-9a12-a0c46015c92c",
-            "workspaces": [{"id": ge_cloud_workspace_id, "role": "editor"}],
-        },
-        match=[responses.matchers.header_matcher(request_headers)],
-    )
-
     # Ensure that the request goes through
     responses.get(
         called_with_url,

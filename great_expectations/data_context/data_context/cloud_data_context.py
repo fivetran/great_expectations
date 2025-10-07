@@ -160,10 +160,6 @@ class CloudDataContext(SerializableDataContext):
                 self._cloud_config.workspace_id = self.cloud_user_info().workspaces[0].id
             else:
                 raise WorkspaceNotSetError()
-        else:
-            # Validate user access by fetching user info
-            # This ensures the user has access to the cloud environment
-            self.cloud_user_info()
 
         self._context_root_directory = self.determine_context_root_directory(
             context_root_dir=context_root_dir,

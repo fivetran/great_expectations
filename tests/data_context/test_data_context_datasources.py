@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pathlib
-from unittest import mock
 
 import pytest
 
@@ -51,25 +50,19 @@ def test_data_context_instantiates_gx_cloud_store_backend_with_cloud_config(
     tmp_path: pathlib.Path,
     data_context_config_with_datasources: DataContextConfig,
     ge_cloud_config: GXCloudConfig,
-    mock_cloud_user_info,
 ) -> None:
     project_path = tmp_path / "my_data_context"
     project_path.mkdir()
 
-    with mock.patch(
-        "great_expectations.data_context.data_context.cloud_data_context.CloudDataContext.cloud_user_info",
-        autospec=True,
-        side_effect=mock_cloud_user_info,
-    ):
-        context = get_context(
-            project_config=data_context_config_with_datasources,
-            context_root_dir=str(project_path),
-            cloud_base_url=ge_cloud_config.base_url,
-            cloud_access_token=ge_cloud_config.access_token,
-            cloud_organization_id=ge_cloud_config.organization_id,
-            cloud_workspace_id=ge_cloud_config.workspace_id,
-            cloud_mode=True,
-        )
+    context = get_context(
+        project_config=data_context_config_with_datasources,
+        context_root_dir=str(project_path),
+        cloud_base_url=ge_cloud_config.base_url,
+        cloud_access_token=ge_cloud_config.access_token,
+        cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
+        cloud_mode=True,
+    )
 
     assert isinstance(context._datasource_store.store_backend, GXCloudStoreBackend)
 
