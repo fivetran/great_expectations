@@ -1974,60 +1974,9 @@ class AbstractDataContext(ConfigPeer, ABC):
     @classmethod
     def _get_oss_id(cls) -> uuid.UUID | None:
         """
-        Retrieves a user's `oss_id` from disk ($HOME/.great_expectations/great_expectations.conf).
-
-        If no such value is present, a new UUID is generated and written to disk for subsequent usage.
-        If there is an error when reading from / writing to disk, we default to a NoneType.
-        """  # noqa: E501 # FIXME CoP
-        config = configparser.ConfigParser()
-
-        try:
-            if not cls._ROOT_CONF_FILE.exists():
-                success = cls._scaffold_root_conf()
-                if not success:
-                    return None
-                return cls._set_oss_id(config)
-
-            config.read(cls._ROOT_CONF_FILE)
-        except OSError as e:
-            logger.info(f"Something went wrong when trying to read from the user's conf file: {e}")
-            return None
-
-        oss_id = config.get("analytics", "oss_id", fallback=None)
-        if not oss_id:
-            return cls._set_oss_id(config)
-
-        return uuid.UUID(oss_id)
-
-    @classmethod
-    def _set_oss_id(cls, config: configparser.ConfigParser) -> uuid.UUID | None:
+        Returns None since analytics are disabled.
         """
-        Generates a random UUID and writes it to disk for subsequent usage.
-        Assumes that the root conf file exists.
-
-        Args:
-            config: The parser used to read/write the oss_id.
-
-        If there is an error when writing to disk, we default to a NoneType.
-        """
-        oss_id = uuid.uuid4()
-
-        # If the section already exists, don't overwrite
-        section = "analytics"
-        if not config.has_section(section):
-            config[section] = {}
-        config[section]["oss_id"] = str(oss_id)
-
-        try:
-            with cls._ROOT_CONF_FILE.open("w") as f:
-                config.write(f)
-        except OSError as e:
-            logger.info(
-                f"Something went wrong when trying to write the user's conf file to disk: {e}"
-            )
-            return None
-
-        return oss_id
+        return None
 
     @classmethod
     def _scaffold_root_conf(cls) -> bool:

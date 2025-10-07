@@ -255,8 +255,7 @@ class TestCRUDMethods:
         set_context(project=context)
         suite = ExpectationSuite(name=self.expectation_suite_name)
 
-        with mock.patch.object(ExpectationSuite, "_submit_expectation_created_event"):
-            created_expectation = suite.add_expectation(expectation=expectation)
+        created_expectation = suite.add_expectation(expectation=expectation)
 
         assert created_expectation == context.expectations_store.add_expectation.return_value
         context.expectations_store.add_expectation.assert_called_once_with(
@@ -406,8 +405,7 @@ class TestCRUDMethods:
             expectations=[expectation_a],
         )
 
-        with mock.patch.object(ExpectationSuite, "_submit_expectation_created_event"):
-            suite.add_expectation(expectation=expectation_b)
+        suite.add_expectation(expectation=expectation_b)
 
         assert len(suite.expectations) == 2
 

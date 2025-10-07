@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import configparser
 import os
 import pathlib
 import shutil
-import uuid
 from pathlib import Path
 from typing import Dict, List, Union
 
@@ -850,13 +848,10 @@ def test_file_backed_context_updates_existing_gitignore(tmp_path: pathlib.Path):
 @pytest.mark.unit
 def test_set_oss_id_with_empty_config(in_memory_runtime_context: EphemeralDataContext):
     context = in_memory_runtime_context
-    config = configparser.ConfigParser()
 
-    oss_id = context._set_oss_id(config)
+    oss_id = context._get_oss_id()
 
-    assert config.sections() == ["analytics"]
-    assert list(config["analytics"]) == ["oss_id"]
-    assert oss_id == uuid.UUID(config["analytics"]["oss_id"])
+    assert oss_id is None
 
 
 @pytest.mark.unit
@@ -865,14 +860,6 @@ def test_set_oss_id_with_existing_config(
 ):
     context = in_memory_runtime_context
 
-    # Set up existing config
-    config = configparser.ConfigParser()
-    config["analytics"] = {}
+    oss_id = context._get_oss_id()
 
-    oss_id = context._set_oss_id(config)
-
-    assert config.sections() == ["analytics"]
-    assert list(config["analytics"]) == [
-        "oss_id",
-    ]
-    assert oss_id == uuid.UUID(config["analytics"]["oss_id"])
+    assert oss_id is None
