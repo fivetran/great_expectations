@@ -93,6 +93,7 @@ def sample_user_with_multiple_workspaces() -> CloudUserInfo:
     )
 
 
+@pytest.mark.filterwarnings("ignore:Workspace id is not set when instantiating a CloudDataContext")
 class TestGetContextWithoutSettingWorkspaceId:
     """Test get_context() behavior when GX_CLOUD_WORKSPACE_ID is not set."""
 
