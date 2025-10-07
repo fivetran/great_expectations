@@ -58,6 +58,26 @@ def test_data_context_configuration(
         )
     )
 
+    # Set up the /accounts/me contract that CloudDataContext will call during initialization
+    accounts_me_response_body = {
+        "user_id": "df665fc4-1891-4ef7-9a12-a0c46015c92c",
+        "workspaces": [{"id": EXISTING_WORKSPACE_ID, "role": "editor"}],
+    }
+
+    (
+        pact_test.given("the user account exists")
+        .upon_receiving("a request to get user account information")
+        .with_request(
+            method="GET",
+            path=f"/organizations/{EXISTING_ORGANIZATION_ID}/accounts/me",
+            headers={"Authorization": f"Bearer {cloud_access_token}"},
+        )
+        .will_respond_with(
+            status=200,
+            body=accounts_me_response_body,
+        )
+    )
+
     # Act
     with pact_test:
         ctx = gx.get_context(

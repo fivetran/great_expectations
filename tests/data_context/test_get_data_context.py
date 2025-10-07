@@ -137,10 +137,30 @@ def test_base_context_invalid_root_dir(clear_env_vars, tmp_path):
 @pytest.mark.parametrize("ge_cloud_mode", [True, None])
 @pytest.mark.cloud
 def test_cloud_context_env(set_up_cloud_envs, empty_ge_cloud_data_context_config, ge_cloud_mode):
-    with mock.patch.object(
-        CloudDataContext,
-        "retrieve_data_context_config_from_cloud",
-        return_value=empty_ge_cloud_data_context_config,
+    def mocked_cloud_user_info(*args, **kwargs):
+        import uuid
+
+        from great_expectations.data_context.data_context.cloud_data_context import (
+            CloudUserInfo,
+            Workspace,
+        )
+
+        return CloudUserInfo(
+            user_id=uuid.uuid4(), workspaces=[Workspace(id="test-workspace-id", role="editor")]
+        )
+
+    with (
+        mock.patch.object(
+            CloudDataContext,
+            "retrieve_data_context_config_from_cloud",
+            return_value=empty_ge_cloud_data_context_config,
+        ),
+        mock.patch.object(
+            CloudDataContext,
+            "cloud_user_info",
+            autospec=True,
+            side_effect=mocked_cloud_user_info,
+        ),
     ):
         assert isinstance(
             gx.get_context(cloud_mode=ge_cloud_mode),
@@ -265,11 +285,31 @@ def test_get_context_with_mode_equals_file_returns_file_data_context(
 def test_get_context_with_mode_equals_cloud_returns_cloud_data_context(
     empty_ge_cloud_data_context_config: DataContextConfig, set_up_cloud_envs
 ):
-    with mock.patch.object(
-        CloudDataContext,
-        "retrieve_data_context_config_from_cloud",
-        return_value=empty_ge_cloud_data_context_config,
-    ) as mock_retrieve_config:
+    def mocked_cloud_user_info(*args, **kwargs):
+        import uuid
+
+        from great_expectations.data_context.data_context.cloud_data_context import (
+            CloudUserInfo,
+            Workspace,
+        )
+
+        return CloudUserInfo(
+            user_id=uuid.uuid4(), workspaces=[Workspace(id="test-workspace-id", role="editor")]
+        )
+
+    with (
+        mock.patch.object(
+            CloudDataContext,
+            "retrieve_data_context_config_from_cloud",
+            return_value=empty_ge_cloud_data_context_config,
+        ) as mock_retrieve_config,
+        mock.patch.object(
+            CloudDataContext,
+            "cloud_user_info",
+            autospec=True,
+            side_effect=mocked_cloud_user_info,
+        ),
+    ):
         context = gx.get_context(mode="cloud")
 
     mock_retrieve_config.assert_called_once()
