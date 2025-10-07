@@ -32,7 +32,7 @@ No matter how you run your validations, historical validation results are availa
 ### Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
-- A Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Asset](docs/cloud/data_assets/manage_data_assets) with at least one [GX-managed Expectation](/cloud/expectations/expectations_overview#gx-managed-vs-api-managed-expectations).
+- A Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/cloud/expectations/expectations_overview#gx-managed-vs-api-managed-expectations).
 
 ### Run a Validation
 
@@ -92,7 +92,7 @@ When the Validation is complete, you can [view the results](#view-validation-run
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
-- Any Data Asset with at least one [GX-managed Expectation](/cloud/expectations/expectations_overview#gx-managed-vs-api-managed-expectations).
+- Any Data Asset with at least one [GX-managed Expectation](/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 - [Python version 3.9 to 3.12](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
