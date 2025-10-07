@@ -83,26 +83,6 @@ def cloud_data_context(
     pact_test: pact.Pact,
 ) -> CloudDataContext:
     """This is a real Cloud Data Context that points to the pact mock service instead of the Mercury API."""  # noqa: E501 # FIXME CoP
-    # Set up the /accounts/me contract that CloudDataContext will call during initialization
-    accounts_me_response_body = {
-        "user_id": "df665fc4-1891-4ef7-9a12-a0c46015c92c",
-        "workspaces": [{"id": EXISTING_WORKSPACE_ID, "role": "editor"}],
-    }
-
-    (
-        pact_test.given("the user account exists")
-        .upon_receiving("a request to get user account information")
-        .with_request(
-            method="GET",
-            path=f"/organizations/{EXISTING_ORGANIZATION_ID}/accounts/me",
-            headers={"Authorization": f"Bearer {cloud_access_token}"},
-        )
-        .will_respond_with(
-            status=200,
-            body=accounts_me_response_body,
-        )
-    )
-
     cloud_data_context = CloudDataContext(
         cloud_base_url=cloud_base_url,
         cloud_organization_id=EXISTING_ORGANIZATION_ID,
@@ -113,7 +93,6 @@ def cloud_data_context(
     # reliance on env vars, so instead we override with a real project config
     project_config = cloud_data_context.config
 
-    # Only the CloudDataContext creation that uses the mock service needs the accounts/me contract
     with pact_test:
         context = CloudDataContext(
             cloud_base_url=PACT_MOCK_SERVICE_URL,
