@@ -171,6 +171,7 @@ class TestGetContextWithoutSettingWorkspaceId:
             assert "GX_CLOUD_WORKSPACE_ID" in str(exc_info.value)
 
 
+@pytest.mark.filterwarnings("ignore:Workspace id is not set when instantiating a CloudDataContext")
 class TestCloudDataContextDirectInstantiationWithoutWorkspaceId:
     """Test CloudDataContext direct instantiation when workspace_id is not provided."""
 
