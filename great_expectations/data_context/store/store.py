@@ -259,13 +259,11 @@ class Store:
                 MarshmallowValidationError,
                 PydanticValidationError,
                 StoreBackendError,
-            ) as e:
+            ):
                 bad_objs.append(obj)
-                self.submit_all_deserialization_event(e)
-            except Exception as e:
+            except Exception:
                 # For a general error we want to log so we can understand if there
                 # is user pain here and then we reraise.
-                self.submit_all_deserialization_event(e)
                 raise
 
         if bad_objs:
@@ -273,9 +271,6 @@ class Store:
             skipped = prefix + prefix.join([str(bad) for bad in bad_objs])
             logger.warning(f"Skipping Bad Configs:{skipped}")
         return deserializable_objs
-
-    def submit_all_deserialization_event(self, e: Exception):
-        pass
 
     def set(self, key: DataContextKey, value: Any, **kwargs) -> Any:
         if key == StoreBackend.STORE_BACKEND_ID_KEY:

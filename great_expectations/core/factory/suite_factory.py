@@ -105,11 +105,9 @@ class SuiteFactory(Factory[ExpectationSuite]):
         for suite_dict in dicts:
             try:
                 deserializable_suites.append(self._store.deserialize_suite_dict(suite_dict))
-            except PydanticValidationError as e:
+            except PydanticValidationError:
                 bad_dicts.append(suite_dict)
-                self._store.submit_all_deserialization_event(e)
-            except Exception as e:
-                self._store.submit_all_deserialization_event(e)
+            except Exception:
                 raise
         return deserializable_suites
 
