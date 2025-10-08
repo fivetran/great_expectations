@@ -129,7 +129,8 @@ jobs:
     if: |
       (github.event.pull_request.draft == false && github.base_ref == 'develop') ||
       (github.event_name == 'push' && contains(github.ref, 'refs/tags/1.')) ||
-      github.event_name == 'merge_group'
+      github.event_name == 'merge_group' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
       matrix:
