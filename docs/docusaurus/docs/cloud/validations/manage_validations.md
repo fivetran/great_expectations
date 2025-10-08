@@ -231,7 +231,7 @@ First you will create a Batch Definition that identifies the records to validate
 
    <Tabs 
    queryString="batch-type"
-   defaultValue="full-table"
+   defaultValue="sql-full-table"
    values={[
       {value: 'sql-full-table', label: 'Full table (SQL sources)'},
       {value: 'sql-partition', label: 'Time-based subset (SQL sources)'}
@@ -257,7 +257,6 @@ First you will create a Batch Definition that identifies the records to validate
    </TabItem>
 
    </Tabs>
-
 
 Create a Validation Definition
 (associates expectation suite with data asset via batch definition)
