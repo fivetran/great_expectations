@@ -30,12 +30,12 @@ No matter how you run your validations, historical validation results are availa
 
 <TabItem value="ui" label="UI">
 
-### Prerequisites
+### Prerequisites ui
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - A Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 
-### Run a Validation
+### Run a Validation ui
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -45,11 +45,11 @@ No matter how you run your validations, historical validation results are availa
 
 When the Validation is complete, you can [view the results](#view-validation-run-history).
 
-### Run a Validation on a time-based subset of a Data Asset
+### Run a Validation on a time-based subset of a Data Asset ui
 
 If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
 
-#### Batch your data
+#### Batch your data ui
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -67,7 +67,7 @@ If your Data Asset has at least one DATE or DATETIME column, you can validate yo
 
 6. Click **Save**.
 
-#### Validate a Batch
+#### Validate a Batch ui
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -82,8 +82,6 @@ If your Data Asset has at least one DATE or DATETIME column, you can validate yo
     - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-month** to identify the records to validate.
 
 5. Click **Run**.
-
-When the Validation is complete, you can [view the results](#view-validation-run-history).
 
 </TabItem>
 
@@ -123,7 +121,7 @@ Options for defining and validating Batches for GX-managed Expectations depend o
 - Data Assets from Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources support defining  Batches and validating GX-managed Expectations on batched data in the GX Cloud UI.
 - All Data Assets support defining  and validating Batches with the GX Cloud API.
 
-
+#### Batch your data
 
 1. Define the Data Asset to batch and the DATE or DATETIME column to partition on
 
@@ -218,7 +216,7 @@ When the Validation is complete, you can [view the results](#view-validation-run
 
 5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
 
-PARKING LOT - might be useful later
+## PARKING LOT - might be useful later
 
 1. Retrieve your Data Asset.
 
