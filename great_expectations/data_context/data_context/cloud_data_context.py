@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import uuid
+import warnings
 from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
@@ -156,6 +157,11 @@ class CloudDataContext(SerializableDataContext):
         # The workspace id is not required to be passed in or be in env variable. If we don't have
         #  it, we try to infer it and set it.
         if not self._cloud_config.workspace_id:
+            warnings.warn(
+                "Workspace id is not set when instantiating a CloudDataContext. "
+                f"Please set {GXCloudEnvironmentVariable.WORKSPACE_ID.value} or set it when "
+                "instantiating the context."
+            )
             if len(self.cloud_user_info().workspaces) == 1:
                 self._cloud_config.workspace_id = self.cloud_user_info().workspaces[0].id
             else:

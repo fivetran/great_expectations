@@ -1886,6 +1886,7 @@ def empty_cloud_context_fluent(cloud_api_fake, cloud_details: CloudDetails) -> C
     context = gx.get_context(
         cloud_access_token=cloud_details.access_token,
         cloud_organization_id=cloud_details.org_id,
+        cloud_workspace_id=cloud_details.workspace_id,
         cloud_base_url=cloud_details.base_url,
         cloud_mode=True,
     )
