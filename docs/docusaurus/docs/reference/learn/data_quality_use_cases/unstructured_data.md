@@ -95,7 +95,7 @@ In this tutorial, you will connect to your GX Cloud organization using the GX Cl
 ## Validate your Expectations
 GX uses a Validation Definition to link a Batch Definition and Expectation Suite. A Checkpoint will be used to execute Validations. The results of the Validations can be later viewed through the GX Cloud UI.
 
-1. Create the Validation Defintion.
+1. Create the Validation Definition.
 
    ```python title="Python" name="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py - create the vd"
    ```

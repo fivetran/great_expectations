@@ -4,6 +4,7 @@ import pytest
 
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent import BigQueryDatasource
+from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
 
 LOGGER = logging.getLogger(__name__)
@@ -36,3 +37,48 @@ def test_add_bigquery_datasource(
     assert source.name == test_datasource_name
     assert source.execution_engine_type is SqlAlchemyExecutionEngine
     assert source.assets == []
+
+
+@pytest.mark.unit
+def test_connection_updating_templated_connection_string():
+    # Create datasource with templated connection string
+    conn_str = "bigquery://project-id/${MY_DATASET}"
+    datasource = BigQueryDatasource(
+        name="test_ds",
+        connection_string=conn_str,
+    )
+
+    # Verify initial connection_string is ConfigStr
+    assert isinstance(datasource.connection_string, ConfigStr)
+    assert datasource.connection_string.template_str == conn_str
+
+    # Assign a new templated connection string directly
+    new_conn_str = "bigquery://project-id/${MY_DATASET}".replace("MY_", "NEW_")
+    datasource.connection_string = new_conn_str
+
+    # Verify it's still a ConfigStr after assignment (not a plain str)
+    assert isinstance(datasource.connection_string, ConfigStr), (
+        f"Expected ConfigStr, got {type(datasource.connection_string)}. "
+        "This indicates validate_assignment is not enabled."
+    )
+    assert datasource.connection_string.template_str == new_conn_str
+
+
+@pytest.mark.unit
+def test_connection_updating_plain_connection_string():
+    # Create datasource with templated connection string
+    conn_str = "bigquery://project-id/${MY_DATASET}"
+    datasource = BigQueryDatasource(
+        name="test_ds",
+        connection_string=conn_str,
+    )
+
+    # Verify initial connection_string is ConfigStr
+    assert isinstance(datasource.connection_string, ConfigStr)
+    assert datasource.connection_string.template_str == conn_str
+
+    plain_conn_str = "bigquery://my-project/my-dataset"
+    datasource.connection_string = plain_conn_str
+    assert isinstance(datasource.connection_string, str), (
+        f"Expected str for plain connection string, got {type(datasource.connection_string)}"
+    )

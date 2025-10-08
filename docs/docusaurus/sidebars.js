@@ -248,7 +248,6 @@ module.exports = {
     }
   ],
   learn: [
-    'reference/learn/migration_guide',
     {
       type: 'category',
       label: 'Data quality use cases',

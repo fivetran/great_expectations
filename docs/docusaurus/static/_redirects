@@ -304,6 +304,7 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/reference/customize_your_deployment /docs/core/configure_project_settings/
 /docs/guides/expectations/advanced/how_to_create_a_new_expectation_suite_using_rule_based_profilers /docs/guides/expectations/expectations_lp
 /docs/reference/learn/usage_statistics /docs/core/configure_project_settings/toggle_analytics_events/
+/docs/reference/learn/migration_guide /docs/0.18/reference/learn/migration_guide
 
 # Redirects for removed index pages and new landing pages
 

@@ -32,11 +32,13 @@ This page provides instructions for working with Expectations. To learn about Ex
 
 5. Select an Expectation type.
 
-6. Complete the mandatory and optional fields for the Expectation. A recurring [validation schedule](/cloud/schedules/manage_schedules.md) will be applied automatically to your Expectation. 
+6. Complete the mandatory and optional fields for the Expectation.
 
 7. Click **Save** or click **Save & Add More** and then repeat steps 4 through 7 to add additional Expectations.
 
-8. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
+8. Optional. Run an ad hoc Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
+
+9. Optional. Configure recurring Validations. See [Manage schedules](/docs/cloud/schedules/manage_schedules).
 
 
 ## Save time with ExpectAI <span class="beta">Beta</span>

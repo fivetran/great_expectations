@@ -15,7 +15,7 @@ Some options aren't supported for some Data Sources. See [Data Source limitation
 
 ## Anomaly Detection
 
-When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md) with the GX Cloud UI, GX Cloud by default generates Expectations to detect anomalies in the following data quality issues. You can also automate Anomaly Detection for these when you [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) with the GX Cloud UI for an existing Data Asset.
+When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md) with the GX Cloud UI, you can have GX Cloud generate Expectations to detect anomalies in the following data quality issues. You can also automate Anomaly Detection for these when you [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
 
 - [Schema](#schema)
 - [Volume](#volume)
@@ -26,16 +26,16 @@ When you [add a new Data Asset](/cloud/data_assets/manage_data_assets.md) with t
 
 ### Schema
 
-To detect schema anomalies, we automatically generate a rule to [**expect table columns to match set**](/reference/learn/data_quality_use_cases/schema.md#expect-table-columns-to-match-set) using the Data Asset’s initial columns as the set to match. If the number or names of columns in the Data Asset change, this Expectation will fail.
+To detect schema anomalies, we generate a rule to [**expect table columns to match set**](/reference/learn/data_quality_use_cases/schema.md#expect-table-columns-to-match-set) using the Data Asset’s initial columns as the set to match. If the number or names of columns in the Data Asset change, this Expectation will fail.
 
 ### Volume
 
-To detect anomalies in row count, we automatically generate a rule to [**expect table row count to be between**](/reference/learn/data_quality_use_cases/volume.md#expect-table-row-count-to-be-between) a forecasted range that tests that the current validation run doesn’t deviate significantly from historical patterns. For example, if there is a sudden increase when volume has been stable or stagnation in a season when volume typically grows, then this Expectation will fail.
+To detect anomalies in row count, we generate a rule to [**expect table row count to be between**](/reference/learn/data_quality_use_cases/volume.md#expect-table-row-count-to-be-between) a forecasted range that tests that the current validation run doesn’t deviate significantly from historical patterns. For example, if there is a sudden increase when volume has been stable or stagnation in a season when volume typically grows, then this Expectation will fail.
 
 
 ### Completeness
 
-To detect completeness anomalies, we automatically generate rules for every column to [**expect column proportion of non-null values to be between**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-proportion-of-non-null-values-to-be-between) a forecasted range that depends on the column's initial proportion of non-null values.
+To detect completeness anomalies, we generate rules for every column to [**expect column proportion of non-null values to be between**](/reference/learn/data_quality_use_cases/missingness.md#expect-column-proportion-of-non-null-values-to-be-between) a forecasted range that depends on the column's initial proportion of non-null values.
 
 - If a column initially has no null values, GX Cloud generates a rule to test that the column continues to have no null values.
 - If a column initially has all null values, GX Cloud generates a rule to test that the column continues to have all null values.

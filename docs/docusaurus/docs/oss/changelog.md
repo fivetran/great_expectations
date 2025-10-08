@@ -15,6 +15,12 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.6.4
+* [DOCS] Typo fix, tense update ([#11404](https://github.com/great-expectations/great_expectations/pull/11404))
+* [DOCS] make schedules opt-in ([#11408](https://github.com/great-expectations/great_expectations/pull/11408))
+* [MAINTENANCE] Run Athena tests as a separate step ([#11401](https://github.com/great-expectations/great_expectations/pull/11401))
+* [MAINTENANCE] Remove PyAthena upper pin ([#11402](https://github.com/great-expectations/great_expectations/pull/11402))
+
 ### 1.6.3
 * [DOCS] severity tagging ([#11354](https://github.com/great-expectations/great_expectations/pull/11354))
 * [DOCS] severity screenshots ([#11394](https://github.com/great-expectations/great_expectations/pull/11394))

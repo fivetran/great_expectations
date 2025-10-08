@@ -35,10 +35,6 @@ from great_expectations._docs_decorators import (
     new_method_or_class,
     public_api,
 )
-from great_expectations.analytics.client import init as init_analytics
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.config import ENV_CONFIG
-from great_expectations.analytics.events import DataContextInitializedEvent
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import ExpectationSuite
 from great_expectations.core.batch import (
@@ -250,9 +246,6 @@ class AbstractDataContext(ConfigPeer, ABC):
 
         self._attach_fluent_config_datasources_and_build_data_connectors(self.fluent_config)
 
-        self._init_analytics()
-        submit_event(event=DataContextInitializedEvent())
-
     def _init_data_source_manager(self) -> None:
         self._data_sources: DataSourceManager = DataSourceManager(self)
 
@@ -271,35 +264,6 @@ class AbstractDataContext(ConfigPeer, ABC):
         self._validation_definitions: ValidationDefinitionFactory = ValidationDefinitionFactory(
             store=self.validation_definition_store
         )
-
-    def _init_analytics(self) -> None:
-        analytics_enabled = self._determine_analytics_enabled()
-        if analytics_enabled:
-            init_analytics(
-                enable=analytics_enabled,
-                user_id=None,
-                data_context_id=self._data_context_id,
-                organization_id=None,
-                oss_id=self._get_oss_id(),
-                mode=self.mode,
-                user_agent_str=self._user_agent_str,
-            )
-
-    def _determine_analytics_enabled(self) -> bool:
-        """
-        Determine if analytics are enabled using the following precedence
-          - The `analytics_enabled` key in the GX config
-          - The `GX_ANALYTICS_ENABLED` environment variable
-          - Otherwise, assume True
-        """
-        config_enabled = self.config.analytics_enabled
-        env_var_enabled = ENV_CONFIG.posthog_enabled
-        if config_enabled is not None:
-            return config_enabled
-        elif env_var_enabled is not None:
-            return env_var_enabled
-        else:
-            return True
 
     @property
     @abstractmethod
@@ -363,7 +327,6 @@ class AbstractDataContext(ConfigPeer, ABC):
         If set to None, the `GX_ANALYTICS_ENABLED` environment variable will be used.
         """
         self.config.analytics_enabled = enable
-        self._init_analytics()
         self.variables.save()
 
     def set_user_agent_str(self, user_agent_str: Optional[str]) -> None:
@@ -373,7 +336,6 @@ class AbstractDataContext(ConfigPeer, ABC):
         This method is used by GX internally for analytics tracking.
         """
         self._user_agent_str = user_agent_str
-        self._init_analytics()
 
     @public_api
     def update_project_config(
@@ -2008,64 +1970,6 @@ class AbstractDataContext(ConfigPeer, ABC):
         (example is add_datasource())
         """  # noqa: E501 # FIXME CoP
         self._config_variables = self._load_config_variables()
-
-    @classmethod
-    def _get_oss_id(cls) -> uuid.UUID | None:
-        """
-        Retrieves a user's `oss_id` from disk ($HOME/.great_expectations/great_expectations.conf).
-
-        If no such value is present, a new UUID is generated and written to disk for subsequent usage.
-        If there is an error when reading from / writing to disk, we default to a NoneType.
-        """  # noqa: E501 # FIXME CoP
-        config = configparser.ConfigParser()
-
-        try:
-            if not cls._ROOT_CONF_FILE.exists():
-                success = cls._scaffold_root_conf()
-                if not success:
-                    return None
-                return cls._set_oss_id(config)
-
-            config.read(cls._ROOT_CONF_FILE)
-        except OSError as e:
-            logger.info(f"Something went wrong when trying to read from the user's conf file: {e}")
-            return None
-
-        oss_id = config.get("analytics", "oss_id", fallback=None)
-        if not oss_id:
-            return cls._set_oss_id(config)
-
-        return uuid.UUID(oss_id)
-
-    @classmethod
-    def _set_oss_id(cls, config: configparser.ConfigParser) -> uuid.UUID | None:
-        """
-        Generates a random UUID and writes it to disk for subsequent usage.
-        Assumes that the root conf file exists.
-
-        Args:
-            config: The parser used to read/write the oss_id.
-
-        If there is an error when writing to disk, we default to a NoneType.
-        """
-        oss_id = uuid.uuid4()
-
-        # If the section already exists, don't overwrite
-        section = "analytics"
-        if not config.has_section(section):
-            config[section] = {}
-        config[section]["oss_id"] = str(oss_id)
-
-        try:
-            with cls._ROOT_CONF_FILE.open("w") as f:
-                config.write(f)
-        except OSError as e:
-            logger.info(
-                f"Something went wrong when trying to write the user's conf file to disk: {e}"
-            )
-            return None
-
-        return oss_id
 
     @classmethod
     def _scaffold_root_conf(cls) -> bool:
