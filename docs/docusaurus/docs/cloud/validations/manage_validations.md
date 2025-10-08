@@ -111,6 +111,10 @@ When the Validation is complete, you can [view the results](#view-validation-run
 
 6. Run the generated code in the enviroment where you've saved your Cloud credentials as environment variables. 
 
+</TabItem>
+
+</Tabs>
+
 When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
 
 ### Run a Validation on a time-based subset of a Data Asset
