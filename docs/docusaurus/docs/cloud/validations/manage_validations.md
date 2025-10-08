@@ -258,6 +258,8 @@ First you will create a Batch Definition that identifies the records to validate
 
    </Tabs>
 
+3. other stuff
+
 Create a Validation Definition
 (associates expectation suite with data asset via batch definition)
 
