@@ -24,8 +24,8 @@ Learn more about how data teams are using GX Core in our featured [case studies]
 
 ## Integration support policy
 
-GX Core supports Python `3.9` through `3.12`.
-Experimental support for Python `3.13` and later can be enabled by setting a `GX_PYTHON_EXPERIMENTAL` environment variable when installing `great_expectations`.
+GX Core supports Python `3.9` through `3.13`.
+Experimental support for Python `3.14` and later can be enabled by setting a `GX_PYTHON_EXPERIMENTAL` environment variable when installing `great_expectations`.
 
 For data sources and other integrations that GX supports, see the [compatibility reference](https://docs.greatexpectations.io/docs/help/compatibility_reference) for additional information.
 

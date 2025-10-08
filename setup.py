@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 
 import versioneer
 
-SUPPORTED_PYTHON = ">=3.9,<3.13"
+SUPPORTED_PYTHON = ">=3.9,<3.14"
 
 
 def parse_requirements(file_path: Path) -> List[str]:

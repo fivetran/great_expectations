@@ -297,11 +297,11 @@ jobs:
   unit-tests:
     needs: [check-actor-permissions]
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     runs-on: ${{ matrix.os }}
 
@@ -652,7 +652,7 @@ jobs:
           - spark_connect
           - trino
           - clickhouse
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         exclude:
           # TODO: would like to adopt `actionlint` pre-commit hook
           # but false positive here and inability to do an inline ignore
@@ -749,7 +749,7 @@ jobs:
         markers:
           # - redshift
           - gx-redshift
-        python-version: ["3.9", "3.12"]
+        python-version: ["3.9", "3.12", "3.13"]
         exclude:
           - python-version: ${{ github.event_name == 'pull_request_target' && '3.9' }}
           - python-version: ${{ github.event_name == 'merge_group' && '3.9' }}
@@ -888,7 +888,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: "pip"
           cache-dependency-path: reqs/requirements-dev-test.txt
 
@@ -949,10 +949,10 @@ jobs:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     env:
-      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.13+
+      GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         exclude:
           - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
           - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
