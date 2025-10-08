@@ -234,7 +234,7 @@ First you will create a Batch Definition that identifies the records to validate
    defaultValue="sql-full-table"
    values={[
       {value: 'sql-full-table', label: 'Full table (SQL sources)'},
-      {value: 'sql-partition', label: 'Time-based subset (SQL sources)'}
+      {value: 'sql-partition', label: 'Time-based subset (SQL sources)'},
       {value: 'file-path', label: 'Single file (filesystem sources)'},
       {value: 'file-partition', label: 'Time-based files (filesystem sources)'}
    ]}
