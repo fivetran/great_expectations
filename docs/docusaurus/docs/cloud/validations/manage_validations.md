@@ -19,6 +19,8 @@ No matter how you run your validations, historical validation results are availa
 
 ## Validate GX-managed Expectations
 
+If your Data Source is Databricks SQL, PostgreSQL, Redshift, or Snowflake, use the GX Cloud UI for ad hoc validations of GX-managed Expectations. For all other Data Sources, use the GX Cloud API to validate GX-managed Expectations. 
+
 <Tabs 
    queryString="validation-interface"
    defaultValue="ui"
@@ -30,12 +32,12 @@ No matter how you run your validations, historical validation results are availa
 
 <TabItem value="ui" label="UI">
 
-### Prerequisites (UI Validation, GX-managed Expectations)
+### Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - A Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 
-### Validate entire Data Asset (UI Validation, GX-managed Expectations)
+### Validate entire Data Asset
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -45,7 +47,7 @@ No matter how you run your validations, historical validation results are availa
 
 When the Validation is complete, you can [view the results](#view-validation-run-history).
 
-### Validate a time-based subset of a Data Asset (UI Validation, GX-managed Expectations)
+### Validate a time-based subset of a Data Asset
 
 If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
 
@@ -87,7 +89,7 @@ Then, you can validate a batch of data.
 
 <TabItem value="api" label="API">
 
-### Prerequisites (API Validation, GX-managed Expectations)
+### Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
@@ -95,7 +97,7 @@ Then, you can validate a batch of data.
 - [Python version 3.9 to 3.12](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
-### Validate entire Data Asset (API Validation, GX-managed Expectations)
+### Validate entire Data Asset
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -112,7 +114,7 @@ Then, you can validate a batch of data.
 
 When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
 
-### Validate a time-based subset of a Data Asset (API Validation, GX-managed Expectations)
+### Validate a time-based subset of a Data Asset
 
 If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
 
@@ -187,6 +189,86 @@ Then, you can validate a batch of data.
 
 When the Validation is complete, you can [view the results](#view-validation-run-history).
 
+## Validate API-managed Expectations
+
+For all types of Data Sources, use the GX Cloud API to validate API-managed Expectations. 
+
+To do this you will first create a Validation Definition that links your data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Defintion to a Checkpoint that associates your tests with conditional logic for responding to results. 
+
+### Prerequisites
+
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
+- Any Data Asset with at least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
+- [Python version 3.9 to 3.12](https://www.python.org/downloads/).
+- [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+
+### Define what to validate and how
+
+First you will create a Batch Definition that identifies the records to validate. 
+
+1. Retrieve your Data Asset.
+
+   Replace the value of `datasource_name` with the name of your Data Source and the value of `asset_name` with the name of your Data Asset in the following code. Then execute it to retrieve an existing Data Source and Data Asset from your Data Context:
+
+   ```Python
+   import great_expectations as gx
+
+   context = gx.get_context()
+
+   # Retrieve a Data Source
+   datasource_name = "my_datasource"
+   data_source = context.data_sources.get(datasource_name)
+
+   # Get the Data Asset from the Data Source
+   asset_name = "MY_TABLE_ASSET"
+   data_asset = data_source.get_asset(asset_name)
+   ```
+
+2. Add a Batch Definition to the Data Asset.
+
+   A Batch Definition specifies whether and how to divide a Data Asset for testing. Options for Batch Definitions depend on your Data Source type. SQL Data Sources such as  Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources
+
+   <Tabs 
+   queryString="batch-type"
+   defaultValue="full-table"
+   values={[
+      {value: 'sql-full-table', label: 'Full table (SQL sources)'},
+      {value: 'sql-partition', label: 'Time-based subset (SQL sources)'}
+      {value: 'file-path', label: 'Single file (filesystem sources)'},
+      {value: 'file-partition', label: 'Time-based files (filesystem sources)'}
+   ]}
+   >
+
+   <TabItem value="sql-full-table" label="Full table (SQL sources)">
+   a
+   </TabItem>
+
+   <TabItem value="sql-partition" label="Time-based subset (SQL sources)">
+   b
+   </TabItem>
+
+   <TabItem value="file-path" label="Single file (filesystem sources)">
+   c
+   </TabItem>
+
+   <TabItem value="file-partition" label="Time-based files (filesystem sources)">
+   d
+   </TabItem>
+
+   </Tabs>
+
+
+Create a Validation Definition
+(associates expectation suite with data asset via batch definition)
+
+Optional. Create a Checkpoint (lets you trigger actions)
+
+### Run a Validation
+
+Can run Validation Definition directly
+
+Or if you created a Checkpoint, can run that
 
 ## View Validation run history
 
