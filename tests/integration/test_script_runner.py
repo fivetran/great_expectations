@@ -356,6 +356,7 @@ def prepare_cloud_env_vars(monkeypatch):
             monkeypatch.delenv(GXCloudEnvironmentVariable.BASE_URL, raising=False)
             monkeypatch.delenv(GXCloudEnvironmentVariable.ACCESS_TOKEN, raising=False)
             monkeypatch.delenv(GXCloudEnvironmentVariable.ORGANIZATION_ID, raising=False)
+            monkeypatch.delenv(GXCloudEnvironmentVariable.WORKSPACE_ID, raising=False)
 
     return _prepare_cloud_env_vars_callable
 
