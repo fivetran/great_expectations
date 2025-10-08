@@ -117,24 +117,24 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
 
-#### Batch your data
+Options for defining and validating Batches for GX-managed Expectations depend on your Data Source type.
 
-Options for defining Batches for GX-managed Expectations depend on your Data Source type.
-
-- Data Assets from Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources support defining Batches in the GX Cloud UI.
-- All Data Assets support defining Batches with the GX Cloud API.
-
+- Data Assets from Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources support defining  Batches and validating GX-managed Expectations on batched data in the GX Cloud UI.
+- All Data Assets support defining  and validating Batches with the GX Cloud API.
 
 <Tabs 
    queryString="batch-interface"
    defaultValue="ui"
    values={[
-      {value: 'ui', label: 'Batch with the UI'},
-      {value: 'api', label: 'Batch with the API'}
+      {value: 'ui', label: 'Incremental validation with the UI'},
+      {value: 'api', label: 'Incremental validation with the API'}
    ]}
 >
 
 <TabItem value="ui" label="UI">
+
+#### Batch your data
+
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -152,9 +152,124 @@ Options for defining Batches for GX-managed Expectations depend on your Data Sou
 
 6. Click **Save**.
 
+#### Validate a Batch
+
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
+
+2. Click a Data Asset in the **Data Assets** list.
+
+3. Go to the Validations tab.
+
+3. Click **Validate**.
+
+4. Select one of the following options to **Specify a single Batch to validate**:
+
+    - **Latest Batch**. Note that the latest Batch may still be recieving new data. For example, if you are batching by day and have new data arriving every hour, the latest batch will be any data that has arrived in the current day. The latest daily batch is not necessarily a full 24 hours worth of data. 
+
+    - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-month** to identify the records to validate.
+
+6. Click **Validate**. 
+
 </TabItem>
 
 <TabItem value="api" label="API">
+
+
+1. Define the Data Asset to batch and the DATE or DATETIME column to partition on
+
+   ```Python 
+   data_source_name = "my_data_source" 
+   data_asset_name = "my_data_asset 
+   column_name = "my_date_or_datetime_column"
+   ```
+
+2. Decide how you want to batch your data.
+
+   | Goal                                      | partitioner                | method                                |
+   |-------------------------------------------|----------------------------|---------------------------------------|
+   | Partition records by year                 | `ColumnPartitionerYearly`  | `partition_on_year`                   |
+   | Partition records by year and month       | `ColumnPartitionerMonthly` | `partition_on_year_and_month`         |
+   | Partition records by year, month, and day | `ColumnPartitionerDaily`   | `partition_on_year_and_month_and_day` |
+
+3. Partition your data. This example demonstrates daily batches with the `ColumnPartitionerDaily` partitioner and `partition_on_year_and_month_and_day` method. Refer to the above table for partitioners and methods for other types of batches.
+
+   ```Python
+   import great_expectations as gx
+   from great_expectations.core.partitioners import ColumnPartitionerDaily
+
+   context = gx.get_context()
+   ds = context.data_sources.get(data_source_name)
+   asset = ds.get_asset(data_asset_name)
+
+   for bd in asset.batch_definitions:
+       if "GX-Managed" in bd.name:
+           bd.partitioner = ColumnPartitionerDaily(
+               method_name="partition_on_year_and_month_and_day",
+               column_name=column_name,
+               sort_ascending=True,
+           )
+
+   context.update_datasource(ds)
+   ```
+
+#### Validate a Batch
+
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
+
+2. Click a Data Asset in the **Data Assets** list.
+
+3. Go to the Validations tab.
+
+3. Click **Validate**.
+
+4. Select one of the following options to **Specify a single Batch to validate**:
+
+    - **Latest Batch**. Note that the latest Batch may still be recieving new data. For example, if you are batching by day and have new data arriving every hour, the latest batch will be any data that has arrived in the current day. The latest daily batch is not necessarily a full 24 hours worth of data. 
+
+    - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-month** to identify the records to validate.
+
+6. Select **Code snippet**
+
+7. Run the generated code in the enviroment where you've saved your Cloud credentials as environment variables. 
+
+</TabItem>
+
+</Tabs>
+
+
+When the Validation is complete, you can [view the results](#view-validation-run-history).
+
+
+## View Validation run history
+
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
+
+2. Click a Data Asset in the **Data Assets** list.
+
+3. Click the **Validations** tab.
+
+4. On the **Validations** page, select one of the following options:
+
+    - To view only run validation failures, click **Failures Only**.
+
+    - To view the run history for specific Validation, select a Validation in the **Batches & run history** pane.
+    
+    - To view the run history of all Validations, select **All Runs** to view a graph showing the Validation run history for all columns.
+
+       Optional. Hover over a success or [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) icon in the Validation timeline to view details about a specific Validation run, including the observed values.
+
+       ![Provided details are: success, severity, run time, batch interval, batch column, batch name, and observed value.](/img/view_validation_timeline_detail.png)
+
+   :::tip Run history details
+   Depending on how your Data Assets are validated, you may find the following information on items in the **Batches & run history** pane.
+   - A <img src="/img/calendar.png" alt="calendar icon" width="20" height="20"/> calendar icon indicates a Valdation ran by a GX-managed schedule.
+   - **Batch** information is included for any Validation ran on a subset of a Data Asset. 
+    :::
+
+5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
+
+PARKING LOT - might be useful later
+
 1. Retrieve your Data Asset.
 
    Replace the value of `datasource_name` with the name of your Data Source and the value of `asset_name` with the name of your Data Asset in the following code. Then execute it to retrieve an existing Data Source and Data Asset from your GX Cloud organization:
@@ -252,67 +367,3 @@ Options for defining Batches for GX-managed Expectations depend on your Data Sou
    data=batch_definition, suite=expectation_suite, name=definition_name
    )
    ```
-
-
-#### Validate a Batch you defined in the UI
-
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
-
-2. Click a Data Asset in the **Data Assets** list.
-
-3. Go to the Validations tab.
-
-3. Click **Validate**.
-
-4. Select one of the following options to **Specify a single Batch to validate**:
-
-    - **Latest Batch**. Note that the latest Batch may still be recieving new data. For example, if you are batching by day and have new data arriving every hour, the latest batch will be any data that has arrived in the current day. The latest daily batch is not necessarily a full 24 hours worth of data. 
-
-    - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-month** to identify the records to validate.
-
-6. Select **Code snippet**
-
-7. Run the generated code in the enviroment where you've saved your Cloud credentials as environment variables. 
-</TabItem>
-
-</Tabs>
-
-
-#### Validate a Batch
-
-
-
-When the Validation is complete, you can [view the results](#view-validation-run-history).
-</TabItem>
-
-</Tabs>
-
-
-
-## View Validation run history
-
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
-
-2. Click a Data Asset in the **Data Assets** list.
-
-3. Click the **Validations** tab.
-
-4. On the **Validations** page, select one of the following options:
-
-    - To view only run validation failures, click **Failures Only**.
-
-    - To view the run history for specific Validation, select a Validation in the **Batches & run history** pane.
-    
-    - To view the run history of all Validations, select **All Runs** to view a graph showing the Validation run history for all columns.
-
-       Optional. Hover over a success or [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) icon in the Validation timeline to view details about a specific Validation run, including the observed values.
-
-       ![Provided details are: success, severity, run time, batch interval, batch column, batch name, and observed value.](/img/view_validation_timeline_detail.png)
-
-   :::tip Run history details
-   Depending on how your Data Assets are validated, you may find the following information on items in the **Batches & run history** pane.
-   - A <img src="/img/calendar.png" alt="calendar icon" width="20" height="20"/> calendar icon indicates a Valdation ran by a GX-managed schedule.
-   - **Batch** information is included for any Validation ran on a subset of a Data Asset. 
-    :::
-
-5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
