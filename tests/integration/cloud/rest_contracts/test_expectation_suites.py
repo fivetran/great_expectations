@@ -277,6 +277,49 @@ def test_post_expectation_suite_request(
     "contract_interaction",
     [
         ContractInteraction(
+            method="POST",
+            request_path=pathlib.Path(
+                "/",
+                "api",
+                "v7",
+                "foo",
+                EXISTING_ORGANIZATION_ID,
+                "bar",
+                EXISTING_WORKSPACE_ID,
+                "expectation-suites",
+            ),
+            upon_receiving="a request to post an Expectation Suite",
+            given="a bad input",
+            request_body={
+                "data": {
+                    "meta": {"success": True},
+                    "expectations": [
+                        {
+                            "kwargs": {"max_value": 3, "min_value": 1},
+                            "meta": {},
+                            "expectation_type": "expect_table_row_count_to_be_between",
+                        },
+                    ],
+                    "name": "brand new suite",
+                },
+            },
+            response_status=200,
+            response_body=POST_EXPECTATION_SUITE_MIN_RESPONSE_BODY,
+        ),
+    ],
+)
+def test_wat(
+    contract_interaction: ContractInteraction,
+    run_rest_api_pact_test: Callable[[ContractInteraction], None],
+) -> None:
+    run_rest_api_pact_test(contract_interaction)
+
+
+@pytest.mark.cloud
+@pytest.mark.parametrize(
+    "contract_interaction",
+    [
+        ContractInteraction(
             method="PUT",
             request_path=pathlib.Path(
                 "/",
