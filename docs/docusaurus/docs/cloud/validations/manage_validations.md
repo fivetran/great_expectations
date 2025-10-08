@@ -230,13 +230,22 @@ First you will create a Batch Definition that identifies the records to validate
    A Batch Definition specifies whether and how to divide a Data Asset for testing. Options for Batch Definitions depend on your Data Source type. SQL Data Sources such as  Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources
 
    <Tabs 
-   queryString="batch-type"
+   queryString="source-type"
+   defaultValue="sql"
+   values={[
+      {value: 'sql', label: 'SQL sources'},
+      {value: 'file', label: 'filesystem sources'},
+   ]}
+   >
+   
+   <TabItem value="sql" label="SQL sources">
+   
+   <Tabs 
+   queryString="sql-batch-type"
    defaultValue="sql-full-table"
    values={[
-      {value: 'sql-full-table', label: 'Full table (SQL sources)'},
-      {value: 'sql-partition', label: 'Time-based subset (SQL sources)'},
-      {value: 'file-path', label: 'Single file (filesystem sources)'},
-      {value: 'file-partition', label: 'Time-based files (filesystem sources)'}
+      {value: 'sql-full-table', label: 'Full table'},
+      {value: 'sql-partition', label: 'Time-based subset'}
    ]}
    >
 
@@ -248,6 +257,21 @@ First you will create a Batch Definition that identifies the records to validate
    b
    </TabItem>
 
+   </Tabs>
+
+   </TabItem>
+
+   <TabItem value="file" label="filesystem sources">
+   
+   <Tabs 
+   queryString="file-batch-type"
+   defaultValue="file-path"
+   values={[
+      {value: 'file-path', label: 'Single file'},
+      {value: 'file-partition', label: 'Time-based files'}
+   ]}
+   >
+
    <TabItem value="file-path" label="Single file (filesystem sources)">
    c
    </TabItem>
@@ -255,6 +279,11 @@ First you will create a Batch Definition that identifies the records to validate
    <TabItem value="file-partition" label="Time-based files (filesystem sources)">
    d
    </TabItem>
+
+   </Tabs>
+
+   </TabItem>
+
 
    </Tabs>
 
