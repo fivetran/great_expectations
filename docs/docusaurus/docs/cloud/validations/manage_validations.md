@@ -111,9 +111,6 @@ When the Validation is complete, you can [view the results](#view-validation-run
 
 6. Run the generated code in the enviroment where you've saved your Cloud credentials as environment variables. 
 
-</TabItem>
-
-</Tabs>
 
 When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
 
@@ -126,57 +123,6 @@ Options for defining and validating Batches for GX-managed Expectations depend o
 - Data Assets from Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources support defining  Batches and validating GX-managed Expectations on batched data in the GX Cloud UI.
 - All Data Assets support defining  and validating Batches with the GX Cloud API.
 
-<Tabs 
-   queryString="batch-interface"
-   defaultValue="ui"
-   values={[
-      {value: 'ui', label: 'Incremental validation with the UI'},
-      {value: 'api', label: 'Incremental validation with the API'}
-   ]}
->
-
-<TabItem value="ui" label="UI">
-
-#### Batch your data
-
-
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
-
-2. In the **Data Assets** list, click the Data Asset name.
-
-3. Next to the current batch configuration, click <img src="/img/pencil.png" alt="pencil icon" width="20" height="20"/> **Edit batch**.
-
-4. Choose a **Batch interval**.
-
-   - **Year** partitions Data Asset records by year.
-   - **Month** partitions Data Asset records by year and month.
-   - **Day** partitions Data Asset records by year, month, and day.
-
-5. Under **Validate by**, select the column that contains the DATE or DATETIME data to partition on.
-
-6. Click **Save**.
-
-#### Validate a Batch
-
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
-
-2. Click a Data Asset in the **Data Assets** list.
-
-3. Go to the Validations tab.
-
-3. Click **Validate**.
-
-4. Select one of the following options to **Specify a single Batch to validate**:
-
-    - **Latest Batch**. Note that the latest Batch may still be recieving new data. For example, if you are batching by day and have new data arriving every hour, the latest batch will be any data that has arrived in the current day. The latest daily batch is not necessarily a full 24 hours worth of data. 
-
-    - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-month** to identify the records to validate.
-
-6. Click **Validate**. 
-
-</TabItem>
-
-<TabItem value="api" label="API">
 
 
 1. Define the Data Asset to batch and the DATE or DATETIME column to partition on
