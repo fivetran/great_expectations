@@ -227,8 +227,7 @@ First you will create a Batch Definition that identifies the records to validate
 
 2. Add a Batch Definition to the Data Asset.
 
-   A Batch Definition specifies whether and how to divide a Data Asset for testing. Options for Batch Definitions depend on your Data Source type. SQL Data Sources such as  Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources
-
+   A Batch Definition specifies whether and how to divide a Data Asset for testing. Options for Batch Definitions depend on your Data Source type.
    <Tabs 
    queryString="source-type"
    defaultValue="sql"
@@ -240,6 +239,9 @@ First you will create a Batch Definition that identifies the records to validate
    
    <TabItem value="sql" label="SQL sources">
    
+   SQL Data Sources such as  Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources ....
+
+
    <Tabs 
    queryString="sql-batch-type"
    defaultValue="sql-full-table"
@@ -263,6 +265,7 @@ First you will create a Batch Definition that identifies the records to validate
 
    <TabItem value="file" label="filesystem sources">
    
+   Filesystem Sources such as Amazon S3 ....
    <Tabs 
    queryString="file-batch-type"
    defaultValue="file-path"
