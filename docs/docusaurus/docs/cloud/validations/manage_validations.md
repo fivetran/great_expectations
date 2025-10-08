@@ -2,7 +2,6 @@
 sidebar_label: 'Manage Validations'
 title: 'Manage Validations'
 description: Create and manage Validations in GX Cloud.
-toc_max_heading_level: 2
 ---
 
 import TabItem from '@theme/TabItem';
