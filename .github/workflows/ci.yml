@@ -749,7 +749,7 @@ jobs:
         markers:
           # - redshift
           - gx-redshift
-        python-version: ["3.9", "3.12", "3.13"]
+        python-version: ["3.9", "3.13"]
         exclude:
           - python-version: ${{ github.event_name == 'pull_request_target' && '3.9' }}
           - python-version: ${{ github.event_name == 'merge_group' && '3.9' }}
