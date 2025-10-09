@@ -15,6 +15,26 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.7.0
+* [MINORBUMP] Remove Pandas Upper Bound Constraint ([#11423](https://github.com/great-expectations/great_expectations/pull/11423))
+* [MINORBUMP] Remove Renderer class from public API ([#10866](https://github.com/great-expectations/great_expectations/pull/10866))
+* [MINORBUMP] Add support for Python 3.13 ([#11426](https://github.com/great-expectations/great_expectations/pull/11426))
+* [BUGFIX] ensure snowflake conn str is always transformed to rich type ([#11410](https://github.com/great-expectations/great_expectations/pull/11410))
+* [BUGFIX] Validation authentication for `PandasS3Datasource` using `boto3_options` ([#11412](https://github.com/great-expectations/great_expectations/pull/11412))
+* [DOCS] make schedules opt-in ([#11408](https://github.com/great-expectations/great_expectations/pull/11408))
+* [DOCS] Completeness Anomaly Detection is opt-in ([#11406](https://github.com/great-expectations/great_expectations/pull/11406))
+* [DOCS] remove migration guide ([#11405](https://github.com/great-expectations/great_expectations/pull/11405))
+* [MAINTENANCE] Bump SQLAlchemy version on doc snippet tests ([#11411](https://github.com/great-expectations/great_expectations/pull/11411))
+* [MAINTENANCE] Fix test assertions for Numpy 2 compatibility ([#11415](https://github.com/great-expectations/great_expectations/pull/11415))
+* [MAINTENANCE] Pin pact-python due to install error on 3.12 of 3.0. ([#11418](https://github.com/great-expectations/great_expectations/pull/11418))
+* [MAINTENANCE] Skip tests for SQLA < 2 and Pandas >= 2.2 ([#11417](https://github.com/great-expectations/great_expectations/pull/11417))
+* [MAINTENANCE] Upgrade ruff ([#11421](https://github.com/great-expectations/great_expectations/pull/11421))
+* [MAINTENANCE] Upgrade mypy ([#11422](https://github.com/great-expectations/great_expectations/pull/11422))
+* [MAINTENANCE] Remove analytics ([#11420](https://github.com/great-expectations/great_expectations/pull/11420))
+* [MAINTENANCE] Emit a warning when workspace id is unset. ([#11425](https://github.com/great-expectations/great_expectations/pull/11425))
+* [MAINTENANCE] Reenable publishing pact tests ([#11427](https://github.com/great-expectations/great_expectations/pull/11427))
+* [MAINTENANCE] Add schema to Redshift ConnectionDetails ([#11431](https://github.com/great-expectations/great_expectations/pull/11431))
+
 ### 1.6.4
 * [DOCS] Typo fix, tense update ([#11404](https://github.com/great-expectations/great_expectations/pull/11404))
 * [DOCS] make schedules opt-in ([#11408](https://github.com/great-expectations/great_expectations/pull/11408))
