@@ -33,7 +33,7 @@ import Tabs from '@theme/Tabs';
     
    - **Username**: Enter the username you use to access Snowflake.
 
-   - **Private key**: Enter your RSA private key value. Do not include the start and end markers `-----BEGIN ENCRYPTED PRIVATE KEY-----` and `-----END ENCRYPTED PRIVATE KEY-----`.
+   - **Private key**: Enter your RSA private key value. Do not include the start and end markers `-----BEGIN/END ENCRYPTED PRIVATE KEY-----`.
 
    - **Database**: Enter the name of the Snowflake database where the data you want to validate is stored. In Snowsight, click **Data** > **Databases**. In the Snowflake Classic Console, click **Databases**.
  
