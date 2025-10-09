@@ -596,6 +596,11 @@
                 },
                 "sslmode": {
                     "$ref": "#/definitions/RedshiftSSLModes"
+                },
+                "schema": {
+                    "title": "Schema",
+                    "description": "`schema` that the Datasource is mapped to.",
+                    "type": "string"
                 }
             },
             "required": [

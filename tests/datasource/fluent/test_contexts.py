@@ -53,8 +53,8 @@ LOGGER = logging.getLogger(__name__)
 
 @pytest.fixture
 def taxi_data_samples_dir() -> pathlib.Path:
-    return pathlib.Path(
-        __file__, "..", "..", "..", "test_sets", "taxi_yellow_tripdata_samples"
+    return (
+        pathlib.Path(__file__).parent.parent.parent / "test_sets" / "taxi_yellow_tripdata_samples"
     ).resolve(strict=True)
 
 

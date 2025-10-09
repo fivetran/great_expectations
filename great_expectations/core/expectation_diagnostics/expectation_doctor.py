@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import inspect
 import json
 import logging
 import pathlib
@@ -448,8 +449,8 @@ class ExpectationDoctor:
         """Conveninence method to get the Exepctation's docstring and first line"""
 
         if self._expectation.__doc__ is not None:
-            docstring = self._expectation.__doc__
-            short_description = next(line for line in self._expectation.__doc__.split("\n") if line)
+            docstring = inspect.cleandoc(self._expectation.__doc__)
+            short_description = next(line for line in docstring.split("\n") if line)
         else:
             docstring = ""
             short_description = ""
