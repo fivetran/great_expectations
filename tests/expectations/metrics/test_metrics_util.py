@@ -60,7 +60,7 @@ def _compare_select_statement_with_converted_string(engine) -> None:
     Helper method used to do the call to sql_statement_to_string() and compare with expected val
     Args:
         engine (ExecutionEngine): SqlAlchemyExecutionEngine with connection to backend under test
-    """  # FIXME CoP
+    """
     select_statement: sqlalchemy.Select = select_with_post_compile_statements()
     returned_string = sql_statement_to_string(engine=engine, select_statement=select_statement)
     assert returned_string == ("SELECT a.id, a.data \nFROM a \nWHERE a.data = '00000000';")
