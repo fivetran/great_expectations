@@ -1,5 +1,3 @@
-"""Test that unexpected_index_query compiles SQL parameters correctly for all SQL dialects."""
-
 import pandas as pd
 
 import great_expectations.expectations as gxe
@@ -9,8 +7,6 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     SQL_DATA_SOURCES,
 )
 
-# Test data with a simple table that has an id column (for unexpected_index_column_names)
-# and a val column that we'll test expectations against
 DATA = pd.DataFrame(
     {
         "id": [1, 2, 3, 4, 5, 6],
