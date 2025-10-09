@@ -677,41 +677,6 @@ learn_data_quality_use_cases = [
     ),
 ]
 
-cloud_s3 = [
-    IntegrationTestFixture(
-        # To test, run:
-        # pytest --docs-tests -k "cloud_docs_connect_s3" tests/integration/test_script_runner.py
-        name="cloud_docs_connect_s3",
-        user_flow_script="docs/docusaurus/docs/cloud/connect/connect_s3.py",
-        # data_dir="",
-        # data_context_dir="",
-        backend_dependencies=[BackendDependencies.AWS, BackendDependencies.CLOUD],
-    ),
-]
-
-cloud_data_assets = [
-    IntegrationTestFixture(
-        # To test, run:
-        # pytest --docs-tests -k "cloud_docs_manage_data_assets" tests/integration/test_script_runner.py
-        name="cloud_docs_manage_data_assets",
-        user_flow_script="docs/docusaurus/docs/cloud/data_assets/manage_data_assets.py",
-        # data_dir="",
-        # data_context_dir="",
-        backend_dependencies=[BackendDependencies.AWS, BackendDependencies.CLOUD],
-    ),
-]
-
-cloud_data_sources = [
-    IntegrationTestFixture(
-        # To test, run:
-        # pytest --docs-tests -k "cloud_docs_manage_data_sources" tests/integration/test_script_runner.py
-        name="cloud_docs_manage_data_sources",
-        user_flow_script="docs/docusaurus/docs/cloud/data_sources/manage_data_sources.py",
-        # data_dir="",
-        # data_context_dir="",
-        backend_dependencies=[BackendDependencies.AWS, BackendDependencies.CLOUD],
-    ),
-]
 # Extend the docs_tests list with the above sublists (only the docs_tests list is imported
 # into `test_script_runner.py` and actually used in CI checks).
 docs_tests.extend(install_gx)
