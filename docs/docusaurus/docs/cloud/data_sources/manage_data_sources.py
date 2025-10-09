@@ -25,7 +25,7 @@ bucket_name = "my-bucket"
 # Hide this
 boto3_options = {
     # Hide this
-    "aws_access_key_id": "${MY_S3_KEY_ID}",
+    "aws_access_key_id": "${S3_KEY_ID}",
     # Hide this
     "aws_secret_access_key": "${MY_S3_SECRET_KEY}",
     # Hide this
