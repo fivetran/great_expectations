@@ -732,6 +732,17 @@ def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mo
             "SELECT a.id, a.data \nFROM a \nWHERE a.data IN (1, 2, 3);",
             id="mysql_in_set_parameters",
         ),
+        pytest.param(
+            "postgresql",
+            (
+                "SELECT a.id, a.data \nFROM a \n"
+                "WHERE a.data IN (%(param_2)s, %(param_1)s, %(param_3)s)"
+            ),
+            {"param_1": 100, "param_2": 200, "param_3": 300},
+            None,
+            "SELECT a.id, a.data \nFROM a \nWHERE a.data IN (200, 100, 300);",
+            id="postgresql_out_of_order_parameters",
+        ),
     ],
 )
 def test_sql_statement_with_post_compile_to_string(
