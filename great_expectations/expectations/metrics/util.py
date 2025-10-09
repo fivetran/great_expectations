@@ -1184,9 +1184,9 @@ def sql_statement_with_post_compile_to_string(
         String representation of select_statement
 
     """  # noqa: E501 # FIXME CoP
-    sqlalchemy_connection: sa.engine.base.Connection = engine.engine  # type: ignore[assignment] # FIXME CoP
+    sqlalchemy_engine: sa.engine.Engine = engine.engine
     compiled = select_statement.compile(
-        sqlalchemy_connection,
+        sqlalchemy_engine,
         compile_kwargs={"render_postcompile": True},
         dialect=engine.dialect,
     )
