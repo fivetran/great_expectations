@@ -1,4 +1,5 @@
 import logging
+from typing import Union
 
 import pytest
 from pytest_mock import MockerFixture
@@ -152,3 +153,72 @@ def test_connection_updating_plain_connection_string():
         f"Expected RedshiftDsn for plain connection string, "
         f"got {type(datasource.connection_string)}"
     )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "connection_input,expected_connection_string",
+    [
+        pytest.param(
+            {
+                "user": "user",
+                "password": "password",
+                "host": "host",
+                "port": 1234,
+                "database": "database",
+                "sslmode": RedshiftSSLModes.ALLOW,
+                "schema": "my_schema",
+            },
+            "redshift+psycopg2://user:password@host:1234/database?sslmode=allow&options=-csearch_path%3Dmy_schema",
+            id="dict type with schema",
+        ),
+        pytest.param(
+            RedshiftConnectionDetails(
+                user="user",
+                password="password",
+                host="host",
+                port=1234,
+                database="database",
+                sslmode=RedshiftSSLModes.ALLOW,
+                schema="my_schema",
+            ),
+            "redshift+psycopg2://user:password@host:1234/database?sslmode=allow&options=-csearch_path%3Dmy_schema",
+            id="RedshiftConnectionDetails with schema_",
+        ),
+        pytest.param(
+            {
+                "user": "user",
+                "password": "password",
+                "host": "host",
+                "port": 1234,
+                "database": "database",
+                "sslmode": RedshiftSSLModes.ALLOW,
+            },
+            "redshift+psycopg2://user:password@host:1234/database?sslmode=allow",
+            id="dict type without schema",
+        ),
+    ],
+)
+def test_schema_property_in_connection_string(
+    connection_input: Union[ConfigStr, RedshiftDsn],
+    expected_connection_string: str,
+    sa,
+    mocker: MockerFixture,
+    ephemeral_context_with_defaults: EphemeralDataContext,
+    scheme,
+):
+    create_engine_spy = mocker.patch.object(sa, "create_engine")
+
+    context = ephemeral_context_with_defaults
+    data_source = context.data_sources.add_redshift(
+        name="redshift_test_schema",
+        connection_string=connection_input,
+    )
+    data_source.get_engine()
+
+    expected_kwargs = RedshiftDsn(
+        expected_connection_string,
+        scheme=scheme,
+    )
+
+    create_engine_spy.assert_called_once_with(expected_kwargs)
