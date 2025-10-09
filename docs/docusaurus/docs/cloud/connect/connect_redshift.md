@@ -46,7 +46,7 @@ description: Connect GX Cloud to a Redshift Data Source.
 
       - **Database**: Enter the name of the Redshift database where the data you want to validate is stored. 
 
-       **Schema**: Enter the name of the Redshift schema where the data you want to validate is stored. 
+      - **Schema**: Enter the name of the Redshift schema where the data you want to validate is stored. 
 
       - **SSL mode**:  Select how to handle encryption for client connections and server certificate verification. We recommend selecting `require` since GX Cloud supports SSL connections. See [Redshift's SSL docs](https://docs.aws.amazon.com/redshift/latest/mgmt/connecting-ssl-support.html) for more information on the available options. 
 
