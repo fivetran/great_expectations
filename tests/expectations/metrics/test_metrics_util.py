@@ -725,9 +725,9 @@ def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mo
             "mysql",
             (
                 "SELECT a.id, a.data \nFROM a \n"
-                "WHERE a.data IN (%(numbers_1)s, %(numbers_2)s, %(numbers_3)s)"
+                "WHERE a.data IN (%(param_1)s, %(param_2)s, %(param_3)s)"
             ),
-            {"numbers_1": 1, "numbers_2": 2, "numbers_3": 3},
+            {"param_1": 1, "param_2": 2, "param_3": 3},
             None,
             "SELECT a.id, a.data \nFROM a \nWHERE a.data IN (1, 2, 3);",
             id="mysql_in_set_parameters",
