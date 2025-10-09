@@ -18,44 +18,6 @@ description: Connect GX Cloud to a Redshift Data Source.
 
    - `SELECT` privileges on the table or view.
 
-- Optional. To improve data security, GX recommends creating a separate Redshift user for your GX Cloud connection.
-
-## Optional. Create a separate Redshift user
-
-Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon.com/redshift/latest/mgmt/query-editor-v2-open.html).
-
-1. Create a new role.
-
-   ```sql title="Redshift query editor v2"
-   CREATE ROLE gx_role;
-   ```
-
-2. Create a new user.
-
-   ```sql title="Redshift query editor v2"
-   CREATE USER gx_user PASSWORD 'your_password';
-   ```
-
-3. Grant the new role schema `USAGE` and table and view `SELECT` permissions.
-
-   ```sql title="Redshift query editor v2"
-   GRANT USAGE ON SCHEMA your_schema TO ROLE gx_role;
-   GRANT SELECT ON ALL TABLES IN SCHEMA your_schema TO ROLE gx_role;
-   ```
-
-4. Optional. Grant the new role access to future tables and views in the schema.
-   
-   ```sql title="Redshift query editor v2"
-   ALTER DEFAULT PRIVILEGES IN SCHEMA your_schema
-   GRANT SELECT ON TABLES TO ROLE gx_role;
-   ```
-
-5. Grant the new user the new role.
-
-   ```sql title="Redshift query editor v2"
-   GRANT ROLE gx_role TO gx_user;
-   ```
-
 
 ## Connect to a Redshift Data Source and add a Data Asset
 
