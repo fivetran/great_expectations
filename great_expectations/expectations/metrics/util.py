@@ -1208,9 +1208,11 @@ def sql_statement_with_post_compile_to_string(
         query_as_string = str(compiled)
 
         def replace_param(match):
-            # Extract the parameter name from %(param_name)s
-            param_pattern = match.group(0)  # e.g., "%(param_1)s"
-            param_name = param_pattern[2:-2]  # Extract "param_1" from "%(param_1)s"
+            # Extract the parameter name from %(param_name)s or %(param_name:TYPE)s
+            param_pattern = match.group(0)  # e.g., "%(param_1)s" or "%(param_1:FLOAT64)s"
+            param_name = param_pattern[2:-2]  # Extract "param_1" or "param_1:FLOAT64"
+            # BigQuery includes type annotations like "param_1:FLOAT64", strip them
+            param_name = param_name.split(":")[0]
             return repr(compiled.params[param_name])
 
         query_as_string = re.sub(r"%\([^)]+\)s", replace_param, query_as_string)
