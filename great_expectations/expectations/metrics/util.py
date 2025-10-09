@@ -1194,7 +1194,7 @@ def sql_statement_with_post_compile_to_string(
 
     if dialect_name in ["sqlite", "trino", "mssql"]:
         # Positional placeholders (?) - must replace in order since there's no parameter name
-        params = (repr(compiled.params[name]) for name in compiled.positiontup)
+        params = (repr(compiled.params[name]) for name in (compiled.positiontup or []))
         query_as_string = re.sub(r"\?", lambda m: next(params), str(compiled))
 
     elif dialect_name == "databricks":
