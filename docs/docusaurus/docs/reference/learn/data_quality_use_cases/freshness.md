@@ -84,7 +84,7 @@ The examples in this section showcase how to use available features in GX Cloud 
 Use the GX Cloud UI to walk through the following steps:
 
 1. Using the following connection string to create a Postgres Data Source, create a Data Asset for the `freshness_sensor_readings` table:
-   ```
+   ```python title="Connection string"
    postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
    ```
 
