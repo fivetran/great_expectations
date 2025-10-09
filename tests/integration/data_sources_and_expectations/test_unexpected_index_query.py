@@ -18,7 +18,7 @@ DATA = pd.DataFrame(
 
 
 @parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=DATA)
-def test_unexpected_index_query_compiles_parameters_for_expect_column_values_to_be_between(
+def test_unexpected_index_query_compiles_parameters(
     batch_for_datasource: Batch,
 ) -> None:
     """
