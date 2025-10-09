@@ -84,12 +84,14 @@ Run all queries in the [Amazon Redshift query editor v2](https://docs.aws.amazon
 
       - **Database**: Enter the name of the Redshift database where the data you want to validate is stored. 
 
+       **Schema**: Enter the name of the Redshift schema where the data you want to validate is stored. 
+
       - **SSL mode**:  Select how to handle encryption for client connections and server certificate verification. We recommend selecting `require` since GX Cloud supports SSL connections. See [Redshift's SSL docs](https://docs.aws.amazon.com/redshift/latest/mgmt/connecting-ssl-support.html) for more information on the available options. 
 
    - If you chose **Connection string**, enter it with a format of:
 
       ```python title="Redshift connection string"
-      redshift+psycopg2://<USER>:<PASSWORD>@<HOST>:<PORT>/<DATABASE>?sslmode=<SSLMODE>
+      redshift+psycopg2://<USER>:<PASSWORD>@<HOST>:<PORT>/<DATABASE>?sslmode=<SSLMODE>&options=-csearch_path%3D<SCHEMA>
       ```
 
       For guidance on replacing each placeholder in the connection string, see the above input parameter definitions. 
