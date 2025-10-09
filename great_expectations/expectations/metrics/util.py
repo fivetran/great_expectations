@@ -1192,12 +1192,12 @@ def sql_statement_with_post_compile_to_string(
     )
     dialect_name: str = engine.dialect_name
 
-    if dialect_name in ["sqlite", "trino", "mssql"]:
+    if dialect_name in [GXSqlDialect.SQLITE, GXSqlDialect.TRINO, GXSqlDialect.MSSQL]:
         # Positional placeholders (?) - must replace in order since there's no parameter name
         params = (repr(compiled.params[name]) for name in (compiled.positiontup or []))
         query_as_string = re.sub(r"\?", lambda m: next(params), str(compiled))
 
-    elif dialect_name == "databricks":
+    elif dialect_name == GXSqlDialect.DATABRICKS:
         # Named parameters with :param_name syntax
         query_as_string = str(compiled)
         for param_name, param_value in compiled.params.items():
