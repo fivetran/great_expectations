@@ -1165,60 +1165,23 @@ def is_valid_continuous_partition_object(partition_object):
     )
 
 
-def sql_statement_with_post_compile_to_string(
+def sql_statement_to_string(
     engine: SqlAlchemyExecutionEngine, select_statement: sqlalchemy.Select
 ) -> str:
     """
-    Util method to compile SQL select statement with post-compile parameters into a string. Logic lifted directly
-    from sqlalchemy documentation.
-
-    https://docs.sqlalchemy.org/en/14/faq/sqlexpressions.html#rendering-postcompile-parameters-as-bound-parameters
-
-    Used by _sqlalchemy_map_condition_index() in map_metric_provider to build query that will allow you to
-    return unexpected_index_values.
+    Compile SQL select statement with bound parameters rendered as literal values.
 
     Args:
-        engine (sqlalchemy.engine.Engine): Sqlalchemy engine used to do the compilation.
-        select_statement (sqlalchemy.sql.Select): Select statement to compile into string.
+        engine: SqlAlchemyExecutionEngine with connection to backend.
+        select_statement: Select statement to compile into string.
     Returns:
-        String representation of select_statement
-
-    """  # noqa: E501 # FIXME CoP
-    sqlalchemy_engine: sa.engine.Engine = engine.engine
+        String representation of select_statement with parameters inlined.
+    """
     compiled = select_statement.compile(
-        sqlalchemy_engine,
-        compile_kwargs={"render_postcompile": True},
-        dialect=engine.dialect,
+        engine.engine,
+        compile_kwargs={"literal_binds": True},
     )
-    dialect_name: str = engine.dialect_name
-
-    if dialect_name in [GXSqlDialect.SQLITE, GXSqlDialect.TRINO, GXSqlDialect.MSSQL]:
-        # Positional placeholders (?) - must replace in order since there's no parameter name
-        params = (repr(compiled.params[name]) for name in (compiled.positiontup or []))
-        query_as_string = re.sub(r"\?", lambda m: next(params), str(compiled))
-
-    elif dialect_name == GXSqlDialect.DATABRICKS:
-        # Named parameters with :param_name syntax
-        query_as_string = str(compiled)
-        for param_name, param_value in compiled.params.items():
-            query_as_string = query_as_string.replace(f":{param_name}", repr(param_value))
-
-    else:
-        # Named parameters with %(param_name)s syntax
-        query_as_string = str(compiled)
-
-        def replace_param(match):
-            # Extract the parameter name from %(param_name)s or %(param_name:TYPE)s
-            param_pattern = match.group(0)  # e.g., "%(param_1)s" or "%(param_1:FLOAT64)s"
-            param_name = param_pattern[2:-2]  # Extract "param_1" or "param_1:FLOAT64"
-            # BigQuery includes type annotations like "param_1:FLOAT64", strip them
-            param_name = param_name.split(":")[0]
-            return repr(compiled.params[param_name])
-
-        query_as_string = re.sub(r"%\([^)]+\)s", replace_param, query_as_string)
-
-    query_as_string += ";"
-    return query_as_string
+    return str(compiled) + ";"
 
 
 def get_sqlalchemy_source_table_and_schema(

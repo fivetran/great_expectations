@@ -13,7 +13,6 @@ from great_expectations.compatibility import sqlalchemy
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
-from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.exceptions import MetricResolutionError
 from great_expectations.execution_engine import SqlAlchemyExecutionEngine
@@ -23,7 +22,7 @@ from great_expectations.expectations.metrics.util import (
     get_dialect_like_pattern_expression,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
-    sql_statement_with_post_compile_to_string,
+    sql_statement_to_string,
 )
 from tests.test_utils import (
     get_awsathena_connection_url,
@@ -58,14 +57,12 @@ def select_with_post_compile_statements() -> sqlalchemy.Select:
 
 def _compare_select_statement_with_converted_string(engine) -> None:
     """
-    Helper method used to do the call to sql_statement_with_post_compile_to_string() and compare with expected val
+    Helper method used to do the call to sql_statement_to_string() and compare with expected val
     Args:
         engine (ExecutionEngine): SqlAlchemyExecutionEngine with connection to backend under test
-    """  # noqa: E501 # FIXME CoP
+    """  # FIXME CoP
     select_statement: sqlalchemy.Select = select_with_post_compile_statements()
-    returned_string = sql_statement_with_post_compile_to_string(
-        engine=engine, select_statement=select_statement
-    )
+    returned_string = sql_statement_to_string(engine=engine, select_statement=select_statement)
     assert returned_string == ("SELECT a.id, a.data \nFROM a \nWHERE a.data = '00000000';")
 
 
@@ -159,9 +156,7 @@ def test_sql_statement_conversion_to_string_bigquery(test_backends):
         connection_string = get_bigquery_connection_url()
         engine = SqlAlchemyExecutionEngine(connection_string=connection_string)
         select_statement: sqlalchemy.Select = select_with_post_compile_statements()
-        returned_string = sql_statement_with_post_compile_to_string(
-            engine=engine, select_statement=select_statement
-        )
+        returned_string = sql_statement_to_string(engine=engine, select_statement=select_statement)
         assert returned_string == (
             "SELECT `a`.`id`, `a`.`data` \nFROM `a` \nWHERE `a`.`data` = '00000000';"
         )
@@ -648,137 +643,3 @@ def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mo
 
     # assert
     assert expression is None
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "dialect_name,query_template,params_dict,positiontup,expected_output",
-    [
-        pytest.param(
-            "sqlite",
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data = ?",
-            {"param_1": 100},
-            ["param_1"],
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data = 100;",
-            id="sqlite_positional_placeholder",
-        ),
-        pytest.param(
-            "trino",
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data = ? AND a.id = ?",
-            {"param_1": "test_value", "param_2": 42},
-            ["param_1", "param_2"],
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data = 'test_value' AND a.id = 42;",
-            id="trino_multiple_positional_placeholders",
-        ),
-        pytest.param(
-            "mssql",
-            "SELECT a.id, a.data \nFROM a \nWHERE a.id BETWEEN ? AND ?",
-            {"min_val": 1, "max_val": 5},
-            ["min_val", "max_val"],
-            "SELECT a.id, a.data \nFROM a \nWHERE a.id BETWEEN 1 AND 5;",
-            id="mssql_positional_placeholders",
-        ),
-        pytest.param(
-            "databricks",
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data >= :param_1 AND a.data <= :param_2",
-            {"param_1": 1, "param_2": 5},
-            None,
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data >= 1 AND a.data <= 5;",
-            id="databricks_named_parameters",
-        ),
-        pytest.param(
-            "postgresql",
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data = %(param_1)s",
-            {"param_1": "test_value"},
-            None,
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data = 'test_value';",
-            id="postgresql_named_parameters",
-        ),
-        pytest.param(
-            "postgresql",
-            "SELECT a.id, a.data \nFROM a \nWHERE a.id >= %(param_1)s AND a.id <= %(param_2)s",
-            {"param_1": 1, "param_2": 10},
-            None,
-            "SELECT a.id, a.data \nFROM a \nWHERE a.id >= 1 AND a.id <= 10;",
-            id="postgresql_multiple_named_parameters",
-        ),
-        pytest.param(
-            "bigquery",
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data = %(param_1:STRING)s",
-            {"param_1": "test_value"},
-            None,
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data = 'test_value';",
-            id="bigquery_type_annotated_parameters",
-        ),
-        pytest.param(
-            "bigquery",
-            (
-                "SELECT a.id, a.data \nFROM a \n"
-                "WHERE a.id >= %(param_1:FLOAT64)s AND a.id <= %(param_2:INT64)s"
-            ),
-            {"param_1": 1.5, "param_2": 10},
-            None,
-            "SELECT a.id, a.data \nFROM a \nWHERE a.id >= 1.5 AND a.id <= 10;",
-            id="bigquery_multiple_type_annotated_parameters",
-        ),
-        pytest.param(
-            "mysql",
-            (
-                "SELECT a.id, a.data \nFROM a \n"
-                "WHERE a.data IN (%(param_1)s, %(param_2)s, %(param_3)s)"
-            ),
-            {"param_1": 1, "param_2": 2, "param_3": 3},
-            None,
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data IN (1, 2, 3);",
-            id="mysql_in_set_parameters",
-        ),
-        pytest.param(
-            "postgresql",
-            (
-                "SELECT a.id, a.data \nFROM a \n"
-                "WHERE a.data IN (%(param_2)s, %(param_1)s, %(param_3)s)"
-            ),
-            {"param_1": 100, "param_2": 200, "param_3": 300},
-            None,
-            "SELECT a.id, a.data \nFROM a \nWHERE a.data IN (200, 100, 300);",
-            id="postgresql_out_of_order_parameters",
-        ),
-    ],
-)
-def test_sql_statement_with_post_compile_to_string(
-    mocker,
-    dialect_name: str,
-    query_template: str,
-    params_dict: dict,
-    positiontup: list | None,
-    expected_output: str,
-):
-    """Test that sql_statement_with_post_compile_to_string correctly compiles parameters"""
-
-    # Arrange
-    mock_engine = mocker.Mock(spec=SqlAlchemyExecutionEngine)
-    mock_engine.dialect_name = dialect_name
-    mock_engine.engine = mocker.Mock()
-    mock_engine.dialect = mocker.Mock()
-
-    class MockCompiled:
-        def __init__(self):
-            self.params = params_dict
-            self.positiontup = positiontup
-
-        @override
-        def __str__(self) -> str:
-            return query_template
-
-    mock_compiled = MockCompiled()
-
-    mock_select = mocker.Mock()
-    mock_select.compile = mocker.Mock(return_value=mock_compiled)
-
-    # Act
-    result = sql_statement_with_post_compile_to_string(
-        engine=mock_engine, select_statement=mock_select
-    )
-
-    # Assert
-    assert result == expected_output
