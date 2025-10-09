@@ -50,8 +50,8 @@ You'll need your user access token and organization ID to set your environment v
 
 If your organization has [multiple workspaces](/cloud/access/manage_access.md#workspaces), you'll also need your workspace ID.
 
-1. In GX Cloud, select the relevant **Workspace**.
-2. Observe the URL in your browser and copy the first segment after `/workspaces/`. For example, if the URL is `app.greatexpectations.io/organizations/my-org/workspaces/abc123/data-health`, copy `abc123` into the temporary file with your other credentials and then save the file. 
+1. In GX Cloud, click **Tokens**.
+2. In the **Workspace ID** pane, find the relevant **Workspace name**, then copy the associated **ID** into the temporary file with your other credentials and save the file. 
 
 GX recommends deleting the temporary file after you set the environment variables.
 
