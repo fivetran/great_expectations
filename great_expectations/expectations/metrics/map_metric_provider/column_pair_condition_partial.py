@@ -11,6 +11,7 @@ from typing import (
     Type,
 )
 
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -236,7 +237,7 @@ def column_pair_condition_partial(  # noqa: C901 #  16
                 )
 
                 (
-                    data,
+                    _,
                     compute_domain_kwargs,
                     accessor_domain_kwargs,
                 ) = execution_engine.get_compute_domain(
@@ -250,8 +251,8 @@ def column_pair_condition_partial(  # noqa: C901 #  16
 
                 expected_condition = metric_fn(
                     cls,
-                    data[column_A_name],
-                    data[column_B_name],
+                    F.col(column_A_name),
+                    F.col(column_B_name),
                     **metric_value_kwargs,
                     _metrics=metrics,
                 )

@@ -12,6 +12,7 @@ from typing import (
     Union,
 )
 
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -258,7 +259,7 @@ def column_condition_partial(  # noqa: C901, PLR0915 # FIXME CoP
 
                 column_name: Union[str, sqlalchemy.quoted_name] = accessor_domain_kwargs["column"]
 
-                column = data[column_name]
+                column = F.col(column_name)
                 expected_condition = metric_fn(
                     cls,
                     column,

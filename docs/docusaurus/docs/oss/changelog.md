@@ -1,18 +1,184 @@
 ---
 title: Changelog
 slug: /core/changelog
+description: Release notes for Great Expectations Core.
 ---
 
 ### Deprecation policy
 
 GX Core follows [Semantic Versioning 2.0.0](https://semver.org/#semantic-versioning-200), including its [guidelines for deprecation](https://semver.org/#how-should-i-handle-deprecating-functionality).
 
-When we deprecate our public APIs, we will
+When we deprecate public functionality, we will
 
 - update our documentation to let you know about the change.
 - issue a new minor release with the deprecation in place.
 
-Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition to the new API.
+Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
+
+### 1.6.4
+* [DOCS] Typo fix, tense update ([#11404](https://github.com/great-expectations/great_expectations/pull/11404))
+* [DOCS] make schedules opt-in ([#11408](https://github.com/great-expectations/great_expectations/pull/11408))
+* [MAINTENANCE] Run Athena tests as a separate step ([#11401](https://github.com/great-expectations/great_expectations/pull/11401))
+* [MAINTENANCE] Remove PyAthena upper pin ([#11402](https://github.com/great-expectations/great_expectations/pull/11402))
+
+### 1.6.3
+* [DOCS] severity tagging ([#11354](https://github.com/great-expectations/great_expectations/pull/11354))
+* [DOCS] severity screenshots ([#11394](https://github.com/great-expectations/great_expectations/pull/11394))
+* [DOCS] integration point diagrams ([#11391](https://github.com/great-expectations/great_expectations/pull/11391))
+* [DOCS] Create a tutorial for how to validate unstructured data in GX Cloud ([#11380](https://github.com/great-expectations/great_expectations/pull/11380))
+* [MAINTENANCE] Update databricks cleanup to clean more ([#11398](https://github.com/great-expectations/great_expectations/pull/11398))
+* [MAINTENANCE] add column.non_null_count to MetricTypes ([#11397](https://github.com/great-expectations/great_expectations/pull/11397))
+
+### 1.6.2
+* [BUGFIX] Fix ExpectColumnValuesToBeInTypeList for Trino ([#11386](https://github.com/great-expectations/great_expectations/pull/11386))
+* [DOCS] workspaces ([#11366](https://github.com/great-expectations/great_expectations/pull/11366))
+* [MAINTENANCE] Ensure pyarrow wheel on Python 3.12 Snowflake marker tests ([#11388](https://github.com/great-expectations/great_expectations/pull/11388))
+
+### 1.6.2
+* [BUGFIX] Fix ExpectColumnValuesToBeInTypeList for Trino ([#11386](https://github.com/great-expectations/great_expectations/pull/11386))
+* [DOCS] workspaces ([#11366](https://github.com/great-expectations/great_expectations/pull/11366))
+* [DOCS] Add severity description to Other Parameters for all Expectation types ([#11387](https://github.com/great-expectations/great_expectations/pull/11387))
+* [MAINTENANCE] Ensure pyarrow wheel on Python 3.12 Snowflake marker tests ([#11388](https://github.com/great-expectations/great_expectations/pull/11388))
+* [MAINTENANCE] fix snowlake dependency resolution in 3.10 ([#11390](https://github.com/great-expectations/great_expectations/pull/11390))
+
+### 1.6.1
+* [BUGFIX] Make workspaces optional for cloud_user_info ([#11378](https://github.com/great-expectations/great_expectations/pull/11378))
+
+### 1.6.0
+* [FEATURE] Make GX Context workspace aware ([#11369](https://github.com/great-expectations/great_expectations/pull/11369))
+* [BUGFIX] Fix handling of mixed case table names when computing column metadata ([#11365](https://github.com/great-expectations/great_expectations/pull/11365))
+* [BUGFIX] Make handling of quoted schema and table names more robust ([#11367](https://github.com/great-expectations/great_expectations/pull/11367))
+* [BUGFIX] Enable reading multiple pages of S3 directory by popping ContinuationToken from query_options once it is used in a S3 request ([#11361](https://github.com/great-expectations/great_expectations/pull/11361)) (thanks @pawel99k)
+* [DOCS] Update docs to reflect that custom docker images should use stable agent ([#11353](https://github.com/great-expectations/great_expectations/pull/11353))
+* [MAINTENANCE] Test `unexpected_rows` ([#11368](https://github.com/great-expectations/great_expectations/pull/11368))
+* [MAINTENANCE] Plumb in GX_CLOUD_WORKSPACE_ID into cloud-test ci step. ([#11373](https://github.com/great-expectations/great_expectations/pull/11373))
+* [MAINTENANCE] Add `workspace_id` to `store_backend` dict ([#11371](https://github.com/great-expectations/great_expectations/pull/11371))
+
+### 1.5.11
+* [FEATURE] Checkpoint actions notify on severity ([#11347](https://github.com/great-expectations/great_expectations/pull/11347))
+* [FEATURE] Add handling for severity to ExpectationConfiguration serialization ([#11343](https://github.com/great-expectations/great_expectations/pull/11343))
+* [FEATURE] Add new method to ExpectationSuiteValidationResult class to return highest severity failure ([#11341](https://github.com/great-expectations/great_expectations/pull/11341))
+* [BUGFIX] ensure unexpected_rows are included if requested ([#11358](https://github.com/great-expectations/great_expectations/pull/11358))
+* [BUGFIX] Preserve quoting when serializing quoted table names ([#11357](https://github.com/great-expectations/great_expectations/pull/11357))
+* [DOCS] Cloud docs for built-in actions ([#11338](https://github.com/great-expectations/great_expectations/pull/11338))
+* [MAINTENANCE] Update ports that mercury runs on ([#11351](https://github.com/great-expectations/great_expectations/pull/11351))
+
+### 1.5.10
+* [DOCS] Completeness anomaly detection now uses forecasted range ([#11346](https://github.com/great-expectations/great_expectations/pull/11346))
+* [DOCS] forecasted range limitation ([#11349](https://github.com/great-expectations/great_expectations/pull/11349))
+* [MAINTENANCE] Bump mermaid from 11.9.0 to 11.10.1 in /docs/docusaurus ([#11348](https://github.com/great-expectations/great_expectations/pull/11348))
+
+### 1.5.9
+* [FEATURE] Update JSON schemas for Expectations to incorporate failure severity ([#11337](https://github.com/great-expectations/great_expectations/pull/11337))
+* [DOCS] remove "settings" from nav paths ([#11332](https://github.com/great-expectations/great_expectations/pull/11332))
+* [DOCS] env var typo ([#11335](https://github.com/great-expectations/great_expectations/pull/11335))
+* [DOCS] Sunset Cloud API version 0.18 ([#11334](https://github.com/great-expectations/great_expectations/pull/11334))
+* [DOCS] temporarily remove link checker ([#11342](https://github.com/great-expectations/great_expectations/pull/11342))
+* [DOCS] Split manage expectations page ([#11340](https://github.com/great-expectations/great_expectations/pull/11340))
+* [MAINTENANCE] Fix webpack-dev-server and form-data vulnerabilities ([#11339](https://github.com/great-expectations/great_expectations/pull/11339))
+
+### 1.5.8
+* [BUGFIX] Handle SQL parameter limit for Databricks ([#11317](https://github.com/great-expectations/great_expectations/pull/11317))
+* [DOCS] Move ingestion in diagram ([#11329](https://github.com/great-expectations/great_expectations/pull/11329))
+* [DOCS] Update configure_metadata_stores.md ([#11316](https://github.com/great-expectations/great_expectations/pull/11316)) (thanks @Abdelkrim)
+* [DOCS] User Input to Expectation Generation Retry Workflows ([#11325](https://github.com/great-expectations/great_expectations/pull/11325))
+* [MAINTENANCE] Restore Link Checker CI step ([#11327](https://github.com/great-expectations/great_expectations/pull/11327))
+* [MAINTENANCE] pre-commit autoupdate ([#11330](https://github.com/great-expectations/great_expectations/pull/11330))
+
+### 1.5.7
+* [BUGFIX] change pyspark column reference from DataFrame.__getitem__ to F.col() ([#11286](https://github.com/great-expectations/great_expectations/pull/11286)) (thanks @alansk97)
+* [MAINTENANCE] Remove link checker step (temporarily) ([#11322](https://github.com/great-expectations/great_expectations/pull/11322))
+* [MAINTENANCE] Fix MSSQL compatibility test CI flow ([#11320](https://github.com/great-expectations/great_expectations/pull/11320))
+* [MAINTENANCE] Bump posthog 6.1.0 ([#11303](https://github.com/great-expectations/great_expectations/pull/11303))
+* [MAINTENANCE] Improve CI speed for marker tests ([#11321](https://github.com/great-expectations/great_expectations/pull/11321))
+* [MAINTENANCE] Bump form-data from 4.0.2 to 4.0.4 in /docs/docusaurus ([#11310](https://github.com/great-expectations/great_expectations/pull/11310))
+* [MAINTENANCE] pre-commit autoupdate ([#11287](https://github.com/great-expectations/great_expectations/pull/11287))
+* [MAINTENANCE] Bump mypy to 1.16.1 ([#11262](https://github.com/great-expectations/great_expectations/pull/11262))
+* [MAINTENANCE] Add typing extensions dependency to build ([#11323](https://github.com/great-expectations/great_expectations/pull/11323))
+* [MAINTENANCE] Update build commands ([#11324](https://github.com/great-expectations/great_expectations/pull/11324))
+
+### 1.5.6
+* [BUGFIX] Remove incompatible min/max types for some range expectations ([#11305](https://github.com/great-expectations/great_expectations/pull/11305))
+* [DOCS] generate SQL ([#11289](https://github.com/great-expectations/great_expectations/pull/11289))
+* [DOCS] Data Health ([#11294](https://github.com/great-expectations/great_expectations/pull/11294))
+* [DOCS] Add postgres flavors to expectation docstrings ([#11304](https://github.com/great-expectations/great_expectations/pull/11304))
+* [DOCS] pipeline architecture diagram ([#11298](https://github.com/great-expectations/great_expectations/pull/11298))
+* [DOCS] Standardize data source naming in docstrings ([#11306](https://github.com/great-expectations/great_expectations/pull/11306))
+* [DOCS] new Data Sources ([#11293](https://github.com/great-expectations/great_expectations/pull/11293))
+* [DOCS] restore link checker ([#11308](https://github.com/great-expectations/great_expectations/pull/11308))
+* [DOCS] Data Health screenshot ([#11307](https://github.com/great-expectations/great_expectations/pull/11307))
+* [MAINTENANCE] : Add scripts to clean up databricks and snowflake schemas ([#11297](https://github.com/great-expectations/great_expectations/pull/11297))
+* [MAINTENANCE] Update docstring for Postgres flavor data sources ([#11302](https://github.com/great-expectations/great_expectations/pull/11302))
+* [MAINTENANCE] cloud-snippets under test ([#11292](https://github.com/great-expectations/great_expectations/pull/11292))
+
+### 1.5.5
+* [FEATURE] Add new Postgres "flavor" Data Source classes ([#11290](https://github.com/great-expectations/great_expectations/pull/11290))
+* [FEATURE] Add BigQuery data source class ([#11296](https://github.com/great-expectations/great_expectations/pull/11296))
+* [BUGFIX] Disable init analytics as it was not really getting entirely disabled when specified on data context config ([#11276](https://github.com/great-expectations/great_expectations/pull/11276)) (thanks @jmcorreia)
+* [DOCS] Correct forecasted range caveat ([#11295](https://github.com/great-expectations/great_expectations/pull/11295))
+* [MAINTENANCE] Bump ruff to 0.12.2 ([#11288](https://github.com/great-expectations/great_expectations/pull/11288))
+
+### 1.5.4
+* [BUGFIX] B/gx 1174/generalize schema expectation ([#11272](https://github.com/great-expectations/great_expectations/pull/11272))
+* [BUGFIX] Fix renderer for ExpectTableColumnsToMatchSet ([#11281](https://github.com/great-expectations/great_expectations/pull/11281))
+* [DOCS] Anomaly Detection: Expectation drawer and model ([#11234](https://github.com/great-expectations/great_expectations/pull/11234))
+* [DOCS] Clarify integration support policy page ([#11247](https://github.com/great-expectations/great_expectations/pull/11247))
+* [MAINTENANCE] Remove TableFactory from cloud e2e ([#11274](https://github.com/great-expectations/great_expectations/pull/11274))
+* [MAINTENANCE] Bump ruff to 0.12.0 ([#11263](https://github.com/great-expectations/great_expectations/pull/11263))
+* [MAINTENANCE] convert Snowflake & Databricks integration tests to parameterize_batch_for_data_sources ([#11277](https://github.com/great-expectations/great_expectations/pull/11277))
+
+### 1.5.3
+* [BUGFIX] Make ExpectTableColumnsToMatchSet case insensitive ([#11266](https://github.com/great-expectations/great_expectations/pull/11266))
+* [DOCS] ExpectColumnProportionOfNonNullValuesToBeBetween (#11245) ([#11257](https://github.com/great-expectations/great_expectations/pull/11257))
+* [MAINTENANCE] Allow posthog v4 and v5 ([#11265](https://github.com/great-expectations/great_expectations/pull/11265))
+
+### 1.5.2
+* [FEATURE] Add SuiteParameterDict to all Expectation Kwargs ([#11222](https://github.com/great-expectations/great_expectations/pull/11222)) (thanks @Pascal06S)
+* [BUGFIX] fix `ValidationError` in `ExpectColumnPairValuesToHaveDifferenceOfCustomPercentage` ([#11209](https://github.com/great-expectations/great_expectations/pull/11209)) (thanks @sariaslaso)
+* [BUGFIX] `add_batch_definition_whole_directory` only loading 1 file ([#11254](https://github.com/great-expectations/great_expectations/pull/11254))
+* [BUGFIX] Remove datetime types from proportion `min_value` and `max_value` parameters ([#11259](https://github.com/great-expectations/great_expectations/pull/11259))
+* [DOCS] temporarily remove link checker ([#11250](https://github.com/great-expectations/great_expectations/pull/11250))
+* [DOCS] Cloud API data source tip ([#11248](https://github.com/great-expectations/great_expectations/pull/11248))
+* [DOCS] ExpectColumnProportionOfNonNullValuesToBeBetween (#11245) ([#11257](https://github.com/great-expectations/great_expectations/pull/11257))
+* [MAINTENANCE] Update "fraction" to "proportion" on NonNullProportion renderer ([#11253](https://github.com/great-expectations/great_expectations/pull/11253))
+* [MAINTENANCE] Bump brace-expansion from 1.1.11 to 1.1.12 in /docs/docusaurus ([#11251](https://github.com/great-expectations/great_expectations/pull/11251))
+
+### 1.5.1
+* [FEATURE] Add ColumnAggregateNonNullCount metric ([#11229](https://github.com/great-expectations/great_expectations/pull/11229))
+* [FEATURE] `ExpectColumnProportionOfUniqueValuesToBeBetween` ([#11235](https://github.com/great-expectations/great_expectations/pull/11235))
+* [DOCS] Revise use of the term "API" ([#11196](https://github.com/great-expectations/great_expectations/pull/11196))
+* [DOCS] fix link to removed content ([#11232](https://github.com/great-expectations/great_expectations/pull/11232))
+* [MAINTENANCE] Revert "[MAINTENANCE] Snowflake tests only run with snowflake flag" ([#11230](https://github.com/great-expectations/great_expectations/pull/11230))
+* [MAINTENANCE] Add session pool to expectation tests ([#11228](https://github.com/great-expectations/great_expectations/pull/11228))
+* [MAINTENANCE] Remove RuleBasedProfiler ([#11231](https://github.com/great-expectations/great_expectations/pull/11231))
+
+### 1.5.0
+* [MINORBUMP] docs for Multi-source Expectations ([#11165](https://github.com/great-expectations/great_expectations/pull/11165))
+* [DOCS] revise use of the term "Cloud" in the Core docs ([#11207](https://github.com/great-expectations/great_expectations/pull/11207))
+* [DOCS] restore link checker ([#11212](https://github.com/great-expectations/great_expectations/pull/11212))
+* [MAINTENANCE] add warning filter ([#11217](https://github.com/great-expectations/great_expectations/pull/11217))
+* [MAINTENANCE] Update renderer labels ([#11216](https://github.com/great-expectations/great_expectations/pull/11216))
+* [MAINTENANCE] Improve `ExpectQueryResultsToMatchComparison` docstring ([#11221](https://github.com/great-expectations/great_expectations/pull/11221))
+* [MAINTENANCE] pre-commit autoupdate ([#11218](https://github.com/great-expectations/great_expectations/pull/11218))
+* [MAINTENANCE] Remove `pkg_resources` dependency ([#11213](https://github.com/great-expectations/great_expectations/pull/11213))
+* [MAINTENANCE] Example suite parameter tests ([#11225](https://github.com/great-expectations/great_expectations/pull/11225))
+* [CONTRIB] Add type geometry and super into redshift_execution_engine.py ([#11194](https://github.com/great-expectations/great_expectations/pull/11194)) (thanks @VolkovGeoPhy)
+
+### 1.4.6
+* [BUGFIX] Handle unhashable data types for ExpectQueryResultsToMatchComparison ([#11193](https://github.com/great-expectations/great_expectations/pull/11193))
+* [BUGFIX] Make type expectation case-insensitive for Databricks, Snowflake an Postgres ([#11192](https://github.com/great-expectations/great_expectations/pull/11192))
+* [BUGFIX] Handle set rendering cases for `ExpectQueryResultsToMatchComparison` ([#11203](https://github.com/great-expectations/great_expectations/pull/11203))
+* [BUGFIX] Handle UUID in rendered content ([#11204](https://github.com/great-expectations/great_expectations/pull/11204))
+* [DOCS] Anomaly Detection ([#11172](https://github.com/great-expectations/great_expectations/pull/11172))
+* [DOCS] Refine use of the term "platform" ([#11187](https://github.com/great-expectations/great_expectations/pull/11187))
+* [DOCS] Update docs to reflect that views are supported ([#11198](https://github.com/great-expectations/great_expectations/pull/11198))
+* [DOCS] Revise use of the term "Core" in relation to Cloud ([#11205](https://github.com/great-expectations/great_expectations/pull/11205))
+* [MAINTENANCE] Add CloudAMQP connection string env variable to ci ([#11190](https://github.com/great-expectations/great_expectations/pull/11190))
+* [MAINTENANCE] Show gx cloud logs on cloud test failures. ([#11188](https://github.com/great-expectations/great_expectations/pull/11188))
+* [MAINTENANCE] limit pyspark to &lt;4.0 due to breaking changes in types ([#11197](https://github.com/great-expectations/great_expectations/pull/11197))
+* [MAINTENANCE] Ignore warnings around pkg_resources ([#11201](https://github.com/great-expectations/great_expectations/pull/11201))
+* [MAINTENANCE] Update descriptions for multi-source parameter ([#11202](https://github.com/great-expectations/great_expectations/pull/11202))
+* [MAINTENANCE] Snowflake tests only run with snowflake flag ([#10605](https://github.com/great-expectations/great_expectations/pull/10605))
 
 ### 1.4.5
 * [DOCS] ExpectAI for all Data Sources ([#11178](https://github.com/great-expectations/great_expectations/pull/11178))

@@ -146,6 +146,8 @@
 /docs/reference/anonymous_usage_statistics /docs/core/configure_project_settings/toggle_analytics_events/
 /docs/reference/learn/integrations/airflow_pipeline_tutorial /docs/reference/learn/integrations/data_pipeline_tutorial
 
+
+
 # Redirect from Getting Started Tutorial to Quickstart
 
 /docs/docusaurus/docs/tutorials/getting_started/ /docs/tutorials/quickstart
@@ -178,8 +180,8 @@
 /docs/guides/miscellaneous/how_to_template https://github.com/great-expectations/great_expectations/tree/develop/docs
 /docs/integrations/contributing_integration https://github.com/great-expectations/great_expectations/tree/develop/docs
 /docs/integrations/integration_template https://github.com/great-expectations/great_expectations/tree/develop/docs
-docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_great_expectations https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_EXPECTATIONS.md
-/docs/contributing/contributing_package https://github.com/great-expectations/great_expectations/blob/develop/CONTRIBUTING_PACKAGES.md
+docs/guides/expectations/contributing/how_to_contribute_a_custom_expectation_to_great_expectations https://github.com/great-expectations/great_expectations/tree/develop?tab=readme-ov-file#levels-of-contribution-readiness
+/docs/contributing/contributing_package https://github.com/great-expectations/great_expectations/tree/develop?tab=readme-ov-file#levels-of-contribution-readiness
 
 # Removing How to Validate data with an in-memory Checkpoint
 
@@ -302,6 +304,7 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/reference/customize_your_deployment /docs/core/configure_project_settings/
 /docs/guides/expectations/advanced/how_to_create_a_new_expectation_suite_using_rule_based_profilers /docs/guides/expectations/expectations_lp
 /docs/reference/learn/usage_statistics /docs/core/configure_project_settings/toggle_analytics_events/
+/docs/reference/learn/migration_guide /docs/0.18/reference/learn/migration_guide
 
 # Redirects for removed index pages and new landing pages
 
@@ -344,6 +347,10 @@ docs/guides/setup/configuring_data_docs/how_to_host_and_share_data_docs_on_azure
 /docs/cloud/set_up_gx_cloud#* /docs/cloud/try_gx_cloud#:splat
 /docs/cloud/try_gx_cloud /docs/cloud/deploy_gx_agent
 /versioned_docs/version-0.18/cloud/try_gx_cloud /versioned_docs/version-0.18/cloud/tdeploy_gx_agent
+
+#redirects for gallery links pointing to .18 content
+/docs/reference/expectations/result_format /docs/core/trigger_actions_based_on_results/choose_a_result_format/
+/docs/reference/expectations/standard_arguments /docs/core/define_expectations/create_an_expectation/
 
 # Broken link redirect
 
@@ -448,3 +455,12 @@ http://legacy.docs.greatexpectations.io/* http://docs.greatexpectations.io 301!
 # abandoned pages
 /docs/0.18/oss/* /docs/0.18/core/introduction/introduction
 /docs/0.18/reference/learn/terms/* /docs/0.18/reference/learn/glossary
+
+## Redirects for renamed docs
+
+/docs/resources/get_support /docs/help/get_support
+/docs/application_integration_support /docs/help/compatibility_reference
+/docs/cloud/overview/automating_rules /docs/cloud/overview/accelerating_test_coverage
+/docs/cloud/overview/coverage_health /docs/cloud/overview/data_health
+/docs/cloud/alerts/manage_alerts /docs/cloud/alerts/manage_email_alerts
+/docs/cloud/users/manage_users /docs/cloud/access/manage_access

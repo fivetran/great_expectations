@@ -10,10 +10,12 @@ from .column_mean import ColumnMean
 from .column_median import ColumnMedian
 from .column_min import ColumnMin
 from .column_most_common_value import ColumnMostCommonValue
+from .column_non_null_count import ColumnNonNullCount
 from .column_parameterized_distribution_ks_test_p_value import (
     ColumnParameterizedDistributionKSTestPValue,
 )
 from .column_partition import ColumnPartition
+from .column_proportion_of_non_null_values import ColumnNonNullProportion
 from .column_proportion_of_unique_values import ColumnUniqueProportion
 from .column_quantile_values import ColumnQuantileValues
 from .column_sample_values import ColumnSampleValues

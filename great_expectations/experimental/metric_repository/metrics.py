@@ -48,6 +48,7 @@ class MetricTypes(str, enum.Enum, metaclass=MetricTypesMeta):
     COLUMN_MEDIAN = "column.median"
     COLUMN_MEAN = "column.mean"
     COLUMN_NULL_COUNT = "column_values.null.count"
+    COLUMN_NON_NULL_COUNT = "column.non_null_count"
 
 
 class MetricRepositoryBaseModel(BaseModel):
@@ -86,6 +87,7 @@ class Metric(MetricRepositoryBaseModel, Generic[_ValueType]):
     )
 
     @classmethod
+    @override
     def update_forward_refs(cls):
         from great_expectations.datasource.fluent.interfaces import Batch
 

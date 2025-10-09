@@ -60,6 +60,7 @@ def test_data_context_instantiates_gx_cloud_store_backend_with_cloud_config(
         cloud_base_url=ge_cloud_config.base_url,
         cloud_access_token=ge_cloud_config.access_token,
         cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
         cloud_mode=True,
     )
 

@@ -9,6 +9,7 @@ from typing import (
     Type,
 )
 
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.core.metric_function_types import (
@@ -206,7 +207,7 @@ def column_pair_function_partial(  # noqa: C901 #  16
                 )
 
                 (
-                    data,
+                    _,
                     compute_domain_kwargs,
                     accessor_domain_kwargs,
                 ) = execution_engine.get_compute_domain(
@@ -220,8 +221,8 @@ def column_pair_function_partial(  # noqa: C901 #  16
 
                 column_pair_function = metric_fn(
                     cls,
-                    data[column_A_name],
-                    data[column_B_name],
+                    F.col(column_A_name),
+                    F.col(column_B_name),
                     **metric_value_kwargs,
                     _metrics=metrics,
                 )

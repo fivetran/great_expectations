@@ -1,5 +1,5 @@
 """
-This example script demonstrates how to request an Cloud Data Context
+This example script demonstrates how to request a Cloud Data Context
  using the `mode` parameter.
 
 The <snippet> tags are used to insert the corresponding code into the

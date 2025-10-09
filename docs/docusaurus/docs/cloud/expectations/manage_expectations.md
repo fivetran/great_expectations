@@ -4,165 +4,94 @@ title: "Manage Expectations"
 description: Create and manage Expectations in GX Cloud.
 ---
 
-An Expectation is a verifiable assertion about your data. They make implicit assumptions about your data explicit, and they provide a flexible, declarative language for describing expected behavior. They can help you better understand your data and help you improve data quality.
+You can manually create Expecatations and use several different GX Cloud features to generate Expecations.
 
-<!-- [//]: # (TODO: To learn more about Expectations, see Expectation.) -->
+This page provides instructions for working with Expectations. To learn about Expectation types and options, see the [Expectations overview](/cloud/expectations/expectations_overview.md).
 
 ## Prerequisites
 
 - You have a [Data Asset](/cloud/data_assets/manage_data_assets.md).
 
-## Available Expectations
 
-The following table lists the available GX Cloud Expectations.
-
-| Data quality issue |                    Expectation                       | Description                                                                                                                            | Dynamic Parameters? |
-|------------------|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-| Completeness       | **column values to be null**                         | Expect the column values to be null.                                                                                                   | Yes                 |
-| Completeness       | **column values to not be null**                     | Expect the column values to not be null.                                                                                               | Yes                 |
-| Numeric            | **column max to be between**                         | Expect the column maximum to be between a minimum and a maximum value.                                                                 | Yes                 |
-| Numeric            | **column mean to be between**                        | Expect the column mean to be between a minimum and a maximum value.                                                                    | Yes                 |
-| Numeric            | **column median to be between**                      | Expect the column median to be between a minimum and a maximum value.                                                                  | Yes                 |
-| Numeric            | **column min to be between**                         | Expect the column minimum to be between a minimum value and a maximum value.                                                           | Yes                 |
-| Numeric            | **column pair values A to be greater than B**        | Expect the values in column A to be greater than column B.                                                                             | No                  |
-| Numeric            | **column stdev to be between**                       | Expect the column standard deviation to be between a minimum value and a maximum value.                                                | Yes                 |
-| Numeric            | **column sum to be between**                         | Expect the column sum to be between a minimum value and a maximum value.                                                               | Yes                 |
-| Numeric            | **column values to be between**                      | Expect the column entries to be between a minimum value and a maximum value.                                                           | No                  |
-| Numeric            | **column z scores to be less than**                  | Expect the Z-scores of a column's values to be less than a given threshold.                                                            | No                  |
-| Numeric            | **multicolumn sum to equal**                         | Expect that the sum of row values in a specified column list is the same for each row, and equal to a specified sum total.             | No                  |
-| Schema             | **column to exist**                                  | Checks for the existence of a specified column within a table or view.                                                                 | No                  |
-| Schema             | **column values to be in type list**                 | Expect a column to contain values from a specified type list.                                                                          | No                  |
-| Schema             | **column values to be of type**                      | Expect a column to contain values of a specified data type.                                                                            | No                  |
-| Schema             | **table column count to be between**                 | Expect the number of columns in a table or view to be between two values.                                                              | Yes                 |
-| Schema             | **table column count to equal**                      | Expect the number of columns in a table or view to equal a value.                                                                      | No                  |
-| Schema             | **table columns to match ordered list**              | Expect the columns in a table or view to exactly match a specified list.                                                               | No                  |
-| Schema             | **table columns to match set**                       | Expect the columns in a table or view to match an unordered set.                                                                       | No                  |
-| Uniqueness         | **column distinct values to be in set**              | Expect the set of distinct column values to be contained by a given set.                                                               | No                  |
-| Uniqueness         | **column distinct values to contain set**            | Expect the set of distinct column values to contain a given set.                                                                       | No                  |
-| Uniqueness         | **column distinct values to equal set**              | Expect the set of distinct column values to equal a given set.                                                                         | No                  |
-| Uniqueness         | **column proportion of unique values to be between** | Expect the proportion of unique values to be between a minimum value and a maximum value.                                              | Yes                 |
-| Uniqueness         | **column unique value count to be between**          | Expect the number of unique values to be between a minimum value and a maximum value.                                                  | Yes                 |
-| Uniqueness         | **column values to be unique**                       | Expect each column value to be unique.                                                                                                 | No                  |
-| Uniqueness         | **compound columns to be unique**                    | Expect the compound columns to be unique.                                                                                              | No                  |
-| Uniqueness         | **select column values to be unique within record**  | Expect the values for each record to be unique across the columns listed. Note that records can be duplicated.                         | No                  |
-| Validity           | **column most common value to be in set**            | Expect the most common value to be within the designated value set.                                                                    | No                  |
-| Validity           | **column pair values to be equal**                   | Expect the values in column A to be the same as column B.                                                                              | No                  |
-| Validity           | **column value lengths to be between**               | Expect the column entries to be strings with length between a minimum value and a maximum value.                                       | No                  |
-| Validity           | **column value lengths to equal**                    | Expect the column entries to be strings with length equal to the provided value.                                                       | No                  |
-| Validity           | **column values to be in set**                       | Expect each column value to be in a given set.                                                                                         | No                  |
-| Validity           | **column values to not be in set**                   | Expect column entries to not be in the set.                                                                                            | No                  |
-| Validity           | **column values to match like pattern**              | Expect the column entries to be strings that match a given like pattern expression.                                                    | No                  |
-| Validity           | **column values to match like pattern list**         | Expect the column entries to be strings that match any of a provided list of like pattern expressions.                                 | No                  |
-| Validity           | **column values to match regex**                     | Expect the column entries to be strings that match a given regular expression.                                                         | No                  |
-| Validity           | **column values to match regex list**                | Expect the column entries to be strings that can be matched to either any of or all of a list of regular expressions.                  | No                  |
-| Validity           | **column values to not match like pattern**          | Expect the column entries to be strings that do NOT match a given like pattern expression.                                             | No                  |
-| Validity           | **column values to not match like pattern list**     | Expect the column entries to be strings that do NOT match any of a provided list of like pattern expressions.                          | No                  |
-| Validity           | **column values to not match regex**                 | Expect the column entries to be strings that do NOT match a given regular expression.                                                  | No                  |
-| Validity           | **column values to not match regex list**            | Expect the column entries to be strings that do not match any of a list of regular expressions. Matches can be anywhere in the string. | No                  |
-| Volume             | **table row count to be between**                    | Expect the number of rows to be between two values.                                                                                    | Yes                 |
-| Volume             | **table row count to equal**                         | Expect the number of rows to equal a value.                                                                                            | No                  |
-| Volume             | **table row count to equal other table**             | Expect the number of rows to equal the number in another table or view within the same database.                                       | No                  |
-
-
-## Custom SQL Expectations
-
-GX Cloud also offers the ability to write a custom Expectation using SQL. It is designed to fail validation if the provided SQL query returns one or more rows.
-
-The provided query should be written in the dialect of the Data Source in which a given Data Asset lives.
-
-:::info Optional `{batch}` named query
-
-The optional `{batch}` named query references the Batch of data under test. When the Expectation is evaluated, the `{batch}` named query will be replaced with the Batch of data that is validated.
-
-:::
-
-## Dynamic Parameters
-
-Dynamic Parameters allow you to create Expectations whose parameters update based on new data. GX Cloud can populate new Expectation parameters at runtime using the last `n` validation results. For example, you can define an Expectation to validate that the maximum value within a column does not exceed 20% above a previously recorded value.
-
-You will be able to input:
-
-1. Sensitivity: `X%` of the average of previous values
-
-2. Constraint: `Above`, `below`, or `above and below` for the sensitivity threshold
-
-3. Run count: `n` previous validation results
-
-When you select your `n` run count, and: 
-
-- There are `0` previous runs, the Expectation will always succeed.
-
-- There are `<n` runs, the Expectation will take all previous runs into account.
-
-- There are `n` runs, the Expectation will take the last `n` runs into account.
-
-- There are `>n` runs, the Expectation will take the last `n` runs into account.
-
-## Expectation condition
-
-The Expectation condition is an optional field that applies to any Expectation validating row-level data. This condition allows you to filter your data so that only a specific subset of your Batch is validated. Rows will be validated only when the condition is true.
-
-You will need to select:
-
-1. A column to check the condition against.
-2. An operator that is used to compare the column against a parameter value.
-3. A parameter that will be compared against each row in the selected column.
-
-To clear the Expectation condition, click the clear button located on the right-hand side of the condition field.
-
-
-![GX Cloud Expectation condition field](./expectation_images/expectation_condition_field.png)
-
-
-![GX Cloud Expectation with condition](./expectation_images/expectation_with_condition.png)
 
 ## Add an Expectation
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
 3. Click **New Expectation**.
 
-4. Select a data quality issue to test for.
+4. Select a data quality issue to test for or an option for writing your own test.
+
+   :::tip Options for accelerating test coverage
+   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will default to warning severity, which you can edit later. If you instead want to create your own rules, click **Manual**.
+   
+   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
+   :::
 
 5. Select an Expectation type.
 
-6. Complete the mandatory and optional fields for the Expectation. A recurring [validation schedule](/cloud/schedules/manage_schedules.md) will be applied automatically to your Expectation. 
+6. Complete the mandatory and optional fields for the Expectation.
 
 7. Click **Save** or click **Save & Add More** and then repeat steps 4 through 7 to add additional Expectations.
 
-8. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
+8. Optional. Run an ad hoc Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 
-:::tip Automate rules for Anomaly Detection
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source), you can choose to automatically generate Anomaly Detection Expectations for that Data Asset that detect column changes, non-increasing volume, and changes to the percentage of null values in each column.
-:::
+9. Optional. Configure recurring Validations. See [Manage schedules](/docs/cloud/schedules/manage_schedules).
 
-## Generate Expectations with ExpectAI <span class="beta">Beta</span>
+
+## Save time with ExpectAI <span class="beta">Beta</span>
+
+ExpectAI is an analytical AI tool that you can use to generate tests.
+
+### Generate Expectations
 
 To accelerate test coverage, you can use ExpectAI to generate recommended Expectations for a Data Asset. These will be personalized based on an analysis of a sample of your data.
 
 Keep the following requirements in mind when working with ExpectAI:
 - Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
-- The Data Asset's Data Source must be Databricks SQL, PostgreSQL, Redshift, or Snowflake.
+- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
+- Generated Expectations will default to warning severity, which you can edit later.
 
 To add AI-recommended Expectations:
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 2. In the **Data Assets** list, click the Data Asset name.
 3. Click **Generate Expectations**.
    :::note This might take a few minutes
-   ExpectAI may take a few minutes to analyze your data and recommend personalized Expectations. You can navigate away from the page while ExpectAI works in the background. GX will send an [email alert](/cloud/alerts/manage_alerts.md) when your recommended Expectations are ready for review.
+   ExpectAI may take a few minutes to analyze your data and recommend personalized Expectations. You can navigate away from the page while ExpectAI works in the background. GX will send an [email alert](/cloud/alerts/manage_email_alerts.md) when your recommended Expectations are ready for review.
    :::
 4. Review the recommended Expectations and **Approve** (✓) or **Reject** (✗) them within 48 hours. After 48 hours, any remaining recommendations will be discarded.
 5. Optional. Run a Validation. See [Run a Validation](/cloud/validations/manage_validations.md#run-a-validation).
 6. Optional. [Edit](#edit-an-expectation) AI-generated Expectations based on the insights you get from running a Validation and your data quality needs.
+
+### Generate SQL
+
+To simplify working with [custom SQL Expectations](/cloud/expectations/expectations_overview.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
+
+For example, imagine you have a New York City taxi trip dataset with columns named `pickup_borough`, `vehicle_type`, and `passenger_count`. If you [add a custom SQL Expectation](#add-an-expectation) with a **Prompt for SQL generation** like `sedan rides in Manhattan shouldn't have more than 4 passengers` then ExpectAI would generate a SQL query similar to the following:
+
+```sql title="SQL query"
+SELECT
+*
+FROM
+{batch}
+WHERE
+pickup_borough = 'Manhattan'
+AND vehicle_type = 'Sedan'
+AND passenger_count > 4
+```
+
+Keep the following requirements in mind when working with ExpectAI:
+- Your organization must be using a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- The Data Asset's Data Source must be AlloyDB, Amazon Aurora PostgreSQL, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake.
 
 
 ## Optional. Define a Batch
 
 If your Data Asset has at least one DATE or DATETIME column, you can define a Batch to validate your data incrementally.
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
@@ -174,7 +103,7 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 ## Edit an Expectation
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
@@ -186,9 +115,13 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 
 6. Click **Save**.
 
+:::note Severity changes apply going forward
+If you edit the **Severity** of an Expectation, note that historical validation results will continue to indicate the severity that was recorded at the time of an Expectation failure. The newly assigned severity will apply to future validation failures only. 
+:::
+
 ## Delete an Expectation
 
-1. In GX Cloud, click **Data Assets**.
+1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
 2. In the **Data Assets** list, click the Data Asset name.
 
@@ -203,27 +136,3 @@ If your Data Asset has at least one DATE or DATETIME column, you can define a Ba
 5. Click **Delete**.
 
 
-
-## GX-managed vs. API-managed Expectations
-
-In GX Cloud, Expectations can be GX-managed or API-managed.
-- GX-managed Expectations are created through the GX Cloud UI.
-- API-managed Expectations are created with the API in a GX Cloud Data Context.
-
-If you have both kinds of Expectations, they will be organized in separate tables on the **Expectations** tab as they have different capabilities in the Cloud UI. 
-
-Here is a comparison of key characteristics of GX-managed and API-managed Expectations. 
-
-| Characteristic     | GX-managed Expectation                                                                                                                                                                              | API-managed Expectation                                                                                                                                                                                                                                                                                                     |
-|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Edit               | [Edit parameters](/cloud/expectations/manage_expectations.md#edit-an-expectation) with the GX Cloud UI                                                                                              | [Edit parameters with the API](/reference/api/expectations/Expectation_class.mdx) or the GX Cloud UI                                                                                                                                                                                                                        |
-| Batch              | [Define a Batch](/cloud/expectations/manage_expectations.md#optional-define-a-batch) in the Cloud UI                                                                                                | Define a Batch with the API when connecting to [SQL](/core/connect_to_data/sql_data/sql_data.md#create-a-batch-definition), [filesystem](/core/connect_to_data/filesystem_data/filesystem_data.md#create-a-batch-definition), or [dataframe](/core/connect_to_data/dataframes/dataframes.md#create-a-batch-definition) data |
-| Validate           | [Run a Validation](/docs/cloud/validations/manage_validations.md#run-a-validation) through the Cloud UI or [run a Checkpoint](/core/trigger_actions_based_on_results/run_a_checkpoint.md) with the API | [Create a Validation Definition and run it](/core/run_validations/run_validations.md) with the API                                                                                                                                                                                                                          |
-| Validation Results | [Access results in the Validations tab](/cloud/validations/manage_validations.md#view-validation-run-history) of the Cloud UI                                                                       | [Access results with the API](/core/trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format.md) or in the Validations tab of the Cloud UI                                                                                                                                                            |
-| Schedule           | Keep default schedule or [edit schedule](/cloud/schedules/manage_schedules.md) in the Cloud UI                                                                                                      | Not supported, use an [orchestrator](/cloud/connect/connect_airflow.md) to control recurring validations                                                                                                                                                                                                                    |
-| Expectation Suite  | Automatically organized in a hidden default Expectation Suite                                                                                                                                       | Manually grouped into [custom Expectation Suites](/core/define_expectations/organize_expectation_suites.md) via the API                                                                                                                                                                                                     |
-| Delete             | [Delete Expectation](/docs/cloud/expectations/manage_expectations/#delete-an-expectation) with the Cloud UI                                                                                         | [Delete Expectation with the API](/reference/api/ExpectationSuite_class.mdx#great_expectations.ExpectationSuite.delete_expectation) or the Cloud UI                                                                                                                                                                         |
-
-:::note Hidden resources for GX-managed Expectations
-To support GX-managed Expectations, we create resources that you typically won't directly interact with. For example, we create a GX-managed Expectation Suite that we use to organize your Expectations. For some workflows you may need to work with these hidden resources, for example, you may need to [find the name of an automatically created Checkpoint](/cloud/connect/connect_airflow.md#create-a-dag-file-for-your-gx-cloud-checkpoint). But, typically you can ignore the existence of these hidden resources. 
-:::

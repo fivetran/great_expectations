@@ -1,16 +1,8 @@
-import re
-from unittest import mock
 from unittest.mock import ANY
-from unittest.mock import ANY as ANY_TEST_ARG
 
 import pytest
 from pytest_mock import MockerFixture
 
-from great_expectations.analytics.events import (
-    CheckpointCreatedEvent,
-    CheckpointDeletedEvent,
-    DomainObjectAllDeserializationEvent,
-)
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.factory.checkpoint_factory import CheckpointFactory
@@ -165,7 +157,10 @@ def test_checkpoint_factory_add_success_filesystem(empty_data_context):
 
 
 @pytest.mark.cloud
-def test_checkpoint_factory_add_success_cloud(empty_cloud_context_fluent):
+def test_checkpoint_factory_add_success_cloud(
+    unset_gx_env_variables: None,
+    empty_cloud_context_fluent,
+):
     _test_checkpoint_factory_add_success(empty_cloud_context_fluent)
 
 
@@ -201,7 +196,10 @@ def test_checkpoint_factory_delete_success_filesystem(empty_data_context):
 
 
 @pytest.mark.cloud
-def test_checkpoint_factory_delete_success_cloud(empty_cloud_context_fluent):
+def test_checkpoint_factory_delete_success_cloud(
+    unset_gx_env_variables: None,
+    empty_cloud_context_fluent,
+):
     _test_checkpoint_factory_delete_success(empty_cloud_context_fluent)
 
 
@@ -286,10 +284,6 @@ def test_checkpoint_factory_all(context_fixture_name: str, request: pytest.Fixtu
 def test_checkpoint_factory_all_with_bad_config(
     in_memory_runtime_context: AbstractDataContext, mocker: MockerFixture
 ):
-    analytics_submit_mock = mocker.patch(
-        "great_expectations.data_context.store.store.submit_analytics_event"
-    )
-
     # Arrange
     context: AbstractDataContext = in_memory_runtime_context
     ds = context.data_sources.add_pandas("my_datasource")
@@ -330,98 +324,16 @@ def test_checkpoint_factory_all_with_bad_config(
 
     # Assert
     assert result == [checkpoint_1]
-    analytics_submit_mock.assert_called_once_with(
-        DomainObjectAllDeserializationEvent(
-            error_type=ANY_TEST_ARG,
-            store_name="CheckpointStore",
-        )
-    )
-    analytics_submit_args = analytics_submit_mock.call_args[0][0]
-    assert re.match("pydantic.*ValidationError", analytics_submit_args.error_type)
-
-
-class TestCheckpointFactoryAnalytics:
-    @pytest.mark.filesystem
-    def test_checkpoint_factory_add_emits_event_filesystem(self, empty_data_context):
-        self._test_checkpoint_factory_add_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_checkpoint_factory_add_emits_event_cloud(self, empty_cloud_context_fluent):
-        self._test_checkpoint_factory_add_emits_event(empty_cloud_context_fluent)
-
-    def _test_checkpoint_factory_add_emits_event(self, context):
-        # Arrange
-        name = "test-checkpoint"
-        ds = context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", "data.csv")
-        batch_def = asset.add_batch_definition("my_batch_definition")
-
-        suite = context.suites.add(ExpectationSuite(name="my_suite"))
-        validation_definition = context.validation_definitions.add(
-            ValidationDefinition(name="validation_def", data=batch_def, suite=suite)
-        )
-
-        checkpoint = Checkpoint(
-            name=name,
-            validation_definitions=[validation_definition],
-        )
-
-        # Act
-        with mock.patch(
-            "great_expectations.core.factory.checkpoint_factory.submit_event", autospec=True
-        ) as mock_submit:
-            _ = context.checkpoints.add(checkpoint=checkpoint)
-
-        # Assert
-        mock_submit.assert_called_once_with(
-            event=CheckpointCreatedEvent(
-                checkpoint_id=mock.ANY,
-                validation_definition_ids=[mock.ANY for _ in checkpoint.validation_definitions],
-            )
-        )
-
-    @pytest.mark.filesystem
-    def test_checkpoint_factory_delete_emits_event_filesystem(self, empty_data_context):
-        self._test_checkpoint_factory_delete_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_checkpoint_factory_delete_emits_event_cloud(self, empty_cloud_context_fluent):
-        self._test_checkpoint_factory_delete_emits_event(empty_cloud_context_fluent)
-
-    def _test_checkpoint_factory_delete_emits_event(self, context):
-        # Arrange
-        name = "test-checkpoint"
-        ds = context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", "data.csv")
-        batch_def = asset.add_batch_definition("my_batch_definition")
-
-        suite = context.suites.add(ExpectationSuite(name="my_suite"))
-        validation_definition = context.validation_definitions.add(
-            ValidationDefinition(name="validation_def", data=batch_def, suite=suite)
-        )
-
-        checkpoint = Checkpoint(
-            name=name,
-            validation_definitions=[validation_definition],
-        )
-        checkpoint = context.checkpoints.add(checkpoint=checkpoint)
-
-        # Act
-        with mock.patch(
-            "great_expectations.core.factory.checkpoint_factory.submit_event", autospec=True
-        ) as mock_submit:
-            context.checkpoints.delete(name=name)
-
-        # Assert
-        mock_submit.assert_called_once_with(
-            event=CheckpointDeletedEvent(checkpoint_id=checkpoint.id)
-        )
 
 
 class TestCheckpointFactoryAddOrUpdate:
     CHECKPOINT_NAME = "checkpoint A"
 
-    def test_add_empty_new_checkpoint(self, data_context: AbstractDataContext) -> None:
+    def test_add_empty_new_checkpoint(
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
+    ) -> None:
         # arrange
         checkpoint = Checkpoint(name=self.CHECKPOINT_NAME, validation_definitions=[])
 
@@ -432,7 +344,11 @@ class TestCheckpointFactoryAddOrUpdate:
         assert created_checkpoint.id
         data_context.checkpoints.get(self.CHECKPOINT_NAME)
 
-    def test_add_new_checkpoint_with_validations(self, data_context: AbstractDataContext) -> None:
+    def test_add_new_checkpoint_with_validations(
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
+    ) -> None:
         # arrange
         batch_def = (
             data_context.data_sources.add_pandas("data source A")
@@ -471,7 +387,9 @@ class TestCheckpointFactoryAddOrUpdate:
             assert val_def_dict == created_val_def.dict()
 
     def test_update_existing_checkpoint_adds_validations(
-        self, data_context: AbstractDataContext
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
     ) -> None:
         # arrange
         data_context.checkpoints.add(
@@ -514,7 +432,9 @@ class TestCheckpointFactoryAddOrUpdate:
             assert val_def_dict == created_val_def.dict()
 
     def test_update_existing_checkpoint_updates_validations(
-        self, data_context: AbstractDataContext
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
     ) -> None:
         # arrange
         batch_def = (
@@ -556,7 +476,9 @@ class TestCheckpointFactoryAddOrUpdate:
             assert val_def.suite.name == new_suite_name
 
     def test_update_existing_checkpoint_deletes_validations(
-        self, data_context: AbstractDataContext
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
     ) -> None:
         # arrange
         batch_def = (
@@ -609,7 +531,11 @@ class TestCheckpointFactoryAddOrUpdate:
         assert created_checkpoint.validation_definitions[0].name == VALIDATION_DEFINITION_NAME
         assert created_checkpoint.validation_definitions[0].suite.name == SUITE_NAME
 
-    def test_add_or_update_is_idempotent(self, data_context: AbstractDataContext) -> None:
+    def test_add_or_update_is_idempotent(
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
+    ) -> None:
         # arrange
         batch_def = (
             data_context.data_sources.add_pandas("data source A")

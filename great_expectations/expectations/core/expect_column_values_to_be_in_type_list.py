@@ -24,7 +24,10 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
-from great_expectations.expectations.model_field_descriptions import COLUMN_DESCRIPTION
+from great_expectations.expectations.model_field_descriptions import (
+    COLUMN_DESCRIPTION,
+    FAILURE_SEVERITY_DESCRIPTION,
+)
 from great_expectations.expectations.registry import get_metric_kwargs
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
@@ -63,6 +66,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
     SupportedDataSources.REDSHIFT.value,
@@ -109,6 +116,9 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         meta (dict or None): \
             A JSON-serializable dictionary (nesting allowed) that will be included in the output without \
             modification. For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
@@ -124,6 +134,10 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -314,7 +328,7 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
     @override
     @renderer(renderer_type=LegacyRendererType.PRESCRIPTIVE)
     @render_suite_parameter_string
-    def _prescriptive_renderer(
+    def _prescriptive_renderer(  # noqa: C901, PLR0912
         cls,
         configuration: Optional[ExpectationConfiguration] = None,
         result: Optional[ExpectationValidationResult] = None,
@@ -334,9 +348,10 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
                 params[f"v__{i!s}"] = v
             values_string = " ".join([f"$v__{i!s}" for i, v in enumerate(params["type_list"])])
 
-            if params["mostly"] is not None and params["mostly"] < 1.0:
-                params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
-                # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
+            if params["mostly"] is not None:
+                if isinstance(params["mostly"], (int, float)) and params["mostly"] < 1.0:
+                    params["mostly_pct"] = num_to_str(params["mostly"] * 100, no_scientific=True)
+                    # params["mostly_pct"] = "{:.14f}".format(params["mostly"]*100).rstrip("0").rstrip(".")  # noqa: E501 # FIXME CoP
                 if include_column_name:
                     template_str = (
                         "$column value types must belong to this set: "
@@ -454,14 +469,24 @@ class ExpectColumnValuesToBeInTypeList(ColumnMapExpectation):
             GXSqlDialect.DATABRICKS,
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
+            GXSqlDialect.TRINO,
         ]:
-            success = isinstance(actual_column_type, str) and any(
-                actual_column_type.lower() == expected_type.lower()
-                for expected_type in expected_types_list
-            )
+            if isinstance(actual_column_type, str):
+                success = any(
+                    actual_column_type.lower() == expected_type.lower()
+                    for expected_type in expected_types_list
+                )
+                ret_type = actual_column_type
+            else:
+                ret_type = type(actual_column_type).__name__
+                success = any(
+                    ret_type.lower() == expected_type.lower()
+                    for expected_type in expected_types_list
+                )
+
             return {
                 "success": success,
-                "result": {"observed_value": actual_column_type},
+                "result": {"observed_value": ret_type},
             }
         else:
             types = []

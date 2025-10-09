@@ -19,9 +19,9 @@ import numpy as np
 import packaging
 import pandas as pd
 import pytest
+import setuptools  # noqa: F401  # Import setuptools avoid distutils import order warning
 
 import great_expectations as gx
-from great_expectations.analytics.config import ENV_CONFIG
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
@@ -87,6 +87,7 @@ from great_expectations.validator.validator import Validator
 from tests.datasource.fluent._fake_cloud_api import (
     DUMMY_JWT_TOKEN,
     FAKE_ORG_ID,
+    FAKE_WORKSPACE_ID,
     GX_CLOUD_MOCK_BASE_URL,
     CloudDetails,
     gx_cloud_api_fake_ctx,
@@ -426,7 +427,6 @@ def pytest_collection_modifyitems(config, items):
             reason="need --docs-tests option to run",
         ),
         Category(mark="cloud", flag="--cloud", reason="need --cloud option to run"),
-        Category(mark="snowflake", flag="--snowflake", reason="need --snowflake option to run"),
     )
 
     for category in categories:
@@ -440,12 +440,6 @@ def pytest_collection_modifyitems(config, items):
             if category.mark in item.keywords:
                 marker = pytest.mark.skip(reason=category.reason)
                 item.add_marker(marker)
-
-
-@pytest.fixture(autouse=True)
-def no_usage_stats(monkeypatch):
-    # Do not generate usage stats from test runs
-    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", False)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -1665,6 +1659,11 @@ def ge_cloud_organization_id() -> str:
 
 
 @pytest.fixture
+def ge_cloud_workspace_id() -> str:
+    return FAKE_WORKSPACE_ID
+
+
+@pytest.fixture
 def ge_cloud_access_token() -> str:
     return DUMMY_JWT_TOKEN
 
@@ -1679,10 +1678,16 @@ def request_headers(ge_cloud_access_token: str) -> Dict[str, str]:
 
 
 @pytest.fixture
-def ge_cloud_config(ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token):
+def ge_cloud_config(
+    ge_cloud_base_url: str,
+    ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
+    ge_cloud_access_token: str,
+):
     return GXCloudConfig(
         base_url=ge_cloud_base_url,
         organization_id=ge_cloud_organization_id,
+        workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
 
@@ -1789,6 +1794,7 @@ def empty_base_data_context_in_cloud_mode(
         cloud_base_url=ge_cloud_config.base_url,
         cloud_access_token=ge_cloud_config.access_token,
         cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
     )
     set_context(context)
     return context
@@ -1848,6 +1854,7 @@ def empty_cloud_data_context(
         cloud_base_url=ge_cloud_config.base_url,
         cloud_access_token=ge_cloud_config.access_token,
         cloud_organization_id=ge_cloud_config.organization_id,
+        cloud_workspace_id=ge_cloud_config.workspace_id,
     )
     set_context(context)
     return context
@@ -1855,11 +1862,15 @@ def empty_cloud_data_context(
 
 @pytest.fixture
 def cloud_details(
-    ge_cloud_base_url, ge_cloud_organization_id, ge_cloud_access_token
+    ge_cloud_base_url: str,
+    ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
+    ge_cloud_access_token: str,
 ) -> CloudDetails:
     return CloudDetails(
         base_url=ge_cloud_base_url,
         org_id=ge_cloud_organization_id,
+        workspace_id=ge_cloud_workspace_id,
         access_token=ge_cloud_access_token,
     )
 
@@ -1875,6 +1886,7 @@ def empty_cloud_context_fluent(cloud_api_fake, cloud_details: CloudDetails) -> C
     context = gx.get_context(
         cloud_access_token=cloud_details.access_token,
         cloud_organization_id=cloud_details.org_id,
+        cloud_workspace_id=cloud_details.workspace_id,
         cloud_base_url=cloud_details.base_url,
         cloud_mode=True,
     )
@@ -1907,6 +1919,7 @@ def empty_base_data_context_in_cloud_mode_custom_base_url(
         cloud_base_url=custom_ge_cloud_config.base_url,
         cloud_access_token=custom_ge_cloud_config.access_token,
         cloud_organization_id=custom_ge_cloud_config.organization_id,
+        cloud_workspace_id=custom_ge_cloud_config.workspace_id,
     )
     assert context.list_datasources() == []
     assert context.ge_cloud_config.base_url != ge_cloud_config.base_url

@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from great_expectations.expectations.expectation_configuration import (
         ExpectationConfiguration,
     )
+    from great_expectations.expectations.metadata_types import FailureSeverity
     from great_expectations.render.renderer.inline_renderer import InlineRendererConfig
 
 logger = logging.getLogger(__name__)
@@ -113,7 +114,8 @@ class ExpectationValidationResult(SerializableDictDot):
         }
         self.rendered_content = rendered_content
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         """ExpectationValidationResult equality ignores instance identity, relying only on properties."""  # noqa: E501 # FIXME CoP
         # NOTE: JPC - 20200213 - need to spend some time thinking about whether we want to
         # consistently allow dict as a comparison alternative in situations like these...
@@ -155,6 +157,32 @@ class ExpectationValidationResult(SerializableDictDot):
         except (ValueError, TypeError):
             # if invalid comparisons are attempted, the objects are not equal.
             return False
+
+    @override
+    def __hash__(self) -> int:
+        """Overrides the default implementation"""
+        # note that it is possible for two results to be equal but have different hashes
+        # this is because during comparison we only compare common keys
+        if self.result:
+            result_hash = hash(tuple(sorted(self.result.items())))
+        else:
+            result_hash = hash(None)
+
+        # Handle expectation_config hash
+        if self.expectation_config:
+            config_hash = hash(self.expectation_config)
+        else:
+            config_hash = hash(None)
+
+        return hash(
+            (
+                self.success,
+                config_hash,
+                result_hash,
+                tuple(sorted(self.meta.items())) if self.meta else (),
+                tuple(sorted(self.exception_info.items())) if self.exception_info else (),
+            )
+        )
 
     def __ne__(self, other):  # type: ignore[explicit-override] # FIXME
         # Negated implementation of '__eq__'. TODO the method should be deleted when it will coincide with __eq__.  # noqa: E501 # FIXME CoP
@@ -516,6 +544,18 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
             )
         )
 
+    @override
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.success,
+                tuple(sorted(hash(result) for result in self.results)),
+                tuple(sorted(self.suite_parameters.items())) if self.suite_parameters else (),
+                tuple(sorted(self.statistics.items())) if self.statistics else (),
+                tuple(sorted(self.meta.items())) if self.meta else (),
+            )
+        )
+
     def __repr__(self):  # type: ignore[explicit-override] # FIXME
         return json.dumps(self.to_json_dict(), indent=2)
 
@@ -524,6 +564,7 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
         return json.dumps(self.to_json_dict(), indent=2)
 
     @public_api
+    @override
     def to_json_dict(self):
         """Returns a JSON-serializable dict representation of this ExpectationSuiteValidationResult.
 
@@ -617,6 +658,55 @@ class ExpectationSuiteValidationResult(SerializableDictDot):
     def describe(self) -> str:
         """JSON string description of this ExpectationSuiteValidationResult"""
         return json.dumps(self.describe_dict(), indent=4)
+
+    @public_api
+    def get_max_severity_failure(self) -> FailureSeverity | None:
+        """Get the maximum severity failure for Expectations in the validation result.
+
+        Returns the maximum severity level among failed expectations. The severity levels
+        are ordered as: CRITICAL > WARNING > INFO. If no failures exist, returns None.
+
+        Returns:
+            The maximum severity failure level, or None if no failures exist.
+        """
+        from great_expectations.expectations import metadata_types
+
+        if not self.results:
+            return None
+
+        max_severity = None
+
+        for result in self.results:
+            # Only consider failed expectations
+            if not result.success:
+                if result.expectation_config is None:
+                    logger.error(
+                        f"Expectation configuration is None for failed expectation "
+                        f"(Validation Result ID: {self.id}). "
+                        f"Skipping this result."
+                    )
+                    continue
+
+                severity_str = result.expectation_config.get("severity")
+                try:
+                    severity = metadata_types.FailureSeverity(severity_str)
+
+                    # Short-circuit: highest possible severity level found
+                    if severity == metadata_types.FailureSeverity.CRITICAL:
+                        return severity
+
+                    if max_severity is None or severity > max_severity:
+                        max_severity = severity
+
+                except ValueError:
+                    logger.exception(
+                        f"Invalid severity value '{severity_str}' found in expectation "
+                        f"'{result.expectation_config.type}' "
+                        f"(Validation Result ID: {self.id}). "
+                        f"Skipping this result."
+                    )
+
+        return max_severity
 
 
 class ExpectationSuiteValidationResultSchema(Schema):

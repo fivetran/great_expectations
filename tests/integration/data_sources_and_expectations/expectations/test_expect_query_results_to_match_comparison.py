@@ -515,7 +515,7 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
         RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
-                template="Unexpected records: $row_count",
+                template="Unexpected rows found in current table: $row_count",
                 params={
                     "row_count": {
                         "schema": RendererSchema(type=RendererValueType.NUMBER),
@@ -545,7 +545,7 @@ def test_rendering_with_missing_and_unexpected(multi_source_batch: MultiSourceBa
         RenderedAtomicContent(
             name=AtomicDiagnosticRendererType.OBSERVED_VALUE,
             value=RenderedAtomicValue(
-                template="Missing records: $row_count",
+                template="Expected rows not found in current table: $row_count",
                 params={
                     "row_count": {
                         "schema": RendererSchema(type=RendererValueType.NUMBER),
@@ -884,7 +884,7 @@ def test_rendering_table_with_multiple_uuid():
 
         assert result.rendered_content == [
             _create_table_rendered_atomic_content(
-                template="Unexpected records: $row_count",
+                template="Unexpected rows found in current table: $row_count",
                 params={
                     "row_count": {
                         "schema": RendererSchema(type=RendererValueType.NUMBER),
@@ -899,7 +899,7 @@ def test_rendering_table_with_multiple_uuid():
                 ],
             ),
             _create_table_rendered_atomic_content(
-                template="Missing records: $row_count",
+                template="Expected rows not found in current table: $row_count",
                 params={
                     "row_count": {
                         "schema": RendererSchema(type=RendererValueType.NUMBER),
@@ -948,3 +948,51 @@ def _create_table_rendered_atomic_content(
         ),
         value_type="TableType",
     )
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+    base_data=BASE_DATA,
+    comparison_data=COMPARISON_DATA,
+)
+def test_success_with_suite_param_base_query_(
+    multi_source_batch: MultiSourceBatch,
+) -> None:
+    suite_param_key = "test_expect_query_results_to_match_comparison"
+
+    expectation = gxe.ExpectQueryResultsToMatchComparison(
+        base_query={"$PARAMETER": suite_param_key},
+        comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+        comparison_query=f"SELECT a, b FROM {multi_source_batch.comparison_table_name} ORDER BY a, b",  # noqa: E501
+    )
+
+    result = multi_source_batch.base_batch.validate(
+        expectation,
+        expectation_parameters={suite_param_key: "SELECT a, b FROM {batch} ORDER BY a, b"},
+    )
+    assert result.success
+
+
+@multi_source_batch_setup(
+    multi_source_test_configs=ALL_COMPARISON_TO_BASE_SOURCES,
+    base_data=BASE_DATA,
+    comparison_data=COMPARISON_DATA,
+)
+def test_success_with_suite_param_comparison_query_(
+    multi_source_batch: MultiSourceBatch,
+) -> None:
+    suite_param_key = "test_expect_query_results_to_match_comparison"
+
+    expectation = gxe.ExpectQueryResultsToMatchComparison(
+        base_query="SELECT a, b FROM {batch} ORDER BY a, b",
+        comparison_data_source_name=multi_source_batch.comparison_data_source_name,
+        comparison_query={"$PARAMETER": suite_param_key},
+    )
+
+    result = multi_source_batch.base_batch.validate(
+        expectation,
+        expectation_parameters={
+            suite_param_key: f"SELECT a, b FROM {multi_source_batch.comparison_table_name} ORDER BY a, b"  # noqa: E501
+        },
+    )
+    assert result.success

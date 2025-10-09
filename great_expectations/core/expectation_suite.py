@@ -21,13 +21,6 @@ from great_expectations import __version__ as ge_version
 from great_expectations._docs_decorators import (
     public_api,
 )
-from great_expectations.analytics.anonymizer import anonymize
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.events import (
-    ExpectationSuiteExpectationCreatedEvent,
-    ExpectationSuiteExpectationDeletedEvent,
-    ExpectationSuiteExpectationUpdatedEvent,
-)
 from great_expectations.compatibility.pydantic import ValidationError as PydanticValidationError
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.freshness_diagnostics import (
@@ -156,8 +149,6 @@ class ExpectationSuite(SerializableDictDot):
 
         expectation.register_save_callback(save_callback=self._save_expectation)
 
-        self._submit_expectation_created_event(expectation=expectation)
-
         return expectation
 
     @staticmethod
@@ -175,23 +166,6 @@ class ExpectationSuite(SerializableDictDot):
             exclude=exclude_params
         )
         return types_are_equal and attributes_are_equal
-
-    def _submit_expectation_created_event(self, expectation: Expectation) -> None:
-        if expectation.__module__.startswith("great_expectations."):
-            custom_exp_type = False
-            expectation_type = expectation.expectation_type
-        else:
-            custom_exp_type = True
-            expectation_type = anonymize(expectation.expectation_type)
-
-        submit_event(
-            event=ExpectationSuiteExpectationCreatedEvent(
-                expectation_id=expectation.id,
-                expectation_suite_id=self.id,
-                expectation_type=expectation_type,
-                custom_exp_type=custom_exp_type,
-            )
-        )
 
     def _process_expectation(
         self, expectation_like: Union[Expectation, ExpectationConfiguration, dict]
@@ -256,13 +230,6 @@ class ExpectationSuite(SerializableDictDot):
                 self.expectations.append(expectation)
                 raise exc  # noqa: TRY201 # FIXME CoP
 
-        submit_event(
-            event=ExpectationSuiteExpectationDeletedEvent(
-                expectation_id=expectation.id,
-                expectation_suite_id=self.id,
-            )
-        )
-
         return expectation
 
     @public_api
@@ -322,11 +289,6 @@ class ExpectationSuite(SerializableDictDot):
 
     def _save_expectation(self, expectation) -> Expectation:
         expectation = self._store.update_expectation(suite=self, expectation=expectation)
-        submit_event(
-            event=ExpectationSuiteExpectationUpdatedEvent(
-                expectation_id=expectation.id, expectation_suite_id=self.id
-            )
-        )
         return expectation
 
     @property
@@ -340,7 +302,8 @@ class ExpectationSuite(SerializableDictDot):
             "Please use ExpectationSuite.expectations instead."
         )
 
-    def __eq__(self, other):  # type: ignore[explicit-override] # FIXME
+    @override
+    def __eq__(self, other):
         """ExpectationSuite equality ignores instance identity, relying only on properties."""
         if not isinstance(other, self.__class__):
             # Delegate comparison to the other instance's __eq__.
@@ -351,6 +314,17 @@ class ExpectationSuite(SerializableDictDot):
                 sorted(self.expectations) == sorted(other.expectations),
                 self.suite_parameters == other.suite_parameters,
                 self.meta == other.meta,
+            )
+        )
+
+    @override
+    def __hash__(self) -> int:
+        return hash(
+            (
+                self.name,
+                tuple(sorted(hash(exp) for exp in self.expectations)),
+                tuple(sorted(self.suite_parameters.items())) if self.suite_parameters else (),
+                tuple(sorted(self.meta.items())) if self.meta else (),
             )
         )
 
@@ -683,7 +657,7 @@ class ExpectationSuiteSchema(Schema):
     def clean_empty(self, data: _TExpectationSuite) -> _TExpectationSuite:
         if isinstance(data, ExpectationSuite):
             # We are hitting this TypeVar narrowing mypy bug: https://github.com/python/mypy/issues/10817
-            data = self._clean_empty_suite(data)  # type: ignore[assignment] # FIXME CoP
+            data = self._clean_empty_suite(data)
         elif isinstance(data, dict):
             data = self._clean_empty_dict(data)
         return data

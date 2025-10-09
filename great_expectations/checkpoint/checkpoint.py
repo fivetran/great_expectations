@@ -18,8 +18,6 @@ from typing import (
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations._docs_decorators import public_api
-from great_expectations.analytics import submit as submit_analytics_event
-from great_expectations.analytics.events import CheckpointRanEvent
 from great_expectations.checkpoint.actions import (
     _VALIDATION_ACTION_REGISTRY,
     ActionContext,
@@ -340,8 +338,6 @@ class Checkpoint(BaseModel):
         checkpoint_result = self._construct_result(run_id=run_id, run_results=run_results)
         self._run_actions(checkpoint_result=checkpoint_result)
 
-        self._submit_analytics_event()
-
         return checkpoint_result
 
     def _prepare_checkpoint_run_for_context(
@@ -351,13 +347,6 @@ class Checkpoint(BaseModel):
     ) -> None:
         context = self.validation_definitions[0].data.data_asset.datasource.data_context
         context.prepare_checkpoint_run(self, batch_parameters, expectation_parameters)
-
-    def _submit_analytics_event(self):
-        event = CheckpointRanEvent(
-            checkpoint_id=self.id,
-            validation_definition_ids=[val_def.id for val_def in self.validation_definitions],
-        )
-        submit_analytics_event(event=event)
 
     def _run_validation_definitions(
         self,

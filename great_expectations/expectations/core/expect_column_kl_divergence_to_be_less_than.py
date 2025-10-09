@@ -9,6 +9,9 @@ import pandas as pd
 from scipy import stats
 
 from great_expectations.compatibility import pydantic
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.execution_engine.util import (
     is_valid_categorical_partition_object,
@@ -20,6 +23,7 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
+from great_expectations.expectations.model_field_descriptions import FAILURE_SEVERITY_DESCRIPTION
 from great_expectations.render import (
     AtomicDiagnosticRendererType,
     AtomicPrescriptiveRendererType,
@@ -99,6 +103,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
@@ -155,6 +163,10 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         meta (dict or None): \
             A JSON-serializable dictionary (nesting allowed) that will be included in the output without \
             modification. For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
+
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
@@ -204,6 +216,10 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[10]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[11]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
@@ -319,15 +335,21 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
                 }}
     """  # noqa: E501 # FIXME CoP
 
-    partition_object: Union[dict, None] = pydantic.Field(description=PARTITION_OBJECT_DESCRIPTION)
-    threshold: Union[float, None] = pydantic.Field(description=THRESHOLD_DESCRIPTION)
-    internal_weight_holdout: Union[float, None] = pydantic.Field(
+    partition_object: Union[dict, SuiteParameterDict, None] = pydantic.Field(
+        description=PARTITION_OBJECT_DESCRIPTION
+    )
+    threshold: Union[float, SuiteParameterDict, None] = pydantic.Field(
+        description=THRESHOLD_DESCRIPTION
+    )
+    internal_weight_holdout: Union[float, SuiteParameterDict, None] = pydantic.Field(
         default=0, ge=0, le=1, description=INTERNAL_WEIGHT_HOLDOUT_DESCRIPTION
     )
-    tail_weight_holdout: Union[float, None] = pydantic.Field(
+    tail_weight_holdout: Union[float, SuiteParameterDict, None] = pydantic.Field(
         default=0, ge=0, le=1, description=TAIL_WEIGHT_HOLDOUT_DESCRIPTION
     )
-    bucketize_data: bool = pydantic.Field(default=True, description=BUCKETIZE_DATA_DESCRIPTION)
+    bucketize_data: Union[bool, SuiteParameterDict] = pydantic.Field(
+        default=True, description=BUCKETIZE_DATA_DESCRIPTION
+    )
     min_value: Optional[Comparable] = pydantic.Field(
         default=None, description=MIN_VALUE_DESCRIPTION
     )

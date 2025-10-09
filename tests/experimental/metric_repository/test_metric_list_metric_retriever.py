@@ -14,7 +14,6 @@ from great_expectations.experimental.metric_repository.metrics import (
     MetricTypes,
     TableMetric,
 )
-from great_expectations.experimental.rule_based_profiler.domain_builder import ColumnDomainBuilder
 from great_expectations.validator.exception_info import ExceptionInfo
 from great_expectations.validator.validator import Validator
 
@@ -144,8 +143,8 @@ def test_get_metrics_full_list(
         ("column.mean", "column=col2", ()): 2.7,
         ("column.median", "column=col1", ()): 2.5,
         ("column.median", "column=col2", ()): 2.7,
-        ("column_values.null.count", "column=col1", ()): 1,
-        ("column_values.null.count", "column=col2", ()): 1,
+        ("column.non_null_count", "column=col1", ()): 0,
+        ("column.non_null_count", "column=col2", ()): 0,
     }
     metrics_list = [
         MetricTypes.TABLE_ROW_COUNT,
@@ -155,7 +154,7 @@ def test_get_metrics_full_list(
         MetricTypes.COLUMN_MAX,
         MetricTypes.COLUMN_MEAN,
         MetricTypes.COLUMN_MEDIAN,
-        MetricTypes.COLUMN_NULL_COUNT,
+        MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
     aborted_metrics: Dict[str, str] = {}
     mock_validator.compute_metrics.return_value = (
@@ -247,15 +246,15 @@ def test_get_metrics_full_list(
         ),
         ColumnMetric[int](
             batch_id="batch_id",
-            metric_name="column_values.null.count",
-            value=1,
+            metric_name="column.non_null_count",
+            value=0,
             exception=None,
             column="col1",
         ),
         ColumnMetric[int](
             batch_id="batch_id",
-            metric_name="column_values.null.count",
-            value=1,
+            metric_name="column.non_null_count",
+            value=0,
             exception=None,
             column="col2",
         ),
@@ -280,7 +279,7 @@ def test_column_metrics_not_returned_if_column_types_missing(
         # MetricTypes.TABLE_COLUMN_TYPES,
         MetricTypes.COLUMN_MIN,
         MetricTypes.COLUMN_MAX,
-        MetricTypes.COLUMN_NULL_COUNT,
+        MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
     aborted_metrics = {}
     mock_validator.compute_metrics.return_value = (
@@ -575,7 +574,7 @@ def test_get_metrics_with_timestamp_columns(
         ],
         ("column.min", "column=timestamp_col", ()): "2023-01-01T00:00:00",
         ("column.max", "column=timestamp_col", ()): "2023-12-31T00:00:00",
-        ("column_values.null.count", "column=timestamp_col", ()): 1,
+        ("column.non_null_count", "column=timestamp_col", ()): 0,
     }
     metrics_list: List[MetricTypes] = [
         MetricTypes.TABLE_ROW_COUNT,
@@ -583,7 +582,7 @@ def test_get_metrics_with_timestamp_columns(
         MetricTypes.TABLE_COLUMN_TYPES,
         MetricTypes.COLUMN_MIN,
         MetricTypes.COLUMN_MAX,
-        MetricTypes.COLUMN_NULL_COUNT,
+        MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
     aborted_metrics = {}
     mock_validator.compute_metrics.return_value = (
@@ -632,8 +631,8 @@ def test_get_metrics_with_timestamp_columns(
         ),
         ColumnMetric[int](
             batch_id="batch_id",
-            metric_name="column_values.null.count",
-            value=1,
+            metric_name="column.non_null_count",
+            value=0,
             exception=None,
             column="timestamp_col",
         ),
@@ -662,10 +661,7 @@ def test_get_metrics_only_gets_a_validator_once(
         computed_metrics,
         aborted_metrics,
     )
-    mocker.patch(
-        f"{ColumnDomainBuilder.__module__}.{ColumnDomainBuilder.__name__}.get_effective_column_names",
-        return_value=["col1", "col2"],
-    )
+    # No column filtering needed for table-only metrics
     metric_retriever.get_metrics(batch_request=mock_batch_request, metric_list=metrics_list)
 
     mock_context.get_validator.assert_called_once_with(batch_request=mock_batch_request)
@@ -697,10 +693,7 @@ def test_get_metrics_only_gets_new_validator_on_asset_change(
         computed_metrics,
         aborted_metrics,
     )
-    mocker.patch(
-        f"{ColumnDomainBuilder.__module__}.{ColumnDomainBuilder.__name__}.get_effective_column_names",
-        return_value=["col1", "col2"],
-    )
+    # No column filtering needed for table-only metrics
     metric_retriever.get_metrics(batch_request=mock_batch_request_variant, metric_list=metrics_list)
 
     assert mock_context.get_validator.call_count == 4
@@ -730,7 +723,7 @@ def test_valid_metric_types_true(mock_context, metric_retriever):
         MetricTypes.COLUMN_MAX,
         MetricTypes.COLUMN_MEAN,
         MetricTypes.COLUMN_MEDIAN,
-        MetricTypes.COLUMN_NULL_COUNT,
+        MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
     assert metric_retriever._check_valid_metric_types(valid_metric_types) is True
 
@@ -827,8 +820,8 @@ def test_get_metrics_with_timestamp_columns_exclude_time(
         ],
         ("column.min", "column=timestamp_col", ()): "2023-01-01T00:00:00",
         ("column.max", "column=timestamp_col", ()): "2023-12-31T00:00:00",
-        ("column_values.null.count", "column=timestamp_col", ()): 1,
-        ("column_values.null.count", "column=time_col", ()): 1,
+        ("column.non_null_count", "column=timestamp_col", ()): 0,
+        ("column.non_null_count", "column=time_col", ()): 0,
     }
     metrics_list: List[MetricTypes] = [
         MetricTypes.TABLE_ROW_COUNT,
@@ -836,7 +829,7 @@ def test_get_metrics_with_timestamp_columns_exclude_time(
         MetricTypes.TABLE_COLUMN_TYPES,
         MetricTypes.COLUMN_MIN,
         MetricTypes.COLUMN_MAX,
-        MetricTypes.COLUMN_NULL_COUNT,
+        MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
     aborted_metrics = {}
     mock_validator.compute_metrics.return_value = (
@@ -887,15 +880,15 @@ def test_get_metrics_with_timestamp_columns_exclude_time(
         ),
         ColumnMetric[int](
             batch_id="batch_id",
-            metric_name="column_values.null.count",
-            value=1,
+            metric_name="column.non_null_count",
+            value=0,
             exception=None,
             column="timestamp_col",
         ),
         ColumnMetric[int](
             batch_id="batch_id",
-            metric_name="column_values.null.count",
-            value=1,
+            metric_name="column.non_null_count",
+            value=0,
             exception=None,
             column="time_col",
         ),

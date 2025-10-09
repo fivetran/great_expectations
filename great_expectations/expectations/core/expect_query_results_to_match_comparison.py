@@ -8,13 +8,19 @@ from great_expectations import exceptions
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.result_format import ResultFormat
+from great_expectations.core.suite_parameters import (
+    SuiteParameterDict,  # noqa: TC001 # FIXME CoP
+)
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     parse_value_to_observed_type,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
-from great_expectations.expectations.model_field_descriptions import MOSTLY_DESCRIPTION
+from great_expectations.expectations.model_field_descriptions import (
+    FAILURE_SEVERITY_DESCRIPTION,
+    MOSTLY_DESCRIPTION,
+)
 from great_expectations.expectations.model_field_types import (
     MostlyField,  # noqa: TC001  # pydantic needs the actual type
 )
@@ -53,6 +59,10 @@ COMPARISON_DATA_SOURCE_NAME_DESCRIPTION = (
 COMPARISON_QUERY_DESCRIPTION = "A SQL query to be executed for the comparison Data Source."
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,
     SupportedDataSources.REDSHIFT.value,
@@ -69,22 +79,25 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
     the current Data Source's query matches those from the comparison Data Source's query, \
     above a specified threshold.
 
-    - Each record returned by the `base_query` will be compared to each record \
-      returned by the `comparison_query`.
-    - The maximum number of records that will be returned for comparison from \
-      each query is 200.
-    - The order of records returned does not matter unless \
-      the number of records returned would be greater than 200.
-    - Column names do not matter, but the order of the columns does.
+    Each record returned by the 'base_query' will be compared to each record \
+    returned by the 'comparison_query'.
 
-    Match Percentage (100% - `unexpected_percent`) is compared to the `mostly` threshold \
+    The maximum number of records that will be returned for comparison from \
+    each query is 200.
+
+    The order of records returned does not matter unless \
+    the number of records returned would be greater than 200.
+
+    Column names do not matter, but the order of the columns does.
+
+    Match percentage (100% - unexpected percent) is compared to the mostly threshold \
     to determine pass/fail.
         e.g.
-    `unexpected_percent` = 10%, `mostly` = 80%, (100% - 10%) > 80% - pass
-    `unexpected_percent` = 10%, `mostly` = 91%, (100% - 10%) < 91% - fail
+    unexpected percent = 10%, mostly = 80%, (100% - 10%) > 80% - pass
+    unexpected percent = 10%, mostly = 91%, (100% - 10%) < 91% - fail
 
 
-    The Match Percentage is computed by dividing the number of matching records \
+    The match percentage is computed by dividing the number of matching records \
     by the maximum number of records in either the comparison result or the base result.
        e.g.
     Comparison Row Count: 100  Base Row Count: 100  Matches: 100  Match Percentage: 100%
@@ -101,6 +114,11 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         comparison_query (str): {COMPARISON_QUERY_DESCRIPTION}
         mostly (float): {MOSTLY_DESCRIPTION}
 
+    Other Parameters:
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
+
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
 
@@ -110,15 +128,21 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
     """
 
-    base_query: str = pydantic.Field(description=BASE_QUERY_DESCRIPTION)
-    comparison_data_source_name: str = pydantic.Field(
+    base_query: Union[str, SuiteParameterDict] = pydantic.Field(description=BASE_QUERY_DESCRIPTION)
+    comparison_data_source_name: Union[str, SuiteParameterDict] = pydantic.Field(
         description=COMPARISON_DATA_SOURCE_NAME_DESCRIPTION
     )
-    comparison_query: str = pydantic.Field(description=COMPARISON_QUERY_DESCRIPTION)
+    comparison_query: Union[str, SuiteParameterDict] = pydantic.Field(
+        description=COMPARISON_QUERY_DESCRIPTION
+    )
     mostly: MostlyField = 1
 
     metric_dependencies: ClassVar[Tuple[str, ...]] = (
@@ -367,11 +391,11 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
             return [
                 cls._create_table_rendered_atomic_content(
                     unexpected_rows_table,
-                    label="Unexpected records",
+                    label="Unexpected rows found in current table",
                 ),
                 cls._create_table_rendered_atomic_content(
                     missing_rows_table,
-                    label="Missing records",
+                    label="Expected rows not found in current table",
                 ),
             ]
 

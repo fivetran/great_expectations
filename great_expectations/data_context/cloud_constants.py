@@ -12,9 +12,11 @@ class GXCloudEnvironmentVariable(str, Enum):
     BASE_URL = "GX_CLOUD_BASE_URL"
     ORGANIZATION_ID = "GX_CLOUD_ORGANIZATION_ID"
     ACCESS_TOKEN = "GX_CLOUD_ACCESS_TOKEN"
+    WORKSPACE_ID = "GX_CLOUD_WORKSPACE_ID"
 
 
 class GXCloudRESTResource(str, Enum):
+    ACCOUNTS_ME = "accounts/me"
     CHECKPOINT = "checkpoint"
     DATASOURCE = "datasource"
     DATA_ASSET = "data_asset"

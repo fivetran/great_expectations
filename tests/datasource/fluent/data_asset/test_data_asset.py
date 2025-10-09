@@ -474,7 +474,11 @@ def test_sort_batches__requires_keys(empty_data_asset, mocker):
 
 
 class TestGetBatchDefinition:
-    def test_get_returns_id(self, data_context: AbstractDataContext) -> None:
+    def test_get_returns_id(
+        self,
+        unset_gx_env_variables: None,
+        data_context: AbstractDataContext,
+    ) -> None:
         # arrange
         resource_name = random_name()
         ds = data_context.data_sources.add_pandas(

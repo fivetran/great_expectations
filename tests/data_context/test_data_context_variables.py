@@ -111,11 +111,13 @@ def cloud_data_context_variables(
     data_context_config: DataContextConfig,
     ge_cloud_base_url: str,
     ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
     ge_cloud_access_token: str,
 ) -> CloudDataContextVariables:
     return CloudDataContextVariables(
         ge_cloud_base_url=ge_cloud_base_url,
         ge_cloud_organization_id=ge_cloud_organization_id,
+        ge_cloud_workspace_id=ge_cloud_workspace_id,
         ge_cloud_access_token=ge_cloud_access_token,
         config=data_context_config,
         config_provider=StubConfigurationProvider(),
@@ -351,6 +353,7 @@ def test_data_context_variables_save(
     # The below GX Cloud variables were used to instantiate the above CloudDataContextVariables
     v1_cloud_base_url: str,
     ge_cloud_organization_id: str,
+    ge_cloud_workspace_id: str,
     ge_cloud_access_token: str,
 ) -> None:
     # EphemeralDataContextVariables
@@ -397,7 +400,8 @@ def test_data_context_variables_save(
 
     assert mock_put.call_count == 1
     url = urllib.parse.urljoin(
-        v1_cloud_base_url, f"organizations/{ge_cloud_organization_id}/data-context-variables"
+        v1_cloud_base_url,
+        f"organizations/{ge_cloud_organization_id}/workspaces/{ge_cloud_workspace_id}/data-context-variables",
     )
     mock_put.assert_called_with(
         MOCK_ANY,  # requests.Session object

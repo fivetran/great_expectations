@@ -38,6 +38,9 @@ PactBody: TypeAlias = Union[
 
 
 EXISTING_ORGANIZATION_ID: Final[str] = os.environ.get("GX_CLOUD_ORGANIZATION_ID", "")
+EXISTING_WORKSPACE_ID: Final[str] = (
+    os.environ.get("GX_CLOUD_WORKSPACE_ID", "") or "44444444-4444-4bdd-8a42-3c35cce574c6"
+)
 
 
 class RequestMethods(str, enum.Enum):
@@ -77,22 +80,28 @@ def gx_cloud_session() -> Session:
 def cloud_data_context(
     cloud_base_url: str,
     cloud_access_token: str,
+    pact_test: pact.Pact,
 ) -> CloudDataContext:
     """This is a real Cloud Data Context that points to the pact mock service instead of the Mercury API."""  # noqa: E501 # FIXME CoP
     cloud_data_context = CloudDataContext(
         cloud_base_url=cloud_base_url,
         cloud_organization_id=EXISTING_ORGANIZATION_ID,
+        cloud_workspace_id=EXISTING_WORKSPACE_ID,
         cloud_access_token=cloud_access_token,
     )
     # we can't override the base url to use the mock service due to
     # reliance on env vars, so instead we override with a real project config
     project_config = cloud_data_context.config
-    context = CloudDataContext(
-        cloud_base_url=PACT_MOCK_SERVICE_URL,
-        cloud_organization_id=EXISTING_ORGANIZATION_ID,
-        cloud_access_token=cloud_access_token,
-        project_config=project_config,
-    )
+
+    with pact_test:
+        context = CloudDataContext(
+            cloud_base_url=PACT_MOCK_SERVICE_URL,
+            cloud_organization_id=EXISTING_ORGANIZATION_ID,
+            cloud_workspace_id=EXISTING_WORKSPACE_ID,
+            cloud_access_token=cloud_access_token,
+            project_config=project_config,
+        )
+
     project_manager.set_project(cloud_data_context)
     return context
 
@@ -114,8 +123,7 @@ def pact_test(request) -> pact.Pact:
     publish_to_broker: bool
     if os.environ.get("PACT_BROKER_READ_WRITE_TOKEN"):
         broker_token = os.environ.get("PACT_BROKER_READ_WRITE_TOKEN", "")
-        # do not publish to broker on develop until we have integrated the 1.0 API with GX Cloud
-        publish_to_broker = False
+        publish_to_broker = True
     elif os.environ.get("PACT_BROKER_READ_ONLY_TOKEN"):
         broker_token = os.environ.get("PACT_BROKER_READ_ONLY_TOKEN", "")
         publish_to_broker = False

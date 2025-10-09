@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import date, datetime
 from functools import cached_property
-from typing import Any, Generic, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Callable, Generic, Mapping, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -23,7 +24,17 @@ from great_expectations.compatibility.sqlalchemy import (
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.interfaces import Batch
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
+from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
+from tests.integration.sql_session_manager import (
+    ConnectionDetails,
+    SessionSQLEngineManager,
+)
 from tests.integration.test_utils.data_source_config.base import BatchTestSetup, _ConfigT
+
+if TYPE_CHECKING:
+    import sqlalchemy as sa
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -75,8 +86,9 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         extra_data: Mapping[str, pd.DataFrame],
         context: AbstractDataContext,
         table_name: Optional[str] = None,  # Overrides random table name generation
+        engine_manager: Optional[SessionSQLEngineManager] = None,
     ) -> None:
-        # self.engine = create_engine(url=self.connection_string)
+        self.engine_manager = engine_manager
         self.extra_data = extra_data
         self.metadata = MetaData()
         self._user_specified_table_name = table_name
@@ -126,13 +138,53 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
         else:
             return None
 
+    def _get_engine(self) -> tuple[sa.engine.Engine, Callable[[], None]]:
+        if self.engine_manager:
+            connection_details = ConnectionDetails(
+                connection_string=self.connection_string,
+            )
+            engine = self.engine_manager.get_engine(connection_details)
+            return engine, lambda: None
+        else:
+            engine = create_engine(url=self.connection_string)
+            return engine, engine.dispose
+
+    @staticmethod
+    def _safe_bulk_insert(
+        conn: sa.Connection, table: Table, values: list[tuple], max_params: int | None = None
+    ) -> None:
+        """
+        Allows insertion of multiple values paying attention to parameter limits
+
+        :param conn: An SQLAlchemy connection
+        :param table: An SQLAlchemy table
+        :param values: List of tuples to insert
+        :param max_params: Maximum number of parameters to allow, or None if unlimited
+        :return: None
+        """
+        if not values:
+            return
+
+        if not max_params:
+            conn.execute(insert(table).values(values))
+        else:
+            num_columns = len(values[0])
+            max_rows = max_params // num_columns
+
+            for i in range(0, len(values), max_rows):
+                chunk = values[i : i + max_rows]
+                conn.execute(insert(table).values(chunk))
+
     @override
     def setup(self) -> None:
-        engine = create_engine(url=self.connection_string)
+        engine, cleanup = self._get_engine()
+        dialect = engine.dialect.name.lower()
+
         with engine.connect() as conn, conn.begin():
             # create schema if needed
 
             if self.schema:
+                logger.info(f"CREATING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"CREATE SCHEMA {self.schema}"))
 
             # create tables
@@ -148,18 +200,20 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 #   [...] [('1', 'foo'), ('2', 'bar')]
                 df = table_data.df.replace(np.nan, None)
                 values = list(df.to_dict("index").values())
-                conn.execute(insert(table_data.table), values)
-        engine.dispose()
+                max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
+                self._safe_bulk_insert(conn, table_data.table, values, max_params)
+        cleanup()
 
     @override
     def teardown(self) -> None:
-        engine = create_engine(url=self.connection_string)
+        engine, cleanup = self._get_engine()
         for table in self.tables:
             table.drop(engine)
         if self.schema:
             with engine.connect() as conn, conn.begin():
+                logger.info(f"DROPPING SCHEMA {self.schema}")
                 conn.execute(TextClause(f"DROP SCHEMA {self.schema}"))
-        engine.dispose()
+        cleanup()
 
     def _create_table_name(self, label: Optional[str] = None) -> str:
         parts = ["expectation_test_table", label, self._random_resource_name()]

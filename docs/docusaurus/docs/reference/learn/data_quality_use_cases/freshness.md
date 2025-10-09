@@ -37,7 +37,7 @@ Freshness checks can be run against both the `reading_ts` and `created_at` colum
 
 GX Cloud and GX Core provide several options to use Expectations to validate freshness:
 1. Built-in Expectations, such as those discussed in this section, can be used on timestamp columns to create freshness checks. Built-in expectations can be added in GX Cloud or GX Core.
-2. Custom SQL Expectations can be used in [GX Cloud](/cloud/expectations/manage_expectations.md#custom-sql-expectations) or [GX Core](/core/customize_expectations/use_sql_to_define_a_custom_expectation.md) to define and check data freshness based on SQL logic.
+2. Custom SQL Expectations can be used in [GX Cloud](/cloud/expectations/expectations_overview.md#custom-sql-expectations) or [GX Core](/core/customize_expectations/use_sql_to_define_a_custom_expectation.md) to define and check data freshness based on SQL logic.
 3. You can [customize Expectation classes](/core/customize_expectations/define_a_custom_expectation_class.md) with the GX Cloud API or in GX Core to create Expectations that use Python logic to define and validate data freshness.
 
 ### Expect column maximum to be between
@@ -105,7 +105,7 @@ Use the GX Cloud UI to walk through the following steps:
    where extract(epoch from (age(current_timestamp, most_recent_reading))) > 5*60
    ```
 
-5. Edit the active Validation schedule to modify the frequency of recurring data validation. Select a **Frequency** of *Every 1 hour* to run recurring freshness checks each hour.
+5. Edit the Validation schedule to turn **ON** recurring data validation with a **Frequency** of *Every 1 hour* to run recurring freshness checks each hour.
 
 6. Inspect the Validation Results on the `freshness_sensor_readings` Data Asset once validation has run.
 

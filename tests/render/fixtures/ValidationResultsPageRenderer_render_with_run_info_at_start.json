@@ -671,7 +671,7 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "may have any fraction of unique values.",
+                  "template": "may have any proportion of unique values.",
                   "params": {
                     "column": "Unnamed: 0",
                     "min_value": null,
@@ -1178,7 +1178,7 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "may have any fraction of unique values.",
+                  "template": "may have any proportion of unique values.",
                   "params": {
                     "column": "Name",
                     "min_value": null,
@@ -1768,7 +1768,7 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "may have any fraction of unique values.",
+                  "template": "may have any proportion of unique values.",
                   "params": {
                     "column": "PClass",
                     "min_value": null,
@@ -2339,7 +2339,7 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "may have any fraction of unique values.",
+                  "template": "may have any proportion of unique values.",
                   "params": {
                     "column": "Age",
                     "min_value": null,
@@ -3424,7 +3424,7 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "may have any fraction of unique values.",
+                  "template": "may have any proportion of unique values.",
                   "params": {
                     "column": "Sex",
                     "min_value": null,
@@ -3989,7 +3989,7 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "may have any fraction of unique values.",
+                  "template": "may have any proportion of unique values.",
                   "params": {
                     "column": "Survived",
                     "min_value": null,
@@ -4492,7 +4492,7 @@
               {
                 "content_block_type": "string_template",
                 "string_template": {
-                  "template": "may have any fraction of unique values.",
+                  "template": "may have any proportion of unique values.",
                   "params": {
                     "column": "SexCode",
                     "min_value": null,

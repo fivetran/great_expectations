@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "versioneer"]
+requires = ["setuptools", "wheel", "versioneer", "typing_extensions>=4.1.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.mypy]
@@ -212,7 +212,6 @@ module = [
     "mistune.*",
     "moto.*",
     "pact.*",
-    "posthog.*",
     "pyarrow.*",
     "pyfakefs.*",
     "pypd.*",
@@ -302,6 +301,8 @@ lint.ignore = [
     # https://beta.ruff.rs/docs/rules/#pyupgrade-up
     "UP006", # use-pep585-annotation
     "UP007", # use-pep604-annotation
+    "UP035", # TODO: remove once min version of pydantic supports using collections.abc types
+    "UP045", # Use `X | None` for type annotations - >2k occurrences, required for backward compatibliity
     # https://beta.ruff.rs/docs/rules/#flake8-type-checking-tch
     # minimal cost for standard lib imports; keep this disabled
     "TC003", # typing-only-standard-library-import
@@ -313,7 +314,6 @@ lint.ignore = [
     # https://beta.ruff.rs/docs/rules/#flake8-pyi-pyi
     "PYI053", # string-or-bytes-too-long - causes mypy to fail on some of our type stubs
     "PYI054", # numeric-literal-too-long - causes mypy to fail on some of our type stubs
-    "UP035", # TODO: remove once min version of pydantic supports using collections.abc types
     # https://beta.ruff.rs/docs/rules/#flake8-bugbear-b
     # TODO: enable these
     "B904", # raise-without-from-inside-except
@@ -335,9 +335,8 @@ lint.ignore = [
     "SIM202", # negate-not-equal-op
     "SIM210", # if-expr-with-true-false
     "SIM112", # uncapitalized-environment-variables
-
-
-
+    # https://docs.astral.sh/ruff/rules/#convention-plc
+    "PLC0415", # `import` should be at the top-level of a file - used frequently for compatibility
 ]
 extend-exclude = [
     "docs/docusaurus/versioned_docs/version-0.18",
@@ -445,15 +444,10 @@ filterwarnings = [
     # Find and fix ruff DTZ violations
     'once: datetime.datetime.utc.*\(\) is deprecated .*:DeprecationWarning',
 
-
     # the pkg_resources module distributed with setuptools has been deprecated
     # we should never use it but it is used in some of our dependencies
     # https://setuptools.pypa.io/en/latest/pkg_resources.html
-    "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore: pkg_resources is deprecated as an API:UserWarning",
-
-    # ruamel, google, etc.
-    "once:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
 
     # This warning is common during testing where we intentionally use a COMPLETE format even in cases that would
     # be potentially overly resource intensive in standard operation
@@ -466,8 +460,6 @@ filterwarnings = [
     # We likely won't be updating to `marhsmallow` 4, these errors should be filtered out
     "ignore::marshmallow.warnings.RemovedInMarshmallow4Warning",
     "ignore::marshmallow.warnings.ChangedInMarshmallow4Warning",
-    # pkg_resources is deprecated as an API, but third party libraries still use it
-    'ignore: Deprecated call to `pkg_resources.declare_namespace\(.*\)`',
 
 
     # --------------------------------------- Great Expectations Warnings ----------------------------------
@@ -637,6 +629,10 @@ filterwarnings = [
     # Example Actual Warning:
     # DeprecationWarning: Importing ErrorTree directly from the jsonschema package is deprecated and will become an ImportError. Import it from jsonschema.exceptions instead.
     "ignore: Importing ErrorTree directly from the jsonschema package is deprecated and will become an ImportError. Import it from jsonschema.exceptions instead.:DeprecationWarning",
+    # google-auth
+    # Example Actual Warning:
+    # DeprecationWarning: The load_credentials_from_file method is deprecated because of a potential security risk.
+    "ignore: The load_credentials_from_file method is deprecated because of a potential security risk.:DeprecationWarning",
     # sqlalchemy
     # Example Actual Warning:
     # sqlalchemy.exc.RemovedIn20Warning: Deprecated API features detected! These feature(s) are not compatible with SQLAlchemy 2.0. To prevent incompatible upgrades prior to updating applications, ensure requirements files are pinned to "sqlalchemy<2.0". Set environment variable SQLALCHEMY_WARN_20=1 to show all deprecation warnings.  Set environment variable SQLALCHEMY_SILENCE_UBER_WARNING=1 to silence this message. (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
@@ -646,6 +642,8 @@ filterwarnings = [
     "module: The GenericFunction 'flatten' is already registered and is going to be overridden:sqlalchemy.exc.SAWarning",
     # pyOpenSSL 25.0.1 starting raising this warning only for connecting to snowflake but no other datasources.
     "ignore: Attempting to mutate a Context after a Connection was created. In the future, this will raise an exception",
+    "ignore: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.:pytest_benchmark.logger.PytestBenchmarkWarning",
+    "ignore: No data was collected\\. \\(no-data-collected\\):coverage.exceptions.CoverageWarning",
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
 ]
@@ -659,14 +657,14 @@ markers = [
     "bigquery: mark test as bigquery-dependent.",
     "clickhouse: mark a test as Clickhouse-dependent.",
     "cloud: mark test as being relevant to Great Expectations Cloud.",
+    "databricks: mark test as requiring databricks.",
     "docs-basic: mark a test as a docs test, that does not require additional credentials.",
     "docs-creds-needed: mark a test as a docs test that needs additional cloud credentials (these will not run on public forks).",
-    "databricks: mark test as requiring databricks.",
-    "docs: mark a test as a docs test.",
     "docs-spark: temporarily mark a test as a docs test that depends on spark.",
-    "integration: mark test as an integration test.",
+    "docs: mark a test as a docs test.",
     "external_sqldialect: mark test as requiring install of an external sql dialect.",
     "filesystem: mark tests using the filesystem as the storage backend.",
+    "integration: mark test as an integration test.",
     "mssql: mark a test as mssql-dependent.",
     "mysql: mark a test as mysql-dependent.",
     "openpyxl: mark a test for openpyxl-dependent, which is for Excel files.",
@@ -690,7 +688,8 @@ testpaths = "tests"
 # https://pytest-mock.readthedocs.io/en/latest/configuration.html#use-standalone-mock-package
 mock_use_standalone_module = false
 # https://docs.pytest.org/en/7.1.x/how-to/logging.html#how-to-manage-logging
-log_level = "info"
+log_level = "warn"
+log_cli = true
 
 [tool.coverage.report]
 # https://coverage.readthedocs.io/en/7.5.1/config.html

@@ -9,6 +9,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
 
 STRING_COL = "string_col"
 INT_COL = "int_col"
@@ -91,6 +92,68 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test that include_unexpected_rows works correctly for ExpectCompoundColumnsToBeUnique."""
+    expectation = gxe.ExpectCompoundColumnsToBeUnique(column_list=[INT_COL, DUPLICATES])
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # Convert to DataFrame for easier comparison
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain duplicate compound values
+    # (rows where the combination of INT_COL and DUPLICATES is duplicated)
+    assert len(unexpected_rows_df) > 0
+
+    # Verify that the unexpected rows contain the duplicated compound values
+    # DUPLICATES column has [100, 100, 100, 100, 99, 99] and INT_COL has [1, 2, 1, 3, None, None]
+    # So we should see duplicates for combinations that repeat
+    assert len(unexpected_rows_df) >= 4  # At least the rows with duplicated combinations
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectCompoundColumnsToBeUnique with SQL data sources."""
+    expectation = gxe.ExpectCompoundColumnsToBeUnique(column_list=[INT_COL, DUPLICATES])
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain duplicate compound values
+    assert len(unexpected_rows_data) > 0
+
+    # Verify that the unexpected rows contain the duplicated compound values
+    # there are 4 unexpected rows, but our implementation only returns each duplicate once
+    assert len(unexpected_rows_data) >= 2
+
+    unexpected_rows_str = str(unexpected_rows_data)
+    # Should contain the duplicate values from the DUPLICATES column (100 and 99)
+    assert "100" in unexpected_rows_str
 
 
 @pytest.mark.unit
