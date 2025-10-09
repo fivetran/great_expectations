@@ -43,8 +43,8 @@ For a more nuanced understanding of what you’re testing, you can filter the **
 
 If **Active Coverage** is low, drill into it for a list of **Inactive Data Assets**. Then [schedule recurring Validations](/docs/cloud/schedules/manage_schedules.md) and/or [add Expectations](/docs/cloud/expectations/manage_expectations.md#add-an-expectation) for those Data Assets to improve your coverage both overall and for specific data quality issues.
 
-![The Inactive Data Assets table has the following columns: Data Asset, Data Source name, and last validated date.](/img/data_health_active_coverage.png)
+![The Inactive Data Assets table has the following columns: Data Asset, Data Source name, and last validated.](/img/data_health_active_coverage.png)
 
 If **Failed Expectations** are high, drill into **Critical**, **Warning**, or **Info** for a severity-specific list of the **Most frequently failed Expectations in the last 30 days**. Then click on Expectations of interest to explore their Validation results so you can determine what action to take. You may find that there are issues in your data pipeline that need to be resolved, or you may find that you need to adjust your Expectations. 
 
-![The Most frequently failed Expectations in the last 30 days table has the following columns: Expectation, Data Asset, Failures in the last 30 day.](/img/data_health_failed_expectations.png)
+![The Most frequently failed Expectations in the last 30 days table has the following columns: Expectation, Data Asset, Failures in the last 30 days.](/img/data_health_failed_expectations.png)
