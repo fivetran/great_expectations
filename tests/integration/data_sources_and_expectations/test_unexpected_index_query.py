@@ -52,6 +52,7 @@ def test_unexpected_index_query_compiles_parameters(
     assert "unexpected_index_query" in result_dict
     unexpected_index_query = result_dict["unexpected_index_query"]
 
+    # These assertions exist strictly to protect against regressions
     assert not re.search(r":param_\d+", unexpected_index_query), (
         f"Parameter placeholder (:param_N) was not compiled. Query: {unexpected_index_query}"
     )
