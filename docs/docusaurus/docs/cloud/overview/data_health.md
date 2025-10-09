@@ -45,6 +45,6 @@ If **Active Coverage** is low, drill into it for a list of **Inactive Data Asset
 
 ![The Inactive Data Assets table has the following columns: Data Asset, Data Source name, and last validated.](/img/data_health_active_coverage.png)
 
-If **Failed Expectations** are high, drill into **Critical**, **Warning**, or **Info** for a severity-specific list of the **Most frequently failed Expectations in the last 30 days**. Then click on Expectations of interest to explore their Validation results so you can determine what action to take. You may find that there are issues in your data pipeline that need to be resolved, or you may find that you need to adjust your Expectations. 
+If **Failed Expectations** are high, drill into **Critical**, **Warning**, or **Info** for a severity-specific list of the **Most frequently failed Expectations in the last 30 days**. Then click on Expectations of interest to explore their Validation results so you can determine what action to take. You may find that there are issues in your data pipeline that need to be resolved, or you may find that you need to adjust your Expectations.
 
 ![The Most frequently failed Expectations in the last 30 days table has the following columns: Expectation, Data Asset, Failures in the last 30 days.](/img/data_health_failed_expectations.png)
