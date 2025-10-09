@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 
 import great_expectations.expectations as gxe
@@ -10,7 +12,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
 DATA = pd.DataFrame(
     {
         "id": [1, 2, 3, 4, 5, 6],
-        "val": [1, 2, 3, 6, 7, None],
+        "val": [3, 4, 5, 6, 7, None],
     }
 )
 
@@ -22,14 +24,16 @@ def test_unexpected_index_query_compiles_parameters_for_expect_column_values_to_
     """
     Test that unexpected_index_query has compiled SQL parameters, not placeholders like :param_1.
 
-    For ExpectColumnValuesToBeBetween with min_value=1 and max_value=5:
-    - Expected: WHERE val IS NOT NULL AND NOT (val >= 1 AND val <= 5)
+    For ExpectColumnValuesToBeBetween with min_value=3 and max_value=5:
+    - Expected: WHERE val IS NOT NULL AND NOT (val >= 3 AND val <= 5)
     - Bug: WHERE val IS NOT NULL AND NOT (val >= :param_1 AND val <= :param_2)
     """
+    min_value = 3
+    max_value = 5
     expectation = gxe.ExpectColumnValuesToBeBetween(
         column="val",
-        min_value=1,
-        max_value=5,
+        min_value=min_value,
+        max_value=max_value,
     )
 
     result = batch_for_datasource.validate(
@@ -40,7 +44,7 @@ def test_unexpected_index_query_compiles_parameters_for_expect_column_values_to_
         },
     )
 
-    # The expectation should fail because values 6 and 7 are outside the range [1, 5]
+    # The expectation should fail because values 6 and 7 are outside the range [3, 5]
     assert not result.success
     result_dict = result["result"]
 
@@ -48,13 +52,18 @@ def test_unexpected_index_query_compiles_parameters_for_expect_column_values_to_
     assert "unexpected_index_query" in result_dict
     unexpected_index_query = result_dict["unexpected_index_query"]
 
-    assert ":param_1" not in unexpected_index_query, (
-        f"SQL parameter :param_1 was not compiled. Query: {unexpected_index_query}"
+    assert not re.search(r":param_\d+", unexpected_index_query), (
+        f"Parameter placeholder (:param_N) was not compiled. Query: {unexpected_index_query}"
     )
-    assert ":param_2" not in unexpected_index_query, (
-        f"SQL parameter :param_2 was not compiled. Query: {unexpected_index_query}"
+    assert not re.search(r"%\(param_\d+\)s", unexpected_index_query), (
+        f"Parameter placeholder (%(param_N)s) was not compiled. Query: {unexpected_index_query}"
     )
+    # Note: We don't check for positional parameter "?" since it could appear in legitimate SQL
 
-    # Verify the query contains the actual values 1 and 5
-    assert "1" in unexpected_index_query, f"Value 1 not found in query: {unexpected_index_query}"
-    assert "5" in unexpected_index_query, f"Value 5 not found in query: {unexpected_index_query}"
+    # Verify the query contains the actual values
+    assert str(min_value) in unexpected_index_query, (
+        f"Value {min_value} not found in query: {unexpected_index_query}"
+    )
+    assert str(max_value) in unexpected_index_query, (
+        f"Value {max_value} not found in query: {unexpected_index_query}"
+    )
