@@ -68,3 +68,72 @@ def test_unexpected_index_query_compiles_parameters(
     assert str(max_value) in unexpected_index_query, (
         f"Value {max_value} not found in query: {unexpected_index_query}"
     )
+
+
+DATA_WITH_MULTIPLE_INDEX_COLUMNS = pd.DataFrame(
+    {
+        "pk1": [1, 2, 3, 4, 5],
+        "pk2": ["a", "b", "c", "d", "e"],
+        "val": [10, 20, 30, 40, 50],
+    }
+)
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=SQL_DATA_SOURCES, data=DATA_WITH_MULTIPLE_INDEX_COLUMNS
+)
+def test_unexpected_index_query_with_multiple_index_columns(
+    batch_for_datasource: Batch,
+) -> None:
+    """
+    Test unexpected_index_query with multiple index columns produces complete, compiledSQL.
+
+    This tests the full query structure with multiple columns in unexpected_index_column_names.
+    """
+    min_value = 15
+    max_value = 35
+    expectation = gxe.ExpectColumnValuesToBeBetween(
+        column="val",
+        min_value=min_value,
+        max_value=max_value,
+    )
+
+    result = batch_for_datasource.validate(
+        expectation,
+        result_format={
+            "result_format": "COMPLETE",
+            "unexpected_index_column_names": ["pk1", "pk2"],
+        },
+    )
+
+    # The expectation should fail because values 10, 40, 50 are outside the range [15, 35]
+    assert not result.success
+    result_dict = result["result"]
+
+    # Check that unexpected_index_query exists
+    assert "unexpected_index_query" in result_dict
+    unexpected_index_query = result_dict["unexpected_index_query"]
+
+    # Extract the table name from the query to construct expected query
+    table_match = re.search(r"FROM (\w+)", unexpected_index_query)
+    assert table_match, f"Could not extract table name from query: {unexpected_index_query}"
+    table_name = table_match.group(1)
+
+    # Construct expected query - some dialects format as "15.0", others as "15"
+    expected_query_with_floats = (
+        f"SELECT pk1, pk2, val \n"
+        f"FROM {table_name} \n"
+        f"WHERE val IS NOT NULL AND NOT (val >= {float(min_value)} AND val <= {float(max_value)});"
+    )
+    expected_query_with_ints = (
+        f"SELECT pk1, pk2, val \n"
+        f"FROM {table_name} \n"
+        f"WHERE val IS NOT NULL AND NOT (val >= {min_value} AND val <= {max_value});"
+    )
+
+    assert unexpected_index_query in (expected_query_with_floats, expected_query_with_ints), (
+        f"Query does not match expected format.\n"
+        f"Expected (float format): {expected_query_with_floats}\n"
+        f"Expected (int format): {expected_query_with_ints}\n"
+        f"Actual: {unexpected_index_query}"
+    )
