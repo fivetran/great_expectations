@@ -1327,13 +1327,14 @@ def _fallback_to_literal_binds(
     return query_as_string
 
 
-def sql_statement_to_string(
+def sqlalchemy_select_to_sql_string(
     engine: SqlAlchemyExecutionEngine, select_statement: sqlalchemy.Select
 ) -> str:
     """
     Compile SQL select statement with bound parameters rendered as literal values. Append semicolon.
 
-    This function exists because SQLAlchemy's built-in literal_binds produces queries
+    This function exists because SQLAlchemy does not guarantee a way to produce a
+    valid SQL syntax string. SQLAlchemy's built-in literal_binds produces queries
     with driver-specific escaping that is intended for Python DB-API drivers, not SQL
     query editors. For example, psycopg2 (PostgreSQL driver) escapes '%' as '%%' for
     Python string formatting, so LIKE '%pattern%' becomes LIKE '%%pattern%%'. This is

@@ -22,7 +22,7 @@ from great_expectations.expectations.metrics.util import (
     get_dialect_like_pattern_expression,
     get_unexpected_indices_for_multiple_pandas_named_indices,
     get_unexpected_indices_for_single_pandas_named_index,
-    sql_statement_to_string,
+    sqlalchemy_select_to_sql_string,
 )
 from tests.test_utils import (
     get_awsathena_connection_url,
@@ -57,12 +57,15 @@ def select_with_post_compile_statements() -> sqlalchemy.Select:
 
 def _compare_select_statement_with_converted_string(engine) -> None:
     """
-    Helper method used to do the call to sql_statement_to_string() and compare with expected val
+    Helper method used to do the call to sqlalchemy_select_to_sql_string()
+    and compare with expected value.
     Args:
         engine (ExecutionEngine): SqlAlchemyExecutionEngine with connection to backend under test
     """
     select_statement: sqlalchemy.Select = select_with_post_compile_statements()
-    returned_string = sql_statement_to_string(engine=engine, select_statement=select_statement)
+    returned_string = sqlalchemy_select_to_sql_string(
+        engine=engine, select_statement=select_statement
+    )
     assert returned_string == ("SELECT a.id, a.data \nFROM a \nWHERE a.data = '00000000';")
 
 
@@ -156,7 +159,9 @@ def test_sql_statement_conversion_to_string_bigquery(test_backends):
         connection_string = get_bigquery_connection_url()
         engine = SqlAlchemyExecutionEngine(connection_string=connection_string)
         select_statement: sqlalchemy.Select = select_with_post_compile_statements()
-        returned_string = sql_statement_to_string(engine=engine, select_statement=select_statement)
+        returned_string = sqlalchemy_select_to_sql_string(
+            engine=engine, select_statement=select_statement
+        )
         assert returned_string == (
             "SELECT `a`.`id`, `a`.`data` \nFROM `a` \nWHERE `a`.`data` = '00000000';"
         )
