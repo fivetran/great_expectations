@@ -13,7 +13,7 @@ Use Actions to notify the appropriate parties of the results of your Validation 
 - A [GX Cloud account](https://greatexpectations.io/cloud).
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - A Checkpoint (either an automatically created GX-managed one or a manually created one).
-- [Python version 3.9 to 3.12](https://www.python.org/downloads/).
+- [Python version 3.9 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
 ## Procedure
