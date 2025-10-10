@@ -116,7 +116,7 @@ def test_unexpected_index_query_structure_with_multiple_index_columns(
     # Pattern allows optional backticks around identifiers
     query_pattern = re.compile(
         r"^SELECT `?pk1`?, `?pk2`?, `?val`? \s+"
-        r"FROM `?[\w.]+`? \s+"
+        r"FROM [\w.`]+ \s+"
         r"WHERE `?val`? IS NOT NULL AND NOT \(`?val`? >= [\d.]+ AND `?val`? <= [\d.]+\);$"
     )
 
