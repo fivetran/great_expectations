@@ -1273,7 +1273,7 @@ def sql_statement_to_string(
     engine: SqlAlchemyExecutionEngine, select_statement: sqlalchemy.Select
 ) -> str:
     """
-    Compile SQL select statement with bound parameters rendered as literal values.
+    Compile SQL select statement with bound parameters rendered as literal values. Append semicolon.
 
     Args:
         engine: SqlAlchemyExecutionEngine with connection to backend.
