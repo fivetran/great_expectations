@@ -12,11 +12,11 @@ GX Cloud is a fully managed SaaS platform that simplifies data quality managemen
 
 You can integrate GX Cloud at any point in your data pipeline to manage and monitor data quality. Common integration points include but are not limited to the following:
 
-- **Ingestion:** validate raw data before writing it to your data warehouse so that you can quarantine bad records and identify bugs in your source system.
+- **[Ingestion](/reference/learn/gx_in_your_data_pipeline/ingestion.md):** validate raw data before writing it to your data warehouse so that you can quarantine bad records and identify bugs in your source system.
 
-- **Transformation:** check the results of transformations in your warehouse and condition pipeline steps based on validation success or failure.
+- **[Transformation](reference/learn/gx_in_your_data_pipeline/transformation.md):** check the results of transformations in your warehouse and condition pipeline steps based on validation success or failure.
 
-- **Delivery:** ensure unexpected patterns reveal business insights rather than data quality issues.
+- **[Delivery](reference/learn/gx_in_your_data_pipeline/delivery.md):** ensure unexpected patterns reveal business insights rather than data quality issues.
 
 Here’s an example of where these three common integration points fit in a generic data pipeline:
 
