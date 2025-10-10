@@ -117,8 +117,7 @@ def test_unexpected_index_query_structure_with_multiple_index_columns(
     query_pattern = re.compile(
         r"^SELECT `?pk1`?, `?pk2`?, `?val`? \s+"
         r"FROM `?[\w.]+`? \s+"
-        r"WHERE `?val`? IS NOT NULL AND NOT \(`?val`? >= [\d.]+ AND `?val`? <= [\d.]+\);$",
-        re.MULTILINE,
+        r"WHERE `?val`? IS NOT NULL AND NOT \(`?val`? >= [\d.]+ AND `?val`? <= [\d.]+\);$"
     )
 
     assert query_pattern.match(unexpected_index_query), (
