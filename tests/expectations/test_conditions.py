@@ -37,24 +37,28 @@ class TestAndCondition:
         expected = f"({cond1!r} AND {cond2!r} AND {cond3!r})"
         assert repr(and_cond) == expected
 
-    def test_raises_error_with_nested_and_condition(self):
-        """Test that AndCondition raises error when given another AndCondition."""
+    def test_flattens_nested_and_conditions(self):
+        """Test that AndCondition flattens nested AndConditions."""
         cond1 = Condition()
         cond2 = Condition()
         inner_and = AndCondition(conditions=[cond1, cond2])
         cond3 = Condition()
 
-        with pytest.raises(
-            ValidationError, match="AND groups cannot contain nested AND conditions"
-        ):
-            AndCondition(conditions=[inner_and, cond3])
+        # Nested AND should be flattened
+        outer_and = AndCondition(conditions=[inner_and, cond3])
+        assert isinstance(outer_and, AndCondition)
+        # Should be flattened to [cond1, cond2, cond3]
+        assert len(outer_and.conditions) == 3
+        assert outer_and.conditions[0] == cond1
+        assert outer_and.conditions[1] == cond2
+        assert outer_and.conditions[2] == cond3
 
     def test_raises_error_with_or_condition(self):
         """Test that AndCondition raises error when given an OrCondition."""
         cond1 = Condition()
         or_cond = OrCondition(conditions=[cond1])
 
-        with pytest.raises(ValidationError, match="AND groups cannot contain nested OR conditions"):
+        with pytest.raises(ValidationError, match="AND groups cannot contain OR conditions"):
             AndCondition(conditions=[or_cond])
 
     def test_raises_error_with_mixed_conditions_including_or(self):
@@ -63,8 +67,44 @@ class TestAndCondition:
         cond2 = Condition()
         or_cond = OrCondition(conditions=[cond1])
 
-        with pytest.raises(ValidationError, match="AND groups cannot contain nested OR conditions"):
+        with pytest.raises(ValidationError, match="AND groups cannot contain OR conditions"):
             AndCondition(conditions=[cond1, or_cond, cond2])
+
+    def test_flattens_multiple_nested_and_conditions(self):
+        """Test that AndCondition flattens multiple levels of nested ANDs."""
+        cond1 = Condition()
+        cond2 = Condition()
+        cond3 = Condition()
+        cond4 = Condition()
+
+        # Create nested structure: AND(AND(cond1, cond2), AND(cond3, cond4))
+        inner_and1 = AndCondition(conditions=[cond1, cond2])
+        inner_and2 = AndCondition(conditions=[cond3, cond4])
+
+        # Should flatten to [cond1, cond2, cond3, cond4]
+        outer_and = AndCondition(conditions=[inner_and1, inner_and2])
+        assert isinstance(outer_and, AndCondition)
+        assert len(outer_and.conditions) == 4
+        assert outer_and.conditions == [cond1, cond2, cond3, cond4]
+
+    def test_flattens_deeply_nested_and_conditions(self):
+        """Test that AndCondition flattens deeply nested structures."""
+        cond1 = Condition()
+        cond2 = Condition()
+        cond3 = Condition()
+        cond4 = Condition()
+        cond5 = Condition()
+
+        # Create: AND(AND(AND(cond1, cond2), cond3), AND(cond4, cond5))
+        deepest_and = AndCondition(conditions=[cond1, cond2])
+        middle_and = AndCondition(conditions=[deepest_and, cond3])
+        inner_and = AndCondition(conditions=[cond4, cond5])
+
+        # Should completely flatten to [cond1, cond2, cond3, cond4, cond5]
+        outer_and = AndCondition(conditions=[middle_and, inner_and])
+        assert isinstance(outer_and, AndCondition)
+        assert len(outer_and.conditions) == 5
+        assert outer_and.conditions == [cond1, cond2, cond3, cond4, cond5]
 
 
 class TestOrCondition:

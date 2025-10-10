@@ -6,8 +6,7 @@ from great_expectations.compatibility.pydantic import BaseModel, validator
 from great_expectations.compatibility.typing_extensions import override
 
 # Error messages for condition validation
-_NESTED_OR_IN_AND_ERROR = "AND groups cannot contain nested OR conditions"
-_NESTED_AND_ERROR = "AND groups cannot contain nested AND conditions"
+_NESTED_OR_IN_AND_ERROR = "AND groups cannot contain OR conditions"
 _NESTED_OR_ERROR = "OR groups cannot contain nested OR conditions"
 
 
@@ -23,13 +22,17 @@ class AndCondition(Condition):
     conditions: List[Condition]
 
     @validator("conditions")
-    def validate_no_nested_or_or_nested_and(cls, conditions: List[Condition]) -> List[Condition]:
+    def validate_and_flatten(cls, conditions: List[Condition]) -> List[Condition]:
+        flattened = []
         for cond in conditions:
             if isinstance(cond, OrCondition):
                 raise TypeError(_NESTED_OR_IN_AND_ERROR)
-            if isinstance(cond, AndCondition):
-                raise TypeError(_NESTED_AND_ERROR)
-        return conditions
+            elif isinstance(cond, AndCondition):
+                # Flatten nested AND conditions
+                flattened.extend(cond.conditions)
+            else:
+                flattened.append(cond)
+        return flattened
 
     @override
     def __repr__(self) -> str:
