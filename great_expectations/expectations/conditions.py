@@ -11,12 +11,6 @@ _NESTED_AND_ERROR = "AND groups cannot contain nested AND conditions"
 _NESTED_OR_ERROR = "OR groups cannot contain nested OR conditions"
 
 
-class ConditionError(TypeError):
-    """Exception for condition validation errors."""
-
-    pass
-
-
 class Condition(BaseModel):
     """Base class for conditions."""
 
@@ -32,9 +26,9 @@ class AndCondition(Condition):
     def validate_no_nested_or_or_nested_and(cls, conditions: List[Condition]) -> List[Condition]:
         for cond in conditions:
             if isinstance(cond, OrCondition):
-                raise ConditionError(_NESTED_OR_IN_AND_ERROR)
+                raise TypeError(_NESTED_OR_IN_AND_ERROR)
             if isinstance(cond, AndCondition):
-                raise ConditionError(_NESTED_AND_ERROR)
+                raise TypeError(_NESTED_AND_ERROR)
         return conditions
 
     @override
@@ -51,7 +45,7 @@ class OrCondition(Condition):
     def validate_no_nested_or(cls, conditions: List[Condition]) -> List[Condition]:
         for cond in conditions:
             if isinstance(cond, OrCondition):
-                raise ConditionError(_NESTED_OR_ERROR)
+                raise TypeError(_NESTED_OR_ERROR)
         return conditions
 
     @override
