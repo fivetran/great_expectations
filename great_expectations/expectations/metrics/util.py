@@ -28,6 +28,7 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import aws, sqlalchemy, trino
 from great_expectations.compatibility.sqlalchemy import (
     Compiled,
+    SQLCompiler,
 )
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
@@ -1170,10 +1171,11 @@ def is_valid_continuous_partition_object(partition_object):
     )
 
 
-def _substitute_positional_parameters(query_template: str, compiled: Compiled) -> str:
-    """Substitute positional (?) parameters in query template."""
-    # positiontup is a dynamic attribute set during compilation
-    param_values = [compiled.params[name] for name in compiled.positiontup]  # type: ignore[attr-defined] # FIXME CoP
+def _substitute_positional_parameters(query_template: str, compiled: SQLCompiler) -> str:
+    """
+    Substitute positional (?) parameters in query template.
+    """
+    param_values = [compiled.params[name] for name in compiled.positiontup or []]
     params = (repr(val) for val in param_values)
     query_as_string = re.sub(r"\?", lambda m: next(params), query_template)
     return query_as_string
@@ -1249,38 +1251,22 @@ def _check_has_unsubstituted_params(
     return False
 
 
-def _fallback_to_literal_binds(
+def _substitute_with_render_postcompile(
     engine: SqlAlchemyExecutionEngine,
     select_statement: sqlalchemy.Select,
-) -> str:
-    """Fall back to literal_binds compilation with %% unescaping for SQL editors."""
-    dialect_name: str = engine.dialect_name
-    compiled = select_statement.compile(
-        engine.engine,
-        compile_kwargs={"literal_binds": True},
-    )
-    query_as_string = str(compiled)
-
-    # Unescape %% to % for SQL editor compatibility
-    # PostgreSQL (psycopg2) and MySQL (mysqlclient) escape % as %% for Python driver
-    if dialect_name in (GXSqlDialect.POSTGRESQL, GXSqlDialect.MYSQL, GXSqlDialect.REDSHIFT):
-        query_as_string = query_as_string.replace("%%", "%")
-
-    return query_as_string
-
-
-def sql_statement_to_string(
-    engine: SqlAlchemyExecutionEngine, select_statement: sqlalchemy.Select
-) -> str:
+) -> Tuple[str, Compiled]:
     """
-    Compile SQL select statement with bound parameters rendered as literal values. Append semicolon.
+    Compile SQL with render_postcompile and manually substitute parameters.
 
-    Args:
-        engine: SqlAlchemyExecutionEngine with connection to backend.
-        select_statement: Select statement to compile into string.
+    Pros:
+        - Produces queries directly copy-pasteable into SQL query editors
+
+    Cons:
+        - Requires manual parameter style detection and substitution logic
+        - May fail for unknown bind parameter styles
+
     Returns:
-        String representation of select_statement with parameters inlined,
-        suitable for copy-pasting into a SQL query editor.
+        Tuple of (query_string, compiled_object)
     """
     compiled = select_statement.compile(
         engine.engine,
@@ -1308,6 +1294,67 @@ def sql_statement_to_string(
     else:  # parameter_style == "none_or_other"
         # No parameters to substitute, or unknown parameter style
         query_as_string = query_template
+
+    return query_as_string, compiled
+
+
+def _fallback_to_literal_binds(
+    engine: SqlAlchemyExecutionEngine,
+    select_statement: sqlalchemy.Select,
+) -> str:
+    """
+    Fall back to literal_binds compilation.
+
+    Pros:
+        - Guaranteed to substitute bind parameters for all SQLAlchemy-supported dialects
+
+    Cons:
+        - Requires post-processing for SQL editor compatibility
+        - May fail for unknown DB-API vs SQL editor syntax incompatibilities
+    """
+    compiled = select_statement.compile(
+        engine.engine,
+        compile_kwargs={"literal_binds": True},
+    )
+    query_as_string = str(compiled)
+
+    # Unescape %% to % for SQL editor compatibility
+    # PostgreSQL (psycopg2) and MySQL (mysqlclient) escape % as %% for Python driver
+    dialect_name: str = engine.dialect_name
+    if dialect_name in (GXSqlDialect.POSTGRESQL, GXSqlDialect.MYSQL, GXSqlDialect.REDSHIFT):
+        query_as_string = query_as_string.replace("%%", "%")
+
+    return query_as_string
+
+
+def sql_statement_to_string(
+    engine: SqlAlchemyExecutionEngine, select_statement: sqlalchemy.Select
+) -> str:
+    """
+    Compile SQL select statement with bound parameters rendered as literal values. Append semicolon.
+
+    This function exists because SQLAlchemy's built-in literal_binds produces queries
+    with driver-specific escaping that is intended for Python DB-API drivers, not SQL
+    query editors. For example, psycopg2 (PostgreSQL driver) escapes '%' as '%%' for
+    Python string formatting, so LIKE '%pattern%' becomes LIKE '%%pattern%%'. This is
+    correct for Python but invalid SQL syntax.
+
+    We use a two-step approach:
+    1. Try render_postcompile with manual parameter substitution (produces SQL editor syntax)
+    2. Fall back to literal_binds with post-processing if manual substitution fails
+
+    This ensures users can copy-paste the resulting query directly into their SQL query
+    editor without modification.
+
+    Args:
+        engine: SqlAlchemyExecutionEngine with connection to backend.
+        select_statement: Select statement to compile into string.
+    Returns:
+        String representation of select_statement with parameters inlined,
+        suitable for copy-pasting into a SQL query editor.
+    """
+    # Try render_postcompile with manual substitution first (avoids %% escaping)
+    query_as_string, compiled = _substitute_with_render_postcompile(engine, select_statement)
 
     # Check if substitution failed and fall back to literal_binds if needed
     if _check_has_unsubstituted_params(query_as_string, compiled):
