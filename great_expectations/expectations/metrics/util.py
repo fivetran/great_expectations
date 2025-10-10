@@ -431,6 +431,7 @@ def get_sqlalchemy_column_metadata(  # noqa: C901 # FIXME CoP
             GXSqlDialect.DATABRICKS,
             GXSqlDialect.POSTGRESQL,
             GXSqlDialect.SNOWFLAKE,
+            GXSqlDialect.TRINO,
         ]:
             # WARNING: Do not alter columns in place, as they are cached on the inspector
             columns_copy = [column.copy() for column in columns]
