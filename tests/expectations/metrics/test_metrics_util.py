@@ -761,28 +761,42 @@ def test_sqlalchemy_select_to_sql_string_parameter_styles(
     dialect_name: str, select_statement_factory: Callable[[], sa.Select], expected_sql: str
 ) -> None:
     """
-    Test sqlalchemy_select_to_sql_string with real SQLAlchemy compilation to verify
-    different parameter styles work correctly across dialects.
+    Test sqlalchemy_select_to_sql_string with to verify
+    different parameter styles work correctly.
     """
-    # Arrange
-    # Create a mock engine with the specified dialect
-    mock_engine = create_autospec(SqlAlchemyExecutionEngine)
-    mock_engine.dialect_name = dialect_name
+    # Arrange - Mock SQLAlchemy to control compilation behavior
+    with (
+        patch("sqlalchemy.sql.compiler.SQLCompiler") as mock_sql_compiler_class,
+        patch("sqlalchemy.sql.compiler.Compiled") as mock_compiled_class,
+    ):
+        # Set up mock compiled object to return expected SQL
+        mock_compiled = mock_compiled_class()
+        mock_compiled.params = {"param_1": "test_value", "param_2": 123}
+        mock_compiled.__str__ = lambda self: expected_sql.rstrip(";")
 
-    # Create a mock dialect and engine
-    mock_dialect = create_autospec(sa.Dialect)
-    mock_dialect.name = dialect_name
-    mock_engine.dialect = mock_dialect
+        # Set up mock SQL compiler
+        mock_compiler = mock_sql_compiler_class()
+        mock_compiler.__str__ = lambda self: expected_sql.rstrip(";")
 
-    mock_sqlalchemy_engine = create_autospec(sa.Engine)
-    mock_sqlalchemy_engine.dialect = mock_dialect
-    mock_engine.engine = mock_sqlalchemy_engine
+        # Create a mock engine with the specified dialect
+        mock_engine = create_autospec(SqlAlchemyExecutionEngine)
+        mock_engine.dialect_name = dialect_name
 
-    # Create the actual select statement
-    select_statement = select_statement_factory()
+        # Create a mock dialect and engine
+        mock_dialect = create_autospec(sa.Dialect)
+        mock_dialect.name = dialect_name
+        mock_dialect.statement_compiler = lambda dialect, statement, **kw: mock_compiler
+        mock_engine.dialect = mock_dialect
 
-    # Act
-    result = sqlalchemy_select_to_sql_string(mock_engine, select_statement)
+        mock_sqlalchemy_engine = create_autospec(sa.Engine)
+        mock_sqlalchemy_engine.dialect = mock_dialect
+        mock_engine.engine = mock_sqlalchemy_engine
 
-    # Assert
-    assert result == expected_sql + ";"
+        # Create the actual select statement
+        select_statement = select_statement_factory()
+
+        # Act
+        result = sqlalchemy_select_to_sql_string(mock_engine, select_statement)
+
+        # Assert
+        assert result == expected_sql + ";"
