@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from types import ModuleType
-from typing import TYPE_CHECKING, Final, List, Union
+from typing import TYPE_CHECKING, Callable, Final, List, Union
 from unittest.mock import create_autospec, patch
 
 import pytest
@@ -648,3 +648,141 @@ def test_get_dialect_like_pattern_expression_is_resilient_to_missing_dialects(mo
 
     # assert
     assert expression is None
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "dialect_name,select_statement_factory,expected_sql",
+    [
+        # Test different parameter styles with real SQLAlchemy compilation
+        (
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.data == "test_value"),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'test_value'",
+        ),
+        (
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.data == "test_value"),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'test_value'",
+        ),
+        (
+            "databricks",
+            lambda: sa.select(A.id, A.data).where(A.data == "test_value"),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'test_value'",
+        ),
+        # Test numeric parameters
+        (
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.id == 42),
+            "SELECT a.id, a.data FROM a WHERE a.id = 42",
+        ),
+        (
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.id == 42),
+            "SELECT a.id, a.data FROM a WHERE a.id = 42",
+        ),
+        # Test float parameters
+        (
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.id == 3.14),
+            "SELECT a.id, a.data FROM a WHERE a.id = 3.14",
+        ),
+        (
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.id == 3.14),
+            "SELECT a.id, a.data FROM a WHERE a.id = 3.14",
+        ),
+        # Test boolean parameters
+        (
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.id.is_(True)),
+            "SELECT a.id, a.data FROM a WHERE a.id = True",
+        ),
+        (
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.id.is_(True)),
+            "SELECT a.id, a.data FROM a WHERE a.id = True",
+        ),
+        # Test None parameters
+        (
+            "sqlite",
+            lambda: sa.select(A.id, A.data).where(A.data.is_(None)),
+            "SELECT a.id, a.data FROM a WHERE a.data = None",
+        ),
+        (
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.data.is_(None)),
+            "SELECT a.id, a.data FROM a WHERE a.data = None",
+        ),
+        # Test complex queries with multiple parameters
+        (
+            "databricks",
+            lambda: sa.select(A.id, A.data).where(
+                sa.or_(A.data == "value1", sa.and_(A.id > 10, A.data.like("%end%")))
+            ),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'value1' "
+            "OR (a.id > 10 AND a.data LIKE '%end%')",
+        ),
+        (
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(
+                sa.or_(A.data == "value1", sa.and_(A.id > 10, A.data.like("%end%")))
+            ),
+            "SELECT a.id, a.data FROM a WHERE a.data = 'value1' "
+            "OR (a.id > 10 AND a.data LIKE '%end%')",
+        ),
+        # Test LIKE patterns (%% unescaping behavior)
+        (
+            "postgresql",
+            lambda: sa.select(A.id, A.data).where(A.data.like("%test%")),
+            "SELECT a.id, a.data FROM a WHERE a.data LIKE '%test%'",
+        ),
+        (
+            "mysql",
+            lambda: sa.select(A.id, A.data).where(A.data.like("%test%")),
+            "SELECT a.id, a.data FROM a WHERE a.data LIKE '%test%'",
+        ),
+        (
+            "redshift",
+            lambda: sa.select(A.id, A.data).where(A.data.like("%test%")),
+            "SELECT a.id, a.data FROM a WHERE a.data LIKE '%test%'",
+        ),
+        (
+            "snowflake",
+            lambda: sa.select(A.id, A.data).where(A.data.like("%test%")),
+            "SELECT a.id, a.data FROM a WHERE a.data LIKE '%test%'",
+        ),
+        # Test queries with no parameters
+        ("sqlite", lambda: sa.select(A.id, A.data), "SELECT a.id, a.data FROM a"),
+        ("postgresql", lambda: sa.select(A.id, A.data), "SELECT a.id, a.data FROM a"),
+    ],
+)
+def test_sqlalchemy_select_to_sql_string_parameter_styles(
+    dialect_name: str, select_statement_factory: Callable[[], sa.Select], expected_sql: str
+) -> None:
+    """
+    Test sqlalchemy_select_to_sql_string with real SQLAlchemy compilation to verify
+    different parameter styles work correctly across dialects.
+    """
+    # Arrange
+    # Create a mock engine with the specified dialect
+    mock_engine = create_autospec(SqlAlchemyExecutionEngine)
+    mock_engine.dialect_name = dialect_name
+
+    # Create a mock dialect and engine
+    mock_dialect = create_autospec(sa.Dialect)
+    mock_dialect.name = dialect_name
+    mock_engine.dialect = mock_dialect
+
+    mock_sqlalchemy_engine = create_autospec(sa.Engine)
+    mock_sqlalchemy_engine.dialect = mock_dialect
+    mock_engine.engine = mock_sqlalchemy_engine
+
+    # Create the actual select statement
+    select_statement = select_statement_factory()
+
+    # Act
+    result = sqlalchemy_select_to_sql_string(mock_engine, select_statement)
+
+    # Assert
+    assert result == expected_sql + ";"
