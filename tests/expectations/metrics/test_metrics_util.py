@@ -11,6 +11,10 @@ from _pytest import monkeypatch
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import sqlalchemy
 from great_expectations.compatibility.sqlalchemy import (
+    Dialect,
+    Engine,
+)
+from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
 from great_expectations.data_context.util import file_relative_path
@@ -783,12 +787,12 @@ def test_sqlalchemy_select_to_sql_string_parameter_styles(
         mock_engine.dialect_name = dialect_name
 
         # Create a mock dialect and engine
-        mock_dialect = create_autospec(sa.Dialect)
+        mock_dialect = create_autospec(Dialect)
         mock_dialect.name = dialect_name
         mock_dialect.statement_compiler = lambda dialect, statement, **kw: mock_compiler
         mock_engine.dialect = mock_dialect
 
-        mock_sqlalchemy_engine = create_autospec(sa.Engine)
+        mock_sqlalchemy_engine = create_autospec(Engine)
         mock_sqlalchemy_engine.dialect = mock_dialect
         mock_engine.engine = mock_sqlalchemy_engine
 
