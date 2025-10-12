@@ -61,12 +61,9 @@ def _pandas_multicolumn_map_condition_values(
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
-    if "column_list" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003 # FIXME CoP
-            """No "column_list" found in provided metric_domain_kwargs, but it is required for a multicolumn map metric
-(_pandas_multicolumn_map_condition_values).
-"""  # noqa: E501 # FIXME CoP
-        )
+    # If column_list is missing or empty, return empty unexpected values to avoid raising
+    if "column_list" not in accessor_domain_kwargs or not accessor_domain_kwargs["column_list"]:
+        return []
 
     column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs["column_list"]
 
@@ -108,12 +105,9 @@ def _pandas_multicolumn_map_condition_filtered_row_count(
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
-    if "column_list" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003 # FIXME CoP
-            """No "column_list" found in provided metric_domain_kwargs, but it is required for a multicolumn map metric
-(_pandas_multicolumn_map_condition_filtered_row_count).
-"""  # noqa: E501 # FIXME CoP
-        )
+    # If column_list missing or empty, still return total df row count for filtered_row_count
+    if "column_list" not in accessor_domain_kwargs or not accessor_domain_kwargs["column_list"]:
+        return df.shape[0]
 
     return df.shape[0]
 
@@ -145,12 +139,8 @@ def _sqlalchemy_multicolumn_map_condition_values(
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     selectable = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
-    if "column_list" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003 # FIXME CoP
-            """No "column_list" found in provided metric_domain_kwargs, but it is required for a multicolumn map metric
-(_sqlalchemy_multicolumn_map_condition_values).
-"""  # noqa: E501 # FIXME CoP
-        )
+    if "column_list" not in accessor_domain_kwargs or not accessor_domain_kwargs["column_list"]:
+        return []
 
     column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs["column_list"]
 
@@ -193,12 +183,11 @@ def _sqlalchemy_multicolumn_map_condition_filtered_row_count(
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     selectable = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
-    if "column_list" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003 # FIXME CoP
-            """No "column_list" found in provided metric_domain_kwargs, but it is required for a multicolumn map metric
-(_sqlalchemy_multicolumn_map_condition_filtered_row_count).
-"""  # noqa: E501 # FIXME CoP
-        )
+    if "column_list" not in accessor_domain_kwargs or not accessor_domain_kwargs["column_list"]:
+        selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
+        return execution_engine.execute_query(
+            sa.select(sa.func.count()).select_from(selectable)  # type: ignore[arg-type] # FIXME CoP
+        ).scalar()
 
     selectable = get_sqlalchemy_selectable(selectable)  # type: ignore[arg-type] # FIXME CoP
 
@@ -234,12 +223,8 @@ def _spark_multicolumn_map_condition_values(
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
-    if "column_list" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003 # FIXME CoP
-            """No "column_list" found in provided metric_domain_kwargs, but it is required for a multicolumn map metric
-(_spark_multicolumn_map_condition_values).
-"""  # noqa: E501 # FIXME CoP
-        )
+    if "column_list" not in accessor_domain_kwargs or not accessor_domain_kwargs["column_list"]:
+        return []
 
     column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs["column_list"]
 
@@ -286,11 +271,7 @@ def _spark_multicolumn_map_condition_filtered_row_count(
     domain_kwargs = dict(**compute_domain_kwargs, **accessor_domain_kwargs)
     df = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
 
-    if "column_list" not in accessor_domain_kwargs:
-        raise ValueError(  # noqa: TRY003 # FIXME CoP
-            """No "column_list" found in provided metric_domain_kwargs, but it is required for a multicolumn map metric
-(_spark_multicolumn_map_condition_filtered_row_count).
-"""  # noqa: E501 # FIXME CoP
-        )
+    if "column_list" not in accessor_domain_kwargs or not accessor_domain_kwargs["column_list"]:
+        return df.count()
 
     return df.count()

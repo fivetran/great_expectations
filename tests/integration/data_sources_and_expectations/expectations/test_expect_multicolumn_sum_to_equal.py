@@ -142,3 +142,11 @@ def test_include_unexpected_rows(batch_for_datasource: Batch) -> None:
     # Check that the rows contain the expected columns
     assert COL_A in unexpected_rows_df.columns
     assert COL_B in unexpected_rows_df.columns
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA[[COL_A, COL_C]])
+def test_missing_column_fails_without_exception(batch_for_datasource: Batch) -> None:
+    """If a referenced column is missing, validation should fail (not raise)."""
+    expectation = gxe.ExpectMulticolumnSumToEqual(column_list=[COL_A, COL_B], sum_total=7)
+    result = batch_for_datasource.validate(expectation)
+    assert not result.success
