@@ -13,6 +13,7 @@ from typing import (
     Union,
 )
 
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
 
-def multicolumn_condition_partial(  # noqa: C901 #  16
+def multicolumn_condition_partial(  # noqa: C901, PLR0915 #  16
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
     **kwargs,
@@ -90,8 +91,9 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                 metrics: Dict[str, Any],
                 runtime_configuration: dict,
             ):
-                # Compute base domain first; we will attempt column normalization and metric evaluation, but
-                # if any requested columns are missing we will gracefully mark all rows as unexpected.
+                # Compute base domain first; we will attempt column normalization and
+                # metric evaluation, but if any requested columns are missing we will
+                # gracefully mark all rows as unexpected.
                 (
                     df,
                     compute_domain_kwargs,
@@ -118,11 +120,11 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                     )
                     unexpected_condition = ~meets_expectation_series
                 except Exception:
-                    # Fallback: mark every row as unexpected and provide an empty column_list to avoid downstream errors
-                    try:
-                        import pandas as pd  # local import to avoid hard dependency if engine is not pandas
-                    except Exception:
-                        raise
+                    # Fallback: mark every row as unexpected and provide an empty
+                    # column_list to avoid downstream errors
+                    import pandas as pd
+
+                    # local import to avoid hard dependency if engine is not pandas
                     unexpected_condition = pd.Series([True] * len(df), index=df.index)
                     accessor_domain_kwargs = {"column_list": []}
 
@@ -169,7 +171,8 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                 metrics: Dict[str, Any],
                 runtime_configuration: dict,
             ):
-                # Compute base domain first; handle missing columns by marking all rows as unexpected
+                # Compute base domain first; handle missing columns by marking all
+                # rows as unexpected
                 (
                     selectable,
                     compute_domain_kwargs,
@@ -203,8 +206,9 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                     )
 
                     unexpected_condition = sa.not_(expected_condition)
-                except Exception:  # noqa: BLE001
-                    # Fallback: unconditional True condition (all rows unexpected) and empty column_list
+                except Exception:
+                    # Fallback: unconditional True condition (all rows unexpected)
+                    # and empty column_list
                     unexpected_condition = sa.literal(True)
                     accessor_domain_kwargs = {"column_list": []}
 
@@ -249,7 +253,8 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                 metrics: Dict[str, Any],
                 runtime_configuration: dict,
             ):
-                # Compute base domain first; handle missing columns by marking all rows as unexpected
+                # Compute base domain first; handle missing columns by marking all
+                # rows as unexpected
                 (
                     data,
                     compute_domain_kwargs,
@@ -275,7 +280,7 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                         _metrics=metrics,
                     )
                     unexpected_condition = ~expected_condition
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Fallback: unconditional True (all rows unexpected) and empty column_list
                     unexpected_condition = F.lit(True)
                     accessor_domain_kwargs = {"column_list": []}
