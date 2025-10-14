@@ -9,7 +9,7 @@ Ingesting raw data into a data pipeline can be a complex and often error-prone p
 
 - **Duplicate Data**: Redundant data records can be ingested, especially in streaming pipelines or systems with unreliable deduplication logic, leading to inflated analytics and inaccurate statistics, ultimately resulting in wrong conclusions and misguided decisions. 
 
-- **Schema Drift**: The structure of the incoming data can sometimes change over time. When the schema drift is drastic or obvious, it can lead to downstream issues like failed jobs or corrupted data. However, more subtle changes can go unnoticed, leading to poor decision-making or inaccurate models.
+- **Schema drift**: The structure of the incoming data can sometimes change over time. When the schema drift is drastic or obvious, it can lead to downstream issues like failed jobs or corrupted data. However, more subtle changes can go unnoticed, leading to poor decision-making or inaccurate models.
 
 - **Volume**: Sometimes ingestion mechanisms themselves can have errors, which can lead to chunks of data not being ingested at all. Identifying and being alerted to these errors at the ingestion point ensures that any issues are addressed sooner rather than later.
 
