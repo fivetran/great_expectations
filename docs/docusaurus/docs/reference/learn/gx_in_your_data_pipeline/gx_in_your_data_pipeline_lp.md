@@ -2,7 +2,7 @@
 sidebar_label: 'GX in your data pipeline'
 title: 'GX in your data pipeline'
 hide_title: true
-description: Learn how GX can be integrated into a data pipeline to manage and monitor data quality.
+description: Learn where GX can be integrated into a data pipeline to manage and monitor data quality.
 hide_feedback_survey: true
 pagination_next: null
 pagination_prev: null
