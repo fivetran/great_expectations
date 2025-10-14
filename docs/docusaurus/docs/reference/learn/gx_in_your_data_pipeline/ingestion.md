@@ -7,7 +7,7 @@ Ingesting raw data into a data pipeline can be a complex and often error-prone p
 
 - **Incomplete data**: Raw data can often contain gaps or missing values, resulting in incomplete records. This can occur due to various reasons like system failures, human input errors, interruptions in data collection processes, and so on. Identifying when data is missing or incomplete is critical at this stage of the data pipeline.
 
-- **Duplicate Data**: Redundant or duplicate data records can be ingested, especially in streaming pipelines or systems with unreliable deduplication logic, leading to inflated analytics and inaccurate statistics, ultimately resulting in wrong conclusions and misguided decisions. 
+- **Duplicate Data**: Redundant data records can be ingested, especially in streaming pipelines or systems with unreliable deduplication logic, leading to inflated analytics and inaccurate statistics, ultimately resulting in wrong conclusions and misguided decisions. 
 
 - **Schema Drift**: The structure of the incoming data can sometimes change over time. When the schema drift is drastic or obvious, it can lead to downstream issues like failed jobs or corrupted data. However, more subtle changes can go unnoticed, leading to poor decision-making or inaccurate models.
 
