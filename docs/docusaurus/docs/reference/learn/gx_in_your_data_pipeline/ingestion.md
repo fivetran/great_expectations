@@ -1,6 +1,7 @@
 ---
 sidebar_label: 'Ingestion'
 title: 'Ingestion'
+description: Learn how GX can help improve your data quality at the ingestion phase of your data pipeline.
 ---
 
 Ingesting raw data into a data pipeline can be a complex and often error-prone process, with various challenges that can impact the efficiency and reliability of processes downstream that rely on it. Below are some key challenges and potential pitfalls that can happen during this phase of the data pipeline:
