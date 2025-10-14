@@ -13,6 +13,7 @@ from great_expectations.expectations.conditions import (
 class TestCondition:
     """Tests for the base Condition class."""
 
+    @pytest.mark.unit
     def test_condition_instantiation(self):
         """Test that Condition can be instantiated."""
         condition = Condition()
@@ -22,12 +23,14 @@ class TestCondition:
 class TestAndCondition:
     """Tests for the AndCondition class."""
 
+    @pytest.mark.unit
     def test_repr_single_condition(self):
         """Test __repr__ with a single condition."""
         cond = Condition()
         and_cond = AndCondition(conditions=[cond])
         assert repr(and_cond) == f"({cond!r})"
 
+    @pytest.mark.unit
     def test_repr_multiple_conditions(self):
         """Test __repr__ with multiple conditions."""
         cond1 = Condition()
@@ -37,6 +40,7 @@ class TestAndCondition:
         expected = f"({cond1!r} AND {cond2!r} AND {cond3!r})"
         assert repr(and_cond) == expected
 
+    @pytest.mark.unit
     def test_flattens_nested_and_conditions(self):
         """Test that AndCondition flattens nested AndConditions."""
         cond1 = Condition()
@@ -53,6 +57,7 @@ class TestAndCondition:
         assert outer_and.conditions[1] == cond2
         assert outer_and.conditions[2] == cond3
 
+    @pytest.mark.unit
     def test_raises_error_with_or_condition(self):
         """Test that AndCondition raises error when given an OrCondition."""
         cond1 = Condition()
@@ -61,6 +66,7 @@ class TestAndCondition:
         with pytest.raises(ValidationError, match="AND groups cannot contain OR conditions"):
             AndCondition(conditions=[or_cond])
 
+    @pytest.mark.unit
     def test_raises_error_with_mixed_conditions_including_or(self):
         """Test that AndCondition raises error when any condition is OrCondition."""
         cond1 = Condition()
@@ -70,6 +76,7 @@ class TestAndCondition:
         with pytest.raises(ValidationError, match="AND groups cannot contain OR conditions"):
             AndCondition(conditions=[cond1, or_cond, cond2])
 
+    @pytest.mark.unit
     def test_flattens_multiple_nested_and_conditions(self):
         """Test that AndCondition flattens multiple levels of nested ANDs."""
         cond1 = Condition()
@@ -87,6 +94,7 @@ class TestAndCondition:
         assert len(outer_and.conditions) == 4
         assert outer_and.conditions == [cond1, cond2, cond3, cond4]
 
+    @pytest.mark.unit
     def test_flattens_deeply_nested_and_conditions(self):
         """Test that AndCondition flattens deeply nested structures."""
         cond1 = Condition()
@@ -110,12 +118,14 @@ class TestAndCondition:
 class TestOrCondition:
     """Tests for the OrCondition class."""
 
+    @pytest.mark.unit
     def test_repr_single_condition(self):
         """Test __repr__ with a single condition."""
         cond = Condition()
         or_cond = OrCondition(conditions=[cond])
         assert repr(or_cond) == f"({cond!r})"
 
+    @pytest.mark.unit
     def test_repr_multiple_conditions(self):
         """Test __repr__ with multiple conditions."""
         cond1 = Condition()
@@ -125,6 +135,7 @@ class TestOrCondition:
         expected = f"({cond1!r} OR {cond2!r} OR {cond3!r})"
         assert repr(or_cond) == expected
 
+    @pytest.mark.unit
     def test_raises_error_with_nested_or_condition(self):
         """Test that OrCondition raises error when given another."""
         cond1 = Condition()
@@ -135,6 +146,7 @@ class TestOrCondition:
         with pytest.raises(ValidationError, match="OR groups cannot contain nested OR conditions"):
             OrCondition(conditions=[inner_or, cond3])
 
+    @pytest.mark.unit
     def test_can_contain_and_conditions(self):
         """Test that OrCondition can contain AndCondition instances."""
         cond1 = Condition()
