@@ -11,7 +11,6 @@ Ingesting raw data into a data pipeline can be a complex and often error-prone p
 
 - **Schema drift**: The structure of the incoming data can sometimes change over time. When the schema drift is drastic or obvious, it can lead to downstream issues like failed jobs or corrupted data. However, more subtle changes can go unnoticed, leading to poor decision-making or inaccurate models.
 
-- **Volume**: Sometimes ingestion mechanisms themselves can have errors, which can lead to chunks of data not being ingested at all. Identifying and being alerted to these errors at the ingestion point ensures that any issues are addressed sooner rather than later.
 
 ### How can GX Cloud help solve these problems?
 GX Cloud gives you the freedom to decide when and how to validate your data. If the raw data has already been ingested to a staging area within your data warehouse, GX Cloud can connect directly to it and run Validations to ensure the integrity of the staged raw data. GX Cloud gives you the ability to automatically create Expectations that cover these data quality issues. Additionally, you can also create in-memory Data Assets, allowing you to run Validations on your data before it lands in your data warehouse, thereby allowing you to take steps like deduplication and value backfilling.
