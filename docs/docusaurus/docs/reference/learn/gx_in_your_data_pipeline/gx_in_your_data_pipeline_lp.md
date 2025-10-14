@@ -18,7 +18,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
 
 <LinkCardGrid>
 
-  <LinkCard topIcon label="Ingestion" description="Validate raw data before writing it to your data warehouse so that you can quarantine bad records and identify bugs in your source system." to="/reference/learn/gx_in_your_data_pipeline/ingestion" icon="/img/actions_icon.svg"/>
+  <LinkCard topIcon label="Ingestion" description="Validate raw data before writing it to your data warehouse so that you can quarantine bad records and identify bugs in your source system." to="/reference/learn/gx_in_your_data_pipeline/ingestion" icon="/img/install_icon.svg"/>
 
   <LinkCard topIcon label="Transformation" description="Check the results of transformations in your warehouse and condition pipeline steps based on validation success or failure." to="/reference/learn/gx_in_your_data_pipeline/transformation" icon="/img/actions_icon.svg"/>
 
