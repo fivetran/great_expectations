@@ -22,6 +22,6 @@ import OverviewCard from '@site/src/components/OverviewCard';
 
   <LinkCard topIcon label="Transformation" description="Check the results of transformations in your warehouse and condition pipeline steps based on validation success or failure." to="/reference/learn/gx_in_your_data_pipeline/transformation" icon="/img/actions_icon.svg"/>
 
-  <LinkCard topIcon label="Delivery" description="Ensure unexpected patterns reveal business insights rather than data quality issues." to="/reference/learn/gx_in_your_data_pipeline/delivery" icon="/img/actions_icon.svg"/>
+  <LinkCard topIcon label="Delivery" description="Ensure unexpected patterns reveal business insights rather than data quality issues." to="/reference/learn/gx_in_your_data_pipeline/delivery" icon="/img/example_cases_icon.svg"/>
 
 </LinkCardGrid>
