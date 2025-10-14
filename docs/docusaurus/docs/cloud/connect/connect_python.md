@@ -14,7 +14,7 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 
 ## Prepare your environment
 
-1. Download and install [Python](https://www.python.org/downloads/). GX supports Python versions 3.9 to 3.12.
+1. Download and install [Python](https://www.python.org/downloads/). GX supports Python versions 3.9 to 3.13.
 
 2. Download and install pip. See the [pip documentation](https://pip.pypa.io/en/stable/cli/pip/).
 
@@ -31,7 +31,7 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 
 ## Get your credentials
 
-You'll need your user access token and organization ID to set your environment variables. Don't commit your access token to your version control software.
+You'll need your user access token, organization ID, and workspace ID to set your environment variables. Don't commit your access token to your version control software.
 
 
 1. In GX Cloud, click **Tokens**.
@@ -46,12 +46,9 @@ You'll need your user access token and organization ID to set your environment v
 
 6. Click **Close**.
 
-7. Copy the value in the **Organization ID** field into the temporary file with your user access token and then save the file. 
+7. Copy the value in the **Organization ID** field into the temporary file with your user access token. 
 
-If your organization has [multiple workspaces](/cloud/access/manage_access.md#workspaces), you'll also need your workspace ID.
-
-1. In GX Cloud, click **Tokens**.
-2. In the **Workspace ID** pane, find the relevant **Workspace name**, then copy the associated **ID** into the temporary file with your other credentials and save the file. 
+8. In the **Workspace ID** pane, find the relevant **Workspace name**, then copy the associated **ID** into the temporary file with your other credentials and save the file. 
 
 GX recommends deleting the temporary file after you set the environment variables.
 
@@ -59,7 +56,7 @@ GX recommends deleting the temporary file after you set the environment variable
 
 Environment variables securely store your GX Cloud access credentials.
 
-1. Save your credentials as **GX_CLOUD_ACCESS_TOKEN** and **GX_CLOUD_ORGANIZATION_ID** environment variables by entering `export ENV_VAR_NAME=env_var_value` in the terminal or adding the command to your `~/.bashrc` or `~/.zshrc` file. If your organization has multiple workspaces, set your **GX_CLOUD_WORKSPACE_ID** as well. For example:
+1. Save your credentials as **GX_CLOUD_ACCESS_TOKEN**, **GX_CLOUD_ORGANIZATION_ID**, and **GX_CLOUD_WORKSPACE_ID** environment variables by entering `export ENV_VAR_NAME=env_var_value` in the terminal or adding the command to your `~/.bashrc` or `~/.zshrc` file. For example:
 
     ```bash title="Terminal input"
     export GX_CLOUD_ACCESS_TOKEN=<user_access_token>
