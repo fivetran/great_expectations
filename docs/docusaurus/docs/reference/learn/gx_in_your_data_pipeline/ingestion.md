@@ -5,7 +5,7 @@ title: 'Ingestion'
 
 Ingesting raw data into a data pipeline can be a complex and often error-prone process, with various challenges that can impact the efficiency and reliability of processes downstream that rely on it. Below are some key challenges and potential pitfalls that can happen during this phase of the data pipeline:
 
-- **Incomplete Data**: Raw data can often contain gaps or missing values, resulting in incomplete records. This can occur due to various reasons like system failures, human input errors, interruptions in data collection processes and so on. Identifying when data is missing or incomplete is critical at this stage of the data pipeline.
+- **Incomplete data**: Raw data can often contain gaps or missing values, resulting in incomplete records. This can occur due to various reasons like system failures, human input errors, interruptions in data collection processes, and so on. Identifying when data is missing or incomplete is critical at this stage of the data pipeline.
 
 - **Duplicate Data**: Redundant or duplicate data records can be ingested, especially in streaming pipelines or systems with unreliable deduplication logic, leading to inflated analytics and inaccurate statistics, ultimately resulting in wrong conclusions and misguided decisions. 
 
