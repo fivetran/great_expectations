@@ -5,7 +5,7 @@ title: 'Transformation'
 
 Data analysts often face the challenge of ensuring that aggregate data remains consistent as it flows through different transformation layers. It’s also critical to standardize records effectively during these transformations to maintain accuracy and comparability across datasets. Additionally, identifying and addressing errant or anomalous data points—whether by removing them or flagging them for further review—is an ongoing concern.
 
-![Sample data set showing the progression of data through the medallion architecture.](/img/integration-medallion.png)
+![Example data warehouse with bronze layer to cleanse tables, silver layer to combine tables, and gold layer to calculate aggregates.](/img/integration-medallion.png)
 *This sample data set shows the progression of data through the medallion architecture.*
 
 ### How can GX Cloud help solve these problems?
