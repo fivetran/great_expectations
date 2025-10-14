@@ -15,4 +15,3 @@ GX Cloud can be implemented to surface valuable business insights automatically.
 Beyond anomalies, organizations can also use trends in the validation results to gain insights. For example, having confidence in accurate inventory and distribution data can help with supply chain management, reducing the risk of over or understocking goods, thereby decreasing operational costs over time. 
 
 ![ExpectAI performs deep analysis on a given Data Asset to set Expectations based on patterns in the data. For example, ExpectAI might suggest a Custom SQL test that average processing days for order fulfillment should be roughly proportional to the quantity of items shipped.  Outliers from the generally observed trend will be flagged for investigation.](/img/integration-expectai.png)
-*In the example above, GX Cloud can detect that the average processing day shows a large spike, which can trigger an investigation.*
