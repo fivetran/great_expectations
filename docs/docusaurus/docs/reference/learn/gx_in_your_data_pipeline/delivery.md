@@ -3,7 +3,7 @@ sidebar_label: 'Delivery'
 title: 'Delivery'
 ---
 
-Data stakeholders are responsible for monitoring and interpreting business metrics. These individuals may span across different departments such as marketing, finance, operations, and may not all possess a technical background. One of the key challenges is detecting when shifts in data reflect real changes in business operations and outcomes. Often, these shifts go unnoticed until it's too late to respond effectively. Another issue is ensuring that the right non-technical users are alerted in a timely and relevant manner. Without targeted, contextual alerts, important insights may not reach the decision-makers who can act on them.
+Data stakeholders are responsible for monitoring and interpreting business metrics. These individuals may span across different departments such as marketing, finance, and operations, and may not all possess a technical background. One of the key challenges is detecting when shifts in data reflect real changes in business operations and outcomes. Often, these shifts go unnoticed until it's too late to respond effectively. Another issue is ensuring that the right non-technical users are alerted in a timely and relevant manner. Without targeted, contextual alerts, important insights may not reach the decision-makers who can act on them.
 
 ### How can GX Cloud help solve these problems?
 
