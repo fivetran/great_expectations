@@ -97,6 +97,12 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.computed_metric import (
         MetricValue,
     )
@@ -206,7 +212,7 @@ def _dialect_requires_persisted_connection(
     return return_val
 
 
-class SqlAlchemyExecutionEngine(ExecutionEngine):
+class SqlAlchemyExecutionEngine(ExecutionEngine[sa.ColumnClause]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     Constructor builds a SqlAlchemyExecutionEngine, using a provided connection string/url/engine/credentials to \
@@ -1427,3 +1433,21 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
 
         return result
+
+    @override
+    def _comparison_condition_to_filter_clause(
+        self, condition: ComparisonCondition
+    ) -> sa.ColumnClause:
+        raise NotImplementedError
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnClause:
+        raise NotImplementedError
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> sa.ColumnClause:
+        raise NotImplementedError
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> sa.ColumnClause:
+        raise NotImplementedError
