@@ -186,9 +186,13 @@ module.exports = {
       id: 'cloud/data_assets/manage_data_assets'
     },
     {
-      type: 'doc',
-      label: 'Manage Expectations',
-      id: 'cloud/expectations/manage_expectations'
+      type: 'category',
+      label: 'Expectations',
+      link: { type: 'doc', id: 'cloud/expectations/expectations_lp' },
+      items: [
+        'cloud/expectations/expectations_overview',
+        'cloud/expectations/manage_expectations'
+      ]
     },
     {
       type: 'doc',
@@ -201,14 +205,18 @@ module.exports = {
       id: 'cloud/schedules/manage_schedules'
     },
     {
-      type: 'doc',
-      label: 'Manage alerts',
-      id: 'cloud/alerts/manage_alerts'
+      type: 'category',
+      label: 'Respond to results',
+      link: { type: 'doc', id: 'cloud/alerts/alerts_lp' },
+      items: [
+        { type: 'doc', id: 'cloud/alerts/manage_email_alerts' },
+        { type: 'doc', id: 'cloud/alerts/trigger_actions' }
+      ]
     },
     {
       type: 'doc',
-      label: 'Manage users and access tokens',
-      id: 'cloud/users/manage_users'
+      label: 'Manage access',
+      id: 'cloud/access/manage_access'
     },
     {
       type: 'link',
@@ -234,7 +242,6 @@ module.exports = {
     }
   ],
   learn: [
-    'reference/learn/migration_guide',
     {
       type: 'category',
       label: 'Data quality use cases',
@@ -246,7 +253,8 @@ module.exports = {
         'reference/learn/data_quality_use_cases/missingness',
         'reference/learn/data_quality_use_cases/schema',
         'reference/learn/data_quality_use_cases/uniqueness',
-        'reference/learn/data_quality_use_cases/volume'
+        'reference/learn/data_quality_use_cases/volume',
+        'reference/learn/data_quality_use_cases/unstructured_data'
       ]
     },
     {

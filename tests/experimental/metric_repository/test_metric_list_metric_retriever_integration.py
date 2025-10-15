@@ -49,6 +49,7 @@ def cloud_context_and_batch_request_with_simple_dataframe(
 
 @pytest.mark.cloud
 def test_get_metrics_table_metrics_only(
+    unset_gx_env_variables: None,
     cloud_context_and_batch_request_with_simple_dataframe: tuple[CloudDataContext, BatchRequest],
 ):
     context, batch_request = cloud_context_and_batch_request_with_simple_dataframe
@@ -107,6 +108,7 @@ def test_get_metrics_table_metrics_only(
 
 @pytest.mark.cloud
 def test_get_metrics_full_cdm(
+    unset_gx_env_variables: None,
     cloud_context_and_batch_request_with_simple_dataframe: tuple[CloudDataContext, BatchRequest],
 ):
     context, batch_request = cloud_context_and_batch_request_with_simple_dataframe
@@ -118,7 +120,7 @@ def test_get_metrics_full_cdm(
         MetricTypes.COLUMN_MAX,
         MetricTypes.COLUMN_MEAN,
         MetricTypes.COLUMN_MEDIAN,
-        MetricTypes.COLUMN_NULL_COUNT,
+        MetricTypes.COLUMN_NON_NULL_COUNT,
     ]
     metric_retriever = MetricListMetricRetriever(context)
     metrics = metric_retriever.get_metrics(
@@ -218,44 +220,44 @@ def test_get_metrics_full_cdm(
         ),
         ColumnMetric[int](
             batch_id=batch_id,
-            metric_name="column_values.null.count",
+            metric_name="column.non_null_count",
             column="numeric_with_nulls_1",
-            value=1,
+            value=2,
             exception=None,
         ),
         ColumnMetric[int](
             batch_id=batch_id,
-            metric_name="column_values.null.count",
+            metric_name="column.non_null_count",
             column="numeric_with_nulls_2",
-            value=1,
+            value=2,
             exception=None,
         ),
         ColumnMetric[int](
             batch_id=batch_id,
-            metric_name="column_values.null.count",
+            metric_name="column.non_null_count",
             column="string",
-            value=0,
+            value=3,
             exception=None,
         ),
         ColumnMetric[int](
             batch_id=batch_id,
-            metric_name="column_values.null.count",
+            metric_name="column.non_null_count",
             column="string_with_nulls",
-            value=1,
+            value=2,
             exception=None,
         ),
         ColumnMetric[int](
             batch_id=batch_id,
-            metric_name="column_values.null.count",
+            metric_name="column.non_null_count",
             column="boolean",
-            value=0,
+            value=3,
             exception=None,
         ),
         ColumnMetric[int](
             batch_id=batch_id,
-            metric_name="column_values.null.count",
+            metric_name="column.non_null_count",
             column="datetime",
-            value=0,
+            value=3,
             exception=None,
         ),
         ColumnMetric[str](

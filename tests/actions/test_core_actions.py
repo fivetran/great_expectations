@@ -18,17 +18,20 @@ from great_expectations.checkpoint.actions import (
     APINotificationAction,
     EmailAction,
     MicrosoftTeamsNotificationAction,
+    NotifyOn,
     OpsgenieAlertAction,
     PagerdutyAlertAction,
     SlackNotificationAction,
     SNSNotificationAction,
     UpdateDataDocsAction,
     ValidationAction,
+    should_notify,
 )
 from great_expectations.checkpoint.checkpoint import Checkpoint, CheckpointResult
 from great_expectations.core.batch import IDDict, LegacyBatchDefinition
 from great_expectations.core.expectation_validation_result import (
     ExpectationSuiteValidationResult,
+    ExpectationValidationResult,
 )
 from great_expectations.core.run_identifier import RunIdentifier
 from great_expectations.core.validation_definition import ValidationDefinition
@@ -47,6 +50,8 @@ from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )
 from great_expectations.exceptions.exceptions import ValidationActionAlreadyRegisteredError
+from great_expectations.expectations.expectation_configuration import ExpectationConfiguration
+from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.util import is_library_loadable
 
 if TYPE_CHECKING:
@@ -106,6 +111,47 @@ def checkpoint_result(mocker: MockerFixture):
                 mocker.MagicMock(spec=ValidationDefinition),
                 mocker.MagicMock(spec=ValidationDefinition),
             ],
+        ),
+    )
+
+
+@pytest.fixture
+def checkpoint_result_with_failure(mocker: MockerFixture):
+    """Create a checkpoint result with failed validations (warning-level severity)."""
+    utc_datetime = datetime.fromisoformat("2024-04-01T20:51:18.077262").replace(tzinfo=timezone.utc)
+
+    # Create a real failed expectation validation result
+    failed_evr = ExpectationValidationResult(
+        success=False,
+        expectation_config=ExpectationConfiguration(
+            "expect_column_values_to_be_between",
+            kwargs={"column": "test_column", "min_value": 0, "max_value": 100},
+            severity=FailureSeverity.WARNING,
+        ),
+        result={},
+        exception_info=None,
+        meta={},
+    )
+
+    return CheckpointResult(
+        run_id=RunIdentifier(run_time=utc_datetime),
+        run_results={
+            ValidationResultIdentifier(
+                expectation_suite_identifier=ExpectationSuiteIdentifier(
+                    name=SUITE_A,
+                ),
+                run_id=RunIdentifier(run_name="prod_20240401"),
+                batch_identifier=BATCH_ID_A,
+            ): ExpectationSuiteValidationResult(
+                success=False,  # Failed validation
+                statistics={"successful_expectations": 1, "evaluated_expectations": 3},
+                results=[failed_evr],
+                suite_name=SUITE_A,
+            ),
+        },
+        checkpoint_config=Checkpoint(
+            name="test-checkpoint-failure",
+            validation_definitions=[mocker.MagicMock(spec=ValidationDefinition)],
         ),
     )
 
@@ -409,21 +455,87 @@ class TestMicrosoftTeamsNotificationAction:
         mock_send_notification.assert_called_once_with(url=MS_TEAMS_WEBHOOK_VALUE, json=mock.ANY)
 
     @pytest.mark.integration
-    def test_run_integration_success(
+    @pytest.mark.parametrize(
+        "notify_on, expected_notification",
+        [
+            ("all", True),
+            ("success", True),
+            ("failure", False),
+            ("critical", False),
+            ("warning", False),
+            ("info", False),
+        ],
+    )
+    def test_run_integration_success_with_severity_filtering(
         self,
+        notify_on: str,
+        expected_notification: bool,
         checkpoint_result: CheckpointResult,
     ):
+        """
+        Test that notify_on filtering works with successful checkpoint results.
+        For this test, we are using a successful checkpoint result, so we expect
+        a notification for the "all" and "success" cases only.
+        """
         # Necessary to retrieve config provider
         gx.get_context(mode="ephemeral")
 
         action = MicrosoftTeamsNotificationAction(
             name="test-action",
             teams_webhook="${GX_MS_TEAMS_WEBHOOK}",  # Set as a secret in GH Actions
+            notify_on=notify_on,
         )
+
         result = action.run(checkpoint_result=checkpoint_result)
-        assert result == {
-            "microsoft_teams_notification_result": "Microsoft Teams notification succeeded."
-        }
+
+        if expected_notification:
+            assert result == {
+                "microsoft_teams_notification_result": "Microsoft Teams notification succeeded."
+            }
+        else:
+            assert result == {"microsoft_teams_notification_result": None}
+
+    @pytest.mark.integration
+    @pytest.mark.parametrize(
+        "notify_on, expected_notification",
+        [
+            ("all", True),
+            ("success", False),
+            ("failure", True),
+            ("critical", False),
+            ("warning", True),
+            ("info", False),
+        ],
+    )
+    def test_run_integration_failure_with_severity_filtering(
+        self,
+        notify_on: str,
+        expected_notification: bool,
+        checkpoint_result_with_failure: CheckpointResult,
+    ):
+        """
+        Test that notify_on filtering works with failed checkpoint results.
+        For this test, we are using a failed checkpoint result with WARNING-level
+        severity, so we expect a notification for the "all", "failure" and "warning"
+        cases only.
+        """
+        # Necessary to retrieve config provider
+        gx.get_context(mode="ephemeral")
+
+        action = MicrosoftTeamsNotificationAction(
+            name="test-action",
+            teams_webhook="${GX_MS_TEAMS_WEBHOOK}",  # Set as a secret in GH Actions
+            notify_on=notify_on,
+        )
+
+        result = action.run(checkpoint_result=checkpoint_result_with_failure)
+
+        if expected_notification:
+            assert result == {
+                "microsoft_teams_notification_result": "Microsoft Teams notification succeeded."
+            }
+        else:
+            assert result == {"microsoft_teams_notification_result": None}
 
     @pytest.mark.integration
     def test_run_integration_failure(
@@ -915,3 +1027,87 @@ class TestCustomActions:
 
             class CustomSlackAction(ValidationAction):
                 type: Literal["slack"] = "slack"  # Shadows existing value
+
+
+class TestShouldNotify:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "success, notify_on, expected",
+        [
+            pytest.param(True, "all", True, id="all_success"),
+            pytest.param(False, "all", True, id="all_failure"),
+        ],
+    )
+    def test_all_always_true(self, success: bool, notify_on: NotifyOn, expected: bool):
+        assert should_notify(success=success, notify_on=notify_on) is expected
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "success, expected",
+        [
+            pytest.param(True, True, id="success_true"),
+            pytest.param(False, False, id="success_false"),
+        ],
+    )
+    def test_success_mode(self, success: bool, expected: bool):
+        assert should_notify(success=success, notify_on="success") is expected
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "success, expected",
+        [
+            pytest.param(True, False, id="failure_mode_success_true"),
+            pytest.param(False, True, id="failure_mode_success_false"),
+        ],
+    )
+    def test_failure_mode(self, success: bool, expected: bool):
+        assert should_notify(success=success, notify_on="failure") is expected
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "notify_on",
+        [
+            pytest.param("info", id="info"),
+            pytest.param("warning", id="warning"),
+            pytest.param("critical", id="critical"),
+        ],
+    )
+    def test_severity_modes_do_not_notify_on_success(self, notify_on: NotifyOn):
+        assert should_notify(success=True, notify_on=notify_on) is False
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "notify_on, max_severity, expected",
+        [
+            # default max_severity is "critical"
+            pytest.param("critical", "critical", True, id="default_max_critical"),
+            pytest.param("warning", "critical", False, id="default_max_warning"),
+            pytest.param("info", "critical", False, id="default_max_info"),
+            # custom max_severity = warning
+            pytest.param("warning", "warning", True, id="max_warning_match"),
+            pytest.param("critical", "warning", False, id="max_warning_critical"),
+            pytest.param("info", "warning", False, id="max_warning_info"),
+            # custom max_severity = info
+            pytest.param("info", "info", True, id="max_info_match"),
+            pytest.param("warning", "info", False, id="max_info_warning"),
+            pytest.param("critical", "info", False, id="max_info_critical"),
+        ],
+    )
+    def test_severity_modes_on_failure(
+        self, notify_on: NotifyOn, max_severity: FailureSeverity, expected: bool
+    ):
+        assert (
+            should_notify(success=False, notify_on=notify_on, max_severity=max_severity) is expected
+        )
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "notify_on",
+        [
+            pytest.param("info", id="info"),
+            pytest.param("warning", id="warning"),
+            pytest.param("critical", id="critical"),
+        ],
+    )
+    def test_severity_modes_on_failure_with_none_max(self, notify_on: NotifyOn):
+        assert should_notify(success=False, notify_on=notify_on, max_severity=None) is False

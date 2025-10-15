@@ -22,7 +22,7 @@ set_up_context_for_example(context)
 # This Expectation has all values set in advance:
 # <snippet name="docs/docusaurus/docs/core/define_expectations/_examples/create_an_expectation.py - preset expectation">
 preset_expectation = gx.expectations.ExpectColumnMaxToBeBetween(
-    column="passenger_count", min_value=1, max_value=6
+    column="passenger_count", min_value=1, max_value=6, severity="warning"
 )
 # </snippet>
 

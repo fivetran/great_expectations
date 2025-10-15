@@ -414,13 +414,20 @@ jobs:
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
         run: cd docs/docusaurus && yarn install && bash ../build_docs
 
-      - name: Run broken link checker
-        uses: lycheeverse/lychee-action@v2
+      - name: Restore lychee cache
+        uses: actions/cache@v4
         with:
-          # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
-          # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
-          # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
-          args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' 'docs/docusaurus/build/**/*.html'"
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+
+      # - name: Run broken link checker
+      # uses: lycheeverse/lychee-action@v2.0.1
+      # with:
+      # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
+      # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
+      # and to prevent other possible errors related to user agent or lychee capturing hrefs from metadata that don't resolve to a specific page (preconnects in JS)
+      # args: "--exclude='http.*' --include='^https://(.+\\.)?greatexpectations\\.io/' --cache --max-cache-age 1d 'docs/docusaurus/build/**/*.html'"
 
   docs-tests:
     needs: [check-actor-permissions]
@@ -452,6 +459,7 @@ jobs:
       AUTH0_MERCURY_API_CLIENT_ID: ${{secrets.AUTH0_MERCURY_API_CLIENT_ID}}
       AUTH0_MERCURY_API_CLIENT_SECRET: ${{secrets.AUTH0_MERCURY_API_CLIENT_SECRET}}
       GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
+      GX_CLOUD_WORKSPACE_ID: ${{secrets.MERCURY_WORKSPACE_ID}}
       GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
       LD_SDK_KEY: ${{secrets.LD_SDK_KEY}}
       GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
@@ -627,7 +635,8 @@ jobs:
       fail-fast: false
       matrix:
         markers:
-          - athena or openpyxl or pyarrow or project or sqlite or aws_creds
+          - openpyxl or pyarrow or project or sqlite or aws_creds
+          - athena
           - aws_deps
           - big
           - bigquery

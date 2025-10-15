@@ -473,6 +473,16 @@ docs_examples_trigger_actions_based_on_validation_results = [
         # data_context_dir="",
         backend_dependencies=[],
     ),
+    # Create an Action for a Cloud Checkpoint
+    IntegrationTestFixture(
+        # To test, run:
+        # pytest --docs-tests -k "cloud_docs_example_create_a_checkpoint" tests/integration/test_script_runner.py
+        name="cloud_docs_example_create_a_checkpoint",
+        user_flow_script="docs/docusaurus/docs/cloud/alerts/_examples/create_a_checkpoint_with_actions.py",
+        data_dir="docs/docusaurus/docs/components/_testing/test_data_sets/single_test_file",
+        # data_context_dir="",
+        backend_dependencies=[],
+    ),
 ]
 
 docs_examples_customize_expectations = [
@@ -654,6 +664,14 @@ learn_data_quality_use_cases = [
         data_dir="tests/test_sets/learn_data_quality_use_cases/",
         util_script="tests/test_utils.py",
         backend_dependencies=[BackendDependencies.POSTGRESQL],
+    ),
+    # Unstructured data.
+    IntegrationTestFixture(
+        name="unstructured_data",
+        user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/unstructured_data/unstructured_data.py",
+        data_dir="tests/test_sets/learn_data_quality_use_cases/",
+        util_script="tests/test_utils.py",
+        backend_dependencies=[],
     ),
 ]
 

@@ -128,6 +128,66 @@ class TestNormalSql:
         result = batch_for_datasource.validate(expectation)
         assert not result.success
 
+    @parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+    def test_include_unexpected_rows_pandas(self, batch_for_datasource: Batch) -> None:
+        """Test include_unexpected_rows for ExpectColumnValuesToNotMatchRegexList."""
+        expectation = gxe.ExpectColumnValuesToNotMatchRegexList(
+            column=COL_A, regex_list=["^a[abc]$"]
+        )
+        result = batch_for_datasource.validate(
+            expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+        )
+
+        assert not result.success
+        result_dict = result["result"]
+
+        # Verify that unexpected_rows is present and contains the expected data
+        assert "unexpected_rows" in result_dict
+        assert result_dict["unexpected_rows"] is not None
+
+        # Convert to DataFrame for easier comparison
+        unexpected_rows_data = result_dict["unexpected_rows"]
+        assert isinstance(unexpected_rows_data, pd.DataFrame)
+        unexpected_rows_df = unexpected_rows_data
+
+        # Should contain 3 rows where COL_A matches regex_list ["^a[abc]$"]
+        # ("aa", "ab", "ac" all match)
+        assert len(unexpected_rows_df) == 3
+
+        # The unexpected rows should contain all the matching values
+        unexpected_values = sorted(unexpected_rows_df[COL_A].tolist())
+        assert unexpected_values == ["aa", "ab", "ac"]
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    )
+    def test_include_unexpected_rows_sql(self, batch_for_datasource: Batch) -> None:
+        """Test include_unexpected_rows for ExpectColumnValuesToNotMatchRegexList with SQL."""
+        expectation = gxe.ExpectColumnValuesToNotMatchRegexList(
+            column=COL_A, regex_list=["^a[abc]$"]
+        )
+        result = batch_for_datasource.validate(
+            expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+        )
+
+        assert not result.success
+        result_dict = result["result"]
+
+        # Verify that unexpected_rows is present and contains the expected data
+        assert "unexpected_rows" in result_dict
+        assert result_dict["unexpected_rows"] is not None
+
+        unexpected_rows_data = result_dict["unexpected_rows"]
+        assert isinstance(unexpected_rows_data, list)
+
+        # Should contain 3 rows where COL_A matches regex_list ["^a[abc]$"]
+        assert len(unexpected_rows_data) == 3
+
+        # Check that all matching values appear in the unexpected rows data
+        unexpected_rows_str = str(unexpected_rows_data)
+        for value in ["aa", "ab", "ac"]:
+            assert value in unexpected_rows_str
+
 
 @pytest.mark.unit
 def test_invalid_config() -> None:

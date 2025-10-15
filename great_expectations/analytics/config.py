@@ -42,7 +42,7 @@ class Config(GenericModel):
     oss_id: Optional[UUID] = None
     cloud_mode: bool = False
     user_agent_str: Optional[str] = None
-    mode: Literal["ephemeral", "file", "cloud", None] = None
+    mode: Optional[Literal["ephemeral", "file", "cloud"]] = None
     remove_profile: bool = True
 
 

@@ -38,6 +38,9 @@ PactBody: TypeAlias = Union[
 
 
 EXISTING_ORGANIZATION_ID: Final[str] = os.environ.get("GX_CLOUD_ORGANIZATION_ID", "")
+EXISTING_WORKSPACE_ID: Final[str] = (
+    os.environ.get("GX_CLOUD_WORKSPACE_ID", "") or "44444444-4444-4bdd-8a42-3c35cce574c6"
+)
 
 
 class RequestMethods(str, enum.Enum):
@@ -77,22 +80,49 @@ def gx_cloud_session() -> Session:
 def cloud_data_context(
     cloud_base_url: str,
     cloud_access_token: str,
+    pact_test: pact.Pact,
 ) -> CloudDataContext:
     """This is a real Cloud Data Context that points to the pact mock service instead of the Mercury API."""  # noqa: E501 # FIXME CoP
+    # Set up the /accounts/me contract that CloudDataContext will call during initialization
+    accounts_me_response_body = {
+        "user_id": "df665fc4-1891-4ef7-9a12-a0c46015c92c",
+        "workspaces": [{"id": EXISTING_WORKSPACE_ID, "role": "editor"}],
+    }
+
+    (
+        pact_test.given("the user account exists")
+        .upon_receiving("a request to get user account information")
+        .with_request(
+            method="GET",
+            path=f"/organizations/{EXISTING_ORGANIZATION_ID}/accounts/me",
+            headers={"Authorization": f"Bearer {cloud_access_token}"},
+        )
+        .will_respond_with(
+            status=200,
+            body=accounts_me_response_body,
+        )
+    )
+
     cloud_data_context = CloudDataContext(
         cloud_base_url=cloud_base_url,
         cloud_organization_id=EXISTING_ORGANIZATION_ID,
+        cloud_workspace_id=EXISTING_WORKSPACE_ID,
         cloud_access_token=cloud_access_token,
     )
     # we can't override the base url to use the mock service due to
     # reliance on env vars, so instead we override with a real project config
     project_config = cloud_data_context.config
-    context = CloudDataContext(
-        cloud_base_url=PACT_MOCK_SERVICE_URL,
-        cloud_organization_id=EXISTING_ORGANIZATION_ID,
-        cloud_access_token=cloud_access_token,
-        project_config=project_config,
-    )
+
+    # Only the CloudDataContext creation that uses the mock service needs the accounts/me contract
+    with pact_test:
+        context = CloudDataContext(
+            cloud_base_url=PACT_MOCK_SERVICE_URL,
+            cloud_organization_id=EXISTING_ORGANIZATION_ID,
+            cloud_workspace_id=EXISTING_WORKSPACE_ID,
+            cloud_access_token=cloud_access_token,
+            project_config=project_config,
+        )
+
     project_manager.set_project(cloud_data_context)
     return context
 

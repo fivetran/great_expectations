@@ -5,8 +5,6 @@ description: Create and modify an Expectation in Python.
 import PrereqPythonInstalled from '../_core_components/prerequisites/_python_installation.md';
 import PrereqGxInstalled from '../_core_components/prerequisites/_gx_installation.md';
 
-import StandardArgumentsTable from './_expectations/_standard_arguments_table.md';
-
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
@@ -44,15 +42,21 @@ An Expectation is a verifiable assertion about your data. Expectations make impl
 
    To determine the parameters your Expectation uses to evaluate data, reference the Expectation's entry in the [Expectation Gallery](https://greatexpectations.io/expectations/).  Under the **Args** section you will find a list of parameters that are necessary for the Expectation to be evaluated, along with the a description of the value that should be provided.
 
-   Parameters that indicate a column, list of columns, table, or Data Source must be provided when the Expectation is created. All other parameters can be set when the Expectation is created or be assigned a dictionary lookup that will allow them to be set at runtime.
-   
+   Parameters that indicate a column, list of columns, table, Data Source, or severity must be provided when the Expectation is created. All other parameters can be set when the Expectation is created or be assigned a dictionary lookup that will allow them to be set at runtime.
+
+   <a id="severity"></a>
+
 3. Optional. Determine the Expectation's other parameters
 
    In addition to the parameters that are required for an Expectation to evaluate data, Expectations also support some optional parameters.  In the Expectations Gallery these are found under each Expectation's **Other Parameters** section.
 
-   These parameters are:
 
-   <StandardArgumentsTable/>
+
+   These parameters are:
+   - `meta`: A dictionary of user-supplied metadata to store with an Expectation. This dictionary can be used to add notes about the purpose and intended use of an Expectation.
+   - `mostly`: A special argument that allows for _fuzzy_ validation based on a percentage of successfully validated rows. If the percentage is at least the value set in the `mostly` parameter, the Expectation will return a `success` value of `true`.
+   - `severity`: Indicates the impact of the Expectation failing. Accepted values are `critical`, `warning`, or `info`. Defaults to `critical` if not explicitly set. You can [trigger Actions](/core/trigger_actions_based_on_results/create_a_checkpoint_with_actions.md) based on severity levels or you can condition your data pipeline with the `get_maximum_severity_failure` helper method in the [`ExpectationSuiteValidationResult` class](/reference/api/core//ExpectationSuiteValidationResult_class.mdx). Note that if an Expectation fails to execute, the failure will be recorded as critical, regardless of the Expectation configuration, to bring your attention to the fact that your data is not being tested as intended.
+
 
 4. Create the Expectation.
   

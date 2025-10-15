@@ -114,3 +114,31 @@ def test_success_with_suite_param_ignore_row_if_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows(batch_for_datasource: Batch) -> None:
+    """Test that include_unexpected_rows works correctly for ExpectMulticolumnSumToEqual."""
+    expectation = gxe.ExpectMulticolumnSumToEqual(column_list=[COL_A, COL_B], sum_total=10)
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # Convert to DataFrame for easier comparison
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain multiple rows where sum != 10
+    assert len(unexpected_rows_df) > 0
+
+    # Check that the rows contain the expected columns
+    assert COL_A in unexpected_rows_df.columns
+    assert COL_B in unexpected_rows_df.columns

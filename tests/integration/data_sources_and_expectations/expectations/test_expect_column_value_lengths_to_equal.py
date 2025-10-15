@@ -12,6 +12,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
 
 DIFFERENT_COL = "some_are_different"
 SAME_COL = "all_the_same"
@@ -99,3 +100,65 @@ def test_failure(
 ) -> None:
     result = batch_for_datasource.validate(expectation)
     assert not result.success
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValueLengthsToEqual with pandas data sources."""
+    expectation = gxe.ExpectColumnValueLengthsToEqual(column=DIFFERENT_COL, value=3)
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For pandas data sources, unexpected_rows should be directly usable
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+
+    # Convert directly to DataFrame for pandas data sources
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain 1 row where DIFFERENT_COL doesn't have length 3 ("FOOD" has length 4)
+    assert len(unexpected_rows_df) == 1
+    assert list(unexpected_rows_df.index) == [0]
+
+    # The unexpected row should have value "FOOD" in DIFFERENT_COL
+    assert unexpected_rows_df.loc[0, DIFFERENT_COL] == "FOOD"
+
+    # Other columns should have their original values from row with index 0
+    assert unexpected_rows_df.loc[0, SAME_COL] == "FOO"
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValueLengthsToEqual with SQL data sources."""
+    expectation = gxe.ExpectColumnValueLengthsToEqual(column=DIFFERENT_COL, value=3)
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 1 row where DIFFERENT_COL doesn't have length 3 ("FOOD" has length 4)
+    assert len(unexpected_rows_data) == 1
+
+    # Check that "FOOD" and "FOO" appear in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    assert "FOOD" in unexpected_rows_str
+    assert "FOO" in unexpected_rows_str

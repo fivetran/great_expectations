@@ -60,7 +60,7 @@ class TaxiTestData:
     @staticmethod
     def years_in_taxi_data() -> List[datetime.datetime]:
         return (
-            pd.date_range(start="2018-01-01", end="2020-12-31", freq="AS").to_pydatetime().tolist()
+            pd.date_range(start="2018-01-01", end="2020-12-31", freq="YS").to_pydatetime().tolist()
         )
 
     def year_batch_identifier_data(self) -> List[dict]:

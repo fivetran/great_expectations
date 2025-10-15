@@ -1,5 +1,7 @@
 import pathlib
 import shutil
+import uuid
+from typing import Any
 from unittest import mock
 
 import pytest
@@ -7,6 +9,10 @@ import pytest
 import great_expectations as gx
 from great_expectations.data_context import CloudDataContext, EphemeralDataContext
 from great_expectations.data_context.cloud_constants import GXCloudEnvironmentVariable
+from great_expectations.data_context.data_context.cloud_data_context import (
+    CloudUserInfo,
+    Workspace,
+)
 from great_expectations.data_context.data_context.file_data_context import (
     FileDataContext,
 )
@@ -23,6 +29,7 @@ from tests.test_utils import working_directory
 GX_CLOUD_PARAMS_ALL = {
     "cloud_base_url": "localhost:7000",
     "cloud_organization_id": "bd20fead-2c31-4392-bcd1-f1e87ad5a79c",
+    "cloud_workspace_id": "fffff6781234567812345678123fffff",
     "cloud_access_token": "i_am_a_token",
 }
 GX_CLOUD_PARAMS_REQUIRED = {
@@ -36,6 +43,7 @@ def set_up_cloud_envs(monkeypatch):
     monkeypatch.setenv("GX_CLOUD_BASE_URL", "localhost:7000")
     monkeypatch.setenv("GX_CLOUD_ORGANIZATION_ID", "bd20fead-2c31-4392-bcd1-f1e87ad5a79c")
     monkeypatch.setenv("GX_CLOUD_ACCESS_TOKEN", "i_am_a_token")
+    monkeypatch.setenv("GX_CLOUD_WORKSPACE_ID", "fffff6781234567812345678123fffff")
 
 
 @pytest.fixture
@@ -148,11 +156,28 @@ def test_cloud_missing_env_throws_exception(clear_env_vars, empty_ge_cloud_data_
 
 @pytest.mark.parametrize("params", [GX_CLOUD_PARAMS_REQUIRED, GX_CLOUD_PARAMS_ALL])
 @pytest.mark.cloud
-def test_cloud_context_params(monkeypatch, empty_ge_cloud_data_context_config, params):
-    with mock.patch.object(
-        CloudDataContext,
-        "retrieve_data_context_config_from_cloud",
-        return_value=empty_ge_cloud_data_context_config,
+def test_cloud_context_params(
+    unset_gx_env_variables: None,
+    monkeypatch: pytest.MonkeyPatch,
+    empty_ge_cloud_data_context_config: DataContextConfig,
+    # params is annotated with Any since mypy will fail with str values when checking
+    # gx.get_context(**params) because there are no str only value variants.
+    params: dict[str, Any],
+):
+    with (
+        mock.patch.object(
+            CloudDataContext,
+            "retrieve_data_context_config_from_cloud",
+            return_value=empty_ge_cloud_data_context_config,
+        ),
+        mock.patch.object(
+            CloudDataContext,
+            "cloud_user_info",
+            return_value=CloudUserInfo(
+                user_id=uuid.UUID("12345678-1234-1234-1234-123456789012"),
+                workspaces=[Workspace(id="fffff6781234567812345678123fffff", role="editor")],
+            ),
+        ),
     ):
         assert isinstance(
             gx.get_context(**params),
@@ -162,12 +187,24 @@ def test_cloud_context_params(monkeypatch, empty_ge_cloud_data_context_config, p
 
 @pytest.mark.cloud
 def test_cloud_context_with_in_memory_config_overrides(
-    monkeypatch, empty_ge_cloud_data_context_config
+    unset_gx_env_variables: None,
+    monkeypatch: pytest.MonkeyPatch,
+    empty_ge_cloud_data_context_config: DataContextConfig,
 ):
-    with mock.patch.object(
-        CloudDataContext,
-        "retrieve_data_context_config_from_cloud",
-        return_value=empty_ge_cloud_data_context_config,
+    with (
+        mock.patch.object(
+            CloudDataContext,
+            "retrieve_data_context_config_from_cloud",
+            return_value=empty_ge_cloud_data_context_config,
+        ),
+        mock.patch.object(
+            CloudDataContext,
+            "cloud_user_info",
+            return_value=CloudUserInfo(
+                user_id=uuid.UUID("12345678-1234-1234-1234-123456789012"),
+                workspaces=[Workspace(id="fffff6781234567812345678123fffff", role="editor")],
+            ),
+        ),
     ):
         context = gx.get_context(
             cloud_base_url="localhost:7000",
