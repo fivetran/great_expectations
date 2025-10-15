@@ -13,7 +13,7 @@ import LinkCard from '@site/src/components/LinkCard';
 import OverviewCard from '@site/src/components/OverviewCard';
 
 <OverviewCard title={frontMatter.title}>
-  Learn how GX can be integrated into a data pipeline to manage and monitor data quality.
+  Learn where GX can be integrated into a data pipeline to manage and monitor data quality.
 </OverviewCard>
 
 <LinkCardGrid>
