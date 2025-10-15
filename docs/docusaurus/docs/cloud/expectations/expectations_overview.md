@@ -10,7 +10,7 @@ This page provides an overview of Expectation types and options. For instruction
 
 ## Available Expectations
 
-The following table lists the available GX Cloud Expectations.
+The following table lists the available GX Cloud Expectations. Note that some Data Sources do not support certain Expectations. Visit the [Expectations gallery](https://greatexpectations.io/expectations/) for details.
 
 | Data quality issue | Expectation                                            | Description                                                                                                                            | Dynamic Parameters? | Forecasted range? |
 |--------------------|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------|-------------------|
@@ -102,7 +102,7 @@ Keep the following limitations in mind when working with Multi-source Expectatio
 
 ## Anomaly Detection
 
-Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can automate Anomaly Detection Expectations when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset. You can also manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
+Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can generate Anomaly Detection Expectations when you use the GX Cloud UI to [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation). Note that [some Data Sources](/docs/cloud/data_sources/manage_data_sources.md#data-source-limitations) don't support these options. All Data Sources support manual configuration of Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
 
 ### Dynamic Parameters
 

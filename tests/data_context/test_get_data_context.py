@@ -156,6 +156,7 @@ def test_cloud_missing_env_throws_exception(clear_env_vars, empty_ge_cloud_data_
 
 @pytest.mark.parametrize("params", [GX_CLOUD_PARAMS_REQUIRED, GX_CLOUD_PARAMS_ALL])
 @pytest.mark.cloud
+@pytest.mark.filterwarnings("ignore:Workspace id is not set when instantiating a CloudDataContext")
 def test_cloud_context_params(
     unset_gx_env_variables: None,
     monkeypatch: pytest.MonkeyPatch,
@@ -186,6 +187,7 @@ def test_cloud_context_params(
 
 
 @pytest.mark.cloud
+@pytest.mark.filterwarnings("ignore:Workspace id is not set when instantiating a CloudDataContext")
 def test_cloud_context_with_in_memory_config_overrides(
     unset_gx_env_variables: None,
     monkeypatch: pytest.MonkeyPatch,

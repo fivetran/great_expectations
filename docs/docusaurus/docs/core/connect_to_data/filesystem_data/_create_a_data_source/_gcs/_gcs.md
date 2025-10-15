@@ -75,7 +75,7 @@ import PrereqDataContext from '../../../../_core_components/prerequisites/_preco
 
 <TabItem value="sample_code" label="Sample code">
 
-   Choose from the following to see the full example code for a S3 Filesystem Data Source, using either pandas or Spark to read the data files:
+   Choose from the following to see the full example code for a Google Cloud Storage Filesystem Data Source, using either pandas or Spark to read the data files:
 
    <Tabs queryString="data_source_type" groupId="data_source_type" defaultValue='pandas_filesystem'>
 

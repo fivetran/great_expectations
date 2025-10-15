@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 
 @public_api
-class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], Generic[DatasourceT], ABC):
+class DirectoryDataAsset(PathDataAsset[DatasourceT, ColumnPartitioner], ABC, Generic[DatasourceT]):
     """Base class for PathDataAssets which batch by combining the contents of a directory."""
 
     data_directory: pathlib.Path

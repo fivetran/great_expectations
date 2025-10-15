@@ -302,7 +302,7 @@ class TestMisconfiguredMetaDatasource:
     def test_ds_assets_type_field_not_set(self, empty_sources: DataSourceManager):
         with pytest.raises(
             TypeRegistrationError,
-            match="No `type` field found for `BadAssetDatasource.asset_types` -> `MissingTypeAsset` unable to register asset type",  # noqa: E501 # FIXME CoP
+            match=r"No `type` field found for `BadAssetDatasource.asset_types` -> `MissingTypeAsset` unable to register asset type",  # noqa: E501 # FIXME CoP
         ):
 
             class MissingTypeAsset(DataAsset):

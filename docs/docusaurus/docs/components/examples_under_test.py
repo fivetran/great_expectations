@@ -648,7 +648,9 @@ learn_data_quality_use_cases = [
         user_flow_script="docs/docusaurus/docs/reference/learn/data_quality_use_cases/uniqueness_resources/uniqueness_workflow.py",
         data_dir="tests/test_sets/learn_data_quality_use_cases/",
         util_script="tests/test_utils.py",
-        backend_dependencies=[BackendDependencies.POSTGRESQL],
+        backend_dependencies=[
+            BackendDependencies.POSTGRESQL,
+        ],
     ),
     # Volume.
     IntegrationTestFixture(

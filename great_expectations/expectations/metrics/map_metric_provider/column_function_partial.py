@@ -234,7 +234,7 @@ def column_function_partial(  # noqa: C901, PLR0915 # FIXME CoP
                     compute_domain_kwargs = metric_domain_kwargs
 
                 (
-                    data,
+                    _,
                     compute_domain_kwargs,
                     accessor_domain_kwargs,
                 ) = execution_engine.get_compute_domain(
