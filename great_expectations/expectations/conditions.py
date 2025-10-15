@@ -21,6 +21,10 @@ class Comparator(Enum):
     IN = "IN"
     NOT_IN = "NOT_IN"
 
+    @override
+    def __str__(self) -> str:
+        return self.value
+
 
 Parameter = Any
 
@@ -109,7 +113,7 @@ class ComparisonCondition(Condition):
     @override
     def __repr__(self):
         col_name = self.column.name
-        if self.operator in ("IN", "NOT IN"):
+        if self.operator in (Comparator.IN, Comparator.NOT_IN):
             return f"{col_name} {self.operator} ({', '.join(map(str, self.parameter))})"
         return f"{col_name} {self.operator} {self.parameter}"
 
