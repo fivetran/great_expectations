@@ -20,6 +20,60 @@ class TestCondition:
         condition = Condition()
         assert isinstance(condition, Condition)
 
+    def test_and_with_two_conditions(sef):
+        condition_a = Condition()
+        condition_b = Condition()
+
+        result = condition_a & condition_b
+        assert result == AndCondition(conditions=[condition_a, condition_b])
+
+    def test_and_with_and_on_left(sef):
+        condition_a = Condition()
+        condition_b = Condition()
+        condition_c = Condition()
+
+        left_condition = AndCondition(conditions=[condition_a, condition_b])
+
+        result = left_condition & condition_c
+        assert result == AndCondition(conditions=[condition_a, condition_b, condition_c])
+
+    def test_and_with_and_on_right(sef):
+        condition_a = Condition()
+        condition_b = Condition()
+        condition_c = Condition()
+
+        right_condition = AndCondition(conditions=[condition_b, condition_c])
+
+        result = condition_a & right_condition
+        assert result == AndCondition(conditions=[condition_a, condition_b, condition_c])
+
+    def test_or_with_two_conditions(sef):
+        condition_a = Condition()
+        condition_b = Condition()
+
+        result = condition_a | condition_b
+        assert result == OrCondition(conditions=[condition_a, condition_b])
+
+    def test_or_with_or_on_left(sef):
+        condition_a = Condition()
+        condition_b = Condition()
+        condition_c = Condition()
+
+        left_condition = OrCondition(conditions=[condition_a, condition_b])
+
+        result = left_condition | condition_c
+        assert result == OrCondition(conditions=[condition_a, condition_b, condition_c])
+
+    def test_or_with_or_on_right(sef):
+        condition_a = Condition()
+        condition_b = Condition()
+        condition_c = Condition()
+
+        right_condition = OrCondition(conditions=[condition_b, condition_c])
+
+        result = condition_a | right_condition
+        assert result == OrCondition(conditions=[condition_a, condition_b, condition_c])
+
 
 class TestAndCondition:
     """Tests for the AndCondition class."""

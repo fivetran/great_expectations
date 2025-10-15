@@ -13,7 +13,23 @@ _NESTED_OR_ERROR = "OR groups cannot contain nested OR conditions"
 class Condition(BaseModel):
     """Base class for conditions."""
 
-    pass
+    def __and__(self, other: Condition) -> Condition:
+        new_conditions = []
+        for cond in [self, other]:
+            if isinstance(cond, AndCondition):
+                new_conditions.extend(cond.conditions)
+            else:
+                new_conditions.append(cond)
+        return AndCondition(conditions=new_conditions)
+
+    def __or__(self, other: Condition) -> Condition:
+        new_conditions = []
+        for cond in [self, other]:
+            if isinstance(cond, OrCondition):
+                new_conditions.extend(cond.conditions)
+            else:
+                new_conditions.append(cond)
+        return OrCondition(conditions=new_conditions)
 
 
 class AndCondition(Condition):
