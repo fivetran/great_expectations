@@ -15,7 +15,7 @@ import LinkCard from '@site/src/components/LinkCard';
 import OverviewCard from '@site/src/components/OverviewCard';
 
 <OverviewCard title={frontMatter.title}>
-  Use conceptual information and hands-on-tutorials to learn more about GX features and functionality.
+  Use conceptual information and hands-on tutorials to learn more about GX features and functionality.
 </OverviewCard>
 
 ## Supplemental Information
