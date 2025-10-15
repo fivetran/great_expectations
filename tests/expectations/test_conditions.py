@@ -360,3 +360,87 @@ class TestNullityCondition:
         cond = NullityCondition(column=col, is_null=False)
 
         assert repr(cond) == "email IS NOT NULL"
+
+
+class TestComplexExpressions:
+    """Tests for complex condition expressions with AND/OR combinations."""
+
+    def test_and_has_precedence_over_or(self):
+        """Test that & operator has higher precedence than | operator."""
+        col1 = Column(name="age")
+        col2 = Column(name="status")
+        col3 = Column(name="score")
+
+        cond1 = col1 > 18
+        cond2 = col2 == "active"
+        cond3 = col3 >= 80
+
+        result = cond1 | cond2 & cond3
+
+        assert result == OrCondition(conditions=[cond1, AndCondition(conditions=[cond2, cond3])])
+
+    def test_parentheses_override_precedence(self):
+        """Test that parentheses can override operator precedence for grouping."""
+        col1 = Column(name="age")
+        col2 = Column(name="status")
+        col3 = Column(name="score")
+
+        cond1 = col1 > 18
+        cond2 = col2 == "active"
+        cond3 = col3 >= 80
+
+        result = (cond1 | cond2) & cond3
+
+        assert result == AndCondition(conditions=[OrCondition(conditions=[cond1, cond2]), cond3])
+
+    def test_complex_nested_expression(self):
+        """Test complex expression with multiple levels of nesting."""
+        age = Column(name="age")
+        status = Column(name="status")
+        score = Column(name="score")
+        email = Column(name="email")
+
+        adult_and_active = (age > 18) & (status == "active")
+        high_score_with_email = (score >= 80) & email.is_not_null()
+        result = adult_and_active | high_score_with_email
+
+        cond1 = age > 18
+        cond2 = status == "active"
+        cond3 = score >= 80
+        cond4 = email.is_not_null()
+
+        assert result == OrCondition(
+            conditions=[
+                AndCondition(conditions=[cond1, cond2]),
+                AndCondition(conditions=[cond3, cond4]),
+            ]
+        )
+
+    def test_multiple_ands_flatten(self):
+        """Test that multiple ANDs flatten into a single AndCondition."""
+        col1 = Column(name="age")
+        col2 = Column(name="status")
+        col3 = Column(name="score")
+        col4 = Column(name="city")
+
+        cond1 = col1 > 18
+        cond2 = col2 == "active"
+        cond3 = col3 >= 80
+        cond4 = col4 == "NYC"
+
+        result = cond1 & cond2 & cond3 & cond4
+
+        assert result == AndCondition(conditions=[cond1, cond2, cond3, cond4])
+
+    def test_multiple_ors_flatten(self):
+        """Test that multiple ORs flatten into a single OrCondition."""
+        col1 = Column(name="status")
+
+        cond1 = col1 == "active"
+        cond2 = col1 == "pending"
+        cond3 = col1 == "approved"
+        cond4 = col1 == "verified"
+
+        result = cond1 | cond2 | cond3 | cond4
+
+        assert result == OrCondition(conditions=[cond1, cond2, cond3, cond4])
