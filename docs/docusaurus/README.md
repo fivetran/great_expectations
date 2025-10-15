@@ -22,16 +22,13 @@ Once you've run `invoke docs` once, you can run `invoke docs --start` to start t
 
 ## Local Development Setup
 
-To enable certain features during local development, such as PostHog analytics tracking, you may need to set environment variables.
+To enable certain features during local development, you may need to set environment variables.
 
 1.  Create a `.env` file in the `docs/docusaurus/` directory by copying the example file:
     ```bash
     cp docs/docusaurus/.env.example docs/docusaurus/.env
     ```
-2.  Edit the `docs/docusaurus/.env` file and add your specific API keys or other necessary values. For PostHog testing, you will need to add:
-    ```dotenv
-    POSTHOG_API_KEY=phc_YOUR_POSTHOG_API_KEY
-    ```
+2.  Edit the `docs/docusaurus/.env` file and add your specific API keys or other necessary values.
 
 This `.env` file is included in `.gitignore` and should not be committed to version control.
 

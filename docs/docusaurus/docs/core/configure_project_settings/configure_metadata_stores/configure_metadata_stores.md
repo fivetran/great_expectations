@@ -13,7 +13,7 @@ import PrereqGxInstalled from '../../_core_components/prerequisites/_gx_installa
 import PrereqFileDataContext from '../../_core_components/prerequisites/_file_data_context.md'
 
 
-Stores are used by GX Core to store and retreive information ranging from project metadata such as Expectation Suite configurations to the Validation Results generated when Checkpoints are run.
+Stores are used by GX Core to store and retrieve information ranging from project metadata such as Expectation Suite configurations to the Validation Results generated when Checkpoints are run.
 
 Ephemeral Data Contexts store this information in memory. File Data Contexts, however, store this information in files that can be copied or shared between other File Data Contexts.
 

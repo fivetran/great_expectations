@@ -65,7 +65,7 @@ class BigQueryBatchTestSetup(SQLBatchTestSetup[BigQueryDatasourceTestConfig]):
 
     @override
     def make_asset(self) -> TableAsset:
-        return self.context.data_sources.add_sql(
+        return self.context.data_sources.add_bigquery(
             name=self._random_resource_name(), connection_string=self.connection_string
         ).add_table_asset(
             name=self._random_resource_name(),

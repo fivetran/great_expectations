@@ -6,6 +6,9 @@ import pytest
 import great_expectations.expectations as gxe
 from great_expectations.datasource.fluent.interfaces import Batch
 from tests.integration.conftest import parameterize_batch_for_data_sources
+from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
+    JUST_PANDAS_DATA_SOURCES,
+)
 from tests.integration.test_utils.data_source_config import (
     DatabricksDatasourceTestConfig,
     DataSourceTestConfig,
@@ -90,3 +93,62 @@ class TestNormalSql:
     ) -> None:
         result = batch_for_datasource.validate(expectation)
         assert not result.success
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows_pandas(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToNotMatchRegex with pandas."""
+    expectation = gxe.ExpectColumnValuesToNotMatchRegex(column=COL_A, regex="^a[abc]$")
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For pandas data sources, unexpected_rows should be directly usable
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+
+    # Convert directly to DataFrame for pandas data sources
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain 3 rows where COL_A matches regex ^a[abc]$ ("aa", "ab", "ac" all match)
+    assert len(unexpected_rows_df) == 3
+
+    # The unexpected rows should contain all the matching values
+    unexpected_values = sorted(unexpected_rows_df[COL_A].tolist())
+    assert unexpected_values == ["aa", "ab", "ac"]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnValuesToNotMatchRegex with SQL data sources."""
+    expectation = gxe.ExpectColumnValuesToNotMatchRegex(column=COL_A, regex="^a[abc]$")
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 3 rows where COL_A matches regex ^a[abc]$ ("aa", "ab", "ac" all match)
+    assert len(unexpected_rows_data) == 3
+
+    # Check that all matching values appear in the unexpected rows data
+    unexpected_rows_str = str(unexpected_rows_data)
+    for value in ["aa", "ab", "ac"]:
+        assert value in unexpected_rows_str

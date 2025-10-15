@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "versioneer"]
+requires = ["setuptools", "wheel", "versioneer", "typing_extensions>=4.1.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.mypy]
@@ -212,7 +212,6 @@ module = [
     "mistune.*",
     "moto.*",
     "pact.*",
-    "posthog.*",
     "pyarrow.*",
     "pyfakefs.*",
     "pypd.*",
@@ -630,6 +629,10 @@ filterwarnings = [
     # Example Actual Warning:
     # DeprecationWarning: Importing ErrorTree directly from the jsonschema package is deprecated and will become an ImportError. Import it from jsonschema.exceptions instead.
     "ignore: Importing ErrorTree directly from the jsonschema package is deprecated and will become an ImportError. Import it from jsonschema.exceptions instead.:DeprecationWarning",
+    # google-auth
+    # Example Actual Warning:
+    # DeprecationWarning: The load_credentials_from_file method is deprecated because of a potential security risk.
+    "ignore: The load_credentials_from_file method is deprecated because of a potential security risk.:DeprecationWarning",
     # sqlalchemy
     # Example Actual Warning:
     # sqlalchemy.exc.RemovedIn20Warning: Deprecated API features detected! These feature(s) are not compatible with SQLAlchemy 2.0. To prevent incompatible upgrades prior to updating applications, ensure requirements files are pinned to "sqlalchemy<2.0". Set environment variable SQLALCHEMY_WARN_20=1 to show all deprecation warnings.  Set environment variable SQLALCHEMY_SILENCE_UBER_WARNING=1 to silence this message. (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
@@ -654,14 +657,14 @@ markers = [
     "bigquery: mark test as bigquery-dependent.",
     "clickhouse: mark a test as Clickhouse-dependent.",
     "cloud: mark test as being relevant to Great Expectations Cloud.",
+    "databricks: mark test as requiring databricks.",
     "docs-basic: mark a test as a docs test, that does not require additional credentials.",
     "docs-creds-needed: mark a test as a docs test that needs additional cloud credentials (these will not run on public forks).",
-    "databricks: mark test as requiring databricks.",
-    "docs: mark a test as a docs test.",
     "docs-spark: temporarily mark a test as a docs test that depends on spark.",
-    "integration: mark test as an integration test.",
+    "docs: mark a test as a docs test.",
     "external_sqldialect: mark test as requiring install of an external sql dialect.",
     "filesystem: mark tests using the filesystem as the storage backend.",
+    "integration: mark test as an integration test.",
     "mssql: mark a test as mssql-dependent.",
     "mysql: mark a test as mysql-dependent.",
     "openpyxl: mark a test for openpyxl-dependent, which is for Excel files.",

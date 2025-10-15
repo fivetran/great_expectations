@@ -16,6 +16,7 @@ from great_expectations.core.expectation_validation_result import (
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 
 
 @pytest.mark.unit
@@ -427,6 +428,49 @@ def test_render_updates_rendered_content():
     assert evr.rendered_content is not None
 
 
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "severity_enum,expected_string",
+    [
+        (FailureSeverity.WARNING, "warning"),
+        (FailureSeverity.CRITICAL, "critical"),
+        (FailureSeverity.INFO, "info"),
+    ],
+)
+def test_expectation_validation_result_with_severity_enum_serializes_properly(
+    severity_enum, expected_string
+):
+    """Test that expectation validation results with severity enums serialize without errors."""
+
+    # Create an expectation config with severity enum at top level
+    config = ExpectationConfiguration(
+        type="expect_table_row_count_to_be_between",
+        kwargs={"min_value": 0, "max_value": 100},
+        severity=severity_enum,
+    )
+
+    evr = ExpectationValidationResult(
+        success=True,
+        expectation_config=config,
+        result={
+            "observed_value": 50,
+            "element_count": 1000,
+            "missing_count": 0,
+            "missing_percent": 0.0,
+        },
+        exception_info={
+            "raised_exception": False,
+            "exception_traceback": None,
+            "exception_message": None,
+        },
+    )
+
+    # Test that the validation result serializes without errors and severity is correct
+    json_dict = evr.to_json_dict()
+    # Verify the severity was converted to the expected string value
+    assert json_dict["expectation_config"]["severity"] == expected_string
+
+
 class TestSerialization:
     @pytest.mark.unit
     def test_expectation_validation_results_serializes(self) -> None:
@@ -662,3 +706,261 @@ class TestExpectationSuiteValidationResultHash:
         hash3 = hash(result)
 
         assert hash1 == hash2 == hash3
+
+
+class TestGetMaxSeverityFailure:
+    @pytest.mark.unit
+    def test_get_max_severity_failure_no_results(self):
+        """Test that None is returned when there are no results."""
+        result = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=True,
+            results=[],
+        )
+
+        assert result.get_max_severity_failure() is None
+
+    @pytest.mark.unit
+    def test_get_max_severity_failure_no_failures(self):
+        """Test that None is returned when all expectations pass."""
+        config = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column"},
+            severity="critical",
+        )
+
+        evr = ExpectationValidationResult(
+            success=True, expectation_config=config, result={"observed_value": 100}
+        )
+
+        result = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=True,
+            results=[evr],
+        )
+
+        assert result.get_max_severity_failure() is None
+
+    @pytest.mark.unit
+    def test_get_max_severity_failure_multiple_failures(self):
+        """Test that the highest severity is returned among multiple failures."""
+
+        config1 = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column"},
+            severity="info",
+        )
+        config2 = ExpectationConfiguration(
+            type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "test_column",
+                "min_value": 0,
+                "max_value": 100,
+            },
+            severity="warning",
+        )
+        config3 = ExpectationConfiguration(
+            type="expect_column_values_to_be_unique",
+            kwargs={"column": "test_column"},
+            severity="critical",
+        )
+
+        evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
+        evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
+        evr3 = ExpectationValidationResult(success=False, expectation_config=config3, result={})
+
+        result = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=False,
+            results=[evr1, evr2, evr3],
+        )
+
+        assert result.get_max_severity_failure() == FailureSeverity.CRITICAL
+
+    @pytest.mark.unit
+    def test_get_max_severity_failure_mixed_success_failure(self):
+        """Test that only failed expectations are considered."""
+
+        config1 = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column"},
+            severity="critical",
+        )
+        config2 = ExpectationConfiguration(
+            type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "test_column",
+                "min_value": 0,
+                "max_value": 100,
+            },
+            severity="warning",
+        )
+
+        evr1 = ExpectationValidationResult(success=True, expectation_config=config1, result={})
+        evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
+
+        result = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=False,
+            results=[evr1, evr2],
+        )
+
+        assert result.get_max_severity_failure() == FailureSeverity.WARNING
+
+    @pytest.mark.unit
+    def test_failure_severity_enum_semantic_ordering(self):
+        """Test that FailureSeverity enum values sort semantically."""
+        from great_expectations.expectations.metadata_types import FailureSeverity
+
+        # Test that the enum values sort in semantic order (info < warning < critical)
+        # This should NOT depend on lexicographical order of the string values
+        severity_values = [FailureSeverity.CRITICAL, FailureSeverity.WARNING, FailureSeverity.INFO]
+
+        # Sort the values - they should now be in the correct semantic order
+        sorted_severities = sorted(severity_values)
+
+        # Verify the semantic order: info < warning < critical
+        assert sorted_severities[0] == FailureSeverity.INFO, (
+            f"Expected INFO first, got {sorted_severities[0]}"
+        )
+        assert sorted_severities[1] == FailureSeverity.WARNING, (
+            f"Expected WARNING second, got {sorted_severities[1]}"
+        )
+        assert sorted_severities[2] == FailureSeverity.CRITICAL, (
+            f"Expected CRITICAL third, got {sorted_severities[2]}"
+        )
+
+        # Test individual comparisons - these should work semantically, not lexicographically
+        assert FailureSeverity.INFO < FailureSeverity.WARNING, (
+            "INFO should be less than WARNING semantically"
+        )
+        assert FailureSeverity.WARNING < FailureSeverity.CRITICAL, (
+            "WARNING should be less than CRITICAL semantically"
+        )
+        assert FailureSeverity.INFO < FailureSeverity.CRITICAL, (
+            "INFO should be less than CRITICAL semantically"
+        )
+
+        # Test that the string values can be in any order - the semantic ordering should still work
+        # Even though "critical" < "info" < "warning" lexicographically
+        assert FailureSeverity.CRITICAL > FailureSeverity.INFO, (
+            "CRITICAL should be greater than INFO semantically"
+        )
+        assert FailureSeverity.CRITICAL > FailureSeverity.WARNING, (
+            "CRITICAL should be greater than WARNING semantically"
+        )
+        assert FailureSeverity.WARNING > FailureSeverity.INFO, (
+            "WARNING should be greater than INFO semantically"
+        )
+
+    @pytest.mark.unit
+    def test_get_max_severity_failure_invalid_severity_skipped(self, caplog):
+        """Test that expectations with invalid severity are skipped."""
+        import logging
+
+        # Create valid configurations first, then mock returning an invalid severity to
+        # work around ValueError that is raised when attempting to set an invalid
+        # severity in the constructor
+        config1 = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column"},
+            severity="critical",  # Start with valid severity
+        )
+        config2 = ExpectationConfiguration(
+            type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "test_column",
+                "min_value": 0,
+                "max_value": 100,
+            },
+            severity="warning",
+        )
+
+        # Mock the get method to return invalid severity for testing
+        original_get = config1.get
+
+        def mock_get_invalid(key, default=None):
+            if key == "severity":
+                return "invalid_severity"
+            return original_get(key, default)
+
+        config1.get = mock_get_invalid
+
+        evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
+        evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
+
+        result = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=False,
+            results=[evr1, evr2],
+        )
+
+        # Capture log messages BEFORE calling the method
+        caplog.set_level(
+            logging.ERROR, logger="great_expectations.core.expectation_validation_result"
+        )
+
+        # Now call the method that should generate the log
+        assert result.get_max_severity_failure() == FailureSeverity.WARNING
+
+        # Verify that an error was logged about invalid severity
+        assert any(
+            "Invalid severity value 'invalid_severity'" in record.message
+            for record in caplog.records
+        )
+        assert any(
+            "expect_column_values_to_not_be_null" in record.message for record in caplog.records
+        )
+
+    @pytest.mark.unit
+    def test_get_max_severity_failure_all_invalid_severities(self):
+        """Test that None is returned when all failures have invalid severity."""
+
+        # Create valid configurations first, then mock returning an invalid severity to
+        # work around ValueError that is raised when attempting to set an invalid
+        # severity in the constructor
+        config1 = ExpectationConfiguration(
+            type="expect_column_values_to_not_be_null",
+            kwargs={"column": "test_column"},
+            severity="critical",
+        )
+        config2 = ExpectationConfiguration(
+            type="expect_column_values_to_be_between",
+            kwargs={
+                "column": "test_column",
+                "min_value": 0,
+                "max_value": 100,
+            },
+            severity="warning",
+        )
+
+        evr1 = ExpectationValidationResult(success=False, expectation_config=config1, result={})
+        evr2 = ExpectationValidationResult(success=False, expectation_config=config2, result={})
+
+        result = ExpectationSuiteValidationResult(
+            suite_name="test_suite",
+            success=False,
+            results=[evr1, evr2],
+        )
+
+        # Mock the get method to return invalid severity for testing
+        original_get1 = config1.get
+
+        def mock_get_invalid1(key, default=None):
+            if key == "severity":
+                return "invalid_severity_1"
+            return original_get1(key, default)
+
+        config1.get = mock_get_invalid1
+
+        original_get2 = config2.get
+
+        def mock_get_invalid2(key, default=None):
+            if key == "severity":
+                return "invalid_severity_2"
+            return original_get2(key, default)
+
+        config2.get = mock_get_invalid2
+
+        # Test that the method returns None when all severities are invalid
+        assert result.get_max_severity_failure() is None

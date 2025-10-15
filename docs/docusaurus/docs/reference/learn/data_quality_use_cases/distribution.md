@@ -153,7 +153,7 @@ Use the GX Cloud UI to walk through the following steps.
 
 **Result**: All Expectations pass.
 
-![Validation Results for distribution Expectations in GX Cloud UI](./distribution_resources/distribution_example_validation_results.png)
+![Validation Results provide Expectation details, observed values, and validation history.](./distribution_resources/distribution_example_validation_results.png)
 
 </TabItem>
 

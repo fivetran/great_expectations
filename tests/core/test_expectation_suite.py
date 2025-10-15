@@ -14,11 +14,6 @@ import great_expectations.exceptions as gx_exceptions
 import great_expectations.expectations as gxe
 from great_expectations import __version__ as ge_version
 from great_expectations import get_context
-from great_expectations.analytics.events import (
-    ExpectationSuiteExpectationCreatedEvent,
-    ExpectationSuiteExpectationDeletedEvent,
-    ExpectationSuiteExpectationUpdatedEvent,
-)
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.serdes import _IdentifierBundle
 from great_expectations.data_context import AbstractDataContext
@@ -250,7 +245,7 @@ class TestCRUDMethods:
         ]
         with pytest.raises(
             ValueError,
-            match="Expectations in parameter `expectations` must not belong to another ExpectationSuite.",  # noqa: E501 # FIXME CoP
+            match=r"Expectations in parameter `expectations` must not belong to another ExpectationSuite.",  # noqa: E501 # FIXME CoP
         ):
             ExpectationSuite(name=self.expectation_suite_name, expectations=expectations)
 
@@ -260,8 +255,7 @@ class TestCRUDMethods:
         set_context(project=context)
         suite = ExpectationSuite(name=self.expectation_suite_name)
 
-        with mock.patch.object(ExpectationSuite, "_submit_expectation_created_event"):
-            created_expectation = suite.add_expectation(expectation=expectation)
+        created_expectation = suite.add_expectation(expectation=expectation)
 
         assert created_expectation == context.expectations_store.add_expectation.return_value
         context.expectations_store.add_expectation.assert_called_once_with(
@@ -411,8 +405,7 @@ class TestCRUDMethods:
             expectations=[expectation_a],
         )
 
-        with mock.patch.object(ExpectationSuite, "_submit_expectation_created_event"):
-            suite.add_expectation(expectation=expectation_b)
+        suite.add_expectation(expectation=expectation_b)
 
         assert len(suite.expectations) == 2
 
@@ -488,7 +481,7 @@ class TestCRUDMethods:
             name="test-suite",
         )
 
-        with pytest.raises(KeyError, match="No matching expectation was found."):
+        with pytest.raises(KeyError, match=r"No matching expectation was found."):
             suite.delete_expectation(expectation=expectation)
 
         context.expectations_store.delete_expectation.assert_not_called()
@@ -542,7 +535,12 @@ class TestCRUDMethods:
         self._test_update_suite_adds_ids(context, expectation)
 
     @pytest.mark.cloud
-    def test_cloud_context_update_suite_adds_ids(self, empty_cloud_context_fluent, expectation):
+    def test_cloud_context_update_suite_adds_ids(
+        self,
+        unset_gx_env_variables: None,
+        empty_cloud_context_fluent,
+        expectation,
+    ):
         context = empty_cloud_context_fluent
         self._test_update_suite_adds_ids(context, expectation)
 
@@ -576,13 +574,16 @@ class TestCRUDMethods:
 
         with pytest.raises(
             RuntimeError,
-            match="Cannot add Expectation because it already belongs to an ExpectationSuite.",
+            match=r"Cannot add Expectation because it already belongs to an ExpectationSuite.",
         ):
             suite.add_expectation(expectation)
 
     @pytest.mark.cloud
     def test_cloud_expectation_can_be_saved_after_added(
-        self, empty_cloud_context_fluent, expectation
+        self,
+        unset_gx_env_variables: None,
+        empty_cloud_context_fluent,
+        expectation,
     ):
         context = empty_cloud_context_fluent
         self._test_expectation_can_be_saved_after_added(context, expectation)
@@ -608,7 +609,10 @@ class TestCRUDMethods:
 
     @pytest.mark.cloud
     def test_cloud_expectation_can_be_saved_after_update(
-        self, empty_cloud_context_fluent, expectation
+        self,
+        unset_gx_env_variables: None,
+        empty_cloud_context_fluent,
+        expectation,
     ):
         context = empty_cloud_context_fluent
         self._test_expectation_can_be_saved_after_update(context, expectation)
@@ -673,7 +677,9 @@ class TestCRUDMethods:
 
     @pytest.mark.cloud
     def test_expectation_save_callback_can_come_from_any_copy_of_a_suite(
-        self, empty_cloud_context_fluent
+        self,
+        unset_gx_env_variables: None,
+        empty_cloud_context_fluent,
     ):
         """Equivalent calls to ExpectationSuite._save_expectation from different copies of a
         single ExpectationSuite must produce equivalent side effects.
@@ -1191,87 +1197,6 @@ class TestExpectationSuiteAnalytics:
     def expect_column_values_to_be_between(self) -> Expectation:
         return gxe.ExpectColumnValuesToBeBetween(column="passenger_count", min_value=1, max_value=6)
 
-    @pytest.mark.unit
-    def test_add_expectation_emits_event(self, empty_suite, expect_column_values_to_be_between):
-        suite = empty_suite
-        expectation = expect_column_values_to_be_between
-
-        with mock.patch("great_expectations.core.expectation_suite.submit_event") as mock_submit:
-            _ = suite.add_expectation(expectation)
-
-        mock_submit.assert_called_once_with(
-            event=ExpectationSuiteExpectationCreatedEvent(
-                expectation_id=mock.ANY,
-                expectation_suite_id=mock.ANY,
-                expectation_type="expect_column_values_to_be_between",
-                custom_exp_type=False,
-            )
-        )
-
-    @pytest.mark.unit
-    def test_add_custom_expectation_emits_event(self, empty_suite):
-        suite = empty_suite
-
-        class ExpectColumnValuesToBeBetweenOneAndTen(gxe.ExpectColumnValuesToBeBetween):
-            min_value: int = 1
-            max_value: int = 10
-
-        expectation = ExpectColumnValuesToBeBetweenOneAndTen(column="passenger_count")
-
-        with mock.patch("great_expectations.core.expectation_suite.submit_event") as mock_submit:
-            _ = suite.add_expectation(expectation)
-
-        mock_submit.assert_called_once_with(
-            event=ExpectationSuiteExpectationCreatedEvent(
-                expectation_id=mock.ANY,
-                expectation_suite_id=mock.ANY,
-                expectation_type=mock.ANY,
-                custom_exp_type=True,
-            )
-        )
-
-        # Due to anonymizer randomization, we can't assert the exact expectation type
-        # We can however assert that it has been hashed
-        expectation_type = mock_submit.call_args.kwargs["event"].expectation_type
-        assert not expectation_type.startswith("expect_")
-
-    @pytest.mark.unit
-    def test_delete_expectation_emits_event(self, empty_suite, expect_column_values_to_be_between):
-        suite = empty_suite
-        expectation = expect_column_values_to_be_between
-
-        suite.add_expectation(expectation)
-
-        with mock.patch("great_expectations.core.expectation_suite.submit_event") as mock_submit:
-            suite.delete_expectation(expectation)
-
-        mock_submit.assert_called_once_with(
-            event=ExpectationSuiteExpectationDeletedEvent(
-                expectation_id=mock.ANY,
-                expectation_suite_id=mock.ANY,
-            )
-        )
-
-    @pytest.mark.unit
-    def test_expectation_save_callback_emits_event(
-        self, empty_suite, expect_column_values_to_be_between
-    ):
-        suite = empty_suite
-        expectation = expect_column_values_to_be_between
-
-        expectation = suite.add_expectation(expectation)
-        expectation.column = "fare_amount"
-
-        with mock.patch("great_expectations.core.expectation_suite.submit_event") as mock_submit:
-            expectation.save()
-
-        mock_submit.assert_called_once_with(
-            event=ExpectationSuiteExpectationUpdatedEvent(
-                expectation_id=mock.ANY,
-                expectation_suite_id=mock.ANY,
-            )
-        )
-
 
 @pytest.mark.unit
 def test_identifier_bundle_with_existing_id(in_memory_runtime_context):
@@ -1322,6 +1247,7 @@ def test_is_fresh_is_added(
 
 @pytest.mark.cloud
 def test_save_on_suite_updates_rendered_content(
+    unset_gx_env_variables: None,
     empty_cloud_context_fluent,
 ):
     context = empty_cloud_context_fluent
@@ -1363,6 +1289,7 @@ def test_save_on_suite_updates_rendered_content(
 
 @pytest.mark.cloud
 def test_save_on_individual_expectation_updates_rendered_content(
+    unset_gx_env_variables: None,
     empty_cloud_context_fluent,
 ):
     context = empty_cloud_context_fluent
@@ -1543,3 +1470,86 @@ class TestExpectationSuiteHash:
         hash3 = hash(suite)
 
         assert hash1 == hash2 == hash3
+
+
+@pytest.mark.unit
+def test_expectation_suite_severity_functionality():
+    """Test that severity is properly handled in ExpectationSuite operations."""
+    from great_expectations.expectations.metadata_types import FailureSeverity
+
+    # Create a suite with expectations that have different severities
+    suite = ExpectationSuite(name="test_suite")
+
+    # Add expectation configuration with default severity
+    config1 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column_1"},
+    )
+    suite.add_expectation_configuration(config1)
+    assert suite.expectations[0].severity == FailureSeverity.CRITICAL
+
+    # Add expectation configuration with custom severity
+    config2 = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column_2"},
+        severity=FailureSeverity.WARNING,
+    )
+    suite.add_expectation_configuration(config2)
+    assert suite.expectations[1].severity == FailureSeverity.WARNING
+
+    # Test that severity is preserved when accessing expectations
+    assert suite.expectations[0].severity == FailureSeverity.CRITICAL
+    assert suite.expectations[1].severity == FailureSeverity.WARNING
+
+    # Test that severity is included in serialization
+    suite_dict = suite.to_json_dict()
+    assert "expectations" in suite_dict
+    assert len(suite_dict["expectations"]) == 2
+    assert suite_dict["expectations"][0]["severity"] == "critical"
+    assert suite_dict["expectations"][1]["severity"] == "warning"
+
+    # Test that severity is preserved when modifying expectations
+    suite.expectations[0].severity = FailureSeverity.INFO
+    assert suite.expectations[0].severity == FailureSeverity.INFO
+
+    # Note: Current implementation doesn't include severity in equality comparison
+    # so expectations with same type/kwargs but different severity are considered equal
+    suite2 = ExpectationSuite(name="test_suite")
+    config1_copy = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column_1"},
+        severity=FailureSeverity.INFO,
+    )
+    suite2.add_expectation_configuration(config1_copy)
+
+    # Should be equal because severity is not considered in equality
+    assert suite.expectations[0] == suite2.expectations[0]
+    assert hash(suite.expectations[0]) == hash(suite2.expectations[0])
+
+
+@pytest.mark.unit
+def test_expectation_suite_severity_in_configuration():
+    """Test that severity is properly handled in ExpectationConfiguration within suites."""
+    from great_expectations.expectations.metadata_types import FailureSeverity
+
+    # Create expectation configuration with custom severity
+    config = ExpectationConfiguration(
+        type="expect_column_values_to_not_be_null",
+        kwargs={"column": "test_column"},
+        severity=FailureSeverity.WARNING,
+    )
+
+    # Add to suite
+    suite = ExpectationSuite(name="test_suite")
+    suite.add_expectation_configuration(config)
+
+    # Verify severity is preserved
+    assert suite.expectations[0].severity == FailureSeverity.WARNING
+
+    # Test that configuration property preserves severity
+    expectation_config = suite.expectations[0].configuration
+    assert expectation_config.severity == FailureSeverity.WARNING
+
+    # Test that to_domain_obj preserves severity
+    domain_obj = config.to_domain_obj()
+    assert domain_obj.severity == FailureSeverity.WARNING

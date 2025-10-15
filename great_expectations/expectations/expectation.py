@@ -57,6 +57,7 @@ from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
     parse_result_format,
 )
+from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.expectations.model_field_descriptions import (
     COLUMN_A_DESCRIPTION,
     COLUMN_B_DESCRIPTION,
@@ -339,6 +340,13 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
 
     catch_exceptions: bool = False
     rendered_content: Optional[List[RenderedAtomicContent]] = None
+    severity: FailureSeverity = pydantic.Field(
+        default=FailureSeverity.CRITICAL,
+        description=(
+            "Indicate the impact of this Expectation failing. Severity levels can be "
+            "used to trigger different alerting patterns and actions."
+        ),
+    )
 
     version: ClassVar[str] = ge_version
     domain_keys: ClassVar[Tuple[str, ...]] = ()
@@ -1275,9 +1283,13 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         runtime_configuration: Optional[dict] = None,
     ) -> Union[Dict[str, Union[str, int, bool, List[str], None]], str]:
         default_result_format: Optional[Any] = self._get_default_value("result_format")
+        # defaulting to empty dict to avoid type errors is safe. All uses expect a string or a dict
+        # and if a dict is provided, it is parsed correctly with defaults injected.
+        # TODO: when working in the area, result format should be typed and defaults should be
+        # injected here, rather than other parts of the codebase.
         configuration_result_format: Union[
             Dict[str, Union[str, int, bool, List[str], None]], str
-        ] = self.configuration.kwargs.get("result_format", default_result_format)
+        ] = self.configuration.kwargs.get("result_format", default_result_format or {})
         result_format: Union[Dict[str, Union[str, int, bool, List[str], None]], str]
         if runtime_configuration:
             result_format = runtime_configuration.get(
@@ -1355,6 +1367,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         meta = kwargs.pop("meta", None)
         notes = kwargs.pop("notes", None)
         description = kwargs.pop("description", None)
+        severity = kwargs.pop("severity", FailureSeverity.CRITICAL)
         id = kwargs.pop("id", None)
         rendered_content = kwargs.pop("rendered_content", None)
         return ExpectationConfiguration(
@@ -1363,6 +1376,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             meta=meta,
             notes=notes,
             description=description,
+            severity=severity,
             id=id,
             rendered_content=rendered_content,
         )
@@ -2321,9 +2335,14 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
             self._get_result_format(runtime_configuration=runtime_configuration)
         )
 
+        include_unexpected_rows: bool
         unexpected_index_column_names = None
         if isinstance(result_format, dict):
+            include_unexpected_rows = bool(result_format.get("include_unexpected_rows", False))
             unexpected_index_column_names = result_format.get("unexpected_index_column_names", None)
+        else:
+            include_unexpected_rows = False
+
         total_count: Optional[int] = metrics.get("table.row_count")
         unexpected_count: Optional[int] = metrics.get(
             f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_COUNT.value}"
@@ -2340,6 +2359,12 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
         filtered_row_count: Optional[int] = metrics.get(
             f"{self.map_metric}.{SummarizationMetricNameSuffixes.FILTERED_ROW_COUNT.value}"
         )
+
+        unexpected_rows = None
+        if include_unexpected_rows:
+            unexpected_rows = metrics.get(
+                f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
+            )
 
         if (
             total_count is None
@@ -2367,6 +2392,7 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
             unexpected_index_list=unexpected_index_list,
             unexpected_index_query=unexpected_index_query,
             unexpected_index_column_names=unexpected_index_column_names,
+            unexpected_rows=unexpected_rows,
         )
 
 
@@ -2526,9 +2552,6 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
             ),
         )
 
-        if result_format_str == ResultFormat.BASIC:
-            return validation_dependencies
-
         if include_unexpected_rows:
             metric_kwargs = get_metric_kwargs(
                 metric_name=f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}",
@@ -2543,6 +2566,9 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
                     metric_value_kwargs=metric_kwargs["metric_value_kwargs"],
                 ),
             )
+
+        if result_format_str == ResultFormat.BASIC:
+            return validation_dependencies
 
         from great_expectations.execution_engine import (
             SqlAlchemyExecutionEngine,
@@ -2591,9 +2617,14 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
         execution_engine: Optional[ExecutionEngine] = None,
     ):
         result_format = self._get_result_format(runtime_configuration=runtime_configuration)
+
+        include_unexpected_rows: bool
         unexpected_index_column_names = None
         if isinstance(result_format, dict):
+            include_unexpected_rows = bool(result_format.get("include_unexpected_rows", False))
             unexpected_index_column_names = result_format.get("unexpected_index_column_names", None)
+        else:
+            include_unexpected_rows = False
 
         total_count: Optional[int] = metrics.get("table.row_count")
         unexpected_count: Optional[int] = metrics.get(
@@ -2611,6 +2642,12 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
         unexpected_index_query: Optional[str] = metrics.get(
             f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_INDEX_QUERY.value}"
         )
+
+        unexpected_rows = None
+        if include_unexpected_rows:
+            unexpected_rows = metrics.get(
+                f"{self.map_metric}.{SummarizationMetricNameSuffixes.UNEXPECTED_ROWS.value}"
+            )
 
         if (
             total_count is None
@@ -2638,6 +2675,7 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
             unexpected_index_list=unexpected_index_list,
             unexpected_index_query=unexpected_index_query,
             unexpected_index_column_names=unexpected_index_column_names,
+            unexpected_rows=unexpected_rows,
         )
 
 

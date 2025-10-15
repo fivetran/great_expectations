@@ -5,17 +5,15 @@ To test, run:
 # TODO: This needs to be put under test when the GX Cloud docs snippet testing environment has been created.
 """
 
-
-def set_up_context_for_example(context):
-    pass
-
-
 # EXAMPLE SCRIPT STARTS HERE:
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - full code example">
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - get cloud context">
 import great_expectations as gx
 
 context = gx.get_context(mode="cloud")
+
+# Optional. Specify a workspace ID.
+# context = gx.get_context(mode="cloud", workspace_id="abc123")
 # </snippet>
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - verify context type">
 print(type(context).__name__)
@@ -24,7 +22,6 @@ print(type(context).__name__)
 # Hide this
 assert type(context).__name__ == "CloudDataContext"
 # Hide this
-set_up_context_for_example(context)
 
 # <snippet name="docs/docusaurus/docs/cloud/connect/connect_python.py - list data sources">
 print(context.list_datasources())

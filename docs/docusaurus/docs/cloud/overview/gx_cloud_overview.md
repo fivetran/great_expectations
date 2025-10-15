@@ -1,12 +1,34 @@
 ---
 title: 'GX Cloud overview'
 id: gx_cloud_overview
-description: Explore GX Cloud components, workflows, and architecture.
+description: Explore GX Cloud integration, concepts, workflows, and architecture.
 toc_min_heading_level: 2
 toc_max_heading_level: 2
 ---
 
-GX Cloud is a fully managed SaaS platform that simplifies data quality management and monitoring. With GX Cloud, you and your organization can work collaboratively to define and maintain shared understanding of your data.
+GX Cloud is a fully managed SaaS platform that simplifies data quality management and monitoring. With GX Cloud, you and your team can work collaboratively to define and maintain shared understanding of your data.
+
+## GX Cloud in your environment
+
+You can integrate GX Cloud at any point in your data pipeline to manage and monitor data quality. Common integration points include but are not limited to the following:
+
+- **Ingestion:** validate raw data before writing it to your data warehouse so that you can quarantine bad records and identify bugs in your source system.
+
+- **Transformation:** check the results of transformations in your warehouse and condition pipeline steps based on validation success or failure.
+
+- **Delivery:** ensure unexpected patterns reveal business insights rather than data quality issues.
+
+Here’s an example of where these three common integration points fit in a generic data pipeline:
+
+![Raw data from Square, Mailchimp, and Salesforce are validated by GX Cloud before being written to a Snowflake data warehouse. Transformations are validated within the Snowflake data pipeline. Finalized data is validated before being served by BI tools such as Tableau, Power BI, and Looker.](./overview_images/gx_cloud_pipeline.png)
+
+You can also integrate GX Cloud with version control systems and with data at rest. Common workflows that validate data outside the data pipeline include:
+
+- **CI/CD:** test changes to your transformation code before merging it to production so that code changes don’t have negative downstream impacts on data.
+
+- **Exploration:** enable your stakeholders to create and run ad hoc tests to get a better understanding of the data they’re consuming.
+
+For a full list of data sources and other tools supported by GX Cloud, visit the [compatibility reference](/help/compatibility_reference.md).
 
 ## GX Cloud concepts
 
@@ -34,7 +56,7 @@ A GX Cloud data validation workflow can be implemented using the following steps
 2. Create a Data Asset.
 3. Define Expectations.
 4. Validate your data.
-5. Review and share your Validation Results with your organization.
+5. Review and share your Validation Results with your business.
 
 
 ### Additional workflow features
@@ -42,19 +64,25 @@ There are a variety of GX Cloud features that support additional enhancements to
 
 ![GX Cloud workflow enhanced with product features](./overview_images/gx_cloud_workflow_enhanced.png)
 
-* **GX Cloud user management.** GX Cloud functions as a shared portal to manage and monitor your organization's data quality. Users can be invited to your GX Cloud organization and assigned a role that governs their ability to view and edit components and workflows in GX Cloud. See [Manage users and access tokens](/cloud/users/manage_users.md) for more details.
+* **GX Cloud user management.** GX Cloud functions as a shared portal to manage and monitor your business's data quality. Users can be invited to your GX Cloud organization and assigned a role that governs their ability to view and edit components and workflows in GX Cloud. Enterprise organizations can use workspaces for more control over what users can access and do. See [Manage access](/cloud/access/manage_access.md) for more details.
 
 * **Data Asset profiling.** GX Cloud introspects your data schema by default on Data Asset creation, and also offers one-click fetching of additional descriptive metrics including column type and statistical summaries. Data profiling results are used to suggest parameters for Expectations that you create.
 
-* **Automate rules for Anomaly Detection.** GX Cloud can automatically generate Expectations that detect column changes, volume changes that deviate from historical patterns, and changes to the proportion of null values in each column. This option is available when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
+* **Automate rules for Anomaly Detection.** GX Cloud can automatically generate Expectations that detect column changes, volume changes that deviate from historical patterns, and changes to the proportion of null values in each column. This option is available in the GX Cloud UI when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset.
 
-* **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations-with-expectai-beta) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
+* **Personalize rules with ExpectAI (BETA).** GX Cloud can generate [AI-recommended Expectations](/cloud/expectations/manage_expectations.md#generate-expectations) for a Data Asset. These will be personalized based on an analysis of a sample of your data.
+
+* **Generate code for custom SQL Expectations with ExpectAI (BETA).** To simplify working with [custom SQL Expectations](/cloud/expectations/expectations_overview.md#custom-sql-expectations), you can use ExpectAI to generate a SQL query based on a natural language prompt you provide and a data profile GX Cloud automatically provides.
 
 * **Schedule Validations.** GX Cloud enables you to schedule validations, so that you can test and assess your data on a regular cadence and monitor data quality over time. See [Manage schedules](/cloud/schedules/manage_schedules.md) for more detail.
 
-* **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your organization to remain proactively aware of the health of your Data Assets. See [Manage alerts](/cloud/alerts/manage_alerts.md) for more detail.
+* **Alerting.** GX Cloud provides the ability to send alerts when validations fail, enabling your business to remain proactively aware of the health of your Data Assets. See [Respond to results](/cloud/alerts/alerts_lp.md) for more detail.
 
+* **Monitor Data Health.** GX Cloud provides metric summaries and trends to help you understand and improve test coverage and success across your business. See [Data Health](/cloud/overview/data_health.md) for more detail.
 
+:::note Data Source support
+Some features aren't supported for some Data Sources. See [Data Source limitations](/docs/cloud/data_sources/manage_data_sources.md#data-source-limitations) for details.
+:::
 
 ## GX Cloud architecture
 
@@ -62,9 +90,9 @@ GX Cloud architecture comprises a frontend web UI, storage for entity configurat
 
 ![You interact using the UI, API, or both. How GX Cloud connects to your data depends on your deployment pattern.](./overview_images/gx_cloud_architecture.png)
 
-* **GX Cloud frontend web UI**. Enables you to manage and validate your organization's data quality without running code and provides shared visibility into your organization's Validation Results history.
+* **GX Cloud frontend web UI**. Enables you to manage and validate your business's data quality without running code and provides shared visibility into your team's Validation Results history.
 
-* **GX Cloud data storage**. Stores the configurations for your organization's Data Sources, Data Assets, Expectations, and Validations alongside your organization's Validation Result histories and Data Asset descriptive metrics.
+* **GX Cloud data storage**. Stores the configurations for your Data Sources, Data Assets, Expectations, and Validations alongside your Validation Result histories and Data Asset descriptive metrics.
 
 * **GX Cloud backend application**. Contains the necessary logic and compute to connect to data and run queries. The specifics of how the GX Cloud backend connects to your data is described in [Deployment patterns](/cloud/deploy/deployment_patterns.md).
 

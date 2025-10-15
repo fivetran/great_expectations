@@ -83,6 +83,38 @@ class TestNormalSql:
         result = batch_for_datasource.validate(expectation)
         assert not result.success
 
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+    )
+    def test_include_unexpected_rows_postgres(self, batch_for_datasource: Batch) -> None:
+        """Test include_unexpected_rows for ExpectColumnValuesToNotMatchLikePatternList."""
+        expectation = gxe.ExpectColumnValuesToNotMatchLikePatternList(
+            column=COL_NAME, like_pattern_list=["%a%"]
+        )
+        result = batch_for_datasource.validate(
+            expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+        )
+
+        assert not result.success
+        result_dict = result["result"]
+
+        # Verify that unexpected_rows is present and contains the expected data
+        assert "unexpected_rows" in result_dict
+        assert result_dict["unexpected_rows"] is not None
+
+        unexpected_rows_data = result_dict["unexpected_rows"]
+        assert isinstance(unexpected_rows_data, list)
+
+        # Should contain 3 rows where COL_NAME matches like_pattern_list ["%a%"]
+        # ("aa", "ab", "ac" all contain 'a')
+        assert len(unexpected_rows_data) == 3
+
+        # Check that "aa", "ab", and "ac" appear in the unexpected rows data
+        unexpected_rows_str = str(unexpected_rows_data)
+        assert "aa" in unexpected_rows_str
+        assert "ab" in unexpected_rows_str
+        assert "ac" in unexpected_rows_str
+
 
 class TestMSSQL:
     @pytest.mark.parametrize(

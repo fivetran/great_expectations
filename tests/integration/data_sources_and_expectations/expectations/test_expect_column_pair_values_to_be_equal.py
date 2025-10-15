@@ -13,6 +13,7 @@ from tests.integration.data_sources_and_expectations.test_canonical_expectations
     NON_SQL_DATA_SOURCES,
     SQL_DATA_SOURCES,
 )
+from tests.integration.test_utils.data_source_config import PostgreSQLDatasourceTestConfig
 
 EQUAL_STRINGS_A = "equal_strings_a"
 EQUAL_STRINGS_B = "equal_strings_b"
@@ -220,3 +221,73 @@ def test_success_with_suite_param_ignore_row_if_(
         expectation, expectation_parameters={suite_param_key: suite_param_value}
     )
     assert result.success == expected_result
+
+
+@parameterize_batch_for_data_sources(data_source_configs=JUST_PANDAS_DATA_SOURCES, data=DATA)
+def test_include_unexpected_rows(batch_for_datasource: Batch) -> None:
+    """Test that include_unexpected_rows works correctly for ExpectColumnPairValuesToBeEqual."""
+    expectation = gxe.ExpectColumnPairValuesToBeEqual(
+        column_A=EQUAL_STRINGS_A, column_B=UNEQUAL_STRINGS
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # Convert to DataFrame for easier comparison
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, pd.DataFrame)
+    unexpected_rows_df = unexpected_rows_data
+
+    # Should contain 1 row where column_A != column_B
+    assert len(unexpected_rows_df) == 1
+
+    # The unexpected row should have different values in column_A and column_B
+    # The row is at index 2 (where "baz" != "wat")
+    assert list(unexpected_rows_df.index) == [2]
+    assert unexpected_rows_df.loc[2, EQUAL_STRINGS_A] == "baz"
+    assert unexpected_rows_df.loc[2, UNEQUAL_STRINGS] == "wat"
+    assert unexpected_rows_df.loc[2, EQUAL_STRINGS_A] != unexpected_rows_df.loc[2, UNEQUAL_STRINGS]
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[PostgreSQLDatasourceTestConfig()], data=DATA
+)
+def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
+    """Test include_unexpected_rows for ExpectColumnPairValuesToBeEqual with SQL data sources."""
+    expectation = gxe.ExpectColumnPairValuesToBeEqual(
+        column_A=EQUAL_STRINGS_A, column_B=UNEQUAL_STRINGS
+    )
+    result = batch_for_datasource.validate(
+        expectation, result_format={"result_format": "BASIC", "include_unexpected_rows": True}
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+
+    # Verify that unexpected_rows is present and contains the expected data
+    assert "unexpected_rows" in result_dict
+    assert result_dict["unexpected_rows"] is not None
+
+    # For SQL data sources, unexpected_rows should be a list
+    unexpected_rows_data = result_dict["unexpected_rows"]
+    assert isinstance(unexpected_rows_data, list)
+
+    # Should contain 1 row where column_A != column_B
+    assert len(unexpected_rows_data) == 1
+
+    # For SQL data sources, the row is returned as a tuple
+    # The unexpected row should contain "baz" and "wat" (different values)
+    unexpected_row = unexpected_rows_data[0]
+    assert len(unexpected_row) >= 3  # Should have at least the columns we're testing
+
+    # Check that the row contains the expected values somewhere
+    unexpected_row_str = str(unexpected_row)
+    assert "baz" in unexpected_row_str
+    assert "wat" in unexpected_row_str

@@ -10,6 +10,7 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
+from great_expectations.expectations.model_field_descriptions import FAILURE_SEVERITY_DESCRIPTION
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
 from great_expectations.render.renderer.renderer import renderer
 from great_expectations.render.renderer_configuration import (
@@ -40,6 +41,10 @@ SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.SPARK.value,
     SupportedDataSources.SQLITE.value,
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.MYSQL.value,
     SupportedDataSources.MSSQL.value,
     SupportedDataSources.BIGQUERY.value,
@@ -72,6 +77,9 @@ class ExpectTableColumnCountToBeBetween(BatchExpectation):
         meta (dict or None): \
             A JSON-serializable dictionary (nesting allowed) that will be included in the output without \
             modification. For more detail, see [meta](https://docs.greatexpectations.io/docs/reference/expectations/standard_arguments/#meta).
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
 
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
@@ -98,6 +106,11 @@ class ExpectTableColumnCountToBeBetween(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[9]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[10]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[11]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[12]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[13]}](https://docs.greatexpectations.io/docs/application_integration_support/)
 
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}

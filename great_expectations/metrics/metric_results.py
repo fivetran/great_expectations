@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar, Union
 import pandas as pd
 
 from great_expectations.compatibility.pydantic import BaseModel, GenericModel
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.validator.metric_configuration import (
     MetricConfigurationID,
 )
@@ -64,6 +65,7 @@ class ConditionValues(MetricResult[Union[pd.Series, "pyspark.sql.Column", "Binar
         raise ConditionValuesValueError(type(value))
 
     @classmethod
+    @override
     def __get_validators__(cls):
         yield cls.validate_value_type
 

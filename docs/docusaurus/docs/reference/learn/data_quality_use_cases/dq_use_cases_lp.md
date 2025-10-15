@@ -34,4 +34,6 @@ A comprehensive data quality strategy relies on a multidimensional approach to a
 
   <LinkCard topIcon label="Volume" description="Validate that record quantity falls within expected bounds." to="/reference/learn/data_quality_use_cases/volume" icon="/img/actions_icon.svg"/>
 
+  <LinkCard topIcon label="Unstructured data" description="Validate structured metadata generated from unstructured content." to="/reference/learn/data_quality_use_cases/unstructured_data" icon="/img/actions_icon.svg"/>
+
 </LinkCardGrid>

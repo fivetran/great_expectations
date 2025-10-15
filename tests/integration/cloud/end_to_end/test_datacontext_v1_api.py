@@ -13,9 +13,6 @@ class V1GetContextError(Exception):
 @pytest.mark.cloud
 @pytest.mark.parametrize("analytics_enabled", [True, False])
 def test_get_context(monkeypatch, analytics_enabled):
-    from great_expectations.analytics.config import ENV_CONFIG
-
-    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", analytics_enabled)
     context = gx.get_context(
         mode="cloud",
         cloud_base_url=os.environ.get("GX_CLOUD_BASE_URL"),

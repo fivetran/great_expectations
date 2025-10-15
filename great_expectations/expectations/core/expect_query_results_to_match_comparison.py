@@ -17,7 +17,10 @@ from great_expectations.expectations.expectation import (
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
-from great_expectations.expectations.model_field_descriptions import MOSTLY_DESCRIPTION
+from great_expectations.expectations.model_field_descriptions import (
+    FAILURE_SEVERITY_DESCRIPTION,
+    MOSTLY_DESCRIPTION,
+)
 from great_expectations.expectations.model_field_types import (
     MostlyField,  # noqa: TC001  # pydantic needs the actual type
 )
@@ -56,6 +59,10 @@ COMPARISON_DATA_SOURCE_NAME_DESCRIPTION = (
 COMPARISON_QUERY_DESCRIPTION = "A SQL query to be executed for the comparison Data Source."
 SUPPORTED_DATA_SOURCES = [
     SupportedDataSources.POSTGRESQL.value,
+    SupportedDataSources.AURORA.value,
+    SupportedDataSources.CITUS.value,
+    SupportedDataSources.ALLOY.value,
+    SupportedDataSources.NEON.value,
     SupportedDataSources.SNOWFLAKE.value,
     SupportedDataSources.DATABRICKS.value,
     SupportedDataSources.REDSHIFT.value,
@@ -107,6 +114,11 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         comparison_query (str): {COMPARISON_QUERY_DESCRIPTION}
         mostly (float): {MOSTLY_DESCRIPTION}
 
+    Other Parameters:
+        severity (str or None): \
+            {FAILURE_SEVERITY_DESCRIPTION} \
+            For more detail, see [failure severity](https://docs.greatexpectations.io/docs/cloud/expectations/expectations_overview/#failure-severity).
+
     Returns:
         An [ExpectationSuiteValidationResult](https://docs.greatexpectations.io/docs/terms/validation_result)
 
@@ -116,6 +128,10 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         [{SUPPORTED_DATA_SOURCES[2]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[3]}](https://docs.greatexpectations.io/docs/application_integration_support/)
         [{SUPPORTED_DATA_SOURCES[4]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[5]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[6]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[7]}](https://docs.greatexpectations.io/docs/application_integration_support/)
+        [{SUPPORTED_DATA_SOURCES[8]}](https://docs.greatexpectations.io/docs/application_integration_support/)
     Data Quality Issues:
         {DATA_QUALITY_ISSUES[0]}
     """

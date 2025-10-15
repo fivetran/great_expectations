@@ -3,12 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Iterable
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.events import (
-    ActionInfo,
-    CheckpointCreatedEvent,
-    CheckpointDeletedEvent,
-)
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.factory.factory import Factory
@@ -54,24 +48,6 @@ class CheckpointFactory(Factory[Checkpoint]):
         # TODO: Add id adding logic to CheckpointStore to prevent round trip
         persisted_checkpoint = self._get(key=key)
 
-        submit_event(
-            event=CheckpointCreatedEvent(
-                checkpoint_id=persisted_checkpoint.id,
-                validation_definition_ids=[
-                    validation_definition.id
-                    for validation_definition in checkpoint.validation_definitions
-                ],
-                actions=[
-                    ActionInfo(
-                        type=action.type,
-                        # notify_on is not a property of all Actions
-                        notify_on=getattr(action, "notify_on", None),
-                    )
-                    for action in checkpoint.actions
-                ],
-            )
-        )
-
         return persisted_checkpoint
 
     @public_api
@@ -94,12 +70,6 @@ class CheckpointFactory(Factory[Checkpoint]):
 
         key = self._store.get_key(name=checkpoint.name, id=checkpoint.id)
         self._store.remove_key(key=key)
-
-        submit_event(
-            event=CheckpointDeletedEvent(
-                checkpoint_id=checkpoint.id,
-            )
-        )
 
     @public_api
     @override
