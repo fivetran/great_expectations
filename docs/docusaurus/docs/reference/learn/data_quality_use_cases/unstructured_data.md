@@ -14,7 +14,7 @@ This article assumes basic familiarity with GX components and workflows. If you'
 
 ## Prerequisites
 
-- [Python version 3.9 to 3.12](https://www.python.org/downloads/)
+- [Python version 3.9 to 3.13](https://www.python.org/downloads/)
 - A [GX Cloud account](https://greatexpectations.io/cloud)
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables)
 

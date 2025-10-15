@@ -25,9 +25,9 @@ This page provides instructions for working with Expectations. To learn about Ex
 4. Select a data quality issue to test for or an option for writing your own test.
 
    :::tip Options for accelerating test coverage
-   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will default to warning severity, which you can edit later. If you instead want to create your own rules, click **Manual**.
-   
-   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
+   If you are using a [supported Data Source](/docs/cloud/data_sources/manage_data_sources), you can use the following to speed up test creation:
+   - If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will default to warning severity, which you can edit later. If you instead want to create your own rules, click **Manual**.
+   - If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
    :::
 
 5. Select an Expectation type.
@@ -89,7 +89,7 @@ Keep the following requirements in mind when working with ExpectAI:
 
 ## Optional. Define a Batch
 
-If your Data Asset has at least one DATE or DATETIME column, you can define a Batch to validate your data incrementally.
+If your Data Asset has at least one DATE or DATETIME column and has been [profiled](/docs/cloud/data_assets/manage_data_assets.md#view-data-asset-metrics), you can define a Batch to validate your data incrementally.
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
