@@ -1,7 +1,7 @@
 ---
 sidebar_label: 'Delivery'
 title: 'Delivery'
-description: Learn how GX can alert you to shifts in data metrics before it reaches BI tools.
+description: Learn how GX can alert you to shifts in data metrics before trusted data reaches BI tools.
 ---
 
 Data stakeholders are responsible for monitoring and interpreting business metrics. These individuals may span across different departments such as marketing, finance, and operations, and may not all possess a technical background. One of the key challenges is detecting when shifts in data reflect real changes in business operations and outcomes. Often, these shifts go unnoticed until it's too late to respond effectively. Another issue is ensuring that the right non-technical users are alerted in a timely and relevant manner. Without targeted, contextual alerts, important insights may not reach the decision-makers who can act on them.
