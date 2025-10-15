@@ -5,7 +5,11 @@ import pytest
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.expectations.conditions import (
     AndCondition,
+    Column,
+    Comparator,
+    ComparisonCondition,
     Condition,
+    NullityCondition,
     OrCondition,
 )
 
@@ -200,3 +204,159 @@ class TestOrCondition:
         or_cond = OrCondition(conditions=[and_cond, cond3])
         expected = f"({and_cond!r} OR {cond3!r})"
         assert repr(or_cond) == expected
+
+
+class TestColumn:
+    def test_column_hash_equal(self):
+        assert hash(Column(name="age")) == hash(Column(name="age"))
+
+    def test_column_hash_not_equal(self):
+        assert hash(Column(name="age")) != hash(Column(name="city"))
+
+    def test_less_than_operator(self):
+        col = Column(name="age")
+        result = col < 18
+
+        assert result == ComparisonCondition(
+            column=col, operator=Comparator.LESS_THAN, parameter=18
+        )
+
+    def test_less_than_or_equal_operator(self):
+        col = Column(name="age")
+        result = col <= 18
+
+        assert result == ComparisonCondition(
+            column=col, operator=Comparator.LESS_THAN_OR_EQUAL, parameter=18
+        )
+
+    def test_equal_operator(self):
+        col = Column(name="status")
+        result = col == "active"
+
+        assert result == ComparisonCondition(
+            column=col, operator=Comparator.EQUAL, parameter="active"
+        )
+
+    def test_not_equal_operator(self):
+        col = Column(name="status")
+        result = col != "inactive"
+
+        assert result == ComparisonCondition(
+            column=col, operator=Comparator.NOT_EQUAL, parameter="inactive"
+        )
+
+    def test_greater_than_operator(self):
+        col = Column(name="age")
+        result = col > 65
+
+        assert result == ComparisonCondition(
+            column=col, operator=Comparator.GREATER_THAN, parameter=65
+        )
+
+    def test_greater_than_or_equal_operator(self):
+        col = Column(name="age")
+        result = col >= 65
+
+        assert result == ComparisonCondition(
+            column=col, operator=Comparator.GREATER_THAN_OR_EQUAL, parameter=65
+        )
+
+    def test_is_in_method(self):
+        col = Column(name="status")
+        result = col.is_in(["active", "pending", "approved"])
+
+        assert result == ComparisonCondition(
+            column=col, operator=Comparator.IN, parameter=["active", "pending", "approved"]
+        )
+
+    def test_is_not_in_method(self):
+        col = Column(name="status")
+        result = col.is_not_in(["inactive", "deleted"])
+
+        assert result == ComparisonCondition(
+            column=col, operator=Comparator.NOT_IN, parameter=["inactive", "deleted"]
+        )
+
+    def test_is_null_method(self):
+        col = Column(name="email")
+        result = col.is_null()
+
+        assert result == NullityCondition(column=col, is_null=True)
+
+    def test_is_not_null_method(self):
+        col = Column(name="email")
+        result = col.is_not_null()
+
+        assert result == NullityCondition(column=col, is_null=False)
+
+
+class TestComparisonCondition:
+    def test_repr_equal_operator(self):
+        col = Column(name="status")
+        cond = ComparisonCondition(column=col, operator=Comparator.EQUAL, parameter="active")
+
+        assert repr(cond) == "status == active"
+
+    def test_repr_not_equal_operator(self):
+        col = Column(name="status")
+        cond = ComparisonCondition(column=col, operator=Comparator.NOT_EQUAL, parameter="inactive")
+
+        assert repr(cond) == "status != inactive"
+
+    def test_repr_less_than_operator(self):
+        col = Column(name="age")
+        cond = ComparisonCondition(column=col, operator=Comparator.LESS_THAN, parameter=18)
+
+        assert repr(cond) == "age < 18"
+
+    def test_repr_less_than_or_equal_operator(self):
+        col = Column(name="age")
+        cond = ComparisonCondition(column=col, operator=Comparator.LESS_THAN_OR_EQUAL, parameter=18)
+
+        assert repr(cond) == "age <= 18"
+
+    def test_repr_greater_than_operator(self):
+        col = Column(name="age")
+        cond = ComparisonCondition(column=col, operator=Comparator.GREATER_THAN, parameter=65)
+
+        assert repr(cond) == "age > 65"
+
+    def test_repr_greater_than_or_equal_operator(self):
+        col = Column(name="age")
+        cond = ComparisonCondition(
+            column=col, operator=Comparator.GREATER_THAN_OR_EQUAL, parameter=65
+        )
+
+        assert repr(cond) == "age >= 65"
+
+    def test_repr_in_operator(self):
+        col = Column(name="status")
+        cond = ComparisonCondition(
+            column=col, operator=Comparator.IN, parameter=["active", "pending", "approved"]
+        )
+
+        assert repr(cond) == "status IN (active, pending, approved)"
+
+    def test_repr_not_in_operator(self):
+        col = Column(name="status")
+        cond = ComparisonCondition(
+            column=col, operator=Comparator.NOT_IN, parameter=["inactive", "deleted"]
+        )
+
+        assert repr(cond) == "status NOT_IN (inactive, deleted)"
+
+
+class TestNullityCondition:
+    """Tests for the NullityCondition class."""
+
+    def test_repr_is_null(self):
+        col = Column(name="email")
+        cond = NullityCondition(column=col, is_null=True)
+
+        assert repr(cond) == "email IS NULL"
+
+    def test_repr_is_not_null(self):
+        col = Column(name="email")
+        cond = NullityCondition(column=col, is_null=False)
+
+        assert repr(cond) == "email IS NOT NULL"

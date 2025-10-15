@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import List
+from enum import Enum
+from typing import Any, Iterable, List
 
 from great_expectations.compatibility.pydantic import BaseModel, validator
 from great_expectations.compatibility.typing_extensions import override
@@ -8,6 +9,64 @@ from great_expectations.compatibility.typing_extensions import override
 # Error messages for condition validation
 _NESTED_OR_IN_AND_ERROR = "AND groups cannot contain OR conditions"
 _NESTED_OR_ERROR = "OR groups cannot contain nested OR conditions"
+
+
+class Comparator(Enum):
+    EQUAL = "=="
+    NOT_EQUAL = "!="
+    LESS_THAN = "<"
+    LESS_THAN_OR_EQUAL = "<="
+    GREATER_THAN = ">"
+    GREATER_THAN_OR_EQUAL = ">="
+    IN = "IN"
+    NOT_IN = "NOT_IN"
+
+
+Parameter = Any
+
+
+class Column(BaseModel):
+    name: str
+
+    @override
+    def __hash__(self) -> int:
+        return hash(self.name)
+
+    @override
+    def __eq__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
+        return ComparisonCondition(column=self, operator=Comparator.EQUAL, parameter=other)
+
+    @override
+    def __ne__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
+        return ComparisonCondition(column=self, operator=Comparator.NOT_EQUAL, parameter=other)
+
+    def __lt__(self, other: Parameter) -> ComparisonCondition:
+        return ComparisonCondition(column=self, operator=Comparator.LESS_THAN, parameter=other)
+
+    def __le__(self, other: Parameter) -> ComparisonCondition:
+        return ComparisonCondition(
+            column=self, operator=Comparator.LESS_THAN_OR_EQUAL, parameter=other
+        )
+
+    def __gt__(self, other: Parameter) -> ComparisonCondition:
+        return ComparisonCondition(column=self, operator=Comparator.GREATER_THAN, parameter=other)
+
+    def __ge__(self, other: Parameter) -> ComparisonCondition:
+        return ComparisonCondition(
+            column=self, operator=Comparator.GREATER_THAN_OR_EQUAL, parameter=other
+        )
+
+    def is_in(self, values: Iterable) -> ComparisonCondition:
+        return ComparisonCondition(column=self, operator=Comparator.IN, parameter=list(values))
+
+    def is_not_in(self, values: Iterable) -> ComparisonCondition:
+        return ComparisonCondition(column=self, operator=Comparator.NOT_IN, parameter=list(values))
+
+    def is_null(self) -> NullityCondition:
+        return NullityCondition(column=self, is_null=True)
+
+    def is_not_null(self) -> NullityCondition:
+        return NullityCondition(column=self, is_null=False)
 
 
 class Condition(BaseModel):
@@ -30,6 +89,29 @@ class Condition(BaseModel):
             else:
                 new_conditions.append(cond)
         return OrCondition(conditions=new_conditions)
+
+
+class NullityCondition(Condition):
+    column: Column
+    is_null: bool
+
+    @override
+    def __repr__(self):
+        null_str = "NULL" if self.is_null else "NOT NULL"
+        return f"{self.column.name} IS {null_str}"
+
+
+class ComparisonCondition(Condition):
+    column: Column
+    operator: Comparator
+    parameter: Any
+
+    @override
+    def __repr__(self):
+        col_name = self.column.name
+        if self.operator in ("IN", "NOT IN"):
+            return f"{col_name} {self.operator} ({', '.join(map(str, self.parameter))})"
+        return f"{col_name} {self.operator} {self.parameter}"
 
 
 class AndCondition(Condition):
