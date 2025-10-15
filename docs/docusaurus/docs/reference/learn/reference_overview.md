@@ -21,7 +21,7 @@ import OverviewCard from '@site/src/components/OverviewCard';
 ## Supplemental Information
 
 <LinkCardGrid>
-  <LinkCard topIcon label="GX in. your data pipeline" description="Learn where GX can be integrated into a data pipeline to manage and monitor data quality" to="/reference/learn/gx_in_your_data_pipeline/gx_in_your_data_pipeline_lp" icon="/img/workflow_icon.svg" />
+  <LinkCard topIcon label="GX in your data pipeline" description="Learn where GX can be integrated into a data pipeline to manage and monitor data quality" to="/reference/learn/gx_in_your_data_pipeline/gx_in_your_data_pipeline_lp" icon="/img/workflow_icon.svg" />
 
   <LinkCard topIcon label="Data quality use cases" description="Learn how to use GX to address key data quality scenarios" to="/reference/learn/data_quality_use_cases/dq_use_cases_lp" icon="/img/statistics_icon.svg" />
 
