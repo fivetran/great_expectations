@@ -20,9 +20,6 @@ from typing import (
 )
 
 import great_expectations.exceptions as gx_exceptions
-from great_expectations.compatibility.sqlalchemy import (
-    sqlalchemy as sa,
-)
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_manager import BatchManager
 from great_expectations.core.metric_domain_types import MetricDomainTypes
@@ -64,7 +61,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-TFilter = TypeVar("TFilter", str, sa.ColumnClause)
+TFilter = TypeVar("TFilter")
 
 
 class NoOpDict:
