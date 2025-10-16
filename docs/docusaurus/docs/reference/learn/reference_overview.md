@@ -15,12 +15,14 @@ import LinkCard from '@site/src/components/LinkCard';
 import OverviewCard from '@site/src/components/OverviewCard';
 
 <OverviewCard title={frontMatter.title}>
-  Use longer format conceptual information to learn more about GX features and functionality.
+  Use conceptual information and hands-on tutorials to learn more about GX features and functionality.
 </OverviewCard>
 
 ## Supplemental Information
 
 <LinkCardGrid>
+  <LinkCard topIcon label="GX in your data pipeline" description="Learn where GX can be integrated into a data pipeline to manage and monitor data quality" to="/reference/learn/gx_in_your_data_pipeline/gx_in_your_data_pipeline_lp" icon="/img/workflow_icon.svg" />
+
   <LinkCard topIcon label="Data quality use cases" description="Learn how to use GX to address key data quality scenarios" to="/reference/learn/data_quality_use_cases/dq_use_cases_lp" icon="/img/statistics_icon.svg" />
 
   <LinkCard topIcon label="Integration tutorials" description="Learn how to integrate GX with other tools" to="/reference/learn/integrations/integrations_lp" icon="/img/statistics_icon.svg" />
