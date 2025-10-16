@@ -161,9 +161,8 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251 # FIXME CoP
 
     from great_expectations.compatibility import sqlalchemy
-    from great_expectations.compatibility.sqlalchemy import ColumnClause
 
-    FilterType = ColumnClause
+    FilterType = sqlalchemy.ColumnClause if sqlalchemy else object
 else:
     FilterType = sa.ColumnClause if sa else object  # type: ignore[misc,assignment]
 
