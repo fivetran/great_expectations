@@ -83,7 +83,6 @@ from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.expectations.conditions import NullityCondition, OrCondition
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -163,7 +162,6 @@ if TYPE_CHECKING:
 
     from great_expectations.compatibility import sqlalchemy
 
-SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
 
 SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
 
@@ -173,11 +171,6 @@ _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.BIGQUERY,
     GXSqlDialect.DATABRICKS,
 )
-
-
-class InvalidOperatorError(ValueError):
-    def __init__(self, operator: Any) -> None:
-        super().__init__(f"Invalid operator: {operator!r}")
 
 
 def _dialect_requires_persisted_connection(
