@@ -62,6 +62,7 @@ if TYPE_CHECKING:
 
     from great_expectations.expectations.conditions import (
         AndCondition,
+        Comparator,
         ComparisonCondition,
         NullityCondition,
         OrCondition,
@@ -645,19 +646,27 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
 
     @override
     def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
-        raise NotImplementedError
+        col, op, val = condition.column.name, condition.operator, condition.parameter
+        if op in (Comparator.IN, Comparator.NOT_IN):
+            values = ", ".join(map(repr, val))
+            connector = "IN" if op == Comparator.IN else "NOT IN"
+            return f"{col} {connector} [{values}]"
+        return f"{col} {op} {val!r}"
 
     @override
     def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
-        raise NotImplementedError
+        col = condition.column.name
+        return f"{col}.isnull()" if condition.is_null else f"~{col}.isnull()"
 
     @override
     def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
-        raise NotImplementedError
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " and ".join(parts) + ")"
 
     @override
     def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
-        raise NotImplementedError
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " or ".join(parts) + ")"
 
 
 def hash_pandas_dataframe(df):
