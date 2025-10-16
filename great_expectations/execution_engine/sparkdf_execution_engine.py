@@ -76,7 +76,6 @@ if TYPE_CHECKING:
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
     from great_expectations.expectations.conditions import (
         AndCondition,
-        Comparator,
         ComparisonCondition,
         NullityCondition,
         OrCondition,
