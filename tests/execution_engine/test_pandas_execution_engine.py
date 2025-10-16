@@ -8,7 +8,6 @@ import pytest
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import aws, azure, google
 from great_expectations.core.batch_spec import RuntimeDataBatchSpec, S3BatchSpec
-from great_expectations.core.column import Column
 
 # noinspection PyBroadException
 from great_expectations.core.metric_domain_types import MetricDomainTypes
@@ -17,6 +16,7 @@ from great_expectations.execution_engine.pandas_execution_engine import (
 )
 from great_expectations.expectations.conditions import (
     AndCondition,
+    Column,
     ComparisonCondition,
     NullityCondition,
     Operator,
@@ -718,14 +718,14 @@ class TestConditionToFilterClause:
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.LESS_OR_EQUAL, parameter=100
+                    column=Column(name="age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
                 ),
                 "age <= 100",
                 id="less_or_equal",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.GREATER_OR_EQUAL, parameter=0
+                    column=Column(name="age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
                 ),
                 "age >= 0",
                 id="greater_or_equal",
@@ -762,7 +762,7 @@ class TestConditionToFilterClause:
                 ComparisonCondition(
                     column=Column(name="status"), operator=Operator.IN, parameter=[1, 2, 3]
                 ),
-                "status IN [1, 2, 3]",
+                "status in [1, 2, 3]",
                 id="integers",
             ),
             pytest.param(
@@ -771,14 +771,14 @@ class TestConditionToFilterClause:
                     operator=Operator.IN,
                     parameter=["active", "pending"],
                 ),
-                "status IN ['active', 'pending']",
+                "status in ['active', 'pending']",
                 id="strings",
             ),
             pytest.param(
                 ComparisonCondition(
                     column=Column(name="status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
                 ),
-                "status NOT IN [1, 2, 3]",
+                "status not in [1, 2, 3]",
                 id="not_in",
             ),
         ],
@@ -861,12 +861,12 @@ class TestConditionToFilterClause:
                     conditions=[
                         ComparisonCondition(
                             column=Column(name="age"),
-                            operator=Operator.GREATER_OR_EQUAL,
+                            operator=Operator.GREATER_THAN_OR_EQUAL,
                             parameter=18,
                         ),
                         ComparisonCondition(
                             column=Column(name="age"),
-                            operator=Operator.LESS_OR_EQUAL,
+                            operator=Operator.LESS_THAN_OR_EQUAL,
                             parameter=65,
                         ),
                     ]
@@ -955,12 +955,12 @@ class TestConditionToFilterClause:
                     conditions=[
                         ComparisonCondition(
                             column=Column(name="age"),
-                            operator=Operator.GREATER_OR_EQUAL,
+                            operator=Operator.GREATER_THAN_OR_EQUAL,
                             parameter=18,
                         ),
                         ComparisonCondition(
                             column=Column(name="age"),
-                            operator=Operator.LESS_OR_EQUAL,
+                            operator=Operator.LESS_THAN_OR_EQUAL,
                             parameter=65,
                         ),
                     ]

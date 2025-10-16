@@ -54,6 +54,7 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_partit
 from great_expectations.execution_engine.partition_and_sample.pandas_data_sampler import (
     PandasDataSampler,
 )
+from great_expectations.expectations.conditions import Operator
 from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
 
 if TYPE_CHECKING:
@@ -64,7 +65,6 @@ if TYPE_CHECKING:
         AndCondition,
         ComparisonCondition,
         NullityCondition,
-        Operator,
         OrCondition,
     )
     from great_expectations.validator.metric_configuration import MetricConfigurationID
@@ -649,7 +649,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         col, op, val = condition.column.name, condition.operator, condition.parameter
         if op in (Operator.IN, Operator.NOT_IN):
             values = ", ".join(map(repr, val))
-            connector = "IN" if op == Operator.IN else "NOT IN"
+            connector = "in" if op == Operator.IN else "not in"
             return f"{col} {connector} [{values}]"
         return f"{col} {op} {val!r}"
 
