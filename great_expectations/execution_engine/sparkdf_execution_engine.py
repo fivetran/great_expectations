@@ -74,6 +74,12 @@ from great_expectations.validator.computed_metric import MetricValue  # noqa: TC
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.metric_configuration import (
         MetricConfiguration,
         MetricConfigurationID,
@@ -96,7 +102,7 @@ def apply_dateutil_parse(column):
     "The existing Spark context will be reused if possible. If a spark_config is passed that doesn't match "  # noqa: E501 # FIXME CoP
     "the existing config, the context will be stopped and restarted in local environments only.",
 )
-class SparkDFExecutionEngine(ExecutionEngine):
+class SparkDFExecutionEngine(ExecutionEngine[str]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     This class holds an attribute `spark_df` which is a spark.sql.DataFrame.
@@ -924,3 +930,19 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
     def head(self, n=5):
         """Returns dataframe head. Default is 5"""
         return self.dataframe.limit(n).toPandas()
+
+    @override
+    def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+        raise NotImplementedError
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+        raise NotImplementedError
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+        raise NotImplementedError
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
+        raise NotImplementedError

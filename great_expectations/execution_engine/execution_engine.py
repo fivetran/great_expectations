@@ -9,11 +9,13 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Generic,
     Iterable,
     List,
     Optional,
     Set,
     Tuple,
+    TypeVar,
     Union,
 )
 
@@ -21,6 +23,13 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_manager import BatchManager
 from great_expectations.core.metric_domain_types import MetricDomainTypes
+from great_expectations.expectations.conditions import (
+    AndCondition,
+    ComparisonCondition,
+    Condition,
+    NullityCondition,
+    OrCondition,
+)
 from great_expectations.expectations.registry import get_metric_provider
 from great_expectations.expectations.row_conditions import (
     RowCondition,
@@ -52,6 +61,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+TFilter = TypeVar("TFilter")
+
 
 class NoOpDict:
     def __getitem__(self, item):
@@ -63,6 +74,11 @@ class NoOpDict:
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def update(self, value):
         return None
+
+
+class InvalidConditionError(ValueError):
+    def __init__(self, condition: Condition):
+        super().__init__(f"Invalid condition type: {type(condition)}")
 
 
 @dataclass(frozen=True)
@@ -106,7 +122,7 @@ class PartitionDomainKwargs:
     accessor: dict
 
 
-class ExecutionEngine(ABC):
+class ExecutionEngine(ABC, Generic[TFilter]):
     """ExecutionEngine defines interfaces and provides common methods for loading Batch of data and compute metrics.
 
     ExecutionEngine is the parent class of every backend-specific computational class, tasked with loading Batch of
@@ -196,9 +212,7 @@ class ExecutionEngine(ABC):
         }
         filter_properties_dict(properties=self._config, clean_falsy=True, inplace=True)
 
-    def configure_validator(  # noqa: B027 # empty-method-without-abstract-decorator
-        self, validator
-    ) -> None:
+    def configure_validator(self, validator) -> None:
         """Optionally configure the validator as appropriate for the execution engine."""
         pass
 
@@ -469,6 +483,35 @@ class ExecutionEngine(ABC):
             metric_fn_direct_configurations,
             metric_fn_bundle_configurations,
         )
+
+    def condition_to_filter_clause(self, condition: Condition) -> TFilter:
+        """Convert a Condition tree into a dialect-specific filter clause."""
+        if isinstance(condition, ComparisonCondition):
+            return self._comparison_condition_to_filter_clause(condition)
+        elif isinstance(condition, NullityCondition):
+            return self._nullity_condition_to_filter_clause(condition)
+        elif isinstance(condition, AndCondition):
+            return self._and_condition_to_filter_clause(condition)
+        elif isinstance(condition, OrCondition):
+            return self._or_condition_to_filter_clause(condition)
+        else:
+            raise InvalidConditionError(condition)
+
+    @abstractmethod
+    def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> TFilter:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> TFilter:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> TFilter:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> TFilter:
+        raise NotImplementedError
 
     def _get_computed_metric_evaluation_dependencies_by_metric_name(
         self,

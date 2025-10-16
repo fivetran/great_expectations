@@ -166,6 +166,8 @@ if TYPE_CHECKING:
 
 SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
 
+SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
+
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
     GXSqlDialect.MSSQL,
