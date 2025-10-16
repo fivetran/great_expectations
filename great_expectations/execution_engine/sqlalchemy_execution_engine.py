@@ -161,6 +161,11 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251 # FIXME CoP
 
     from great_expectations.compatibility import sqlalchemy
+    from great_expectations.compatibility.sqlalchemy import ColumnClause
+
+    FilterType = ColumnClause
+else:
+    FilterType = sa.ColumnClause if sa else object  # type: ignore[misc,assignment]
 
 
 _PERSISTED_CONNECTION_DIALECTS = (
@@ -169,8 +174,6 @@ _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.BIGQUERY,
     GXSqlDialect.DATABRICKS,
 )
-
-FilterType = sa.ColumnClause if sa else None
 
 
 def _dialect_requires_persisted_connection(
