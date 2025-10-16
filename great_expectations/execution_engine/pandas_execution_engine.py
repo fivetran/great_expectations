@@ -62,9 +62,9 @@ if TYPE_CHECKING:
 
     from great_expectations.expectations.conditions import (
         AndCondition,
-        Comparator,
         ComparisonCondition,
         NullityCondition,
+        Operator,
         OrCondition,
     )
     from great_expectations.validator.metric_configuration import MetricConfigurationID
@@ -647,9 +647,9 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
     @override
     def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
         col, op, val = condition.column.name, condition.operator, condition.parameter
-        if op in (Comparator.IN, Comparator.NOT_IN):
+        if op in (Operator.IN, Operator.NOT_IN):
             values = ", ".join(map(repr, val))
-            connector = "IN" if op == Comparator.IN else "NOT IN"
+            connector = "IN" if op == Operator.IN else "NOT IN"
             return f"{col} {connector} [{values}]"
         return f"{col} {op} {val!r}"
 
