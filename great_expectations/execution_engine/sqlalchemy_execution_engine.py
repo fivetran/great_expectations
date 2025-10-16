@@ -170,6 +170,8 @@ _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.DATABRICKS,
 )
 
+FilterType = sa.ColumnClause if sa else None
+
 
 def _dialect_requires_persisted_connection(
     connection_string: str | None = None,
@@ -212,7 +214,7 @@ def _dialect_requires_persisted_connection(
     return return_val
 
 
-class SqlAlchemyExecutionEngine(ExecutionEngine[sa.ColumnClause]):
+class SqlAlchemyExecutionEngine(ExecutionEngine[FilterType]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     Constructor builds a SqlAlchemyExecutionEngine, using a provided connection string/url/engine/credentials to \
