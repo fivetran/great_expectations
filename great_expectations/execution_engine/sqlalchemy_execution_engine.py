@@ -83,6 +83,7 @@ from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
+from great_expectations.expectations.conditions import Operator
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -97,6 +98,13 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        ComparisonCondition,
+        Condition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.computed_metric import (
         MetricValue,
     )
@@ -156,6 +164,7 @@ if TYPE_CHECKING:
 
     from great_expectations.compatibility import sqlalchemy
 
+SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
 
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
@@ -163,6 +172,11 @@ _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.BIGQUERY,
     GXSqlDialect.DATABRICKS,
 )
+
+
+class InvalidOperatorError(ValueError):
+    def __init__(self, operator: Any) -> None:
+        super().__init__(f"Invalid operator: {operator!r}")
 
 
 def _dialect_requires_persisted_connection(
@@ -206,7 +220,7 @@ def _dialect_requires_persisted_connection(
     return return_val
 
 
-class SqlAlchemyExecutionEngine(ExecutionEngine):
+class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     Constructor builds a SqlAlchemyExecutionEngine, using a provided connection string/url/engine/credentials to \
@@ -1435,3 +1449,47 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
 
         return result
+
+    @override
+    def condition_to_filter_clause(self, condition: Condition):
+        return super().condition_to_filter_clause(condition)
+
+    @override
+    def _comparison_condition_to_filter_clause(  # noqa: C901, PLR0911
+        self, condition: ComparisonCondition
+    ) -> sa.ColumnElement:
+        col: sa.ColumnClause = sa.column(condition.column.name)
+        val = sa.literal(condition.parameter)
+        op = condition.operator
+        if op == Operator.LESS_THAN:
+            return col < val
+        elif op == Operator.LESS_THAN_OR_EQUAL:
+            return col <= val
+        elif op == Operator.EQUAL:
+            return col == val
+        elif op == Operator.NOT_EQUAL:
+            return col != val
+        elif op == Operator.GREATER_THAN:
+            return col > val
+        elif op == Operator.GREATER_THAN_OR_EQUAL:
+            return col >= val
+        elif op == Operator.IN:
+            return col.in_(condition.parameter)
+        elif op == Operator.NOT_IN:
+            return ~col.in_(condition.parameter)
+        else:
+            raise InvalidOperatorError(op)
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnElement:
+        col: sa.ColumnClause = sa.column(condition.column.name)
+        return col.is_(None) if condition.is_null else col.isnot(None)
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> sa.ColumnElement:
+        output = sa.and_(*[self.condition_to_filter_clause(c) for c in condition.conditions])
+        return output
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> sa.ColumnElement:
+        return sa.or_(*[self.condition_to_filter_clause(c) for c in condition.conditions])
