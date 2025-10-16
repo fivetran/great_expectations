@@ -94,7 +94,7 @@ Then, you can validate a batch of data.
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - Any Data Asset with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
-- [Python version 3.9 to 3.12](https://www.python.org/downloads/).
+- [Python version 3.9 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
 ### Validate entire Data Asset
@@ -118,10 +118,7 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
 
-Options for defining and validating Batches for GX-managed Expectations depend on your Data Source type.
-
-- Data Assets from Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources support defining  Batches and validating GX-managed Expectations on batched data in the GX Cloud UI.
-- All Data Assets support defining  and validating Batches with the GX Cloud API.
+TODO - filesystem data assets don't have the same batch definition options. need to figure out how to make path-based or regex-based batch definition for GX-managed Expectations on s3 then flesh out that option here. 
 
 First, you partition your data
 
@@ -200,7 +197,7 @@ To do this you will first create a Validation Definition that links your data to
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - Any Data Asset with at least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
-- [Python version 3.9 to 3.12](https://www.python.org/downloads/).
+- [Python version 3.9 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 
 ### Define what to validate and how
