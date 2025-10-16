@@ -53,6 +53,7 @@ from great_expectations.exceptions import (
     InvalidExpectationConfigurationError,
     InvalidExpectationKwargsError,
 )
+from great_expectations.expectations.conditions import Condition
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
     parse_result_format,
@@ -1841,7 +1842,7 @@ class ColumnAggregateExpectation(BatchExpectation, ABC):
     """  # noqa: E501 # FIXME CoP
 
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
-    row_condition: Union[str, None] = None
+    row_condition: Union[str, Condition, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
     domain_keys: ClassVar[Tuple[str, ...]] = (
@@ -1889,7 +1890,7 @@ class ColumnMapExpectation(BatchExpectation, ABC):
 
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
     mostly: MostlyField = 1
-    row_condition: Union[str, None] = None
+    row_condition: Union[str, Condition, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
     catch_exceptions: bool = True
@@ -2154,7 +2155,7 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
     column_A: StrictStr = Field(min_length=1, description=COLUMN_A_DESCRIPTION)
     column_B: StrictStr = Field(min_length=1, description=COLUMN_B_DESCRIPTION)
     mostly: MostlyField = 1
-    row_condition: Union[str, None] = None
+    row_condition: Union[str, Condition, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
     catch_exceptions: bool = True
@@ -2419,7 +2420,7 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
 
     column_list: List[StrictStr] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
     mostly: MostlyField = 1
-    row_condition: Union[str, None] = None
+    row_condition: Union[str, Condition, None] = None
     condition_parser: Union[ConditionParser, None] = None
     ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (
         "all_values_are_missing"

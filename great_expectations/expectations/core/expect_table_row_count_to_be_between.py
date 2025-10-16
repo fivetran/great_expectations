@@ -8,6 +8,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
+from great_expectations.expectations.conditions import Condition  # noqa: TC001 # FIXME
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -194,7 +195,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
     strict_max: Union[bool, SuiteParameterDict] = pydantic.Field(
         default=False, description=STRICT_MIN_DESCRIPTION
     )
-    row_condition: Union[str, None] = None
+    row_condition: Union[str, Condition, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {

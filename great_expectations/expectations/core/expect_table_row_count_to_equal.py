@@ -7,6 +7,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
+from great_expectations.expectations.conditions import Condition  # noqa: TC001 # FIXME
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -156,7 +157,7 @@ class ExpectTableRowCountToEqual(BatchExpectation):
     """  # noqa: E501 # FIXME CoP
 
     value: Union[int, SuiteParameterDict] = pydantic.Field(description=VALUE_DESCRIPTION)
-    row_condition: Union[str, None] = None
+    row_condition: Union[str, Condition, None] = None
     condition_parser: Union[ConditionParser, None] = None
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
