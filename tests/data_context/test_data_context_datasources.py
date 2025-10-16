@@ -6,7 +6,6 @@ import pytest
 
 import great_expectations as gx
 from great_expectations.data_context import get_context
-from great_expectations.data_context.data_context.abstract_data_context import AbstractDataContext
 from great_expectations.data_context.store.gx_cloud_store_backend import (
     GXCloudStoreBackend,
 )
@@ -51,11 +50,7 @@ def test_data_context_instantiates_gx_cloud_store_backend_with_cloud_config(
     tmp_path: pathlib.Path,
     data_context_config_with_datasources: DataContextConfig,
     ge_cloud_config: GXCloudConfig,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # We don't want to make external calls that are necessary when setting up analytics.
-    monkeypatch.setattr(AbstractDataContext, "_determine_analytics_enabled", lambda self: False)
-
     project_path = tmp_path / "my_data_context"
     project_path.mkdir()
 

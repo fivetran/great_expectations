@@ -4,9 +4,6 @@ title: 'Connect GX Cloud to Snowflake'
 description: Connect GX Cloud to a Snowflake Data Source.
 ---
 
-import TabItem from '@theme/TabItem';
-import Tabs from '@theme/Tabs';
-
 ## Prerequisites
 
 - You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.

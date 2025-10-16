@@ -237,7 +237,7 @@ def column_pair_condition_partial(  # noqa: C901 #  16
                 )
 
                 (
-                    data,
+                    _,
                     compute_domain_kwargs,
                     accessor_domain_kwargs,
                 ) = execution_engine.get_compute_domain(

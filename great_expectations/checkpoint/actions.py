@@ -26,10 +26,6 @@ import requests
 from typing_extensions import dataclass_transform
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.events import (
-    NotificationActionRanEvent,
-)
 from great_expectations.compatibility import aws
 from great_expectations.compatibility.pydantic import (
     BaseModel,
@@ -424,16 +420,7 @@ class SlackNotificationAction(DataDocsAction):
             run_id=checkpoint_result.run_id,
         )
 
-        result = self._send_slack_notification(payload=payload)
-
-        checkpoint = checkpoint_result.checkpoint_config
-        submit_event(
-            event=NotificationActionRanEvent(
-                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
-            )
-        )
-
-        return result
+        return self._send_slack_notification(payload=payload)
 
     def _render_validation_result(
         self,
@@ -619,13 +606,6 @@ class MicrosoftTeamsNotificationAction(ValidationAction):
 
         # this will actually sent the POST request to the Microsoft Teams webapp server
         teams_notif_result = self._send_microsoft_teams_notifications(payload=payload)
-
-        checkpoint = checkpoint_result.checkpoint_config
-        submit_event(
-            event=NotificationActionRanEvent(
-                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
-            )
-        )
 
         return {"microsoft_teams_notification_result": teams_notif_result}
 
@@ -878,13 +858,6 @@ class EmailAction(ValidationAction):
             title=title,
             html=html,
             receiver_emails_list=receiver_emails_list,
-        )
-
-        checkpoint = checkpoint_result.checkpoint_config
-        submit_event(
-            event=NotificationActionRanEvent(
-                type=self.type, notify_type=self.notify_on, checkpoint_id=checkpoint.id
-            )
         )
 
         # sending payload back as dictionary

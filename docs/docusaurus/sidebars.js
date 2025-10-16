@@ -172,6 +172,7 @@ module.exports = {
       label: 'Connect GX Cloud',
       link: { type: 'doc', id: 'cloud/connect/connect_lp' },
       items: [
+        'cloud/connect/connect_s3',
         'cloud/connect/connect_databrickssql',
         'cloud/connect/connect_postgresql',
         'cloud/connect/connect_redshift',
@@ -179,6 +180,11 @@ module.exports = {
         'cloud/connect/connect_airflow',
         'cloud/connect/connect_python'
       ]
+    },
+    {
+      type: 'doc',
+      label: 'Manage Data Sources',
+      id: 'cloud/data_sources/manage_data_sources'
     },
     {
       type: 'doc',

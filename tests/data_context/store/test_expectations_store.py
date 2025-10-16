@@ -453,7 +453,7 @@ def _test_update_expectation_raises_error_for_missing_expectation(context):
     suite = ExpectationSuite(suite_name, expectations=[])
     context.suites.add(suite)
     # Act
-    with pytest.raises(KeyError, match="Cannot update Expectation because it was not found."):
+    with pytest.raises(KeyError, match=r"Cannot update Expectation because it was not found."):
         store.update_expectation(suite=suite, expectation=expectation)
     # Assert
     updated_suite_dict = store.get(key=store.get_key(name=suite.name, id=suite.id))
@@ -529,7 +529,7 @@ def _test_delete_expectation_raises_error_for_missing_expectation(context):
         value_set=[1, 2, 3],
         result_format="BASIC",
     )
-    with pytest.raises(KeyError, match="Cannot delete Expectation because it was not found."):
+    with pytest.raises(KeyError, match=r"Cannot delete Expectation because it was not found."):
         store.delete_expectation(suite=suite, expectation=nonexistent_expectation)
     # Assert
     updated_suite_dict = store.get(key=store.get_key(name=suite.name, id=suite.id))

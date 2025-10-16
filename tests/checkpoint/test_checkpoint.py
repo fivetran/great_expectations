@@ -12,7 +12,6 @@ from requests import Session
 
 import great_expectations as gx
 from great_expectations import expectations as gxe
-from great_expectations.analytics.events import CheckpointRanEvent
 from great_expectations.checkpoint import (
     MicrosoftTeamsNotificationAction,
     SlackNotificationAction,
@@ -770,37 +769,6 @@ class TestCheckpointResult:
             expectation_parameters=expectation_parameters,
             result_format=ResultFormat.SUMMARY,
             run_id=mock.ANY,
-        )
-
-    @pytest.mark.unit
-    def test_checkpoint_run_sends_analytics(
-        self, validation_definition: ValidationDefinition, mocker: MockerFixture
-    ):
-        # Arrange
-        submit_analytics_event = mocker.patch(
-            "great_expectations.checkpoint.checkpoint.submit_analytics_event"
-        )
-
-        context = mocker.Mock(spec=AbstractDataContext)
-        set_context(project=context)
-        checkpoint_id = "e051d0a8-d492-4cde-91f3-29f353758488"
-        checkpoint = Checkpoint(
-            id=checkpoint_id,
-            name=self.checkpoint_name,
-            validation_definitions=[validation_definition],
-        )
-
-        # Act
-        with mock.patch.object(
-            Checkpoint, "is_fresh", return_value=CheckpointFreshnessDiagnostics(errors=[])
-        ):
-            checkpoint.run()
-
-        # Assert
-        submit_analytics_event.assert_called_once_with(
-            event=CheckpointRanEvent(
-                checkpoint_id=checkpoint_id, validation_definition_ids=[validation_definition.id]
-            )
         )
 
     @pytest.mark.unit

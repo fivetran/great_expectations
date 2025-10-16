@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 try:
     from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 except ImportError:
-    Point = None
-    Polygon = None
-    MultiPolygon = None
-    LineString = None
+    Point = None  # type: ignore[misc,assignment]
+    Polygon = None  # type: ignore[misc,assignment]
+    MultiPolygon = None  # type: ignore[misc,assignment]
+    LineString = None  # type: ignore[misc,assignment]
 
 
 if not LegacyRow:

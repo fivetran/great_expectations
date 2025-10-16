@@ -22,7 +22,6 @@ import pytest
 import setuptools  # noqa: F401  # Import setuptools avoid distutils import order warning
 
 import great_expectations as gx
-from great_expectations.analytics.config import ENV_CONFIG
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
@@ -441,12 +440,6 @@ def pytest_collection_modifyitems(config, items):
             if category.mark in item.keywords:
                 marker = pytest.mark.skip(reason=category.reason)
                 item.add_marker(marker)
-
-
-@pytest.fixture(autouse=True)
-def no_usage_stats(monkeypatch):
-    # Do not generate usage stats from test runs
-    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", False)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -1893,6 +1886,7 @@ def empty_cloud_context_fluent(cloud_api_fake, cloud_details: CloudDetails) -> C
     context = gx.get_context(
         cloud_access_token=cloud_details.access_token,
         cloud_organization_id=cloud_details.org_id,
+        cloud_workspace_id=cloud_details.workspace_id,
         cloud_base_url=cloud_details.base_url,
         cloud_mode=True,
     )

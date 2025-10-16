@@ -1,3 +1,4 @@
+import inspect
 from pprint import pformat as pf
 
 import pytest
@@ -41,7 +42,8 @@ def _func_no_docstring_public_api():
 class TestPublicAPI:
     @pytest.mark.unit
     def test_public_api_decorator_full_docstring(self):
-        assert _func_full_docstring_public_api.__doc__ == (
+        normalized_docstring = inspect.cleandoc(_func_full_docstring_public_api.__doc__ or "")
+        assert normalized_docstring == inspect.cleandoc(
             "--Public API--My docstring.\n"
             "\n"
             "    Longer description.\n"
@@ -725,16 +727,22 @@ class _ClassFullDocstringDeprecatedAndNewAtArgumentLevel:
 class TestClassDocstringDecorators:
     @pytest.mark.unit
     def test_class_full_docstring_public_api(self):
-        assert _ClassFullDocstringPublicAPI.__doc__ == (
-            "--Public API--Docstring summary.\n"
+        # Normalize docstring to handle Python version differences in indentation
+        actual_doc = _ClassFullDocstringPublicAPI.__doc__
+        assert actual_doc is not None
+        assert actual_doc.startswith("--Public API--")
+        # Remove the prefix and normalize both for comparison
+        actual_normalized = inspect.cleandoc(actual_doc.replace("--Public API--", "", 1))
+        expected_normalized = inspect.cleandoc(
+            "Docstring summary.\n"
             "\n"
-            "    Longer description.\n"
+            "Longer description.\n"
             "\n"
-            "    Args:\n"
-            "        some_arg: some_arg description.\n"
-            "        other_arg: other_arg description.\n"
-            "    "
+            "Args:\n"
+            "    some_arg: some_arg description.\n"
+            "    other_arg: other_arg description."
         )
+        assert actual_normalized == expected_normalized
         assert _ClassFullDocstringPublicAPI.__name__ == "_ClassFullDocstringPublicAPI"
 
     @pytest.mark.unit

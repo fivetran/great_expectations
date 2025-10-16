@@ -532,7 +532,13 @@ def test_convert_ndarray_datetime_to_float_dtype_utc_timezone(
     with pytest.raises(TypeError) as e:
         _ = convert_ndarray_datetime_to_float_dtype_utc_timezone(data=datetime_string_array)
 
-    assert "replace() takes no keyword arguments" in str(e.value)
+    # Error message differs between Python versions
+    # Python 3.11: "replace() takes no keyword arguments"
+    # Python 3.13: "replace() takes at least 2 positional arguments (0 given)"
+    error_msg = str(e.value)
+    assert "replace()" in error_msg and (
+        "keyword arguments" in error_msg or "positional arguments" in error_msg
+    )
 
 
 @pytest.mark.unit
