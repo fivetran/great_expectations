@@ -86,16 +86,17 @@ class TestAndCondition:
         """Test __repr__ with a single condition."""
         cond = Condition()
         and_cond = AndCondition(conditions=[cond])
-        assert repr(and_cond) == f"({cond!r})"
+        assert repr(and_cond) == "(Condition())"
 
+    @pytest.mark.unit
     def test_repr_multiple_conditions(self):
         """Test __repr__ with multiple conditions."""
         cond1 = Condition()
         cond2 = Condition()
         cond3 = Condition()
         and_cond = AndCondition(conditions=[cond1, cond2, cond3])
-        expected = f"({cond1!r} AND {cond2!r} AND {cond3!r})"
-        assert repr(and_cond) == expected
+
+        assert repr(and_cond) == "(Condition() AND Condition() AND Condition())"
 
     def test_flattens_nested_and_conditions(self):
         """Test that AndCondition flattens nested AndConditions."""
@@ -174,7 +175,8 @@ class TestOrCondition:
         """Test __repr__ with a single condition."""
         cond = Condition()
         or_cond = OrCondition(conditions=[cond])
-        assert repr(or_cond) == f"({cond!r})"
+
+        assert repr(or_cond) == "(Condition())"
 
     def test_repr_multiple_conditions(self):
         """Test __repr__ with multiple conditions."""
@@ -182,8 +184,8 @@ class TestOrCondition:
         cond2 = Condition()
         cond3 = Condition()
         or_cond = OrCondition(conditions=[cond1, cond2, cond3])
-        expected = f"({cond1!r} OR {cond2!r} OR {cond3!r})"
-        assert repr(or_cond) == expected
+
+        assert repr(or_cond) == "(Condition() OR Condition() OR Condition())"
 
     def test_raises_error_with_nested_or_condition(self):
         """Test that OrCondition raises error when given another."""

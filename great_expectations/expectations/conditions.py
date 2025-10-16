@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Iterable, List
 
-from great_expectations.compatibility.pydantic import BaseModel, validator
+from great_expectations.compatibility.pydantic import BaseModel
 from great_expectations.compatibility.typing_extensions import override
 
 # Error messages for condition validation
@@ -123,19 +123,6 @@ class AndCondition(Condition):
 
     conditions: List[Condition]
 
-    @validator("conditions")
-    def validate_and_flatten(cls, conditions: List[Condition]) -> List[Condition]:
-        flattened = []
-        for cond in conditions:
-            if isinstance(cond, OrCondition):
-                raise TypeError(_NESTED_OR_IN_AND_ERROR)
-            elif isinstance(cond, AndCondition):
-                # Flatten nested AND conditions
-                flattened.extend(cond.conditions)
-            else:
-                flattened.append(cond)
-        return flattened
-
     @override
     def __repr__(self) -> str:
         return "(" + " AND ".join(repr(c) for c in self.conditions) + ")"
@@ -145,13 +132,6 @@ class OrCondition(Condition):
     """Represents an OR condition composed of multiple conditions."""
 
     conditions: List[Condition]
-
-    @validator("conditions")
-    def validate_no_nested_or(cls, conditions: List[Condition]) -> List[Condition]:
-        for cond in conditions:
-            if isinstance(cond, OrCondition):
-                raise TypeError(_NESTED_OR_ERROR)
-        return conditions
 
     @override
     def __repr__(self) -> str:

@@ -32,7 +32,7 @@ from great_expectations.expectations.metrics.util import (
     compute_unexpected_pandas_indices,
     get_dbms_compatible_metric_domain_kwargs,
     get_sqlalchemy_source_table_and_schema,
-    sql_statement_with_post_compile_to_string,
+    sqlalchemy_select_to_sql_string,
 )
 from great_expectations.util import (
     convert_to_json_serializable,  # noqa: TID251 # FIXME CoP
@@ -484,7 +484,7 @@ def _sqlalchemy_map_condition_query(  # noqa: C901 #  too complex
         )
     )
 
-    query_as_string: str = sql_statement_with_post_compile_to_string(
+    query_as_string: str = sqlalchemy_select_to_sql_string(
         engine=execution_engine, select_statement=final_select_statement
     )
     return query_as_string
