@@ -1,3 +1,5 @@
+import inspect
+
 import pytest
 
 from great_expectations.core.expectation_diagnostics.expectation_doctor import (
@@ -106,15 +108,18 @@ def test__get_description_diagnostics():
     expectation = ExpectColumnValuesToBeAwesome(column="values")
     doctor = ExpectationDoctor(expectation=expectation)
     description_diagnostics = doctor._get_description_diagnostics()
-    assert description_diagnostics == ExpectationDescriptionDiagnostics(
-        camel_name="ExpectColumnValuesToBeAwesome",
-        snake_name="expect_column_values_to_be_awesome",
-        short_description="Lo, here is a docstring",
-        docstring="""Lo, here is a docstring
+    normalized_description_diagnostics = inspect.cleandoc(description_diagnostics.docstring)
+    normalized_expected_description_diagnostics = inspect.cleandoc(
+        ExpectationDescriptionDiagnostics(
+            camel_name="ExpectColumnValuesToBeAwesome",
+            snake_name="expect_column_values_to_be_awesome",
+            short_description="Lo, here is a docstring",
+            docstring="""Lo, here is a docstring
 
-        It has more to it.
-        """,
+It has more to it.""",
+        ).docstring
     )
+    assert normalized_description_diagnostics == normalized_expected_description_diagnostics
 
 
 ### Tests for _get_metric_diagnostics_list

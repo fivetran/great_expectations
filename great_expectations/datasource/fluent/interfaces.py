@@ -299,7 +299,7 @@ DatasourceT = TypeVar("DatasourceT", bound="Datasource")
 
 
 @public_api
-class DataAsset(GenericBaseModel, Generic[DatasourceT, PartitionerT], ABC):
+class DataAsset(GenericBaseModel, ABC, Generic[DatasourceT, PartitionerT]):
     """
     A Data Asset is a collection of records within a Data Source, which is usually named based
     on the underlying data system and sliced to correspond to a desired specification.
@@ -661,7 +661,7 @@ class Datasource(
     _type_lookup: ClassVar[TypeLookup]  # This attribute is set in `MetaDatasource.__new__`
     # Setting this in a Datasource subclass will override the execution engine type.
     # The primary use case is to inject an execution engine for testing.
-    execution_engine_override: ClassVar[Optional[Type[_ExecutionEngineT]]] = None  # type: ignore[misc]  # ClassVar cannot contain type variables
+    execution_engine_override: ClassVar[Optional[Type[_ExecutionEngineT]]] = None
 
     # instance attrs
     type: str

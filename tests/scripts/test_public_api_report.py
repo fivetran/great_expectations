@@ -319,7 +319,15 @@ def test_get_shortest_dotted_path(monkeypatch):
     monkeypatch.chdir(repo_root)
     filepath = pathlib.Path("great_expectations/core/expectation_suite.py")
     definition = Definition(
-        name="ExpectationSuite", filepath=filepath, ast_definition=ast.ClassDef()
+        name="ExpectationSuite",
+        filepath=filepath,
+        ast_definition=ast.ClassDef(
+            name="ExpectationSuite",
+            bases=[],
+            keywords=[],
+            body=[],
+            decorator_list=[],
+        ),
     )
 
     # This is the actual path

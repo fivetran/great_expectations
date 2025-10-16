@@ -212,7 +212,6 @@ module = [
     "mistune.*",
     "moto.*",
     "pact.*",
-    "posthog.*",
     "pyarrow.*",
     "pyfakefs.*",
     "pypd.*",

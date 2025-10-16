@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import styles from './styles.module.scss'
 import { useLocation } from '@docusaurus/router'
 import useBaseUrl from '@docusaurus/useBaseUrl'
-import { posthog as posthogJS } from 'posthog-js'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 const CREATE_JIRA_TICKET_IN_DOCS_BOARD_ENDPOINT_URL = '/.netlify/functions/createJiraTicketInDocsBoard'
 const SURVEY_ID = '018dd725-c595-0000-00c6-6eec1b197fd0'
@@ -14,13 +13,6 @@ export default function WasThisHelpful () {
   const [error, setError] = useState(false)
   const config = useDocusaurusContext()
 
-  useEffect(() => {
-    if (window && !window.posthog) {
-      // Checking if Posthog is already initialized
-      posthogJS.init(config.siteConfig.customFields.posthogApiKey)
-      window.posthog = posthogJS
-    }
-  }, [])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -40,7 +32,6 @@ export default function WasThisHelpful () {
   const handleFeedbackReaction = (eventName) => {
     if (!feedbackSent) {
       setFeedbackSent(true)
-      posthog.capture(eventName, { doc_url: pathname })
     }
   }
 
@@ -50,9 +41,6 @@ export default function WasThisHelpful () {
   }
 
   const dismissFeedbackModal = () => {
-    posthog.capture('survey dismissed', {
-      $survey_id: SURVEY_ID
-    })
     setIsOpen(false)
     setError(false)
   }
@@ -61,14 +49,6 @@ export default function WasThisHelpful () {
     e.preventDefault()
     if (formData.description) {
       setError(false)
-      posthog.capture('survey sent', {
-        $survey_id: SURVEY_ID,
-        $survey_response: formData.name,
-        $survey_response_1: formData.email,
-        $survey_response_2: formData.description,
-        $survey_response_3: pathname,
-        $survey_response_4: formData.selectedValue.replaceAll('-', ' ')
-      })
       try {
         const response = await fetch(CREATE_JIRA_TICKET_IN_DOCS_BOARD_ENDPOINT_URL, {
           method: 'POST',

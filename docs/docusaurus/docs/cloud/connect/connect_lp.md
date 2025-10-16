@@ -11,10 +11,11 @@ import LinkCard from '@site/src/components/LinkCard';
 import OverviewCard from '@site/src/components/OverviewCard';
 
 <OverviewCard title={frontMatter.title}>
-  Connect GX Cloud to your deployment environment. To connect to a Data Source not currently available in the GX Cloud UI, use the [GX Cloud API](/cloud/connect/connect_python.md).
+  Connect GX Cloud to your deployment environment.
 </OverviewCard>
 
 <LinkCardGrid>
+  <LinkCard topIcon label="Connect GX Cloud to Amazon S3" description="Start using GX Cloud with Amazon S3." to="/cloud/connect/connect_s3" icon="/img/s3_icon.png" />
   <LinkCard topIcon label="Connect GX Cloud to Databricks SQL" description="Start using GX Cloud with Databricks SQL." to="/cloud/connect/connect_databrickssql" icon="/img/databricks_icon.svg" />
   <LinkCard topIcon label="Connect GX Cloud to PostgreSQL" description="Start using GX Cloud with PostgreSQL." to="/cloud/connect/connect_postgresql" icon="/img/postgresql_icon.svg" />
   <LinkCard topIcon label="Connect GX Cloud to Redshift" description="Start using GX Cloud with Redshift." to="/cloud/connect/connect_redshift" icon="/img/redshift_icon.png" />

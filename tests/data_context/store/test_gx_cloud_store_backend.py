@@ -229,7 +229,7 @@ def test_construct_json_payload_raises_error_with_V1_resource_and_wrong_attribut
     attributes_value_of_legacy_type = "a string"
     with pytest.raises(
         TypeError,
-        match="Parameter attributes_value of type <class 'str'> is unsupported in GX V1.",
+        match=r"Parameter attributes_value of type <class 'str'> is unsupported in GX V1.",
     ):
         GXCloudStoreBackend.construct_versioned_payload(
             resource_type=v1_resource,

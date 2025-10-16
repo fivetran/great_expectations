@@ -3,11 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Iterable
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.analytics.client import submit as submit_event
-from great_expectations.analytics.events import (
-    ExpectationSuiteCreatedEvent,
-    ExpectationSuiteDeletedEvent,
-)
 from great_expectations.compatibility.pydantic import ValidationError as PydanticValidationError
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import ExpectationSuite
@@ -50,12 +45,6 @@ class SuiteFactory(Factory[ExpectationSuite]):
             )
         self._store.add(key=key, value=suite)
 
-        submit_event(
-            event=ExpectationSuiteCreatedEvent(
-                expectation_suite_id=suite.id,
-            )
-        )
-
         if suite._include_rendered_content:
             suite.render()
 
@@ -81,12 +70,6 @@ class SuiteFactory(Factory[ExpectationSuite]):
 
         key = self._store.get_key(name=suite.name, id=suite.id)
         self._store.remove_key(key=key)
-
-        submit_event(
-            event=ExpectationSuiteDeletedEvent(
-                expectation_suite_id=suite.id,
-            )
-        )
 
     @public_api
     @override
@@ -122,11 +105,9 @@ class SuiteFactory(Factory[ExpectationSuite]):
         for suite_dict in dicts:
             try:
                 deserializable_suites.append(self._store.deserialize_suite_dict(suite_dict))
-            except PydanticValidationError as e:
+            except PydanticValidationError:
                 bad_dicts.append(suite_dict)
-                self._store.submit_all_deserialization_event(e)
-            except Exception as e:
-                self._store.submit_all_deserialization_event(e)
+            except Exception:
                 raise
         return deserializable_suites
 
