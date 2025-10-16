@@ -372,7 +372,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 sa.event.listen(self.engine, "connect", _on_connect)
                 # Also immediately add the sqlite functions in case there already exists an underlying  # noqa: E501 # FIXME CoP
                 # sqlite3.Connection (distinct from a sqlalchemy Connection).
-                _add_sqlite_functions(self.engine.raw_connection())
+                _raw_dbapi_con = self.engine.raw_connection()
+                try:
+                    _add_sqlite_functions(_raw_dbapi_con)
+                finally:
+                    # Ensure the temporary raw DB-API connection is closed to avoid ResourceWarning.
+                    try:
+                        _raw_dbapi_con.close()
+                    except Exception:
+                        pass
             self._engine_backup = self.engine
 
         # Gather the call arguments of the present function (and add the "class_name"), filter out the Falsy values,  # noqa: E501 # FIXME CoP
