@@ -7,7 +7,7 @@ from great_expectations.compatibility.pydantic import BaseModel
 from great_expectations.compatibility.typing_extensions import override
 
 
-class Comparator(Enum):
+class Operator(str, Enum):
     EQUAL = "=="
     NOT_EQUAL = "!="
     LESS_THAN = "<"
@@ -16,10 +16,6 @@ class Comparator(Enum):
     GREATER_THAN_OR_EQUAL = ">="
     IN = "IN"
     NOT_IN = "NOT_IN"
-
-    @override
-    def __str__(self) -> str:
-        return self.value
 
 
 Parameter = Any
@@ -34,33 +30,33 @@ class Column(BaseModel):
 
     @override
     def __eq__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
-        return ComparisonCondition(column=self, operator=Comparator.EQUAL, parameter=other)
+        return ComparisonCondition(column=self, operator=Operator.EQUAL, parameter=other)
 
     @override
     def __ne__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
-        return ComparisonCondition(column=self, operator=Comparator.NOT_EQUAL, parameter=other)
+        return ComparisonCondition(column=self, operator=Operator.NOT_EQUAL, parameter=other)
 
     def __lt__(self, other: Parameter) -> ComparisonCondition:
-        return ComparisonCondition(column=self, operator=Comparator.LESS_THAN, parameter=other)
+        return ComparisonCondition(column=self, operator=Operator.LESS_THAN, parameter=other)
 
     def __le__(self, other: Parameter) -> ComparisonCondition:
         return ComparisonCondition(
-            column=self, operator=Comparator.LESS_THAN_OR_EQUAL, parameter=other
+            column=self, operator=Operator.LESS_THAN_OR_EQUAL, parameter=other
         )
 
     def __gt__(self, other: Parameter) -> ComparisonCondition:
-        return ComparisonCondition(column=self, operator=Comparator.GREATER_THAN, parameter=other)
+        return ComparisonCondition(column=self, operator=Operator.GREATER_THAN, parameter=other)
 
     def __ge__(self, other: Parameter) -> ComparisonCondition:
         return ComparisonCondition(
-            column=self, operator=Comparator.GREATER_THAN_OR_EQUAL, parameter=other
+            column=self, operator=Operator.GREATER_THAN_OR_EQUAL, parameter=other
         )
 
     def is_in(self, values: Iterable) -> ComparisonCondition:
-        return ComparisonCondition(column=self, operator=Comparator.IN, parameter=list(values))
+        return ComparisonCondition(column=self, operator=Operator.IN, parameter=list(values))
 
     def is_not_in(self, values: Iterable) -> ComparisonCondition:
-        return ComparisonCondition(column=self, operator=Comparator.NOT_IN, parameter=list(values))
+        return ComparisonCondition(column=self, operator=Operator.NOT_IN, parameter=list(values))
 
     def is_null(self) -> NullityCondition:
         return NullityCondition(column=self, is_null=True)
@@ -103,13 +99,13 @@ class NullityCondition(Condition):
 
 class ComparisonCondition(Condition):
     column: Column
-    operator: Comparator
-    parameter: Any
+    operator: Operator
+    parameter: Parameter
 
     @override
     def __repr__(self):
         col_name = self.column.name
-        if self.operator in (Comparator.IN, Comparator.NOT_IN):
+        if self.operator in (Operator.IN, Operator.NOT_IN):
             return f"{col_name} {self.operator} ({', '.join(map(str, self.parameter))})"
         return f"{col_name} {self.operator} {self.parameter}"
 

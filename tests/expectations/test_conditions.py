@@ -5,10 +5,10 @@ import pytest
 from great_expectations.expectations.conditions import (
     AndCondition,
     Column,
-    Comparator,
     ComparisonCondition,
     Condition,
     NullityCondition,
+    Operator,
     OrCondition,
 )
 
@@ -159,16 +159,14 @@ class TestColumn:
         col = Column(name="age")
         result = col < 18
 
-        assert result == ComparisonCondition(
-            column=col, operator=Comparator.LESS_THAN, parameter=18
-        )
+        assert result == ComparisonCondition(column=col, operator=Operator.LESS_THAN, parameter=18)
 
     def test_less_than_or_equal_operator(self):
         col = Column(name="age")
         result = col <= 18
 
         assert result == ComparisonCondition(
-            column=col, operator=Comparator.LESS_THAN_OR_EQUAL, parameter=18
+            column=col, operator=Operator.LESS_THAN_OR_EQUAL, parameter=18
         )
 
     def test_equal_operator(self):
@@ -176,7 +174,7 @@ class TestColumn:
         result = col == "active"
 
         assert result == ComparisonCondition(
-            column=col, operator=Comparator.EQUAL, parameter="active"
+            column=col, operator=Operator.EQUAL, parameter="active"
         )
 
     def test_not_equal_operator(self):
@@ -184,7 +182,7 @@ class TestColumn:
         result = col != "inactive"
 
         assert result == ComparisonCondition(
-            column=col, operator=Comparator.NOT_EQUAL, parameter="inactive"
+            column=col, operator=Operator.NOT_EQUAL, parameter="inactive"
         )
 
     def test_greater_than_operator(self):
@@ -192,7 +190,7 @@ class TestColumn:
         result = col > 65
 
         assert result == ComparisonCondition(
-            column=col, operator=Comparator.GREATER_THAN, parameter=65
+            column=col, operator=Operator.GREATER_THAN, parameter=65
         )
 
     def test_greater_than_or_equal_operator(self):
@@ -200,7 +198,7 @@ class TestColumn:
         result = col >= 65
 
         assert result == ComparisonCondition(
-            column=col, operator=Comparator.GREATER_THAN_OR_EQUAL, parameter=65
+            column=col, operator=Operator.GREATER_THAN_OR_EQUAL, parameter=65
         )
 
     def test_is_in_method(self):
@@ -208,7 +206,7 @@ class TestColumn:
         result = col.is_in(["active", "pending", "approved"])
 
         assert result == ComparisonCondition(
-            column=col, operator=Comparator.IN, parameter=["active", "pending", "approved"]
+            column=col, operator=Operator.IN, parameter=["active", "pending", "approved"]
         )
 
     def test_is_not_in_method(self):
@@ -216,7 +214,7 @@ class TestColumn:
         result = col.is_not_in(["inactive", "deleted"])
 
         assert result == ComparisonCondition(
-            column=col, operator=Comparator.NOT_IN, parameter=["inactive", "deleted"]
+            column=col, operator=Operator.NOT_IN, parameter=["inactive", "deleted"]
         )
 
     def test_is_null_method(self):
@@ -235,38 +233,38 @@ class TestColumn:
 class TestComparisonCondition:
     def test_repr_equal_operator(self):
         col = Column(name="status")
-        cond = ComparisonCondition(column=col, operator=Comparator.EQUAL, parameter="active")
+        cond = ComparisonCondition(column=col, operator=Operator.EQUAL, parameter="active")
 
         assert repr(cond) == "status == active"
 
     def test_repr_not_equal_operator(self):
         col = Column(name="status")
-        cond = ComparisonCondition(column=col, operator=Comparator.NOT_EQUAL, parameter="inactive")
+        cond = ComparisonCondition(column=col, operator=Operator.NOT_EQUAL, parameter="inactive")
 
         assert repr(cond) == "status != inactive"
 
     def test_repr_less_than_operator(self):
         col = Column(name="age")
-        cond = ComparisonCondition(column=col, operator=Comparator.LESS_THAN, parameter=18)
+        cond = ComparisonCondition(column=col, operator=Operator.LESS_THAN, parameter=18)
 
         assert repr(cond) == "age < 18"
 
     def test_repr_less_than_or_equal_operator(self):
         col = Column(name="age")
-        cond = ComparisonCondition(column=col, operator=Comparator.LESS_THAN_OR_EQUAL, parameter=18)
+        cond = ComparisonCondition(column=col, operator=Operator.LESS_THAN_OR_EQUAL, parameter=18)
 
         assert repr(cond) == "age <= 18"
 
     def test_repr_greater_than_operator(self):
         col = Column(name="age")
-        cond = ComparisonCondition(column=col, operator=Comparator.GREATER_THAN, parameter=65)
+        cond = ComparisonCondition(column=col, operator=Operator.GREATER_THAN, parameter=65)
 
         assert repr(cond) == "age > 65"
 
     def test_repr_greater_than_or_equal_operator(self):
         col = Column(name="age")
         cond = ComparisonCondition(
-            column=col, operator=Comparator.GREATER_THAN_OR_EQUAL, parameter=65
+            column=col, operator=Operator.GREATER_THAN_OR_EQUAL, parameter=65
         )
 
         assert repr(cond) == "age >= 65"
@@ -274,7 +272,7 @@ class TestComparisonCondition:
     def test_repr_in_operator(self):
         col = Column(name="status")
         cond = ComparisonCondition(
-            column=col, operator=Comparator.IN, parameter=["active", "pending", "approved"]
+            column=col, operator=Operator.IN, parameter=["active", "pending", "approved"]
         )
 
         assert repr(cond) == "status IN (active, pending, approved)"
@@ -282,7 +280,7 @@ class TestComparisonCondition:
     def test_repr_not_in_operator(self):
         col = Column(name="status")
         cond = ComparisonCondition(
-            column=col, operator=Comparator.NOT_IN, parameter=["inactive", "deleted"]
+            column=col, operator=Operator.NOT_IN, parameter=["inactive", "deleted"]
         )
 
         assert repr(cond) == "status NOT_IN (inactive, deleted)"
