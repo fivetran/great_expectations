@@ -67,7 +67,7 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
    schema = "my_schema"
    warehouse = "my_wh"
    role = "my_role"
-   # For details on how to access your private key, refer to "Configure credentials" above 
+   private_key = "my_private_key"
 
    data_source = context.data_sources.add_snowflake(
       name=datasource_name,
@@ -77,14 +77,10 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
       schema=schema,
       warehouse=warehouse,
       role=role,
-      private_key=pkb
+      private_key=private_key
    }
    )
    ```
-   
-   :::warning Private key serialized in File Data Context
-   If you're using a [File Data Context](/core/set_up_a_gx_environment/create_a_data_context.md), your Data Source configuration will be serialized to `great_expectations.yml`, including the private key.
-   :::
 
 
 4. Optional. Verify the Data Source is connected:

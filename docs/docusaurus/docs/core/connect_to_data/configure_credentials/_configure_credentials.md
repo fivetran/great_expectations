@@ -5,9 +5,7 @@ import TabItem from '@theme/TabItem';
 import ConnectionString from './_connection_string.md';
 import EnvironmentVariables from './_environment_variables.md';
 import ConfigYml from './_config_yml.md';
-import KeyPair from './_key_pair.md';
 import AccessCredentials from './_access_credentials.md'
-import AccessKeyPair from './_access_key_pair.md'
 
 
 
@@ -31,7 +29,7 @@ GX Core also supports referencing credentials that have been stored in the AWS S
 
    GX supports the following methods of securely storing credentials.
 
-   <Tabs queryString="storage_type" groupId="storage_type" defaultValue='environment_variables' values={[{label: 'Environment Variables', value:'environment_variables'}, {label: 'config.yml', value:'config_yml'}, {label: 'Key pair (Snowflake only)', value:'key_pair'}]}>
+   <Tabs queryString="storage_type" groupId="storage_type" defaultValue='environment_variables' values={[{label: 'Environment Variables', value:'environment_variables'}, {label: 'config.yml', value:'config_yml'}]}>
 
    <TabItem value="environment_variables">
       <EnvironmentVariables/>
@@ -41,31 +39,10 @@ GX Core also supports referencing credentials that have been stored in the AWS S
       <ConfigYml/>
    </TabItem>
 
-   <TabItem value="key_pair">
-      <KeyPair/>
-   </TabItem>
-
    </Tabs>
 
-
-<Tabs className="hidden" queryString="storage_type" groupId="storage_type" defaultValue='environment_variables'>
-
-<TabItem value="environment_variables">
 3. Access your credentials in Python strings.
    <AccessCredentials/>
-</TabItem>
-
-<TabItem value="config_yml">
-3. Access your credentials in Python strings.
-   <AccessCredentials/>
-</TabItem>
-
-<TabItem value="key_pair">
-3. Access your Snowflake private key in Python.
-   <AccessKeyPair/>
-</TabItem>
-
-</Tabs>
 
 4. Optional. Access credentials stored in a secret manager.
 
