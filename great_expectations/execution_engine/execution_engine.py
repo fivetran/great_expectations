@@ -64,7 +64,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-TFilter = TypeVar("TFilter", str, sa.ColumnClause)
+TFilter = TypeVar("TFilter")
 
 
 class NoOpDict:

@@ -83,7 +83,7 @@ from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.expectations.conditions import Operator
+from great_expectations.expectations.conditions import NullityCondition, OrCondition
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -101,7 +101,6 @@ if TYPE_CHECKING:
     from great_expectations.expectations.conditions import (
         AndCondition,
         ComparisonCondition,
-        Condition,
         NullityCondition,
         OrCondition,
     )
@@ -163,6 +162,8 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Engine as SaEngine  # noqa: TID251 # FIXME CoP
 
     from great_expectations.compatibility import sqlalchemy
+
+SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
 
 SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
 
@@ -386,7 +387,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
                 sa.event.listen(self.engine, "connect", _on_connect)
                 # Also immediately add the sqlite functions in case there already exists an underlying  # noqa: E501 # FIXME CoP
                 # sqlite3.Connection (distinct from a sqlalchemy Connection).
-                _add_sqlite_functions(self.engine.raw_connection())
+                _raw_dbapi_con = self.engine.raw_connection()
+                try:
+                    _add_sqlite_functions(_raw_dbapi_con)
+                finally:
+                    # Ensure the temporary raw DB-API connection is closed to avoid ResourceWarning.
+                    try:
+                        _raw_dbapi_con.close()
+                    except Exception:
+                        pass
             self._engine_backup = self.engine
 
         # Gather the call arguments of the present function (and add the "class_name"), filter out the Falsy values,  # noqa: E501 # FIXME CoP
@@ -1443,45 +1452,19 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         return result
 
     @override
-    def condition_to_filter_clause(self, condition: Condition):
-        return super().condition_to_filter_clause(condition)
-
-    @override
-    def _comparison_condition_to_filter_clause(  # noqa: C901, PLR0911
+    def _comparison_condition_to_filter_clause(
         self, condition: ComparisonCondition
-    ) -> sa.ColumnElement:
-        col: sa.ColumnClause = sa.column(condition.column.name)
-        val = sa.literal(condition.parameter)
-        op = condition.operator
-        if op == Operator.LESS_THAN:
-            return col < val
-        elif op == Operator.LESS_THAN_OR_EQUAL:
-            return col <= val
-        elif op == Operator.EQUAL:
-            return col == val
-        elif op == Operator.NOT_EQUAL:
-            return col != val
-        elif op == Operator.GREATER_THAN:
-            return col > val
-        elif op == Operator.GREATER_THAN_OR_EQUAL:
-            return col >= val
-        elif op == Operator.IN:
-            return col.in_(condition.parameter)
-        elif op == Operator.NOT_IN:
-            return ~col.in_(condition.parameter)
-        else:
-            raise InvalidOperatorError(op)
+    ) -> sa.ColumnClause:
+        raise NotImplementedError
 
     @override
-    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnElement:
-        col: sa.ColumnClause = sa.column(condition.column.name)
-        return col.is_(None) if condition.is_null else col.isnot(None)
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnClause:
+        raise NotImplementedError
 
     @override
-    def _and_condition_to_filter_clause(self, condition: AndCondition) -> sa.ColumnElement:
-        output = sa.and_(*[self.condition_to_filter_clause(c) for c in condition.conditions])
-        return output
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> sa.ColumnClause:
+        raise NotImplementedError
 
     @override
-    def _or_condition_to_filter_clause(self, condition: OrCondition) -> sa.ColumnElement:
-        return sa.or_(*[self.condition_to_filter_clause(c) for c in condition.conditions])
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> sa.ColumnClause:
+        raise NotImplementedError
