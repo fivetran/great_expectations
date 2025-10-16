@@ -59,6 +59,7 @@ from great_expectations.execution_engine.partition_and_sample.sparkdf_data_sampl
     SparkDataSampler,
 )
 from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchData
+from great_expectations.expectations.conditions import Operator
 from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
@@ -102,7 +103,7 @@ def apply_dateutil_parse(column):
     "The existing Spark context will be reused if possible. If a spark_config is passed that doesn't match "  # noqa: E501 # FIXME CoP
     "the existing config, the context will be stopped and restarted in local environments only.",
 )
-class SparkDFExecutionEngine(ExecutionEngine):
+class SparkDFExecutionEngine(ExecutionEngine[str]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     This class holds an attribute `spark_df` which is a spark.sql.DataFrame.
@@ -934,9 +935,9 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
     @override
     def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
         col, op, val = condition.column.name, condition.operator, condition.parameter
-        if op in ("IN", "NOT IN"):
+        if op in (Operator.IN, Operator.NOT_IN):
             values = ", ".join(map(repr, val))
-            connector = "IN" if op == "IN" else "NOT IN"
+            connector = "IN" if op == Operator.IN else "NOT IN"
             return f"{col} {connector} ({values})"
         return f"{col} {op} {val!r}"
 
