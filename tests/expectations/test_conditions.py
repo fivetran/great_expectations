@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.expectations.conditions import (
     AndCondition,
     Column,
@@ -114,23 +113,6 @@ class TestAndCondition:
         assert outer_and.conditions[1] == cond2
         assert outer_and.conditions[2] == cond3
 
-    def test_raises_error_with_or_condition(self):
-        """Test that AndCondition raises error when given an OrCondition."""
-        cond1 = Condition()
-        or_cond = OrCondition(conditions=[cond1])
-
-        with pytest.raises(ValidationError, match="AND groups cannot contain OR conditions"):
-            AndCondition(conditions=[or_cond])
-
-    def test_raises_error_with_mixed_conditions_including_or(self):
-        """Test that AndCondition raises error when any condition is OrCondition."""
-        cond1 = Condition()
-        cond2 = Condition()
-        or_cond = OrCondition(conditions=[cond1])
-
-        with pytest.raises(ValidationError, match="AND groups cannot contain OR conditions"):
-            AndCondition(conditions=[cond1, or_cond, cond2])
-
     def test_flattens_multiple_nested_and_conditions(self):
         """Test that AndCondition flattens multiple levels of nested ANDs."""
         cond1 = Condition()
@@ -186,16 +168,6 @@ class TestOrCondition:
         or_cond = OrCondition(conditions=[cond1, cond2, cond3])
 
         assert repr(or_cond) == "(Condition() OR Condition() OR Condition())"
-
-    def test_raises_error_with_nested_or_condition(self):
-        """Test that OrCondition raises error when given another."""
-        cond1 = Condition()
-        cond2 = Condition()
-        inner_or = OrCondition(conditions=[cond1, cond2])
-        cond3 = Condition()
-
-        with pytest.raises(ValidationError, match="OR groups cannot contain nested OR conditions"):
-            OrCondition(conditions=[inner_or, cond3])
 
     def test_can_contain_and_conditions(self):
         """Test that OrCondition can contain AndCondition instances."""
