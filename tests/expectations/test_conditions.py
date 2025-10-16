@@ -77,6 +77,26 @@ class TestCondition:
         result = condition_a | right_condition
         assert result == OrCondition(conditions=[condition_a, condition_b, condition_c])
 
+    def test_flattening_and(self):
+        """Test that OrCondition flattens nested AndConditions."""
+        cond1 = Condition()
+        cond2 = Condition()
+        cond3 = Condition()
+
+        result = cond1 & cond2 & cond3
+
+        assert result == AndCondition(conditions=[cond1, cond2, cond3])
+
+    def test_flattening_or(self):
+        """Test that OrCondition flattens nested AndConditions."""
+        cond1 = Condition()
+        cond2 = Condition()
+        cond3 = Condition()
+
+        result = cond1 | cond2 | cond3
+
+        assert result == OrCondition(conditions=[cond1, cond2, cond3])
+
 
 class TestAndCondition:
     """Tests for the AndCondition class."""
@@ -96,16 +116,6 @@ class TestAndCondition:
         and_cond = AndCondition(conditions=[cond1, cond2, cond3])
 
         assert repr(and_cond) == "(Condition() AND Condition() AND Condition())"
-
-    def test_flattening(self):
-        """Test that OrCondition flattens nested AndConditions."""
-        cond1 = Condition()
-        cond2 = Condition()
-        cond3 = Condition()
-
-        result = cond1 & cond2 & cond3
-
-        assert result == AndCondition(conditions=[cond1, cond2, cond3])
 
 
 class TestOrCondition:
@@ -136,16 +146,6 @@ class TestOrCondition:
         or_cond = OrCondition(conditions=[and_cond, cond3])
         expected = f"({and_cond!r} OR {cond3!r})"
         assert repr(or_cond) == expected
-
-    def test_flattening(self):
-        """Test that OrCondition flattens nested AndConditions."""
-        cond1 = Condition()
-        cond2 = Condition()
-        cond3 = Condition()
-
-        result = cond1 | cond2 | cond3
-
-        assert result == OrCondition(conditions=[cond1, cond2, cond3])
 
 
 class TestColumn:
