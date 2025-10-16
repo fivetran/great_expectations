@@ -162,10 +162,8 @@ if TYPE_CHECKING:
 
     from great_expectations.compatibility import sqlalchemy
 
-    FilterType = sqlalchemy.ColumnClause if sqlalchemy else object
-else:
-    FilterType = sa.ColumnClause if sa else object  # type: ignore[misc,assignment]
 
+SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
 
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
@@ -216,7 +214,7 @@ def _dialect_requires_persisted_connection(
     return return_val
 
 
-class SqlAlchemyExecutionEngine(ExecutionEngine[FilterType]):
+class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     Constructor builds a SqlAlchemyExecutionEngine, using a provided connection string/url/engine/credentials to \
