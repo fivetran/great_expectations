@@ -6,10 +6,6 @@ from typing import Any, Iterable, List
 from great_expectations.compatibility.pydantic import BaseModel
 from great_expectations.compatibility.typing_extensions import override
 
-# Error messages for condition validation
-_NESTED_OR_IN_AND_ERROR = "AND groups cannot contain OR conditions"
-_NESTED_OR_ERROR = "OR groups cannot contain nested OR conditions"
-
 
 class Comparator(Enum):
     EQUAL = "=="
