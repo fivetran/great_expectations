@@ -17,6 +17,10 @@ class Operator(str, Enum):
     IN = "IN"
     NOT_IN = "NOT_IN"
 
+    @override
+    def __str__(self) -> str:
+        return self.value
+
 
 Parameter = Any
 
