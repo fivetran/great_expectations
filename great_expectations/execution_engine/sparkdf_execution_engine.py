@@ -74,6 +74,13 @@ from great_expectations.validator.computed_metric import MetricValue  # noqa: TC
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        Comparator,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.metric_configuration import (
         MetricConfiguration,
         MetricConfigurationID,
@@ -924,3 +931,27 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
     def head(self, n=5):
         """Returns dataframe head. Default is 5"""
         return self.dataframe.limit(n).toPandas()
+
+    @override
+    def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+        col, op, val = condition.column.name, condition.operator, condition.parameter
+        if op in ("IN", "NOT IN"):
+            values = ", ".join(map(repr, val))
+            connector = "IN" if op == "IN" else "NOT IN"
+            return f"{col} {connector} ({values})"
+        return f"{col} {op} {val!r}"
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+        col = condition.column.name
+        return f"{col} IS NULL" if condition.is_null else f"{col} IS NOT NULL"
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " AND ".join(parts) + ")"
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " OR ".join(parts) + ")"

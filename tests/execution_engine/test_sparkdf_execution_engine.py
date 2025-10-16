@@ -10,9 +10,17 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.core.batch_spec import PathBatchSpec, RuntimeDataBatchSpec
+from great_expectations.core.column import Column
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.core.metric_function_types import MetricPartialFunctionTypes
 from great_expectations.execution_engine import SparkDFExecutionEngine
+from great_expectations.expectations.conditions import (
+    AndCondition,
+    Comparator,
+    ComparisonCondition,
+    NullityCondition,
+    OrCondition,
+)
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -1120,3 +1128,315 @@ def test_schema_properly_added(spark_session):
     )
     df = engine.dataframe
     assert df.schema == schema
+
+
+class TestConditionToFilterClause:
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "condition,expected_output",
+        [
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Comparator.EQUAL, parameter=5
+                ),
+                "age == 5",
+                id="equal",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Comparator.NOT_EQUAL, parameter=10
+                ),
+                "age != 10",
+                id="not_equal",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Comparator.LESS_THAN, parameter=18
+                ),
+                "age < 18",
+                id="less_than",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Comparator.GREATER_THAN, parameter=65
+                ),
+                "age > 65",
+                id="greater_than",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Comparator.LESS_OR_EQUAL, parameter=100
+                ),
+                "age <= 100",
+                id="less_or_equal",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Comparator.GREATER_OR_EQUAL, parameter=0
+                ),
+                "age >= 0",
+                id="greater_or_equal",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="name"), operator=Comparator.EQUAL, parameter="John"
+                ),
+                "name == 'John'",
+                id="equal_string",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="name"), operator=Comparator.NOT_EQUAL, parameter="Jane"
+                ),
+                "name != 'Jane'",
+                id="not_equal_string",
+            ),
+        ],
+    )
+    def test_comparison_condition_to_filter_clause_basic_operators(
+        self, condition: ComparisonCondition, expected_output: str
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+
+        result = engine.condition_to_filter_clause(condition)
+        assert result == expected_output
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "condition,expected_output",
+        [
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Comparator.IN, parameter=[1, 2, 3]
+                ),
+                "status IN (1, 2, 3)",
+                id="integers",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="status"),
+                    operator=Comparator.IN,
+                    parameter=["active", "pending"],
+                ),
+                "status IN ('active', 'pending')",
+                id="strings",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Comparator.NOT_IN, parameter=[1, 2, 3]
+                ),
+                "status NOT IN (1, 2, 3)",
+                id="not_in",
+            ),
+        ],
+    )
+    def test_comparison_condition_to_filter_clause_in_not_in_operators(
+        self, condition: ComparisonCondition, expected_output: str
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+
+        result = engine.condition_to_filter_clause(condition)
+        assert result == expected_output
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "condition,expected_output",
+        [
+            pytest.param(
+                NullityCondition(column=Column(name="email"), is_null=True),
+                "email IS NULL",
+                id="is_null",
+            ),
+            pytest.param(
+                NullityCondition(column=Column(name="email"), is_null=False),
+                "email IS NOT NULL",
+                id="is_not_null",
+            ),
+        ],
+    )
+    def test_nullity_condition_to_filter_clause(
+        self, condition: NullityCondition, expected_output: str
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+
+        result = engine.condition_to_filter_clause(condition)
+        assert result == expected_output
+
+    @pytest.mark.unit
+    def test_and_condition_to_filter_clause_simple(self) -> None:
+        engine = SparkDFExecutionEngine()
+
+        and_condition = AndCondition(
+            conditions=[
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Comparator.GREATER_THAN, parameter=18
+                ),
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Comparator.LESS_THAN, parameter=65
+                ),
+            ]
+        )
+
+        result = engine.condition_to_filter_clause(and_condition)
+        assert result == "(age > 18 AND age < 65)"
+
+    @pytest.mark.unit
+    def test_or_condition_to_filter_clause_simple(self) -> None:
+        """Test that OR conditions generate correct Spark SQL query strings."""
+        engine = SparkDFExecutionEngine()
+
+        or_condition = OrCondition(
+            conditions=[
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Comparator.EQUAL, parameter="active"
+                ),
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Comparator.EQUAL, parameter="pending"
+                ),
+            ]
+        )
+
+        result = engine.condition_to_filter_clause(or_condition)
+        assert result == "(status == 'active' OR status == 'pending')"
+
+    @pytest.mark.unit
+    def test_nested_conditions(self) -> None:
+        engine = SparkDFExecutionEngine()
+
+        or_condition = OrCondition(
+            conditions=[
+                AndCondition(
+                    conditions=[
+                        ComparisonCondition(
+                            column=Column(name="age"),
+                            operator=Comparator.GREATER_OR_EQUAL,
+                            parameter=18,
+                        ),
+                        ComparisonCondition(
+                            column=Column(name="age"),
+                            operator=Comparator.LESS_OR_EQUAL,
+                            parameter=65,
+                        ),
+                    ]
+                ),
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Comparator.EQUAL, parameter="exempt"
+                ),
+            ]
+        )
+
+        result = engine.condition_to_filter_clause(or_condition)
+        assert result == "((age >= 18 AND age <= 65) OR status == 'exempt')"
+
+    @pytest.mark.unit
+    def test_comparison_filter_clause_filters_dataframe(
+        self, spark_session, spark_df_from_pandas_df
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        pd_df = pd.DataFrame({"age": [15, 25, 35, 45, 55], "name": ["A", "B", "C", "D", "E"]})
+        df = spark_df_from_pandas_df(spark_session, pd_df)
+
+        condition = ComparisonCondition(
+            column=Column(name="age"),
+            operator=Comparator.GREATER_THAN,
+            parameter=30,
+        )
+
+        filter_clause = engine.condition_to_filter_clause(condition)
+        result_df = df.filter(filter_clause)
+
+        assert result_df.count() == 3
+        result_rows = result_df.select("age", "name").collect()
+        assert [row.age for row in result_rows] == [35, 45, 55]
+        assert [row.name for row in result_rows] == ["C", "D", "E"]
+
+    @pytest.mark.unit
+    def test_in_filter_clause_filters_dataframe(
+        self, spark_session, spark_df_from_pandas_df
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        pd_df = pd.DataFrame(
+            {
+                "status": ["active", "pending", "inactive", "active", "deleted"],
+                "id": [1, 2, 3, 4, 5],
+            }
+        )
+        df = spark_df_from_pandas_df(spark_session, pd_df)
+
+        condition = ComparisonCondition(
+            column=Column(name="status"),
+            operator=Comparator.IN,
+            parameter=["active", "pending"],
+        )
+
+        filter_clause = engine.condition_to_filter_clause(condition)
+        result_df = df.filter(filter_clause)
+
+        assert result_df.count() == 3
+        result_rows = result_df.select("id").collect()
+        assert [row.id for row in result_rows] == [1, 2, 4]
+
+    @pytest.mark.unit
+    def test_nullity_filter_clause_filters_dataframe(
+        self, spark_session, spark_df_from_pandas_df
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        pd_df = pd.DataFrame(
+            {
+                "email": ["a@example.com", None, "c@example.com", None, "e@example.com"],
+                "id": [1, 2, 3, 4, 5],
+            }
+        )
+        df = spark_df_from_pandas_df(spark_session, pd_df)
+
+        condition = NullityCondition(column=Column(name="email"), is_null=False)
+
+        filter_clause = engine.condition_to_filter_clause(condition)
+        result_df = df.filter(filter_clause)
+
+        assert result_df.count() == 3
+        result_rows = result_df.select("id").collect()
+        assert [row.id for row in result_rows] == [1, 3, 5]
+
+    @pytest.mark.unit
+    def test_nested_condition_filters_dataframe(
+        self, spark_session, spark_df_from_pandas_df
+    ) -> None:
+        engine = SparkDFExecutionEngine()
+        pd_df = pd.DataFrame(
+            {
+                "age": [15, 25, 35, 45, 75],
+                "status": ["active", "active", "active", "active", "exempt"],
+                "id": [1, 2, 3, 4, 5],
+            }
+        )
+        df = spark_df_from_pandas_df(spark_session, pd_df)
+
+        or_condition = OrCondition(
+            conditions=[
+                AndCondition(
+                    conditions=[
+                        ComparisonCondition(
+                            column=Column(name="age"),
+                            operator=Comparator.GREATER_OR_EQUAL,
+                            parameter=18,
+                        ),
+                        ComparisonCondition(
+                            column=Column(name="age"),
+                            operator=Comparator.LESS_OR_EQUAL,
+                            parameter=65,
+                        ),
+                    ]
+                ),
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Comparator.EQUAL, parameter="exempt"
+                ),
+            ]
+        )
+
+        filter_clause = engine.condition_to_filter_clause(or_condition)
+        result_df = df.filter(filter_clause)
+
+        assert result_df.count() == 4
+        result_rows = result_df.select("id").collect()
+        assert [row.id for row in result_rows] == [2, 3, 4, 5]
