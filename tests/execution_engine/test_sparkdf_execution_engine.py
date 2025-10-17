@@ -1131,7 +1131,6 @@ def test_schema_properly_added(spark_session):
 
 
 class TestConditionToFilterClause:
-    @pytest.mark.unit
     @pytest.mark.parametrize(
         "condition,expected_output",
         [
@@ -1201,7 +1200,6 @@ class TestConditionToFilterClause:
         result = engine.condition_to_filter_clause(condition)
         assert result == expected_output
 
-    @pytest.mark.unit
     @pytest.mark.parametrize(
         "condition,expected_output",
         [
@@ -1238,7 +1236,6 @@ class TestConditionToFilterClause:
         result = engine.condition_to_filter_clause(condition)
         assert result == expected_output
 
-    @pytest.mark.unit
     @pytest.mark.parametrize(
         "condition,expected_output",
         [
@@ -1262,7 +1259,6 @@ class TestConditionToFilterClause:
         result = engine.condition_to_filter_clause(condition)
         assert result == expected_output
 
-    @pytest.mark.unit
     def test_and_condition_to_filter_clause_simple(self) -> None:
         engine = SparkDFExecutionEngine()
 
@@ -1280,7 +1276,6 @@ class TestConditionToFilterClause:
         result = engine.condition_to_filter_clause(and_condition)
         assert result == "(age > 18 AND age < 65)"
 
-    @pytest.mark.unit
     def test_or_condition_to_filter_clause_simple(self) -> None:
         """Test that OR conditions generate correct Spark SQL query strings."""
         engine = SparkDFExecutionEngine()
@@ -1299,7 +1294,6 @@ class TestConditionToFilterClause:
         result = engine.condition_to_filter_clause(or_condition)
         assert result == "(status == 'active' OR status == 'pending')"
 
-    @pytest.mark.unit
     def test_nested_conditions(self) -> None:
         engine = SparkDFExecutionEngine()
 
@@ -1328,7 +1322,6 @@ class TestConditionToFilterClause:
         result = engine.condition_to_filter_clause(or_condition)
         assert result == "((age >= 18 AND age <= 65) OR status == 'exempt')"
 
-    @pytest.mark.unit
     def test_comparison_filter_clause_filters_dataframe(
         self, spark_session, spark_df_from_pandas_df
     ) -> None:
@@ -1350,7 +1343,6 @@ class TestConditionToFilterClause:
         assert [row.age for row in result_rows] == [35, 45, 55]
         assert [row.name for row in result_rows] == ["C", "D", "E"]
 
-    @pytest.mark.unit
     def test_in_filter_clause_filters_dataframe(
         self, spark_session, spark_df_from_pandas_df
     ) -> None:
@@ -1376,7 +1368,6 @@ class TestConditionToFilterClause:
         result_rows = result_df.select("id").collect()
         assert [row.id for row in result_rows] == [1, 2, 4]
 
-    @pytest.mark.unit
     def test_nullity_filter_clause_filters_dataframe(
         self, spark_session, spark_df_from_pandas_df
     ) -> None:
@@ -1398,7 +1389,6 @@ class TestConditionToFilterClause:
         result_rows = result_df.select("id").collect()
         assert [row.id for row in result_rows] == [1, 3, 5]
 
-    @pytest.mark.unit
     def test_nested_condition_filters_dataframe(
         self, spark_session, spark_df_from_pandas_df
     ) -> None:
