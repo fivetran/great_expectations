@@ -83,7 +83,7 @@ from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.expectations.conditions import Operator
+from great_expectations.expectations.conditions import Condition, Operator
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -103,7 +103,6 @@ if TYPE_CHECKING:
     from great_expectations.expectations.conditions import (
         AndCondition,
         ComparisonCondition,
-        Condition,
         NullityCondition,
         OrCondition,
     )
@@ -179,6 +178,11 @@ _PERSISTED_CONNECTION_DIALECTS = (
 class InvalidOperatorError(ValueError):
     def __init__(self, operator: Any) -> None:
         super().__init__(f"Invalid operator: {operator!r}")
+
+
+class InvalidFilterClause(ValueError):
+    def __init__(self, filter_clause: Any) -> None:
+        super().__init__(f"Invalid filter clause: {type(filter_clause)}")
 
 
 def _dialect_requires_persisted_connection(
@@ -1453,8 +1457,11 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         return result
 
     @override
-    def condition_to_filter_clause(self, condition: Condition):
-        return super().condition_to_filter_clause(condition)
+    def condition_to_filter_clause(self, condition: Condition) -> sa.ColumnElement:
+        output = super().condition_to_filter_clause(condition)
+        if not isinstance(output, sa.ColumnElement):
+            raise InvalidFilterClause(output)
+        return output
 
     @override
     def _comparison_condition_to_filter_clause(  # noqa: C901, PLR0911
