@@ -1272,111 +1272,118 @@ class TestConditionToFilterClauseSqlAlchemy:
     """Tests for SQLAlchemy condition_to_filter_clause methods."""
 
     @pytest.mark.sqlite
-    def test_comparison_condition_equal(self, sa) -> None:
+    @pytest.mark.parametrize(
+        "condition,expected_sql",
+        [
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.EQUAL, parameter=5
+                ),
+                "age = 5",
+                id="equal_int",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.NOT_EQUAL, parameter=10
+                ),
+                "age != 10",
+                id="not_equal_int",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.LESS_THAN, parameter=18
+                ),
+                "age < 18",
+                id="less_than",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=65
+                ),
+                "age > 65",
+                id="greater_than",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
+                ),
+                "age <= 100",
+                id="less_than_or_equal",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
+                ),
+                "age >= 0",
+                id="greater_than_or_equal",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="name"), operator=Operator.EQUAL, parameter="John"
+                ),
+                "name = 'John'",
+                id="equal_string",
+            ),
+        ],
+    )
+    def test_comparison_conditions(
+        self, sa, condition: ComparisonCondition, expected_sql: str
+    ) -> None:
+        """Test that comparison conditions compile to correct SQL."""
         engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="age"), operator=Operator.EQUAL, parameter=5
-        )
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "age = 5"
+        assert compiled == expected_sql
 
     @pytest.mark.sqlite
-    def test_comparison_condition_not_equal(self, sa) -> None:
+    @pytest.mark.parametrize(
+        "condition,expected_sql",
+        [
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Operator.IN, parameter=[1, 2, 3]
+                ),
+                "status IN (1, 2, 3)",
+                id="in_integers",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
+                ),
+                "(status NOT IN (1, 2, 3))",
+                id="not_in_integers",
+            ),
+        ],
+    )
+    def test_in_conditions(self, sa, condition: ComparisonCondition, expected_sql: str) -> None:
+        """Test that IN/NOT IN conditions compile to correct SQL."""
         engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="age"), operator=Operator.NOT_EQUAL, parameter=10
-        )
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "age != 10"
+        assert compiled == expected_sql
 
     @pytest.mark.sqlite
-    def test_comparison_condition_less_than(self, sa) -> None:
+    @pytest.mark.parametrize(
+        "condition,expected_sql",
+        [
+            pytest.param(
+                NullityCondition(column=Column(name="email"), is_null=True),
+                "email IS NULL",
+                id="is_null",
+            ),
+            pytest.param(
+                NullityCondition(column=Column(name="email"), is_null=False),
+                "email IS NOT NULL",
+                id="is_not_null",
+            ),
+        ],
+    )
+    def test_nullity_conditions(self, sa, condition: NullityCondition, expected_sql: str) -> None:
+        """Test that nullity conditions compile to correct SQL."""
         engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="age"), operator=Operator.LESS_THAN, parameter=18
-        )
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "age < 18"
-
-    @pytest.mark.sqlite
-    def test_comparison_condition_greater_than(self, sa) -> None:
-        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=65
-        )
-        result = engine.condition_to_filter_clause(condition)
-        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "age > 65"
-
-    @pytest.mark.sqlite
-    def test_comparison_condition_less_than_or_equal(self, sa) -> None:
-        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
-        )
-        result = engine.condition_to_filter_clause(condition)
-        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "age <= 100"
-
-    @pytest.mark.sqlite
-    def test_comparison_condition_greater_than_or_equal(self, sa) -> None:
-        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
-        )
-        result = engine.condition_to_filter_clause(condition)
-        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "age >= 0"
-
-    @pytest.mark.sqlite
-    def test_comparison_condition_equal_string(self, sa) -> None:
-        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="name"), operator=Operator.EQUAL, parameter="John"
-        )
-        result = engine.condition_to_filter_clause(condition)
-        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "name = 'John'"
-
-    @pytest.mark.sqlite
-    def test_comparison_condition_in_operator(self, sa) -> None:
-        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="status"), operator=Operator.IN, parameter=[1, 2, 3]
-        )
-        result = engine.condition_to_filter_clause(condition)
-        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "status IN (1, 2, 3)"
-
-    @pytest.mark.sqlite
-    def test_comparison_condition_not_in_operator(self, sa) -> None:
-        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = ComparisonCondition(
-            column=Column(name="status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
-        )
-        result = engine.condition_to_filter_clause(condition)
-        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        # SQLAlchemy wraps NOT IN expressions in parentheses
-        assert compiled == "(status NOT IN (1, 2, 3))"
-
-    @pytest.mark.sqlite
-    def test_nullity_condition_is_null(self, sa) -> None:
-        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = NullityCondition(column=Column(name="email"), is_null=True)
-        result = engine.condition_to_filter_clause(condition)
-        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "email IS NULL"
-
-    @pytest.mark.sqlite
-    def test_nullity_condition_is_not_null(self, sa) -> None:
-        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
-        condition = NullityCondition(column=Column(name="email"), is_null=False)
-        result = engine.condition_to_filter_clause(condition)
-        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert compiled == "email IS NOT NULL"
+        assert compiled == expected_sql
 
     @pytest.mark.sqlite
     def test_and_condition_simple(self, sa) -> None:
