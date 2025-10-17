@@ -439,8 +439,6 @@ jobs:
             --accept '100..=103,200..=299,403'
             --exclude='http.*'
             --include='^https://(.+\.)?greatexpectations\.io/'
-            --cache
-            --max-cache-age 1d
             'docs/docusaurus/build/**/*.html'
 
   docs-tests:
