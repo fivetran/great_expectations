@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 import pytest
 
@@ -25,7 +27,7 @@ from great_expectations.util import build_in_memory_runtime_context
 )
 def test_expect_table_row_count_to_equal_with_row_condition(
     value: int,
-    row_condition: str | None,
+    row_condition: Optional[str],
     success: bool,
     expected_count: int,
 ):

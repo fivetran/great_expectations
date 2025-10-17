@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 import pytest
 
@@ -109,7 +111,7 @@ def test_expect_table_row_count_to_be_between_runtime_custom_query_with_where_no
 def test_expect_table_row_count_to_be_between_with_row_condition(
     min_value: int,
     max_value: int,
-    row_condition: str | None,
+    row_condition: Optional[str],
     success: bool,
     expected_count: int,
 ):
