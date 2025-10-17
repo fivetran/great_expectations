@@ -1278,9 +1278,8 @@ class TestConditionToFilterClauseSqlAlchemy:
             column=Column(name="age"), operator=Operator.EQUAL, parameter=5
         )
         result = engine.condition_to_filter_clause(condition)
-        # SQLAlchemy returns a ColumnElement, compile it to SQL to verify
-        assert "age" in str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "5" in str(result.compile(compile_kwargs={"literal_binds": True}))
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == "age = 5"
 
     @pytest.mark.sqlite
     def test_comparison_condition_not_equal(self, sa) -> None:
@@ -1290,8 +1289,7 @@ class TestConditionToFilterClauseSqlAlchemy:
         )
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "age" in compiled
-        assert "!=" in compiled or "<>" in compiled  # SQLAlchemy may use either
+        assert compiled == "age != 10"
 
     @pytest.mark.sqlite
     def test_comparison_condition_less_than(self, sa) -> None:
@@ -1301,8 +1299,7 @@ class TestConditionToFilterClauseSqlAlchemy:
         )
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "age" in compiled
-        assert "<" in compiled
+        assert compiled == "age < 18"
 
     @pytest.mark.sqlite
     def test_comparison_condition_greater_than(self, sa) -> None:
@@ -1312,8 +1309,37 @@ class TestConditionToFilterClauseSqlAlchemy:
         )
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "age" in compiled
-        assert ">" in compiled
+        assert compiled == "age > 65"
+
+    @pytest.mark.sqlite
+    def test_comparison_condition_less_than_or_equal(self, sa) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        condition = ComparisonCondition(
+            column=Column(name="age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
+        )
+        result = engine.condition_to_filter_clause(condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == "age <= 100"
+
+    @pytest.mark.sqlite
+    def test_comparison_condition_greater_than_or_equal(self, sa) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        condition = ComparisonCondition(
+            column=Column(name="age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
+        )
+        result = engine.condition_to_filter_clause(condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == "age >= 0"
+
+    @pytest.mark.sqlite
+    def test_comparison_condition_equal_string(self, sa) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        condition = ComparisonCondition(
+            column=Column(name="name"), operator=Operator.EQUAL, parameter="John"
+        )
+        result = engine.condition_to_filter_clause(condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == "name = 'John'"
 
     @pytest.mark.sqlite
     def test_comparison_condition_in_operator(self, sa) -> None:
@@ -1323,8 +1349,18 @@ class TestConditionToFilterClauseSqlAlchemy:
         )
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "status" in compiled
-        assert "IN" in compiled
+        assert compiled == "status IN (1, 2, 3)"
+
+    @pytest.mark.sqlite
+    def test_comparison_condition_not_in_operator(self, sa) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        condition = ComparisonCondition(
+            column=Column(name="status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
+        )
+        result = engine.condition_to_filter_clause(condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        # SQLAlchemy wraps NOT IN expressions in parentheses
+        assert compiled == "(status NOT IN (1, 2, 3))"
 
     @pytest.mark.sqlite
     def test_nullity_condition_is_null(self, sa) -> None:
@@ -1332,8 +1368,7 @@ class TestConditionToFilterClauseSqlAlchemy:
         condition = NullityCondition(column=Column(name="email"), is_null=True)
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "email" in compiled
-        assert "IS" in compiled and "NULL" in compiled
+        assert compiled == "email IS NULL"
 
     @pytest.mark.sqlite
     def test_nullity_condition_is_not_null(self, sa) -> None:
@@ -1341,8 +1376,7 @@ class TestConditionToFilterClauseSqlAlchemy:
         condition = NullityCondition(column=Column(name="email"), is_null=False)
         result = engine.condition_to_filter_clause(condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "email" in compiled
-        assert "IS NOT" in compiled and "NULL" in compiled
+        assert compiled == "email IS NOT NULL"
 
     @pytest.mark.sqlite
     def test_and_condition_simple(self, sa) -> None:
@@ -1359,8 +1393,7 @@ class TestConditionToFilterClauseSqlAlchemy:
         )
         result = engine.condition_to_filter_clause(and_condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "age" in compiled
-        assert "AND" in compiled
+        assert compiled == "age > 18 AND age < 65"
 
     @pytest.mark.sqlite
     def test_or_condition_simple(self, sa) -> None:
@@ -1377,8 +1410,7 @@ class TestConditionToFilterClauseSqlAlchemy:
         )
         result = engine.condition_to_filter_clause(or_condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "status" in compiled
-        assert "OR" in compiled
+        assert compiled == "status = 'active' OR status = 'pending'"
 
     @pytest.mark.sqlite
     def test_nested_conditions(self, sa) -> None:
@@ -1406,10 +1438,7 @@ class TestConditionToFilterClauseSqlAlchemy:
         )
         result = engine.condition_to_filter_clause(or_condition)
         compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
-        assert "age" in compiled
-        assert "status" in compiled
-        assert "AND" in compiled
-        assert "OR" in compiled
+        assert compiled == "age >= 18 AND age <= 65 OR status = 'exempt'"
 
     @pytest.mark.sqlite
     def test_comparison_filter_clause_filters_query(self, sa, test_db_connection_string) -> None:
