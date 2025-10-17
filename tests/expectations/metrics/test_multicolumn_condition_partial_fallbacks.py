@@ -11,6 +11,8 @@ from great_expectations.expectations.metrics.map_metric_provider.multicolumn_con
     multicolumn_condition_partial,
 )
 
+pytestmark = pytest.mark.unit
+
 
 def _make_metrics(table_columns: list[str]) -> Dict[str, Any]:
     return {"table.columns": table_columns}

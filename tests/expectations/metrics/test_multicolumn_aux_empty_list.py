@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from typing import Any, Dict, Tuple
 
 import pandas as pd
+import pytest
 import sqlalchemy as sa
 
 from great_expectations.expectations.metrics.map_metric_provider.multicolumn_map_condition_auxilliary_methods import (  # noqa: E501
@@ -12,6 +13,8 @@ from great_expectations.expectations.metrics.map_metric_provider.multicolumn_map
     _sqlalchemy_multicolumn_map_condition_filtered_row_count,
     _sqlalchemy_multicolumn_map_condition_values,
 )
+
+pytestmark = pytest.mark.unit
 
 
 class _FakePandasEngine:
