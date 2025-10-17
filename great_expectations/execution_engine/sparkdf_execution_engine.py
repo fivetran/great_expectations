@@ -59,6 +59,7 @@ from great_expectations.execution_engine.partition_and_sample.sparkdf_data_sampl
     SparkDataSampler,
 )
 from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchData
+from great_expectations.expectations.conditions import Operator
 from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
@@ -74,6 +75,12 @@ from great_expectations.validator.computed_metric import MetricValue  # noqa: TC
 
 if TYPE_CHECKING:
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.metric_configuration import (
         MetricConfiguration,
         MetricConfigurationID,
@@ -96,7 +103,7 @@ def apply_dateutil_parse(column):
     "The existing Spark context will be reused if possible. If a spark_config is passed that doesn't match "  # noqa: E501 # FIXME CoP
     "the existing config, the context will be stopped and restarted in local environments only.",
 )
-class SparkDFExecutionEngine(ExecutionEngine):
+class SparkDFExecutionEngine(ExecutionEngine[str]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     This class holds an attribute `spark_df` which is a spark.sql.DataFrame.
@@ -924,3 +931,27 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
     def head(self, n=5):
         """Returns dataframe head. Default is 5"""
         return self.dataframe.limit(n).toPandas()
+
+    @override
+    def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+        col, op, val = condition.column.name, condition.operator, condition.parameter
+        if op in (Operator.IN, Operator.NOT_IN):
+            values = ", ".join(map(repr, val))
+            connector = "IN" if op == Operator.IN else "NOT IN"
+            return f"{col} {connector} ({values})"
+        return f"{col} {op} {val!r}"
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+        col = condition.column.name
+        return f"{col} IS NULL" if condition.is_null else f"{col} IS NOT NULL"
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " AND ".join(parts) + ")"
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " OR ".join(parts) + ")"

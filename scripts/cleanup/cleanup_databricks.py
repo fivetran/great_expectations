@@ -10,8 +10,9 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 
 # Schema patterns for different test types
 SCHEMA_PATTERN_10_CHAR = "test_[a-z]{10}"  # General SQL testing framework
-SCHEMA_PATTERN_8_CHAR = "test_[a-f0-9]{8}"  # Databricks-specificit tests
-SCHEMA_PATTERN = f"{SCHEMA_PATTERN_10_CHAR}|{SCHEMA_PATTERN_8_CHAR}"
+SCHEMA_PATTERN_8_CHAR = "test_[a-f0-9]{8}"  # Databricks-specific tests
+SCHEMA_PATTERN_PY_VERSION = "py3[0-9]{1,2}_i[a-f0-9]{32}"  # Python version-specific test schemas
+SCHEMA_PATTERN = f"{SCHEMA_PATTERN_10_CHAR}|{SCHEMA_PATTERN_8_CHAR}|{SCHEMA_PATTERN_PY_VERSION}"
 
 CATALOG_NAME = "ci"
 
