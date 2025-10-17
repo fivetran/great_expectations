@@ -60,6 +60,12 @@ if TYPE_CHECKING:
     from botocore.client import BaseClient
     from typing_extensions import TypeAlias
 
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.metric_configuration import MetricConfigurationID
 
 logger = logging.getLogger(__name__)
@@ -70,7 +76,7 @@ HASH_THRESHOLD = 1e9
 DataFrameFactoryFn: TypeAlias = Callable[..., pd.DataFrame]
 
 
-class PandasExecutionEngine(ExecutionEngine):
+class PandasExecutionEngine(ExecutionEngine[str]):
     """PandasExecutionEngine instantiates the ExecutionEngine API to support computations using Pandas.
 
     Constructor builds a PandasExecutionEngine, using provided configuration options.
@@ -636,6 +642,22 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         )
 
         return data, partition_domain_kwargs.compute, partition_domain_kwargs.accessor
+
+    @override
+    def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+        raise NotImplementedError
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+        raise NotImplementedError
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+        raise NotImplementedError
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
+        raise NotImplementedError
 
 
 def hash_pandas_dataframe(df):

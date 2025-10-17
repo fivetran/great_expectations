@@ -15,6 +15,16 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.7.1
+* [BUGFIX] Fix ExpectColumnValuesToBeOfType for trino ([#11438](https://github.com/great-expectations/great_expectations/pull/11438))
+* [BUGFIX] Compile Databricks parameters in `unexpected_index_query` ([#11437](https://github.com/great-expectations/great_expectations/pull/11437))
+* [DOCS] UI for workspace ID ([#11435](https://github.com/great-expectations/great_expectations/pull/11435))
+* [DOCS] python version 3.13 ([#11442](https://github.com/great-expectations/great_expectations/pull/11442))
+* [DOCS] workspace required ([#11443](https://github.com/great-expectations/great_expectations/pull/11443))
+* [DOCS] Connect S3 ([#11375](https://github.com/great-expectations/great_expectations/pull/11375))
+* [MAINTENANCE] Add `RedshiftConnectionDetails` to type stub ([#11434](https://github.com/great-expectations/great_expectations/pull/11434))
+* [MAINTENANCE] [pre-commit.ci] pre-commit autoupdate ([#11355](https://github.com/great-expectations/great_expectations/pull/11355))
+
 ### 1.7.0
 * [MINORBUMP] Remove Pandas Upper Bound Constraint ([#11423](https://github.com/great-expectations/great_expectations/pull/11423))
 * [MINORBUMP] Remove Renderer class from public API ([#10866](https://github.com/great-expectations/great_expectations/pull/10866))

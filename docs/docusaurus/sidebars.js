@@ -250,6 +250,16 @@ module.exports = {
   learn: [
     {
       type: 'category',
+      label: 'GX in your data pipeline',
+      link: { type: 'doc', id: 'reference/learn/gx_in_your_data_pipeline/gx_in_your_data_pipeline_lp' },
+      items: [
+        'reference/learn/gx_in_your_data_pipeline/ingestion',
+        'reference/learn/gx_in_your_data_pipeline/transformation',
+        'reference/learn/gx_in_your_data_pipeline/delivery'
+      ]
+    },
+    {
+      type: 'category',
       label: 'Data quality use cases',
       link: { type: 'doc', id: 'reference/learn/data_quality_use_cases/dq_use_cases_lp' },
       items: [
