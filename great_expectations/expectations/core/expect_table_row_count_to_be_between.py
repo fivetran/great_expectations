@@ -209,7 +209,7 @@ class ExpectTableRowCountToBeBetween(BatchExpectation):
     _library_metadata = library_metadata
 
     metric_dependencies = ("table.row_count",)
-    domain_keys: ClassVar[Tuple[str, ...]] = tuple()
+    domain_keys: ClassVar[Tuple[str, ...]] = ("row_condition", "condition_parser")
     success_keys = (
         "min_value",
         "max_value",
