@@ -24,7 +24,10 @@ class BigQueryConnectionConfig(BaseSettings):
         return f"bigquery://{self.GE_TEST_GCP_PROJECT}/{self.GE_TEST_BIGQUERY_DATASET}?credentials_path={self.GOOGLE_APPLICATION_CREDENTIALS}"
 
 
-SCHEMA_FORMAT = "^test_[a-z]{10}$"
+# Schema patterns for different test types
+SCHEMA_PATTERN_TEST = "^test_[a-z]{10}$"  # General SQL testing framework
+SCHEMA_PATTERN_PY_VERSION = "^py3[0-9]{1,2}_i[a-f0-9]{32}$"  # Python version-specific test schemas
+SCHEMA_FORMAT = f"{SCHEMA_PATTERN_TEST}|{SCHEMA_PATTERN_PY_VERSION}"
 
 
 def cleanup_big_query(config: BigQueryConnectionConfig) -> None:
