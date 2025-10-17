@@ -22,6 +22,7 @@ from typing import (
     MutableMapping,
     Optional,
     Tuple,
+    TypeAlias,
     Union,
     cast,
 )
@@ -164,9 +165,7 @@ if TYPE_CHECKING:
 
     from great_expectations.compatibility import sqlalchemy
 
-SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
-
-SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
+SQLAColumnClause: TypeAlias = object  # sqlalchemy isn't installed in all environments
 
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
