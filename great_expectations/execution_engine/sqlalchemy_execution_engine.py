@@ -1458,6 +1458,9 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
     @override
     def condition_to_filter_clause(self, condition: Condition) -> sa.ColumnElement:
+        # This override is just to help the type system,
+        # since we can't make the class generic on sqlalchemy
+        # since it's not installed in all environments."""
         output = super().condition_to_filter_clause(condition)
         if not isinstance(output, sa.ColumnElement):
             raise InvalidFilterClause(output)
