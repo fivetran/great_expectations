@@ -22,7 +22,6 @@ from typing import (
     MutableMapping,
     Optional,
     Tuple,
-    TypeAlias,
     Union,
     cast,
 )
@@ -99,6 +98,8 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     from great_expectations.expectations.conditions import (
         AndCondition,
         ComparisonCondition,
