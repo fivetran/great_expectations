@@ -448,6 +448,7 @@ filterwarnings = [
     # we should never use it but it is used in some of our dependencies
     # https://setuptools.pypa.io/en/latest/pkg_resources.html
     "ignore: pkg_resources is deprecated as an API:UserWarning",
+    "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
 
     # This warning is common during testing where we intentionally use a COMPLETE format even in cases that would
     # be potentially overly resource intensive in standard operation
