@@ -54,6 +54,7 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_partit
 from great_expectations.execution_engine.partition_and_sample.pandas_data_sampler import (
     PandasDataSampler,
 )
+from great_expectations.expectations.conditions import Operator
 from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
 
 if TYPE_CHECKING:
@@ -645,19 +646,27 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
 
     @override
     def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
-        raise NotImplementedError
+        col, op, val = condition.column.name, condition.operator, condition.parameter
+        if op in (Operator.IN, Operator.NOT_IN):
+            values = ", ".join(map(repr, val))
+            connector = "in" if op == Operator.IN else "not in"
+            return f"{col} {connector} [{values}]"
+        return f"{col} {op} {val!r}"
 
     @override
     def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
-        raise NotImplementedError
+        col = condition.column.name
+        return f"{col}.isnull()" if condition.is_null else f"~{col}.isnull()"
 
     @override
     def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
-        raise NotImplementedError
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " and ".join(parts) + ")"
 
     @override
     def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
-        raise NotImplementedError
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " or ".join(parts) + ")"
 
 
 def hash_pandas_dataframe(df):
