@@ -53,8 +53,8 @@ LOGGER = logging.getLogger(__name__)
 
 @pytest.fixture
 def taxi_data_samples_dir() -> pathlib.Path:
-    return pathlib.Path(
-        __file__, "..", "..", "..", "test_sets", "taxi_yellow_tripdata_samples"
+    return (
+        pathlib.Path(__file__).parent.parent.parent / "test_sets" / "taxi_yellow_tripdata_samples"
     ).resolve(strict=True)
 
 
@@ -456,6 +456,7 @@ def test_invalid_datasource_config_does_not_break_cloud_context(
             cloud_base_url=cloud_details.base_url,
             cloud_organization_id=cloud_details.org_id,
             cloud_access_token=cloud_details.access_token,
+            cloud_workspace_id=cloud_details.workspace_id,
         )
         assert datasource_name in context.data_sources.all()
         bad_datasource = context.data_sources.get(datasource_name)

@@ -831,7 +831,6 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-mysql.txt",
             "reqs/requirements-dev-postgresql.txt",
             # "Deprecated API features detected" warning/error for test_docs[split_data_on_whole_table_bigquery] when pandas>=2.0  # noqa: E501
-            "reqs/requirements-dev-sqlalchemy1.txt",
             "reqs/requirements-dev-trino.txt",
         ),
         services=("postgresql", "mssql", "mysql", "trino"),
@@ -853,7 +852,6 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
             "reqs/requirements-dev-redshift.txt",
             "reqs/requirements-dev-snowflake.txt",
             # "Deprecated API features detected" warning/error for test_docs[split_data_on_whole_table_bigquery] when pandas>=2.0  # noqa: E501
-            "reqs/requirements-dev-sqlalchemy1.txt",
         ),
         services=("mercury",),
         extra_pytest_args=(
@@ -949,9 +947,8 @@ def _tokenize_marker_string(marker_string: str) -> Generator[str, None, None]:
     tokens = marker_string.split()
     if len(tokens) == 1:
         yield tokens[0]
-    elif marker_string == "athena or openpyxl or pyarrow or project or sqlite or aws_creds":
+    elif marker_string == "openpyxl or pyarrow or project or sqlite or aws_creds":
         yield "aws_creds"
-        yield "athena"
         yield "openpyxl"
         yield "pyarrow"
         yield "project"

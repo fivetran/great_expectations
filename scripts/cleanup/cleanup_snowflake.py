@@ -27,7 +27,9 @@ class SnowflakeConnectionConfig(BaseSettings):
 
 # Regex to match uppercase schema names
 # (Snowflake converts unquoted identifiers to uppercase)
-SCHEMA_FORMAT = "^TEST_[A-Z]{10}$"
+SCHEMA_PATTERN_TEST = "^TEST_[A-Z]{10}$"  # General SQL testing framework
+SCHEMA_PATTERN_PY_VERSION = "^PY3[0-9]{1,2}_I[A-F0-9]{32}$"  # Python version-specific test schemas
+SCHEMA_FORMAT = f"{SCHEMA_PATTERN_TEST}|{SCHEMA_PATTERN_PY_VERSION}"
 
 
 def cleanup_snowflake(config: SnowflakeConnectionConfig) -> None:

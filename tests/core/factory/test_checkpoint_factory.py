@@ -1,16 +1,8 @@
-import re
-from unittest import mock
 from unittest.mock import ANY
-from unittest.mock import ANY as ANY_TEST_ARG
 
 import pytest
 from pytest_mock import MockerFixture
 
-from great_expectations.analytics.events import (
-    CheckpointCreatedEvent,
-    CheckpointDeletedEvent,
-    DomainObjectAllDeserializationEvent,
-)
 from great_expectations.checkpoint.checkpoint import Checkpoint
 from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.core.factory.checkpoint_factory import CheckpointFactory
@@ -292,10 +284,6 @@ def test_checkpoint_factory_all(context_fixture_name: str, request: pytest.Fixtu
 def test_checkpoint_factory_all_with_bad_config(
     in_memory_runtime_context: AbstractDataContext, mocker: MockerFixture
 ):
-    analytics_submit_mock = mocker.patch(
-        "great_expectations.data_context.store.store.submit_analytics_event"
-    )
-
     # Arrange
     context: AbstractDataContext = in_memory_runtime_context
     ds = context.data_sources.add_pandas("my_datasource")
@@ -336,100 +324,6 @@ def test_checkpoint_factory_all_with_bad_config(
 
     # Assert
     assert result == [checkpoint_1]
-    analytics_submit_mock.assert_called_once_with(
-        DomainObjectAllDeserializationEvent(
-            error_type=ANY_TEST_ARG,
-            store_name="CheckpointStore",
-        )
-    )
-    analytics_submit_args = analytics_submit_mock.call_args[0][0]
-    assert re.match("pydantic.*ValidationError", analytics_submit_args.error_type)
-
-
-class TestCheckpointFactoryAnalytics:
-    @pytest.mark.filesystem
-    def test_checkpoint_factory_add_emits_event_filesystem(self, empty_data_context):
-        self._test_checkpoint_factory_add_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_checkpoint_factory_add_emits_event_cloud(
-        self,
-        unset_gx_env_variables: None,
-        empty_cloud_context_fluent,
-    ):
-        self._test_checkpoint_factory_add_emits_event(empty_cloud_context_fluent)
-
-    def _test_checkpoint_factory_add_emits_event(self, context):
-        # Arrange
-        name = "test-checkpoint"
-        ds = context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", "data.csv")
-        batch_def = asset.add_batch_definition("my_batch_definition")
-
-        suite = context.suites.add(ExpectationSuite(name="my_suite"))
-        validation_definition = context.validation_definitions.add(
-            ValidationDefinition(name="validation_def", data=batch_def, suite=suite)
-        )
-
-        checkpoint = Checkpoint(
-            name=name,
-            validation_definitions=[validation_definition],
-        )
-
-        # Act
-        with mock.patch(
-            "great_expectations.core.factory.checkpoint_factory.submit_event", autospec=True
-        ) as mock_submit:
-            _ = context.checkpoints.add(checkpoint=checkpoint)
-
-        # Assert
-        mock_submit.assert_called_once_with(
-            event=CheckpointCreatedEvent(
-                checkpoint_id=mock.ANY,
-                validation_definition_ids=[mock.ANY for _ in checkpoint.validation_definitions],
-            )
-        )
-
-    @pytest.mark.filesystem
-    def test_checkpoint_factory_delete_emits_event_filesystem(self, empty_data_context):
-        self._test_checkpoint_factory_delete_emits_event(empty_data_context)
-
-    @pytest.mark.cloud
-    def test_checkpoint_factory_delete_emits_event_cloud(
-        self,
-        unset_gx_env_variables: None,
-        empty_cloud_context_fluent,
-    ):
-        self._test_checkpoint_factory_delete_emits_event(empty_cloud_context_fluent)
-
-    def _test_checkpoint_factory_delete_emits_event(self, context):
-        # Arrange
-        name = "test-checkpoint"
-        ds = context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", "data.csv")
-        batch_def = asset.add_batch_definition("my_batch_definition")
-
-        suite = context.suites.add(ExpectationSuite(name="my_suite"))
-        validation_definition = context.validation_definitions.add(
-            ValidationDefinition(name="validation_def", data=batch_def, suite=suite)
-        )
-
-        checkpoint = Checkpoint(
-            name=name,
-            validation_definitions=[validation_definition],
-        )
-        checkpoint = context.checkpoints.add(checkpoint=checkpoint)
-
-        # Act
-        with mock.patch(
-            "great_expectations.core.factory.checkpoint_factory.submit_event", autospec=True
-        ) as mock_submit:
-            context.checkpoints.delete(name=name)
-
-        # Assert
-        mock_submit.assert_called_once_with(
-            event=CheckpointDeletedEvent(checkpoint_id=checkpoint.id)
-        )
 
 
 class TestCheckpointFactoryAddOrUpdate:

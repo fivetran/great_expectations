@@ -105,7 +105,7 @@ Use the GX Cloud UI to walk through the following steps:
    where extract(epoch from (age(current_timestamp, most_recent_reading))) > 5*60
    ```
 
-5. Edit the active Validation schedule to modify the frequency of recurring data validation. Select a **Frequency** of *Every 1 hour* to run recurring freshness checks each hour.
+5. Edit the Validation schedule to turn **ON** recurring data validation with a **Frequency** of *Every 1 hour* to run recurring freshness checks each hour.
 
 6. Inspect the Validation Results on the `freshness_sensor_readings` Data Asset once validation has run.
 

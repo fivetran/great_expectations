@@ -97,6 +97,12 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.computed_metric import (
         MetricValue,
     )
@@ -157,6 +163,8 @@ if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
 
+SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
+
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
     GXSqlDialect.MSSQL,
@@ -206,7 +214,7 @@ def _dialect_requires_persisted_connection(
     return return_val
 
 
-class SqlAlchemyExecutionEngine(ExecutionEngine):
+class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     Constructor builds a SqlAlchemyExecutionEngine, using a provided connection string/url/engine/credentials to \
@@ -372,7 +380,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                 sa.event.listen(self.engine, "connect", _on_connect)
                 # Also immediately add the sqlite functions in case there already exists an underlying  # noqa: E501 # FIXME CoP
                 # sqlite3.Connection (distinct from a sqlalchemy Connection).
-                _add_sqlite_functions(self.engine.raw_connection())
+                _raw_dbapi_con = self.engine.raw_connection()
+                try:
+                    _add_sqlite_functions(_raw_dbapi_con)
+                finally:
+                    # Ensure the temporary raw DB-API connection is closed to avoid ResourceWarning.
+                    try:
+                        _raw_dbapi_con.close()
+                    except Exception:
+                        pass
             self._engine_backup = self.engine
 
         # Gather the call arguments of the present function (and add the "class_name"), filter out the Falsy values,  # noqa: E501 # FIXME CoP
@@ -609,12 +625,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         # Filtering by row condition.
         if "row_condition" in domain_kwargs and domain_kwargs["row_condition"] is not None:
+            row_condition = domain_kwargs["row_condition"]
+            self._validate_row_condition(row_condition)
+
             condition_parser = domain_kwargs["condition_parser"]
             if condition_parser in [
                 CONDITION_PARSER_GREAT_EXPECTATIONS,
                 CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
             ]:
-                parsed_condition = parse_condition_to_sqlalchemy(domain_kwargs["row_condition"])
+                parsed_condition = parse_condition_to_sqlalchemy(row_condition)
                 selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type] # FIXME CoP
             else:
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
@@ -1427,3 +1446,21 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
 
         return result
+
+    @override
+    def _comparison_condition_to_filter_clause(
+        self, condition: ComparisonCondition
+    ) -> sa.ColumnClause:
+        raise NotImplementedError
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnClause:
+        raise NotImplementedError
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> sa.ColumnClause:
+        raise NotImplementedError
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> sa.ColumnClause:
+        raise NotImplementedError

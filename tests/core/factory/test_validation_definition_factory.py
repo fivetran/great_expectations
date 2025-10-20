@@ -1,18 +1,10 @@
 import json
 import pathlib
-import re
-from unittest import mock
-from unittest.mock import ANY as ANY_TEST_ARG
 
 import pytest
 from pytest_mock import MockerFixture
 
 import great_expectations.expectations as gxe
-from great_expectations.analytics.events import (
-    DomainObjectAllDeserializationEvent,
-    ValidationDefinitionCreatedEvent,
-    ValidationDefinitionDeletedEvent,
-)
 from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.core.batch_definition import BatchDefinition
 from great_expectations.core.expectation_suite import ExpectationSuite
@@ -374,9 +366,6 @@ def test_validation_definition_factory_all_with_bad_config(
         "great_expectations.core.validation_definition.ValidationDefinition.Config.validate_assignment",
         False,
     )
-    analytics_submit_mock = mocker.patch(
-        "great_expectations.data_context.store.store.submit_analytics_event"
-    )
     context: AbstractDataContext = in_memory_runtime_context
 
     # Arrange
@@ -414,14 +403,6 @@ def test_validation_definition_factory_all_with_bad_config(
 
     # Assert
     assert result == [validation_definition_1]
-    analytics_submit_mock.assert_called_once_with(
-        DomainObjectAllDeserializationEvent(
-            error_type=ANY_TEST_ARG,
-            store_name="ValidationDefinitionStore",
-        )
-    )
-    analytics_submit_args = analytics_submit_mock.call_args[0][0]
-    assert re.match("pydantic.*ValidationError", analytics_submit_args.error_type)
 
 
 @pytest.mark.filesystem
@@ -686,64 +667,3 @@ class TestValidationDefinitionFactoryAddOrUpdate:
 
         # assert
         assert vd_1 == vd_2 == vd_3
-
-
-class TestValidationDefinitionFactoryAnalytics:
-    def test_validation_definition_factory_add_emits_event(
-        self,
-        unset_gx_env_variables: None,
-        data_context: AbstractDataContext,
-    ) -> None:
-        # Arrange
-        ds = data_context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", pathlib.Path("data.csv"))
-        batch_def = asset.add_batch_definition("my_batch_definition")
-        suite = data_context.suites.add(ExpectationSuite(name="my_suite"))
-
-        validation_definition = ValidationDefinition(
-            name="validation_def", data=batch_def, suite=suite
-        )
-
-        # Act
-        with mock.patch(
-            "great_expectations.core.factory.validation_definition_factory.submit_event",
-            autospec=True,
-        ) as mock_submit:
-            _ = data_context.validation_definitions.add(validation=validation_definition)
-
-        # Assert
-        mock_submit.assert_called_once_with(
-            event=ValidationDefinitionCreatedEvent(
-                validation_definition_id=validation_definition.id
-            )
-        )
-
-    def test_validation_definition_factory_delete_emits_event(
-        self,
-        unset_gx_env_variables: None,
-        data_context: AbstractDataContext,
-    ) -> None:
-        # Arrange
-        ds = data_context.data_sources.add_pandas("my_datasource")
-        asset = ds.add_csv_asset("my_asset", pathlib.Path("data.csv"))
-        batch_def = asset.add_batch_definition("my_batch_definition")
-        suite = data_context.suites.add(ExpectationSuite(name="my_suite"))
-
-        name = "validation_def"
-        validation_definition = data_context.validation_definitions.add(
-            validation=ValidationDefinition(name=name, data=batch_def, suite=suite)
-        )
-
-        # Act
-        with mock.patch(
-            "great_expectations.core.factory.validation_definition_factory.submit_event",
-            autospec=True,
-        ) as mock_submit:
-            data_context.validation_definitions.delete(name=name)
-
-        # Assert
-        mock_submit.assert_called_once_with(
-            event=ValidationDefinitionDeletedEvent(
-                validation_definition_id=validation_definition.id
-            )
-        )

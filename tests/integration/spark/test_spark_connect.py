@@ -63,7 +63,7 @@ def test_error_messages_if_we_get_an_invalid_dataframe(
     spark_validation_definition: ValidationDefinition,
 ):
     with pytest.raises(
-        BuildBatchRequestError, match="Cannot build batch request without a Spark DataFrame."
+        BuildBatchRequestError, match=r"Cannot build batch request without a Spark DataFrame."
     ):
         spark_validation_definition.run(batch_parameters={"dataframe": not_a_dataframe})
 

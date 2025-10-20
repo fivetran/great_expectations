@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class PathDataAsset(DataAsset, Generic[DatasourceT, PartitionerT], ABC):
+class PathDataAsset(DataAsset, ABC, Generic[DatasourceT, PartitionerT]):
     _EXCLUDE_FROM_READER_OPTIONS: ClassVar[Set[str]] = {
         "batch_definitions",
         "type",

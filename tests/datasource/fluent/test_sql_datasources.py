@@ -56,7 +56,7 @@ def gx_sqlalchemy_execution_engine_spy(
 
 
 @pytest.fixture
-def create_engine_fake(monkeypatch: pytest.MonkeyPatch) -> None:
+def create_engine_fake(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
     """Monkeypatch sqlalchemy.create_engine to always return a in-memory sqlite engine."""
     in_memory_sqlite_engine = sa.create_engine("sqlite:///")
 
@@ -65,6 +65,8 @@ def create_engine_fake(monkeypatch: pytest.MonkeyPatch) -> None:
         return in_memory_sqlite_engine
 
     monkeypatch.setattr(sa, "create_engine", _fake_create_engine, raising=True)
+    yield
+    in_memory_sqlite_engine.dispose()
 
 
 @pytest.mark.unit

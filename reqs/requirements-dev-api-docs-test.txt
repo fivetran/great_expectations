@@ -1,1 +1,4 @@
+datasets>=4.1.0
 docstring-parser==0.16
+pdf2image>=1.17.0
+pytesseract>=0.3.13

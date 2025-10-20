@@ -54,11 +54,19 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_partit
 from great_expectations.execution_engine.partition_and_sample.pandas_data_sampler import (
     PandasDataSampler,
 )
+from great_expectations.expectations.conditions import Operator
 from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
 
 if TYPE_CHECKING:
+    from botocore.client import BaseClient
     from typing_extensions import TypeAlias
 
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.metric_configuration import MetricConfigurationID
 
 logger = logging.getLogger(__name__)
@@ -69,7 +77,7 @@ HASH_THRESHOLD = 1e9
 DataFrameFactoryFn: TypeAlias = Callable[..., pd.DataFrame]
 
 
-class PandasExecutionEngine(ExecutionEngine):
+class PandasExecutionEngine(ExecutionEngine[str]):
     """PandasExecutionEngine instantiates the ExecutionEngine API to support computations using Pandas.
 
     Constructor builds a PandasExecutionEngine, using provided configuration options.
@@ -116,12 +124,13 @@ class PandasExecutionEngine(ExecutionEngine):
         boto3_options: Dict[str, dict] = kwargs.pop("boto3_options", {})
         azure_options: Dict[str, dict] = kwargs.pop("azure_options", {})
         gcs_options: Dict[str, dict] = kwargs.pop("gcs_options", {})
+        s3_client = kwargs.pop("s3_client", None)
 
         # Instantiate cloud provider clients as None at first.
         # They will be instantiated if/when passed cloud-specific in BatchSpec is passed in
-        self._s3 = None
+        self._s3: BaseClient | None = None
         self._azure: azure.BlobServiceClient | None = None
-        self._gcs = None
+        self._gcs: google.Client | None = None
 
         super().__init__(*args, **kwargs)
 
@@ -131,6 +140,7 @@ class PandasExecutionEngine(ExecutionEngine):
                 "boto3_options": boto3_options,
                 "azure_options": azure_options,
                 "gcs_options": gcs_options,
+                "s3_client": s3_client,
             }
         )
 
@@ -151,9 +161,10 @@ class PandasExecutionEngine(ExecutionEngine):
                 pass
 
     def _instantiate_s3_client(self) -> None:
-        # Try initializing cloud provider client. If unsuccessful, we'll die here.
-        boto3_options = self.config.get("boto3_options", {})
-        self._s3 = aws.boto3.client("s3", **boto3_options)
+        # If s3_client was passed in (from data source) use it, otherwise create our own
+        self._s3 = self._config.get("s3_client") or aws.boto3.client(
+            "s3", **self.config.get("boto3_options", {})
+        )
 
     def _instantiate_gcs_client(self) -> None:
         """
@@ -526,6 +537,8 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         # Filtering by row condition.
         row_condition = domain_kwargs.get("row_condition", None)
         if row_condition:
+            self._validate_row_condition(row_condition)
+
             condition_parser = domain_kwargs.get("condition_parser", None)
 
             if condition_parser == CONDITION_PARSER_PANDAS:
@@ -632,6 +645,30 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         )
 
         return data, partition_domain_kwargs.compute, partition_domain_kwargs.accessor
+
+    @override
+    def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+        col, op, val = condition.column.name, condition.operator, condition.parameter
+        if op in (Operator.IN, Operator.NOT_IN):
+            values = ", ".join(map(repr, val))
+            connector = "in" if op == Operator.IN else "not in"
+            return f"{col} {connector} [{values}]"
+        return f"{col} {op} {val!r}"
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+        col = condition.column.name
+        return f"{col}.isnull()" if condition.is_null else f"~{col}.isnull()"
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " and ".join(parts) + ")"
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " or ".join(parts) + ")"
 
 
 def hash_pandas_dataframe(df):

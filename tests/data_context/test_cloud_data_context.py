@@ -136,3 +136,53 @@ def test_parses_v0_config_from_cloud(config: dict):
     )
 
     # if we didn't raise when instantiating the context, we are good!
+
+
+@responses.activate
+@pytest.mark.unit
+def test_warns_when_workspace_id_env_var_unset(unset_gx_env_variables: None):
+    """
+    Test that CloudDataContext warns when GX_CLOUD_WORKSPACE_ID environment variable is unset.
+
+    This test verifies that the warning message starting with
+    "Workspace id is not set when instantiating a CloudDataContext." is emitted
+    when the workspace ID is not provided via environment variable or constructor parameter.
+    """
+    # Mock the accounts/me endpoint to return a user with exactly one workspace
+    # This allows the context to be instantiated successfully after the warning
+    accounts_me_response = {
+        "user_id": str(uuid.uuid4()),
+        "workspaces": [{"id": WORKSPACE_ID, "role": "admin"}],
+    }
+
+    responses.add(
+        responses.GET,
+        f"{CLOUD_BASE_URL}/organizations/{ORG_ID}/accounts/me",
+        json=accounts_me_response,
+        status=200,
+    )
+
+    # Mock the data context configuration endpoint
+    responses.add(
+        responses.GET,
+        CONTEXT_CONFIGURATION_URL,
+        json=V1_CONFIG,
+        status=200,
+    )
+
+    # Capture warnings and instantiate CloudDataContext
+    with pytest.warns(UserWarning) as warning_info:
+        CloudDataContext(
+            cloud_base_url=CLOUD_BASE_URL,
+            cloud_access_token=ACCESS_TOKEN,
+            cloud_organization_id=ORG_ID,
+            # Note: cloud_workspace_id is intentionally NOT provided
+        )
+
+    # Verify the warning message
+    assert len(warning_info) == 1
+    warning_message = str(warning_info[0].message)
+    assert warning_message.startswith(
+        "Workspace id is not set when instantiating a CloudDataContext."
+    )
+    assert "GX_CLOUD_WORKSPACE_ID" in warning_message
