@@ -142,19 +142,11 @@ def test_expect_table_row_count_to_be_between_with_row_condition(
         context=context,
     )
 
-    # Validate expectation with or without row_condition
-    if row_condition:
-        result = validator.expect_table_row_count_to_be_between(  # type: ignore[union-attr] # validator cannot be None here
-            min_value=min_value,
-            max_value=max_value,
-            row_condition=row_condition,
-            condition_parser="pandas",
-        )
-    else:
-        result = validator.expect_table_row_count_to_be_between(  # type: ignore[union-attr] # validator cannot be None here
-            min_value=min_value,
-            max_value=max_value,
-        )
-
+    result = validator.expect_table_row_count_to_be_between(  # type: ignore[union-attr] # validator cannot be None here
+        min_value=min_value,
+        max_value=max_value,
+        row_condition=row_condition,
+        condition_parser="pandas",
+    )
     assert result.success is success
     assert result.result["observed_value"] == expected_count

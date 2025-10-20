@@ -111,17 +111,11 @@ def test_expect_table_row_count_to_equal_other_table(
     batch_definition = asset.add_batch_definition(name="test_batch")
     batch = batch_definition.get_batch()
 
-    # Validate expectation with or without row_condition
-    if row_condition:
-        expectation = gxe.ExpectTableRowCountToEqualOtherTable(
-            other_table_name=other_table,
-            row_condition=row_condition,
-            condition_parser="great_expectations",
-        )
-    else:
-        expectation = gxe.ExpectTableRowCountToEqualOtherTable(
-            other_table_name=other_table,
-        )
+    expectation = gxe.ExpectTableRowCountToEqualOtherTable(
+        other_table_name=other_table,
+        row_condition=row_condition,
+        condition_parser="great_expectations",
+    )
 
     result: ExpectationValidationResult = batch.validate(expectation)
 
