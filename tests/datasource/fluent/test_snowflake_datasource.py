@@ -90,6 +90,34 @@ VALID_DS_CONFIG_PARAMS: Final[Sequence[ParameterSet]] = [
         {
             "connection_string": {
                 "user": "my_user",
+                "private_key": (
+                    "MIICXAIBAAKBgHpFdCdKOGLaiMH9t1th1lKqJVcDwfnlP2lpneANbbsgHb6/4U2U"
+                    "ua085zlNYhZ5xJsnSdqIAfragzuVYNk2OCpoN1Qkq4oWad0a4cEB2QBtP9js0dVW"
+                    "xQObJM8t1ZLHB3Lw1NCqB6OefkP7XlE0w6aXRZ5IWwvVC86cBXVBmBXzAgMBAAEC"
+                    "gYABR6TVnHNGpZ702OEIdde2ec12QbXQFdQ6GD7sz3cslEN7caq8Eyh2ZcLN2L+E"
+                    "GLY0IY8mWHIc3BivkPq4i1a/JyRUzEToJvjVd8J1slrzz8ryMOAiPbxt33IpgGL3"
+                    "/8KgOLYxjdg5bpn6sCZlOXy7WYjl1H8TBw8CzZF41Ha24QJBAM7U+8m0hyknbnBD"
+                    "gKXGb0eHIBx0zlPaNJwDHUcJXujxbVfwVjKWLy07JoXRiAgPuVszIMhu0r+Xa87L"
+                    "W2WLdTsCQQCXVm0He7SaytnrlAFck5/L4EjtWaAQGfmV4eawI2HemWMjj0tukdFt"
+                    "wAWHDuKYMb+bg21OU2XQxollYYJfk/apAkBaSe10WuNZ2sXCKiWBuIMhZWJmKbNc"
+                    "NXgb1tw0A2o0JBhIeDkYsij8BMNHTXWllz+iCUq5VG+ZhX9hcbJ/PIa7AkEAjfgd"
+                    "v+9ktfGmDUGDJX23YmK9BywU5AX6BYkuB/6pSVFLl4hNkyRn+zUv+ksUdwH0Zccd"
+                    "O2UxFnGpYtnenBsKQQJBAMX2tgFcg//t1Li4+dxlTvZZ/clZCLpWXp4HQgBwzxMN"
+                    "wpDoF40OzNYrrKIboU4BJFOMOBWAS4DFDYGdfLVS99g="
+                ),
+                "account": "my_account",
+                "schema": "S_PUBLIC",
+                "database": "D_PUBLIC",
+                "role": "my_role",
+                "warehouse": "my_wh",
+            }
+        },
+        id="key pair dict",
+    ),
+    param(
+        {
+            "connection_string": {
+                "user": "my_user",
                 "password": "${MY_PASSWORD}",
                 "account": "my_account",
                 "schema": "s_public",
@@ -922,6 +950,24 @@ def test_get_execution_engine_succeeds():
             },
             id="connection_string dict with connect_args",
         ),
+        param(
+            {
+                "name": "conn details with connect_args",
+                "connection_string": {
+                    "user": "user",
+                    "private_key": "my_key",
+                    "account": "account",
+                    "database": "db",
+                    "schema": "schema",
+                    "warehouse": "wh",
+                    "role": "role",
+                },
+            },
+            {
+                "url": "snowflake://user:@account/db/schema?application=great_expectations_core&private_key=my_key&role=role&warehouse=wh",
+            },
+            id="key pair connection string",
+        ),
     ],
 )
 def test_create_engine_is_called_with_expected_kwargs(
@@ -1091,6 +1137,17 @@ class TestConvenienceProperties:
             _ = datasource.account
         else:
             assert datasource.account == datasource.connection_string.account
+
+    def test_private_key(
+        self,
+        ds_config: dict,
+        seed_env_vars: None,
+        param_id: str,
+        ephemeral_context_with_defaults: AbstractDataContext,
+    ):
+        datasource = SnowflakeDatasource(name=param_id, **ds_config)
+        private_key = getattr(datasource.connection_string, "private_key", None)
+        assert datasource.private_key == private_key
 
 
 if __name__ == "__main__":
