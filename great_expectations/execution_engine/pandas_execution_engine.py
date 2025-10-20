@@ -537,6 +537,8 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         # Filtering by row condition.
         row_condition = domain_kwargs.get("row_condition", None)
         if row_condition:
+            self._validate_row_condition(row_condition)
+
             condition_parser = domain_kwargs.get("condition_parser", None)
 
             if condition_parser == CONDITION_PARSER_PANDAS:

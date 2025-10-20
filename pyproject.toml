@@ -449,7 +449,6 @@ filterwarnings = [
     # https://setuptools.pypa.io/en/latest/pkg_resources.html
     "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore: pkg_resources is deprecated as an API:UserWarning",
-
     # This warning is common during testing where we intentionally use a COMPLETE format even in cases that would
     # be potentially overly resource intensive in standard operation
     "ignore:Setting result format to COMPLETE for a SqlAlchemyDataset:UserWarning",

@@ -33,6 +33,7 @@ from typing_extensions import ParamSpec, TypeGuard, dataclass_transform
 
 from great_expectations import __version__ as ge_version
 from great_expectations._docs_decorators import public_api
+from great_expectations.alias_types import RowConditionType  # FIXME
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.pydantic import Field, ModelMetaclass, StrictStr
 from great_expectations.compatibility.typing_extensions import override
@@ -52,6 +53,9 @@ from great_expectations.exceptions import (
     GreatExpectationsError,
     InvalidExpectationConfigurationError,
     InvalidExpectationKwargsError,
+)
+from great_expectations.expectations.conditions import (
+    Condition,  # noqa: F401 # Required for RowConditionType runtime validation
 )
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -1841,7 +1845,7 @@ class ColumnAggregateExpectation(BatchExpectation, ABC):
     """  # noqa: E501 # FIXME CoP
 
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
-    row_condition: Union[str, None] = None
+    row_condition: RowConditionType = None
     condition_parser: Union[ConditionParser, None] = None
 
     domain_keys: ClassVar[Tuple[str, ...]] = (
@@ -1889,7 +1893,7 @@ class ColumnMapExpectation(BatchExpectation, ABC):
 
     column: StrictStr = Field(min_length=1, description=COLUMN_DESCRIPTION)
     mostly: MostlyField = 1
-    row_condition: Union[str, None] = None
+    row_condition: RowConditionType = None
     condition_parser: Union[ConditionParser, None] = None
 
     catch_exceptions: bool = True
@@ -2154,7 +2158,7 @@ class ColumnPairMapExpectation(BatchExpectation, ABC):
     column_A: StrictStr = Field(min_length=1, description=COLUMN_A_DESCRIPTION)
     column_B: StrictStr = Field(min_length=1, description=COLUMN_B_DESCRIPTION)
     mostly: MostlyField = 1
-    row_condition: Union[str, None] = None
+    row_condition: RowConditionType = None
     condition_parser: Union[ConditionParser, None] = None
 
     catch_exceptions: bool = True
@@ -2419,7 +2423,7 @@ class MulticolumnMapExpectation(BatchExpectation, ABC):
 
     column_list: List[StrictStr] = pydantic.Field(description=COLUMN_LIST_DESCRIPTION)
     mostly: MostlyField = 1
-    row_condition: Union[str, None] = None
+    row_condition: RowConditionType = None
     condition_parser: Union[ConditionParser, None] = None
     ignore_row_if: Literal["all_values_are_missing", "any_value_is_missing", "never"] = (
         "all_values_are_missing"

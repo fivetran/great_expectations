@@ -105,7 +105,14 @@
         },
         "row_condition": {
             "title": "Row Condition",
-            "type": "string"
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "$ref": "#/definitions/Condition"
+                }
+            ]
         },
         "condition_parser": {
             "title": "Condition Parser",
@@ -305,6 +312,12 @@
                 "offset"
             ],
             "additionalProperties": false
+        },
+        "Condition": {
+            "title": "Condition",
+            "description": "Base class for conditions.",
+            "type": "object",
+            "properties": {}
         }
     }
 }

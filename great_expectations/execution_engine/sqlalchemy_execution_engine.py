@@ -625,12 +625,15 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
 
         # Filtering by row condition.
         if "row_condition" in domain_kwargs and domain_kwargs["row_condition"] is not None:
+            row_condition = domain_kwargs["row_condition"]
+            self._validate_row_condition(row_condition)
+
             condition_parser = domain_kwargs["condition_parser"]
             if condition_parser in [
                 CONDITION_PARSER_GREAT_EXPECTATIONS,
                 CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
             ]:
-                parsed_condition = parse_condition_to_sqlalchemy(domain_kwargs["row_condition"])
+                parsed_condition = parse_condition_to_sqlalchemy(row_condition)
                 selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type] # FIXME CoP
             else:
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
