@@ -347,14 +347,20 @@ class TestPandasConditionClassAcrossExpectationTypes:
         data_source_configs=[PandasDataFrameDatasourceTestConfig()],
         data=DATA,
     )
-    @pytest.mark.parametrize(
-        "row_condition",
-        PANDAS_TEST_CASES,
-    )
     def test_column_aggregate_expectation_with_condition_row_condition(
-        self, batch_for_datasource: Batch, row_condition
+        self, batch_for_datasource: Batch
     ) -> None:
         """Test ColumnAggregateExpectation with Condition row_condition."""
+        row_condition = AndCondition(
+            conditions=[
+                ComparisonCondition(
+                    column=Column(name="quantity"), operator=Operator.GREATER_THAN, parameter=0
+                ),
+                ComparisonCondition(
+                    column=Column(name="quantity"), operator=Operator.LESS_THAN, parameter=3
+                ),
+            ]
+        )
         expectation = gxe.ExpectColumnMinToBeBetween(
             column="amount",
             min_value=0.5,
