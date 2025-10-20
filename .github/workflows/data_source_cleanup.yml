@@ -2,12 +2,12 @@
 # These can primarily happen if CI is stopped while tests are running
 # for big query, etc.
 
-name: Nightly Data Source Cleanup
+name: Data Source Cleanup
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0,3,6,9,12,15,18,21 * * *"
+    - cron: "0 * * * *" # Run at the start of each hour
 
 jobs:
   cleanup-big-query:
