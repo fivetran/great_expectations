@@ -432,7 +432,7 @@ class TestPandasConditionClassAcrossExpectationTypes:
     def test_batch_expectation_with_condition_row_condition(
         self, batch_for_datasource: Batch
     ) -> None:
-        """Test BatchExpectation (ExpectTableRowCountToBeBetween) with Condition row_condition."""
+        """Test BatchExpectation  with Condition row_condition."""
         row_condition = ComparisonCondition(
             column=Column(name="name"), operator=Operator.EQUAL, parameter="albert"
         )
