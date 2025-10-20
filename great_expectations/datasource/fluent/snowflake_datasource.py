@@ -407,7 +407,7 @@ class KeyPairConnectionDetails(FluentBaseModel):
     schema_: str = pydantic.Field(..., alias="schema")  # schema is a reserved attr in BaseModel
     warehouse: str
     role: str
-    private_key: str
+    private_key: Union[ConfigStr, str]
 
     @classmethod
     def required_fields(cls) -> list[str]:
@@ -415,6 +415,8 @@ class KeyPairConnectionDetails(FluentBaseModel):
         return cls.schema()["required"]
 
     class Config:
+        validate_assignment = True
+
         @staticmethod
         def schema_extra(schema: dict, model: type[KeyPairConnectionDetails]) -> None:
             schema["properties"]["account"] = AccountIdentifier.get_schema()

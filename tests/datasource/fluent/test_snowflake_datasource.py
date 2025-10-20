@@ -52,6 +52,30 @@ wpDoF40OzNYrrKIboU4BJFOMOBWAS4DFDYGdfLVS99g=
 
 _EXAMPLE_B64_ENCODED_PRIVATE_KEY: Final[bytes] = base64.standard_b64encode(_EXAMPLE_PRIVATE_KEY)
 
+KEY_PAIR_CONNECTION_ARGS = {
+    "user": "my_user",
+    "private_key": (
+        "MIICXAIBAAKBgHpFdCdKOGLaiMH9t1th1lKqJVcDwfnlP2lpneANbbsgHb6/4U2U"
+        "ua085zlNYhZ5xJsnSdqIAfragzuVYNk2OCpoN1Qkq4oWad0a4cEB2QBtP9js0dVW"
+        "xQObJM8t1ZLHB3Lw1NCqB6OefkP7XlE0w6aXRZ5IWwvVC86cBXVBmBXzAgMBAAEC"
+        "gYABR6TVnHNGpZ702OEIdde2ec12QbXQFdQ6GD7sz3cslEN7caq8Eyh2ZcLN2L+E"
+        "GLY0IY8mWHIc3BivkPq4i1a/JyRUzEToJvjVd8J1slrzz8ryMOAiPbxt33IpgGL3"
+        "/8KgOLYxjdg5bpn6sCZlOXy7WYjl1H8TBw8CzZF41Ha24QJBAM7U+8m0hyknbnBD"
+        "gKXGb0eHIBx0zlPaNJwDHUcJXujxbVfwVjKWLy07JoXRiAgPuVszIMhu0r+Xa87L"
+        "W2WLdTsCQQCXVm0He7SaytnrlAFck5/L4EjtWaAQGfmV4eawI2HemWMjj0tukdFt"
+        "wAWHDuKYMb+bg21OU2XQxollYYJfk/apAkBaSe10WuNZ2sXCKiWBuIMhZWJmKbNc"
+        "NXgb1tw0A2o0JBhIeDkYsij8BMNHTXWllz+iCUq5VG+ZhX9hcbJ/PIa7AkEAjfgd"
+        "v+9ktfGmDUGDJX23YmK9BywU5AX6BYkuB/6pSVFLl4hNkyRn+zUv+ksUdwH0Zccd"
+        "O2UxFnGpYtnenBsKQQJBAMX2tgFcg//t1Li4+dxlTvZZ/clZCLpWXp4HQgBwzxMN"
+        "wpDoF40OzNYrrKIboU4BJFOMOBWAS4DFDYGdfLVS99g="
+    ),
+    "account": "my_account",
+    "schema": "S_PUBLIC",
+    "database": "D_PUBLIC",
+    "role": "my_role",
+    "warehouse": "my_wh",
+}
+
 
 VALID_DS_CONFIG_PARAMS: Final[Sequence[ParameterSet]] = [
     param(
@@ -855,25 +879,46 @@ def test_connection_updating_templated_connection_string():
     assert datasource.connection_string.template_str == new_conn_str
 
 
+@pytest.mark.parametrize(
+    "private_key",
+    [
+        pytest.param("${MY_PRIVATE_KEY}", id="Env Variable"),
+        pytest.param("$MY_PRIVATE_KEY", id="Config Variable"),
+    ],
+)
 @pytest.mark.unit
-def test_connection_updating_plain_connection_string():
-    # Create datasource with templated connection string
-    conn_str = "snowflake://user:${MY_PASSWORD}@account/db/schema?warehouse=wh&role=role"
-    datasource = SnowflakeDatasource(
-        name="my_snowflake",
-        connection_string=conn_str,
-    )
+def test_creating_datasource_with_templated_private_key(private_key):
+    connection_args = {
+        "user": "my_user",
+        "private_key": private_key,
+        "account": "my_account",
+        "schema": "S_PUBLIC",
+        "database": "D_PUBLIC",
+        "role": "my_role",
+        "warehouse": "my_wh",
+    }
+    datasource = SnowflakeDatasource(name="my_snowflake", **connection_args)
 
-    # Verify initial connection_string is ConfigUri
-    assert isinstance(datasource.connection_string, ConfigUri)
-    assert datasource.connection_string.template_str == conn_str
+    assert isinstance(datasource.private_key, ConfigStr)
 
-    plain_conn_str = "snowflake://plainuser:plainpass@plainaccount/plaindb/plainschema?warehouse=plainwh&role=plainrole"
-    datasource.connection_string = plain_conn_str
-    assert isinstance(datasource.connection_string, SnowflakeDsn), (
-        f"Expected SnowflakeDsn for plain connection string, "
-        f"got {type(datasource.connection_string)}"
-    )
+
+@pytest.mark.parametrize(
+    "private_key",
+    [
+        pytest.param("${MY_PRIVATE_KEY}", id="Env Variable"),
+        pytest.param("$MY_PRIVATE_KEY", id="Config Variable"),
+    ],
+)
+@pytest.mark.unit
+def test_updating_datasource_with_templated_private_key(private_key):
+    datasource = SnowflakeDatasource(name="my_snowflake", **KEY_PAIR_CONNECTION_ARGS)
+
+    # Verify initial connection_string
+    assert datasource.private_key != private_key
+
+    datasource.connection_string.private_key = private_key
+
+    assert isinstance(datasource.private_key, ConfigStr)
 
 
 # TODO: Cleanup how we install test dependencies and remove this skipif
