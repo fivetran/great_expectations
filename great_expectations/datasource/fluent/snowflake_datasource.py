@@ -526,7 +526,10 @@ class SnowflakeDatasource(SQLDatasource):
         """Convenience property to get the `private_key` regardless of the connection string format."""
         if isinstance(self.connection_string, KeyPairConnectionDetails):
             return self.connection_string.private_key
-        return None
+        elif "private_key" in self.kwargs:
+            return self.kwargs["private_key"]
+        else:
+            return None
 
     @override
     def test_connection(self, test_assets: bool = True) -> None:
