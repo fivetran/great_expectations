@@ -207,7 +207,7 @@ def test_expect_column_min_to_be_between__pandas_row_condition(
     assert result.success
 
 
-SQL_TEST_CASES = [
+SQL_AND_SPARK_TEST_CASES = [
     pytest.param(
         'col("name")=="albert"',
         id="text-eq",
@@ -240,9 +240,6 @@ SQL_TEST_CASES = [
         'col("created_at")>date("2021-01-29 00:00:00"))',
         id="datetime-gt",
     ),
-]
-
-SPARK_TEST_CASES = SQL_TEST_CASES + [
     pytest.param(
         ComparisonCondition(
             column=Column(name="name"), operator=Operator.EQUAL, parameter="albert"
@@ -325,7 +322,7 @@ SPARK_TEST_CASES = SQL_TEST_CASES + [
 )
 @pytest.mark.parametrize(
     "row_condition",
-    SQL_TEST_CASES,
+    SQL_AND_SPARK_TEST_CASES,
 )
 def test_expect_column_min_to_be_between__sql_row_condition(
     batch_for_datasource: Batch, row_condition: str
@@ -355,7 +352,7 @@ def test_expect_column_min_to_be_between__sql_row_condition(
 )
 @pytest.mark.parametrize(
     "row_condition",
-    SQL_TEST_CASES,
+    SQL_AND_SPARK_TEST_CASES,
 )
 def test_expect_column_min_to_be_between__snowflake_databricks_row_condition(
     batch_for_datasource: Batch, row_condition: str
@@ -377,7 +374,7 @@ def test_expect_column_min_to_be_between__snowflake_databricks_row_condition(
 )
 @pytest.mark.parametrize(
     "row_condition",
-    SPARK_TEST_CASES,
+    SQL_AND_SPARK_TEST_CASES,
 )
 def test_expect_column_min_to_be_between__spark_row_condition(
     batch_for_datasource: Batch, row_condition: str
