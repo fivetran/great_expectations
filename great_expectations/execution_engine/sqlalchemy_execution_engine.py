@@ -83,6 +83,7 @@ from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
+from great_expectations.expectations.conditions import Condition, Operator
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -97,6 +98,8 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     from great_expectations.expectations.conditions import (
         AndCondition,
         ComparisonCondition,
@@ -162,8 +165,7 @@ if TYPE_CHECKING:
 
     from great_expectations.compatibility import sqlalchemy
 
-
-SQLAColumnClause = object  # sqlalchemy isn't installed in all environments
+SQLAColumnClause: TypeAlias = object  # sqlalchemy isn't installed in all environments
 
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
@@ -171,6 +173,16 @@ _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.BIGQUERY,
     GXSqlDialect.DATABRICKS,
 )
+
+
+class InvalidOperatorError(ValueError):
+    def __init__(self, operator: Any) -> None:
+        super().__init__(f"Invalid operator: {operator!r}")
+
+
+class InvalidFilterClause(ValueError):
+    def __init__(self, filter_clause: Any) -> None:
+        super().__init__(f"Invalid filter clause: {type(filter_clause)}")
 
 
 def _dialect_requires_persisted_connection(
@@ -1448,19 +1460,51 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         return result
 
     @override
-    def _comparison_condition_to_filter_clause(
+    def condition_to_filter_clause(self, condition: Condition) -> sa.ColumnElement:
+        # This override is just to help the type system,
+        # since we can't make the class generic on sqlalchemy
+        # since it's not installed in all environments."""
+        output = super().condition_to_filter_clause(condition)
+        if not isinstance(output, sa.ColumnElement):
+            raise InvalidFilterClause(output)
+        return output
+
+    @override
+    def _comparison_condition_to_filter_clause(  # noqa: C901, PLR0911
         self, condition: ComparisonCondition
-    ) -> sa.ColumnClause:
-        raise NotImplementedError
+    ) -> sa.ColumnElement:
+        col: sa.ColumnClause = sa.column(condition.column.name)
+        val = sa.literal(condition.parameter)
+        op = condition.operator
+        if op == Operator.LESS_THAN:
+            return col < val
+        elif op == Operator.LESS_THAN_OR_EQUAL:
+            return col <= val
+        elif op == Operator.EQUAL:
+            return col == val
+        elif op == Operator.NOT_EQUAL:
+            return col != val
+        elif op == Operator.GREATER_THAN:
+            return col > val
+        elif op == Operator.GREATER_THAN_OR_EQUAL:
+            return col >= val
+        elif op == Operator.IN:
+            return col.in_(condition.parameter)
+        elif op == Operator.NOT_IN:
+            return ~col.in_(condition.parameter)
+        else:
+            raise InvalidOperatorError(op)
 
     @override
-    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnClause:
-        raise NotImplementedError
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnElement:
+        col: sa.ColumnClause = sa.column(condition.column.name)
+        return col.is_(None) if condition.is_null else col.isnot(None)
 
     @override
-    def _and_condition_to_filter_clause(self, condition: AndCondition) -> sa.ColumnClause:
-        raise NotImplementedError
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> sa.ColumnElement:
+        output = sa.and_(*[self.condition_to_filter_clause(c) for c in condition.conditions])
+        return output
 
     @override
-    def _or_condition_to_filter_clause(self, condition: OrCondition) -> sa.ColumnClause:
-        raise NotImplementedError
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> sa.ColumnElement:
+        return sa.or_(*[self.condition_to_filter_clause(c) for c in condition.conditions])
