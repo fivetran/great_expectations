@@ -431,7 +431,6 @@ class TestPandasConditionClassAcrossExpectationTypes:
         result = batch_for_datasource.validate(expectation)
         assert result.success
 
-    @pytest.mark.xfail(strict=True, reason="Failing until GX-1480")
     @parameterize_batch_for_data_sources(
         data_source_configs=[PandasDataFrameDatasourceTestConfig()],
         data=DATA,
