@@ -103,7 +103,7 @@ class Condition(BaseModel):
         result = super().dict(**kwargs)
         # If 'type' field exists in the model and was excluded, add it back
         if hasattr(self, "type") and "type" not in result:
-            result["type"] = self.type  # type: ignore[attr-defined]
+            result["type"] = self.type
         return result
 
     def __and__(self, other: Condition) -> Condition:
