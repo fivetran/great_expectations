@@ -95,7 +95,7 @@ logger = logging.getLogger(__name__)
 
 class InvalidRowConditionException(ValueError):
     def __init__(self, value: Any) -> None:
-        super().__init(f"Invalid row condition type: {type(value)}")
+        super().__init__(f"Invalid row condition type: {type(value)}")
 
 
 def apply_dateutil_parse(column):
