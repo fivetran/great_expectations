@@ -93,6 +93,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+class InvalidRowConditionException(ValueError):
+    def __init__(self, value: Any) -> None:
+        super().__init(f"Invalid row condition type: {type(value)}")
+
+
 def apply_dateutil_parse(column):
     assert len(column.columns) == 1, "Expected DataFrame with 1 column"
     col_name = column.columns[0]
@@ -694,6 +699,8 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
                 CONDITION_PARSER_GREAT_EXPECTATIONS,
                 CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
             ]:
+                if not isinstance(row_condition, str):
+                    raise InvalidRowConditionException(row_condition)
                 parsed_condition = parse_condition_to_spark(row_condition)
                 data = data.filter(parsed_condition)
             else:
