@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 import pytest
 
@@ -230,7 +232,7 @@ def test_row_condition_filtering_non_sql(
     batch_for_datasource: Batch,
     min_value: int,
     max_value: int,
-    row_condition: str | None,
+    row_condition: Optional[str],
     success: bool,
     expected_count: int,
 ) -> None:
@@ -260,7 +262,7 @@ def test_row_condition_filtering_sql(
     batch_for_datasource: Batch,
     min_value: int,
     max_value: int,
-    row_condition: str | None,
+    row_condition: Optional[str],
     success: bool,
     expected_count: int,
 ) -> None:
