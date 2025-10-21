@@ -42,7 +42,7 @@ def cleanup_databricks(config: DatabricksConnectionConfig) -> None:
             FROM information_schema.schemata
             WHERE catalog_name = :catalog_name
             AND schema_name REGEXP :schema_pattern
-            AND created < CURRENT_TIMESTAMP() - INTERVAL 2 HOUR
+            AND created < CURRENT_TIMESTAMP() - INTERVAL 1 HOUR
             ORDER BY created DESC
             """
             ),
