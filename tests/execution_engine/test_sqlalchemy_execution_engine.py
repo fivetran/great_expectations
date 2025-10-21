@@ -1584,3 +1584,32 @@ class TestConditionToFilterClauseSqlAlchemy:
         assert len(result) == 4
         ids = sorted([row[2] for row in result])
         assert ids == [2, 3, 4, 5]
+
+    @pytest.mark.sqlite
+    def test_get_domain_records_with_condition_object_row_condition(self, sa) -> None:
+        df = pd.DataFrame(
+            {
+                "a": [1, 2, 3, 4, 5],
+                "b": [10, 20, 30, 40, 50],
+                "status": ["active", "inactive", "active", "pending", "active"],
+            }
+        )
+
+        execution_engine = build_sa_execution_engine(df, sa)
+
+        row_condition = ComparisonCondition(
+            column=Column(name="status"), operator=Operator.EQUAL, parameter="active"
+        )
+
+        domain_kwargs = {
+            "column": "a",
+            "row_condition": row_condition,
+        }
+
+        data = execution_engine.get_domain_records(domain_kwargs=domain_kwargs)
+        domain_data = execution_engine.execute_query(get_sqlalchemy_domain_data(data)).fetchall()
+
+        # Should only get rows where status == "active" (rows 1, 3, 5)
+        assert len(domain_data) == 3
+        a_values = sorted([row[0] for row in domain_data])
+        assert a_values == [1, 3, 5]

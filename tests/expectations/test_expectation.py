@@ -12,6 +12,12 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_validation_result import ExpectationValidationResult
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.execution_engine.execution_engine import ExecutionEngine
+from great_expectations.expectations.conditions import (
+    Column,
+    ComparisonCondition,
+    NullityCondition,
+    Operator,
+)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     ColumnPairMapExpectation,
@@ -663,3 +669,141 @@ class TestExpectationHash:
         hash3 = hash(expectation)
 
         assert hash1 == hash2 == hash3
+
+
+@pytest.mark.unit
+class TestLegacyRowConditionTransformation:
+    """Test that legacy string row_conditions are transformed to Condition objects."""
+
+    def test_numeric_comparison_greater_than(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active", "pending"],
+            row_condition='col("age") > 18',
+            condition_parser="great_expectations",
+        )
+
+        assert isinstance(expectation.row_condition, ComparisonCondition)
+        assert expectation.row_condition.column.name == "age"
+        assert expectation.row_condition.operator == Operator.GREATER_THAN
+        assert expectation.row_condition.parameter == 18
+        assert not hasattr(expectation, "condition_parser") or expectation.condition_parser is None
+
+    def test_numeric_comparison_less_than_or_equal(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition='col("price") <= 99.99',
+            condition_parser="great_expectations",
+        )
+
+        assert isinstance(expectation.row_condition, ComparisonCondition)
+        assert expectation.row_condition.column.name == "price"
+        assert expectation.row_condition.operator == Operator.LESS_THAN_OR_EQUAL
+        assert expectation.row_condition.parameter == 99.99
+        assert not hasattr(expectation, "condition_parser") or expectation.condition_parser is None
+
+    def test_string_comparison_equal(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="email",
+            value_set=["test@example.com"],
+            row_condition='col("status") == "active"',
+            condition_parser="great_expectations",
+        )
+
+        assert isinstance(expectation.row_condition, ComparisonCondition)
+        assert expectation.row_condition.column.name == "status"
+        assert expectation.row_condition.operator == Operator.EQUAL
+        assert expectation.row_condition.parameter == "active"
+        assert not hasattr(expectation, "condition_parser") or expectation.condition_parser is None
+
+    def test_nullity_check_notnull(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition='col("email").notnull()',
+            condition_parser="great_expectations",
+        )
+
+        assert isinstance(expectation.row_condition, NullityCondition)
+        assert expectation.row_condition.column.name == "email"
+        assert expectation.row_condition.is_null is False
+        assert not hasattr(expectation, "condition_parser") or expectation.condition_parser is None
+
+    def test_deprecated_parser_name(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition='col("age") >= 21',
+            condition_parser="great_expectations__experimental__",
+        )
+
+        assert isinstance(expectation.row_condition, ComparisonCondition)
+        assert expectation.row_condition.column.name == "age"
+        assert expectation.row_condition.operator == Operator.GREATER_THAN_OR_EQUAL
+        assert expectation.row_condition.parameter == 21
+        assert not hasattr(expectation, "condition_parser") or expectation.condition_parser is None
+
+    def test_negative_number_comparison(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition='col("temperature") < -10',
+            condition_parser="great_expectations",
+        )
+
+        assert isinstance(expectation.row_condition, ComparisonCondition)
+        assert expectation.row_condition.column.name == "temperature"
+        assert expectation.row_condition.operator == Operator.LESS_THAN
+        assert expectation.row_condition.parameter == -10
+        assert isinstance(expectation.row_condition.parameter, int)
+        assert not hasattr(expectation, "condition_parser") or expectation.condition_parser is None
+
+    def test_negative_float_comparison(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition='col("balance") >= -99.50',
+            condition_parser="great_expectations",
+        )
+
+        assert isinstance(expectation.row_condition, ComparisonCondition)
+        assert expectation.row_condition.column.name == "balance"
+        assert expectation.row_condition.operator == Operator.GREATER_THAN_OR_EQUAL
+        assert expectation.row_condition.parameter == -99.50
+        assert isinstance(expectation.row_condition.parameter, float)
+        assert not hasattr(expectation, "condition_parser") or expectation.condition_parser is None
+
+    def test_no_transformation_when_already_condition_object(self):
+        original_condition = Column(name="age") > 18
+
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition=original_condition,
+        )
+
+        assert expectation.row_condition is original_condition
+        assert isinstance(expectation.row_condition, ComparisonCondition)
+
+    def test_no_transformation_when_row_condition_is_none(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition=None,
+            condition_parser="great_expectations",
+        )
+
+        assert expectation.row_condition is None
+        assert expectation.condition_parser == "great_expectations"
+
+    def test_no_transformation_when_row_condition_parser_is_not_great_expectations(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition='col("age") > 18',
+            condition_parser="pandas",
+        )
+
+        assert isinstance(expectation.row_condition, str)
+        assert expectation.row_condition == 'col("age") > 18'
