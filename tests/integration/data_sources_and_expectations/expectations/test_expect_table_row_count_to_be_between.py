@@ -9,6 +9,8 @@ from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.data_sources_and_expectations.test_canonical_expectations import (
     ALL_DATA_SOURCES,
     JUST_PANDAS_DATA_SOURCES,
+    NON_SQL_DATA_SOURCES,
+    SQL_DATA_SOURCES,
 )
 
 COL_A = "col_a"
@@ -209,18 +211,6 @@ ROW_CONDITION_DATA = pd.DataFrame(
             "Jane",
         ],
         "age": [25, 30, 15, 35, 22, 16, 28, 17, 40, 12],
-        "city": [
-            "NYC",
-            "LA",
-            "NYC",
-            "SF",
-            "NYC",
-            "LA",
-            "SF",
-            "NYC",
-            "LA",
-            "SF",
-        ],
     }
 )
 
@@ -231,13 +221,72 @@ ROW_CONDITION_DATA = pd.DataFrame(
         pytest.param(5, 15, None, True, 10, id="no_condition_success"),
         pytest.param(1, 5, None, False, 10, id="no_condition_failure"),
         pytest.param(5, 10, "age >= 18", True, 6, id="age_filter_success"),
-        pytest.param(5, 10, "age >= 18 and city == 'NYC'", False, 2, id="compound_filter_failure"),
+    ],
+)
+@parameterize_batch_for_data_sources(
+    data_source_configs=NON_SQL_DATA_SOURCES, data=ROW_CONDITION_DATA
+)
+def test_row_condition_filtering_non_sql(
+    batch_for_datasource: Batch,
+    min_value: int,
+    max_value: int,
+    row_condition: str | None,
+    success: bool,
+    expected_count: int,
+) -> None:
+    expectation = gxe.ExpectTableRowCountToBeBetween(
+        min_value=min_value,
+        max_value=max_value,
+        row_condition=row_condition,
+        condition_parser="pandas" if row_condition else None,
+    )
+
+    result = batch_for_datasource.validate(expectation)
+
+    assert result.success == success
+    assert result.result["observed_value"] == expected_count
+
+
+@pytest.mark.parametrize(
+    "min_value,max_value,row_condition,success,expected_count",
+    [
+        pytest.param(5, 15, None, True, 10, id="no_condition_success"),
+        pytest.param(1, 5, None, False, 10, id="no_condition_failure"),
+        pytest.param(5, 10, 'col("age") >= 18', True, 6, id="age_filter_success"),
+    ],
+)
+@parameterize_batch_for_data_sources(data_source_configs=SQL_DATA_SOURCES, data=ROW_CONDITION_DATA)
+def test_row_condition_filtering_sql(
+    batch_for_datasource: Batch,
+    min_value: int,
+    max_value: int,
+    row_condition: str | None,
+    success: bool,
+    expected_count: int,
+) -> None:
+    expectation = gxe.ExpectTableRowCountToBeBetween(
+        min_value=min_value,
+        max_value=max_value,
+        row_condition=row_condition,
+        condition_parser="great_expectations" if row_condition else None,
+    )
+
+    result = batch_for_datasource.validate(expectation)
+
+    assert result.success == success
+    assert result.result["observed_value"] == expected_count
+
+
+@pytest.mark.parametrize(
+    "min_value,max_value,row_condition,success,expected_count",
+    [
+        pytest.param(3, 10, "age >= 18 and age <= 30", True, 4, id="compound_condition_age_range"),
     ],
 )
 @parameterize_batch_for_data_sources(
     data_source_configs=JUST_PANDAS_DATA_SOURCES, data=ROW_CONDITION_DATA
 )
-def test_row_condition_filtering(
+def test_row_condition_filtering_compound_conditions_pandas_only(
     batch_for_datasource: Batch,
     min_value: int,
     max_value: int,

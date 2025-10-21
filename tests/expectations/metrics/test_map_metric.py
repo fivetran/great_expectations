@@ -1,3 +1,5 @@
+from typing import Generator
+
 import pandas as pd
 import pytest
 
@@ -44,7 +46,7 @@ from great_expectations.validator.validator import Validator
 @pytest.fixture
 def sqlite_table_for_unexpected_rows_with_index(
     test_backends,
-) -> sqlalchemy.Engine:
+) -> Generator[sqlalchemy.Engine, None, None]:
     if "sqlite" in test_backends:
         try:
             from great_expectations.compatibility.sqlalchemy import sqlalchemy as sa
