@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
@@ -171,6 +171,7 @@ class ExpectTableRowCountToEqual(BatchExpectation):
     _library_metadata = library_metadata
 
     metric_dependencies = ("table.row_count",)
+    domain_keys: ClassVar[Tuple[str, ...]] = ("row_condition", "condition_parser")
     success_keys = ("value",)
     args_keys = ("value",)
 
