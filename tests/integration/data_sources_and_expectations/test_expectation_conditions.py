@@ -9,6 +9,14 @@ from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.datasource.fluent.interfaces import Batch
+from great_expectations.expectations.conditions import (
+    AndCondition,
+    Column,
+    ComparisonCondition,
+    NullityCondition,
+    Operator,
+    OrCondition,
+)
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
@@ -113,6 +121,58 @@ PANDAS_TEST_CASES = [
     pytest.param(
         "created_at==datetime.datetime(2021,1,30,0,0,0,tzinfo=datetime.timezone.utc)",
         id="datetime.datetime-eq",
+    ),
+    pytest.param(
+        ComparisonCondition(
+            column=Column(name="name"), operator=Operator.EQUAL, parameter="albert"
+        ),
+        id="condition-text-eq",
+    ),
+    pytest.param(
+        ComparisonCondition(
+            column=Column(name="quantity"), operator=Operator.LESS_THAN, parameter=3
+        ),
+        id="condition-number-lt",
+    ),
+    pytest.param(
+        ComparisonCondition(
+            column=Column(name="quantity"), operator=Operator.GREATER_THAN, parameter=0
+        ),
+        id="condition-number-gt",
+    ),
+    pytest.param(
+        ComparisonCondition(column=Column(name="quantity"), operator=Operator.IN, parameter=[1, 2]),
+        id="condition-in",
+    ),
+    pytest.param(
+        NullityCondition(column=Column(name="name"), is_null=False),
+        id="condition-not-null",
+    ),
+    pytest.param(
+        AndCondition(
+            conditions=[
+                ComparisonCondition(
+                    column=Column(name="quantity"), operator=Operator.GREATER_THAN, parameter=0
+                ),
+                ComparisonCondition(
+                    column=Column(name="quantity"), operator=Operator.LESS_THAN, parameter=3
+                ),
+            ]
+        ),
+        id="condition-and",
+    ),
+    pytest.param(
+        OrCondition(
+            conditions=[
+                ComparisonCondition(
+                    column=Column(name="name"), operator=Operator.EQUAL, parameter="albert"
+                ),
+                ComparisonCondition(
+                    column=Column(name="name"), operator=Operator.EQUAL, parameter="issac"
+                ),
+            ]
+        ),
+        id="condition-or",
     ),
 ]
 
@@ -276,3 +336,117 @@ def test_expect_column_min_to_be_between__spark_row_condition(
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success
+
+
+class TestPandasConditionClassAcrossExpectationTypes:
+    """Simple tests to ensure that pandas properly utilizes row condition from each
+    type of expectation (ColumnMapExpectation, ColumnPairMapExpectation, etc)
+    """
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[PandasDataFrameDatasourceTestConfig()],
+        data=DATA,
+    )
+    def test_column_aggregate_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test ColumnAggregateExpectation with Condition row_condition."""
+        row_condition = AndCondition(
+            conditions=[
+                ComparisonCondition(
+                    column=Column(name="quantity"), operator=Operator.GREATER_THAN, parameter=0
+                ),
+                ComparisonCondition(
+                    column=Column(name="quantity"), operator=Operator.LESS_THAN, parameter=3
+                ),
+            ]
+        )
+        expectation = gxe.ExpectColumnMinToBeBetween(
+            column="amount",
+            min_value=0.5,
+            max_value=1.5,
+            row_condition=row_condition,
+            condition_parser="pandas",
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[PandasDataFrameDatasourceTestConfig()],
+        data=DATA,
+    )
+    def test_column_map_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test ColumnMapExpectation with Condition row_condition."""
+        row_condition = ComparisonCondition(
+            column=Column(name="name"), operator=Operator.EQUAL, parameter="albert"
+        )
+        expectation = gxe.ExpectColumnValuesToBeBetween(
+            column="quantity",
+            min_value=0.5,
+            max_value=1.5,
+            row_condition=row_condition,
+            condition_parser="pandas",
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[PandasDataFrameDatasourceTestConfig()],
+        data=DATA,
+    )
+    def test_column_pair_map_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test ColumnPairMapExpectation with Condition row_condition."""
+        row_condition = ComparisonCondition(
+            column=Column(name="quantity"), operator=Operator.LESS_THAN, parameter=3
+        )
+        expectation = gxe.ExpectColumnPairValuesToBeEqual(
+            column_A="quantity",
+            column_B="quantity",
+            row_condition=row_condition,
+            condition_parser="pandas",
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[PandasDataFrameDatasourceTestConfig()],
+        data=DATA,
+    )
+    def test_multicolumn_map_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test MulticolumnMapExpectation with Condition row_condition."""
+        row_condition = ComparisonCondition(
+            column=Column(name="quantity"), operator=Operator.GREATER_THAN, parameter=0
+        )
+        expectation = gxe.ExpectCompoundColumnsToBeUnique(
+            column_list=["name", "quantity"],
+            row_condition=row_condition,
+            condition_parser="pandas",
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[PandasDataFrameDatasourceTestConfig()],
+        data=DATA,
+    )
+    def test_batch_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test BatchExpectation  with Condition row_condition."""
+        row_condition = ComparisonCondition(
+            column=Column(name="name"), operator=Operator.EQUAL, parameter="albert"
+        )
+        expectation = gxe.ExpectTableRowCountToBeBetween(
+            min_value=1,
+            max_value=1,
+            row_condition=row_condition,
+            condition_parser="pandas",
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success

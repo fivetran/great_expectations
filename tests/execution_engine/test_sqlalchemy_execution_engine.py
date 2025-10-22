@@ -29,6 +29,14 @@ from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
     _dialect_requires_persisted_connection,
 )
+from great_expectations.expectations.conditions import (
+    AndCondition,
+    Column,
+    ComparisonCondition,
+    NullityCondition,
+    Operator,
+    OrCondition,
+)
 
 # Function to test for spark dataframe equality
 from great_expectations.expectations.row_conditions import (
@@ -1258,3 +1266,321 @@ class TestDialectRequiresPersistedConnection:
                 connection_string=connection_string,
                 url=url,
             )
+
+
+class TestConditionToFilterClauseSqlAlchemy:
+    """Tests for SQLAlchemy condition_to_filter_clause methods."""
+
+    @pytest.mark.sqlite
+    @pytest.mark.parametrize(
+        "condition,expected_sql",
+        [
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.EQUAL, parameter=5
+                ),
+                "age = 5",
+                id="equal_int",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.NOT_EQUAL, parameter=10
+                ),
+                "age != 10",
+                id="not_equal_int",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.LESS_THAN, parameter=18
+                ),
+                "age < 18",
+                id="less_than",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=65
+                ),
+                "age > 65",
+                id="greater_than",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
+                ),
+                "age <= 100",
+                id="less_than_or_equal",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
+                ),
+                "age >= 0",
+                id="greater_than_or_equal",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="name"), operator=Operator.EQUAL, parameter="John"
+                ),
+                "name = 'John'",
+                id="equal_string",
+            ),
+        ],
+    )
+    def test_comparison_conditions(
+        self, sa, condition: ComparisonCondition, expected_sql: str
+    ) -> None:
+        """Test that comparison conditions compile to correct SQL."""
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        result = engine.condition_to_filter_clause(condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == expected_sql
+
+    @pytest.mark.sqlite
+    @pytest.mark.parametrize(
+        "condition,expected_sql",
+        [
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Operator.IN, parameter=[1, 2, 3]
+                ),
+                "status IN (1, 2, 3)",
+                id="in_integers",
+            ),
+            pytest.param(
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
+                ),
+                "(status NOT IN (1, 2, 3))",
+                id="not_in_integers",
+            ),
+        ],
+    )
+    def test_in_conditions(self, sa, condition: ComparisonCondition, expected_sql: str) -> None:
+        """Test that IN/NOT IN conditions compile to correct SQL."""
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        result = engine.condition_to_filter_clause(condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == expected_sql
+
+    @pytest.mark.sqlite
+    @pytest.mark.parametrize(
+        "condition,expected_sql",
+        [
+            pytest.param(
+                NullityCondition(column=Column(name="email"), is_null=True),
+                "email IS NULL",
+                id="is_null",
+            ),
+            pytest.param(
+                NullityCondition(column=Column(name="email"), is_null=False),
+                "email IS NOT NULL",
+                id="is_not_null",
+            ),
+        ],
+    )
+    def test_nullity_conditions(self, sa, condition: NullityCondition, expected_sql: str) -> None:
+        """Test that nullity conditions compile to correct SQL."""
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        result = engine.condition_to_filter_clause(condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == expected_sql
+
+    @pytest.mark.sqlite
+    def test_and_condition_simple(self, sa) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        and_condition = AndCondition(
+            conditions=[
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=18
+                ),
+                ComparisonCondition(
+                    column=Column(name="age"), operator=Operator.LESS_THAN, parameter=65
+                ),
+            ]
+        )
+        result = engine.condition_to_filter_clause(and_condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == "age > 18 AND age < 65"
+
+    @pytest.mark.sqlite
+    def test_or_condition_simple(self, sa) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        or_condition = OrCondition(
+            conditions=[
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Operator.EQUAL, parameter="active"
+                ),
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Operator.EQUAL, parameter="pending"
+                ),
+            ]
+        )
+        result = engine.condition_to_filter_clause(or_condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == "status = 'active' OR status = 'pending'"
+
+    @pytest.mark.sqlite
+    def test_nested_conditions(self, sa) -> None:
+        engine = SqlAlchemyExecutionEngine(connection_string="sqlite://")
+        or_condition = OrCondition(
+            conditions=[
+                AndCondition(
+                    conditions=[
+                        ComparisonCondition(
+                            column=Column(name="age"),
+                            operator=Operator.GREATER_THAN_OR_EQUAL,
+                            parameter=18,
+                        ),
+                        ComparisonCondition(
+                            column=Column(name="age"),
+                            operator=Operator.LESS_THAN_OR_EQUAL,
+                            parameter=65,
+                        ),
+                    ]
+                ),
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Operator.EQUAL, parameter="exempt"
+                ),
+            ]
+        )
+        result = engine.condition_to_filter_clause(or_condition)
+        compiled = str(result.compile(compile_kwargs={"literal_binds": True}))
+        assert compiled == "age >= 18 AND age <= 65 OR status = 'exempt'"
+
+    @pytest.mark.sqlite
+    def test_comparison_filter_clause_filters_query(self, sa, test_db_connection_string) -> None:
+        """Test that comparison conditions work with actual SQL queries."""
+        engine = SqlAlchemyExecutionEngine(connection_string=test_db_connection_string)
+
+        # Create test table
+        df = pd.DataFrame({"age": [15, 25, 35, 45, 55], "name": ["A", "B", "C", "D", "E"]})
+        with engine.get_connection() as conn:
+            add_dataframe_to_db(df=df, name="test_table", con=conn, index=False)
+
+        # Create condition
+        condition = ComparisonCondition(
+            column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=30
+        )
+        filter_clause = engine.condition_to_filter_clause(condition)
+
+        # Build and execute query
+        query = sa.select(sa.text("*")).select_from(sa.text("test_table")).where(filter_clause)
+        with engine.get_connection() as conn:
+            result = conn.execute(query).fetchall()
+
+        assert len(result) == 3
+        ages = [row[0] for row in result]
+        assert ages == [35, 45, 55]
+
+    @pytest.mark.sqlite
+    def test_in_filter_clause_filters_query(self, sa, test_db_connection_string) -> None:
+        """Test that IN operator works with actual SQL queries."""
+        engine = SqlAlchemyExecutionEngine(connection_string=test_db_connection_string)
+
+        # Create test table
+        df = pd.DataFrame(
+            {
+                "status": ["active", "pending", "inactive", "active", "deleted"],
+                "id": [1, 2, 3, 4, 5],
+            }
+        )
+        with engine.get_connection() as conn:
+            add_dataframe_to_db(df=df, name="test_status_table", con=conn, index=False)
+
+        # Create condition
+        condition = ComparisonCondition(
+            column=Column(name="status"), operator=Operator.IN, parameter=["active", "pending"]
+        )
+        filter_clause = engine.condition_to_filter_clause(condition)
+
+        # Build and execute query
+        query = (
+            sa.select(sa.text("*")).select_from(sa.text("test_status_table")).where(filter_clause)
+        )
+        with engine.get_connection() as conn:
+            result = conn.execute(query).fetchall()
+
+        assert len(result) == 3
+        ids = sorted([row[1] for row in result])
+        assert ids == [1, 2, 4]
+
+    @pytest.mark.sqlite
+    def test_nullity_filter_clause_filters_query(self, sa, test_db_connection_string) -> None:
+        """Test that nullity conditions work with actual SQL queries."""
+        engine = SqlAlchemyExecutionEngine(connection_string=test_db_connection_string)
+
+        # Create test table
+        df = pd.DataFrame(
+            {
+                "email": ["a@example.com", None, "c@example.com", None, "e@example.com"],
+                "id": [1, 2, 3, 4, 5],
+            }
+        )
+        with engine.get_connection() as conn:
+            add_dataframe_to_db(df=df, name="test_email_table", con=conn, index=False)
+
+        # Create condition
+        condition = NullityCondition(column=Column(name="email"), is_null=False)
+        filter_clause = engine.condition_to_filter_clause(condition)
+
+        # Build and execute query
+        query = (
+            sa.select(sa.text("*")).select_from(sa.text("test_email_table")).where(filter_clause)
+        )
+        with engine.get_connection() as conn:
+            result = conn.execute(query).fetchall()
+
+        assert len(result) == 3
+        ids = sorted([row[1] for row in result])
+        assert ids == [1, 3, 5]
+
+    @pytest.mark.sqlite
+    def test_nested_condition_filters_query(self, sa, test_db_connection_string) -> None:
+        """Test that nested conditions work with actual SQL queries."""
+        engine = SqlAlchemyExecutionEngine(connection_string=test_db_connection_string)
+
+        # Create test table
+        df = pd.DataFrame(
+            {
+                "age": [15, 25, 35, 45, 75],
+                "status": ["active", "active", "active", "active", "exempt"],
+                "id": [1, 2, 3, 4, 5],
+            }
+        )
+        with engine.get_connection() as conn:
+            add_dataframe_to_db(df=df, name="test_nested_table", con=conn, index=False)
+
+        # Create nested condition
+        or_condition = OrCondition(
+            conditions=[
+                AndCondition(
+                    conditions=[
+                        ComparisonCondition(
+                            column=Column(name="age"),
+                            operator=Operator.GREATER_THAN_OR_EQUAL,
+                            parameter=18,
+                        ),
+                        ComparisonCondition(
+                            column=Column(name="age"),
+                            operator=Operator.LESS_THAN_OR_EQUAL,
+                            parameter=65,
+                        ),
+                    ]
+                ),
+                ComparisonCondition(
+                    column=Column(name="status"), operator=Operator.EQUAL, parameter="exempt"
+                ),
+            ]
+        )
+        filter_clause = engine.condition_to_filter_clause(or_condition)
+
+        # Build and execute query
+        query = (
+            sa.select(sa.text("*")).select_from(sa.text("test_nested_table")).where(filter_clause)
+        )
+        with engine.get_connection() as conn:
+            result = conn.execute(query).fetchall()
+
+        assert len(result) == 4
+        ids = sorted([row[2] for row in result])
+        assert ids == [2, 3, 4, 5]

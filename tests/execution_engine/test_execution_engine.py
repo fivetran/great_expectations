@@ -6,12 +6,19 @@ import pandas as pd
 import pytest
 
 import great_expectations.exceptions as gx_exceptions
+from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch import BatchData, BatchMarkers
 from great_expectations.core.metric_function_types import (
     MetricPartialFunctionTypeSuffixes,
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import ExecutionEngine, PandasExecutionEngine
+from great_expectations.expectations.conditions import (
+    AndCondition,
+    ComparisonCondition,
+    NullityCondition,
+    OrCondition,
+)
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -34,6 +41,22 @@ def test_execution_engine():
 
     class TestExecutionEngine(ExecutionEngine):
         def get_batch_data_and_markers(self, batch_spec) -> Tuple[BatchData, BatchMarkers]:  # type: ignore[explicit-override] # FIXME
+            raise NotImplementedError
+
+        @override
+        def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+            raise NotImplementedError
+
+        @override
+        def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+            raise NotImplementedError
+
+        @override
+        def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+            raise NotImplementedError
+
+        @override
+        def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
             raise NotImplementedError
 
     return TestExecutionEngine()
