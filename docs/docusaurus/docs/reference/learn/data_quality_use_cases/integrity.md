@@ -140,7 +140,7 @@ Use the GX Cloud UI to implement the following steps:
 
 1. Using the following connection string to create a Postgres Data Source, create a Data Asset for the `integrity_transfer_transaction` table:
    ```python title="Connection string"
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
+   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
    ```
 
 2. Add an **Expect column pair values A to be greater than B** Expectation that expects that the time that the transaction was received (`received_ts`) is after the time that the transaction was sent (`sent_ts`).
@@ -199,7 +199,7 @@ Use the GX Cloud UI to implement the following steps:
 
 1. Using the following connection string to create a Postgres Data Source, create Data Assets for the `integrity_transfers` and `integrity_transfer_balance` tables:
    ```python title="Connection string"
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
+   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
    ```
 
 2. Add a custom SQL Expectation on the `integrity_transfers` Data Asset to validate that the `amount` column in `integrity_transfers` matches the `total_amount` column in the `integrity_transfer_balance` table. The `join` in the SQL query enables GX Cloud to validate integrity for for data that spans multiple tables.
