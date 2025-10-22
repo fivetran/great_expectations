@@ -401,9 +401,12 @@ class ConnectionDetails(FluentBaseModel):
 
 
 class KeyPairConnectionDetails(FluentBaseModel):
-    account: str
+    account: AccountIdentifier
     user: str
-    database: str
+    database: str = pydantic.Field(
+        ...,
+        description="`database` that the Datasource is mapped to.",
+    )
     schema_: str = pydantic.Field(..., alias="schema")  # schema is a reserved attr in BaseModel
     warehouse: str
     role: str
@@ -532,7 +535,7 @@ class SnowflakeDatasource(SQLDatasource):
         return urllib.parse.parse_qs(urllib.parse.urlparse(subbed_str).query).get("role", [None])[0]
 
     @property
-    def private_key(self) -> str | None:
+    def private_key(self) -> str | ConfigStr | None:
         """Convenience property to get the `private_key` regardless of
         the connection string format.
         """
