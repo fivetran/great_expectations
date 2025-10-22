@@ -693,7 +693,6 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
             if isinstance(row_condition, Condition):
                 data = data.filter(self.condition_to_filter_clause(row_condition))
             elif condition_parser == CONDITION_PARSER_SPARK:
-                self._validate_row_condition(row_condition)
                 data = data.filter(row_condition)
             elif condition_parser in [
                 CONDITION_PARSER_GREAT_EXPECTATIONS,
