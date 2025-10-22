@@ -269,7 +269,44 @@ def _map_operator_string_to_enum(op_str: str) -> Operator:
 
 
 def _convert_string_to_condition(row_condition: str) -> Condition:
-    """Convert legacy string row_condition to new Condition object."""
+    """Convert legacy string row_condition to new Condition object.
+
+    This function parses the legacy `great_expectations` row_condition string syntax
+    and transforms it into the new object-based Condition API.
+
+    Parsing Flow:
+        1. Parse the row_condition string using pyparsing grammar
+        2. Extract column name from parsed result
+        3. Determine condition type based on parsed fields:
+           - If "notnull" present → NullityCondition (is_null=False)
+           - If "condition_value" present → ComparisonCondition (string comparison)
+           - Otherwise → ComparisonCondition (numeric comparison)
+
+    Supported Syntax:
+        Nullity checks:
+            col("email").notnull()  → NullityCondition(column="email", is_null=False)
+
+        String comparisons (parsed["condition_value"] present):
+            col("id") == "ok" → ComparisonCondition(column="id", operator="==", parameter="ok")
+            col("id") != "a" → ComparisonCondition(column="id", operator="!=", parameter="a")
+
+        Numeric comparisons (parsed["fnumber"] present):
+            col("age") > 18 → ComparisonCondition(column="age", operator=">", parameter=18)
+            col("amt") <= 99.9 → ComparisonCondition(column="amt", operator="<=", parameter=99.9)
+            col("temp") < -10 → ComparisonCondition(column="temp", operator="<", parameter=-10)
+
+    Args:
+        row_condition: Legacy string syntax row condition (e.g., 'col("age") > 18')
+
+    Returns:
+        Condition object (NullityCondition or ComparisonCondition)
+
+    Note:
+        The grammar uses different parsing rules for each condition type:
+        - Nullity: Only `.notnull()` supported (is_null=True not available)
+        - String comparisons: Matches quoted strings as "condition_value"
+        - Numeric comparisons: Matches numbers as "fnumber"
+    """
     parsed = parse_great_expectations_condition(row_condition)
     col = Column(name=str(parsed["column"]))
 
