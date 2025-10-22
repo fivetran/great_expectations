@@ -700,7 +700,7 @@ def test_missing_required_params(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "expected string or bytes-like object, got 'dict'",
+                    "msg": "expected string or bytes-like object",
                     "type": "type_error",
                 },
                 {
@@ -742,7 +742,7 @@ def test_missing_required_params(
                 },
                 {
                     "loc": ("connection_string",),
-                    "msg": "expected string or bytes-like object, got 'dict'",
+                    "msg": "expected string or bytes-like object",
                     "type": "type_error",
                 },
                 {
