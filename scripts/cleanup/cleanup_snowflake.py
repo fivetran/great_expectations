@@ -40,7 +40,7 @@ def cleanup_snowflake(config: SnowflakeConnectionConfig) -> None:
                 f"SELECT 'DROP SCHEMA IF EXISTS ' || schema_name || ' CASCADE;' as drop_statement "
                 f"FROM INFORMATION_SCHEMA.SCHEMATA "
                 f"WHERE REGEXP_LIKE(schema_name, '{SCHEMA_FORMAT}') "
-                f"AND created < DATEADD(hour, -2, CURRENT_TIMESTAMP())"
+                f"AND created < DATEADD(hour, -1, CURRENT_TIMESTAMP())"
             )
         ).fetchall()
 
