@@ -85,7 +85,7 @@ from great_expectations.expectations.registry import (
     register_renderer,
 )
 from great_expectations.expectations.row_conditions import (
-    _parse_great_expectations_condition,
+    parse_great_expectations_condition,
 )
 from great_expectations.expectations.sql_tokens_and_types import (
     valid_sql_tokens_and_types,
@@ -270,7 +270,7 @@ def _map_operator_string_to_enum(op_str: str) -> Operator:
 
 def _convert_string_to_condition(row_condition: str) -> Condition:
     """Convert legacy string row_condition to new Condition object."""
-    parsed = _parse_great_expectations_condition(row_condition)
+    parsed = parse_great_expectations_condition(row_condition)
     col = Column(name=str(parsed["column"]))
 
     if "notnull" in parsed and parsed["notnull"] is True:

@@ -113,7 +113,7 @@ class RowCondition(SerializableDictDot):
         return convert_to_json_serializable(data=self.to_dict())
 
 
-def _parse_great_expectations_condition(row_condition: str):
+def parse_great_expectations_condition(row_condition: str):
     try:
         return condition.parseString(row_condition)
     except ParseException:
@@ -123,7 +123,7 @@ def _parse_great_expectations_condition(row_condition: str):
 def parse_condition_to_spark(
     row_condition: str,
 ) -> pyspark.Column:
-    parsed = _parse_great_expectations_condition(row_condition)
+    parsed = parse_great_expectations_condition(row_condition)
     column = parsed["column"]
     if "condition_value" in parsed:
         return generate_condition_by_operator(
@@ -156,7 +156,7 @@ def generate_condition_by_operator(column, op, value):
 def parse_condition_to_sqlalchemy(
     row_condition: str,
 ) -> sqlalchemy.ColumnElement:
-    parsed = _parse_great_expectations_condition(row_condition)
+    parsed = parse_great_expectations_condition(row_condition)
     column = parsed["column"]
     if "condition_value" in parsed:
         return generate_condition_by_operator(
