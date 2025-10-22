@@ -39,7 +39,7 @@ def cleanup_big_query(config: BigQueryConnectionConfig) -> None:
                 SELECT 'DROP SCHEMA ' || schema_name || ' CASCADE;'
                 FROM INFORMATION_SCHEMA.SCHEMATA
                 WHERE REGEXP_CONTAINS(schema_name, :schema_format)
-                AND creation_time < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 2 HOUR);
+                AND creation_time < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR);
                 """
             ),
             {"schema_format": SCHEMA_FORMAT},

@@ -300,6 +300,24 @@ class ExecutionEngine(ABC, Generic[TFilter]):
         """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501 # FIXME CoP
         raise NotImplementedError
 
+    def _validate_row_condition(self, row_condition: Any) -> None:
+        """Validates that row_condition is not a Condition object.
+
+        Condition objects are not yet supported for row_condition. This will be
+        implemented in a future release. For now, only string-based conditions are supported.
+
+        Args:
+            row_condition: The row_condition value to validate
+
+        Raises:
+            GreatExpectationsError: If row_condition is a Condition object
+        """
+        if isinstance(row_condition, Condition):
+            raise gx_exceptions.GreatExpectationsError(  # noqa: TRY003
+                "Condition objects are not yet supported for row_condition. "
+                "This feature will be implemented in a future release."
+            )
+
     def get_domain_records(
         self,
         domain_kwargs: dict,
