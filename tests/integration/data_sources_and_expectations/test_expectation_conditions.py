@@ -570,7 +570,7 @@ class TestSQLConditionClassAcrossExpectationTypes:
             column="amount",
             min_value=0.5,
             max_value=1.5,
-            row_condition=row_condition,  # type: ignore[arg-type]
+            row_condition=row_condition,
         )
         result = batch_for_datasource.validate(expectation)
         assert result.success
