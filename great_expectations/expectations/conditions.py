@@ -106,7 +106,7 @@ class Condition(BaseModel):
             result["type"] = self.type
         return result
 
-    def __and__(self, other: Condition) -> Condition:
+    def __and__(self, other: Condition) -> AndCondition:
         new_conditions = []
         for cond in [self, other]:
             if isinstance(cond, AndCondition):
@@ -115,7 +115,7 @@ class Condition(BaseModel):
                 new_conditions.append(cond)
         return AndCondition(conditions=new_conditions)
 
-    def __or__(self, other: Condition) -> Condition:
+    def __or__(self, other: Condition) -> OrCondition:
         new_conditions = []
         for cond in [self, other]:
             if isinstance(cond, OrCondition):
