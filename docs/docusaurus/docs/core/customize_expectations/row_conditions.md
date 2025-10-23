@@ -33,20 +33,69 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
 
    <TabItem value="instructions" label="Instructions">
 
-NEED TO FILL THIS IN AND UPDATE CODE SAMPLE FILE
+   1. Determine the `row_condition` expression.
+
+      To support complex business use cases, logical clauses can be combined with AND / OR relationships within the `row_condition` argument.
+
+      ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - determine expression"
+      ```
+
+      The following comparison operators are supported: `is`, `is not`, `is not null`, `is on`, `is not on`, `is before`, `is before or on`, `is after`, `is after or on`, `>`, `<`, `>=`, `<=`, `=`, `!=`, `is in`, `is not in`.
+
+      Here are some examples of how to create common patterns in row conditions:
+
+      - A and B
+         ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b"
+         ```
+
+      - A or B
+         ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a or b"
+         ```
+
+      - (A and B) or (C and D)
+         ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c and d"
+         ```
+
+      - A and (B or C): 
+         ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c"
+         ```
+
+
+
+   2. Configure the Expectation.
+      
+      Add the `row_condition` parameter alongside the Expectation's other arguments.
+
+      ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - add Expectation"
+      ```
+
+   3. Optional. Configure additional variations of the Expectation.
+
+      Expectations that have different row conditions are treated as unique, even if they are of the same type, apply to the same column, and belong to the same Expectation Suite. This allows you to validate your data through multiple lenses.
+
+      For instance, the following code establishes an Expectation that the value in the `cycle_type` column is either `unicycle`, `bicycle`, or `tricycle`.
+
+      ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - Expectation without row conditions"
+      ```
+
+      And this code adds a row condition to the Expectation that specifies the value of the `cycle_type` column is `unicycle` if the item has one wheel.
+
+      ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - Expectation with row conditions"
+      ```
+
+   Then you can [add your Expectations to an Expectation Suite](/docs/core/define_expectations/organize_expectation_suites/).
 
    </TabItem>
 
    <TabItem value="sample_code" label="Sample code">
 
-
+   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - full code example"
+   ```
 
    </TabItem>
 
    </Tabs>
 
-   ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/expectation_conditions.py - sql example Expectation with conditions"
-   ```
 
 ## Row conditions in Data Docs
 
