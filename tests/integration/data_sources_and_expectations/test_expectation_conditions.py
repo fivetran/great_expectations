@@ -209,9 +209,6 @@ SQL_TEST_CASES = [
         'col("created_at")>date("2021-01-29 00:00:00"))',
         id="datetime-gt",
     ),
-]
-
-SPARK_TEST_CASES = SQL_TEST_CASES + [
     pytest.param(
         Column(name="name") == "albert",
         id="condition-text-eq",
@@ -241,6 +238,8 @@ SPARK_TEST_CASES = SQL_TEST_CASES + [
         id="condition-or",
     ),
 ]
+
+SPARK_TEST_CASES = SQL_TEST_CASES
 
 
 @parameterize_batch_for_data_sources(
@@ -527,6 +526,203 @@ class TestSparkConditionClassAcrossExpectationTypes:
             max_value=1,
             row_condition=row_condition,
             condition_parser="spark",
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+
+class TestSQLConditionClassAcrossExpectationTypes:
+    """Simple tests to ensure that SQL properly utilizes row condition from each
+    type of expectation (ColumnMapExpectation, ColumnPairMapExpectation, etc)
+    """
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            BigQueryDatasourceTestConfig(
+                column_types={
+                    "created_at": BIGQUERY_TYPES.DATETIME,
+                    "updated_at": BIGQUERY_TYPES.DATE,
+                }
+            ),
+            MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(
+                column_types={
+                    "created_at": sqltypes.TIMESTAMP(timezone=True),
+                    "updated_at": sqltypes.DATE,
+                }
+            ),
+            PostgreSQLDatasourceTestConfig(
+                column_types={
+                    "created_at": POSTGRESQL_TYPES.TIMESTAMP,
+                    "updated_at": POSTGRESQL_TYPES.DATE,
+                }
+            ),
+            SqliteDatasourceTestConfig(),
+        ],
+        data=DATA,
+    )
+    def test_column_aggregate_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test ColumnAggregateExpectation with Condition row_condition."""
+        row_condition = (Column(name="quantity") > 0) & (Column(name="quantity") < 3)
+        expectation = gxe.ExpectColumnMinToBeBetween(
+            column="amount",
+            min_value=0.5,
+            max_value=1.5,
+            row_condition=row_condition,
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            BigQueryDatasourceTestConfig(
+                column_types={
+                    "created_at": BIGQUERY_TYPES.DATETIME,
+                    "updated_at": BIGQUERY_TYPES.DATE,
+                }
+            ),
+            MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(
+                column_types={
+                    "created_at": sqltypes.TIMESTAMP(timezone=True),
+                    "updated_at": sqltypes.DATE,
+                }
+            ),
+            PostgreSQLDatasourceTestConfig(
+                column_types={
+                    "created_at": POSTGRESQL_TYPES.TIMESTAMP,
+                    "updated_at": POSTGRESQL_TYPES.DATE,
+                }
+            ),
+            SqliteDatasourceTestConfig(),
+        ],
+        data=DATA,
+    )
+    def test_column_map_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test ColumnMapExpectation with Condition row_condition."""
+        row_condition = Column(name="name") == "albert"
+        expectation = gxe.ExpectColumnValuesToBeBetween(
+            column="quantity",
+            min_value=0.5,
+            max_value=1.5,
+            row_condition=row_condition,
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            BigQueryDatasourceTestConfig(
+                column_types={
+                    "created_at": BIGQUERY_TYPES.DATETIME,
+                    "updated_at": BIGQUERY_TYPES.DATE,
+                }
+            ),
+            MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(
+                column_types={
+                    "created_at": sqltypes.TIMESTAMP(timezone=True),
+                    "updated_at": sqltypes.DATE,
+                }
+            ),
+            PostgreSQLDatasourceTestConfig(
+                column_types={
+                    "created_at": POSTGRESQL_TYPES.TIMESTAMP,
+                    "updated_at": POSTGRESQL_TYPES.DATE,
+                }
+            ),
+            SqliteDatasourceTestConfig(),
+        ],
+        data=DATA,
+    )
+    def test_column_pair_map_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test ColumnPairMapExpectation with Condition row_condition."""
+        row_condition = Column(name="quantity") < 3
+        expectation = gxe.ExpectColumnPairValuesToBeEqual(
+            column_A="quantity",
+            column_B="quantity",
+            row_condition=row_condition,
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            BigQueryDatasourceTestConfig(
+                column_types={
+                    "created_at": BIGQUERY_TYPES.DATETIME,
+                    "updated_at": BIGQUERY_TYPES.DATE,
+                }
+            ),
+            MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(
+                column_types={
+                    "created_at": sqltypes.TIMESTAMP(timezone=True),
+                    "updated_at": sqltypes.DATE,
+                }
+            ),
+            PostgreSQLDatasourceTestConfig(
+                column_types={
+                    "created_at": POSTGRESQL_TYPES.TIMESTAMP,
+                    "updated_at": POSTGRESQL_TYPES.DATE,
+                }
+            ),
+            SqliteDatasourceTestConfig(),
+        ],
+        data=DATA,
+    )
+    def test_multicolumn_map_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test MulticolumnMapExpectation with Condition row_condition."""
+        row_condition = Column(name="quantity") < 3
+        expectation = gxe.ExpectCompoundColumnsToBeUnique(
+            column_list=["quantity", "name"],
+            row_condition=row_condition,
+        )
+        result = batch_for_datasource.validate(expectation)
+        assert result.success
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            BigQueryDatasourceTestConfig(
+                column_types={
+                    "created_at": BIGQUERY_TYPES.DATETIME,
+                    "updated_at": BIGQUERY_TYPES.DATE,
+                }
+            ),
+            MSSQLDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(
+                column_types={
+                    "created_at": sqltypes.TIMESTAMP(timezone=True),
+                    "updated_at": sqltypes.DATE,
+                }
+            ),
+            PostgreSQLDatasourceTestConfig(
+                column_types={
+                    "created_at": POSTGRESQL_TYPES.TIMESTAMP,
+                    "updated_at": POSTGRESQL_TYPES.DATE,
+                }
+            ),
+            SqliteDatasourceTestConfig(),
+        ],
+        data=DATA,
+    )
+    def test_batch_expectation_with_condition_row_condition(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test BatchExpectation  with Condition row_condition."""
+        row_condition = Column(name="name") == "albert"
+        expectation = gxe.ExpectTableRowCountToBeBetween(
+            min_value=1,
+            max_value=1,
+            row_condition=row_condition,
         )
         result = batch_for_datasource.validate(expectation)
         assert result.success

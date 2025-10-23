@@ -83,7 +83,11 @@ from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.expectations.conditions import Condition, Operator
+from great_expectations.expectations.conditions import (
+    Condition,
+    Operator,
+    deserialize_row_condition,
+)
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -638,19 +642,23 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         # Filtering by row condition.
         if "row_condition" in domain_kwargs and domain_kwargs["row_condition"] is not None:
             row_condition = domain_kwargs["row_condition"]
-            self._validate_row_condition(row_condition)
-
             condition_parser = domain_kwargs["condition_parser"]
-            if condition_parser in [
+
+            if isinstance(row_condition, dict):
+                row_condition = deserialize_row_condition(row_condition)
+
+            if isinstance(row_condition, Condition):
+                parsed_condition = self.condition_to_filter_clause(row_condition)
+            elif condition_parser in [
                 CONDITION_PARSER_GREAT_EXPECTATIONS,
                 CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
             ]:
                 parsed_condition = parse_condition_to_sqlalchemy(row_condition)
-                selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type] # FIXME CoP
             else:
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     "SqlAlchemyExecutionEngine only supports the great_expectations condition_parser."  # noqa: E501 # FIXME CoP
                 )
+            selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type] # FIXME CoP
 
         # Filtering by filter_conditions
         filter_conditions: List[RowCondition] = domain_kwargs.get("filter_conditions", [])
