@@ -428,7 +428,8 @@ https://docs.greatexpectations.io/docs/reference/api/profile/user_configurable_p
 /docs/reference/* /docs/core/introduction/
 
 ## Redirects for renamed core docs
-/docs/core/customize_expectations/expectation_row_conditions /docs/core/customize_expectations/expectation_conditions
+/docs/core/customize_expectations/expectation_row_conditions /docs/core/customize_expectations/row_conditions
+/docs/core/customize_expectations/expectation_conditions /docs/core/customize_expectations/row_conditions
 
 ## Redirects for old legacy version
 https://legacy.docs.greatexpectations.io/en/latest/reference/glossary_of_expectations.html* https://greatexpectations.io/expectations 301!
