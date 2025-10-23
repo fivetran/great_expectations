@@ -59,7 +59,11 @@ from great_expectations.execution_engine.partition_and_sample.sparkdf_data_sampl
     SparkDataSampler,
 )
 from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchData
-from great_expectations.expectations.conditions import Operator
+from great_expectations.expectations.conditions import (
+    Condition,
+    Operator,
+    deserialize_row_condition,
+)
 from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
@@ -87,6 +91,11 @@ if TYPE_CHECKING:
     )
 
 logger = logging.getLogger(__name__)
+
+
+class InvalidRowConditionException(ValueError):
+    def __init__(self, value: Any) -> None:
+        super().__init__(f"Invalid row condition type: {type(value)}")
 
 
 def apply_dateutil_parse(column):
@@ -675,15 +684,22 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         # Filtering by row condition.
         row_condition = domain_kwargs.get("row_condition", None)
         if row_condition:
-            self._validate_row_condition(row_condition)
-
             condition_parser = domain_kwargs.get("condition_parser", None)
-            if condition_parser == CONDITION_PARSER_SPARK:
+
+            # Convert dict to Condition object if needed
+            if isinstance(row_condition, dict):
+                row_condition = deserialize_row_condition(row_condition)
+
+            if isinstance(row_condition, Condition):
+                data = data.filter(self.condition_to_filter_clause(row_condition))
+            elif condition_parser == CONDITION_PARSER_SPARK:
                 data = data.filter(row_condition)
             elif condition_parser in [
                 CONDITION_PARSER_GREAT_EXPECTATIONS,
                 CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
             ]:
+                if not isinstance(row_condition, str):
+                    raise InvalidRowConditionException(row_condition)
                 parsed_condition = parse_condition_to_spark(row_condition)
                 data = data.filter(parsed_condition)
             else:

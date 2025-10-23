@@ -425,7 +425,7 @@ jobs:
           restore-keys: cache-lychee-
 
       - name: Run broken link checker
-        uses: lycheeverse/lychee-action@v2.0.1
+        uses: lycheeverse/lychee-action@v2.0.2
         with:
           # We decided to exclude all external HTTP requests but the ones that under the domain greatexpectations.io
           # The reason is to avoid having network errors such as pages that throw 429 after too many requests (like Github)
