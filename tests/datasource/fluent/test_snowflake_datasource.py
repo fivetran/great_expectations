@@ -3,7 +3,6 @@ from __future__ import annotations
 import base64
 import logging
 from pprint import pformat as pf
-from sys import version_info as python_version
 from typing import TYPE_CHECKING, Final, Sequence
 from unittest.mock import ANY
 
@@ -52,6 +51,30 @@ wpDoF40OzNYrrKIboU4BJFOMOBWAS4DFDYGdfLVS99g=
 
 _EXAMPLE_B64_ENCODED_PRIVATE_KEY: Final[bytes] = base64.standard_b64encode(_EXAMPLE_PRIVATE_KEY)
 
+KEY_PAIR_CONNECTION_ARGS = {
+    "user": "my_user",
+    "private_key": (
+        "MIICXAIBAAKBgHpFdCdKOGLaiMH9t1th1lKqJVcDwfnlP2lpneANbbsgHb6/4U2U"
+        "ua085zlNYhZ5xJsnSdqIAfragzuVYNk2OCpoN1Qkq4oWad0a4cEB2QBtP9js0dVW"
+        "xQObJM8t1ZLHB3Lw1NCqB6OefkP7XlE0w6aXRZ5IWwvVC86cBXVBmBXzAgMBAAEC"
+        "gYABR6TVnHNGpZ702OEIdde2ec12QbXQFdQ6GD7sz3cslEN7caq8Eyh2ZcLN2L+E"
+        "GLY0IY8mWHIc3BivkPq4i1a/JyRUzEToJvjVd8J1slrzz8ryMOAiPbxt33IpgGL3"
+        "/8KgOLYxjdg5bpn6sCZlOXy7WYjl1H8TBw8CzZF41Ha24QJBAM7U+8m0hyknbnBD"
+        "gKXGb0eHIBx0zlPaNJwDHUcJXujxbVfwVjKWLy07JoXRiAgPuVszIMhu0r+Xa87L"
+        "W2WLdTsCQQCXVm0He7SaytnrlAFck5/L4EjtWaAQGfmV4eawI2HemWMjj0tukdFt"
+        "wAWHDuKYMb+bg21OU2XQxollYYJfk/apAkBaSe10WuNZ2sXCKiWBuIMhZWJmKbNc"
+        "NXgb1tw0A2o0JBhIeDkYsij8BMNHTXWllz+iCUq5VG+ZhX9hcbJ/PIa7AkEAjfgd"
+        "v+9ktfGmDUGDJX23YmK9BywU5AX6BYkuB/6pSVFLl4hNkyRn+zUv+ksUdwH0Zccd"
+        "O2UxFnGpYtnenBsKQQJBAMX2tgFcg//t1Li4+dxlTvZZ/clZCLpWXp4HQgBwzxMN"
+        "wpDoF40OzNYrrKIboU4BJFOMOBWAS4DFDYGdfLVS99g="
+    ),
+    "account": "my_account",
+    "schema": "S_PUBLIC",
+    "database": "D_PUBLIC",
+    "role": "my_role",
+    "warehouse": "my_wh",
+}
+
 
 VALID_DS_CONFIG_PARAMS: Final[Sequence[ParameterSet]] = [
     param(
@@ -85,6 +108,34 @@ VALID_DS_CONFIG_PARAMS: Final[Sequence[ParameterSet]] = [
             }
         },
         id="connection_string dict",
+    ),
+    param(
+        {
+            "connection_string": {
+                "user": "my_user",
+                "private_key": (
+                    "MIICXAIBAAKBgHpFdCdKOGLaiMH9t1th1lKqJVcDwfnlP2lpneANbbsgHb6/4U2U"
+                    "ua085zlNYhZ5xJsnSdqIAfragzuVYNk2OCpoN1Qkq4oWad0a4cEB2QBtP9js0dVW"
+                    "xQObJM8t1ZLHB3Lw1NCqB6OefkP7XlE0w6aXRZ5IWwvVC86cBXVBmBXzAgMBAAEC"
+                    "gYABR6TVnHNGpZ702OEIdde2ec12QbXQFdQ6GD7sz3cslEN7caq8Eyh2ZcLN2L+E"
+                    "GLY0IY8mWHIc3BivkPq4i1a/JyRUzEToJvjVd8J1slrzz8ryMOAiPbxt33IpgGL3"
+                    "/8KgOLYxjdg5bpn6sCZlOXy7WYjl1H8TBw8CzZF41Ha24QJBAM7U+8m0hyknbnBD"
+                    "gKXGb0eHIBx0zlPaNJwDHUcJXujxbVfwVjKWLy07JoXRiAgPuVszIMhu0r+Xa87L"
+                    "W2WLdTsCQQCXVm0He7SaytnrlAFck5/L4EjtWaAQGfmV4eawI2HemWMjj0tukdFt"
+                    "wAWHDuKYMb+bg21OU2XQxollYYJfk/apAkBaSe10WuNZ2sXCKiWBuIMhZWJmKbNc"
+                    "NXgb1tw0A2o0JBhIeDkYsij8BMNHTXWllz+iCUq5VG+ZhX9hcbJ/PIa7AkEAjfgd"
+                    "v+9ktfGmDUGDJX23YmK9BywU5AX6BYkuB/6pSVFLl4hNkyRn+zUv+ksUdwH0Zccd"
+                    "O2UxFnGpYtnenBsKQQJBAMX2tgFcg//t1Li4+dxlTvZZ/clZCLpWXp4HQgBwzxMN"
+                    "wpDoF40OzNYrrKIboU4BJFOMOBWAS4DFDYGdfLVS99g="
+                ),
+                "account": "my_account",
+                "schema": "S_PUBLIC",
+                "database": "D_PUBLIC",
+                "role": "my_role",
+                "warehouse": "my_wh",
+            }
+        },
+        id="key pair dict",
     ),
     param(
         {
@@ -321,7 +372,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -339,7 +392,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -357,7 +412,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -375,7 +432,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -384,6 +443,11 @@ def test_valid_config(
         pytest.param(
             "snowflake://my_user:password@my_account",
             [
+                {
+                    "loc": ("connection_string",),
+                    "msg": "value is not a valid dict",
+                    "type": "type_error.dict",
+                },
                 {
                     "loc": ("connection_string",),
                     "msg": "value is not a valid dict",
@@ -403,7 +467,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -412,6 +478,11 @@ def test_valid_config(
         pytest.param(
             "snowflake://my_user:password@my_account//",
             [
+                {
+                    "loc": ("connection_string",),
+                    "msg": "value is not a valid dict",
+                    "type": "type_error.dict",
+                },
                 {
                     "loc": ("connection_string",),
                     "msg": "value is not a valid dict",
@@ -432,7 +503,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -441,6 +514,11 @@ def test_valid_config(
         pytest.param(
             "snowflake://my_user:password@my_account/my_db",
             [
+                {
+                    "loc": ("connection_string",),
+                    "msg": "value is not a valid dict",
+                    "type": "type_error.dict",
+                },
                 {
                     "loc": ("connection_string",),
                     "msg": "value is not a valid dict",
@@ -460,7 +538,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -469,6 +549,11 @@ def test_valid_config(
         pytest.param(
             "snowflake://my_user:password@my_account/my_db/",
             [
+                {
+                    "loc": ("connection_string",),
+                    "msg": "value is not a valid dict",
+                    "type": "type_error.dict",
+                },
                 {
                     "loc": ("connection_string",),
                     "msg": "value is not a valid dict",
@@ -489,7 +574,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -498,6 +585,11 @@ def test_valid_config(
         pytest.param(
             "snowflake://my_user:password@my_account//my_schema",
             [
+                {
+                    "loc": ("connection_string",),
+                    "msg": "value is not a valid dict",
+                    "type": "type_error.dict",
+                },
                 {
                     "loc": ("connection_string",),
                     "msg": "value is not a valid dict",
@@ -518,7 +610,9 @@ def test_valid_config(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -543,137 +637,16 @@ def test_missing_required_params(
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "connection_string, connect_args, expected_errors",
-    [
-        pytest.param(
-            "snowflake://my_user:password@my_account/foo/bar?numpy=True",
-            {
-                "account": "my_account",
-                "user": "my_user",
-                "password": "123456",
-                "schema": "foo",
-                "database": "bar",
-            },
-            [
-                {
-                    "loc": ("__root__",),
-                    "msg": "Provided both connection detail keyword args and `connection_string`.",
-                    "type": "value_error",
-                }
-            ],
-            id="both connection_string and connect_args",
-        ),
-        pytest.param(
-            None,
-            {},
-            [
-                {
-                    "loc": ("connection_string",),
-                    "msg": "none is not an allowed value",
-                    "type": "type_error.none.not_allowed",
-                },
-                {
-                    "loc": ("__root__",),
-                    "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
-                    "type": "value_error",
-                },
-            ],
-            id="neither connection_string nor connect_args",
-        ),
-        pytest.param(
-            None,
-            {
-                "account": "my_account",
-                "user": "my_user",
-                "schema": "foo",
-                "database": "bar",
-                "role": "my_role",
-                "warehouse": "my_wh",
-            },
-            [
-                {
-                    "loc": ("connection_string", "password"),
-                    "msg": "field required",
-                    "type": "value_error.missing",
-                },
-                {
-                    "loc": ("connection_string",),
-                    "msg": "expected string or bytes-like object"
-                    f"""{"" if python_version < (3, 11) else ", got 'dict'"}""",
-                    "type": "type_error",
-                },
-                {
-                    "loc": ("connection_string",),
-                    "msg": "str type expected",
-                    "type": "type_error.str",
-                },
-                {
-                    "loc": ("__root__",),
-                    "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
-                    "type": "value_error",
-                },
-            ],
-            id="incomplete connect_args",
-        ),
-        pytest.param(
-            {
-                "account": "my_account",
-                "user": "my_user",
-                "schema": "foo",
-                "database": "bar",
-                "warehouse": "baz",
-                "role": "qux",
-            },
-            {},
-            [
-                {
-                    "loc": ("connection_string", "password"),
-                    "msg": "field required",
-                    "type": "value_error.missing",
-                },
-                {
-                    "loc": ("connection_string",),
-                    "msg": "expected string or bytes-like object"
-                    f"""{"" if python_version < (3, 11) else ", got 'dict'"}""",
-                    "type": "type_error",
-                },
-                {
-                    "loc": ("connection_string",),
-                    "msg": "str type expected",
-                    "type": "type_error.str",
-                },
-                {
-                    "loc": ("__root__",),
-                    "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
-                    "type": "value_error",
-                },
-            ],
-            id="incomplete connection_string dict connect_args",
-        ),
-    ],
-)
-def test_conflicting_connection_string_and_args_raises_error(
-    connection_string: ConfigStr | SnowflakeDsn | None | dict,
-    connect_args: dict,
-    expected_errors: list[dict],
-):
-    with pytest.raises(pydantic.ValidationError) as exc_info:
-        _ = SnowflakeDatasource(
-            name="my_sf_ds", connection_string=connection_string, **connect_args
-        )
-    assert exc_info.value.errors() == expected_errors
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
     "connection_string, expected_errors",
     [
         pytest.param(
             "user_login_name:password@account_identifier/db/schema?role=my_role&warehouse=my_wh",
             [
+                {
+                    "loc": ("connection_string",),
+                    "msg": "value is not a valid dict",
+                    "type": "type_error.dict",
+                },
                 {
                     "loc": ("connection_string",),
                     "msg": "value is not a valid dict",
@@ -693,7 +666,9 @@ def test_conflicting_connection_string_and_args_raises_error(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -702,6 +677,11 @@ def test_conflicting_connection_string_and_args_raises_error(
         pytest.param(
             "snowflake://user_login_name@account_identifier/db/schema?role=my_role&warehouse=my_wh",
             [
+                {
+                    "loc": ("connection_string",),
+                    "msg": "value is not a valid dict",
+                    "type": "type_error.dict",
+                },
                 {
                     "loc": ("connection_string",),
                     "msg": "value is not a valid dict",
@@ -721,7 +701,9 @@ def test_conflicting_connection_string_and_args_raises_error(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -730,6 +712,11 @@ def test_conflicting_connection_string_and_args_raises_error(
         pytest.param(
             "snowflake://user_login_name:password@/db/schema?role=my_role&warehouse=my_wh",
             [
+                {
+                    "loc": ("connection_string",),
+                    "msg": "value is not a valid dict",
+                    "type": "type_error.dict",
+                },
                 {
                     "loc": ("connection_string",),
                     "msg": "value is not a valid dict",
@@ -749,7 +736,9 @@ def test_conflicting_connection_string_and_args_raises_error(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -767,7 +756,9 @@ def test_conflicting_connection_string_and_args_raises_error(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -785,7 +776,9 @@ def test_conflicting_connection_string_and_args_raises_error(
                 {
                     "loc": ("__root__",),
                     "msg": "Must provide either a connection string or a combination of account, "
-                    "user, password, database, schema, warehouse, role as keyword args.",
+                    "user, password, database, schema, warehouse, role as keyword args or "
+                    "a combination of account, user, database, schema, warehouse, role, "
+                    "private_key as keyword args.",
                     "type": "value_error",
                 },
             ],
@@ -827,25 +820,46 @@ def test_connection_updating_templated_connection_string():
     assert datasource.connection_string.template_str == new_conn_str
 
 
+@pytest.mark.parametrize(
+    "private_key",
+    [
+        pytest.param("${MY_PRIVATE_KEY}", id="Env Variable"),
+        pytest.param("$MY_PRIVATE_KEY", id="Config Variable"),
+    ],
+)
 @pytest.mark.unit
-def test_connection_updating_plain_connection_string():
-    # Create datasource with templated connection string
-    conn_str = "snowflake://user:${MY_PASSWORD}@account/db/schema?warehouse=wh&role=role"
-    datasource = SnowflakeDatasource(
-        name="my_snowflake",
-        connection_string=conn_str,
-    )
+def test_creating_datasource_with_templated_private_key(private_key):
+    connection_args = {
+        "user": "my_user",
+        "private_key": private_key,
+        "account": "my_account",
+        "schema": "S_PUBLIC",
+        "database": "D_PUBLIC",
+        "role": "my_role",
+        "warehouse": "my_wh",
+    }
+    datasource = SnowflakeDatasource(name="my_snowflake", **connection_args)
 
-    # Verify initial connection_string is ConfigUri
-    assert isinstance(datasource.connection_string, ConfigUri)
-    assert datasource.connection_string.template_str == conn_str
+    assert isinstance(datasource.private_key, ConfigStr)
 
-    plain_conn_str = "snowflake://plainuser:plainpass@plainaccount/plaindb/plainschema?warehouse=plainwh&role=plainrole"
-    datasource.connection_string = plain_conn_str
-    assert isinstance(datasource.connection_string, SnowflakeDsn), (
-        f"Expected SnowflakeDsn for plain connection string, "
-        f"got {type(datasource.connection_string)}"
-    )
+
+@pytest.mark.parametrize(
+    "private_key",
+    [
+        pytest.param("${MY_PRIVATE_KEY}", id="Env Variable"),
+        pytest.param("$MY_PRIVATE_KEY", id="Config Variable"),
+    ],
+)
+@pytest.mark.unit
+def test_updating_datasource_with_templated_private_key(private_key):
+    datasource = SnowflakeDatasource(name="my_snowflake", **KEY_PAIR_CONNECTION_ARGS)
+
+    # Verify initial connection_string
+    assert datasource.private_key != private_key
+
+    datasource.connection_string.private_key = private_key
+
+    assert isinstance(datasource.private_key, ConfigStr)
 
 
 # TODO: Cleanup how we install test dependencies and remove this skipif
@@ -921,6 +935,24 @@ def test_get_execution_engine_succeeds():
                 "url": "snowflake://user:password@account/db/schema?application=great_expectations_core&role=role&warehouse=wh",
             },
             id="connection_string dict with connect_args",
+        ),
+        param(
+            {
+                "name": "conn details with connect_args",
+                "connection_string": {
+                    "user": "user",
+                    "private_key": "my_key",
+                    "account": "account",
+                    "database": "db",
+                    "schema": "schema",
+                    "warehouse": "wh",
+                    "role": "role",
+                },
+            },
+            {
+                "url": "snowflake://user:@account/db/schema?application=great_expectations_core&private_key=my_key&role=role&warehouse=wh",
+            },
+            id="key pair connection string",
         ),
     ],
 )
@@ -1091,6 +1123,17 @@ class TestConvenienceProperties:
             _ = datasource.account
         else:
             assert datasource.account == datasource.connection_string.account
+
+    def test_private_key(
+        self,
+        ds_config: dict,
+        seed_env_vars: None,
+        param_id: str,
+        ephemeral_context_with_defaults: AbstractDataContext,
+    ):
+        datasource = SnowflakeDatasource(name=param_id, **ds_config)
+        private_key = getattr(datasource.connection_string, "private_key", None)
+        assert datasource.private_key == private_key
 
 
 if __name__ == "__main__":
