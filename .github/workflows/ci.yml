@@ -524,7 +524,7 @@ jobs:
 
       - name: Start services
         run: |
-          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up -d --wait --wait-timeout 150 && \
+          docker compose --progress quiet -f assets/docker/mercury/docker-compose.yml up --pull always -d --wait --wait-timeout 150 && \
           docker compose --progress quiet -f assets/docker/spark/docker-compose.yml up -d --wait --wait-timeout 90
 
       - name: Show logs for debugging
