@@ -134,19 +134,35 @@ Keep the following in mind when working with forecasted ranges:
 - Expectations with forecasted ranges will always succeed for the first 2 validation runs. This is because GX Cloud needs at least 2 data points to produce a forecast.
 - Forecasted ranges are not supported for incrementally validated Batches of data.
 
-## Expectation condition
+## Row conditions
 
-The Expectation condition is an optional field that applies to any Expectation validating row-level data. This condition allows you to filter your data so that only a specific subset of your Batch is validated. Rows will be validated only when the condition is true.
+By default, Expectations apply to every row retrieved in a [Batch](/docs/cloud/expectations/manage_expectations.md#optional-define-a-batch). However, there are instances when an Expectation may not be relevant for every row. For example, you might expect that a column indicating the country of origin for a product should not be null when the product is an import.  If it’s ok for the country of origin column to be null for products produced locally, then applying a nullness check for country of origin on every row in the Batch could result in many false negatives. To address this scenario, GX Cloud allows you to restrict Expectations to apply to only a subset of the data retrieved in a Batch.
 
-You will need to select:
+Row conditions support complex business logic through the following elements:
 
-- A column to check the condition against.
-- An operator that is used to compare the column against a parameter value.
-- A parameter that will be compared against each row in the selected column.
+- Condition statements that check a single column against a value or set of values. 
+- Condition blocks that combine multiple condition statements with an AND relationship between them. When multiple condition blocks exist, the blocks themselves have an OR relationship between them.
 
-![GX Cloud Expectation condition field](./expectation_images/expectation_condition_field.png)
 
-![GX Cloud Expectation with condition](./expectation_images/expectation_with_condition.png)
+Here are some examples of how to express complex row conditions:
+
+- A and B: Two condition statements within a single condition block.
+   [pending example screenshot, make sure one statement uses an “is any of” operator]
+
+- A or B: Two condition statements, each in its own condition block.
+   [pending example screenshot]
+
+- (A and B) or (C and D): Two condition statements in one condition block and two statements in another block.
+   [pending example screenshot]
+
+- A and (B or C):  Two condition statements in one condition block and two statements in another block.
+   [pending example screenshot} 
+
+
+
+An Expectation can have up to 100 condition statements grouped in any number of condition blocks. 
+
+
 
 ## Failure severity
 
