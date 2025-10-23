@@ -652,6 +652,24 @@ class DataSourceManager:
         numpy: bool = ...,
     ) -> SnowflakeDatasource: ...
     @overload
+    def add_snowflake(
+        self,
+        name_or_datasource: Optional[Union[str, Datasource]] = ...,
+        name: Optional[str] = ...,
+        datasource: Optional[Datasource] = ...,
+        *,
+        connection_string: None = ...,
+        create_temp_table: bool = ...,
+        account: str = ...,
+        user: str = ...,
+        private_key: str = ...,
+        database: str = ...,
+        schema: str = ...,
+        warehouse: Optional[str] = ...,
+        role: Optional[str] = ...,
+        numpy: bool = ...,
+    ) -> SnowflakeDatasource: ...
+    @overload
     def update_snowflake(
         self,
         name_or_datasource: Optional[Union[str, Datasource]] = ...,

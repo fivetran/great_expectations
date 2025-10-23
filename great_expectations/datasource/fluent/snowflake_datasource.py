@@ -400,6 +400,31 @@ class ConnectionDetails(FluentBaseModel):
             schema["properties"]["account"] = AccountIdentifier.get_schema()
 
 
+class KeyPairConnectionDetails(FluentBaseModel):
+    account: AccountIdentifier
+    user: str
+    database: str = pydantic.Field(
+        ...,
+        description="`database` that the Datasource is mapped to.",
+    )
+    schema_: str = pydantic.Field(..., alias="schema")  # schema is a reserved attr in BaseModel
+    warehouse: str
+    role: str
+    private_key: Union[ConfigStr, str]
+
+    @classmethod
+    def required_fields(cls) -> list[str]:
+        """Returns the required fields for this model as defined in the schema."""
+        return cls.schema()["required"]
+
+    class Config:
+        validate_assignment = True
+
+        @staticmethod
+        def schema_extra(schema: dict, model: type[KeyPairConnectionDetails]) -> None:
+            schema["properties"]["account"] = AccountIdentifier.get_schema()
+
+
 @public_api
 class SnowflakeDatasource(SQLDatasource):
     """Adds a Snowflake datasource to the data context.
@@ -414,14 +439,16 @@ class SnowflakeDatasource(SQLDatasource):
 
     type: Literal["snowflake"] = "snowflake"  # type: ignore[assignment] # FIXME CoP
     # TODO: rename this to `connection` for v1?
-    connection_string: Union[ConnectionDetails, ConfigUri, SnowflakeDsn]  # type: ignore[assignment] # Deviation from parent class as individual args are supported for connection
+    connection_string: Union[ConnectionDetails, KeyPairConnectionDetails, ConfigUri, SnowflakeDsn]  # type: ignore[assignment] # Deviation from parent class as individual args are supported for connection
 
     # TODO: add props for user, password, etc?
 
     @property
     def account(self) -> AccountIdentifier | None:
         """Convenience property to get the `account` regardless of the connection string format."""
-        if isinstance(self.connection_string, (ConnectionDetails, SnowflakeDsn)):
+        if isinstance(
+            self.connection_string, (ConnectionDetails, KeyPairConnectionDetails, SnowflakeDsn)
+        ):
             return self.connection_string.account
 
         subbed_str: str | None = _get_config_substituted_connection_string(
@@ -443,7 +470,9 @@ class SnowflakeDatasource(SQLDatasource):
 
         `schema_` to avoid conflict with Pydantic models schema property.
         """
-        if isinstance(self.connection_string, (ConnectionDetails, SnowflakeDsn)):
+        if isinstance(
+            self.connection_string, (ConnectionDetails, KeyPairConnectionDetails, SnowflakeDsn)
+        ):
             return to_lower_if_not_quoted(self.connection_string.schema_)
 
         subbed_str: str | None = _get_config_substituted_connection_string(
@@ -458,7 +487,9 @@ class SnowflakeDatasource(SQLDatasource):
     @property
     def database(self) -> str | None:
         """Convenience property to get the `database` regardless of the connection string format."""
-        if isinstance(self.connection_string, (ConnectionDetails, SnowflakeDsn)):
+        if isinstance(
+            self.connection_string, (ConnectionDetails, KeyPairConnectionDetails, SnowflakeDsn)
+        ):
             return self.connection_string.database
 
         subbed_str: str | None = _get_config_substituted_connection_string(
@@ -474,7 +505,9 @@ class SnowflakeDatasource(SQLDatasource):
         """
         Convenience property to get the `warehouse` regardless of the connection string format.
         """
-        if isinstance(self.connection_string, (ConnectionDetails, SnowflakeDsn)):
+        if isinstance(
+            self.connection_string, (ConnectionDetails, KeyPairConnectionDetails, SnowflakeDsn)
+        ):
             return self.connection_string.warehouse
 
         subbed_str: str | None = _get_config_substituted_connection_string(
@@ -489,7 +522,9 @@ class SnowflakeDatasource(SQLDatasource):
     @property
     def role(self) -> str | None:
         """Convenience property to get the `role` regardless of the connection string format."""
-        if isinstance(self.connection_string, (ConnectionDetails, SnowflakeDsn)):
+        if isinstance(
+            self.connection_string, (ConnectionDetails, KeyPairConnectionDetails, SnowflakeDsn)
+        ):
             return self.connection_string.role
 
         subbed_str: str | None = _get_config_substituted_connection_string(
@@ -498,6 +533,18 @@ class SnowflakeDatasource(SQLDatasource):
         if not subbed_str:
             return None
         return urllib.parse.parse_qs(urllib.parse.urlparse(subbed_str).query).get("role", [None])[0]
+
+    @property
+    def private_key(self) -> str | ConfigStr | None:
+        """Convenience property to get the `private_key` regardless of
+        the connection string format.
+        """
+        if isinstance(self.connection_string, KeyPairConnectionDetails):
+            return self.connection_string.private_key
+        elif "private_key" in self.kwargs:
+            return self.kwargs["private_key"]
+        else:
+            return None
 
     @override
     def test_connection(self, test_assets: bool = True) -> None:
@@ -586,6 +633,7 @@ class SnowflakeDatasource(SQLDatasource):
         connection_detail_fields: set[str] = {
             "schema",  # field name in ConnectionDetails is schema_ (with underscore)
             *ConnectionDetails.__fields__.keys(),
+            *KeyPairConnectionDetails.__fields__.keys(),
         }
 
         connection_string: Any | None = values.get("connection_string")
@@ -617,8 +665,8 @@ class SnowflakeDatasource(SQLDatasource):
     @pydantic.root_validator
     def _check_xor_input_args(cls, values: dict) -> dict:
         # keeping this validator isn't strictly necessary, but it provides a better error message
-        connection_string: str | ConfigUri | ConnectionDetails | None = values.get(
-            "connection_string"
+        connection_string: str | ConfigUri | ConnectionDetails | KeyPairConnectionDetails | None = (
+            values.get("connection_string")
         )
         if connection_string:
             # Method 1 - connection string
@@ -631,17 +679,33 @@ class SnowflakeDatasource(SQLDatasource):
             ) and bool(
                 connection_string.account and connection_string.user and connection_string.password
             )
-            if is_connection_string or has_min_connection_detail_values:
+            # Method 3 - individual args for key pair auth
+            #           (account, user, and private_key are bare minimum)
+            has_min_keypair_detail_values: bool = isinstance(
+                connection_string, KeyPairConnectionDetails
+            ) and bool(
+                connection_string.account
+                and connection_string.user
+                and connection_string.private_key
+            )
+            if (
+                is_connection_string
+                or has_min_connection_detail_values
+                or has_min_keypair_detail_values
+            ):
                 return values
         raise ValueError(  # noqa: TRY003 # FIXME CoP
             "Must provide either a connection string or"
-            f" a combination of {', '.join(ConnectionDetails.required_fields())} as keyword args."
+            f" a combination of {', '.join(ConnectionDetails.required_fields())} as keyword args"
+            f" or a combination of {', '.join(KeyPairConnectionDetails.required_fields())} "
+            f"as keyword args."
         )
 
     @pydantic.validator("connection_string")
     def _check_for_required_query_params(
-        cls, connection_string: ConnectionDetails | SnowflakeDsn | ConfigUri
-    ) -> ConnectionDetails | SnowflakeDsn | ConfigUri:
+        cls,
+        connection_string: ConnectionDetails | KeyPairConnectionDetails | SnowflakeDsn | ConfigUri,
+    ) -> ConnectionDetails | KeyPairConnectionDetails | SnowflakeDsn | ConfigUri:
         """
         If connection_string is a SnowflakeDsn,
         check for required query parameters according to `REQUIRED_QUERY_PARAMS`.
