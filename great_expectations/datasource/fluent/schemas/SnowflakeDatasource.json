@@ -50,6 +50,9 @@
                     "$ref": "#/definitions/ConnectionDetails"
                 },
                 {
+                    "$ref": "#/definitions/KeyPairConnectionDetails"
+                },
+                {
                     "type": "string",
                     "writeOnly": true,
                     "format": "uri",
@@ -612,6 +615,74 @@
                 "schema",
                 "warehouse",
                 "role"
+            ],
+            "additionalProperties": false
+        },
+        "KeyPairConnectionDetails": {
+            "title": "KeyPairConnectionDetails",
+            "description": "Base model for most fluent datasource related pydantic models.\n\nAdds yaml dumping and parsing methods.\n\nExtra fields are not allowed.\n\nSerialization methods default to `exclude_unset = True` to prevent serializing\nconfigs full of mostly unset default values.\nAlso prevents passing along unset kwargs to BatchSpec.\nhttps://docs.pydantic.dev/usage/exporting_models/",
+            "type": "object",
+            "properties": {
+                "account": {
+                    "title": "AccountIdentifier",
+                    "type": "string",
+                    "description": "Snowflake Account identifiers can be in one of two formats: <orgname>-<account_name> or <account_locator>.<region>.<cloud>",
+                    "pattern": "^(?P<orgname>[a-zA-Z0-9]+)[-](?P<account_name>[a-zA-Z0-9-_]+)$|^(?P<account_locator>[a-zA-Z0-9]+)\\.(?P<region>[a-zA-Z0-9-]+)\\.(?P<cloud>aws|gcp|azure)$",
+                    "examples": [
+                        "myOrg-my_account",
+                        "myOrg-my-account",
+                        "abc12345.us-east-1.aws"
+                    ]
+                },
+                "user": {
+                    "title": "User",
+                    "type": "string"
+                },
+                "database": {
+                    "title": "Database",
+                    "description": "`database` that the Datasource is mapped to.",
+                    "type": "string"
+                },
+                "schema": {
+                    "title": "Schema",
+                    "type": "string"
+                },
+                "warehouse": {
+                    "title": "Warehouse",
+                    "type": "string"
+                },
+                "role": {
+                    "title": "Role",
+                    "type": "string"
+                },
+                "private_key": {
+                    "title": "Private Key",
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "writeOnly": true,
+                            "format": "password",
+                            "description": "Contains config templates to be substituted at runtime. Runtime values will never be serialized.",
+                            "pattern": ".*(?<!\\\\)\\$\\{(.*?)\\}|(?<!\\\\)\\$([_a-zA-Z][_a-zA-Z0-9]*).*",
+                            "examples": [
+                                "hello_${NAME}",
+                                "${MY_CFG_VAR}"
+                            ]
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "account",
+                "user",
+                "database",
+                "schema",
+                "warehouse",
+                "role",
+                "private_key"
             ],
             "additionalProperties": false
         }

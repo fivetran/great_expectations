@@ -15,6 +15,28 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.8.0
+* [FEATURE] Snowflake Key Pair Auth API ([#11395](https://github.com/great-expectations/great_expectations/pull/11395))
+* [BUGFIX] Row condition for Volume Expectations ([#11467](https://github.com/great-expectations/great_expectations/pull/11467))
+* [DOCS] Data Health - Failed Expectations ([#11419](https://github.com/great-expectations/great_expectations/pull/11419))
+* [DOCS] Data Health failed Expectations screenshot updates ([#11458](https://github.com/great-expectations/great_expectations/pull/11458))
+* [DOCS] GX Cloud Architecture Supporting Content ([#11439](https://github.com/great-expectations/great_expectations/pull/11439))
+* [DOCS] restore link checker ([#11449](https://github.com/great-expectations/great_expectations/pull/11449))
+* [DOCS] schema in connection string for redshift and postgreSQL ([#11433](https://github.com/great-expectations/great_expectations/pull/11433))
+* [MAINTENANCE] Row condition comparison classes ([#11450](https://github.com/great-expectations/great_expectations/pull/11450))
+* [MAINTENANCE] Row condition execution engine scaffolding ([#11452](https://github.com/great-expectations/great_expectations/pull/11452))
+* [MAINTENANCE] Run CI datasource cleanup hourly and clean up more schemas ([#11462](https://github.com/great-expectations/great_expectations/pull/11462))
+* [MAINTENANCE] Filter clauses for pandas conditions ([#11455](https://github.com/great-expectations/great_expectations/pull/11455))
+* [MAINTENANCE] Filter clauses for spark conditions ([#11456](https://github.com/great-expectations/great_expectations/pull/11456))
+* [MAINTENANCE] Ignore pkg_resources warning ([#11465](https://github.com/great-expectations/great_expectations/pull/11465))
+* [MAINTENANCE] Add Condition type to row condition instances ([#11464](https://github.com/great-expectations/great_expectations/pull/11464))
+* [MAINTENANCE] Clean up datasource schemas that are over an hour old ([#11463](https://github.com/great-expectations/great_expectations/pull/11463))
+* [MAINTENANCE] Filter clauses for SQLA conditions ([#11459](https://github.com/great-expectations/great_expectations/pull/11459))
+* [MAINTENANCE] Condition class handling for pandas ([#11469](https://github.com/great-expectations/great_expectations/pull/11469))
+* [MAINTENANCE] Bump lycheeverse/lychee-action from 2.0.1 to 2.0.2 in /.github/workflows ([#11466](https://github.com/great-expectations/great_expectations/pull/11466))
+* [MAINTENANCE] Condition class handling for spark ([#11470](https://github.com/great-expectations/great_expectations/pull/11470))
+* [MAINTENANCE] Condition class handling for SQL ([#11473](https://github.com/great-expectations/great_expectations/pull/11473))
+
 ### 1.7.1
 * [BUGFIX] Fix ExpectColumnValuesToBeOfType for trino ([#11438](https://github.com/great-expectations/great_expectations/pull/11438))
 * [BUGFIX] Compile Databricks parameters in `unexpected_index_query` ([#11437](https://github.com/great-expectations/great_expectations/pull/11437))
