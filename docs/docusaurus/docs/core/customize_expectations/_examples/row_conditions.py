@@ -41,16 +41,16 @@ set_up_context_for_example(context)
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - determine expression">
 from great_expectations.core.conditions import Column
 
-# Create condition statements with column references and Python comparisons
+# Create condition statements with column references and Python comparisons.
 statement_1 = Column("tenure") > 2
 statement_2 = Column("salary") <= 50000
 statement_3 = Column("department") == "Sales"
 
-# Combine condition statements with an AND relationship into condition blocks
+# Combine condition statements with an AND relationship into condition blocks.
 block_1 = statement_1 & statement_2
 block_2 = statement_3
 
-# Combine condition blocks with bitwise OR
+# Combine condition blocks with bitwise OR.
 row_condition = block_1 | block_2
 # </snippet>
 

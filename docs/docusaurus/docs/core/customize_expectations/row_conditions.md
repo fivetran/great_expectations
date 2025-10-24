@@ -56,7 +56,7 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c and d"
          ```
 
-      - A and (B or C): 
+      - A and (B or C) 
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c"
          ```
 
@@ -76,12 +76,12 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - Expectation without row conditions"
       ```
 
-      And this code adds a row condition to the Expectation that specifies the value of the `cycle_type` column is `unicycle` if the item has one wheel.
+      While, for example, the following code creates an Expectation that the value of the `cycle_type` column is `unicycle` if the item has one wheel.
 
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - Expectation with row conditions"
       ```
 
-   Then you can [add your Expectations to an Expectation Suite](/docs/core/define_expectations/organize_expectation_suites/).
+   Now you can [add your Expectations to an Expectation Suite](/docs/core/define_expectations/organize_expectation_suites/).
 
    </TabItem>
 
@@ -99,7 +99,7 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
 
 If an Expectation has row conditions, this will be indicated in the Data Docs. Each Expectation with row conditions is prefaced with **if `row_condition`, then values must ...** as illustrated in the following example:
 
-![if PClass=="1st", then values must belong to this set: 1](/docs/oss/images/conditional_data_docs_screenshot.png)
+![if PClass=="1st", then values must belong to this set: 1.](/docs/oss/images/conditional_data_docs_screenshot.png)
 
 If the `row_condition` is a complex expression, it will be divided into several components to enhance readability.
 
@@ -107,7 +107,7 @@ If the `row_condition` is a complex expression, it will be divided into several 
 
 Keep the following in mind when working with row conditions:
 - An Expectation can have up to 100 condition statements grouped in any number of condition blocks. 
-- While conditions can be applied to most Expectations, the following Expectations cannot be conditioned and do not accept the `row_condition` argument:
+- The following Expectations do not accept the `row_condition` argument:
    - `expect_column_to_exist`
    - `expect_query_results_to_match_comparison`
    - `expect_table_columns_to_match_ordered_list`
