@@ -115,4 +115,4 @@ Keep the following in mind when working with row conditions:
    - `expect_table_columns_to_match_set`
    - `expect_table_column_count_to_be_between`
    - `expect_table_column_count_to_equal`
-   - `unexpected_rows_expectation`
+   - `unexpected_rows_expectation` 
