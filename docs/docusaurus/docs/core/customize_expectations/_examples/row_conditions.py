@@ -150,15 +150,15 @@ row_condition = block_1 | block_2
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators">
-# Single value comparisons: >, <, >=, <=, ==, !=
+# Single value comparisons: ==, !=, >, <, >=, <=
 statement_1 = Column("count") == 1
 
 # Set comparisons: is_in, is_not_in
 statement_2 = Column("department").is_in(["sales", "finance"])
 
 # Nullity checks: is_null, is_not_null
-statement_3 = column("name").is_null()
+statement_3 = Column("name").is_null()
 
-# Date comparisons: is before, is before or on, is after, is after or on
-statement_4 = column("date").is_on(date("2025-01-30"))
+# Date comparisons: is_on, is_not_on, is_before, is_before_or_on, is_after, is_after_or_on
+statement_4 = Column("date").is_on("2025-01-30")
 # </snippet>
