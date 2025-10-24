@@ -46,7 +46,7 @@ def test_datasource_store_get_by_id(
             mock.ANY,  # requests.Session object
             urllib.parse.urljoin(
                 ge_cloud_base_url,
-                f"api/v1/organizations/{ge_cloud_organization_id}/datasources/{id}",
+                f"api/v2/organizations/{ge_cloud_organization_id}/datasources/{id}",
             ),
             params=None,
         )
@@ -92,7 +92,7 @@ def test_datasource_store_get_by_name(
         mock_get.assert_called_once_with(
             mock.ANY,  # requests.Session object
             urllib.parse.urljoin(
-                ge_cloud_base_url, f"api/v1/organizations/{ge_cloud_organization_id}/datasources"
+                ge_cloud_base_url, f"api/v2/organizations/{ge_cloud_organization_id}/datasources"
             ),
             params={"name": datasource_name},
         )
@@ -121,7 +121,7 @@ def test_datasource_store_delete_by_id(
             mock.ANY,  # requests.Session object
             urllib.parse.urljoin(
                 ge_cloud_base_url,
-                f"api/v1/organizations/{ge_cloud_organization_id}/datasources/{id}",
+                f"api/v2/organizations/{ge_cloud_organization_id}/datasources/{id}",
             ),
         )
 

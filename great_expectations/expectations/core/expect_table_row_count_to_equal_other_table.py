@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, Optional, Tuple, Type, Union
 
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
+from great_expectations.expectations.conditions import RowConditionType  # noqa: TC001
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -177,7 +178,7 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
     other_table_name: Union[str, SuiteParameterDict] = pydantic.Field(
         description=OTHER_TABLE_NAME_DESCRIPTION
     )
-    row_condition: Union[str, None] = None
+    row_condition: RowConditionType = None
     condition_parser: Union[ConditionParser, None] = None
 
     library_metadata: ClassVar[Dict[str, Union[str, list, bool]]] = {
@@ -193,6 +194,7 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
     _library_metadata = library_metadata
 
     metric_dependencies = ("table.row_count",)
+    domain_keys: ClassVar[Tuple[str, ...]] = ("row_condition", "condition_parser")
     success_keys = ("other_table_name",)
     args_keys = ("other_table_name",)
 
@@ -328,6 +330,9 @@ class ExpectTableRowCountToEqualOtherTable(BatchExpectation):
         assert table_row_count_metric_config_self, "table_row_count_metric should not be None"
         copy_table_row_count_metric_config_self = deepcopy(table_row_count_metric_config_self)
         copy_table_row_count_metric_config_self.metric_domain_kwargs["table"] = other_table_name
+        # Remove row_condition from other table - it should only apply to the main table
+        copy_table_row_count_metric_config_self.metric_domain_kwargs.pop("row_condition", None)
+        copy_table_row_count_metric_config_self.metric_domain_kwargs.pop("condition_parser", None)
         # instantiating a new MetricConfiguration gives us a new id
         table_row_count_metric_config_other = MetricConfiguration(
             metric_name="table.row_count",
