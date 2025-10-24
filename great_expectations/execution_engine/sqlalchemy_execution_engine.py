@@ -642,7 +642,7 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
         # Filtering by row condition.
         if "row_condition" in domain_kwargs and domain_kwargs["row_condition"] is not None:
             row_condition = domain_kwargs["row_condition"]
-            condition_parser = domain_kwargs["condition_parser"]
+            condition_parser = domain_kwargs.get("condition_parser", None)
 
             if isinstance(row_condition, dict):
                 row_condition = deserialize_row_condition(row_condition)

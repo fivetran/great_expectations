@@ -54,7 +54,12 @@ from great_expectations.exceptions import (
     InvalidExpectationKwargsError,
 )
 from great_expectations.expectations.conditions import (
-    RowConditionType,
+    Column,
+    ComparisonCondition,
+    Condition,
+    NullityCondition,
+    Operator,
+    RowConditionType,  # Required for RowConditionType runtime validation
 )
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -69,6 +74,8 @@ from great_expectations.expectations.model_field_descriptions import (
     WINDOWS_DESCRIPTION,
 )
 from great_expectations.expectations.model_field_types import (
+    CONDITION_PARSER_GREAT_EXPECTATIONS,
+    CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
     ConditionParser,
     MostlyField,
 )
@@ -76,6 +83,9 @@ from great_expectations.expectations.registry import (
     get_metric_kwargs,
     register_expectation,
     register_renderer,
+)
+from great_expectations.expectations.row_conditions import (
+    parse_great_expectations_condition,
 )
 from great_expectations.expectations.sql_tokens_and_types import (
     valid_sql_tokens_and_types,
@@ -244,6 +254,80 @@ def param_method(param_name: str) -> Callable:
         return wrapper
 
     return _param_method
+
+
+def _map_operator_string_to_enum(op_str: str) -> Operator:
+    mapping = {
+        "==": Operator.EQUAL,
+        "!=": Operator.NOT_EQUAL,
+        "<": Operator.LESS_THAN,
+        "<=": Operator.LESS_THAN_OR_EQUAL,
+        ">": Operator.GREATER_THAN,
+        ">=": Operator.GREATER_THAN_OR_EQUAL,
+    }
+    return mapping[op_str]
+
+
+def _convert_string_to_condition(row_condition: str) -> Condition:
+    """Convert legacy string row_condition to new Condition object.
+
+    This function parses the legacy `great_expectations` row_condition string syntax
+    and transforms it into the new object-based Condition API.
+
+    Parsing Flow:
+        1. Parse the row_condition string using pyparsing grammar
+        2. Extract column name from parsed result
+        3. Determine condition type based on parsed fields:
+           - If "notnull" present → NullityCondition (is_null=False)
+           - If "condition_value" present → ComparisonCondition (string comparison)
+           - Otherwise → ComparisonCondition (numeric comparison)
+
+    Supported Syntax:
+        Nullity checks:
+            col("email").notnull()  → NullityCondition(column="email", is_null=False)
+
+        String comparisons (parsed["condition_value"] present):
+            col("id") == "ok" → ComparisonCondition(column="id", operator="==", parameter="ok")
+            col("id") != "a" → ComparisonCondition(column="id", operator="!=", parameter="a")
+
+        Numeric comparisons (parsed["fnumber"] present):
+            col("age") > 18 → ComparisonCondition(column="age", operator=">", parameter=18)
+            col("amt") <= 99.9 → ComparisonCondition(column="amt", operator="<=", parameter=99.9)
+            col("temp") < -10 → ComparisonCondition(column="temp", operator="<", parameter=-10)
+
+    Args:
+        row_condition: Legacy string syntax row condition (e.g., 'col("age") > 18')
+
+    Returns:
+        Condition object (NullityCondition or ComparisonCondition)
+
+    Note:
+        The grammar uses different parsing rules for each condition type:
+        - Nullity: Only `.notnull()` supported (is_null=True not available)
+        - String comparisons: Matches quoted strings as "condition_value"
+        - Numeric comparisons: Matches numbers as "fnumber"
+    """
+    parsed = parse_great_expectations_condition(row_condition)
+    col = Column(name=str(parsed["column"]))
+
+    if "notnull" in parsed and parsed["notnull"] is True:
+        return NullityCondition(
+            column=col, is_null=False
+        )  # The legacy syntax doesn't account for is_null=True
+
+    op_str = str(parsed["op"])
+    op = _map_operator_string_to_enum(op_str)
+
+    if "condition_value" in parsed:
+        return ComparisonCondition(column=col, operator=op, parameter=parsed["condition_value"])
+
+    fnumber_str = str(parsed["fnumber"])
+    value: Union[int, float]
+    try:
+        value = int(fnumber_str)
+    except ValueError:
+        value = float(fnumber_str)
+    return ComparisonCondition(column=col, operator=op, parameter=value)
 
 
 # noinspection PyMethodParameters
@@ -432,6 +516,24 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                 "If configuring result format with a dictionary, the key 'result_format' must be present."  # noqa: E501 # FIXME CoP
             )
         return result_format
+
+    @pydantic.root_validator(pre=False)
+    def _transform_legacy_row_condition(cls, values: dict) -> dict:
+        row_condition = values.get("row_condition")
+        condition_parser = values.get("condition_parser")
+        is_great_expectations_condition_parser = (
+            condition_parser is not None
+            and condition_parser
+            in [
+                CONDITION_PARSER_GREAT_EXPECTATIONS,
+                CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+            ]
+        )
+        if isinstance(row_condition, str) and is_great_expectations_condition_parser:
+            condition_obj = _convert_string_to_condition(row_condition)
+            values["row_condition"] = condition_obj
+            values.pop("condition_parser", None)
+        return values
 
     @classmethod
     def is_abstract(cls) -> bool:
