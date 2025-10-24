@@ -38,8 +38,6 @@ Before we completely remove the functionality in a new major release, there will
 * [MAINTENANCE] Bump lycheeverse/lychee-action from 2.0.1 to 2.0.2 in /.github/workflows ([#11466](https://github.com/great-expectations/great_expectations/pull/11466))
 * [MAINTENANCE] Condition class handling for spark ([#11470](https://github.com/great-expectations/great_expectations/pull/11470))
 * [MAINTENANCE] Condition class handling for SQL ([#11473](https://github.com/great-expectations/great_expectations/pull/11473))
-* [MAINTENANCE] Stop running python 3.12 marker tests on all PRs ([#11457](https://github.com/great-expectations/great_expectations/pull/11457))
-* [MAINTENANCE] Transform legacy row_condition string into new Condition object ([#11474](https://github.com/great-expectations/great_expectations/pull/11474))
 
 ### 1.7.1
 * [BUGFIX] Fix ExpectColumnValuesToBeOfType for trino ([#11438](https://github.com/great-expectations/great_expectations/pull/11438))
