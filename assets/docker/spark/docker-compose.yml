@@ -1,6 +1,6 @@
 services:
   spark-connect:
-    image: ${ECR_PULL_THROUGH_REPOSITORY_URL}apache/spark:latest
+    image: ${ECR_PULL_THROUGH_REPOSITORY_URL}apache/spark:3.5.7-scala
     ports:
       - "15002:15002" # Spark Connect port
     environment:
