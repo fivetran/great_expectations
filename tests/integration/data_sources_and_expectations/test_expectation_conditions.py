@@ -241,10 +241,6 @@ SQL_TEST_CASES = [
         (Column(name="quantity") == 1) | (Column(name="quantity") == 2),
         id="condition-or",
     ),
-    pytest.param(
-        PassThroughCondition(pass_through_filter="quantity > 0"),
-        id="condition-pass-through",
-    ),
 ]
 
 SPARK_TEST_CASES = SQL_TEST_CASES
@@ -340,6 +336,24 @@ def test_expect_column_min_to_be_between__spark_row_condition(
         max_value=1.5,
         row_condition=row_condition,
         condition_parser="great_expectations",
+    )
+    result = batch_for_datasource.validate(expectation)
+    assert result.success
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=[spark_filesystem_csv_datasource_test_config],
+    data=DATA,
+)
+def test_expect_column_min_to_be_between__spark_row_condition_pass_through(
+    batch_for_datasource: Batch,
+) -> None:
+    expectation = gxe.ExpectColumnMinToBeBetween(
+        column="amount",
+        min_value=0.5,
+        max_value=1.5,
+        row_condition=PassThroughCondition(pass_through_filter="quantity > 0"),
+        condition_parser="spark",
     )
     result = batch_for_datasource.validate(expectation)
     assert result.success
