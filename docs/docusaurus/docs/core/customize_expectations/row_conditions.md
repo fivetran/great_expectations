@@ -101,7 +101,7 @@ If an Expectation has row conditions, this will be indicated in the Data Docs. E
 
 ![if PClass=="1st", then values must belong to this set: 1](/docs/oss/images/conditional_data_docs_screenshot.png)
 
-If the 'row_condition' is a complex expression, it will be divided into several components to enhance readability.
+If the `row_condition` is a complex expression, it will be divided into several components to enhance readability.
 
 ## Scope and limitations
 
