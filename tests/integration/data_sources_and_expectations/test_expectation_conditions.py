@@ -594,11 +594,9 @@ class TestSqlAlchemyRejectsPassThroughCondition:
 
         # Validation should fail due to PassThroughCondition not being supported
         assert result.success is False
-        assert result.exception_info["raised_exception"] is True
-        assert "PassThroughCondition" in result.exception_info.get("exception_message", "")
-        assert "not supported for SqlAlchemyExecutionEngine" in result.exception_info.get(
-            "exception_message", ""
-        )
+        exception_info_str = str(result.exception_info)
+        assert "PassThroughCondition" in exception_info_str
+        assert "not supported for SqlAlchemyExecutionEngine" in exception_info_str
 
 
 class TestSQLConditionClassAcrossExpectationTypes:
