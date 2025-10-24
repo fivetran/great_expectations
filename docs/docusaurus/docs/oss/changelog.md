@@ -23,7 +23,6 @@ Before we completely remove the functionality in a new major release, there will
 * [DOCS] GX Cloud Architecture Supporting Content ([#11439](https://github.com/great-expectations/great_expectations/pull/11439))
 * [DOCS] restore link checker ([#11449](https://github.com/great-expectations/great_expectations/pull/11449))
 * [DOCS] schema in connection string for redshift and postgreSQL ([#11433](https://github.com/great-expectations/great_expectations/pull/11433))
-* [MAINTENANCE] Multiple row conditions AND/OR classes ([#11448](https://github.com/great-expectations/great_expectations/pull/11448))
 * [MAINTENANCE] Row condition comparison classes ([#11450](https://github.com/great-expectations/great_expectations/pull/11450))
 * [MAINTENANCE] Row condition execution engine scaffolding ([#11452](https://github.com/great-expectations/great_expectations/pull/11452))
 * [MAINTENANCE] Run CI datasource cleanup hourly and clean up more schemas ([#11462](https://github.com/great-expectations/great_expectations/pull/11462))
