@@ -9,7 +9,7 @@ from great_expectations.compatibility.postgresql import POSTGRESQL_TYPES
 from great_expectations.compatibility.snowflake import SNOWFLAKE_TYPES
 from great_expectations.compatibility.sqlalchemy import sqltypes
 from great_expectations.datasource.fluent.interfaces import Batch
-from great_expectations.expectations.conditions import Column
+from great_expectations.expectations.conditions import Column, PassThroughCondition
 from tests.integration.conftest import parameterize_batch_for_data_sources
 from tests.integration.test_utils.data_source_config import (
     BigQueryDatasourceTestConfig,
@@ -143,6 +143,10 @@ PANDAS_TEST_CASES = [
         (Column(name="name") == "albert") | (Column(name="name") == "issac"),
         id="condition-or",
     ),
+    pytest.param(
+        PassThroughCondition(pass_through_filter="quantity > 0"),
+        id="condition-pass-through",
+    ),
 ]
 
 
@@ -236,6 +240,10 @@ SQL_TEST_CASES = [
     pytest.param(
         (Column(name="quantity") == 1) | (Column(name="quantity") == 2),
         id="condition-or",
+    ),
+    pytest.param(
+        PassThroughCondition(pass_through_filter="quantity > 0"),
+        id="condition-pass-through",
     ),
 ]
 
@@ -529,6 +537,54 @@ class TestSparkConditionClassAcrossExpectationTypes:
         )
         result = batch_for_datasource.validate(expectation)
         assert result.success
+
+
+class TestSqlAlchemyRejectsPassThroughCondition:
+    """Test that SQLAlchemy execution engines properly reject PassThroughCondition."""
+
+    @parameterize_batch_for_data_sources(
+        data_source_configs=[
+            PostgreSQLDatasourceTestConfig(
+                column_types={
+                    "created_at": POSTGRESQL_TYPES.TIMESTAMP,
+                    "updated_at": POSTGRESQL_TYPES.DATE,
+                }
+            ),
+            SqliteDatasourceTestConfig(),
+            MySQLDatasourceTestConfig(
+                column_types={
+                    "created_at": sqltypes.TIMESTAMP(timezone=True),
+                    "updated_at": sqltypes.DATE,
+                }
+            ),
+        ],
+        data=DATA,
+    )
+    def test_sqlalchemy_rejects_pass_through_condition_object(
+        self, batch_for_datasource: Batch
+    ) -> None:
+        """Test that SQLAlchemy raises error when PassThroughCondition is used.
+
+        The error is caught during metric resolution and results in a validation
+        failure with an error message, rather than an uncaught exception.
+        """
+        row_condition = PassThroughCondition(pass_through_filter="quantity > 0")
+        expectation = gxe.ExpectColumnMinToBeBetween(
+            column="amount",
+            min_value=0.5,
+            max_value=1.5,
+            row_condition=row_condition,
+        )
+
+        result = batch_for_datasource.validate(expectation)
+
+        # Validation should fail due to PassThroughCondition not being supported
+        assert result.success is False
+        assert result.exception_info["raised_exception"] is True
+        assert "PassThroughCondition" in result.exception_info.get("exception_message", "")
+        assert "not supported for SqlAlchemyExecutionEngine" in result.exception_info.get(
+            "exception_message", ""
+        )
 
 
 class TestSQLConditionClassAcrossExpectationTypes:
