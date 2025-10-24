@@ -63,8 +63,6 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
 
 
    2. Configure the Expectation.
-      
-      Add the `row_condition` parameter alongside the Expectation's other arguments.
 
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - add Expectation"
       ```
@@ -99,7 +97,7 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
 
 ## Row conditions in Data Docs
 
-If an Expectation has row conditions, this will be indicated in the Data Docs. Each Expectation with row conditions is prefaced with *if 'row_condition', then values must ...* as illustrated in the following example:
+If an Expectation has row conditions, this will be indicated in the Data Docs. Each Expectation with row conditions is prefaced with **if `row_condition`, then values must ...** as illustrated in the following example:
 
 ![if PClass=="1st", then values must belong to this set: 1](/docs/oss/images/conditional_data_docs_screenshot.png)
 

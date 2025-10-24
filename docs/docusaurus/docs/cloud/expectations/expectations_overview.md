@@ -146,17 +146,21 @@ Row conditions support complex business logic through the following elements:
 
 Here are some examples of how to express complex row conditions:
 
-- A and B: Two condition statements within a single condition block.
+- **A and B**: Two condition statements within a single condition block.
+
    [pending example screenshot, make sure one statement uses an “is any of” operator]
 
-- A or B: Two condition statements, each in its own condition block.
+- **A or B**: Two condition statements, each in its own condition block.
+
    [pending example screenshot]
 
-- (A and B) or (C and D): Two condition statements in one condition block and two statements in another block.
+- **(A and B) or (C and D)**: Two condition statements in one condition block and two statements in another block.
+
    [pending example screenshot]
 
-- A and (B or C):  Two condition statements in one condition block and two statements in another block.
-   [pending example screenshot} 
+- **A and (B or C)**:  Two condition statements in one condition block and two statements in another block.
+
+   [pending example screenshot] 
 
 
 
