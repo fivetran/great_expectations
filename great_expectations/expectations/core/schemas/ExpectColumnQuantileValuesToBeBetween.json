@@ -98,6 +98,9 @@
                 },
                 {
                     "$ref": "#/definitions/OrCondition"
+                },
+                {
+                    "$ref": "#/definitions/PassThroughCondition"
                 }
             ]
         },
@@ -426,6 +429,28 @@
             },
             "required": [
                 "conditions"
+            ]
+        },
+        "PassThroughCondition": {
+            "title": "PassThroughCondition",
+            "description": "Condition that passes a filter string directly to the execution engine.\n\nThis is used for legacy pandas/spark condition_parser syntax where the\nrow_condition string is passed directly to DataFrame.query() or DataFrame.filter().",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "pass_through",
+                    "enum": [
+                        "pass_through"
+                    ],
+                    "type": "string"
+                },
+                "pass_through_filter": {
+                    "title": "Pass Through Filter",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "pass_through_filter"
             ]
         },
         "QuantileRange": {
