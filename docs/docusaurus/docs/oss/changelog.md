@@ -39,7 +39,6 @@ Before we completely remove the functionality in a new major release, there will
 * [MAINTENANCE] Condition class handling for spark ([#11470](https://github.com/great-expectations/great_expectations/pull/11470))
 * [MAINTENANCE] Condition class handling for SQL ([#11473](https://github.com/great-expectations/great_expectations/pull/11473))
 * [MAINTENANCE] Stop running python 3.12 marker tests on all PRs ([#11457](https://github.com/great-expectations/great_expectations/pull/11457))
-* [MAINTENANCE] Disable link checker ([#11477](https://github.com/great-expectations/great_expectations/pull/11477))
 * [MAINTENANCE] Transform legacy row_condition string into new Condition object ([#11474](https://github.com/great-expectations/great_expectations/pull/11474))
 
 ### 1.7.1
