@@ -35,6 +35,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
     ExpectationValidationResult,  # noqa: TC001 # FIXME CoP
 )
+from great_expectations.expectations.conditions import deserialize_row_condition
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,  # noqa: TC001 # FIXME CoP
 )
@@ -414,9 +415,20 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         return values
 
     @staticmethod
+    def _serialize_row_condition(row_condition: Union[str, dict]) -> str:
+        if isinstance(row_condition, str):
+            return row_condition
+        if isinstance(row_condition, dict):
+            row_condition_class = deserialize_row_condition(row_condition)
+            return repr(row_condition_class)
+
+    @staticmethod
     def _get_row_condition_params(
-        row_condition_str: str,
+        row_condition: Union[str, dict],
     ) -> Dict[str, RendererConfiguration._RendererParamArgs]:
+        row_condition_str = RendererConfiguration._serialize_row_condition(
+            row_condition=row_condition
+        )
         row_condition_str = RendererConfiguration._parse_row_condition_str(
             row_condition_str=row_condition_str
         )
@@ -450,7 +462,7 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
         if values["_row_condition"]:
             renderer_params_args: Dict[str, RendererConfiguration._RendererParamArgs] = (
                 RendererConfiguration._get_row_condition_params(
-                    row_condition_str=values["_row_condition"],
+                    row_condition=values["_row_condition"],
                 )
             )
             values["_params"] = (
@@ -529,7 +541,6 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
     def _parse_row_condition_str(row_condition_str: str) -> str:
         if not row_condition_str:
             row_condition_str = "True"
-
         row_condition_str = (
             row_condition_str.replace("&", " AND ")
             .replace(" and ", " AND ")
@@ -565,9 +576,13 @@ class RendererConfiguration(pydantic_generics.GenericModel, Generic[RendererPara
 
     @validator("template_str")
     def _set_template_str(cls, v: str, values: dict) -> str:
-        if values.get("_row_condition"):
-            row_condition_str: str = RendererConfiguration._get_row_condition_string(
-                row_condition_str=values["_row_condition"]
+        row_condition = values.get("_row_condition", None)
+        if row_condition:
+            row_condition_str: str = RendererConfiguration._serialize_row_condition(
+                row_condition=row_condition
+            )
+            row_condition_str = RendererConfiguration._get_row_condition_string(
+                row_condition_str=row_condition_str
             )
             v = row_condition_str + v
 

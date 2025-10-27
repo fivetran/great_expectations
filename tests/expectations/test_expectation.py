@@ -13,8 +13,10 @@ from great_expectations.core.expectation_validation_result import ExpectationVal
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.execution_engine.execution_engine import ExecutionEngine
 from great_expectations.expectations.conditions import (
+    AndCondition,
     Column,
     ComparisonCondition,
+    Operator,
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -464,6 +466,24 @@ def test_expectation_equality_ignores_rendered_content():
     expectation_b.rendered_content = None
 
     assert expectation_a == expectation_b
+
+
+@pytest.mark.unit
+def test_expectation_with_row_condition_generates_rendered_content():
+    condition = ComparisonCondition(
+        column=Column(name="status"), operator=Operator.EQUAL, parameter="active"
+    )
+    condition_2 = Column(name="age") > 18
+    group_condition = AndCondition(conditions=[condition, condition_2])
+    expectation = gxe.ExpectColumnValuesToBeBetween(
+        column="foo",
+        min_value=0,
+        max_value=10,
+        row_condition=group_condition,
+    )
+    expectation.render()
+    assert expectation.rendered_content is not None
+    assert expectation.row_condition == group_condition
 
 
 @pytest.mark.unit
