@@ -36,7 +36,8 @@ except ImportError:
 
 try:
     with warnings.catch_warnings():
-        # deprecated-v1.8.0: sqlalchemy_redshift may import pkg_resources
+        # deprecated-v1.8.0
+        # sqlalchemy_redshift may import pkg_resources
         warnings.filterwarnings(
             "ignore",
             category=DeprecationWarning,
