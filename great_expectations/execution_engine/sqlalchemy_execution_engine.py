@@ -652,8 +652,8 @@ class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
             if isinstance(row_condition, PassThroughCondition):
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME
                     "PassThroughCondition (pandas/spark syntax) is not supported for "
-                    "SqlAlchemyExecutionEngine. Please use the 'great_expectations' "
-                    "condition_parser instead."
+                    "SqlAlchemyExecutionEngine. Please use the latest documented "
+                    "row_condition syntax, which does not require condition_parser."
                 )
 
             if isinstance(row_condition, Condition):

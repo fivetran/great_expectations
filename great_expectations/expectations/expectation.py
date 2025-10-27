@@ -544,7 +544,6 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         ]
         if isinstance(row_condition, str) and is_pass_through_condition_parser:
             values["row_condition"] = PassThroughCondition(pass_through_filter=row_condition)
-            values.pop("condition_parser", None)
 
         return values
 
