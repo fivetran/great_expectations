@@ -752,7 +752,7 @@ class TestLegacyRowConditionTransformation:
         )
 
         assert expectation.row_condition == expected_condition
-        assert not hasattr(expectation, "condition_parser")
+        assert expectation.condition_parser == condition_parser
 
     def test_no_transformation_when_already_condition_object(self):
         original_condition = Column(name="age") > 18
