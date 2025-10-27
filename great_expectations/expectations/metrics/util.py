@@ -11,6 +11,7 @@ from typing import (
     Final,
     Iterable,
     List,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -25,6 +26,10 @@ from packaging import version
 
 import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility import aws, sqlalchemy, trino
+from great_expectations.compatibility.sqlalchemy import (
+    Compiled,
+    SQLCompiler,
+)
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -1166,43 +1171,197 @@ def is_valid_continuous_partition_object(partition_object):
     )
 
 
-def sql_statement_with_post_compile_to_string(
+def _substitute_positional_parameters(query_template: str, compiled: SQLCompiler) -> str:
+    """
+    Substitute positional (?) parameters in query template.
+    """
+    param_values = [compiled.params[name] for name in compiled.positiontup or []]
+    params = (repr(val) for val in param_values)
+    query_as_string = re.sub(r"\?", lambda m: next(params), query_template)
+    return query_as_string
+
+
+def _substitute_pyformat_parameters(query_template: str, compiled: Compiled) -> str:
+    """Substitute %(param_name)s parameters in query template."""
+    query_as_string = query_template
+    for param_name, param_value in compiled.params.items():
+        # Match %(name)s or %(name:TYPE)s - BigQuery includes type annotations
+        pattern = rf"%\({re.escape(param_name)}(?::[^)]+)?\)s"
+        query_as_string = re.sub(pattern, repr(param_value), query_as_string)
+    return query_as_string
+
+
+def _substitute_colon_parameters(query_template: str, compiled: Compiled) -> str:
+    """Substitute :param_name parameters in query template."""
+    query_as_string = query_template
+    for param_name, param_value in compiled.params.items():
+        query_as_string = query_as_string.replace(f":{param_name}", repr(param_value))
+    return query_as_string
+
+
+def _detect_parameter_style(
+    query_template: str, compiled: Compiled
+) -> Literal["positional", "pyformat", "colon", "none_or_other"]:
+    """
+    Detect the SQL parameter placeholder style used in the compiled query.
+
+    Returns one of: "positional", "pyformat", "colon", or "none_or_other"
+    """
+    if hasattr(compiled, "positiontup") and compiled.positiontup:
+        return "positional"
+    elif compiled.params and any(f"%({name}" in query_template for name in compiled.params):
+        return "pyformat"
+    elif compiled.params and any(f":{name}" in query_template for name in compiled.params):
+        return "colon"
+    else:
+        return "none_or_other"
+
+
+def _check_has_unsubstituted_params(
+    query_as_string: str,
+    compiled: Compiled,
+) -> bool:
+    """
+    Check if any parameters are still unsubstituted in the query.
+
+    Checks if all parameter values appear in the query (as their repr() forms).
+    Also checks if parameter names appear in the query (for named placeholders),
+    accounting for names that might appear within the substituted values.
+    """
+    if not compiled.params:
+        return False
+
+    # Check if all parameter values are present in the query
+    for value in compiled.params.values():
+        value_repr = repr(value)
+        if value_repr not in query_as_string:
+            # Value not found in query - substitution failed
+            return True
+
+    # Additional check: if parameter names appear in query (outside of any values),
+    # this indicates named placeholders weren't substituted
+    for name in compiled.params:
+        if name in query_as_string:
+            # Check if this name appears in ANY of the parameter values
+            name_in_any_value = any(name in repr(value) for value in compiled.params.values())
+            if not name_in_any_value:
+                # Parameter name is in query but not in any value - it's unsubstituted
+                return True
+
+    return False
+
+
+def _substitute_with_render_postcompile(
+    engine: SqlAlchemyExecutionEngine,
+    select_statement: sqlalchemy.Select,
+) -> Tuple[str, Compiled]:
+    """
+    Compile SQL with render_postcompile and manually substitute parameters.
+
+    Pros:
+        - Produces queries directly copy-pasteable into SQL query editors
+
+    Cons:
+        - Requires manual parameter style detection and substitution logic
+        - May fail for unknown bind parameter styles
+
+    Returns:
+        Tuple of (query_string, compiled_object)
+    """
+    compiled = select_statement.compile(
+        engine.engine,
+        compile_kwargs={"render_postcompile": True},
+    )
+
+    query_template = str(compiled)
+
+    # Detect parameter style and substitute parameters
+    parameter_style = _detect_parameter_style(query_template, compiled)
+
+    if parameter_style == "positional":
+        # Positional placeholders (?) - e.g. SQLite, Trino, MSSQL
+        query_as_string = _substitute_positional_parameters(query_template, compiled)
+
+    elif parameter_style == "pyformat":
+        # Named parameters with %(param_name)s syntax - e.g. PostgreSQL, MySQL, BigQuery
+        # BigQuery includes type annotations like %(name:FLOAT64)s
+        query_as_string = _substitute_pyformat_parameters(query_template, compiled)
+
+    elif parameter_style == "colon":
+        # Named parameters with :param_name syntax - e.g. Databricks, Oracle
+        query_as_string = _substitute_colon_parameters(query_template, compiled)
+
+    else:  # parameter_style == "none_or_other"
+        # No parameters to substitute, or unknown parameter style
+        query_as_string = query_template
+
+    return query_as_string, compiled
+
+
+def _fallback_to_literal_binds(
+    engine: SqlAlchemyExecutionEngine,
+    select_statement: sqlalchemy.Select,
+) -> str:
+    """
+    Fall back to literal_binds compilation.
+
+    Pros:
+        - Guaranteed to substitute bind parameters for all SQLAlchemy-supported dialects
+
+    Cons:
+        - Requires post-processing for SQL editor compatibility
+        - May fail for unknown DB-API vs SQL editor syntax incompatibilities
+    """
+    compiled = select_statement.compile(
+        engine.engine,
+        compile_kwargs={"literal_binds": True},
+    )
+    query_as_string = str(compiled)
+
+    # Unescape %% to % for SQL editor compatibility
+    # PostgreSQL (psycopg2) and MySQL (mysqlclient) escape % as %% for Python driver
+    dialect_name: str = engine.dialect_name
+    if dialect_name in (GXSqlDialect.POSTGRESQL, GXSqlDialect.MYSQL, GXSqlDialect.REDSHIFT):
+        query_as_string = query_as_string.replace("%%", "%")
+
+    return query_as_string
+
+
+def sqlalchemy_select_to_sql_string(
     engine: SqlAlchemyExecutionEngine, select_statement: sqlalchemy.Select
 ) -> str:
     """
-    Util method to compile SQL select statement with post-compile parameters into a string. Logic lifted directly
-    from sqlalchemy documentation.
+    Compile SQL select statement with bound parameters rendered as literal values. Append semicolon.
 
-    https://docs.sqlalchemy.org/en/14/faq/sqlexpressions.html#rendering-postcompile-parameters-as-bound-parameters
+    This function exists because SQLAlchemy does not guarantee a way to produce a
+    valid SQL syntax string. SQLAlchemy's built-in literal_binds produces queries
+    with driver-specific escaping that is intended for Python DB-API drivers, not SQL
+    query editors. For example, psycopg2 (PostgreSQL driver) escapes '%' as '%%' for
+    Python string formatting, so LIKE '%pattern%' becomes LIKE '%%pattern%%'. This is
+    correct for Python but invalid SQL syntax.
 
-    Used by _sqlalchemy_map_condition_index() in map_metric_provider to build query that will allow you to
-    return unexpected_index_values.
+    We use a two-step approach:
+    1. Try render_postcompile with manual parameter substitution (produces SQL editor syntax)
+    2. Fall back to literal_binds with post-processing if manual substitution fails
+
+    This ensures users can copy-paste the resulting query directly into their SQL query
+    editor without modification.
 
     Args:
-        engine (sqlalchemy.engine.Engine): Sqlalchemy engine used to do the compilation.
-        select_statement (sqlalchemy.sql.Select): Select statement to compile into string.
+        engine: SqlAlchemyExecutionEngine with connection to backend.
+        select_statement: Select statement to compile into string.
     Returns:
-        String representation of select_statement
+        String representation of select_statement with parameters inlined,
+        suitable for copy-pasting into a SQL query editor.
+    """
+    # Try render_postcompile with manual substitution first (avoids %% escaping)
+    query_as_string, compiled = _substitute_with_render_postcompile(engine, select_statement)
 
-    """  # noqa: E501 # FIXME CoP
-    sqlalchemy_connection: sa.engine.base.Connection = engine.engine  # type: ignore[assignment] # FIXME CoP
-    compiled = select_statement.compile(
-        sqlalchemy_connection,
-        compile_kwargs={"render_postcompile": True},
-        dialect=engine.dialect,
-    )
-    dialect_name: str = engine.dialect_name
+    # Check if substitution failed and fall back to literal_binds if needed
+    if _check_has_unsubstituted_params(query_as_string, compiled):
+        query_as_string = _fallback_to_literal_binds(engine, select_statement)
 
-    if dialect_name in ["sqlite", "trino", "mssql"]:
-        params = (repr(compiled.params[name]) for name in compiled.positiontup)  # type: ignore[union-attr] # FIXME CoP
-        query_as_string = re.sub(r"\?", lambda m: next(params), str(compiled))
-
-    else:
-        params = (repr(compiled.params[name]) for name in list(compiled.params.keys()))
-        query_as_string = re.sub(r"%\(.*?\)s", lambda m: next(params), str(compiled))
-
-    query_as_string += ";"
-    return query_as_string
+    return query_as_string + ";"
 
 
 def get_sqlalchemy_source_table_and_schema(

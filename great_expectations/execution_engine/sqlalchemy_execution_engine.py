@@ -83,6 +83,11 @@ from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
+from great_expectations.expectations.conditions import (
+    Condition,
+    Operator,
+    deserialize_row_condition,
+)
 from great_expectations.expectations.row_conditions import (
     RowCondition,
     RowConditionParserType,
@@ -97,6 +102,14 @@ from great_expectations.util import (
 )
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+    from great_expectations.expectations.conditions import (
+        AndCondition,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.computed_metric import (
         MetricValue,
     )
@@ -156,6 +169,7 @@ if TYPE_CHECKING:
 
     from great_expectations.compatibility import sqlalchemy
 
+SQLAColumnClause: TypeAlias = object  # sqlalchemy isn't installed in all environments
 
 _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.SQLITE,
@@ -163,6 +177,16 @@ _PERSISTED_CONNECTION_DIALECTS = (
     GXSqlDialect.BIGQUERY,
     GXSqlDialect.DATABRICKS,
 )
+
+
+class InvalidOperatorError(ValueError):
+    def __init__(self, operator: Any) -> None:
+        super().__init__(f"Invalid operator: {operator!r}")
+
+
+class InvalidFilterClause(ValueError):
+    def __init__(self, filter_clause: Any) -> None:
+        super().__init__(f"Invalid filter clause: {type(filter_clause)}")
 
 
 def _dialect_requires_persisted_connection(
@@ -206,7 +230,7 @@ def _dialect_requires_persisted_connection(
     return return_val
 
 
-class SqlAlchemyExecutionEngine(ExecutionEngine):
+class SqlAlchemyExecutionEngine(ExecutionEngine[SQLAColumnClause]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     Constructor builds a SqlAlchemyExecutionEngine, using a provided connection string/url/engine/credentials to \
@@ -617,17 +641,24 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
 
         # Filtering by row condition.
         if "row_condition" in domain_kwargs and domain_kwargs["row_condition"] is not None:
-            condition_parser = domain_kwargs["condition_parser"]
-            if condition_parser in [
+            row_condition = domain_kwargs["row_condition"]
+            condition_parser = domain_kwargs.get("condition_parser", None)
+
+            if isinstance(row_condition, dict):
+                row_condition = deserialize_row_condition(row_condition)
+
+            if isinstance(row_condition, Condition):
+                parsed_condition = self.condition_to_filter_clause(row_condition)
+            elif condition_parser in [
                 CONDITION_PARSER_GREAT_EXPECTATIONS,
                 CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
             ]:
-                parsed_condition = parse_condition_to_sqlalchemy(domain_kwargs["row_condition"])
-                selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type] # FIXME CoP
+                parsed_condition = parse_condition_to_sqlalchemy(row_condition)
             else:
                 raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
                     "SqlAlchemyExecutionEngine only supports the great_expectations condition_parser."  # noqa: E501 # FIXME CoP
                 )
+            selectable = sa.select(sa.text("*")).select_from(selectable).where(parsed_condition)  # type: ignore[arg-type] # FIXME CoP
 
         # Filtering by filter_conditions
         filter_conditions: List[RowCondition] = domain_kwargs.get("filter_conditions", [])
@@ -1435,3 +1466,53 @@ class SqlAlchemyExecutionEngine(ExecutionEngine):
                     result = connection.execute(query)  # type: ignore[call-overload] # FIXME:Selectable overly broad
 
         return result
+
+    @override
+    def condition_to_filter_clause(self, condition: Condition) -> sa.ColumnElement:
+        # This override is just to help the type system,
+        # since we can't make the class generic on sqlalchemy
+        # since it's not installed in all environments."""
+        output = super().condition_to_filter_clause(condition)
+        if not isinstance(output, sa.ColumnElement):
+            raise InvalidFilterClause(output)
+        return output
+
+    @override
+    def _comparison_condition_to_filter_clause(  # noqa: C901, PLR0911
+        self, condition: ComparisonCondition
+    ) -> sa.ColumnElement:
+        col: sa.ColumnClause = sa.column(condition.column.name)
+        val = sa.literal(condition.parameter)
+        op = condition.operator
+        if op == Operator.LESS_THAN:
+            return col < val
+        elif op == Operator.LESS_THAN_OR_EQUAL:
+            return col <= val
+        elif op == Operator.EQUAL:
+            return col == val
+        elif op == Operator.NOT_EQUAL:
+            return col != val
+        elif op == Operator.GREATER_THAN:
+            return col > val
+        elif op == Operator.GREATER_THAN_OR_EQUAL:
+            return col >= val
+        elif op == Operator.IN:
+            return col.in_(condition.parameter)
+        elif op == Operator.NOT_IN:
+            return ~col.in_(condition.parameter)
+        else:
+            raise InvalidOperatorError(op)
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> sa.ColumnElement:
+        col: sa.ColumnClause = sa.column(condition.column.name)
+        return col.is_(None) if condition.is_null else col.isnot(None)
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> sa.ColumnElement:
+        output = sa.and_(*[self.condition_to_filter_clause(c) for c in condition.conditions])
+        return output
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> sa.ColumnElement:
+        return sa.or_(*[self.condition_to_filter_clause(c) for c in condition.conditions])

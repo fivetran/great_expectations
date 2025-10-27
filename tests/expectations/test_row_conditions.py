@@ -1,26 +1,26 @@
 import pytest
 
 from great_expectations.expectations.row_conditions import (
-    _parse_great_expectations_condition,
     parse_condition_to_spark,
     parse_condition_to_sqlalchemy,
+    parse_great_expectations_condition,
 )
 
 
 @pytest.mark.unit
 def test_notnull_parser():
-    res = _parse_great_expectations_condition('col("foo").notNull()')
+    res = parse_great_expectations_condition('col("foo").notNull()')
     assert res["column"] == "foo"
     assert res["notnull"] is True
 
-    res = _parse_great_expectations_condition('col("foo") > 5')
+    res = parse_great_expectations_condition('col("foo") > 5')
     assert res["column"] == "foo"
     assert "notnull" not in res
 
 
 @pytest.mark.unit
 def test_condition_parser():
-    res = _parse_great_expectations_condition('col("foo") > 5')
+    res = parse_great_expectations_condition('col("foo") > 5')
     assert res["column"] == "foo"
     assert res["op"] == ">"
     assert res["fnumber"] == "5"
@@ -28,7 +28,7 @@ def test_condition_parser():
 
 @pytest.mark.unit
 def test_condition_parser_with_underscore_in_column_name():
-    res = _parse_great_expectations_condition('col("pk_2") == "Two"')
+    res = parse_great_expectations_condition('col("pk_2") == "Two"')
     assert res["column"] == "pk_2"
     assert res["op"] == "=="
     assert res["condition_value"] == "Two"
@@ -36,7 +36,7 @@ def test_condition_parser_with_underscore_in_column_name():
 
 @pytest.mark.unit
 def test_condition_parser_with_dash_in_column_name():
-    res = _parse_great_expectations_condition('col("pk-2") == "Two"')
+    res = parse_great_expectations_condition('col("pk-2") == "Two"')
     assert res["column"] == "pk-2"
     assert res["op"] == "=="
     assert res["condition_value"] == "Two"
@@ -44,7 +44,7 @@ def test_condition_parser_with_dash_in_column_name():
 
 @pytest.mark.unit
 def test_condition_parser_with_space_in_column_name():
-    res = _parse_great_expectations_condition('col("pk 2") == "Two"')
+    res = parse_great_expectations_condition('col("pk 2") == "Two"')
     assert res["column"] == "pk 2"
     assert res["op"] == "=="
     assert res["condition_value"] == "Two"
@@ -52,7 +52,7 @@ def test_condition_parser_with_space_in_column_name():
 
 @pytest.mark.unit
 def test_condition_parser_with_space_in_condition_value():
-    res = _parse_great_expectations_condition('col("pk_2") == "Two Two"')
+    res = parse_great_expectations_condition('col("pk_2") == "Two Two"')
     assert res["column"] == "pk_2"
     assert res["op"] == "=="
     assert res["condition_value"] == "Two Two"
@@ -60,7 +60,7 @@ def test_condition_parser_with_space_in_condition_value():
 
 @pytest.mark.unit
 def test_condition_parser_with_tab_in_condition_value():
-    res = _parse_great_expectations_condition('col("pk_2") == "Two  Two"')
+    res = parse_great_expectations_condition('col("pk_2") == "Two  Two"')
     assert res["column"] == "pk_2"
     assert res["op"] == "=="
     assert res["condition_value"] == "Two  Two"
@@ -68,7 +68,7 @@ def test_condition_parser_with_tab_in_condition_value():
 
 @pytest.mark.unit
 def test_condition_parser_with_8bit_chars_in_condition_value():
-    res = _parse_great_expectations_condition(
+    res = parse_great_expectations_condition(
         'col("sp_chars") == "Café_über_naïve_élite_ñandú_çeviche_æther_øresund_ångström"'
     )
     assert res["column"] == "sp_chars"
