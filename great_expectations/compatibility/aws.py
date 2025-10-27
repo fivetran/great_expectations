@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 from great_expectations.compatibility.not_imported import NotImported
 
 BOTO_NOT_IMPORTED = NotImported(
@@ -33,7 +35,14 @@ except ImportError:
     exceptions = BOTO_NOT_IMPORTED
 
 try:
-    import sqlalchemy_redshift
+    with warnings.catch_warnings():
+        # sqlalchemy_redshift may import pkg_resources, which emits a DeprecationWarning
+        warnings.filterwarnings(
+            "ignore",
+            category=DeprecationWarning,
+            module="pkg_resources",
+        )
+        import sqlalchemy_redshift
 except ImportError:
     sqlalchemy_redshift = REDSHIFT_NOT_IMPORTED
 
