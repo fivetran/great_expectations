@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Engine
 
 from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
@@ -54,7 +57,7 @@ def test_sqlite_adds_functions_and_closes_temp_raw_connection(monkeypatch) -> No
     monkeypatch.setattr(sa.event, "listen", _fake_listen)
 
     # Instantiate execution engine with fake engine; this should register sqlite functions
-    ee = SqlAlchemyExecutionEngine(engine=fake_engine)  # noqa: F841
+    ee = SqlAlchemyExecutionEngine(engine=cast("Engine", fake_engine))  # noqa: F841
 
     # The raw connection used for immediate function registration must be closed
     assert fake_engine._raw_conn.closed is True
