@@ -13,7 +13,7 @@ To connect GX Cloud to filesystem data stored in Amazon S3, use the GX Cloud API
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - AWS credentials with read access to a data file on an S3 bucket.
-- [Python](https://www.python.org/downloads/) version 3.9 to 3.13.
+- [Python](https://www.python.org/downloads/) version 3.10 to 3.13.
 - Recommended. A [Python virtual environment](https://docs.python.org/3/library/venv.html).
 
 

@@ -14,7 +14,7 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 
 ## Prepare your environment
 
-1. Download and install [Python](https://www.python.org/downloads/). GX supports Python versions 3.9 to 3.13.
+1. Download and install [Python](https://www.python.org/downloads/). GX supports Python versions 3.10 to 3.13.
 
 2. Download and install pip. See the [pip documentation](https://pip.pypa.io/en/stable/cli/pip/).
 
