@@ -532,7 +532,6 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         if isinstance(row_condition, str) and is_great_expectations_condition_parser:
             condition_obj = _convert_string_to_condition(row_condition)
             values["row_condition"] = condition_obj
-            values.pop("condition_parser", None)
         return values
 
     @classmethod
