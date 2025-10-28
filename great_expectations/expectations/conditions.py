@@ -293,11 +293,6 @@ def _validate_and_condition(row_condition: AndCondition) -> AndCondition:
     # logical ANDs are associative, while logical ORs are non-associative.
     flattened_conditions = _flatten_and_conditions(row_condition.conditions)
 
-    # Count total conditions
-    total_count = _count_total_conditions(flattened_conditions)
-    if total_count > MAX_CONDITIONS:
-        raise TooManyConditionsError(total_count, MAX_CONDITIONS)
-
     # Return flattened AndCondition
     return AndCondition(conditions=flattened_conditions)
 
@@ -307,11 +302,6 @@ def _validate_or_condition(row_condition: OrCondition) -> OrCondition:
     # Check for nested OrConditions
     if _contains_nested_or(row_condition):
         raise NestedOrError()
-
-    # Count total conditions
-    total_count = _count_total_conditions(row_condition.conditions)
-    if total_count > MAX_CONDITIONS:
-        raise TooManyConditionsError(total_count, MAX_CONDITIONS)
 
     return row_condition
 
@@ -340,6 +330,11 @@ def validate_row_condition(row_condition: RowConditionType) -> RowConditionType:
     # Simple conditions (Comparison, Nullity) are always valid
     if isinstance(row_condition, (ComparisonCondition, NullityCondition)):
         return row_condition
+
+    # Validate total condition count
+    total_count = _count_total_conditions(row_condition.conditions)
+    if total_count > MAX_CONDITIONS:
+        raise TooManyConditionsError(total_count, MAX_CONDITIONS)
 
     # Validate AndCondition
     if isinstance(row_condition, AndCondition):
