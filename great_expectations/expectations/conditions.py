@@ -130,6 +130,8 @@ class Condition(BaseModel):
         return result
 
     def __and__(self, other: Condition) -> AndCondition:
+        """Construct an AndCondition"""
+        # We flatten nested AndConditions because logical ANDs are associative.
         new_conditions = []
         for cond in [self, other]:
             if isinstance(cond, AndCondition):
@@ -139,6 +141,8 @@ class Condition(BaseModel):
         return AndCondition(conditions=new_conditions)
 
     def __or__(self, other: Condition) -> OrCondition:
+        """Construct an OrCondition"""
+        # We can't flatten nested OrConditions because logical ORs are non-associative.
         return OrCondition(conditions=[self, other])
 
 
