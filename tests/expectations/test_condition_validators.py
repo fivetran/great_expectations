@@ -1,0 +1,283 @@
+"""Tests for condition validators on row_condition in Expectations."""
+
+import pytest
+
+from great_expectations.expectations.conditions import Column
+from great_expectations.expectations.core import (
+    ExpectColumnValuesToBeInSet,
+    ExpectTableRowCountToEqual,
+)
+
+
+class TestAndConditionValidator:
+    """Tests for AndCondition validator when passed to Expectation."""
+
+    def test_flatten_nested_and_conditions(self):
+        """Test that nested AndConditions are flattened when passed to Expectation."""
+        # Create conditions using Column API: column_1 < 8 & (column_2 > 8 & column_3 == 8)
+        column_1 = Column(name="column_1")
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+
+        # Use Python operators to build conditions
+        row_condition = (column_1 < 8) & ((column_2 > 8) & (column_3 == 8))
+
+        # Pass to an Expectation - should flatten
+        expectation = ExpectColumnValuesToBeInSet(
+            column="test_column", value_set=["a", "b"], row_condition=row_condition
+        )
+
+        # Verify flattening occurred - should have 3 conditions instead of nested structure
+        assert len(expectation.row_condition.conditions) == 3
+
+    def test_error_on_or_within_and(self):
+        """Test that OrConditions nested within AndConditions raise error in Expectation."""
+        # Create conditions using Column API: column_1 < 8 & (column_2 > 8 | column_3 == 8)
+        column_1 = Column(name="column_1")
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+
+        # Use Python operators - OR within AND
+        row_condition = (column_1 < 8) & ((column_2 > 8) | (column_3 == 8))
+
+        # This should raise ValueError when passed to Expectation
+        with pytest.raises(ValueError, match="AND groups cannot contain OR conditions"):
+            ExpectColumnValuesToBeInSet(
+                column="test_column", value_set=["a", "b"], row_condition=row_condition
+            )
+
+    def test_error_on_nested_or_within_or_within_and(self):
+        """Test that manually created nested OR structures are caught by validation."""
+        # Note: Normal use of the | operator automatically flattens, so this tests
+        # the edge case where someone manually constructs a nested structure
+        from great_expectations.expectations.conditions import OrCondition
+
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+        column_4 = Column(name="column_4")
+
+        # Manually create nested OrCondition (not using operators)
+        nested_or = (column_3 == 8) | (column_4 == 9)
+        outer_or = OrCondition(conditions=[column_2 > 8, nested_or])
+
+        # This should fail when passed to Expectation
+        with pytest.raises(ValueError, match="OR groups cannot contain nested OR conditions"):
+            ExpectColumnValuesToBeInSet(
+                column="test_column", value_set=["a", "b"], row_condition=outer_or
+            )
+
+    def test_error_on_more_than_100_conditions(self):
+        """Test that more than 100 conditions raises error in Expectation."""
+        column = Column(name="column_1")
+
+        # Create 101 conditions using & operator
+        row_condition = column == 0
+        for i in range(1, 101):
+            row_condition = row_condition & (column == i)
+
+        with pytest.raises(
+            ValueError, match="100 conditions is the maximum, but 101 conditions are defined"
+        ):
+            ExpectColumnValuesToBeInSet(
+                column="test_column", value_set=["a", "b"], row_condition=row_condition
+            )
+
+    def test_exactly_100_conditions_allowed(self):
+        """Test that exactly 100 conditions is allowed in Expectation."""
+        column = Column(name="column_1")
+
+        # Create exactly 100 conditions using & operator
+        row_condition = column == 0
+        for i in range(1, 100):
+            row_condition = row_condition & (column == i)
+
+        # This should not raise an error
+        expectation = ExpectColumnValuesToBeInSet(
+            column="test_column", value_set=["a", "b"], row_condition=row_condition
+        )
+        assert len(expectation.row_condition.conditions) == 100
+
+    def test_nested_conditions_count_towards_limit(self):
+        """Test that nested conditions are counted towards the 100 limit in Expectation."""
+        column = Column(name="column_1")
+
+        # Create nested structure: 50 conditions & (nested 51 conditions)
+        # First group of 50
+        first_group = column == 0
+        for i in range(1, 50):
+            first_group = first_group & (column == i)
+
+        # Second nested group of 51
+        second_group = column == 50
+        for i in range(51, 101):
+            second_group = second_group & (column == i)
+
+        # Combine them - total: 50 + 51 = 101 conditions (flattening occurs)
+        row_condition = first_group & second_group
+
+        with pytest.raises(
+            ValueError, match="100 conditions is the maximum, but 101 conditions are defined"
+        ):
+            ExpectColumnValuesToBeInSet(
+                column="test_column", value_set=["a", "b"], row_condition=row_condition
+            )
+
+
+class TestOrConditionValidator:
+    """Tests for OrCondition validator when passed to Expectation."""
+
+    def test_error_on_nested_or_conditions(self):
+        """Test that manually created nested OR structures are caught by validation."""
+        # Note: Normal use of the | operator automatically flattens, so this tests
+        # the edge case where someone manually constructs a nested structure
+        from great_expectations.expectations.conditions import OrCondition
+
+        column_1 = Column(name="column_1")
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+
+        # Manually create nested OrCondition (not using operators)
+        nested_or = (column_2 > 8) | (column_3 == 8)
+        outer_or = OrCondition(conditions=[column_1 < 8, nested_or])
+
+        # This should raise ValueError when passed to Expectation
+        with pytest.raises(ValueError, match="OR groups cannot contain nested OR conditions"):
+            ExpectColumnValuesToBeInSet(
+                column="test_column", value_set=["a", "b"], row_condition=outer_or
+            )
+
+    def test_error_on_more_than_100_conditions(self):
+        """Test that more than 100 conditions raises error in Expectation."""
+        column = Column(name="column_1")
+
+        # Create 101 conditions using | operator
+        row_condition = column == 0
+        for i in range(1, 101):
+            row_condition = row_condition | (column == i)
+
+        with pytest.raises(
+            ValueError, match="100 conditions is the maximum, but 101 conditions are defined"
+        ):
+            ExpectColumnValuesToBeInSet(
+                column="test_column", value_set=["a", "b"], row_condition=row_condition
+            )
+
+    def test_exactly_100_conditions_allowed(self):
+        """Test that exactly 100 conditions is allowed in Expectation."""
+        column = Column(name="column_1")
+
+        # Create exactly 100 conditions using | operator
+        row_condition = column == 0
+        for i in range(1, 100):
+            row_condition = row_condition | (column == i)
+
+        # This should not raise an error
+        expectation = ExpectColumnValuesToBeInSet(
+            column="test_column", value_set=["a", "b"], row_condition=row_condition
+        )
+        assert len(expectation.row_condition.conditions) == 100
+
+    def test_nested_and_conditions_count_towards_limit(self):
+        """Test that nested AndConditions within OR are counted towards the 100 limit."""
+        column = Column(name="column_1")
+
+        # Create first AND group with 50 conditions
+        first_and_group = column == 0
+        for i in range(1, 50):
+            first_and_group = first_and_group & (column == i)
+
+        # Create second AND group with 51 conditions
+        second_and_group = column == 50
+        for i in range(51, 101):
+            second_and_group = second_and_group & (column == i)
+
+        # Combine with OR - total: 50 + 51 = 101 conditions
+        row_condition = first_and_group | second_and_group
+
+        with pytest.raises(
+            ValueError, match="100 conditions is the maximum, but 101 conditions are defined"
+        ):
+            ExpectColumnValuesToBeInSet(
+                column="test_column", value_set=["a", "b"], row_condition=row_condition
+            )
+
+    def test_or_condition_with_and_conditions_allowed(self):
+        """Test that OrConditions can contain AndConditions in Expectation."""
+        column_1 = Column(name="column_1")
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+
+        # Use Python operators: (column_1 < 8) | (column_2 > 8 & column_3 == 8)
+        row_condition = (column_1 < 8) | ((column_2 > 8) & (column_3 == 8))
+
+        # This should be allowed
+        expectation = ExpectColumnValuesToBeInSet(
+            column="test_column", value_set=["a", "b"], row_condition=row_condition
+        )
+        assert len(expectation.row_condition.conditions) == 2
+
+
+class TestConditionOperators:
+    """Test that the & and | operators work correctly with validation."""
+
+    def test_and_operator_flattens_correctly(self):
+        """Test that using the & operator flattens nested AndConditions."""
+        column_1 = Column(name="column_1")
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+
+        # Create nested structure using & operator
+        row_condition = (column_1 < 8) & ((column_2 > 8) & (column_3 == 8))
+
+        # Pass to Expectation - should flatten to 3 conditions
+        expectation = ExpectColumnValuesToBeInSet(
+            column="test_column", value_set=["a", "b"], row_condition=row_condition
+        )
+        assert len(expectation.row_condition.conditions) == 3
+
+    def test_or_operator_flattens_correctly(self):
+        """Test that the | operator flattens OrConditions."""
+        column_1 = Column(name="column_1")
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+
+        # The | operator should flatten, so this creates a flat OrCondition
+        row_condition = (column_1 < 8) | (column_2 > 8) | (column_3 == 8)
+
+        # This should work fine in an Expectation
+        expectation = ExpectColumnValuesToBeInSet(
+            column="test_column", value_set=["a", "b"], row_condition=row_condition
+        )
+        assert len(expectation.row_condition.conditions) == 3
+
+
+class TestValidatorAppliesAcrossExpectations:
+    """Test that the validator applies to all BatchExpectation subclasses with row_condition."""
+
+    def test_validator_applies_to_core_expectations(self):
+        """Test that expectations in core/ directory also get validated."""
+        column_1 = Column(name="column_1")
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+
+        # Create condition using Python operators: column_1 < 8 & (column_2 > 8 | column_3 == 8)
+        row_condition = (column_1 < 8) & ((column_2 > 8) | (column_3 == 8))
+
+        # This should raise ValueError even for ExpectTableRowCountToEqual
+        with pytest.raises(ValueError, match="AND groups cannot contain OR conditions"):
+            ExpectTableRowCountToEqual(value=10, row_condition=row_condition)
+
+    def test_validator_flattens_in_core_expectations(self):
+        """Test that flattening works for expectations in core/ directory."""
+        column_1 = Column(name="column_1")
+        column_2 = Column(name="column_2")
+        column_3 = Column(name="column_3")
+
+        # Use Python operators to create nested structure
+        row_condition = (column_1 < 8) & ((column_2 > 8) & (column_3 == 8))
+
+        # Pass to ExpectTableRowCountToEqual - should flatten
+        expectation = ExpectTableRowCountToEqual(value=10, row_condition=row_condition)
+
+        # Verify flattening occurred
+        assert len(expectation.row_condition.conditions) == 3
