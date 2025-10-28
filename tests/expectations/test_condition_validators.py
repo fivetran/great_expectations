@@ -44,6 +44,10 @@ class TestAndConditionValidator:
                 column="test_column", value_set=["a", "b"], row_condition=row_condition
             )
 
+
+class TestOrConditionValidator:
+    """Tests for OrCondition validator when passed to Expectation."""
+
     def test_error_on_nested_or_within_or_within_and(self):
         """Test that nested OR structures are caught by validation."""
         column_1 = Column(name="column_1")
@@ -57,79 +61,9 @@ class TestAndConditionValidator:
                 column="test_column", value_set=["a", "b"], row_condition=nested_or
             )
 
-    def test_error_on_more_than_100_conditions(self):
-        """Test that more than 100 conditions raises error in Expectation."""
-        column = Column(name="column_1")
 
-        # Create 101 conditions using & operator
-        row_condition = column == 0
-        for i in range(1, 101):
-            row_condition = row_condition & (column == i)
-
-        with pytest.raises(
-            ValueError, match="100 conditions is the maximum, but 101 conditions are defined"
-        ):
-            ExpectColumnValuesToBeInSet(
-                column="test_column", value_set=["a", "b"], row_condition=row_condition
-            )
-
-    def test_exactly_100_conditions_allowed(self):
-        """Test that exactly 100 conditions is allowed in Expectation."""
-        column = Column(name="column_1")
-
-        # Create exactly 100 conditions using & operator
-        row_condition = column == 0
-        for i in range(1, 100):
-            row_condition = row_condition & (column == i)
-
-        # This should not raise an error
-        expectation = ExpectColumnValuesToBeInSet(
-            column="test_column", value_set=["a", "b"], row_condition=row_condition
-        )
-        assert len(expectation.row_condition.conditions) == 100
-
-    def test_nested_conditions_count_towards_limit(self):
-        """Test that nested conditions are counted towards the 100 limit in Expectation."""
-        column = Column(name="column_1")
-
-        # Create nested structure: 50 conditions & (nested 51 conditions)
-        # First group of 50
-        first_group = column == 0
-        for i in range(1, 50):
-            first_group = first_group & (column == i)
-
-        # Second nested group of 51
-        second_group = column == 50
-        for i in range(51, 101):
-            second_group = second_group & (column == i)
-
-        # Combine them - total: 50 + 51 = 101 conditions (flattening occurs)
-        row_condition = first_group & second_group
-
-        with pytest.raises(
-            ValueError, match="100 conditions is the maximum, but 101 conditions are defined"
-        ):
-            ExpectColumnValuesToBeInSet(
-                column="test_column", value_set=["a", "b"], row_condition=row_condition
-            )
-
-
-class TestOrConditionValidator:
-    """Tests for OrCondition validator when passed to Expectation."""
-
-    def test_error_on_nested_or_conditions(self):
-        """Test that manually created nested OR structures are caught by validation."""
-        column_1 = Column(name="column_1")
-        column_2 = Column(name="column_2")
-        column_3 = Column(name="column_3")
-
-        nested_or_cond = (column_1 < 8) | ((column_2 > 8) | (column_3 == 8))
-
-        # This should raise ValueError when passed to Expectation
-        with pytest.raises(ValueError, match="OR groups cannot contain nested OR conditions"):
-            ExpectColumnValuesToBeInSet(
-                column="test_column", value_set=["a", "b"], row_condition=nested_or_cond
-            )
+class TestTotalConditionCountValidator:
+    """Tests for total condition count validator when passed to Expectation."""
 
     def test_error_on_more_than_100_conditions(self):
         """Test that more than 100 conditions raises error in Expectation."""
