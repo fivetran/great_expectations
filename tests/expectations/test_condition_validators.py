@@ -49,23 +49,18 @@ class TestAndConditionValidator:
             )
 
     def test_error_on_nested_or_within_or_within_and(self):
-        """Test that manually created nested OR structures are caught by validation."""
-        # Note: Normal use of the | operator automatically flattens, so this tests
-        # the edge case where someone manually constructs a nested structure
-        from great_expectations.expectations.conditions import OrCondition
-
+        """Test that nested OR structures are caught by validation."""
         column_2 = Column(name="column_2")
         column_3 = Column(name="column_3")
         column_4 = Column(name="column_4")
 
         # Manually create nested OrCondition (not using operators)
-        nested_or = (column_3 == 8) | (column_4 == 9)
-        outer_or = OrCondition(conditions=[column_2 > 8, nested_or])
+        nested_or = (column_2 > 8) | ((column_3 == 8) | (column_4 == 9))
 
         # This should fail when passed to Expectation
         with pytest.raises(ValueError, match="OR groups cannot contain nested OR conditions"):
             ExpectColumnValuesToBeInSet(
-                column="test_column", value_set=["a", "b"], row_condition=outer_or
+                column="test_column", value_set=["a", "b"], row_condition=nested_or
             )
 
     def test_error_on_more_than_100_conditions(self):
