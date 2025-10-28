@@ -1,13 +1,9 @@
 services:
-  spark:
-    image: ${ECR_PULL_THROUGH_REPOSITORY_URL}bitnami/spark:3.3.2
-    ports:
-      - "9090:8080"
-      - "7077:7077"
-
   spark-connect:
-    image: ${ECR_PULL_THROUGH_REPOSITORY_URL}bitnami/spark:3.5.2
+    image: ${ECR_PULL_THROUGH_REPOSITORY_URL}apache/spark:latest@sha256:fb5c5e61e7bb1be94b7f3a31afe1f73c5b4d20b6008f4ffa7278fc085da08a9e
     ports:
-      - "15002:15002"
-    # See https://spark.apache.org/docs/latest/spark-connect-overview.html#download-and-start-spark-server-with-spark-connect
-    command: ./sbin/start-connect-server.sh --packages org.apache.spark:spark-connect_2.12:3.5.2
+      - "15002:15002" # Spark Connect port
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - SPARK_MASTER=local[*]
+    command: /opt/spark/sbin/start-connect-server.sh --master local[*]
