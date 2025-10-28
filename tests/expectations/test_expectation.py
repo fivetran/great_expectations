@@ -17,6 +17,7 @@ from great_expectations.expectations.conditions import (
     Column,
     ComparisonCondition,
     Operator,
+    PassThroughCondition,
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -777,12 +778,14 @@ class TestLegacyRowConditionTransformation:
         assert expectation.row_condition is None
         assert expectation.condition_parser == "great_expectations"
 
-    def test_no_transformation_when_row_condition_parser_is_not_great_expectations(self):
+    def test_pandas_parser_transformation_to_pass_through_condition(self):
         expectation = gxe.ExpectColumnValuesToBeInSet(
             column="status",
             value_set=["active"],
-            row_condition='col("age") > 18',
+            row_condition='PClass=="1st"',
             condition_parser="pandas",
         )
 
-        assert expectation.row_condition == 'col("age") > 18'
+        assert expectation.row_condition == PassThroughCondition(
+            pass_through_filter='PClass=="1st"'
+        )

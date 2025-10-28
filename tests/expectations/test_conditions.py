@@ -12,6 +12,7 @@ from great_expectations.expectations.conditions import (
     NullityCondition,
     Operator,
     OrCondition,
+    PassThroughCondition,
     deserialize_row_condition,
 )
 
@@ -684,6 +685,42 @@ class TestConditionRoundTrip:
                 ComparisonCondition(column=col, operator=Operator.LESS_THAN, parameter=10),
             ]
         )
+
+        serialized = original.dict()
+        deserialized = deserialize_row_condition(serialized)
+
+        assert deserialized == original
+
+
+class TestPassThroughCondition:
+    def test_pass_through_condition_creation(self):
+        condition = PassThroughCondition(pass_through_filter='col("age") > 18')
+
+        assert condition.pass_through_filter == 'col("age") > 18'
+        assert condition.type == "pass_through"
+
+    def test_pass_through_condition_repr(self):
+        condition = PassThroughCondition(pass_through_filter='col("age") > 18')
+
+        assert repr(condition) == "PassThrough('col(\"age\") > 18')"
+
+    def test_pass_through_condition_serialization(self):
+        condition = PassThroughCondition(pass_through_filter="PClass=='1st'")
+
+        result = condition.dict()
+
+        assert result == {"type": "pass_through", "pass_through_filter": "PClass=='1st'"}
+
+    def test_pass_through_condition_deserialization(self):
+        cond_dict = {"type": "pass_through", "pass_through_filter": "quantity > 0"}
+
+        result = deserialize_row_condition(cond_dict)
+
+        expected = PassThroughCondition(pass_through_filter="quantity > 0")
+        assert result == expected
+
+    def test_pass_through_condition_round_trip(self):
+        original = PassThroughCondition(pass_through_filter="col > 100")
 
         serialized = original.dict()
         deserialized = deserialize_row_condition(serialized)

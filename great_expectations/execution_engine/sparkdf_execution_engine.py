@@ -62,6 +62,7 @@ from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchD
 from great_expectations.expectations.conditions import (
     Condition,
     Operator,
+    PassThroughCondition,
     deserialize_row_condition,
 )
 from great_expectations.expectations.model_field_types import (
@@ -78,6 +79,7 @@ from great_expectations.util import convert_to_json_serializable  # noqa: TID251
 from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 if TYPE_CHECKING:
+    from great_expectations.compatibility.pyspark import DataFrame
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
     from great_expectations.expectations.conditions import (
         AndCondition,
@@ -640,6 +642,45 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
                 f"Unable to find reader_method {reader_method} in spark.",
             )
 
+    def _apply_row_condition_filter(
+        self, data: DataFrame, row_condition: Any, domain_kwargs: dict
+    ) -> DataFrame:
+        """Apply the row condition to the data.
+
+        Args:
+            data: The data to filter
+            row_condition: The row condition to apply to the data.
+            domain_kwargs: The domain kwargs containing the condition parser
+
+        Returns:
+            Filtered data
+        """
+
+        if isinstance(row_condition, dict):
+            row_condition = deserialize_row_condition(row_condition)
+        # Handle PassThroughCondition for legacy spark syntax
+        # Uses DataFrame.filter() directly with the pass-through string
+        if isinstance(row_condition, PassThroughCondition):
+            return data.filter(row_condition.pass_through_filter)
+        elif isinstance(row_condition, Condition):
+            # Handle other Condition objects using condition_to_filter_clause
+            parsed_condition = self.condition_to_filter_clause(row_condition)
+            return data.filter(parsed_condition)
+        else:
+            # Legacy string-based conditions
+            condition_parser = domain_kwargs.get("condition_parser", None)
+            if condition_parser == CONDITION_PARSER_SPARK and isinstance(row_condition, str):
+                return data.filter(row_condition)
+            elif condition_parser in [
+                CONDITION_PARSER_GREAT_EXPECTATIONS,
+                CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+            ] and isinstance(row_condition, str):
+                return data.filter(parse_condition_to_spark(row_condition))
+            else:
+                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                    f"unrecognized condition_parser {condition_parser!s} for Spark execution engine"
+                )
+
     @override
     def get_domain_records(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
@@ -684,28 +725,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         # Filtering by row condition.
         row_condition = domain_kwargs.get("row_condition", None)
         if row_condition:
-            condition_parser = domain_kwargs.get("condition_parser", None)
-
-            # Convert dict to Condition object if needed
-            if isinstance(row_condition, dict):
-                row_condition = deserialize_row_condition(row_condition)
-
-            if isinstance(row_condition, Condition):
-                data = data.filter(self.condition_to_filter_clause(row_condition))
-            elif condition_parser == CONDITION_PARSER_SPARK:
-                data = data.filter(row_condition)
-            elif condition_parser in [
-                CONDITION_PARSER_GREAT_EXPECTATIONS,
-                CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
-            ]:
-                if not isinstance(row_condition, str):
-                    raise InvalidRowConditionException(row_condition)
-                parsed_condition = parse_condition_to_spark(row_condition)
-                data = data.filter(parsed_condition)
-            else:
-                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
-                    f"unrecognized condition_parser {condition_parser!s} for Spark execution engine"
-                )
+            data = self._apply_row_condition_filter(data, row_condition, domain_kwargs)
 
         # Filtering by filter_conditions
         filter_conditions: List[RowCondition] = domain_kwargs.get("filter_conditions", [])

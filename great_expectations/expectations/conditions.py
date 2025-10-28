@@ -150,6 +150,21 @@ class ComparisonCondition(Condition):
         return f"{col_name} {self.operator} {self.parameter}"
 
 
+class PassThroughCondition(Condition):
+    """Condition that passes a filter string directly to the execution engine.
+
+    This is used for legacy pandas/spark condition_parser syntax where the
+    row_condition string is passed directly to DataFrame.query() or DataFrame.filter().
+    """
+
+    type: Literal["pass_through"] = Field(default="pass_through")
+    pass_through_filter: str
+
+    @override
+    def __repr__(self):
+        return f"PassThrough({self.pass_through_filter!r})"
+
+
 def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:
     """Parse a row_condition value into the appropriate Condition type."""
     if value is None or isinstance(value, (str, Condition)):
@@ -167,6 +182,8 @@ def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:
             return AndCondition.parse_obj(value)
         elif condition_type == "or":
             return OrCondition.parse_obj(value)
+        elif condition_type == "pass_through":
+            return PassThroughCondition.parse_obj(value)
         else:
             raise ConditionParserError(value)
 
@@ -210,5 +227,11 @@ class OrCondition(Condition):
 
 
 RowConditionType: TypeAlias = Union[
-    str, ComparisonCondition, NullityCondition, AndCondition, OrCondition, None
+    str,
+    ComparisonCondition,
+    NullityCondition,
+    AndCondition,
+    OrCondition,
+    PassThroughCondition,
+    None,
 ]

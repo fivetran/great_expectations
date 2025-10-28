@@ -59,6 +59,7 @@ from great_expectations.expectations.conditions import (
     Condition,
     NullityCondition,
     Operator,
+    PassThroughCondition,
     RowConditionType,  # Required for RowConditionType runtime validation
 )
 from great_expectations.expectations.expectation_configuration import (
@@ -76,6 +77,8 @@ from great_expectations.expectations.model_field_descriptions import (
 from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+    CONDITION_PARSER_PANDAS,
+    CONDITION_PARSER_SPARK,
     ConditionParser,
     MostlyField,
 )
@@ -532,6 +535,15 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         if isinstance(row_condition, str) and is_great_expectations_condition_parser:
             condition_obj = _convert_string_to_condition(row_condition)
             values["row_condition"] = condition_obj
+
+        # Transform pandas/spark parser row_condition strings to PassThroughCondition
+        is_pass_through_condition_parser = condition_parser is not None and condition_parser in [
+            CONDITION_PARSER_PANDAS,
+            CONDITION_PARSER_SPARK,
+        ]
+        if isinstance(row_condition, str) and is_pass_through_condition_parser:
+            values["row_condition"] = PassThroughCondition(pass_through_filter=row_condition)
+
         return values
 
     @classmethod
