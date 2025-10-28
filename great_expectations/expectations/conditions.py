@@ -139,13 +139,7 @@ class Condition(BaseModel):
         return AndCondition(conditions=new_conditions)
 
     def __or__(self, other: Condition) -> OrCondition:
-        new_conditions = []
-        for cond in [self, other]:
-            if isinstance(cond, OrCondition):
-                new_conditions.extend(cond.conditions)
-            else:
-                new_conditions.append(cond)
-        return OrCondition(conditions=new_conditions)
+        return OrCondition(conditions=[self, other])
 
 
 class NullityCondition(Condition):
