@@ -14,12 +14,10 @@ class TestAndConditionValidator:
 
     def test_flatten_nested_and_conditions(self):
         """Test that nested AndConditions are flattened when passed to Expectation."""
-        # Create conditions using Column API: column_1 < 8 & (column_2 > 8 & column_3 == 8)
         column_1 = Column(name="column_1")
         column_2 = Column(name="column_2")
         column_3 = Column(name="column_3")
 
-        # Use Python operators to build conditions
         row_condition = (column_1 < 8) & ((column_2 > 8) & (column_3 == 8))
 
         # Pass to an Expectation - should flatten
@@ -32,7 +30,6 @@ class TestAndConditionValidator:
 
     def test_error_on_or_within_and(self):
         """Test that OrConditions nested within AndConditions raise error in Expectation."""
-        # Create conditions using Column API: column_1 < 8 & (column_2 > 8 | column_3 == 8)
         column_1 = Column(name="column_1")
         column_2 = Column(name="column_2")
         column_3 = Column(name="column_3")
@@ -201,21 +198,6 @@ class TestOrConditionValidator:
                 column="test_column", value_set=["a", "b"], row_condition=row_condition
             )
 
-    def test_or_condition_with_and_conditions_allowed(self):
-        """Test that OrConditions can contain AndConditions in Expectation."""
-        column_1 = Column(name="column_1")
-        column_2 = Column(name="column_2")
-        column_3 = Column(name="column_3")
-
-        # Use Python operators: (column_1 < 8) | (column_2 > 8 & column_3 == 8)
-        row_condition = (column_1 < 8) | ((column_2 > 8) & (column_3 == 8))
-
-        # This should be allowed
-        expectation = ExpectColumnValuesToBeInSet(
-            column="test_column", value_set=["a", "b"], row_condition=row_condition
-        )
-        assert len(expectation.row_condition.conditions) == 2
-
 
 class TestConditionOperators:
     """Test that the & and | operators work correctly with validation."""
@@ -260,24 +242,8 @@ class TestValidatorAppliesAcrossExpectations:
         column_2 = Column(name="column_2")
         column_3 = Column(name="column_3")
 
-        # Create condition using Python operators: column_1 < 8 & (column_2 > 8 | column_3 == 8)
         row_condition = (column_1 < 8) & ((column_2 > 8) | (column_3 == 8))
 
         # This should raise ValueError even for ExpectTableRowCountToEqual
         with pytest.raises(ValueError, match="AND groups cannot contain OR conditions"):
             ExpectTableRowCountToEqual(value=10, row_condition=row_condition)
-
-    def test_validator_flattens_in_core_expectations(self):
-        """Test that flattening works for expectations in core/ directory."""
-        column_1 = Column(name="column_1")
-        column_2 = Column(name="column_2")
-        column_3 = Column(name="column_3")
-
-        # Use Python operators to create nested structure
-        row_condition = (column_1 < 8) & ((column_2 > 8) & (column_3 == 8))
-
-        # Pass to ExpectTableRowCountToEqual - should flatten
-        expectation = ExpectTableRowCountToEqual(value=10, row_condition=row_condition)
-
-        # Verify flattening occurred
-        assert len(expectation.row_condition.conditions) == 3

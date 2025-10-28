@@ -644,6 +644,8 @@ filterwarnings = [
     "ignore: Attempting to mutate a Context after a Connection was created. In the future, this will raise an exception",
     "ignore: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.:pytest_benchmark.logger.PytestBenchmarkWarning",
     "ignore: No data was collected\\. \\(no-data-collected\\):coverage.exceptions.CoverageWarning",
+    # Example Actual Warning: FutureWarning: You are using a Python version (3.9.23) past its end of life.
+    "ignore: You are using a Python version.*past its end of life:FutureWarning",
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
 ]
