@@ -962,27 +962,27 @@ def gx_cloud_api_fake_ctx(
         )
         resp_mocker.add_callback(
             responses.GET,
-            urllib.parse.urljoin(url_base_V1, "expectation-suites"),
+            urllib.parse.urljoin(url_base_V2, "expectation-suites"),
             get_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.GET,
-            re.compile(urllib.parse.urljoin(url_base_V1, f"expectation-suites/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V2, f"expectation-suites/{UUID_REGEX}")),
             get_expectation_suite_by_id_cb,
         )
         resp_mocker.add_callback(
             responses.POST,
-            urllib.parse.urljoin(url_base_V1, "expectation-suites"),
+            urllib.parse.urljoin(url_base_V2, "expectation-suites"),
             post_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.PUT,
-            re.compile(urllib.parse.urljoin(url_base_V1, f"expectation-suites/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V2, f"expectation-suites/{UUID_REGEX}")),
             put_expectation_suites_cb,
         )
         resp_mocker.add_callback(
             responses.DELETE,
-            re.compile(urllib.parse.urljoin(url_base_V1, f"expectation-suites/{UUID_REGEX}")),
+            re.compile(urllib.parse.urljoin(url_base_V2, f"expectation-suites/{UUID_REGEX}")),
             delete_expectation_suites_cb,
         )
         resp_mocker.add_callback(

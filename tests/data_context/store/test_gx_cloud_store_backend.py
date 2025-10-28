@@ -74,8 +74,8 @@ def construct_ge_cloud_store_backend(
             "de5b9ca6-caf7-43c8-a820-5540ec6df9b2",
             "expectation_suites",
             "8746e25c-de4d-450d-967b-df0d5546590d",
-            "https://app.test.greatexpectations.io/api/v1/organizations/de5b9ca6-caf7-43c8-a820-5540ec6df9b2/expectation-suites/8746e25c-de4d-450d-967b-df0d5546590d",
-            id="expectation-suites V1",
+            "https://app.test.greatexpectations.io/api/v2/organizations/de5b9ca6-caf7-43c8-a820-5540ec6df9b2/expectation-suites/8746e25c-de4d-450d-967b-df0d5546590d",
+            id="expectation-suites V2",
         ),
     ],
 )
@@ -279,7 +279,7 @@ def test_has_key_with_empty_payload_from_backend(
     name = "my_nonexistent_suite"
     responses.add(
         responses.GET,
-        f"{CLOUD_DEFAULT_BASE_URL}api/v1/organizations/51379b8b-86d3-4fe7-84e9-e1a52f4a414c/expectation-suites?name={name}",
+        f"{CLOUD_DEFAULT_BASE_URL}api/v2/organizations/51379b8b-86d3-4fe7-84e9-e1a52f4a414c/expectation-suites?name={name}",
         json={"data": []},
         status=200,
     )
@@ -298,7 +298,7 @@ def test_get_with_empty_payload_from_backend(
     name = "my_nonexistent_suite"
     responses.add(
         responses.GET,
-        f"{CLOUD_DEFAULT_BASE_URL}api/v1/organizations/51379b8b-86d3-4fe7-84e9-e1a52f4a414c/expectation-suites?name={name}",
+        f"{CLOUD_DEFAULT_BASE_URL}api/v2/organizations/51379b8b-86d3-4fe7-84e9-e1a52f4a414c/expectation-suites?name={name}",
         json={"data": []},
         status=200,
     )
