@@ -110,6 +110,11 @@ services:
       AWS_ENDPOINT_URL: ${LOCALSTACK_AWS_ENDPOINT_URL}
       AWS_SECRET_ACCESS_KEY: ${LOCALSTACK_AWS_SECRET_ACCESS_KEY}
       AWS_ACCESS_KEY_ID: ${LOCALSTACK_AWS_ACCESS_KEY_ID}
+    healthcheck:
+      test: bash -c ':> /dev/tcp/0.0.0.0/6002' || exit 1
+      interval: 5s
+      timeout: 2s
+      retries: 20
     depends_on:
       mercury-service-api:
         condition: service_started

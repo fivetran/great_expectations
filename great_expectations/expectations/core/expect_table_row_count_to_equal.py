@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Tuple, Type, Union
 
-from great_expectations.alias_types import RowConditionType  # noqa: TC001 # FIXME
 from great_expectations.compatibility import pydantic
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.suite_parameters import (
     SuiteParameterDict,  # noqa: TC001 # FIXME CoP
 )
+from great_expectations.expectations.conditions import RowConditionType  # noqa: TC001
 from great_expectations.expectations.expectation import (
     BatchExpectation,
     render_suite_parameter_string,
@@ -171,6 +171,7 @@ class ExpectTableRowCountToEqual(BatchExpectation):
     _library_metadata = library_metadata
 
     metric_dependencies = ("table.row_count",)
+    domain_keys: ClassVar[Tuple[str, ...]] = ("row_condition", "condition_parser")
     success_keys = ("value",)
     args_keys = ("value",)
 

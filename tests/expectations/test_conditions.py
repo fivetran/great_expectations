@@ -7,9 +7,12 @@ from great_expectations.expectations.conditions import (
     Column,
     ComparisonCondition,
     Condition,
+    ConditionParserError,
+    InvalidConditionTypeError,
     NullityCondition,
     Operator,
     OrCondition,
+    deserialize_row_condition,
 )
 
 pytestmark = pytest.mark.unit
@@ -384,3 +387,305 @@ class TestComplexExpressions:
         result = cond1 | cond2 | cond3 | cond4
 
         assert result == OrCondition(conditions=[cond1, cond2, cond3, cond4])
+
+
+class TestConditionSerialization:
+    """Tests for serialization (converting Condition objects to dicts)."""
+
+    def test_comparison_condition_serialization(self):
+        """Test that ComparisonCondition serializes to the expected dict."""
+        col = Column(name="age")
+        cond = ComparisonCondition(column=col, operator=Operator.LESS_THAN, parameter=18)
+
+        result = cond.dict(exclude_defaults=True)
+
+        assert result == {
+            "type": "comparison",
+            "column": {"name": "age"},
+            "operator": "<",
+            "parameter": 18,
+        }
+
+    def test_nullity_condition_serialization(self):
+        """Test that NullityCondition serializes to the expected dict."""
+        col = Column(name="email")
+        cond = NullityCondition(column=col, is_null=True)
+
+        result = cond.dict(exclude_defaults=True)
+
+        assert result == {
+            "type": "nullity",
+            "column": {"name": "email"},
+            "is_null": True,
+        }
+
+    def test_and_condition_serialization(self):
+        """Test that AndCondition serializes to the expected dict with nested conditions."""
+        col = Column(name="quantity")
+        cond1 = ComparisonCondition(column=col, operator=Operator.GREATER_THAN, parameter=0)
+        cond2 = ComparisonCondition(column=col, operator=Operator.LESS_THAN, parameter=10)
+        and_cond = AndCondition(conditions=[cond1, cond2])
+
+        result = and_cond.dict(exclude_defaults=True)
+
+        assert result == {
+            "type": "and",
+            "conditions": [
+                {
+                    "type": "comparison",
+                    "column": {"name": "quantity"},
+                    "operator": ">",
+                    "parameter": 0,
+                },
+                {
+                    "type": "comparison",
+                    "column": {"name": "quantity"},
+                    "operator": "<",
+                    "parameter": 10,
+                },
+            ],
+        }
+
+    def test_or_condition_serialization(self):
+        """Test that OrCondition serializes to the expected dict with nested conditions."""
+        col = Column(name="status")
+        cond1 = ComparisonCondition(column=col, operator=Operator.EQUAL, parameter="active")
+        cond2 = ComparisonCondition(column=col, operator=Operator.EQUAL, parameter="pending")
+        or_cond = OrCondition(conditions=[cond1, cond2])
+
+        result = or_cond.dict(exclude_defaults=True)
+
+        assert result == {
+            "type": "or",
+            "conditions": [
+                {
+                    "type": "comparison",
+                    "column": {"name": "status"},
+                    "operator": "==",
+                    "parameter": "active",
+                },
+                {
+                    "type": "comparison",
+                    "column": {"name": "status"},
+                    "operator": "==",
+                    "parameter": "pending",
+                },
+            ],
+        }
+
+
+class TestConditionDeserialization:
+    """Tests for deserialization (converting dicts back to Condition objects)."""
+
+    def test_deserialize_comparison_condition(self):
+        """Test deserializing a ComparisonCondition from a dict."""
+        cond_dict = {
+            "type": "comparison",
+            "column": {"name": "age"},
+            "operator": "<",
+            "parameter": 18,
+        }
+
+        result = deserialize_row_condition(cond_dict)
+
+        expected = ComparisonCondition(
+            column=Column(name="age"), operator=Operator.LESS_THAN, parameter=18
+        )
+        assert result == expected
+
+    def test_deserialize_nullity_condition_is_null(self):
+        """Test deserializing a NullityCondition with is_null=True from a dict."""
+        cond_dict = {
+            "type": "nullity",
+            "column": {"name": "email"},
+            "is_null": True,
+        }
+
+        result = deserialize_row_condition(cond_dict)
+
+        expected = NullityCondition(column=Column(name="email"), is_null=True)
+        assert result == expected
+
+    def test_deserialize_nullity_condition_is_not_null(self):
+        """Test deserializing a NullityCondition with is_null=False from a dict."""
+        cond_dict = {
+            "type": "nullity",
+            "column": {"name": "email"},
+            "is_null": False,
+        }
+
+        result = deserialize_row_condition(cond_dict)
+
+        expected = NullityCondition(column=Column(name="email"), is_null=False)
+        assert result == expected
+
+    def test_deserialize_and_condition(self):
+        """Test deserializing an AndCondition from a dict."""
+        cond_dict = {
+            "type": "and",
+            "conditions": [
+                {
+                    "type": "comparison",
+                    "column": {"name": "quantity"},
+                    "operator": ">",
+                    "parameter": 0,
+                },
+                {
+                    "type": "comparison",
+                    "column": {"name": "quantity"},
+                    "operator": "<",
+                    "parameter": 10,
+                },
+            ],
+        }
+
+        result = deserialize_row_condition(cond_dict)
+
+        col = Column(name="quantity")
+        expected = AndCondition(
+            conditions=[
+                ComparisonCondition(column=col, operator=Operator.GREATER_THAN, parameter=0),
+                ComparisonCondition(column=col, operator=Operator.LESS_THAN, parameter=10),
+            ]
+        )
+        assert result == expected
+
+    def test_deserialize_or_condition(self):
+        """Test deserializing an OrCondition from a dict."""
+        cond_dict = {
+            "type": "or",
+            "conditions": [
+                {
+                    "type": "comparison",
+                    "column": {"name": "status"},
+                    "operator": "==",
+                    "parameter": "active",
+                },
+                {
+                    "type": "comparison",
+                    "column": {"name": "status"},
+                    "operator": "==",
+                    "parameter": "pending",
+                },
+            ],
+        }
+
+        result = deserialize_row_condition(cond_dict)
+
+        col = Column(name="status")
+        expected = OrCondition(
+            conditions=[
+                ComparisonCondition(column=col, operator=Operator.EQUAL, parameter="active"),
+                ComparisonCondition(column=col, operator=Operator.EQUAL, parameter="pending"),
+            ]
+        )
+        assert result == expected
+
+    def test_deserialize_nested_and_or_condition(self):
+        """Test deserializing nested AND/OR conditions from a dict."""
+        cond_dict = {
+            "type": "or",
+            "conditions": [
+                {
+                    "type": "and",
+                    "conditions": [
+                        {
+                            "type": "comparison",
+                            "column": {"name": "age"},
+                            "operator": ">",
+                            "parameter": 18,
+                        },
+                        {
+                            "type": "comparison",
+                            "column": {"name": "status"},
+                            "operator": "==",
+                            "parameter": "active",
+                        },
+                    ],
+                },
+                {
+                    "type": "comparison",
+                    "column": {"name": "age"},
+                    "operator": "<",
+                    "parameter": 65,
+                },
+            ],
+        }
+
+        result = deserialize_row_condition(cond_dict)
+
+        age = Column(name="age")
+        status = Column(name="status")
+        expected = OrCondition(
+            conditions=[
+                AndCondition(
+                    conditions=[
+                        ComparisonCondition(
+                            column=age, operator=Operator.GREATER_THAN, parameter=18
+                        ),
+                        ComparisonCondition(
+                            column=status, operator=Operator.EQUAL, parameter="active"
+                        ),
+                    ]
+                ),
+                ComparisonCondition(column=age, operator=Operator.LESS_THAN, parameter=65),
+            ]
+        )
+        assert result == expected
+
+    def test_deserialize_string_returns_string(self):
+        """Test that deserializing a string returns the string unchanged."""
+        result = deserialize_row_condition("some_condition")
+
+        assert result == "some_condition"
+        assert isinstance(result, str)
+
+    def test_deserialize_none_returns_none(self):
+        """Test that deserializing None returns None."""
+        result = deserialize_row_condition(None)
+
+        assert result is None
+
+    def test_deserialize_invalid_type_raises_error(self):
+        """Test that deserializing an invalid type raises InvalidConditionTypeError."""
+        with pytest.raises(InvalidConditionTypeError):
+            deserialize_row_condition(12345)
+
+    def test_deserialize_dict_without_type_raises_error(self):
+        """Test that deserializing a dict without a type field raises ConditionParserError."""
+        cond_dict = {
+            "column": {"name": "age"},
+            "some_field": "value",
+        }
+
+        with pytest.raises(ConditionParserError):
+            deserialize_row_condition(cond_dict)
+
+    def test_deserialize_dict_with_unknown_type_raises_error(self):
+        """Test that deserializing a dict with unknown type raises ConditionParserError."""
+        cond_dict = {
+            "type": "unknown_type",
+            "column": {"name": "age"},
+        }
+
+        with pytest.raises(ConditionParserError):
+            deserialize_row_condition(cond_dict)
+
+
+class TestConditionRoundTrip:
+    """Tests for round-trip serialization and deserialization."""
+
+    def test_and_condition_round_trip(self):
+        """Test round-trip serialization/deserialization preserves condition structure."""
+        col = Column(name="quantity")
+        original = AndCondition(
+            conditions=[
+                ComparisonCondition(column=col, operator=Operator.GREATER_THAN, parameter=0),
+                ComparisonCondition(column=col, operator=Operator.LESS_THAN, parameter=10),
+            ]
+        )
+
+        serialized = original.dict()
+        deserialized = deserialize_row_condition(serialized)
+
+        assert deserialized == original

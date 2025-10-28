@@ -88,7 +88,16 @@
                     "type": "string"
                 },
                 {
-                    "$ref": "#/definitions/Condition"
+                    "$ref": "#/definitions/ComparisonCondition"
+                },
+                {
+                    "$ref": "#/definitions/NullityCondition"
+                },
+                {
+                    "$ref": "#/definitions/AndCondition"
+                },
+                {
+                    "$ref": "#/definitions/OrCondition"
                 }
             ]
         },
@@ -319,11 +328,143 @@
             ],
             "additionalProperties": false
         },
+        "Column": {
+            "title": "Column",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "Operator": {
+            "title": "Operator",
+            "description": "An enumeration.",
+            "enum": [
+                "==",
+                "!=",
+                "<",
+                "<=",
+                ">",
+                ">=",
+                "IN",
+                "NOT_IN"
+            ],
+            "type": "string"
+        },
+        "ComparisonCondition": {
+            "title": "ComparisonCondition",
+            "description": "Base class for conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "comparison",
+                    "enum": [
+                        "comparison"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "operator": {
+                    "$ref": "#/definitions/Operator"
+                },
+                "parameter": {
+                    "title": "Parameter"
+                }
+            },
+            "required": [
+                "column",
+                "operator"
+            ]
+        },
+        "NullityCondition": {
+            "title": "NullityCondition",
+            "description": "Base class for conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "nullity",
+                    "enum": [
+                        "nullity"
+                    ],
+                    "type": "string"
+                },
+                "column": {
+                    "$ref": "#/definitions/Column"
+                },
+                "is_null": {
+                    "title": "Is Null",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "column",
+                "is_null"
+            ]
+        },
         "Condition": {
             "title": "Condition",
             "description": "Base class for conditions.",
             "type": "object",
             "properties": {}
+        },
+        "AndCondition": {
+            "title": "AndCondition",
+            "description": "Represents an AND condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "and",
+                    "enum": [
+                        "and"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
+        },
+        "OrCondition": {
+            "title": "OrCondition",
+            "description": "Represents an OR condition composed of multiple conditions.",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "title": "Type",
+                    "default": "or",
+                    "enum": [
+                        "or"
+                    ],
+                    "type": "string"
+                },
+                "conditions": {
+                    "title": "Conditions",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Condition"
+                    }
+                }
+            },
+            "required": [
+                "conditions"
+            ]
         }
     }
 }

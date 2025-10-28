@@ -43,7 +43,7 @@ def cleanup_redshift(config: RedshiftConnectionConfig) -> None:
                 FROM pg_tables t
                 JOIN SVV_TABLE_INFO i ON t.schemaname = i.schema AND t.tablename = i.table
                 WHERE t.tablename LIKE :table_pattern
-                AND i.create_time < DATEADD(hour, -2, GETDATE())
+                AND i.create_time < DATEADD(hour, -1, GETDATE())
                 """
             ),
             {"table_pattern": TABLE_PATTERN},
