@@ -122,11 +122,6 @@ services:
         condition: service_completed_successfully
       localstack:
         condition: service_healthy
-    healthcheck:
-      test: bash -c ':> /dev/tcp/0.0.0.0/6002' || exit 1
-      interval: 5s
-      timeout: 2s
-      retries: 20
     entrypoint:
       - /bin/bash
       - -c
