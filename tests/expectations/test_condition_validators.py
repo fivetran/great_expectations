@@ -16,12 +16,10 @@ class TestAndConditionValidator:
 
     def test_flatten_nested_and_conditions(self):
         """Test that nested AndConditions are flattened when passed to Expectation."""
-        # Create conditions using Column API: column_1 < 8 & (column_2 > 8 & column_3 == 8)
         column_1 = Column(name="column_1")
         column_2 = Column(name="column_2")
         column_3 = Column(name="column_3")
 
-        # Use Python operators to build conditions
         row_condition = (column_1 < 8) & ((column_2 > 8) & (column_3 == 8))
 
         # Pass to an Expectation - should flatten
@@ -34,15 +32,13 @@ class TestAndConditionValidator:
 
     def test_error_on_or_within_and(self):
         """Test that OrConditions nested within AndConditions raise error in Expectation."""
-        # Create conditions using Column API: column_1 < 8 & (column_2 > 8 | column_3 == 8)
         column_1 = Column(name="column_1")
         column_2 = Column(name="column_2")
         column_3 = Column(name="column_3")
 
-        # Use Python operators - OR within AND
+        # OR within AND
         row_condition = (column_1 < 8) & ((column_2 > 8) | (column_3 == 8))
 
-        # This should raise ValueError when passed to Expectation
         with pytest.raises(ValueError, match="AND groups cannot contain OR conditions"):
             ExpectColumnValuesToBeInSet(
                 column="test_column", value_set=["a", "b"], row_condition=row_condition
@@ -50,14 +46,12 @@ class TestAndConditionValidator:
 
     def test_error_on_nested_or_within_or_within_and(self):
         """Test that nested OR structures are caught by validation."""
+        column_1 = Column(name="column_1")
         column_2 = Column(name="column_2")
         column_3 = Column(name="column_3")
-        column_4 = Column(name="column_4")
 
-        # Manually create nested OrCondition (not using operators)
-        nested_or = (column_2 > 8) | ((column_3 == 8) | (column_4 == 9))
+        nested_or = (column_1 > 8) | ((column_2 == 8) | (column_3 == 9))
 
-        # This should fail when passed to Expectation
         with pytest.raises(ValueError, match="OR groups cannot contain nested OR conditions"):
             ExpectColumnValuesToBeInSet(
                 column="test_column", value_set=["a", "b"], row_condition=nested_or
@@ -129,7 +123,6 @@ class TestOrConditionValidator:
         column_2 = Column(name="column_2")
         column_3 = Column(name="column_3")
 
-        # Manually create nested OrCondition (not using operators)
         nested_or_cond = (column_1 < 8) | ((column_2 > 8) | (column_3 == 8))
 
         # This should raise ValueError when passed to Expectation
