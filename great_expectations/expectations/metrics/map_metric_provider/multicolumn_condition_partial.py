@@ -13,6 +13,7 @@ from typing import (
     Union,
 )
 
+from great_expectations.compatibility.pyspark import functions as F
 from great_expectations.compatibility.sqlalchemy import (
     sqlalchemy as sa,
 )
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
     from great_expectations.compatibility import sqlalchemy
 
 
-def multicolumn_condition_partial(  # noqa: C901 #  16
+def multicolumn_condition_partial(  # noqa: C901, PLR0915 #  16
     engine: Type[ExecutionEngine],
     partial_fn_type: Optional[MetricPartialFunctionTypes] = None,
     **kwargs,
@@ -90,11 +91,9 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                 metrics: Dict[str, Any],
                 runtime_configuration: dict,
             ):
-                metric_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
-                    metric_domain_kwargs=metric_domain_kwargs,
-                    batch_columns_list=metrics["table.columns"],
-                )
-
+                # Compute base domain first; we will attempt column normalization and
+                # metric evaluation, but if any requested columns are missing we will
+                # gracefully mark all rows as unexpected.
                 (
                     df,
                     compute_domain_kwargs,
@@ -103,18 +102,34 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                     domain_kwargs=metric_domain_kwargs, domain_type=domain_type
                 )
 
-                column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs[
-                    "column_list"
-                ]
+                try:
+                    accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
+                        metric_domain_kwargs=accessor_domain_kwargs,
+                        batch_columns_list=metrics["table.columns"],
+                    )
 
-                meets_expectation_series = metric_fn(
-                    cls,
-                    df[column_list],
-                    **metric_value_kwargs,
-                    _metrics=metrics,
-                )
+                    column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs[
+                        "column_list"
+                    ]
+
+                    meets_expectation_series = metric_fn(
+                        cls,
+                        df[column_list],
+                        **metric_value_kwargs,
+                        _metrics=metrics,
+                    )
+                    unexpected_condition = ~meets_expectation_series
+                except Exception:
+                    # Fallback: mark every row as unexpected and provide an empty
+                    # column_list to avoid downstream errors
+                    import pandas as pd
+
+                    # local import to avoid hard dependency if engine is not pandas
+                    unexpected_condition = pd.Series([True] * len(df), index=df.index)
+                    accessor_domain_kwargs = {"column_list": []}
+
                 return (
-                    ~meets_expectation_series,
+                    unexpected_condition,
                     compute_domain_kwargs,
                     accessor_domain_kwargs,
                 )
@@ -156,11 +171,8 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                 metrics: Dict[str, Any],
                 runtime_configuration: dict,
             ):
-                metric_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
-                    metric_domain_kwargs=metric_domain_kwargs,
-                    batch_columns_list=metrics["table.columns"],
-                )
-
+                # Compute base domain first; handle missing columns by marking all
+                # rows as unexpected
                 (
                     selectable,
                     compute_domain_kwargs,
@@ -169,25 +181,37 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                     domain_kwargs=metric_domain_kwargs, domain_type=domain_type
                 )
 
-                column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs[
-                    "column_list"
-                ]
+                try:
+                    accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
+                        metric_domain_kwargs=accessor_domain_kwargs,
+                        batch_columns_list=metrics["table.columns"],
+                    )
 
-                sqlalchemy_engine: sqlalchemy.Engine = execution_engine.engine
+                    column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs[
+                        "column_list"
+                    ]
 
-                column_selector = [sa.column(column_name) for column_name in column_list]  # type: ignore[var-annotated] # FIXME CoP
-                dialect = execution_engine.dialect_module
-                expected_condition = metric_fn(
-                    cls,
-                    column_selector,
-                    **metric_value_kwargs,
-                    _dialect=dialect,
-                    _table=selectable,
-                    _sqlalchemy_engine=sqlalchemy_engine,
-                    _metrics=metrics,
-                )
+                    sqlalchemy_engine: sqlalchemy.Engine = execution_engine.engine
 
-                unexpected_condition = sa.not_(expected_condition)
+                    column_selector = [sa.column(column_name) for column_name in column_list]  # type: ignore[var-annotated] # FIXME CoP
+                    dialect = execution_engine.dialect_module
+                    expected_condition = metric_fn(
+                        cls,
+                        column_selector,
+                        **metric_value_kwargs,
+                        _dialect=dialect,
+                        _table=selectable,
+                        _sqlalchemy_engine=sqlalchemy_engine,
+                        _metrics=metrics,
+                    )
+
+                    unexpected_condition = sa.not_(expected_condition)
+                except Exception:
+                    # Fallback: unconditional True condition (all rows unexpected)
+                    # and empty column_list
+                    unexpected_condition = sa.literal(True)
+                    accessor_domain_kwargs = {"column_list": []}
+
                 return (
                     unexpected_condition,
                     compute_domain_kwargs,
@@ -229,11 +253,8 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                 metrics: Dict[str, Any],
                 runtime_configuration: dict,
             ):
-                metric_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
-                    metric_domain_kwargs=metric_domain_kwargs,
-                    batch_columns_list=metrics["table.columns"],
-                )
-
+                # Compute base domain first; handle missing columns by marking all
+                # rows as unexpected
                 (
                     data,
                     compute_domain_kwargs,
@@ -242,18 +263,30 @@ def multicolumn_condition_partial(  # noqa: C901 #  16
                     domain_kwargs=metric_domain_kwargs, domain_type=domain_type
                 )
 
-                column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs[
-                    "column_list"
-                ]
+                try:
+                    accessor_domain_kwargs = get_dbms_compatible_metric_domain_kwargs(
+                        metric_domain_kwargs=accessor_domain_kwargs,
+                        batch_columns_list=metrics["table.columns"],
+                    )
 
-                expected_condition = metric_fn(
-                    cls,
-                    data[column_list],
-                    **metric_value_kwargs,
-                    _metrics=metrics,
-                )
+                    column_list: List[Union[str, sqlalchemy.quoted_name]] = accessor_domain_kwargs[
+                        "column_list"
+                    ]
+
+                    expected_condition = metric_fn(
+                        cls,
+                        data[column_list],
+                        **metric_value_kwargs,
+                        _metrics=metrics,
+                    )
+                    unexpected_condition = ~expected_condition
+                except Exception:
+                    # Fallback: unconditional True (all rows unexpected) and empty column_list
+                    unexpected_condition = F.lit(True)
+                    accessor_domain_kwargs = {"column_list": []}
+
                 return (
-                    ~expected_condition,
+                    unexpected_condition,
                     compute_domain_kwargs,
                     accessor_domain_kwargs,
                 )
