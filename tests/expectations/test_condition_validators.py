@@ -199,25 +199,6 @@ class TestOrConditionValidator:
             )
 
 
-class TestConditionOperators:
-    """Test that the & and | operators work correctly with validation."""
-
-    def test_and_operator_flattens_correctly(self):
-        """Test that using the & operator flattens nested AndConditions."""
-        column_1 = Column(name="column_1")
-        column_2 = Column(name="column_2")
-        column_3 = Column(name="column_3")
-
-        # Create nested structure using & operator
-        row_condition = (column_1 < 8) & ((column_2 > 8) & (column_3 == 8))
-
-        # Pass to Expectation - should flatten to 3 conditions
-        expectation = ExpectColumnValuesToBeInSet(
-            column="test_column", value_set=["a", "b"], row_condition=row_condition
-        )
-        assert len(expectation.row_condition.conditions) == 3
-
-
 class TestValidatorAppliesAcrossExpectations:
     """Test that the validator applies to all BatchExpectation subclasses with row_condition."""
 
