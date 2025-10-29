@@ -827,15 +827,13 @@ MARKER_DEPENDENCY_MAP: Final[Mapping[str, TestDependencies]] = {
         # these installs are handled by the CI
         requirement_files=(
             "reqs/requirements-dev-test.txt",
-            "reqs/requirements-dev-mssql.txt",
             "reqs/requirements-dev-mysql.txt",
             "reqs/requirements-dev-postgresql.txt",
             # "Deprecated API features detected" warning/error for test_docs[split_data_on_whole_table_bigquery] when pandas>=2.0  # noqa: E501
             "reqs/requirements-dev-trino.txt",
         ),
-        services=("postgresql", "mssql", "mysql", "trino"),
+        services=("postgresql", "mysql", "trino"),
         extra_pytest_args=(
-            "--mssql",
             "--mysql",
             "--postgresql",
             "--trino",
