@@ -153,7 +153,7 @@ import datetime
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators">
 # Single value comparisons: ==, !=, >, <, >=, <=
 statement_1 = Column("count") == 1
-statement_2 = Column("date") > datetime.datetime(year=2025, month=1, day=31)
+statement_2 = Column("date") > datetime.datetime(year=2025, month=1, day=31, tzinfo=timezone.utc)
 
 # Set comparisons: is_in, is_not_in
 statement_3 = Column("department").is_in(["sales", "finance"])
