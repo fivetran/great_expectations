@@ -13,8 +13,11 @@ from great_expectations.core.expectation_validation_result import ExpectationVal
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.execution_engine.execution_engine import ExecutionEngine
 from great_expectations.expectations.conditions import (
+    AndCondition,
     Column,
     ComparisonCondition,
+    Operator,
+    PassThroughCondition,
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
@@ -467,6 +470,24 @@ def test_expectation_equality_ignores_rendered_content():
 
 
 @pytest.mark.unit
+def test_expectation_with_row_condition_generates_rendered_content():
+    condition = ComparisonCondition(
+        column=Column(name="status"), operator=Operator.EQUAL, parameter="active"
+    )
+    condition_2 = Column(name="age") > 18
+    group_condition = AndCondition(conditions=[condition, condition_2])
+    expectation = gxe.ExpectColumnValuesToBeBetween(
+        column="foo",
+        min_value=0,
+        max_value=10,
+        row_condition=group_condition,
+    )
+    expectation.render()
+    assert expectation.rendered_content is not None
+    assert expectation.row_condition == group_condition
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize(
     "expectation_a, expectation_b, expected_result",
     [
@@ -732,7 +753,7 @@ class TestLegacyRowConditionTransformation:
         )
 
         assert expectation.row_condition == expected_condition
-        assert not hasattr(expectation, "condition_parser")
+        assert expectation.condition_parser == condition_parser
 
     def test_no_transformation_when_already_condition_object(self):
         original_condition = Column(name="age") > 18
@@ -757,12 +778,14 @@ class TestLegacyRowConditionTransformation:
         assert expectation.row_condition is None
         assert expectation.condition_parser == "great_expectations"
 
-    def test_no_transformation_when_row_condition_parser_is_not_great_expectations(self):
+    def test_pandas_parser_transformation_to_pass_through_condition(self):
         expectation = gxe.ExpectColumnValuesToBeInSet(
             column="status",
             value_set=["active"],
-            row_condition='col("age") > 18',
+            row_condition='PClass=="1st"',
             condition_parser="pandas",
         )
 
-        assert expectation.row_condition == 'col("age") > 18'
+        assert expectation.row_condition == PassThroughCondition(
+            pass_through_filter='PClass=="1st"'
+        )

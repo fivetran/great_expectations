@@ -61,6 +61,7 @@ from great_expectations.expectations.conditions import (
     NullityCondition,
     Operator,
     OrCondition,
+    PassThroughCondition,
     deserialize_row_condition,
 )
 from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
@@ -498,6 +499,44 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         """Resolve a bundle of metrics with the same compute Domain as part of a single trip to the compute engine."""  # noqa: E501 # FIXME CoP
         return {}  # This is NO-OP for "PandasExecutionEngine" (no bundling for direct execution computational backend).  # noqa: E501 # FIXME CoP
 
+    def _apply_row_condition_filter(
+        self, data: pd.DataFrame, row_condition: Any, domain_kwargs: dict
+    ) -> pd.DataFrame:
+        """Apply row condition filter to DataFrame.
+
+        Args:
+            data: The DataFrame to filter
+            row_condition: The condition to apply (can be Condition object, dict, or string)
+            domain_kwargs: Domain kwargs containing condition_parser if needed
+
+        Returns:
+            Filtered DataFrame
+        """
+        # Convert dict to Condition object if needed
+        if isinstance(row_condition, dict):
+            row_condition = deserialize_row_condition(row_condition)
+
+        if isinstance(row_condition, PassThroughCondition):
+            # Use pass_through_filter for pandas query syntax
+            # Uses DataFrame.query() directly with the pass-through string
+            return data.query(row_condition.pass_through_filter)
+        elif isinstance(row_condition, Condition):
+            # Handle other Condition objects using condition_to_filter_clause
+            return data.query(self.condition_to_filter_clause(row_condition))
+        else:
+            # Legacy string-based conditions
+            condition_parser = domain_kwargs.get("condition_parser", None)
+            if (
+                condition_parser
+                and condition_parser == CONDITION_PARSER_PANDAS
+                and isinstance(row_condition, str)
+            ):
+                return data.query(row_condition, parser=condition_parser)
+            else:
+                raise gx_exceptions.ValidationError(  # noqa: TRY003 # FIXME CoP
+                    "condition_parser for Pandas is required when setting a row_condition."
+                )
+
     @override
     def get_domain_records(  # noqa: C901, PLR0912 # FIXME CoP
         self,
@@ -539,20 +578,7 @@ not {batch_spec.__class__.__name__}"""  # noqa: E501 # FIXME CoP
         # Filtering by row condition.
         row_condition = domain_kwargs.get("row_condition", None)
         if row_condition:
-            condition_parser = domain_kwargs.get("condition_parser", None)
-
-            # Convert dict to Condition object if needed
-            if isinstance(row_condition, dict):
-                row_condition = deserialize_row_condition(row_condition)
-
-            if isinstance(row_condition, Condition):
-                data = data.query(self.condition_to_filter_clause(row_condition))
-            elif condition_parser == CONDITION_PARSER_PANDAS:
-                data = data.query(row_condition, parser=condition_parser)
-            else:
-                raise ValueError(  # noqa: TRY003 # FIXME CoP
-                    "condition_parser for Pandas is required when setting a row_condition."
-                )
+            data = self._apply_row_condition_filter(data, row_condition, domain_kwargs)
 
         if "column" in domain_kwargs:
             return data
