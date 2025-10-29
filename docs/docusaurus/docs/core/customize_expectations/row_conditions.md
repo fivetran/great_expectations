@@ -58,7 +58,7 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c"
          ```
 
-      The following comparison operators are supported: `==`, `!=`, `>`, `<`, `>=`, `<=`, `is_in`, `is_not_in`, `is_null`, `is_not_null`, `is_on`, `is_not_on`, `is_before`, `is_before_or_on`, `is_after`, `is_after_or_on`. Here are some examples of using different kinds of operators:
+      The following comparison operators are supported: `==`, `!=`, `>`, `<`, `>=`, `<=`, `is_in`, `is_not_in`, `is_null`, `is_not_null`. Here are some examples of using different kinds of operators:
 
       ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators"
       ```
