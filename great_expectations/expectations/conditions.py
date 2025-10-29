@@ -327,8 +327,8 @@ def validate_row_condition(row_condition: RowConditionType) -> RowConditionType:
     if row_condition is None or isinstance(row_condition, str):
         return row_condition
 
-    # Simple conditions (Comparison, Nullity) are always valid
-    if isinstance(row_condition, (ComparisonCondition, NullityCondition)):
+    # Single condition types are always valid
+    if isinstance(row_condition, (ComparisonCondition, NullityCondition, PassThroughCondition)):
         return row_condition
 
     # Validate total condition count
