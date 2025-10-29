@@ -706,17 +706,22 @@ jobs:
           pip install $(grep -E '^(invoke)' reqs/requirements-dev-contrib.txt)
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
 
+      - name: Debug matrix markers value
+        run: |
+          echo "=========================================="
+          echo "DEBUG: matrix.markers = '${{ matrix.markers }}'"
+          echo "This debug step always runs (no if condition)"
+          echo "=========================================="
+
       - name: Install mssql odbc driver
         run: |
-          echo "=== DEBUG: Starting mssql driver installation step ==="
-          echo "DEBUG: matrix.markers = '${{ matrix.markers }}'"
-          echo "DEBUG: Checking if '${{ matrix.markers }}' equals 'mssql'"
+          echo "Inside Install mssql odbc driver step"
+          echo "Marker value: '${{ matrix.markers }}'"
           if [ "${{ matrix.markers }}" != "mssql" ]; then
-            echo "=== DEBUG: Marker is NOT mssql, skipping installation ==="
-            echo "Skipping mssql driver installation - marker is '${{ matrix.markers }}', not 'mssql'"
+            echo "Marker '${{ matrix.markers }}' is NOT 'mssql' - SKIPPING installation"
             exit 0
           fi
-          echo "=== DEBUG: Marker is mssql, proceeding with installation ==="
+          echo "Marker is 'mssql' - proceeding with installation"
           ./scripts/install_mssql_odbc_driver.sh
 
       - name: Configure ECR AWS Credentials
