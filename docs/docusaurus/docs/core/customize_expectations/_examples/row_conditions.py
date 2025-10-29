@@ -152,13 +152,12 @@ row_condition = block_1 | block_2
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators">
 # Single value comparisons: ==, !=, >, <, >=, <=
 statement_1 = Column("count") == 1
+statement_2 = Column("date") > datetime.datetime(year=2025, month=01, day=31)
 
 # Set comparisons: is_in, is_not_in
-statement_2 = Column("department").is_in(["sales", "finance"])
+statement_3 = Column("department").is_in(["sales", "finance"])
 
 # Nullity checks: is_null, is_not_null
-statement_3 = Column("name").is_null()
+statement_4 = Column("name").is_null()
 
-# Date comparisons: is_on, is_not_on, is_before, is_before_or_on, is_after, is_after_or_on
-statement_4 = Column("date") == datetime.datetime(year=2025, month=01, day=30)
 # </snippet>
