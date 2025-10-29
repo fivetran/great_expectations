@@ -102,8 +102,6 @@ class Column(BaseModel):
         )
 
     @public_api
-    ~~~
-
     def is_in(self, values: Iterable) -> ComparisonCondition:
         """
         Operator for a condition statement that a column's value belongs to a set.
