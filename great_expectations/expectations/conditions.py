@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union
 
 from great_expectations.compatibility.pydantic import BaseModel, Field, validator
 from great_expectations.compatibility.typing_extensions import override
+from great_expectations._docs_decorators import public_api
+
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
