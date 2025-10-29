@@ -50,7 +50,7 @@ statement_3 = Column("department") == "Sales"
 block_1 = statement_1 & statement_2
 block_2 = statement_3
 
-# Combine condition blocks with bitwise OR.
+# Combine condition blocks with OR.
 row_condition = block_1 | block_2
 # </snippet>
 
