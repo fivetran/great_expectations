@@ -244,6 +244,9 @@ jobs:
           # Authorize access to Google Cloud with a service account
           ./google-cloud-sdk/bin/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
 
+      - name: Install mssql odbc driver
+        run: ./scripts/install_mssql_odbc_driver.sh
+
       - name: Install cloud dependencies
         if: ${{ matrix.start_services }}
         run: |
