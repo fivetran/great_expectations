@@ -98,15 +98,19 @@ class Column(BaseModel):
             column=self, operator=Operator.GREATER_THAN_OR_EQUAL, parameter=other
         )
 
+    @public_api
     def is_in(self, values: Iterable) -> ComparisonCondition:
         return ComparisonCondition(column=self, operator=Operator.IN, parameter=list(values))
 
+    @public_api
     def is_not_in(self, values: Iterable) -> ComparisonCondition:
         return ComparisonCondition(column=self, operator=Operator.NOT_IN, parameter=list(values))
 
+    @public_api
     def is_null(self) -> NullityCondition:
         return NullityCondition(column=self, is_null=True)
 
+    @public_api
     def is_not_null(self) -> NullityCondition:
         return NullityCondition(column=self, is_null=False)
 
