@@ -150,6 +150,7 @@ row_condition = block_1 | block_2
 # </snippet>
 
 import datetime
+
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators">
 # Single value comparisons: ==, !=, >, <, >=, <=
 statement_1 = Column("count") == 1
