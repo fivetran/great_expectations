@@ -367,4 +367,4 @@ def validate_row_condition(row_condition: RowConditionType) -> RowConditionType:
     if isinstance(row_condition, OrCondition):
         return _validate_or_condition(row_condition)
 
-    return row_condition
+    raise ValueError(f"Invalid row condition type: {type(row_condition)}")
