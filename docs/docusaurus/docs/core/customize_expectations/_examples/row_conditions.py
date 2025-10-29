@@ -160,5 +160,5 @@ statement_2 = Column("department").is_in(["sales", "finance"])
 statement_3 = Column("name").is_null()
 
 # Date comparisons: is_on, is_not_on, is_before, is_before_or_on, is_after, is_after_or_on
-statement_4 = Column("date").is_on("2025-01-30")
+statement_4 = Column("date") == datetime.datetime(year=2025, month=01, day=30)
 # </snippet>
