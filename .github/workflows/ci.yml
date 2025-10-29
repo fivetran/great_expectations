@@ -721,14 +721,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Run the tests
-        run: |
-          if [ "${{ matrix.markers }}" == "mssql" ]; then
-            # Make mssql tests optional - exit 0 even if tests fail
-            # TODO: remove this once microsoft package repository issues are fixed
-            invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports || exit 0
-          else
-            invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports
-          fi
+        run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports
 
       # upload coverage report to codecov
       - name: Upload coverage reports to Codecov
