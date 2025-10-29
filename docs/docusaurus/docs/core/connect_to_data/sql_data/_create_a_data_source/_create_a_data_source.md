@@ -67,7 +67,7 @@ import DatasourceMethodReferenceTable from './_datasource_method_reference_table
    schema = "my_schema"
    warehouse = "my_wh"
    role = "my_role"
-   private_key = "my_private_key"
+   private_key = "my_unencrypted_private_key"
 
    data_source = context.data_sources.add_snowflake(
       name=datasource_name,

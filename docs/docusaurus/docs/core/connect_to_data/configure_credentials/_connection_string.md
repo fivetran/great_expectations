@@ -7,7 +7,7 @@ Different types of SQL databases have different formats for their connection det
 
    Other connection string formats are valid provided they are for a SQL database that is supported by SQLAlchemy.  You can find more information on the dialects supported by `SQLAlchemy` on their [dialects](https://docs.sqlalchemy.org/en/20/dialects/index.html) page.
 
-   To connect to Snowflake, you will pass your connection details and credentials as the following parameters: `account`,  `user`, `database`, `schema`, `warehouse`, `role`, and `private_key`. When setting your `private_key` value, do not include the start and end markers `-----BEGIN/END ENCRYPTED PRIVATE KEY-----`.
+   To connect to Snowflake, you will pass your connection details and credentials as the following parameters: `account`,  `user`, `database`, `schema`, `warehouse`, `role`, and `private_key`. When setting your `private_key` value, make sure to use an unencrypted key and do not include the start and end markers `-----BEGIN/END PRIVATE KEY-----`.
 
       :::warning Snowflake password authentication is deprecated
       Snowflake has deprecated password authentication and will remove support for it entirely in the future. Set up new Data Sources with key-pair authentication. If you have older Snowflake Data Sources using password authentication, update them to use key-pair authentication. For more information about the deprecation, see [Snowflake's documentation](https://docs.snowflake.com/en/user-guide/security-mfa-rollout).
