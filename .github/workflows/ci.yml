@@ -708,7 +708,6 @@ jobs:
 
       - name: Install mssql odbc driver
         if: matrix.markers == 'mssql'
-        continue-on-error: true
         run: ./scripts/install_mssql_odbc_driver.sh
 
       - name: Configure ECR AWS Credentials
@@ -722,6 +721,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Run the tests
+        continue-on-error: ${{ matrix.markers == 'mssql' }}
         run: invoke ci-tests '${{ matrix.markers }}' --up-services --verbose  --reports
 
       # upload coverage report to codecov
