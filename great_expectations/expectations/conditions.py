@@ -71,6 +71,7 @@ class Column(BaseModel):
     """
     Specify the column in a condition statement.
     """
+
     name: str
 
     @override
