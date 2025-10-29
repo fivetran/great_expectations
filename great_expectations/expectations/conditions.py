@@ -24,6 +24,29 @@ class InvalidConditionTypeError(TypeError):
         super().__init__(f"Invalid condition type: {type(value)}")
 
 
+class AndContainsOrError(ValueError):
+    """Raised when an AND group contains OR conditions."""
+
+    def __init__(self):
+        super().__init__("AND groups cannot contain OR conditions")
+
+
+class NestedOrError(ValueError):
+    """Raised when OR groups contain nested OR conditions."""
+
+    def __init__(self):
+        super().__init__("OR groups cannot contain nested OR conditions")
+
+
+class TooManyConditionsError(ValueError):
+    """Raised when the number of conditions exceeds the maximum allowed."""
+
+    def __init__(self, count: int, max_conditions: int):
+        super().__init__(
+            f"{max_conditions} conditions is the maximum, but {count} conditions are defined"
+        )
+
+
 class Operator(str, Enum):
     EQUAL = "=="
     NOT_EQUAL = "!="
@@ -107,22 +130,12 @@ class Condition(BaseModel):
         return result
 
     def __and__(self, other: Condition) -> AndCondition:
-        new_conditions = []
-        for cond in [self, other]:
-            if isinstance(cond, AndCondition):
-                new_conditions.extend(cond.conditions)
-            else:
-                new_conditions.append(cond)
-        return AndCondition(conditions=new_conditions)
+        """Construct an AndCondition"""
+        return AndCondition(conditions=[self, other])
 
     def __or__(self, other: Condition) -> OrCondition:
-        new_conditions = []
-        for cond in [self, other]:
-            if isinstance(cond, OrCondition):
-                new_conditions.extend(cond.conditions)
-            else:
-                new_conditions.append(cond)
-        return OrCondition(conditions=new_conditions)
+        """Construct an OrCondition"""
+        return OrCondition(conditions=[self, other])
 
 
 class NullityCondition(Condition):
@@ -235,3 +248,123 @@ RowConditionType: TypeAlias = Union[
     PassThroughCondition,
     None,
 ]
+
+
+# Maximum number of conditions allowed in a row_condition
+MAX_CONDITIONS = 100
+
+
+def _count_total_conditions(conditions: List[Condition]) -> int:
+    """Recursively count all conditions including nested ones."""
+    count = 0
+    for condition in conditions:
+        if isinstance(condition, (AndCondition, OrCondition)):
+            count += _count_total_conditions(condition.conditions)
+        else:
+            count += 1
+    return count
+
+
+def _flatten_and_conditions(conditions: List[Condition]) -> List[Condition]:
+    """Flatten nested AndConditions within a list of conditions."""
+    flattened = []
+    for condition in conditions:
+        if isinstance(condition, AndCondition):
+            # Recursively flatten nested AndConditions
+            flattened.extend(_flatten_and_conditions(condition.conditions))
+        else:
+            flattened.append(condition)
+    return flattened
+
+
+def _contains_or_in_and(condition: Condition) -> bool:
+    """Check if an AndCondition contains any OrConditions."""
+    if isinstance(condition, AndCondition):
+        for cond in condition.conditions:
+            if isinstance(cond, OrCondition):
+                return True
+            # Recursively check nested AndConditions
+            if isinstance(cond, AndCondition) and _contains_or_in_and(cond):
+                return True
+    return False
+
+
+def _contains_nested_or(condition: Condition) -> bool:
+    """Check if an OrCondition contains nested OrConditions."""
+    if isinstance(condition, OrCondition):
+        for cond in condition.conditions:
+            if isinstance(cond, OrCondition):
+                return True
+            # Also check if any nested AndConditions contain OrConditions
+            # (which would create a nested OR structure)
+            if isinstance(cond, AndCondition):
+                for and_cond in cond.conditions:
+                    if isinstance(and_cond, OrCondition):
+                        # This is an OR within an AND within an OR, which creates nested ORs
+                        return True
+    return False
+
+
+def _validate_and_condition(row_condition: AndCondition) -> AndCondition:
+    """Validate AndCondition constraints."""
+    # Check for OrConditions within AndConditions
+    if _contains_or_in_and(row_condition):
+        raise AndContainsOrError()
+
+    # Flatten nested AndConditions
+    # We only flatten nested AndConditions because
+    # logical ANDs are associative, while logical ORs are non-associative.
+    flattened_conditions = _flatten_and_conditions(row_condition.conditions)
+
+    # Return flattened AndCondition
+    return AndCondition(conditions=flattened_conditions)
+
+
+def _validate_or_condition(row_condition: OrCondition) -> OrCondition:
+    """Validate OrCondition constraints."""
+    # Check for nested OrConditions
+    if _contains_nested_or(row_condition):
+        raise NestedOrError()
+
+    return row_condition
+
+
+def validate_row_condition(row_condition: RowConditionType) -> RowConditionType:
+    """Validate row_condition according to GX Cloud UI constraints.
+
+    1. Flatten nested AndConditions within AndConditions
+    2. Raise error if OrConditions are nested within AndConditions
+    3. Raise error if OrConditions are nested within OrConditions
+    4. Raise error if total conditions exceed MAX_CONDITIONS
+
+    Args:
+        row_condition: The row condition to validate
+
+    Returns:
+        The validated (and possibly flattened) row condition
+
+    Raises:
+        ValueError: If the row condition violates any constraints
+    """
+    # String conditions and None are always valid
+    if row_condition is None or isinstance(row_condition, str):
+        return row_condition
+
+    # Single condition types are always valid
+    if isinstance(row_condition, (ComparisonCondition, NullityCondition, PassThroughCondition)):
+        return row_condition
+
+    # Validate total condition count
+    total_count = _count_total_conditions(row_condition.conditions)
+    if total_count > MAX_CONDITIONS:
+        raise TooManyConditionsError(total_count, MAX_CONDITIONS)
+
+    # Validate AndCondition
+    if isinstance(row_condition, AndCondition):
+        return _validate_and_condition(row_condition)
+
+    # Validate OrCondition
+    if isinstance(row_condition, OrCondition):
+        return _validate_or_condition(row_condition)
+
+    raise InvalidConditionTypeError(row_condition)

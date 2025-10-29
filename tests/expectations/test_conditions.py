@@ -34,72 +34,12 @@ class TestCondition:
         result = condition_a & condition_b
         assert result == AndCondition(conditions=[condition_a, condition_b])
 
-    def test_and_with_and_on_left(sef):
-        condition_a = Condition()
-        condition_b = Condition()
-        condition_c = Condition()
-
-        left_condition = AndCondition(conditions=[condition_a, condition_b])
-
-        result = left_condition & condition_c
-        assert result == AndCondition(conditions=[condition_a, condition_b, condition_c])
-
-    def test_and_with_and_on_right(sef):
-        condition_a = Condition()
-        condition_b = Condition()
-        condition_c = Condition()
-
-        right_condition = AndCondition(conditions=[condition_b, condition_c])
-
-        result = condition_a & right_condition
-        assert result == AndCondition(conditions=[condition_a, condition_b, condition_c])
-
     def test_or_with_two_conditions(sef):
         condition_a = Condition()
         condition_b = Condition()
 
         result = condition_a | condition_b
         assert result == OrCondition(conditions=[condition_a, condition_b])
-
-    def test_or_with_or_on_left(sef):
-        condition_a = Condition()
-        condition_b = Condition()
-        condition_c = Condition()
-
-        left_condition = OrCondition(conditions=[condition_a, condition_b])
-
-        result = left_condition | condition_c
-        assert result == OrCondition(conditions=[condition_a, condition_b, condition_c])
-
-    def test_or_with_or_on_right(sef):
-        condition_a = Condition()
-        condition_b = Condition()
-        condition_c = Condition()
-
-        right_condition = OrCondition(conditions=[condition_b, condition_c])
-
-        result = condition_a | right_condition
-        assert result == OrCondition(conditions=[condition_a, condition_b, condition_c])
-
-    def test_flattening_and(self):
-        """Test that OrCondition flattens nested AndConditions."""
-        cond1 = Condition()
-        cond2 = Condition()
-        cond3 = Condition()
-
-        result = cond1 & cond2 & cond3
-
-        assert result == AndCondition(conditions=[cond1, cond2, cond3])
-
-    def test_flattening_or(self):
-        """Test that OrCondition flattens nested AndConditions."""
-        cond1 = Condition()
-        cond2 = Condition()
-        cond3 = Condition()
-
-        result = cond1 | cond2 | cond3
-
-        assert result == OrCondition(conditions=[cond1, cond2, cond3])
 
 
 class TestAndCondition:
@@ -359,35 +299,6 @@ class TestComplexExpressions:
                 AndCondition(conditions=[cond3, cond4]),
             ]
         )
-
-    def test_multiple_ands_flatten(self):
-        """Test that multiple ANDs flatten into a single AndCondition."""
-        col1 = Column(name="age")
-        col2 = Column(name="status")
-        col3 = Column(name="score")
-        col4 = Column(name="city")
-
-        cond1 = col1 > 18
-        cond2 = col2 == "active"
-        cond3 = col3 >= 80
-        cond4 = col4 == "NYC"
-
-        result = cond1 & cond2 & cond3 & cond4
-
-        assert result == AndCondition(conditions=[cond1, cond2, cond3, cond4])
-
-    def test_multiple_ors_flatten(self):
-        """Test that multiple ORs flatten into a single OrCondition."""
-        col1 = Column(name="status")
-
-        cond1 = col1 == "active"
-        cond2 = col1 == "pending"
-        cond3 = col1 == "approved"
-        cond4 = col1 == "verified"
-
-        result = cond1 | cond2 | cond3 | cond4
-
-        assert result == OrCondition(conditions=[cond1, cond2, cond3, cond4])
 
 
 class TestConditionSerialization:

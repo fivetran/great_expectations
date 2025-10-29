@@ -61,6 +61,7 @@ from great_expectations.expectations.conditions import (
     Operator,
     PassThroughCondition,
     RowConditionType,  # Required for RowConditionType runtime validation
+    validate_row_condition,
 )
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -1731,6 +1732,16 @@ class BatchExpectation(Expectation, ABC):
     metric_dependencies: ClassVar[Tuple[str, ...]] = ()
     domain_type: ClassVar[MetricDomainTypes] = MetricDomainTypes.TABLE
     args_keys: ClassVar[Tuple[str, ...]] = ()
+
+    @pydantic.validator("row_condition", check_fields=False)
+    def _validate_row_condition(cls, v):
+        """Validate row_condition according to GX Cloud UI constraints.
+
+        This validator applies to all subclasses that define a row_condition field.
+        check_fields=False allows this to work even though row_condition is not
+        defined on BatchExpectation itself.
+        """
+        return validate_row_condition(v)
 
     class Config:
         @staticmethod
