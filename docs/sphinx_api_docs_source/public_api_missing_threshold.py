@@ -523,6 +523,12 @@ ITEMS_IGNORED_FROM_PUBLIC_API = [
     ),
     PrintableDefinition(
         file=pathlib.Path(
+            "great_expectations/expectations/core/expect_column_distinct_values_to_be_in_set.py"
+        ),
+        name="ExpectColumnDistinctValuesToBeInSet",
+    ),
+    PrintableDefinition(
+        file=pathlib.Path(
             "great_expectations/expectations/core/expect_compound_columns_to_be_unique.py"
         ),
         name="ExpectCompoundColumnsToBeUnique",

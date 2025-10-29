@@ -64,7 +64,7 @@ class Operator(str, Enum):
 
 Parameter = Any
 
-
+@public_api
 class Column(BaseModel):
     name: str
 
