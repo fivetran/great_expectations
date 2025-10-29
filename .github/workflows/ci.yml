@@ -708,7 +708,10 @@ jobs:
 
       - name: Install mssql odbc driver
         if: ${{ matrix.markers == 'mssql' }}
-        run: ./scripts/install_mssql_odbc_driver.sh
+        run: |
+          echo "DEBUG: matrix.markers value is: '${{ matrix.markers }}'"
+          echo "DEBUG: Condition should check if '${{ matrix.markers }}' == 'mssql'"
+          ./scripts/install_mssql_odbc_driver.sh
 
       - name: Configure ECR AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
