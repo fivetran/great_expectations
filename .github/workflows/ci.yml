@@ -707,7 +707,7 @@ jobs:
           invoke deps --gx-install -m '${{ matrix.markers }}' -r test
 
       - name: Install mssql odbc driver
-        if: ${{ matrix.markers == 'mssql' }}
+        if: matrix.markers == 'mssql'
         run: ./scripts/install_mssql_odbc_driver.sh
 
       - name: Configure ECR AWS Credentials
