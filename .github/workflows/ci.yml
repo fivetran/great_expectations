@@ -708,10 +708,15 @@ jobs:
 
       - name: Install mssql odbc driver
         run: |
+          echo "=== DEBUG: Starting mssql driver installation step ==="
+          echo "DEBUG: matrix.markers = '${{ matrix.markers }}'"
+          echo "DEBUG: Checking if '${{ matrix.markers }}' equals 'mssql'"
           if [ "${{ matrix.markers }}" != "mssql" ]; then
+            echo "=== DEBUG: Marker is NOT mssql, skipping installation ==="
             echo "Skipping mssql driver installation - marker is '${{ matrix.markers }}', not 'mssql'"
             exit 0
           fi
+          echo "=== DEBUG: Marker is mssql, proceeding with installation ==="
           ./scripts/install_mssql_odbc_driver.sh
 
       - name: Configure ECR AWS Credentials
