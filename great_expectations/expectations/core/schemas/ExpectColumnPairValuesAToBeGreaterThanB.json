@@ -319,6 +319,7 @@
         },
         "Column": {
             "title": "Column",
+            "description": "--Public API--\nSpecify the column in a condition statement.",
             "type": "object",
             "properties": {
                 "name": {

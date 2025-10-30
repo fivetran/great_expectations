@@ -42,19 +42,19 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
 
       Here are some examples of how to create common patterns in row conditions:
 
-      - A and B
+      - **A and B**.
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b"
          ```
 
-      - A or B
+      - **A or B**.
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a or b"
          ```
 
-      - (A and B) or (C and D)
+      - **(A and B) or (C and D)**.
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c and d"
          ```
 
-      - A and (B or C) 
+      - **A and (B or C)**. This pattern is not supported verbatim, but you can achieve the same result with **(A and B) or (A and C)** as two condition statements in one condition block and two statements in another block. 
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c"
          ```
 
