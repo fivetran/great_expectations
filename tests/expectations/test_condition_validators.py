@@ -2,6 +2,7 @@
 
 import pytest
 
+from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.expectations.conditions import Column
 from great_expectations.expectations.core import (
     ExpectColumnValuesToBeInSet,
@@ -135,3 +136,31 @@ class TestValidatorAppliesAcrossExpectations:
         # This should raise ValueError even for ExpectTableRowCountToEqual
         with pytest.raises(ValueError, match="AND groups cannot contain OR conditions"):
             ExpectTableRowCountToEqual(value=10, row_condition=row_condition)
+
+
+class TestComparisonConditionValidators:
+    @pytest.mark.parametrize(
+        "operator_func",
+        [
+            pytest.param(
+                lambda col: col == None,  # noqa: E711  # testing invalid syntax
+                id="eq - Linting error - `is None` is pythonic, "
+                "but that only compares to singleton instance",
+            ),
+            pytest.param(
+                lambda col: col != None,  # noqa: E711  # testing invalid syntax
+                id="ne - Linting error - `is None` is pythonic, "
+                "but that only compares to singleton instance",
+            ),
+            pytest.param(lambda col: col < None, id="lt - Nonsense"),
+            pytest.param(lambda col: col <= None, id="le - Nonsense"),
+            pytest.param(lambda col: col > None, id="gt - Nonsense"),
+            pytest.param(lambda col: col >= None, id="ge - Nonsense"),
+        ],
+    )
+    def test_column_operators_with_none_raises_error(self, operator_func):
+        """Test that Column operators with None parameter raise InvalidParameterTypeError."""
+        col = Column(name="status")
+
+        with pytest.raises(ValidationError):
+            operator_func(col)
