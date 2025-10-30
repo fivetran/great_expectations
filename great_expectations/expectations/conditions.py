@@ -201,8 +201,8 @@ class ComparisonCondition(Condition):
     @staticmethod
     def _validate_parameter_element_types(parameter: Iterable[Any], operator: Operator) -> None:
         """Validate that all elements in parameter are compatible types."""
-        allowed_types = (int, float, str, bool)
-        numeric_types = (int, float)
+        allowed_types = {int, float, str, bool}
+        numeric_types = {int, float}
         parameter_iter = iter(parameter)
         try:
             first_value = next(parameter_iter)
@@ -211,22 +211,23 @@ class ComparisonCondition(Condition):
             return
 
         # Check that first item is one of the allowed types
-        if not isinstance(first_value, allowed_types):
+        first_type = type(first_value)
+        if first_type not in allowed_types:
             raise InvalidParameterTypeError(
                 parameter,
                 f"For {operator} operator, parameter must contain only "
                 "int, float, str, or bool values. "
-                f"Found {type(first_value).__name__} at index 0",
+                f"Found {first_type.__name__} at index 0",
             )
-        first_type = type(first_value)
         first_is_numeric = first_type in numeric_types
         for i, value in enumerate(parameter_iter, start=1):
             # Check that all subsequent items match the type category of the first item
             # Allow mixing int and float (both numeric types)
             value_type = type(value)
-            valid_numeric_type = first_is_numeric and value_type in numeric_types
-            valid_non_numeric_type = not first_is_numeric and value_type == first_type
-            is_valid = valid_numeric_type or valid_non_numeric_type
+            if first_is_numeric:
+                is_valid = value_type in numeric_types
+            else:
+                is_valid = value_type == first_type
             if not is_valid:
                 raise InvalidParameterTypeError(
                     parameter,
