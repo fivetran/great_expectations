@@ -1,9 +1,15 @@
 """Tests for condition validators on row_condition in Expectations."""
 
+from datetime import datetime, timezone
+
 import pytest
 
 from great_expectations.compatibility.pydantic import ValidationError
-from great_expectations.expectations.conditions import Column
+from great_expectations.expectations.conditions import (
+    Column,
+    ComparisonCondition,
+    Operator,
+)
 from great_expectations.expectations.core import (
     ExpectColumnValuesToBeInSet,
     ExpectTableRowCountToEqual,
@@ -164,3 +170,75 @@ class TestComparisonConditionValidators:
 
         with pytest.raises(ValidationError):
             operator_func(col)
+
+
+class TestInSetOperatorParameterValidator:
+    """Tests for IN and NOT_IN operator parameter validation."""
+
+    @pytest.mark.parametrize(
+        "parameter",
+        [
+            pytest.param([1, 2, 3], id="list of ints"),
+            pytest.param([1.0, 2.5, 3.14], id="list of floats"),
+            pytest.param(["a", "b", "c"], id="list of strings"),
+            pytest.param([True, False], id="list of bools"),
+            pytest.param(
+                [1, "a", 2.5, True], id="mixed allowed types"
+            ),  # this is possible in pandas and some sql
+            pytest.param((1, 2, 3), id="tuple of ints"),
+            pytest.param({1, 2, 3}, id="set of ints"),
+            pytest.param([], id="empty list"),
+        ],
+    )
+    def test_valid_parameter_types(self, parameter):
+        """Test that valid parameter types for IN/NOT_IN operators are accepted."""
+        col = Column(name="status")
+        condition = ComparisonCondition(column=col, operator=Operator.IN, parameter=parameter)
+        assert condition.parameter == parameter
+
+        condition = ComparisonCondition(column=col, operator=Operator.NOT_IN, parameter=parameter)
+        assert condition.parameter == parameter
+
+    @pytest.mark.parametrize(
+        "operator",
+        [
+            pytest.param(Operator.IN, id="IN"),
+            pytest.param(Operator.NOT_IN, id="NOT_IN"),
+        ],
+    )
+    def test_string_parameter_raises_error(self, operator):
+        """Test that string parameter raises error for IN/NOT_IN operators."""
+        col = Column(name="status")
+
+        with pytest.raises(ValidationError):
+            ComparisonCondition(column=col, operator=operator, parameter="abc")
+
+    @pytest.mark.parametrize(
+        "operator",
+        [
+            pytest.param(Operator.IN, id="IN"),
+            pytest.param(Operator.NOT_IN, id="NOT_IN"),
+        ],
+    )
+    def test_non_iterable_parameter_raises_error(self, operator):
+        """Test that non-iterable parameter raises error for IN/NOT_IN operators."""
+        col = Column(name="status")
+
+        with pytest.raises(ValidationError):
+            ComparisonCondition(column=col, operator=operator, parameter=42)
+
+    @pytest.mark.parametrize(
+        "parameter",
+        [
+            pytest.param([1, 2, [3, 4]], id="nested list"),
+            pytest.param([1, {"a": 2}], id="dict"),
+            pytest.param([1, None], id="None"),
+            pytest.param([1, datetime.now(tz=timezone.utc)], id="datetime"),
+        ],
+    )
+    def test_invalid_element_types_raise_error(self, parameter):
+        """Test that invalid element types in parameter raise error."""
+        col = Column(name="status")
+
+        with pytest.raises(ValidationError):
+            ComparisonCondition(column=col, operator=Operator.IN, parameter=parameter)

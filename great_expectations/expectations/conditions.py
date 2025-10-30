@@ -179,6 +179,32 @@ class ComparisonCondition(Condition):
             raise InvalidParameterTypeError(parameter, suggestion)
         return values
 
+    @root_validator
+    def _validate_in_set_operator_parameter(cls, values):
+        parameter = values.get("parameter")
+        operator = values.get("operator")
+        if operator in (Operator.IN, Operator.NOT_IN):
+            # Parameter must be an iterable (but not a string)
+            if not isinstance(parameter, Iterable) or isinstance(parameter, str):
+                raise InvalidParameterTypeError(
+                    parameter,
+                    f"For {operator} operator, parameter must be an iterable "
+                    "(list, tuple, set, etc.), but not a string",
+                )
+
+            # Check each element in the iterable
+            allowed_types = (int, float, str, bool)
+            for i, value in enumerate(parameter):
+                # Check if it's one of the allowed types
+                if not isinstance(value, allowed_types):
+                    raise InvalidParameterTypeError(
+                        parameter,
+                        f"For {operator} operator, parameter must contain only "
+                        "int, float, str, or bool values. "
+                        f"Found {type(value).__name__} at index {i}",
+                    )
+        return values
+
     @override
     def __repr__(self):
         col_name = self.column.name
