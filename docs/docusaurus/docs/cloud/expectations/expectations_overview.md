@@ -149,22 +149,22 @@ Here are some examples of how to express complex row conditions:
 - **A and B**: Two condition statements within a single condition block.
 
    [pending example screenshot, make sure one statement uses an “is any of” operator]
-   ![if PClass=="1st", then values must belong to this set: 1.](/docs/oss/images/conditional_data_docs_screenshot.png)
+   ![](/docs/oss/images/conditional_data_docs_screenshot.png)
 
 - **A or B**: Two condition statements, each in its own condition block.
 
    [pending example screenshot]
-   ![if PClass=="1st", then values must belong to this set: 1.](/docs/oss/images/conditional_data_docs_screenshot.png)
+   ![](/docs/oss/images/conditional_data_docs_screenshot.png)
 
 - **(A and B) or (C and D)**: Two condition statements in one condition block and two statements in another block.
 
    [pending example screenshot]
-   ![if PClass=="1st", then values must belong to this set: 1.](/docs/oss/images/conditional_data_docs_screenshot.png)
+   ![](/docs/oss/images/conditional_data_docs_screenshot.png)
 
 - **A and (B or C)**: This pattern is not supported verbatim, but you can achieve the same result with **(A and B) or (A and C)** as two condition statements in one condition block and two statements in another block.
 
    [pending example screenshot]
-   ![if PClass=="1st", then values must belong to this set: 1.](/docs/oss/images/conditional_data_docs_screenshot.png)
+   ![](/docs/oss/images/conditional_data_docs_screenshot.png)
 
 An Expectation can have up to 100 condition statements grouped in any number of condition blocks. 
 

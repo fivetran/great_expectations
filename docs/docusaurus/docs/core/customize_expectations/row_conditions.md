@@ -54,7 +54,7 @@ To restrict an Expectation to a subset of the data retrieved in a Batch, use the
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c and d"
          ```
 
-      - **A and (B or C)**. This pattern is not supported verbatim, but you can achieve the same result with **(A and B) or (A and C)** as two condition statements in one condition block and two statements in another block. 
+      - **A and (B or C)**. This pattern is not supported verbatim, but you can achieve the same result with **(A and B) or (A and C)**.
          ```python title="Python" name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c"
          ```
 
