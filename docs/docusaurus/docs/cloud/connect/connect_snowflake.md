@@ -9,7 +9,7 @@ description: Connect GX Cloud to a Snowflake Data Source.
 - You have a [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - You have a Snowflake database, schema, and table or view.
 - You have a [Snowflake account](https://docs.snowflake.com/en/user-guide-admin) with USAGE privileges on the table or view, database, and schema you are validating, and you have SELECT privileges on the table or view you are validating.
-- You have [configured and stored private and public keys](https://docs.snowflake.com/en/user-guide/key-pair-auth) for Snowflake key-pair authentication.
+- You have [configured and stored an unencrypted private key and public key](https://docs.snowflake.com/en/user-guide/key-pair-auth) for Snowflake key-pair authentication.
    :::warning Password authentication is deprecated
    Snowflake has deprecated password authentication and will remove support for it entirely in the future. Set up new Data Sources with key-pair authentication. If you have older Snowflake Data Sources using password authentication, update them to use key-pair authentication. For more information about the deprecation, see [Snowflake's documentation](https://docs.snowflake.com/en/user-guide/security-mfa-rollout).
    :::
@@ -30,7 +30,7 @@ description: Connect GX Cloud to a Snowflake Data Source.
     
    - **Username**: Enter the username you use to access Snowflake.
 
-   - **Private key**: Enter your RSA private key value. Do not include the start and end markers `-----BEGIN/END ENCRYPTED PRIVATE KEY-----`.
+   - **Private key**: Enter your unencrypted private key value. Do not include the start and end markers `-----BEGIN/END PRIVATE KEY-----`.
 
    - **Database**: Enter the name of the Snowflake database where the data you want to validate is stored. In Snowsight, click **Data** > **Databases**. In the Snowflake Classic Console, click **Databases**.
  
