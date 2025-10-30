@@ -184,18 +184,29 @@ class ComparisonCondition(Condition):
         parameter = values.get("parameter")
         operator = values.get("operator")
         if operator in (Operator.IN, Operator.NOT_IN):
-            # Parameter must be an iterable (but not a string)
-            if not isinstance(parameter, Iterable) or isinstance(parameter, str):
-                raise InvalidParameterTypeError(
-                    parameter,
-                    f"For {operator} operator, parameter must be an iterable "
-                    "(list, tuple, set, etc.), but not a string",
-                )
+            cls._validate_parameter_is_iterable(parameter, operator)
+            cls._validate_parameter_element_types(parameter, operator)
+        return values
 
-            # Check each element in the iterable
-            allowed_types = (int, float, str, bool)
-            for i, value in enumerate(parameter):
-                # Check if it's one of the allowed types
+    @staticmethod
+    def _validate_parameter_is_iterable(parameter: Parameter, operator: Operator) -> None:
+        """Validate that parameter is an iterable (but not a string)."""
+        if not isinstance(parameter, Iterable) or isinstance(parameter, str):
+            raise InvalidParameterTypeError(
+                parameter,
+                f"For {operator} operator, parameter must be an iterable "
+                "(list, tuple, set, etc.), but not a string",
+            )
+
+    @staticmethod
+    def _validate_parameter_element_types(parameter: Parameter, operator: Operator) -> None:
+        """Validate that all elements in parameter are compatible types."""
+        allowed_types = (int, float, str, bool)
+        first_type = None
+        first_is_numeric = False
+        for i, value in enumerate(parameter):
+            if i == 0:
+                # Check that first item is one of the allowed types
                 if not isinstance(value, allowed_types):
                     raise InvalidParameterTypeError(
                         parameter,
@@ -203,7 +214,28 @@ class ComparisonCondition(Condition):
                         "int, float, str, or bool values. "
                         f"Found {type(value).__name__} at index {i}",
                     )
-        return values
+                first_type = type(value)
+                first_is_numeric = isinstance(value, (int, float))
+            # Check that all subsequent items match the type category of the first item
+            # Allow mixing int and float (both numeric types)
+            elif first_is_numeric:
+                if not isinstance(value, (int, float)):
+                    raise InvalidParameterTypeError(
+                        parameter,
+                        f"For {operator} operator, all items in parameter "
+                        "must be numeric (int or float). "
+                        f"First item is {first_type.__name__}, but found "
+                        f"{type(value).__name__} at index {i}",
+                    )
+            elif not isinstance(value, first_type):
+                # For non-numeric types (str, bool), require exact type match
+                raise InvalidParameterTypeError(
+                    parameter,
+                    f"For {operator} operator, all items in parameter "
+                    "must be of the same type. "
+                    f"First item is {first_type.__name__}, but found "
+                    f"{type(value).__name__} at index {i}",
+                )
 
     @override
     def __repr__(self):

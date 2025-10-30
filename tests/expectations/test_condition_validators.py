@@ -180,11 +180,9 @@ class TestInSetOperatorParameterValidator:
         [
             pytest.param([1, 2, 3], id="list of ints"),
             pytest.param([1.0, 2.5, 3.14], id="list of floats"),
+            pytest.param([1, 2.5, 3], id="mixed ints and floats"),
             pytest.param(["a", "b", "c"], id="list of strings"),
             pytest.param([True, False], id="list of bools"),
-            pytest.param(
-                [1, "a", 2.5, True], id="mixed allowed types"
-            ),  # this is possible in pandas and some sql
             pytest.param((1, 2, 3), id="tuple of ints"),
             pytest.param({1, 2, 3}, id="set of ints"),
             pytest.param([], id="empty list"),
@@ -238,6 +236,21 @@ class TestInSetOperatorParameterValidator:
     )
     def test_invalid_element_types_raise_error(self, parameter):
         """Test that invalid element types in parameter raise error."""
+        col = Column(name="status")
+
+        with pytest.raises(ValidationError):
+            ComparisonCondition(column=col, operator=Operator.IN, parameter=parameter)
+
+    @pytest.mark.parametrize(
+        "parameter",
+        [
+            pytest.param([1, "a"], id="int and string"),
+            pytest.param(["a", True], id="string and bool"),
+            pytest.param([True, 1], id="bool and int"),
+        ],
+    )
+    def test_mixed_types_raise_error(self, parameter):
+        """Test that mixed types in parameter raise error."""
         col = Column(name="status")
 
         with pytest.raises(ValidationError):
