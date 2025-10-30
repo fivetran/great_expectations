@@ -312,7 +312,7 @@ def _convert_string_to_condition(row_condition: str) -> Condition:
         - Numeric comparisons: Matches numbers as "fnumber"
     """
     parsed = parse_great_expectations_condition(row_condition)
-    col = Column(name=str(parsed["column"]))
+    col = Column(str(parsed["column"]))
 
     if "notnull" in parsed and parsed["notnull"] is True:
         return NullityCondition(

@@ -17,9 +17,9 @@ class TestAndConditionValidator:
 
     def test_flatten_nested_and_conditions(self):
         """Test that nested AndConditions are flattened when passed to Expectation."""
-        column_1 = Column(name="column_1")
-        column_2 = Column(name="column_2")
-        column_3 = Column(name="column_3")
+        column_1 = Column("column_1")
+        column_2 = Column("column_2")
+        column_3 = Column("column_3")
 
         row_condition = (column_1 < 8) & ((column_2 > 8) & (column_3 == 8))
 
@@ -33,9 +33,9 @@ class TestAndConditionValidator:
 
     def test_error_on_or_within_and(self):
         """Test that OrConditions nested within AndConditions raise error in Expectation."""
-        column_1 = Column(name="column_1")
-        column_2 = Column(name="column_2")
-        column_3 = Column(name="column_3")
+        column_1 = Column("column_1")
+        column_2 = Column("column_2")
+        column_3 = Column("column_3")
 
         # OR within AND
         row_condition = (column_1 < 8) & ((column_2 > 8) | (column_3 == 8))
@@ -51,9 +51,9 @@ class TestOrConditionValidator:
 
     def test_error_on_nested_or_within_or_within_and(self):
         """Test that nested OR structures are caught by validation."""
-        column_1 = Column(name="column_1")
-        column_2 = Column(name="column_2")
-        column_3 = Column(name="column_3")
+        column_1 = Column("column_1")
+        column_2 = Column("column_2")
+        column_3 = Column("column_3")
 
         nested_or = (column_1 > 8) | ((column_2 == 8) | (column_3 == 9))
 
@@ -68,7 +68,7 @@ class TestTotalConditionCountValidator:
 
     def test_error_on_more_than_100_conditions(self):
         """Test that more than 100 conditions raises error in Expectation."""
-        column = Column(name="column_1")
+        column = Column("column_1")
 
         # Create 101 conditions
         row_condition = column == 0
@@ -84,7 +84,7 @@ class TestTotalConditionCountValidator:
 
     def test_exactly_100_conditions_allowed(self):
         """Test that exactly 100 conditions is allowed in Expectation."""
-        column = Column(name="column_1")
+        column = Column("column_1")
 
         # Create exactly 100 condition
         row_condition = column == 0
@@ -99,7 +99,7 @@ class TestTotalConditionCountValidator:
 
     def test_nested_and_conditions_count_towards_limit(self):
         """Test that nested AndConditions within OR are counted towards the 100 limit."""
-        column = Column(name="column_1")
+        column = Column("column_1")
 
         # Create first AND group with 50 conditions
         first_and_group = column == 0
@@ -127,9 +127,9 @@ class TestValidatorAppliesAcrossExpectations:
 
     def test_validator_applies_to_core_expectations(self):
         """Test that expectations in core/ directory also get validated."""
-        column_1 = Column(name="column_1")
-        column_2 = Column(name="column_2")
-        column_3 = Column(name="column_3")
+        column_1 = Column("column_1")
+        column_2 = Column("column_2")
+        column_3 = Column("column_3")
 
         row_condition = (column_1 < 8) & ((column_2 > 8) | (column_3 == 8))
 
@@ -160,7 +160,7 @@ class TestComparisonConditionValidators:
     )
     def test_column_operators_with_none_raises_error(self, operator_func):
         """Test that Column operators with None parameter raise InvalidParameterTypeError."""
-        col = Column(name="status")
+        col = Column("status")
 
         with pytest.raises(ValidationError):
             operator_func(col)

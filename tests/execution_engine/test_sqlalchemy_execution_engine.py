@@ -1276,50 +1276,48 @@ class TestConditionToFilterClauseSqlAlchemy:
         "condition,expected_sql",
         [
             pytest.param(
-                ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.EQUAL, parameter=5
-                ),
+                ComparisonCondition(column=Column("age"), operator=Operator.EQUAL, parameter=5),
                 "age = 5",
                 id="equal_int",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.NOT_EQUAL, parameter=10
+                    column=Column("age"), operator=Operator.NOT_EQUAL, parameter=10
                 ),
                 "age != 10",
                 id="not_equal_int",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.LESS_THAN, parameter=18
+                    column=Column("age"), operator=Operator.LESS_THAN, parameter=18
                 ),
                 "age < 18",
                 id="less_than",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=65
+                    column=Column("age"), operator=Operator.GREATER_THAN, parameter=65
                 ),
                 "age > 65",
                 id="greater_than",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
+                    column=Column("age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
                 ),
                 "age <= 100",
                 id="less_than_or_equal",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
+                    column=Column("age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
                 ),
                 "age >= 0",
                 id="greater_than_or_equal",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="name"), operator=Operator.EQUAL, parameter="John"
+                    column=Column("name"), operator=Operator.EQUAL, parameter="John"
                 ),
                 "name = 'John'",
                 id="equal_string",
@@ -1341,14 +1339,14 @@ class TestConditionToFilterClauseSqlAlchemy:
         [
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.IN, parameter=[1, 2, 3]
+                    column=Column("status"), operator=Operator.IN, parameter=[1, 2, 3]
                 ),
                 "status IN (1, 2, 3)",
                 id="in_integers",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
+                    column=Column("status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
                 ),
                 "(status NOT IN (1, 2, 3))",
                 id="not_in_integers",
@@ -1367,12 +1365,12 @@ class TestConditionToFilterClauseSqlAlchemy:
         "condition,expected_sql",
         [
             pytest.param(
-                NullityCondition(column=Column(name="email"), is_null=True),
+                NullityCondition(column=Column("email"), is_null=True),
                 "email IS NULL",
                 id="is_null",
             ),
             pytest.param(
-                NullityCondition(column=Column(name="email"), is_null=False),
+                NullityCondition(column=Column("email"), is_null=False),
                 "email IS NOT NULL",
                 id="is_not_null",
             ),
@@ -1391,10 +1389,10 @@ class TestConditionToFilterClauseSqlAlchemy:
         and_condition = AndCondition(
             conditions=[
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=18
+                    column=Column("age"), operator=Operator.GREATER_THAN, parameter=18
                 ),
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.LESS_THAN, parameter=65
+                    column=Column("age"), operator=Operator.LESS_THAN, parameter=65
                 ),
             ]
         )
@@ -1408,10 +1406,10 @@ class TestConditionToFilterClauseSqlAlchemy:
         or_condition = OrCondition(
             conditions=[
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.EQUAL, parameter="active"
+                    column=Column("status"), operator=Operator.EQUAL, parameter="active"
                 ),
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.EQUAL, parameter="pending"
+                    column=Column("status"), operator=Operator.EQUAL, parameter="pending"
                 ),
             ]
         )
@@ -1427,19 +1425,19 @@ class TestConditionToFilterClauseSqlAlchemy:
                 AndCondition(
                     conditions=[
                         ComparisonCondition(
-                            column=Column(name="age"),
+                            column=Column("age"),
                             operator=Operator.GREATER_THAN_OR_EQUAL,
                             parameter=18,
                         ),
                         ComparisonCondition(
-                            column=Column(name="age"),
+                            column=Column("age"),
                             operator=Operator.LESS_THAN_OR_EQUAL,
                             parameter=65,
                         ),
                     ]
                 ),
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.EQUAL, parameter="exempt"
+                    column=Column("status"), operator=Operator.EQUAL, parameter="exempt"
                 ),
             ]
         )
@@ -1459,7 +1457,7 @@ class TestConditionToFilterClauseSqlAlchemy:
 
         # Create condition
         condition = ComparisonCondition(
-            column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=30
+            column=Column("age"), operator=Operator.GREATER_THAN, parameter=30
         )
         filter_clause = engine.condition_to_filter_clause(condition)
 
@@ -1489,7 +1487,7 @@ class TestConditionToFilterClauseSqlAlchemy:
 
         # Create condition
         condition = ComparisonCondition(
-            column=Column(name="status"), operator=Operator.IN, parameter=["active", "pending"]
+            column=Column("status"), operator=Operator.IN, parameter=["active", "pending"]
         )
         filter_clause = engine.condition_to_filter_clause(condition)
 
@@ -1520,7 +1518,7 @@ class TestConditionToFilterClauseSqlAlchemy:
             add_dataframe_to_db(df=df, name="test_email_table", con=conn, index=False)
 
         # Create condition
-        condition = NullityCondition(column=Column(name="email"), is_null=False)
+        condition = NullityCondition(column=Column("email"), is_null=False)
         filter_clause = engine.condition_to_filter_clause(condition)
 
         # Build and execute query
@@ -1556,19 +1554,19 @@ class TestConditionToFilterClauseSqlAlchemy:
                 AndCondition(
                     conditions=[
                         ComparisonCondition(
-                            column=Column(name="age"),
+                            column=Column("age"),
                             operator=Operator.GREATER_THAN_OR_EQUAL,
                             parameter=18,
                         ),
                         ComparisonCondition(
-                            column=Column(name="age"),
+                            column=Column("age"),
                             operator=Operator.LESS_THAN_OR_EQUAL,
                             parameter=65,
                         ),
                     ]
                 ),
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.EQUAL, parameter="exempt"
+                    column=Column("status"), operator=Operator.EQUAL, parameter="exempt"
                 ),
             ]
         )
