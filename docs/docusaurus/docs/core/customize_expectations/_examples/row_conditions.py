@@ -89,7 +89,9 @@ print(batch.validate(expectation_without_row_conditions))
 # An Expectation with row conditions would be defined like this:
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - Expectation with row conditions">
 expectation_with_row_conditions = gx.expectations.ExpectColumnValuesToBeInSet(
-    column="cycle_type", value_set=["unicycle"], row_condition=(Column(name="wheels") == 1)
+    column="cycle_type",
+    value_set=["unicycle"],
+    row_condition=(Column(name="wheels") == 1),
 )
 # </snippet>
 
