@@ -148,7 +148,7 @@ Here are some examples of how to express complex row conditions:
 
 - **A and B**: Two condition statements within a single condition block.
 
-   ![product_category is books and purchase_amount > 100](/img/a_and_b.png)
+   ![product_category is books and purchase_amount is greater than 100](/img/a_and_b.png)
 
 - **A or B**: Two condition statements, each in its own condition block.
 
@@ -156,11 +156,11 @@ Here are some examples of how to express complex row conditions:
 
 - **(A and B) or (C and D)**: Two condition statements in one condition block and two statements in another block.
 
-   ![return_date is not null and product_category is clothing or product_rating <= 2 and purchase_amount >= 100](/img/a_and_b_or_c_and_d.png)
+   ![return_date is not null and product_category is clothing or product_rating is less than or equal to 2 and purchase_amount is greater than or equal to 100](/img/a_and_b_or_c_and_d.png)
 
 - **A and (B or C)**: This pattern is not supported verbatim, but you can achieve the same result with **(A and B) or (A and C)** as two condition statements in one condition block and two statements in another block.
 
-   ![product_category is games and purchase_amount >= 250 or product_category is games and product rating = 5](/img/a_and_b_or_c.png)
+   ![product_category is games and purchase_amount is greater than or equal to 250 or product_category is games and product rating is 5](/img/a_and_b_or_c.png)
 
 An Expectation can have up to 100 condition statements grouped in any number of condition blocks. 
 
