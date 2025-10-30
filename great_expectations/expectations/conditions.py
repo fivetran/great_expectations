@@ -218,27 +218,29 @@ class ComparisonCondition(Condition):
                 f"Found {type(first_value).__name__} at index 0",
             )
         first_type = type(first_value)
-        first_is_numeric = isinstance(first_value, (int, float))
+        first_is_numeric = first_type in (int, float)
         for i, value in enumerate(parameter_iter, start=1):
             # Check that all subsequent items match the type category of the first item
             # Allow mixing int and float (both numeric types)
+            value_type = type(value)
             if first_is_numeric:
-                if not isinstance(value, (int, float)):
+                # Check that value is numeric
+                if value_type not in (int, float):
                     raise InvalidParameterTypeError(
                         parameter,
                         f"For {operator} operator, all items in parameter "
-                        "must be numeric (int or float). "
+                        "must be of the same type. "
                         f"First item is {first_type.__name__}, but found "
-                        f"{type(value).__name__} at index {i}",
+                        f"{value_type.__name__} at index {i}",
                     )
-            elif not isinstance(value, first_type):
+            elif value_type != first_type:
                 # For non-numeric types (str, bool), require exact type match
                 raise InvalidParameterTypeError(
                     parameter,
                     f"For {operator} operator, all items in parameter "
                     "must be of the same type. "
                     f"First item is {first_type.__name__}, but found "
-                    f"{type(value).__name__} at index {i}",
+                    f"{value_type.__name__} at index {i}",
                 )
 
     @override
