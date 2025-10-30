@@ -7,6 +7,7 @@ import logging
 import os
 import pathlib
 import random
+import re
 import shutil
 import string
 import urllib.parse
@@ -19,6 +20,7 @@ import numpy as np
 import packaging
 import pandas as pd
 import pytest
+import responses
 import setuptools  # noqa: F401  # Import setuptools avoid distutils import order warning
 
 import great_expectations as gx
@@ -458,6 +460,80 @@ def preload_latest_gx_cache():
     # teardown
     logger.info("Clearing _VersionChecker._LATEST_GX_VERSION_CACHE ")
     _VersionChecker._LATEST_GX_VERSION_CACHE = None
+
+
+@pytest.fixture(autouse=True)
+def block_unmocked_http_requests_in_cloud_tests(request):
+    """
+    Automatically blocks all HTTP requests in cloud tests unless explicitly mocked.
+
+    When an unmocked request is attempted, the test will fail with a clear error
+    message showing:
+    - The HTTP method (GET, POST, PUT, DELETE, etc.)
+    - The full URL that was attempted
+    - A hint about how to mock it
+
+    This applies only to tests marked with @pytest.mark.cloud, but skips tests that:
+    - Use fixtures that manage HTTP mocking (e.g., gx_cloud_api_fake_ctx, pact)
+    - Are marked with @pytest.mark.integration (integration tests may need HTTP)
+    """
+    # Only activate for tests marked with @pytest.mark.cloud
+    if "cloud" not in request.keywords:
+        yield
+        return
+
+    # Skip integration tests - they may legitimately need to make HTTP requests
+    if "integration" in request.keywords:
+        yield
+        return
+
+    # Skip if test uses fixtures that already manage HTTP mocking
+    fixtures_with_http_mocking = {
+        "gx_cloud_api_fake_ctx",  # Fake cloud API fixture
+        "pact",  # Pact contract testing
+    }
+    test_fixtures = set(request.fixturenames)
+    if fixtures_with_http_mocking & test_fixtures:
+        yield
+        return
+
+    # Use responses library to intercept ALL HTTP calls
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+        # Add a catch-all that matches any URL and fails with helpful error
+        def request_callback(request):
+            pytest.fail(
+                f"\n\n"
+                f"❌ UNMOCKED HTTP REQUEST DETECTED ❌\n"
+                f"Method: {request.method}\n"
+                f"URL: {request.url}\n"
+                f"Headers: {dict(request.headers)}\n\n"
+                f"This test is marked with @pytest.mark.cloud but attempted "
+                f"to make a real HTTP request.\n"
+                f"Please add appropriate mocks for this request, for example:\n\n"
+                f'    with mock.patch("requests.Session.{request.method.lower()}", '
+                f"autospec=True) as mock_{request.method.lower()}:\n"
+                f"        # Configure your mock here\n"
+                f"        mock_{request.method.lower()}.return_value = mock_response\n"
+                f"        # ... your test code ...\n"
+            )
+
+        # Match ALL HTTP methods and ALL URLs
+        for method in [
+            responses.GET,
+            responses.POST,
+            responses.PUT,
+            responses.DELETE,
+            responses.PATCH,
+            responses.HEAD,
+            responses.OPTIONS,
+        ]:
+            rsps.add_callback(
+                method,
+                url=re.compile(r".*"),  # Match any URL
+                callback=request_callback,
+            )
+
+        yield rsps
 
 
 @pytest.fixture(scope="module")

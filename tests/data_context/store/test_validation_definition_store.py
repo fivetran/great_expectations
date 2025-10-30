@@ -11,6 +11,7 @@ from great_expectations.core.validation_definition import ValidationDefinition
 from great_expectations.data_context.cloud_constants import GXCloudRESTResource
 from great_expectations.data_context.store import ValidationDefinitionStore
 from great_expectations.data_context.types.resource_identifiers import GXCloudIdentifier
+from great_expectations.exceptions import StoreBackendError
 
 if TYPE_CHECKING:
     from great_expectations.data_context.data_context.ephemeral_data_context import (
@@ -96,9 +97,19 @@ def test_add_cloud(
         resource_name=name,
     )
 
-    with mock.patch("requests.Session.put", autospec=True) as mock_put:
+    with (
+        mock.patch("requests.Session.put", autospec=True) as mock_put,
+        mock.patch("requests.Session.get", autospec=True) as mock_get,
+    ):
+        # Mock GET to simulate key doesn't exist (for has_key check)
+        mock_get.side_effect = StoreBackendError("Not found")
+
         store.add(key=key, value=validation_definition)
 
+    # Assert GET was called (has_key check)
+    mock_get.assert_called_once()
+
+    # Assert PUT was called with correct payload
     mock_put.assert_called_once_with(
         mock.ANY,  # requests Session
         f"https://api.greatexpectations.io/api/v1/organizations/12345678-1234-5678-1234-567812345678/validation-definitions/{id}",
