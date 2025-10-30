@@ -199,26 +199,30 @@ class ComparisonCondition(Condition):
             )
 
     @staticmethod
-    def _validate_parameter_element_types(parameter: Parameter, operator: Operator) -> None:
+    def _validate_parameter_element_types(parameter: Iterable[Any], operator: Operator) -> None:
         """Validate that all elements in parameter are compatible types."""
         allowed_types = (int, float, str, bool)
-        first_type = None
-        first_is_numeric = False
-        for i, value in enumerate(parameter):
-            if i == 0:
-                # Check that first item is one of the allowed types
-                if not isinstance(value, allowed_types):
-                    raise InvalidParameterTypeError(
-                        parameter,
-                        f"For {operator} operator, parameter must contain only "
-                        "int, float, str, or bool values. "
-                        f"Found {type(value).__name__} at index {i}",
-                    )
-                first_type = type(value)
-                first_is_numeric = isinstance(value, (int, float))
+        parameter_iter = iter(parameter)
+        try:
+            first_value = next(parameter_iter)
+        except StopIteration:
+            # Empty iterable is allowed
+            return
+
+        # Check that first item is one of the allowed types
+        if not isinstance(first_value, allowed_types):
+            raise InvalidParameterTypeError(
+                parameter,
+                f"For {operator} operator, parameter must contain only "
+                "int, float, str, or bool values. "
+                f"Found {type(first_value).__name__} at index 0",
+            )
+        first_type = type(first_value)
+        first_is_numeric = isinstance(first_value, (int, float))
+        for i, value in enumerate(parameter_iter, start=1):
             # Check that all subsequent items match the type category of the first item
             # Allow mixing int and float (both numeric types)
-            elif first_is_numeric:
+            if first_is_numeric:
                 if not isinstance(value, (int, float)):
                     raise InvalidParameterTypeError(
                         parameter,
