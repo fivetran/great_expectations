@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union, overload
+from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union
 
 from great_expectations.compatibility.pydantic import BaseModel, Field, validator
 from great_expectations.compatibility.typing_extensions import override
@@ -50,8 +50,11 @@ class TooManyConditionsError(ValueError):
 class InvalidParameterTypeError(TypeError):
     """Raised when the type of the parameter is invalid."""
 
-    def __init__(self, parameter: Any):
-        super().__init__(f"Invalid Parameter type: {type(parameter)}")
+    def __init__(self, parameter: Any, suggestion: str | None = None):
+        message = f"Invalid Parameter type: {type(parameter)}"
+        if suggestion:
+            message += f". {suggestion}"
+        super().__init__(message)
 
 
 class Operator(str, Enum):
@@ -79,42 +82,32 @@ class Column(BaseModel):
     def __hash__(self) -> int:
         return hash(self.name)
 
-    @overload  # type: ignore[override]
-    def __eq__(self, other: None) -> NullityCondition: ...
-
-    @overload  # type: ignore[override]
-    def __eq__(self, other: Parameter) -> ComparisonCondition: ...
-
     @override
-    def __eq__(self, other: Parameter) -> ComparisonCondition | NullityCondition:  # type: ignore[override]
-        if other is None:
-            return NullityCondition(column=self, is_null=True)
+    def __eq__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
+        self._validate_parameter(other, Operator.EQUAL)
         return ComparisonCondition(column=self, operator=Operator.EQUAL, parameter=other)
 
-    @overload  # type: ignore[override]
-    def __ne__(self, other: None) -> NullityCondition: ...
-
-    @overload  # type: ignore[override]
-    def __ne__(self, other: Parameter) -> ComparisonCondition: ...
-
     @override
-    def __ne__(self, other: Parameter) -> ComparisonCondition | NullityCondition:  # type: ignore[override]
-        if other is None:
-            return NullityCondition(column=self, is_null=False)
+    def __ne__(self, other: Parameter) -> ComparisonCondition:  # type: ignore[override]
+        self._validate_parameter(other, Operator.NOT_EQUAL)
         return ComparisonCondition(column=self, operator=Operator.NOT_EQUAL, parameter=other)
 
     def __lt__(self, other: Parameter) -> ComparisonCondition:
+        self._validate_parameter(other, Operator.LESS_THAN)
         return ComparisonCondition(column=self, operator=Operator.LESS_THAN, parameter=other)
 
     def __le__(self, other: Parameter) -> ComparisonCondition:
+        self._validate_parameter(other, Operator.LESS_THAN_OR_EQUAL)
         return ComparisonCondition(
             column=self, operator=Operator.LESS_THAN_OR_EQUAL, parameter=other
         )
 
     def __gt__(self, other: Parameter) -> ComparisonCondition:
+        self._validate_parameter(other, Operator.GREATER_THAN)
         return ComparisonCondition(column=self, operator=Operator.GREATER_THAN, parameter=other)
 
     def __ge__(self, other: Parameter) -> ComparisonCondition:
+        self._validate_parameter(other, Operator.GREATER_THAN_OR_EQUAL)
         return ComparisonCondition(
             column=self, operator=Operator.GREATER_THAN_OR_EQUAL, parameter=other
         )
@@ -130,6 +123,17 @@ class Column(BaseModel):
 
     def is_not_null(self) -> NullityCondition:
         return NullityCondition(column=self, is_null=False)
+
+    def _validate_parameter(self, parameter: Parameter, operator: Operator) -> Parameter:
+        if parameter is None:
+            if operator == Operator.EQUAL:
+                suggestion = "Did you mean to use Column.is_null()?"
+            elif operator == Operator.NOT_EQUAL:
+                suggestion = "Did you mean to use Column.is_not_null()?"
+            else:
+                suggestion = None
+            raise InvalidParameterTypeError(parameter, suggestion)
+        return parameter
 
 
 class Condition(BaseModel):

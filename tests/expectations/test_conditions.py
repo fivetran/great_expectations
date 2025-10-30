@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.expectations.conditions import (
     AndCondition,
     Column,
@@ -9,6 +10,7 @@ from great_expectations.expectations.conditions import (
     Condition,
     ConditionParserError,
     InvalidConditionTypeError,
+    InvalidParameterTypeError,
     NullityCondition,
     Operator,
     OrCondition,
@@ -173,6 +175,32 @@ class TestColumn:
 
         assert result == NullityCondition(column=col, is_null=False)
 
+    @pytest.mark.parametrize(
+        "operator_func",
+        [
+            pytest.param(
+                lambda col: col == None,  # noqa: E711  # testing invalid syntax
+                id="eq - Linting error - `is None` is pythonic, "
+                "but that only compares to singleton instance",
+            ),
+            pytest.param(
+                lambda col: col != None,  # noqa: E711  # testing invalid syntax
+                id="ne - Linting error - `is None` is pythonic, "
+                "but that only compares to singleton instance",
+            ),
+            pytest.param(lambda col: col < None, id="lt - Nonsense"),
+            pytest.param(lambda col: col <= None, id="le - Nonsense"),
+            pytest.param(lambda col: col > None, id="gt - Nonsense"),
+            pytest.param(lambda col: col >= None, id="ge - Nonsense"),
+        ],
+    )
+    def test_column_operators_with_none_raises_error(self, operator_func):
+        """Test that Column operators with None parameter raise InvalidParameterTypeError."""
+        col = Column(name="status")
+
+        with pytest.raises(InvalidParameterTypeError):
+            operator_func(col)
+
 
 class TestComparisonCondition:
     def test_repr_equal_operator(self):
@@ -228,6 +256,12 @@ class TestComparisonCondition:
         )
 
         assert repr(cond) == "status NOT_IN (inactive, deleted)"
+
+    def test_comparison_condition_with_none_parameter_raises_error(self):
+        col = Column(name="status")
+
+        with pytest.raises(ValidationError):
+            ComparisonCondition(column=col, operator=Operator.NOT_EQUAL, parameter=None)
 
 
 class TestNullityCondition:
