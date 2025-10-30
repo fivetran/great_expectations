@@ -148,23 +148,19 @@ Here are some examples of how to express complex row conditions:
 
 - **A and B**: Two condition statements within a single condition block.
 
-   [pending example screenshot, make sure one statement uses an “is any of” operator]
-   ![](/docs/oss/images/conditional_data_docs_screenshot.png)
+   ![product_category is books and purchase_amount > 100](/img/a_and_b.png)
 
 - **A or B**: Two condition statements, each in its own condition block.
 
-   [pending example screenshot]
-   ![](/docs/oss/images/conditional_data_docs_screenshot.png)
+   ![purchase_date is after 2025-10-31 or return_date is after 2025-10-31](/img/a_or_b.png)
 
 - **(A and B) or (C and D)**: Two condition statements in one condition block and two statements in another block.
 
-   [pending example screenshot]
-   ![](/docs/oss/images/conditional_data_docs_screenshot.png)
+   ![return_date is not null and product_category is clothing or product_rating <= 2 and purchase_amount >= 100](/img/a_and_b_or_c_and_d.png)
 
 - **A and (B or C)**: This pattern is not supported verbatim, but you can achieve the same result with **(A and B) or (A and C)** as two condition statements in one condition block and two statements in another block.
 
-   [pending example screenshot]
-   ![](/docs/oss/images/conditional_data_docs_screenshot.png)
+   ![product_category is games and purchase_amount >= 250 or product_category is games and product rating = 5](/img/a_and_b_or_c.png)
 
 An Expectation can have up to 100 condition statements grouped in any number of condition blocks. 
 
