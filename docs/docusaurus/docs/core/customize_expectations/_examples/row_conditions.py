@@ -43,9 +43,9 @@ import great_expectations.core.conditions
 from great_expectations.core.conditions import Column
 
 # Create condition statements with column references and Python comparisons.
-statement_1 = Column("tenure") > 2
-statement_2 = Column("salary") <= 50000
-statement_3 = Column("department") == "Sales"
+statement_1 = Column(name="tenure") > 2
+statement_2 = Column(name="salary") <= 50000
+statement_3 = Column(name="department") == "Sales"
 
 # Combine condition statements with an AND relationship into condition blocks.
 block_1 = statement_1 & statement_2
@@ -90,7 +90,7 @@ print(batch.validate(expectation_without_row_conditions))
 # An Expectation with row conditions would be defined like this:
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - Expectation with row conditions">
 expectation_with_row_conditions = gx.expectations.ExpectColumnValuesToBeInSet(
-    column="cycle_type", value_set=["unicycle"], row_condition=(Column("wheels") == 1)
+    column="cycle_type", value_set=["unicycle"], row_condition=(Column(name="wheels") == 1)
 )
 # </snippet>
 
@@ -103,8 +103,8 @@ print(batch.validate(expectation_with_row_conditions))
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b">
 # Two condition statements within a single condition block.
 
-statement_1 = Column("A") == "a"
-statement_2 = Column("B") == "b"
+statement_1 = Column(name="A") == "a"
+statement_2 = Column(name="B") == "b"
 
 block_1 = statement_1 & statement_2
 
@@ -114,8 +114,8 @@ row_condition = block_1
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a or b">
 # Two condition statements, each in its own condition block.
 
-statement_1 = Column("A") == "a"
-statement_2 = Column("B") == "b"
+statement_1 = Column(name="A") == "a"
+statement_2 = Column(name="B") == "b"
 
 block_1 = statement_1
 block_2 = statement_2
@@ -126,10 +126,10 @@ row_condition = block_1 | block_2
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c and d">
 # Two condition statements in one condition block and two statements in another block.
 
-statement_1 = Column("A") == "a"
-statement_2 = Column("B") == "b"
-statement_3 = Column("C") == "c"
-statement_4 = Column("D") == "d"
+statement_1 = Column(name="A") == "a"
+statement_2 = Column(name="B") == "b"
+statement_3 = Column(name="C") == "c"
+statement_4 = Column(name="D") == "d"
 
 block_1 = statement_1 & statement_2
 block_2 = statement_3 & statement_4
@@ -140,9 +140,9 @@ row_condition = block_1 | block_2
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - a and b or c">
 # Two condition statements in one condition block and two statements in another block.
 
-statement_1 = Column("A") == "a"
-statement_2 = Column("B") == "b"
-statement_3 = Column("C") == "c"
+statement_1 = Column(name="A") == "a"
+statement_2 = Column(name="B") == "b"
+statement_3 = Column(name="C") == "c"
 
 block_1 = statement_1 & statement_2
 block_2 = statement_1 & statement_3
@@ -154,15 +154,15 @@ from datetime import datetime, timezone
 
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators">
 # Single value comparisons: ==, !=, >, <, >=, <=
-statement_1 = Column("count") == 1
-statement_2 = Column("date") > datetime.datetime(
+statement_1 = Column(name="count") == 1
+statement_2 = Column(name="date") > datetime.datetime(
     year=2025, month=1, day=31, tzinfo=timezone.utc
 )
 
 # Set comparisons: is_in, is_not_in
-statement_3 = Column("department").is_in(["sales", "finance"])
+statement_3 = Column(name="department").is_in(["sales", "finance"])
 
 # Nullity checks: is_null, is_not_null
-statement_4 = Column("name").is_null()
+statement_4 = Column(name="name").is_null()
 
 # </snippet>
