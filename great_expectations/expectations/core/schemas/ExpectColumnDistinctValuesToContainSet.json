@@ -390,7 +390,8 @@
             },
             "required": [
                 "column",
-                "operator"
+                "operator",
+                "parameter"
             ]
         },
         "NullityCondition": {
