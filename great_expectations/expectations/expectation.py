@@ -59,7 +59,9 @@ from great_expectations.expectations.conditions import (
     Condition,
     NullityCondition,
     Operator,
+    PassThroughCondition,
     RowConditionType,  # Required for RowConditionType runtime validation
+    validate_row_condition,
 )
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
@@ -76,6 +78,8 @@ from great_expectations.expectations.model_field_descriptions import (
 from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+    CONDITION_PARSER_PANDAS,
+    CONDITION_PARSER_SPARK,
     ConditionParser,
     MostlyField,
 )
@@ -532,6 +536,15 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
         if isinstance(row_condition, str) and is_great_expectations_condition_parser:
             condition_obj = _convert_string_to_condition(row_condition)
             values["row_condition"] = condition_obj
+
+        # Transform pandas/spark parser row_condition strings to PassThroughCondition
+        is_pass_through_condition_parser = condition_parser is not None and condition_parser in [
+            CONDITION_PARSER_PANDAS,
+            CONDITION_PARSER_SPARK,
+        ]
+        if isinstance(row_condition, str) and is_pass_through_condition_parser:
+            values["row_condition"] = PassThroughCondition(pass_through_filter=row_condition)
+
         return values
 
     @classmethod
@@ -1719,6 +1732,16 @@ class BatchExpectation(Expectation, ABC):
     metric_dependencies: ClassVar[Tuple[str, ...]] = ()
     domain_type: ClassVar[MetricDomainTypes] = MetricDomainTypes.TABLE
     args_keys: ClassVar[Tuple[str, ...]] = ()
+
+    @pydantic.validator("row_condition", check_fields=False)
+    def _validate_row_condition(cls, v):
+        """Validate row_condition according to GX Cloud UI constraints.
+
+        This validator applies to all subclasses that define a row_condition field.
+        check_fields=False allows this to work even though row_condition is not
+        defined on BatchExpectation itself.
+        """
+        return validate_row_condition(v)
 
     class Config:
         @staticmethod
