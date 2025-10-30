@@ -692,7 +692,7 @@ class TestValidationDefinitionSerialization:
         ],
     )
     def test_validation_definition_deserialization_bad_format(
-        self, serialized_config: dict, error_substring: str
+        self, context: EphemeralDataContext, serialized_config: dict, error_substring: str
     ):
         with pytest.raises(ValueError, match=f"{error_substring}*."):
             ValidationDefinition.parse_obj(serialized_config)
