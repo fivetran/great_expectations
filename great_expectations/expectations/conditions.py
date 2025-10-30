@@ -4,7 +4,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.compatibility.pydantic import BaseModel, Field, validator
+from great_expectations.compatibility.pydantic import BaseModel, Field, root_validator, validator
 from great_expectations.compatibility.typing_extensions import override
 
 if TYPE_CHECKING:
@@ -46,6 +46,16 @@ class TooManyConditionsError(ValueError):
         super().__init__(
             f"{max_conditions} conditions is the maximum, but {count} conditions are defined"
         )
+
+
+class InvalidParameterTypeError(TypeError):
+    """Raised when the type of the parameter is invalid."""
+
+    def __init__(self, parameter: Any, suggestion: str | None = None):
+        message = f"Invalid Parameter type: {type(parameter)}"
+        if suggestion:
+            message += f". {suggestion}"
+        super().__init__(message)
 
 
 class Operator(str, Enum):
@@ -175,7 +185,21 @@ class ComparisonCondition(Condition):
     type: Literal["comparison"] = Field(default="comparison")
     column: Column
     operator: Operator
-    parameter: Parameter
+    parameter: Parameter = Field(...)
+
+    @root_validator
+    def _validate_parameter_not_none(cls, values):
+        parameter = values.get("parameter")
+        operator = values.get("operator")
+        if parameter is None:
+            if operator == Operator.EQUAL:
+                suggestion = "Did you mean to use Column.is_null()?"
+            elif operator == Operator.NOT_EQUAL:
+                suggestion = "Did you mean to use Column.is_not_null()?"
+            else:
+                suggestion = None
+            raise InvalidParameterTypeError(parameter, suggestion)
+        return values
 
     @override
     def __repr__(self):
