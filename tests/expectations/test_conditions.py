@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from great_expectations.compatibility.pydantic import ValidationError
 from great_expectations.expectations.conditions import (
     AndCondition,
     Column,
@@ -228,6 +229,12 @@ class TestComparisonCondition:
         )
 
         assert repr(cond) == "status NOT_IN (inactive, deleted)"
+
+    def test_comparison_condition_with_none_parameter_raises_error(self):
+        col = Column(name="status")
+
+        with pytest.raises(ValidationError):
+            ComparisonCondition(column=col, operator=Operator.NOT_EQUAL, parameter=None)
 
 
 class TestNullityCondition:
