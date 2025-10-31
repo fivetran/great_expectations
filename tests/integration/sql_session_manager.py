@@ -55,9 +55,10 @@ class SessionSQLEngineManager:
         self._engine_cache: dict[ConnectionDetails, sa.engine.Engine] = {}
 
     def get_engine(
-        self,
-        connection_details: ConnectionDetails,
+        self, connection_details: ConnectionDetails, connect_args: dict | None = None
     ) -> sa.engine.Engine:
+        if connect_args is None:
+            connect_args = {}
         cache_key = connection_details
         if cache_key not in self._engine_cache:
             logger.info(f"Cache miss for engine: {cache_key}. Creating new engine.")
@@ -66,7 +67,7 @@ class SessionSQLEngineManager:
                 f"Creating engine for {connection_details.dialect} with settings: {engine_kwargs}"
             )
             self._engine_cache[cache_key] = sa.create_engine(
-                connection_details.connection_string, **engine_kwargs
+                connection_details.connection_string, **engine_kwargs, connect_args=connect_args
             )
         else:
             logger.info(f"Cache hit for engine: {cache_key}")
