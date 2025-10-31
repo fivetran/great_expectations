@@ -156,7 +156,7 @@ from datetime import datetime, timezone
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - operators">
 # Single value comparisons: ==, !=, >, <, >=, <=
 statement_1 = Column(name="count") == 1
-statement_2 = Column(name="date") > datetime.datetime(
+statement_2 = Column(name="date") > datetime(
     year=2025, month=1, day=31, tzinfo=timezone.utc
 )
 
