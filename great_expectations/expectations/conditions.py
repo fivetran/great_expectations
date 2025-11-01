@@ -218,14 +218,14 @@ class ComparisonCondition(Condition):
         if first_type not in allowed_types:
             raise InvalidParameterTypeError(
                 parameter,
-                f"For {operator} operator, parameter must contain only "
-                "int, float, str, or bool values. "
+                f"For {operator} operator, parameter values must contain only "
+                f"these types: {', '.join(t.__name__ for t in allowed_types)}. "
                 f"Found {first_type.__name__} at index 0",
             )
         first_is_numeric = first_type in numeric_types
         for i, value in enumerate(parameter_iter, start=1):
             # Check that all subsequent items match the type category of the first item
-            # Allow mixing int and float (both numeric types)
+            # Allow mixing numeric types
             value_type = type(value)
             if first_is_numeric:
                 is_valid = value_type in numeric_types
