@@ -78,6 +78,9 @@ Parameter = Any
 class Column(BaseModel):
     name: str
 
+    def __init__(self, name: str):
+        super().__init__(name=name)
+
     @override
     def __hash__(self) -> int:
         return hash(self.name)
