@@ -12,79 +12,79 @@ with warnings.catch_warnings():
     try:
         import pyspark
     except ImportError:
-        pyspark = SPARK_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+        pyspark = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql import functions
 except (ImportError, AttributeError):
-    functions = SPARK_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+    functions = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql import types
 except (ImportError, AttributeError):
-    types = SPARK_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+    types = SPARK_NOT_IMPORTED
 
 try:
     from pyspark import SparkContext
 except ImportError:
-    SparkContext = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    SparkContext = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.ml.feature import Bucketizer
 except (ImportError, AttributeError):
-    Bucketizer = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    Bucketizer = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql import Column
 except (ImportError, AttributeError):
-    Column = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    Column = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql.connect.dataframe import DataFrame as ConnectDataFrame
 except (ImportError, AttributeError):
-    ConnectDataFrame = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    ConnectDataFrame = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql import DataFrame
 except (ImportError, AttributeError):
-    DataFrame = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    DataFrame = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql import Row
 except (ImportError, AttributeError):
-    Row = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    Row = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql import SparkSession
 except (ImportError, AttributeError):
-    SparkSession = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    SparkSession = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql.connect.session import SparkSession as SparkConnectSession
 except (ImportError, AttributeError):
-    SparkConnectSession = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    SparkConnectSession = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql import SQLContext
 except (ImportError, AttributeError):
-    SQLContext = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    SQLContext = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql import Window
 except (ImportError, AttributeError):
-    Window = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    Window = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql.readwriter import DataFrameReader
 except (ImportError, AttributeError):
-    DataFrameReader = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    DataFrameReader = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.sql.utils import AnalysisException
 except (ImportError, AttributeError):
-    AnalysisException = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    AnalysisException = SPARK_NOT_IMPORTED
 
 try:
     from pyspark.errors import PySparkAttributeError
 except (ImportError, AttributeError):
-    PySparkAttributeError = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    PySparkAttributeError = SPARK_NOT_IMPORTED

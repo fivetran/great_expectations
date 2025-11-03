@@ -76,10 +76,10 @@ if TYPE_CHECKING:
 try:
     from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 except ImportError:
-    Point = None  # type: ignore[misc,assignment]
-    Polygon = None  # type: ignore[misc,assignment]
-    MultiPolygon = None  # type: ignore[misc,assignment]
-    LineString = None  # type: ignore[misc,assignment]
+    Point = None
+    Polygon = None
+    MultiPolygon = None
+    LineString = None
 
 
 logger = logging.getLogger(__name__)
@@ -1067,7 +1067,14 @@ ToDict: TypeAlias = Union[
 ]
 
 JSONConvertable: TypeAlias = Union[
-    ToDict, ToList, ToStr, ToInt, ToFloat, ToBool, ToBool, None  # noqa: PYI016 # FIXME CoP
+    ToDict,
+    ToList,
+    ToStr,
+    ToInt,
+    ToFloat,
+    ToBool,
+    ToBool,  # noqa: PYI016 # FIXME
+    None,
 ]
 
 
@@ -1226,7 +1233,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         return data
 
     try:
-        if not isinstance(data, list) and pd.isna(data):  # type: ignore[arg-type] # FIXME CoP
+        if not isinstance(data, list) and pd.isna(data):
             # pd.isna is functionally vectorized, but we only want to apply this to single objects
             # Hence, why we test for `not isinstance(list)`
             return None
@@ -1242,8 +1249,8 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         value_name = data.name or "value"
         return [
             {
-                index_name: convert_to_json_serializable(idx),  # type: ignore[call-overload] # FIXME CoP
-                value_name: convert_to_json_serializable(val),  # type: ignore[dict-item] # FIXME CoP
+                index_name: convert_to_json_serializable(idx),
+                value_name: convert_to_json_serializable(val),
             }
             for idx, val in data.items()
         ]
@@ -1251,10 +1258,12 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     if isinstance(data, pd.DataFrame):
         return convert_to_json_serializable(data.to_dict(orient="records"))
 
-    if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):  # type: ignore[truthy-function] # FIXME CoP
+    if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):
         # using StackOverflow suggestion for converting pyspark df into dictionary
         # https://stackoverflow.com/questions/43679880/pyspark-dataframe-to-dictionary-columns-as-keys-and-list-of-column-values-ad-di
-        return convert_to_json_serializable(dict(zip(data.schema.names, zip(*data.collect()))))
+        return convert_to_json_serializable(
+            dict(zip(data.schema.names, zip(*data.collect(), strict=False), strict=False))
+        )
 
     # SQLAlchemy serialization
     if LegacyRow and isinstance(data, LegacyRow):
@@ -1293,7 +1302,9 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     raise TypeError(f"{data!s} is of type {type(data).__name__} which cannot be serialized.")  # noqa: TRY003 # FIXME CoP
 
 
-def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
+def ensure_json_serializable(  # noqa: C901, PLR0911, PLR0912
+    data: Any,
+) -> None:  # FIXME CoP
     """
     Helper function to convert an object to one that is json serializable
     Args:
@@ -1378,10 +1389,12 @@ def ensure_json_serializable(data: Any) -> None:  # noqa: C901, PLR0911, PLR0912
         ]
         return
 
-    if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):  # type: ignore[truthy-function] # ensure pyspark is installed
+    if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):
         # using StackOverflow suggestion for converting pyspark df into dictionary
         # https://stackoverflow.com/questions/43679880/pyspark-dataframe-to-dictionary-columns-as-keys-and-list-of-column-values-ad-di
-        return ensure_json_serializable(dict(zip(data.schema.names, zip(*data.collect()))))
+        return ensure_json_serializable(
+            dict(zip(data.schema.names, zip(*data.collect(), strict=False), strict=False))
+        )
 
     if isinstance(data, pd.DataFrame):
         return ensure_json_serializable(data.to_dict(orient="records"))

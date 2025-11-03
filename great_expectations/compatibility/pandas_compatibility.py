@@ -47,10 +47,10 @@ def execute_pandas_to_datetime(  # noqa: PLR0913 # FIXME CoP
     if is_version_less_than(pd.__version__, "2.0.0"):
         return pd.to_datetime(
             arg=arg,
-            errors=errors,  # type: ignore[arg-type] # FIXME CoP
+            errors=errors,
             dayfirst=dayfirst,
             yearfirst=yearfirst,
-            utc=utc,  # type: ignore[arg-type] # FIXME CoP
+            utc=utc,
             format=format,
             exact=exact,
             unit=unit,

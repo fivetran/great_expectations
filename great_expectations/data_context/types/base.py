@@ -1133,7 +1133,7 @@ class DataContextConfigSchema(Schema):
         return data
 
     @override
-    def handle_error(self, exc, data, **kwargs) -> None:  # type: ignore[override] # FIXME CoP
+    def handle_error(self, exc, data, **kwargs) -> None:
         """Log and raise our custom exception when (de)serialization fails."""
         if (
             exc

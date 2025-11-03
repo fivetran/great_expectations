@@ -45,12 +45,16 @@ for sample in ds:
         all_confidences.extend(
             [
                 float(c)
-                for t, c in zip(ocr_data["text"], ocr_data["conf"])
+                for t, c in zip(ocr_data["text"], ocr_data["conf"], strict=False)
                 if t.strip() and c != "-1"
             ]
         )
         all_heights.extend(
-            [int(h) for t, h in zip(ocr_data["text"], ocr_data["height"]) if t.strip()]
+            [
+                int(h)
+                for t, h in zip(ocr_data["text"], ocr_data["height"], strict=False)
+                if t.strip()
+            ]
         )
 
     full_text = "\n".join(all_ocr_text)

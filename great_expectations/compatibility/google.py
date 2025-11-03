@@ -7,24 +7,24 @@ GOOGLE_CLOUD_STORAGE_NOT_IMPORTED = NotImported(
 )
 
 try:
-    from google.cloud import secretmanager  # type: ignore[attr-defined] # FIXME CoP
+    from google.cloud import secretmanager
 except (ImportError, AttributeError):
     secretmanager = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED
 
 try:
     from google.api_core.exceptions import GoogleAPIError
 except (ImportError, AttributeError):
-    GoogleAPIError = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    GoogleAPIError = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED
 
 try:
     from google.auth.exceptions import DefaultCredentialsError
 except (ImportError, AttributeError):
-    DefaultCredentialsError = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    DefaultCredentialsError = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED
 
 try:
     from google.cloud.exceptions import NotFound
 except (ImportError, AttributeError):
-    NotFound = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    NotFound = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED
 
 try:
     from google.cloud import storage
@@ -34,7 +34,7 @@ except (ImportError, AttributeError):
 try:
     from google.cloud import bigquery as python_bigquery
 except (ImportError, AttributeError):
-    python_bigquery = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+    python_bigquery = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED
 try:
     from google.cloud.storage import Client
 except (ImportError, AttributeError):
@@ -43,9 +43,9 @@ except (ImportError, AttributeError):
 try:
     from google.oauth2 import service_account
 except (ImportError, AttributeError):
-    service_account = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment] # FIXME CoP
+    service_account = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED
 
 try:
     from google.oauth2.service_account import Credentials
 except (ImportError, AttributeError):
-    Credentials = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED  # type: ignore[assignment,misc] # FIXME CoP
+    Credentials = GOOGLE_CLOUD_STORAGE_NOT_IMPORTED

@@ -381,7 +381,7 @@ class ExpectationValidationResult(SerializableDictDot):
 class ExpectationValidationResultSchema(Schema):
     success = fields.Bool(required=False, allow_none=True)
     expectation_config = fields.Nested(
-        lambda: "ExpectationConfigurationSchema",  # type: ignore[arg-type,return-value] # FIXME CoP
+        lambda: "ExpectationConfigurationSchema",
         required=False,
         allow_none=True,
     )

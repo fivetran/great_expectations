@@ -1052,7 +1052,7 @@ class TupleAzureBlobStoreBackend(TupleStoreBackend):
         from great_expectations.compatibility import azure
 
         # Validate that "azure" libraries were successfully imported and attempt to create "azure_client" handle.  # noqa: E501 # FIXME CoP
-        if azure.BlobServiceClient:  # type: ignore[truthy-function] # False if NotImported
+        if azure.BlobServiceClient:
             try:
                 if self.connection_string:
                     blob_service_client: azure.BlobServiceClient = (

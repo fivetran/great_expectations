@@ -14,28 +14,28 @@ except ImportError:
 try:
     from azure.identity import DefaultAzureCredential
 except ImportError:
-    DefaultAzureCredential = AZURE_BLOB_STORAGE_NOT_IMPORTED  # type: ignore[misc] # assigning to type
+    DefaultAzureCredential = AZURE_BLOB_STORAGE_NOT_IMPORTED
 
 try:
     from azure.keyvault.secrets import SecretClient
 except (ImportError, AttributeError):
-    SecretClient = AZURE_BLOB_STORAGE_NOT_IMPORTED  # type: ignore[misc] # assigning to type
+    SecretClient = AZURE_BLOB_STORAGE_NOT_IMPORTED
 
 try:
     from azure.storage.blob import ContentSettings
 except (ImportError, AttributeError):
-    ContentSettings = AZURE_BLOB_STORAGE_NOT_IMPORTED  # type: ignore[misc] # assigning to type
+    ContentSettings = AZURE_BLOB_STORAGE_NOT_IMPORTED
 try:
     from azure.storage.blob import BlobPrefix
 except (ImportError, AttributeError):
-    BlobPrefix = AZURE_BLOB_STORAGE_NOT_IMPORTED  # type: ignore[misc] # assigning to type
+    BlobPrefix = AZURE_BLOB_STORAGE_NOT_IMPORTED
 
 try:
     from azure.storage.blob import BlobServiceClient
 except (ImportError, AttributeError):
-    BlobServiceClient = AZURE_BLOB_STORAGE_NOT_IMPORTED  # type: ignore[misc] # assigning to type
+    BlobServiceClient = AZURE_BLOB_STORAGE_NOT_IMPORTED
 
 try:
     from azure.storage.blob import ContainerClient
 except (ImportError, AttributeError):
-    ContainerClient = AZURE_BLOB_STORAGE_NOT_IMPORTED  # type: ignore[misc] # assigning to type
+    ContainerClient = AZURE_BLOB_STORAGE_NOT_IMPORTED

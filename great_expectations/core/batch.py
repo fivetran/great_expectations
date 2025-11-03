@@ -388,11 +388,11 @@ class BatchRequestBase(SerializableDictDot):
             batch_data: BatchRequestBase | dict = self.runtime_parameters["batch_data"]
             self.runtime_parameters["batch_data"] = str(type(batch_data))
 
-            serializeable_dict = convert_to_json_serializable(data=self.to_dict())  # type: ignore[call-overload] # TypedDict is more specific dict type
+            serializeable_dict = convert_to_json_serializable(data=self.to_dict())
             # after getting serializable_dict, restore original batch_data
             self.runtime_parameters["batch_data"] = batch_data
         else:
-            serializeable_dict = convert_to_json_serializable(data=self.to_dict())  # type: ignore[call-overload] # TypedDict is more specific dict type
+            serializeable_dict = convert_to_json_serializable(data=self.to_dict())
 
         return serializeable_dict
 
@@ -1383,10 +1383,10 @@ def standardize_batch_request_display_ordering(
 if TYPE_CHECKING:
     AnyBatch: TypeAlias = Union[Batch, FluentBatch]
 
-if pyspark.DataFrame:  # type: ignore[truthy-function] # False if NotImported
+if pyspark.DataFrame:
     BatchDataUnion: TypeAlias = Union[BatchData, pd.DataFrame, pyspark.DataFrame]
 
     BatchDataType: TypeAlias = Union[Type[BatchData], Type[pd.DataFrame], Type[pyspark.DataFrame]]
 else:
-    BatchDataType = Union[Type[BatchData], Type[pd.DataFrame]]  # type: ignore[misc] # Cannot assign multiple types
-    BatchDataUnion = Union[BatchData, pd.DataFrame]  # type: ignore[misc] # Cannot assign multiple types
+    BatchDataType = Union[Type[BatchData], Type[pd.DataFrame]]
+    BatchDataUnion = Union[BatchData, pd.DataFrame]

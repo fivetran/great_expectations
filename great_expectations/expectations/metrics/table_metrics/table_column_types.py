@@ -37,7 +37,10 @@ class ColumnTypes(TableMetricProvider):
         df, _, _ = execution_engine.get_compute_domain(
             metric_domain_kwargs, domain_type=MetricDomainTypes.TABLE
         )
-        return [{"name": name, "type": dtype} for (name, dtype) in zip(df.columns, df.dtypes)]
+        return [
+            {"name": name, "type": dtype}
+            for (name, dtype) in zip(df.columns, df.dtypes, strict=False)
+        ]
 
     @metric_value(engine=SqlAlchemyExecutionEngine)
     def _sqlalchemy(

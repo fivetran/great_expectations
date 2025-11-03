@@ -352,8 +352,7 @@ class SparkDFExecutionEngine(ExecutionEngine[str]):
         spark_session: pyspark.SparkSession,
     ) -> bool:
         return (
-            pyspark.SparkConnectSession  # type: ignore[truthy-function]  # returns false if module is not installed
-            and isinstance(spark_session, pyspark.SparkConnectSession)
+            pyspark.SparkConnectSession and isinstance(spark_session, pyspark.SparkConnectSession)
         ) or (
             os.environ.get("DATABRICKS_RUNTIME_VERSION") is not None  # noqa: TID251 # FIXME CoP
         )
@@ -418,10 +417,10 @@ class SparkDFExecutionEngine(ExecutionEngine[str]):
         return spark_session, stopped
 
     @override
-    def load_batch_data(  # type: ignore[override] # FIXME CoP
+    def load_batch_data(
         self, batch_id: str, batch_data: Union[SparkDFBatchData, pyspark.DataFrame]
     ) -> None:
-        if pyspark.DataFrame and isinstance(batch_data, pyspark.DataFrame):  # type: ignore[truthy-function] # FIXME CoP
+        if pyspark.DataFrame and isinstance(batch_data, pyspark.DataFrame):
             batch_data = SparkDFBatchData(self, batch_data)
         elif not isinstance(batch_data, SparkDFBatchData):
             raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
