@@ -231,6 +231,7 @@ class TestInSetOperatorParameterValidator:
             pytest.param([1, {"a": 2}], id="dict"),
             pytest.param([1, None], id="None"),
             pytest.param([1, datetime.now(tz=timezone.utc)], id="datetime"),
+            pytest.param([1, True], id="bool values not allowed"),
         ],
     )
     def test_invalid_element_types_raise_error(self, parameter):
@@ -244,11 +245,6 @@ class TestInSetOperatorParameterValidator:
         "parameter",
         [
             pytest.param([1, "a"], id="int and string"),
-            pytest.param([True, False], id="bool values not allowed"),
-            pytest.param(
-                [datetime.now(tz=timezone.utc), datetime.now(tz=timezone.utc)],
-                id="datetime values not allowed",
-            ),
         ],
     )
     def test_mixed_types_raise_error(self, parameter):
