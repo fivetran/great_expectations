@@ -205,7 +205,7 @@ class ComparisonCondition(Condition):
     def _validate_parameter_element_types(parameter: Iterable[Any], operator: Operator) -> None:
         """Validate that all elements in parameter are compatible types."""
         numeric_types = {int, float}
-        allowed_types = numeric_types | {str, bool}
+        allowed_types = numeric_types | {str}
         parameter_iter = iter(parameter)
         try:
             first_value = next(parameter_iter)
