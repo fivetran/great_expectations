@@ -94,6 +94,7 @@ if TYPE_CHECKING:
         ExpectationExecutionEngineDiagnostics,
     )
     from great_expectations.data_context import AbstractDataContext
+    from great_expectations.types.connect_args import ConnectArgs
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -857,8 +858,7 @@ def build_sa_validator_with_data(  # noqa: C901, PLR0912, PLR0913, PLR0915 # FIX
         connection_string = _get_athena_connection_string()
         engine = sa.create_engine(connection_string)
     elif sa_engine_name == "snowflake":
-        connection_string = _get_snowflake_connection_string()
-        engine = sa.create_engine(connection_string)
+        engine = _create_snowflake_engine()
     else:
         connection_string = None
         engine = None
@@ -2455,24 +2455,61 @@ def _get_athena_connection_string(db_name_env_var: str = "ATHENA_DB_NAME") -> st
 
 
 def _create_snowflake_engine() -> sqlalchemy.Engine:
-    return sa.create_engine(_get_snowflake_connection_string())
+    connection_string = _get_snowflake_connection_string()
+    connect_args = _get_snowflake_connect_args()
+
+    if connect_args:
+        return sa.create_engine(connection_string, connect_args=connect_args)
+    else:
+        return sa.create_engine(connection_string)
 
 
 def _get_snowflake_connection_string() -> str:
     """
-    Copied get_snowflake_connection_url func from tests/test_utils.py
-    """
-    sfUser = os.environ.get("SNOWFLAKE_USER")  # noqa: TID251 # FIXME CoP
-    sfPswd = os.environ.get("SNOWFLAKE_PW")  # noqa: TID251 # FIXME CoP
-    sfAccount = os.environ.get("SNOWFLAKE_ACCOUNT")  # noqa: TID251 # FIXME CoP
-    sfDatabase = os.environ.get("SNOWFLAKE_DATABASE")  # noqa: TID251 # FIXME CoP
-    sfSchema = os.environ.get("SNOWFLAKE_SCHEMA", "")  # noqa: TID251 # FIXME CoP
-    sfWarehouse = os.environ.get("SNOWFLAKE_WAREHOUSE")  # noqa: TID251 # FIXME CoP
-    sfRole = os.environ.get("SNOWFLAKE_ROLE", "PUBLIC")  # noqa: TID251 # FIXME CoP
+    Get Snowflake connection string from environment variables.
 
-    url = f"snowflake://{sfUser}:{sfPswd}@{sfAccount}/{sfDatabase}/{sfSchema}?warehouse={sfWarehouse}&role={sfRole}"
+    Supports both password and key-pair authentication:
+    - For password auth: Set SNOWFLAKE_USER and SNOWFLAKE_PW
+    - For key-pair auth: Set SNOWFLAKE_USER and SNOWFLAKE_PRIVATE_KEY
+
+    Copied and updated from get_snowflake_connection_url func in tests/test_utils.py
+    """
+    sf_user = os.environ.get("SNOWFLAKE_USER")  # noqa: TID251 # FIXME CoP
+    sf_pw = os.environ.get("SNOWFLAKE_PW")  # noqa: TID251 # FIXME CoP
+    sf_account = os.environ.get("SNOWFLAKE_ACCOUNT")  # noqa: TID251 # FIXME CoP
+    sf_database = os.environ.get("SNOWFLAKE_DATABASE")  # noqa: TID251 # FIXME CoP
+    sf_schema = os.environ.get("SNOWFLAKE_SCHEMA", "")  # noqa: TID251 # FIXME CoP
+    sf_warehouse = os.environ.get("SNOWFLAKE_WAREHOUSE")  # noqa: TID251 # FIXME CoP
+    sf_role = os.environ.get("SNOWFLAKE_ROLE", "PUBLIC")  # noqa: TID251 # FIXME CoP
+    sf_private_key = os.environ.get("SNOWFLAKE_PRIVATE_KEY")  # noqa: TID251 # FIXME CoP
+
+    if sf_private_key:
+        user_auth = sf_user
+    elif sf_pw:
+        user_auth = f"{sf_user}:{sf_pw}"
+    else:
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
+            "Either SNOWFLAKE_PW or SNOWFLAKE_PRIVATE_KEY (base64-encoded) must be set"
+        )
+
+    url = f"snowflake://{user_auth}@{sf_account}/{sf_database}/{sf_schema}?warehouse={sf_warehouse}&role={sf_role}"
 
     return url
+
+
+def _get_snowflake_connect_args(private_key: str | None = None) -> ConnectArgs:
+    """
+    Get connect_args for Snowflake connection (e.g., for key-pair auth).
+
+    Returns connect_args with private key if SNOWFLAKE_PRIVATE_KEY is set.
+
+    Returns:
+        Dictionary with 'private_key' key if using key-pair auth, empty dict otherwise.
+    """
+    sf_private_key = private_key or os.environ.get("SNOWFLAKE_PRIVATE_KEY")  # noqa: TID251 # FIXME CoP
+    if sf_private_key:
+        return {"private_key": sf_private_key}
+    return {}
 
 
 def generate_sqlite_db_path():

@@ -338,18 +338,43 @@ def delete_config_from_filesystem(
 def get_snowflake_connection_url() -> str:
     """Get snowflake connection url from environment variables.
 
+    Supports both password and key-pair authentication:
+    - For password auth: Set SNOWFLAKE_USER and SNOWFLAKE_PW
+    - For key-pair auth: Set SNOWFLAKE_USER and SNOWFLAKE_PRIVATE_KEY (base64-encoded)
+
+    When using key-pair auth, use get_snowflake_connection_kwargs() to get the
+    connect_args that need to be passed to the datasource.
+
     Returns:
         String of the snowflake connection URL.
     """
-    sfUser = os.environ.get("SNOWFLAKE_USER")
-    sfPswd = os.environ.get("SNOWFLAKE_PW")
-    sfAccount = os.environ.get("SNOWFLAKE_ACCOUNT")
-    sfDatabase = os.environ.get("SNOWFLAKE_DATABASE")
-    sfSchema = os.environ.get("SNOWFLAKE_SCHEMA")
-    sfWarehouse = os.environ.get("SNOWFLAKE_WAREHOUSE")
-    sfRole = os.environ.get("SNOWFLAKE_ROLE") or "PUBLIC"
+    sf_user = os.environ.get("SNOWFLAKE_USER")
+    sf_pswd = os.environ.get("SNOWFLAKE_PW")
+    sf_account = os.environ.get("SNOWFLAKE_ACCOUNT")
+    sf_database = os.environ.get("SNOWFLAKE_DATABASE")
+    sf_schema = os.environ.get("SNOWFLAKE_SCHEMA")
+    sf_warehouse = os.environ.get("SNOWFLAKE_WAREHOUSE")
+    sf_role = os.environ.get("SNOWFLAKE_ROLE") or "PUBLIC"
+    sf_private_key = os.environ.get("SNOWFLAKE_PRIVATE_KEY")
 
-    return f"snowflake://{sfUser}:{sfPswd}@{sfAccount}/{sfDatabase}/{sfSchema}?warehouse={sfWarehouse}&role={sfRole}"
+    # When using private key auth, omit password from connection string
+    if sf_pswd and not sf_private_key:
+        user_auth = f"{sf_user}:{sf_pswd}"
+    else:
+        user_auth = sf_user
+
+    return f"snowflake://{user_auth}@{sf_account}/{sf_database}/{sf_schema}?warehouse={sf_warehouse}&role={sf_role}"
+
+
+def get_snowflake_private_key() -> Optional[str]:
+    """Get the Snowflake private key for key-pair authentication.
+
+    Returns the base64-encoded private key from SNOWFLAKE_PRIVATE_KEY environment variable.
+
+    Returns:
+        Base64-encoded private key string if set, None otherwise.
+    """
+    return os.environ.get("SNOWFLAKE_PRIVATE_KEY")
 
 
 def get_redshift_connection_url() -> str:
