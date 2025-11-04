@@ -35,10 +35,10 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core import (
     ExpectationValidationResult,  # noqa: TC001 # FIXME CoP
 )
-from great_expectations.expectations.conditions import deserialize_row_condition
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,  # noqa: TC001 # FIXME CoP
 )
+from great_expectations.expectations.row_conditions import deserialize_row_condition
 from great_expectations.render.exceptions import RendererConfigurationError
 from great_expectations.render.renderer.observed_value_renderer import ObservedValueRenderState
 

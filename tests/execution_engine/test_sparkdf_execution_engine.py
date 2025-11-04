@@ -13,17 +13,17 @@ from great_expectations.core.batch_spec import PathBatchSpec, RuntimeDataBatchSp
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.core.metric_function_types import MetricPartialFunctionTypes
 from great_expectations.execution_engine import SparkDFExecutionEngine
-from great_expectations.expectations.conditions import (
+from great_expectations.expectations.legacy_row_conditions import (
+    RowCondition,
+    RowConditionParserType,
+)
+from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
     ComparisonCondition,
     NullityCondition,
     Operator,
     OrCondition,
-)
-from great_expectations.expectations.row_conditions import (
-    RowCondition,
-    RowConditionParserType,
 )
 from great_expectations.self_check.util import build_spark_engine
 from great_expectations.validator.computed_metric import MetricValue

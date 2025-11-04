@@ -54,7 +54,8 @@ from great_expectations.execution_engine.partition_and_sample.pandas_data_partit
 from great_expectations.execution_engine.partition_and_sample.pandas_data_sampler import (
     PandasDataSampler,
 )
-from great_expectations.expectations.conditions import (
+from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
+from great_expectations.expectations.row_conditions import (
     AndCondition,
     ComparisonCondition,
     Condition,
@@ -64,7 +65,6 @@ from great_expectations.expectations.conditions import (
     PassThroughCondition,
     deserialize_row_condition,
 )
-from great_expectations.expectations.model_field_types import CONDITION_PARSER_PANDAS
 
 if TYPE_CHECKING:
     from botocore.client import BaseClient
