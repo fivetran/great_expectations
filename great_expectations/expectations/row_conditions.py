@@ -174,3 +174,4 @@ def parse_condition_to_sqlalchemy(
 
 
 # Re-export Column from conditions for backwards compatibility
+from great_expectations.expectations.conditions import Column  # noqa: F401
