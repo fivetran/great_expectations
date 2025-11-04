@@ -3064,3 +3064,30 @@ def parse_value_to_observed_type(observed_value: Any, value: Any) -> Any:
 
     # For other types, no special handling needed
     return value
+
+
+def _style_row_condition(
+    row_condition: str,
+    template_str: str,
+    params: dict,
+    styling: Optional[dict] = None,
+) -> str:
+    """
+    Style the row condition by adding a "condition_content" parameter
+    to the params and styling dictionary.
+
+    Args:
+        row_condition: The row condition string.
+        template_str: The template string.
+        params: The params dictionary.
+        styling: The styling dictionary.
+
+    Returns:
+        The styled template string.
+    """
+    params.setdefault("condition_content", row_condition)
+    styling = styling or {}
+    styling.setdefault("params", {})["condition_content"] = {
+        "classes": ["badge", "badge-secondary"]
+    }
+    return "If $condition_content, then " + template_str

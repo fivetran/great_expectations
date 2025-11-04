@@ -14,6 +14,10 @@ from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )
 from great_expectations.exceptions import RenderingError
+from great_expectations.expectations.conditions import (
+    PassThroughCondition,
+    deserialize_row_condition,
+)
 
 DEFAULT_PRECISION = 15
 # create a new context for this task
@@ -473,3 +477,16 @@ def truncate_list_of_indices(indices: list[int | str], max_index: int = 10) -> s
         indices = indices[:max_index]
         indices.append("...")
     return ", ".join(map(str, indices))
+
+
+def parse_row_condition_string(condition_string: str) -> str:
+    """Parses the row condition string into a string representation of the condition.
+    Args:
+        condition_string: A row condition string.
+    Returns:
+        A string representation of the input condition.
+    """
+    condition = deserialize_row_condition(condition_string)
+    if isinstance(condition, PassThroughCondition):
+        return condition.pass_through_filter
+    return repr(condition)
