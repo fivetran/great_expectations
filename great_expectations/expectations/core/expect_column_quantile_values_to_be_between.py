@@ -13,6 +13,7 @@ from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
+    _style_row_condition,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -36,7 +37,7 @@ from great_expectations.render.renderer_configuration import (
     RendererValueType,
 )
 from great_expectations.render.util import (
-    parse_row_condition_string_pandas_engine,
+    parse_row_condition_string,
     substitute_none_for_missing,
 )
 from great_expectations.util import isclose
@@ -484,15 +485,17 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
         if include_column_name:
             template_str = f"$column {template_str}"
 
+        styling = runtime_configuration.get("styling") if runtime_configuration else None
+
         if params["row_condition"] is not None:
-            (
+            conditional_template_str = parse_row_condition_string(params["row_condition"])
+
+            template_str = _style_row_condition(
                 conditional_template_str,
-                conditional_params,
-            ) = parse_row_condition_string_pandas_engine(params["row_condition"])
-            template_str = (
-                conditional_template_str + ", then " + template_str[0].lower() + template_str[1:]
+                template_str,
+                params,
+                styling,
             )
-            params.update(conditional_params)
 
         expectation_string_obj = {
             "content_block_type": "string_template",
