@@ -16,6 +16,7 @@ from great_expectations.expectations.conditions import (
     AndCondition,
     Column,
     ComparisonCondition,
+    Condition,
     Operator,
     PassThroughCondition,
 )
@@ -30,6 +31,7 @@ from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
 )
 from great_expectations.expectations.model_field_types import (
+    ConditionParser,
     MostlyField,  # type needed in pydantic validation
     ValueSetField,  # type needed in pydantic validation
 )
@@ -742,7 +744,10 @@ class TestLegacyRowConditionTransformation:
         ],
     )
     def test_legacy_row_condition_transformation(
-        self, row_condition, expected_condition, condition_parser
+        self,
+        row_condition: str,
+        expected_condition: Condition,
+        condition_parser: ConditionParser,
     ):
         """Test that legacy row_condition strings are transformed to Condition objects."""
         expectation = gxe.ExpectColumnValuesToBeInSet(
@@ -784,6 +789,18 @@ class TestLegacyRowConditionTransformation:
             value_set=["active"],
             row_condition='PClass=="1st"',
             condition_parser="pandas",
+        )
+
+        assert expectation.row_condition == PassThroughCondition(
+            pass_through_filter='PClass=="1st"'
+        )
+
+    def test_null_condition_parser_uses_pass_through(self):
+        expectation = gxe.ExpectColumnValuesToBeInSet(
+            column="status",
+            value_set=["active"],
+            row_condition='PClass=="1st"',
+            condition_parser=None,
         )
 
         assert expectation.row_condition == PassThroughCondition(
