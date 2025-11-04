@@ -171,3 +171,6 @@ def parse_condition_to_sqlalchemy(
         return sa.not_(sa.column(column).is_(None))
     else:
         raise ConditionParserError(f"unrecognized column condition: {row_condition}")  # noqa: TRY003 # FIXME CoP
+
+
+# Re-export Column from conditions for backwards compatibility
