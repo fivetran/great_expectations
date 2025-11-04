@@ -1,4 +1,4 @@
-from typing import Mapping, Optional
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -14,8 +14,12 @@ from tests.integration.test_utils.data_source_config.base import (
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import (
+    ConnectionDetails,
     SQLBatchTestSetup,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.types.connect_args import ConnectArgs
 
 
 class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
@@ -137,12 +141,10 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         from sqlalchemy import create_engine
 
         if self.engine_manager:
-            from tests.integration.test_utils.data_source_config.sql import ConnectionDetails
-
             connection_details = ConnectionDetails(
                 connection_string=self.connection_string,
             )
-            connect_args = {"private_key": self.private_key}
+            connect_args: ConnectArgs = {"private_key": self.private_key}
             engine = self.engine_manager.get_engine(connection_details, connect_args=connect_args)
             return engine, lambda: None
         else:

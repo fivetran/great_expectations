@@ -94,6 +94,7 @@ if TYPE_CHECKING:
         ExpectationExecutionEngineDiagnostics,
     )
     from great_expectations.data_context import AbstractDataContext
+    from great_expectations.types.connect_args import ConnectArgs
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -2487,14 +2488,16 @@ def _get_snowflake_connection_string() -> str:
     elif sf_pw:
         user_auth = f"{sf_user}:{sf_pw}"
     else:
-        raise ValueError("Either SNOWFLAKE_PW or SNOWFLAKE_PRIVATE_KEY must be set")  # noqa: TRY003 # FIXME CoP
+        raise ValueError(  # noqa: TRY003 # FIXME CoP
+            "Either SNOWFLAKE_PW or SNOWFLAKE_PRIVATE_KEY (base64-encoded) must be set"
+        )
 
     url = f"snowflake://{user_auth}@{sf_account}/{sf_database}/{sf_schema}?warehouse={sf_warehouse}&role={sf_role}"
 
     return url
 
 
-def _get_snowflake_connect_args(private_key: str | None = None) -> dict:
+def _get_snowflake_connect_args(private_key: str | None = None) -> ConnectArgs:
     """
     Get connect_args for Snowflake connection (e.g., for key-pair auth).
 

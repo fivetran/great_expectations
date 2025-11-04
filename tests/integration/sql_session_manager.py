@@ -8,6 +8,8 @@ from typing import Any, Type
 import sqlalchemy as sa
 from sqlalchemy.pool import Pool, QueuePool
 
+from great_expectations.types.connect_args import ConnectArgs
+
 logger = logging.getLogger(__name__)
 
 
@@ -55,7 +57,7 @@ class SessionSQLEngineManager:
         self._engine_cache: dict[ConnectionDetails, sa.engine.Engine] = {}
 
     def get_engine(
-        self, connection_details: ConnectionDetails, connect_args: dict | None = None
+        self, connection_details: ConnectionDetails, connect_args: ConnectArgs | None = None
     ) -> sa.engine.Engine:
         if connect_args is None:
             connect_args = {}

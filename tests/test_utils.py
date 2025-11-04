@@ -366,7 +366,6 @@ def get_snowflake_connection_url() -> str:
     return f"snowflake://{user_auth}@{sf_account}/{sf_database}/{sf_schema}?warehouse={sf_warehouse}&role={sf_role}"
 
 
-# noinspection PyPep8Naming
 def get_snowflake_private_key() -> Optional[str]:
     """Get the Snowflake private key for key-pair authentication.
 
