@@ -5,14 +5,14 @@ from datetime import datetime, timezone
 import pytest
 
 from great_expectations.compatibility.pydantic import ValidationError
-from great_expectations.expectations.conditions import (
-    Column,
-    ComparisonCondition,
-    Operator,
-)
 from great_expectations.expectations.core import (
     ExpectColumnValuesToBeInSet,
     ExpectTableRowCountToEqual,
+)
+from great_expectations.expectations.row_conditions import (
+    Column,
+    ComparisonCondition,
+    Operator,
 )
 
 pytestmark = pytest.mark.unit

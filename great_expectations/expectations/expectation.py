@@ -53,19 +53,12 @@ from great_expectations.exceptions import (
     InvalidExpectationConfigurationError,
     InvalidExpectationKwargsError,
 )
-from great_expectations.expectations.conditions import (
-    Column,
-    ComparisonCondition,
-    Condition,
-    NullityCondition,
-    Operator,
-    PassThroughCondition,
-    RowConditionType,  # Required for RowConditionType runtime validation
-    validate_row_condition,
-)
 from great_expectations.expectations.expectation_configuration import (
     ExpectationConfiguration,
     parse_result_format,
+)
+from great_expectations.expectations.legacy_row_conditions import (
+    parse_great_expectations_condition,
 )
 from great_expectations.expectations.metadata_types import FailureSeverity
 from great_expectations.expectations.model_field_descriptions import (
@@ -89,7 +82,14 @@ from great_expectations.expectations.registry import (
     register_renderer,
 )
 from great_expectations.expectations.row_conditions import (
-    parse_great_expectations_condition,
+    Column,
+    ComparisonCondition,
+    Condition,
+    NullityCondition,
+    Operator,
+    PassThroughCondition,
+    RowConditionType,  # Required for RowConditionType runtime validation
+    validate_row_condition,
 )
 from great_expectations.expectations.sql_tokens_and_types import (
     valid_sql_tokens_and_types,

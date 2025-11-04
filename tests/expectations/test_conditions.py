@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from great_expectations.compatibility.pydantic import ValidationError
-from great_expectations.expectations.conditions import (
+from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
     ComparisonCondition,

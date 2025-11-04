@@ -13,15 +13,15 @@ from great_expectations.core.metric_function_types import (
     SummarizationMetricNameSuffixes,
 )
 from great_expectations.execution_engine import ExecutionEngine, PandasExecutionEngine
-from great_expectations.expectations.conditions import (
+from great_expectations.expectations.legacy_row_conditions import (
+    RowCondition,
+    RowConditionParserType,
+)
+from great_expectations.expectations.row_conditions import (
     AndCondition,
     ComparisonCondition,
     NullityCondition,
     OrCondition,
-)
-from great_expectations.expectations.row_conditions import (
-    RowCondition,
-    RowConditionParserType,
 )
 
 # Testing ordinary process of adding column row condition

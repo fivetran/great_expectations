@@ -12,13 +12,6 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_validation_result import ExpectationValidationResult
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.execution_engine.execution_engine import ExecutionEngine
-from great_expectations.expectations.conditions import (
-    AndCondition,
-    Column,
-    ComparisonCondition,
-    Operator,
-    PassThroughCondition,
-)
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     ColumnPairMapExpectation,
@@ -32,6 +25,13 @@ from great_expectations.expectations.expectation_configuration import (
 from great_expectations.expectations.model_field_types import (
     MostlyField,  # type needed in pydantic validation
     ValueSetField,  # type needed in pydantic validation
+)
+from great_expectations.expectations.row_conditions import (
+    AndCondition,
+    Column,
+    ComparisonCondition,
+    Operator,
+    PassThroughCondition,
 )
 from great_expectations.expectations.window import Offset, Window
 from great_expectations.validator.metric_configuration import MetricConfiguration

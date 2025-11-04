@@ -23,17 +23,17 @@ import great_expectations.exceptions as gx_exceptions
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.batch_manager import BatchManager
 from great_expectations.core.metric_domain_types import MetricDomainTypes
-from great_expectations.expectations.conditions import (
+from great_expectations.expectations.legacy_row_conditions import (
+    RowCondition,
+    RowConditionParserType,
+)
+from great_expectations.expectations.registry import get_metric_provider
+from great_expectations.expectations.row_conditions import (
     AndCondition,
     ComparisonCondition,
     Condition,
     NullityCondition,
     OrCondition,
-)
-from great_expectations.expectations.registry import get_metric_provider
-from great_expectations.expectations.row_conditions import (
-    RowCondition,
-    RowConditionParserType,
 )
 from great_expectations.types import DictDot
 from great_expectations.util import (
