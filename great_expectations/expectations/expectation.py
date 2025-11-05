@@ -3071,7 +3071,7 @@ def _style_row_condition(
     template_str: str,
     params: dict,
     styling: Optional[dict] = None,
-) -> str:
+) -> tuple[str, dict]:
     """
     Style the row condition by adding a "condition_content" parameter
     to the params and styling dictionary.
@@ -3083,11 +3083,11 @@ def _style_row_condition(
         styling: The styling dictionary.
 
     Returns:
-        The styled template string.
+        A tuple of (styled_template_string, styling_dictionary).
     """
     params.setdefault("condition_content", row_condition)
     styling = styling or {}
     styling.setdefault("params", {})["condition_content"] = {
         "classes": ["badge", "badge-secondary"]
     }
-    return "If $condition_content, then " + template_str
+    return "If $condition_content, then " + template_str, styling

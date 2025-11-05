@@ -1383,7 +1383,7 @@ class ExpectColumnKLDivergenceToBeLessThan(ColumnAggregateExpectation):
         if params["row_condition"] is not None:
             conditional_template_str = parse_row_condition_string(params["row_condition"])
 
-            template_str = _style_row_condition(
+            template_str, styling = _style_row_condition(
                 conditional_template_str,
                 template_str,
                 params,
