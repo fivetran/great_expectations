@@ -32,7 +32,7 @@ module.exports = {
         enableInDevelopment: false,
         debug: false,
         // pageviews are handled by the web-tracking.js script
-        capture_pageview: 'false',
+        capture_pageview: false,
       }
     ],
   ],
