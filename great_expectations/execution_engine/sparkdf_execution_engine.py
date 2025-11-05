@@ -59,11 +59,10 @@ from great_expectations.execution_engine.partition_and_sample.sparkdf_data_sampl
     SparkDataSampler,
 )
 from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchData
-from great_expectations.expectations.conditions import (
-    Condition,
-    Operator,
-    PassThroughCondition,
-    deserialize_row_condition,
+from great_expectations.expectations.legacy_row_conditions import (
+    RowCondition,
+    RowConditionParserType,
+    parse_condition_to_spark,
 )
 from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
@@ -71,9 +70,10 @@ from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_SPARK,
 )
 from great_expectations.expectations.row_conditions import (
-    RowCondition,
-    RowConditionParserType,
-    parse_condition_to_spark,
+    Condition,
+    Operator,
+    PassThroughCondition,
+    deserialize_row_condition,
 )
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
@@ -81,7 +81,7 @@ from great_expectations.validator.computed_metric import MetricValue  # noqa: TC
 if TYPE_CHECKING:
     from great_expectations.compatibility.pyspark import DataFrame
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
-    from great_expectations.expectations.conditions import (
+    from great_expectations.expectations.row_conditions import (
         AndCondition,
         ComparisonCondition,
         NullityCondition,

@@ -83,16 +83,16 @@ from great_expectations.execution_engine.sqlalchemy_batch_data import (
     SqlAlchemyBatchData,
 )
 from great_expectations.execution_engine.sqlalchemy_dialect import GXSqlDialect
-from great_expectations.expectations.conditions import (
+from great_expectations.expectations.legacy_row_conditions import (
+    RowCondition,
+    RowConditionParserType,
+    parse_condition_to_sqlalchemy,
+)
+from great_expectations.expectations.row_conditions import (
     Condition,
     Operator,
     PassThroughCondition,
     deserialize_row_condition,
-)
-from great_expectations.expectations.row_conditions import (
-    RowCondition,
-    RowConditionParserType,
-    parse_condition_to_sqlalchemy,
 )
 from great_expectations.util import (
     filter_properties_dict,
@@ -105,7 +105,7 @@ from great_expectations.util import (
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
-    from great_expectations.expectations.conditions import (
+    from great_expectations.expectations.row_conditions import (
         AndCondition,
         ComparisonCondition,
         NullityCondition,

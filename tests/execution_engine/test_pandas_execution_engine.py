@@ -14,7 +14,7 @@ from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.execution_engine.pandas_execution_engine import (
     PandasExecutionEngine,
 )
-from great_expectations.expectations.conditions import (
+from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
     ComparisonCondition,

@@ -29,19 +29,19 @@ from great_expectations.execution_engine.sqlalchemy_execution_engine import (
     SqlAlchemyExecutionEngine,
     _dialect_requires_persisted_connection,
 )
-from great_expectations.expectations.conditions import (
+
+# Function to test for spark dataframe equality
+from great_expectations.expectations.legacy_row_conditions import (
+    RowCondition,
+    RowConditionParserType,
+)
+from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
     ComparisonCondition,
     NullityCondition,
     Operator,
     OrCondition,
-)
-
-# Function to test for spark dataframe equality
-from great_expectations.expectations.row_conditions import (
-    RowCondition,
-    RowConditionParserType,
 )
 from great_expectations.self_check.util import build_sa_execution_engine
 from great_expectations.util import get_sqlalchemy_domain_data
