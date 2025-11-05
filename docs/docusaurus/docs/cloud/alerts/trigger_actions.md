@@ -15,6 +15,11 @@ Use Actions to notify the appropriate parties of the results of your Validation 
 - A Checkpoint (either an automatically created GX-managed one or a manually created one).
 - [Python version 3.9 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+   :::note Want to use row conditions?
+   GX Cloud library versions prior to 1.8.0 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.0 or later.
+      - multiple condition statements
+      - **is in**, **is not in**, or **is null** operators
+   :::
 
 ## Procedure
 

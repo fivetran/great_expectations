@@ -80,6 +80,11 @@ When editing a Data Source with the GX Cloud API, you can change the connection 
 - A [Data Source](/docs/cloud/connect/connect_lp).
 - [Python version 3.9 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+   :::note Want to use row conditions?
+   GX Cloud library versions prior to 1.8.0 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.0 or later.
+    - multiple condition statements
+    - **is in**, **is not in**, or **is null** operators
+   :::
 - Recommended. A [Python virtual environment](https://docs.python.org/3/library/venv.html).
 
 ### Procedure
