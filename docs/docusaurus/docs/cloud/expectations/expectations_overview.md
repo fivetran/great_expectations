@@ -148,7 +148,7 @@ Here are some examples of how to express complex row conditions:
 
 - **A and B**: Two condition statements within a single condition block.
 
-   ![product_category is books and purchase_amount is greater than 100](/img/a_and_b.png)
+   ![product_category is in books, magazines, cards and purchase_amount is greater than 100](/img/a_and_b.png)
 
 - **A or B**: Two condition statements, each in its own condition block.
 
