@@ -39,7 +39,7 @@ context = gx.get_context()
 set_up_context_for_example(context)
 
 # <snippet name="docs/docusaurus/docs/core/customize_expectations/_examples/row_conditions.py - determine expression">
-from great_expectations.expectations.conditions import Column
+from great_expectations.expectations.row_conditions import Column
 
 # Create condition statements with column references and Python comparisons.
 statement_1 = Column(name="tenure") > 2
