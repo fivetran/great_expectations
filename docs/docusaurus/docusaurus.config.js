@@ -24,6 +24,17 @@ module.exports = {
         id: 'GTM-K63L45F' // GTM Container ID
       }
     ],
+    // PostHog plugin for documentation analytics only
+    [
+      'posthog-docusaurus',
+      {
+        apiKey: process.env.POSTHOG_API_KEY,
+        enableInDevelopment: false,
+        debug: false,
+        // Let PostHog handle all pageviews
+        capture_pageview: 'history_change',
+      }
+    ],
   ],
 
   scripts: [
