@@ -173,6 +173,7 @@ class Condition(BaseModel):
         return OrCondition(conditions=[self, other])
 
 
+@public_api
 class NullityCondition(Condition):
     type: Literal["nullity"] = Field(default="nullity")
     column: Column
@@ -184,6 +185,7 @@ class NullityCondition(Condition):
         return f"{self.column.name} IS {null_str}"
 
 
+@public_api
 class ComparisonCondition(Condition):
     type: Literal["comparison"] = Field(default="comparison")
     column: Column
@@ -310,6 +312,7 @@ def deserialize_row_condition(value: Any) -> Union[str, Condition, None]:
     raise InvalidConditionTypeError(value)
 
 
+@public_api
 class AndCondition(Condition):
     """Represents an AND condition composed of multiple conditions."""
 
@@ -328,6 +331,7 @@ class AndCondition(Condition):
         return "(" + " AND ".join(repr(c) for c in self.conditions) + ")"
 
 
+@public_api
 class OrCondition(Condition):
     """Represents an OR condition composed of multiple conditions."""
 
