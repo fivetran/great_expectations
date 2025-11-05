@@ -379,7 +379,7 @@ class _ConfigurationSubstitutor:
         :raises: ImportError, ValueError
         """  # noqa: E501 # FIXME CoP
         regex = re.compile(rf"{self.AZURE_PATTERN}(?:\/([a-f0-9]{32}))?(?:\|([^\|]+))?$")
-        if not azure.SecretClient:
+        if azure.SecretClient is None:
             logger.error(
                 "SecretClient is not installed, please install great_expectations with azure_secrets extra > "  # noqa: E501 # FIXME CoP
                 "pip install great_expectations[azure_secrets]"
@@ -397,6 +397,8 @@ class _ConfigurationSubstitutor:
         credential = azure.DefaultAzureCredential()
         client = azure.SecretClient(vault_url=keyvault_uri, credential=credential)
         secret = client.get_secret(name=secret_name, version=secret_version).value
+        if secret is None:
+            raise ValueError(f"Secret '{secret_name}' not found or has no value")  # noqa: TRY003 # FIXME CoP
         if secret_key:
             secret = json.loads(secret)[secret_key]
         return secret

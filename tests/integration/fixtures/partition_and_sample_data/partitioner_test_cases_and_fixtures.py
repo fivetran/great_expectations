@@ -164,7 +164,7 @@ class TaxiTestData:
                 map(
                     ord,
                     hashlib.md5(
-                        str(tuple(zip(element.keys(), element.values(), strict=False))).encode(
+                        str(tuple(zip(element.keys(), element.values()))).encode(
                             "utf-8"
                         )
                     ).hexdigest(),
@@ -181,7 +181,7 @@ class TaxiTestData:
         for dictionary_element in multi_column_values:
             hash_code = hashlib.md5(
                 str(
-                    tuple(zip(dictionary_element.keys(), dictionary_element.values(), strict=False))
+                    tuple(zip(dictionary_element.keys(), dictionary_element.values()))
                 ).encode("utf-8")
             ).hexdigest()
             if hash_code not in hash_codes:

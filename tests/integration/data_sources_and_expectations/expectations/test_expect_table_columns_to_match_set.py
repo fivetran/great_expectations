@@ -220,7 +220,6 @@ def test_case_insensitive_success(batch_for_datasource: Batch) -> None:
         zip(
             observed_column_names(batch_for_datasource.datasource.type),
             ["expected", "expected", "expected"],
-            strict=False,
         )
     )
     expected_values = _extract_expected_state(result)
@@ -248,7 +247,6 @@ def test_case_insensitive_failure(batch_for_datasource: Batch) -> None:
         zip(
             observed_column_names(batch_for_datasource.datasource.type),
             ["unexpected", "expected", "expected"],
-            strict=False,
         )
     )
     expected_values = _extract_expected_state(result)

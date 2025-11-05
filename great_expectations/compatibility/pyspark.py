@@ -12,79 +12,79 @@ with warnings.catch_warnings():
     try:
         import pyspark
     except ImportError:
-        pyspark = SPARK_NOT_IMPORTED
+        pyspark = SPARK_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     from pyspark.sql import functions
 except (ImportError, AttributeError):
-    functions = SPARK_NOT_IMPORTED
+    functions = SPARK_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     from pyspark.sql import types
 except (ImportError, AttributeError):
-    types = SPARK_NOT_IMPORTED
+    types = SPARK_NOT_IMPORTED  # type: ignore[assignment]
 
 try:
     from pyspark import SparkContext
 except ImportError:
-    SparkContext = SPARK_NOT_IMPORTED
+    SparkContext = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.ml.feature import Bucketizer
 except (ImportError, AttributeError):
-    Bucketizer = SPARK_NOT_IMPORTED
+    Bucketizer = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql import Column
 except (ImportError, AttributeError):
-    Column = SPARK_NOT_IMPORTED
+    Column = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql.connect.dataframe import DataFrame as ConnectDataFrame
 except (ImportError, AttributeError):
-    ConnectDataFrame = SPARK_NOT_IMPORTED
+    ConnectDataFrame = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql import DataFrame
 except (ImportError, AttributeError):
-    DataFrame = SPARK_NOT_IMPORTED
+    DataFrame = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql import Row
 except (ImportError, AttributeError):
-    Row = SPARK_NOT_IMPORTED
+    Row = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql import SparkSession
 except (ImportError, AttributeError):
-    SparkSession = SPARK_NOT_IMPORTED
+    SparkSession = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql.connect.session import SparkSession as SparkConnectSession
 except (ImportError, AttributeError):
-    SparkConnectSession = SPARK_NOT_IMPORTED
+    SparkConnectSession = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql import SQLContext
 except (ImportError, AttributeError):
-    SQLContext = SPARK_NOT_IMPORTED
+    SQLContext = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql import Window
 except (ImportError, AttributeError):
-    Window = SPARK_NOT_IMPORTED
+    Window = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql.readwriter import DataFrameReader
 except (ImportError, AttributeError):
-    DataFrameReader = SPARK_NOT_IMPORTED
+    DataFrameReader = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.sql.utils import AnalysisException
 except (ImportError, AttributeError):
-    AnalysisException = SPARK_NOT_IMPORTED
+    AnalysisException = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]
 
 try:
     from pyspark.errors import PySparkAttributeError
 except (ImportError, AttributeError):
-    PySparkAttributeError = SPARK_NOT_IMPORTED
+    PySparkAttributeError = SPARK_NOT_IMPORTED  # type: ignore[assignment,misc]

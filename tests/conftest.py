@@ -546,7 +546,7 @@ def sa(test_backends):
 def spark_session(test_backends) -> pyspark.SparkSession:
     from great_expectations.compatibility import pyspark
 
-    if pyspark.SparkSession:
+    if pyspark.SparkSession:  # type: ignore[truthy-function] # FIXME CoP
         return SparkDFExecutionEngine.get_or_create_spark_session()
 
     raise ValueError("spark tests are requested, but pyspark is not installed")
@@ -556,7 +556,7 @@ def spark_session(test_backends) -> pyspark.SparkSession:
 def spark_connect_session(test_backends):
     from great_expectations.compatibility import pyspark
 
-    if pyspark.SparkConnectSession:
+    if pyspark.SparkConnectSession:  # type: ignore[truthy-function] # FIXME CoP
         spark_connect_session = pyspark.SparkSession.builder.remote(
             "sc://localhost:15002"
         ).getOrCreate()

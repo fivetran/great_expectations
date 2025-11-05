@@ -32,8 +32,8 @@ except ImportError:
 if not LegacyRow:
     LegacyRow = SQLALCHEMY_NOT_IMPORTED
 
-if not Row:  # type: ignore[truthy-function] # FIXME CoP
-    Row = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc] # FIXME CoP
+if not Row:
+    Row = SQLALCHEMY_NOT_IMPORTED
 
 SCHEMAS = {
     "api_np": {

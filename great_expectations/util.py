@@ -940,11 +940,11 @@ def get_sqlalchemy_selectable(
 
     https://docs.sqlalchemy.org/en/14/changelog/migration_14.html#change-4617
     """  # noqa: E501 # FIXME CoP
-    if sqlalchemy.Select and isinstance(selectable, sqlalchemy.Select):  # type: ignore[truthy-function] # FIXME CoP
+    if sqlalchemy.Select and isinstance(selectable, sqlalchemy.Select):
         if version.parse(sa.__version__) >= version.parse("1.4"):
-            selectable = selectable.subquery()  # type: ignore[assignment] # FIXME CoP
+            selectable = selectable.subquery()
         else:
-            selectable = selectable.alias()  # type: ignore[assignment] # FIXME CoP
+            selectable = selectable.alias()
     return selectable
 
 
@@ -1245,11 +1245,11 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     if isinstance(data, pd.Series):
         # Converting a series is tricky since the index may not be a string, but all json
         # keys must be strings. So, we use a very ugly serialization strategy
-        index_name = data.index.name or "index"
-        value_name = data.name or "value"
+        index_name: str = str(data.index.name) if data.index.name is not None else "index"
+        value_name: str = str(data.name) if data.name is not None else "value"
         return [
             {
-                index_name: convert_to_json_serializable(idx),
+                index_name: convert_to_json_serializable(str(idx)),
                 value_name: convert_to_json_serializable(val),
             }
             for idx, val in data.items()
@@ -1258,7 +1258,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     if isinstance(data, pd.DataFrame):
         return convert_to_json_serializable(data.to_dict(orient="records"))
 
-    if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):
+    if pyspark.DataFrame is not None and isinstance(data, pyspark.DataFrame):
         # using StackOverflow suggestion for converting pyspark df into dictionary
         # https://stackoverflow.com/questions/43679880/pyspark-dataframe-to-dictionary-columns-as-keys-and-list-of-column-values-ad-di
         return convert_to_json_serializable(
@@ -1270,10 +1270,10 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         return dict(data)
 
     # sqlalchemy text for SqlAlchemy 2 compatibility
-    if sqlalchemy.TextClause and isinstance(data, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
+    if sqlalchemy.TextClause and isinstance(data, sqlalchemy.TextClause):
         return str(data)
 
-    if Row and isinstance(data, Row):  # type: ignore[truthy-function] # FIXME CoP
+    if Row and isinstance(data, Row):
         return str(data)
 
     if isinstance(data, decimal.Decimal):
@@ -1288,7 +1288,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
     if pyspark.types and isinstance(data, pyspark.types.StructType):
         return dict(data.jsonValue())
 
-    if sqlalchemy.Connection and isinstance(data, sqlalchemy.Connection):  # type: ignore[truthy-function] # FIXME CoP
+    if sqlalchemy.Connection and isinstance(data, sqlalchemy.Connection):
         # Connection is a module, which is non-serializable. Return module name instead.
         return "sqlalchemy.engine.base.Connection"
 
@@ -1389,7 +1389,7 @@ def ensure_json_serializable(  # noqa: C901, PLR0911, PLR0912
         ]
         return
 
-    if pyspark.DataFrame and isinstance(data, pyspark.DataFrame):
+    if pyspark.DataFrame is not None and isinstance(data, pyspark.DataFrame):
         # using StackOverflow suggestion for converting pyspark df into dictionary
         # https://stackoverflow.com/questions/43679880/pyspark-dataframe-to-dictionary-columns-as-keys-and-list-of-column-values-ad-di
         return ensure_json_serializable(
@@ -1407,11 +1407,11 @@ def ensure_json_serializable(  # noqa: C901, PLR0911, PLR0912
     if isinstance(data, RunIdentifier):
         return
 
-    if sqlalchemy.TextClause and isinstance(data, sqlalchemy.TextClause):  # type: ignore[truthy-function] # FIXME CoP
+    if sqlalchemy.TextClause and isinstance(data, sqlalchemy.TextClause):
         # TextClause is handled manually by convert_to_json_serializable()
         return
 
-    if sqlalchemy.Connection and isinstance(data, sqlalchemy.Connection):  # type: ignore[truthy-function] # FIXME CoP
+    if sqlalchemy.Connection and isinstance(data, sqlalchemy.Connection):
         # Connection module is handled manually by convert_to_json_serializable()
         return
 

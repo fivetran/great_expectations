@@ -20,7 +20,7 @@ from jinja2 import (
 from great_expectations.compatibility.typing_extensions import override
 
 try:
-    from jinja2 import contextfilter
+    from jinja2 import contextfilter  # type: ignore[attr-defined]
 except ImportError:
     from jinja2 import pass_context as contextfilter
 
