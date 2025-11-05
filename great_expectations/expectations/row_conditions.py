@@ -175,6 +175,8 @@ class Condition(BaseModel):
 
 @public_api
 class NullityCondition(Condition):
+    """Condition representing the whether or not a column is null."""
+
     type: Literal["nullity"] = Field(default="nullity")
     column: Column
     is_null: bool
@@ -187,6 +189,8 @@ class NullityCondition(Condition):
 
 @public_api
 class ComparisonCondition(Condition):
+    """Condition representing the comparison of a column with a parameter."""
+
     type: Literal["comparison"] = Field(default="comparison")
     column: Column
     operator: Operator
