@@ -31,8 +31,8 @@ module.exports = {
         apiKey: process.env.POSTHOG_API_KEY,
         enableInDevelopment: false,
         debug: false,
-        // Let PostHog handle all pageviews
-        capture_pageview: 'history_change',
+        // pageviews are handled by the web-tracking.js script
+        capture_pageview: 'false',
       }
     ],
   ],
