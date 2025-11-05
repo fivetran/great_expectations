@@ -12,6 +12,7 @@ from great_expectations.compatibility.typing_extensions import override
 from great_expectations.core.expectation_validation_result import ExpectationValidationResult
 from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.execution_engine.execution_engine import ExecutionEngine
+from great_expectations.expectations.conditions import Condition
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
     ColumnPairMapExpectation,
