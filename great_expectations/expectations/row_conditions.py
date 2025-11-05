@@ -3,6 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Union
 
+from great_expectations._docs_decorators import public_api
 from great_expectations.compatibility.pydantic import BaseModel, Field, root_validator, validator
 from great_expectations.compatibility.typing_extensions import override
 
@@ -75,7 +76,12 @@ class Operator(str, Enum):
 Parameter = Any
 
 
+@public_api
 class Column(BaseModel):
+    """
+    Specify the column in a condition statement.
+    """
+
     name: str
 
     def __init__(self, name: str):
@@ -109,16 +115,32 @@ class Column(BaseModel):
             column=self, operator=Operator.GREATER_THAN_OR_EQUAL, parameter=other
         )
 
+    @public_api
     def is_in(self, values: Iterable) -> ComparisonCondition:
+        """
+        Operator for a condition statement that a column's value belongs to a set.
+        """
         return ComparisonCondition(column=self, operator=Operator.IN, parameter=list(values))
 
+    @public_api
     def is_not_in(self, values: Iterable) -> ComparisonCondition:
+        """
+        Operator for a condition statement that a column's value does not belong to a set.
+        """
         return ComparisonCondition(column=self, operator=Operator.NOT_IN, parameter=list(values))
 
+    @public_api
     def is_null(self) -> NullityCondition:
+        """
+        Operator for a condition statement that a column's value is null.
+        """
         return NullityCondition(column=self, is_null=True)
 
+    @public_api
     def is_not_null(self) -> NullityCondition:
+        """
+        Operator for a condition statement that a column's value is not null.
+        """
         return NullityCondition(column=self, is_null=False)
 
 
