@@ -15,6 +15,24 @@ When we deprecate public functionality, we will
 
 Before we completely remove the functionality in a new major release, there will be at least one minor release that contains the deprecation so that you can smoothly transition.
 
+### 1.8.1
+* [BUGFIX] Fix render_content generation with new row_condition types ([#11481](https://github.com/great-expectations/great_expectations/pull/11481))
+* [BUGFIX] Prevent unmocked HTTP requests in cloud tests ([#11492](https://github.com/great-expectations/great_expectations/pull/11492))
+* [BUGFIX] Update pytest filter to handle google.api_core Python 3.10 end-of-life warning ([#11493](https://github.com/great-expectations/great_expectations/pull/11493))
+* [DOCS] snowflake password deprecation ([#11416](https://github.com/great-expectations/great_expectations/pull/11416))
+* [DOCS] correct Snowflake private key guidance ([#11490](https://github.com/great-expectations/great_expectations/pull/11490))
+* [MAINTENANCE] Stop running python 3.12 marker tests on all PRs ([#11457](https://github.com/great-expectations/great_expectations/pull/11457))
+* [MAINTENANCE] Disable link checker ([#11477](https://github.com/great-expectations/great_expectations/pull/11477))
+* [MAINTENANCE] Transform legacy row_condition string into new Condition object ([#11474](https://github.com/great-expectations/great_expectations/pull/11474))
+* [MAINTENANCE] Keep `condition_parser` field intact for backwards compatibility ([#11484](https://github.com/great-expectations/great_expectations/pull/11484))
+* [MAINTENANCE] Replace broken bitnami image with apache image for spark ([#11444](https://github.com/great-expectations/great_expectations/pull/11444))
+* [MAINTENANCE] Ignore future warning Python 3.9 EOL ([#11486](https://github.com/great-expectations/great_expectations/pull/11486))
+* [MAINTENANCE] Add passthrough path for pandas and spark Condition parser ([#11480](https://github.com/great-expectations/great_expectations/pull/11480))
+* [MAINTENANCE] Constrain `row_condition` groups ([#11488](https://github.com/great-expectations/great_expectations/pull/11488))
+* [MAINTENANCE] Only install mssql drivers when needed ([#11489](https://github.com/great-expectations/great_expectations/pull/11489))
+* [MAINTENANCE] Use Suites v2 REST endpoints ([#11487](https://github.com/great-expectations/great_expectations/pull/11487))
+* [MAINTENANCE] Handle `None` parameter in `Condition`s ([#11491](https://github.com/great-expectations/great_expectations/pull/11491))
+
 ### 1.8.0
 * [FEATURE] Snowflake Key Pair Auth API ([#11395](https://github.com/great-expectations/great_expectations/pull/11395))
 * [BUGFIX] Row condition for Volume Expectations ([#11467](https://github.com/great-expectations/great_expectations/pull/11467))

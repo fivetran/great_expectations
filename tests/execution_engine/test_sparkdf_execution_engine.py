@@ -13,17 +13,17 @@ from great_expectations.core.batch_spec import PathBatchSpec, RuntimeDataBatchSp
 from great_expectations.core.metric_domain_types import MetricDomainTypes
 from great_expectations.core.metric_function_types import MetricPartialFunctionTypes
 from great_expectations.execution_engine import SparkDFExecutionEngine
-from great_expectations.expectations.conditions import (
+from great_expectations.expectations.legacy_row_conditions import (
+    RowCondition,
+    RowConditionParserType,
+)
+from great_expectations.expectations.row_conditions import (
     AndCondition,
     Column,
     ComparisonCondition,
     NullityCondition,
     Operator,
     OrCondition,
-)
-from great_expectations.expectations.row_conditions import (
-    RowCondition,
-    RowConditionParserType,
 )
 from great_expectations.self_check.util import build_spark_engine
 from great_expectations.validator.computed_metric import MetricValue
@@ -1135,57 +1135,55 @@ class TestConditionToFilterClause:
         "condition,expected_output",
         [
             pytest.param(
-                ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.EQUAL, parameter=5
-                ),
+                ComparisonCondition(column=Column("age"), operator=Operator.EQUAL, parameter=5),
                 "age == 5",
                 id="equal",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.NOT_EQUAL, parameter=10
+                    column=Column("age"), operator=Operator.NOT_EQUAL, parameter=10
                 ),
                 "age != 10",
                 id="not_equal",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.LESS_THAN, parameter=18
+                    column=Column("age"), operator=Operator.LESS_THAN, parameter=18
                 ),
                 "age < 18",
                 id="less_than",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=65
+                    column=Column("age"), operator=Operator.GREATER_THAN, parameter=65
                 ),
                 "age > 65",
                 id="greater_than",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
+                    column=Column("age"), operator=Operator.LESS_THAN_OR_EQUAL, parameter=100
                 ),
                 "age <= 100",
                 id="less_or_equal",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
+                    column=Column("age"), operator=Operator.GREATER_THAN_OR_EQUAL, parameter=0
                 ),
                 "age >= 0",
                 id="greater_or_equal",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="name"), operator=Operator.EQUAL, parameter="John"
+                    column=Column("name"), operator=Operator.EQUAL, parameter="John"
                 ),
                 "name == 'John'",
                 id="equal_string",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="name"), operator=Operator.NOT_EQUAL, parameter="Jane"
+                    column=Column("name"), operator=Operator.NOT_EQUAL, parameter="Jane"
                 ),
                 "name != 'Jane'",
                 id="not_equal_string",
@@ -1205,14 +1203,14 @@ class TestConditionToFilterClause:
         [
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.IN, parameter=[1, 2, 3]
+                    column=Column("status"), operator=Operator.IN, parameter=[1, 2, 3]
                 ),
                 "status IN (1, 2, 3)",
                 id="integers",
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="status"),
+                    column=Column("status"),
                     operator=Operator.IN,
                     parameter=["active", "pending"],
                 ),
@@ -1221,7 +1219,7 @@ class TestConditionToFilterClause:
             ),
             pytest.param(
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
+                    column=Column("status"), operator=Operator.NOT_IN, parameter=[1, 2, 3]
                 ),
                 "status NOT IN (1, 2, 3)",
                 id="not_in",
@@ -1240,12 +1238,12 @@ class TestConditionToFilterClause:
         "condition,expected_output",
         [
             pytest.param(
-                NullityCondition(column=Column(name="email"), is_null=True),
+                NullityCondition(column=Column("email"), is_null=True),
                 "email IS NULL",
                 id="is_null",
             ),
             pytest.param(
-                NullityCondition(column=Column(name="email"), is_null=False),
+                NullityCondition(column=Column("email"), is_null=False),
                 "email IS NOT NULL",
                 id="is_not_null",
             ),
@@ -1265,10 +1263,10 @@ class TestConditionToFilterClause:
         and_condition = AndCondition(
             conditions=[
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.GREATER_THAN, parameter=18
+                    column=Column("age"), operator=Operator.GREATER_THAN, parameter=18
                 ),
                 ComparisonCondition(
-                    column=Column(name="age"), operator=Operator.LESS_THAN, parameter=65
+                    column=Column("age"), operator=Operator.LESS_THAN, parameter=65
                 ),
             ]
         )
@@ -1283,10 +1281,10 @@ class TestConditionToFilterClause:
         or_condition = OrCondition(
             conditions=[
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.EQUAL, parameter="active"
+                    column=Column("status"), operator=Operator.EQUAL, parameter="active"
                 ),
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.EQUAL, parameter="pending"
+                    column=Column("status"), operator=Operator.EQUAL, parameter="pending"
                 ),
             ]
         )
@@ -1302,19 +1300,19 @@ class TestConditionToFilterClause:
                 AndCondition(
                     conditions=[
                         ComparisonCondition(
-                            column=Column(name="age"),
+                            column=Column("age"),
                             operator=Operator.GREATER_THAN_OR_EQUAL,
                             parameter=18,
                         ),
                         ComparisonCondition(
-                            column=Column(name="age"),
+                            column=Column("age"),
                             operator=Operator.LESS_THAN_OR_EQUAL,
                             parameter=65,
                         ),
                     ]
                 ),
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.EQUAL, parameter="exempt"
+                    column=Column("status"), operator=Operator.EQUAL, parameter="exempt"
                 ),
             ]
         )
@@ -1330,7 +1328,7 @@ class TestConditionToFilterClause:
         df = spark_df_from_pandas_df(spark_session, pd_df)
 
         condition = ComparisonCondition(
-            column=Column(name="age"),
+            column=Column("age"),
             operator=Operator.GREATER_THAN,
             parameter=30,
         )
@@ -1356,7 +1354,7 @@ class TestConditionToFilterClause:
         df = spark_df_from_pandas_df(spark_session, pd_df)
 
         condition = ComparisonCondition(
-            column=Column(name="status"),
+            column=Column("status"),
             operator=Operator.IN,
             parameter=["active", "pending"],
         )
@@ -1380,7 +1378,7 @@ class TestConditionToFilterClause:
         )
         df = spark_df_from_pandas_df(spark_session, pd_df)
 
-        condition = NullityCondition(column=Column(name="email"), is_null=False)
+        condition = NullityCondition(column=Column("email"), is_null=False)
 
         filter_clause = engine.condition_to_filter_clause(condition)
         result_df = df.filter(filter_clause)
@@ -1407,19 +1405,19 @@ class TestConditionToFilterClause:
                 AndCondition(
                     conditions=[
                         ComparisonCondition(
-                            column=Column(name="age"),
+                            column=Column("age"),
                             operator=Operator.GREATER_THAN_OR_EQUAL,
                             parameter=18,
                         ),
                         ComparisonCondition(
-                            column=Column(name="age"),
+                            column=Column("age"),
                             operator=Operator.LESS_THAN_OR_EQUAL,
                             parameter=65,
                         ),
                     ]
                 ),
                 ComparisonCondition(
-                    column=Column(name="status"), operator=Operator.EQUAL, parameter="exempt"
+                    column=Column("status"), operator=Operator.EQUAL, parameter="exempt"
                 ),
             ]
         )

@@ -647,6 +647,7 @@ filterwarnings = [
     # Example Actual Warning: FutureWarning: You are using a Python version (3.9.23) past its end of life.
     # Also matches: You are using a Python version (3.10.18) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04).
     "ignore: You are using a Python version.*end of life:FutureWarning",
+    "ignore: .+ will no longer support Python 3.9.*:boto3.exceptions.PythonDeprecationWarning"
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
 ]
