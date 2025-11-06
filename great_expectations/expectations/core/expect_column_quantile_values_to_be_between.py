@@ -390,7 +390,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
 
         table = []
         quantile_strings = {0.25: "Q1", 0.75: "Q3", 0.50: "Median"}
-        for quantile, value_range in zip(quantiles, value_ranges):
+        for quantile, value_range in zip(quantiles, value_ranges, strict=False):
             quantile_string = quantile_strings.get(quantile, f"{quantile:3.2f}")
             value_range_lower: Union[Number, str] = value_range[0] if value_range[0] else "Any"
             value_rage_lower_type = (
@@ -510,7 +510,7 @@ class ExpectColumnQuantileValuesToBeBetween(ColumnAggregateExpectation):
 
         quantile_strings = {0.25: "Q1", 0.75: "Q3", 0.50: "Median"}
 
-        for quantile, value_range in zip(quantiles, value_ranges):
+        for quantile, value_range in zip(quantiles, value_ranges, strict=False):
             quantile_string = quantile_strings.get(quantile, f"{quantile:3.2f}")
             table_rows.append(
                 [

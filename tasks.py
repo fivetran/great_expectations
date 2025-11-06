@@ -297,7 +297,7 @@ def type_check(  # noqa: C901, PLR0912
     if check_stub_sources:
         # see --help docs for explanation of this flag
         for stub_file in GX_PACKAGE_DIR.glob("**/*.pyi"):
-            source_file = stub_file.with_name(  # TODO:py3.9 .with_stem()
+            source_file = stub_file.with_name(  # TODO:py3.10 .with_stem()
                 f"{stub_file.name[:-1]}"
             )
             relative_path = source_file.relative_to(GX_ROOT_DIR)

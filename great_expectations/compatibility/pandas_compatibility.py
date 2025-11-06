@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -10,7 +10,7 @@ from great_expectations.compatibility.not_imported import (
 
 
 def execute_pandas_to_datetime(  # noqa: PLR0913 # FIXME CoP
-    arg,
+    arg: Any,
     errors: Literal["raise", "coerce", "ignore"] = "raise",
     dayfirst: bool = False,
     yearfirst: bool = False,
@@ -45,12 +45,12 @@ def execute_pandas_to_datetime(  # noqa: PLR0913 # FIXME CoP
         Datetime converted output.
     """  # noqa: E501 # FIXME CoP
     if is_version_less_than(pd.__version__, "2.0.0"):
-        return pd.to_datetime(
+        return pd.to_datetime(  # type: ignore[call-overload]
             arg=arg,
-            errors=errors,  # type: ignore[arg-type] # FIXME CoP
+            errors=errors,
             dayfirst=dayfirst,
             yearfirst=yearfirst,
-            utc=utc,  # type: ignore[arg-type] # FIXME CoP
+            utc=utc,
             format=format,
             exact=exact,
             unit=unit,
@@ -66,10 +66,10 @@ def execute_pandas_to_datetime(  # noqa: PLR0913 # FIXME CoP
             # infer_datetime_format is deprecated as of 2.0.0
             return pd.to_datetime(
                 arg=arg,
-                errors=errors,  # type: ignore[arg-type] # FIXME CoP
+                errors=errors,  # type: ignore[arg-type]
                 dayfirst=dayfirst,
                 yearfirst=yearfirst,
-                utc=utc,  # type: ignore[arg-type] # FIXME CoP
+                utc=utc,  # type: ignore[arg-type]
                 format=format,
                 unit=unit,
                 origin=origin,
@@ -78,10 +78,10 @@ def execute_pandas_to_datetime(  # noqa: PLR0913 # FIXME CoP
         else:
             return pd.to_datetime(
                 arg=arg,
-                errors=errors,  # type: ignore[arg-type] # FIXME CoP
+                errors=errors,  # type: ignore[arg-type]
                 dayfirst=dayfirst,
                 yearfirst=yearfirst,
-                utc=utc,  # type: ignore[arg-type] # FIXME CoP
+                utc=utc,  # type: ignore[arg-type]
                 format=format,
                 exact=exact,
                 unit=unit,

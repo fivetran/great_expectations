@@ -427,7 +427,7 @@ def _convert_unexpected_indices_to_df(
     elif unexpected_list:
         # if we are using default Pandas unexpected indices
         unexpected_index_df = pd.DataFrame(
-            list(zip(unexpected_list, unexpected_index_list)),
+            list(zip(unexpected_list, unexpected_index_list, strict=False)),
             columns=["Value", "Index"],
             dtype="string",
         )

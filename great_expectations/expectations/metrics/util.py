@@ -1417,7 +1417,7 @@ def get_unexpected_indices_for_multiple_pandas_named_indices(  # noqa: C901 # FI
             failed_metrics=["unexpected_index_list"],
         )
 
-    domain_records_df_index_names: List[str] = domain_records_df.index.names
+    domain_records_df_index_names: List[str] = domain_records_df.index.names  # type: ignore[assignment] # FIXME
     unexpected_indices: List[tuple[int | str, ...]] = list(domain_records_df.index)
 
     tuple_index: Dict[str, int] = dict()

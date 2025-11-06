@@ -236,7 +236,7 @@ class DatabaseStoreBackend(StoreBackend):
                 sa.and_(
                     *(
                         getattr(self._table.columns, key_col) == val
-                        for key_col, val in zip(self.key_columns, key)
+                        for key_col, val in zip(self.key_columns, key, strict=False)
                     )
                 )
             )
@@ -255,7 +255,7 @@ class DatabaseStoreBackend(StoreBackend):
 
     @override
     def _set(self, key, value, allow_update=True, **kwargs) -> None:
-        cols = {k: v for (k, v) in zip(self.key_columns, key)}
+        cols = {k: v for (k, v) in zip(self.key_columns, key, strict=False)}
         cols["value"] = value
 
         if allow_update:
@@ -312,7 +312,7 @@ class DatabaseStoreBackend(StoreBackend):
                 sa.and_(
                     *(
                         getattr(self._table.columns, key_col) == val
-                        for key_col, val in zip(self.key_columns, key)
+                        for key_col, val in zip(self.key_columns, key, strict=False)
                     )
                 )
             )
@@ -334,7 +334,9 @@ class DatabaseStoreBackend(StoreBackend):
                     True,
                     *(
                         getattr(self._table.columns, key_col) == val
-                        for key_col, val in zip(self.key_columns[: len(prefix)], prefix)
+                        for key_col, val in zip(
+                            self.key_columns[: len(prefix)], prefix, strict=False
+                        )
                     ),
                 )
             )
@@ -348,7 +350,7 @@ class DatabaseStoreBackend(StoreBackend):
             sa.and_(
                 *(
                     getattr(self._table.columns, key_col) == val
-                    for key_col, val in zip(self.key_columns, key)
+                    for key_col, val in zip(self.key_columns, key, strict=False)
                 )
             )
         )

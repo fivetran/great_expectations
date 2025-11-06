@@ -89,7 +89,7 @@ def _pandas_column_pair_map_condition_values(
     unexpected_list = [
         value_pair
         for value_pair in zip(
-            domain_values[column_A_name].values, domain_values[column_B_name].values
+            domain_values[column_A_name].values, domain_values[column_B_name].values, strict=False
         )
     ]
     if result_format["result_format"] == "COMPLETE":

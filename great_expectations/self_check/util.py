@@ -632,7 +632,7 @@ def _get_test_validator_with_data_spark(  # noqa: C901, PLR0912, PLR0915 # FIXME
     spark = SparkDFExecutionEngine.get_or_create_spark_session()
     # We need to allow null values in some column types that do not support them natively, so we skip  # noqa: E501 # FIXME CoP
     # use of df in this case.
-    data_reshaped = list(zip(*(v for _, v in data.items())))  # create a list of rows
+    data_reshaped = list(zip(*(v for _, v in data.items()), strict=False))  # create a list of rows
     if schemas and "spark" in schemas:
         schema = schemas["spark"]
         if pk_column:
@@ -685,7 +685,9 @@ def _get_test_validator_with_data_spark(  # noqa: C901, PLR0912, PLR0915 # FIXME
                             vals.append(parse(val))  # type: ignore[arg-type] # FIXME CoP
                     data[col] = vals
             # Do this again, now that we have done type conversion using the provided schema
-            data_reshaped = list(zip(*(v for _, v in data.items())))  # create a list of rows
+            data_reshaped = list(
+                zip(*(v for _, v in data.items()), strict=False)
+            )  # create a list of rows
             spark_df = spark.createDataFrame(data_reshaped, schema=spark_schema)
         except TypeError:
             string_schema = pyspark.types.StructType(
