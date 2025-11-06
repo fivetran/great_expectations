@@ -104,17 +104,27 @@ Then, you can validate a batch of data.
 
 ### Validate entire Data Asset
 
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
+To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed Checkpoint you can run. 
 
-2. Click a Data Asset in the **Data Assets** list.
+1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
 
-3. Go to the **Validations** tab.
+   ```Python 
+   import great_expectations as gx
+   context = gx.get_context()
 
-4. If you have multiple **Expectation Suites**, make sure the **GX-Managed Expectation Suite** is selected.
+   checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
+   for name in checkpoint_names:
+       if "GX-Managed" in name and "my Data Asset name" in name:
+           my_checkpoint=name
+    ```
 
-5. Click the <img src="/img/snippet.png" alt="code snippet icon" width="20" height="20"/> code snippet icon next to the **Validate** button, and then click **Generate snippet**.
+2. Run the checkpoint
+   ```Python
+   checkpoint = context.checkpoints.get(my_checkpoint)
 
-6. Run the generated code in the enviroment where you've saved your Cloud credentials as environment variables. 
+   checkpoint.run()
+   ```
+
 
 
 When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
