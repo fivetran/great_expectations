@@ -42,7 +42,6 @@
   let currentPath = window.location.pathname
   let spaTrackingSetup = false
 
-  // Function to track pageview
   function trackPageview() {
     const newPath = window.location.pathname
     if (newPath === currentPath) return // Skip if path hasn't changed
@@ -65,7 +64,7 @@
       setTimeout(trackPageview, 50) // Delay to ensure URL has updated
     })
 
-    // Override pushState and replaceState to catch programmatic navigation
+    // Override pushState and replaceState to catch navigation events
     const originalPushState = history.pushState
     const originalReplaceState = history.replaceState
 
