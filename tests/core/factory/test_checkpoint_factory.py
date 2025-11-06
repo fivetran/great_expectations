@@ -379,7 +379,7 @@ class TestCheckpointFactoryAddOrUpdate:
         assert created_checkpoint.id
         assert len(created_checkpoint.validation_definitions) == len(validation_definitions)
         for val_def, created_val_def in zip(
-            validation_definitions, created_checkpoint.validation_definitions
+            validation_definitions, created_checkpoint.validation_definitions, strict=False
         ):
             assert created_val_def.id
             val_def_dict = val_def.dict()
@@ -424,7 +424,7 @@ class TestCheckpointFactoryAddOrUpdate:
         assert created_checkpoint.id
         assert len(checkpoint.validation_definitions) == len(validation_definitions)
         for val_def, created_val_def in zip(
-            validation_definitions, created_checkpoint.validation_definitions
+            validation_definitions, created_checkpoint.validation_definitions, strict=False
         ):
             assert created_val_def.id
             val_def_dict = val_def.dict()

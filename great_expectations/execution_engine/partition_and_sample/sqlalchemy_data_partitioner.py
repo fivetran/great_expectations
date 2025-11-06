@@ -701,7 +701,7 @@ class SqlAlchemyDataPartitioner(DataPartitioner):
         Returns:
             Dict of {column_name: row, column_name: row, ...}
         """  # noqa: E501 # FIXME CoP
-        return [dict(zip(column_names, row)) for row in rows]
+        return [dict(zip(column_names, row, strict=False)) for row in rows]
 
     @staticmethod
     def get_partition_query_for_data_for_batch_identifiers_for_partition_on_whole_table(

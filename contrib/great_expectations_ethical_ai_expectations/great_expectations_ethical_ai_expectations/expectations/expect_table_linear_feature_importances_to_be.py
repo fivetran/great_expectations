@@ -55,7 +55,7 @@ class TableModelingRidgeFeatureImportances(TableMetricProvider):
             scoring="neg_mean_absolute_percentage_error",
         )
 
-        return {i: j for i, j in zip(X.columns, importances.importances_mean)}
+        return {i: j for i, j in zip(X.columns, importances.importances_mean, strict=False)}
 
     @classmethod
     def _get_evaluation_dependencies(
