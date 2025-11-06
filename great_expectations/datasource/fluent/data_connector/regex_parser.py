@@ -37,7 +37,6 @@ class RegExParser:
             zip(
                 self._group_name_to_index_dict.values(),
                 self._group_name_to_index_dict.keys(),
-                strict=False,
             )
         )
 
@@ -74,7 +73,6 @@ class RegExParser:
             zip(
                 all_group_index_to_group_name_mapping.values(),
                 all_group_index_to_group_name_mapping.keys(),
-                strict=False,
             )
         )
 

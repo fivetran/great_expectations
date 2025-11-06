@@ -119,6 +119,6 @@ class TableHead(TableMetricProvider):
                 rows = df.head(n=df.count() + n_rows)
 
         rows = [element.asDict() for element in rows]
-        df = pd.DataFrame(data=rows)
+        df = pd.DataFrame(data=rows)  # type: ignore[assignment] # FIXME CoP
 
-        return df
+        return df  # type: ignore[return-value] # FIXME CoP

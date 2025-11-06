@@ -23,17 +23,17 @@ logger = logging.getLogger(__name__)
 try:
     from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 except ImportError:
-    Point = None
-    Polygon = None
-    MultiPolygon = None
-    LineString = None
+    Point = None  # type: ignore[misc,assignment]
+    Polygon = None  # type: ignore[misc,assignment]
+    MultiPolygon = None  # type: ignore[misc,assignment]
+    LineString = None  # type: ignore[misc,assignment]
 
 
 if not LegacyRow:
     LegacyRow = SQLALCHEMY_NOT_IMPORTED
 
-if not Row:
-    Row = SQLALCHEMY_NOT_IMPORTED
+if not Row:  # type: ignore[truthy-function] # FIXME CoP
+    Row = SQLALCHEMY_NOT_IMPORTED  # type: ignore[misc] # FIXME CoP
 
 SCHEMAS = {
     "api_np": {

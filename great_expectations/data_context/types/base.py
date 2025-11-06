@@ -1133,17 +1133,17 @@ class DataContextConfigSchema(Schema):
         return data
 
     @override
-    def handle_error(self, error: ValidationError, data: Any, *, many: bool, **kwargs: Any) -> Any:
+    def handle_error(self, exc, data, **kwargs) -> None:  # type: ignore[override] # FIXME CoP
         """Log and raise our custom exception when (de)serialization fails."""
         if (
-            error
-            and error.messages
-            and isinstance(error.messages, dict)
-            and all(key is None for key in error.messages)
+            exc
+            and exc.messages
+            and isinstance(exc.messages, dict)
+            and all(key is None for key in exc.messages)
         ):
-            error.messages = list(itertools.chain.from_iterable(error.messages.values()))
+            exc.messages = list(itertools.chain.from_iterable(exc.messages.values()))
 
-        message: str = f"Error while processing DataContextConfig: {' '.join(error.messages)}"
+        message: str = f"Error while processing DataContextConfig: {' '.join(exc.messages)}"
         logger.error(message)
         raise gx_exceptions.InvalidDataContextConfigError(
             message=message,

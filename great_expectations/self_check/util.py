@@ -685,9 +685,7 @@ def _get_test_validator_with_data_spark(  # noqa: C901, PLR0912, PLR0915 # FIXME
                             vals.append(parse(val))  # type: ignore[arg-type] # FIXME CoP
                     data[col] = vals
             # Do this again, now that we have done type conversion using the provided schema
-            data_reshaped = list(
-                zip(*(v for _, v in data.items()))
-            )  # create a list of rows
+            data_reshaped = list(zip(*(v for _, v in data.items())))  # create a list of rows
             spark_df = spark.createDataFrame(data_reshaped, schema=spark_schema)
         except TypeError:
             string_schema = pyspark.types.StructType(
@@ -1005,7 +1003,7 @@ def build_spark_validator_with_data(
             df.columns.tolist(),
         )
 
-    batch = Batch(data=df, batch_definition=batch_definition)
+    batch = Batch(data=df, batch_definition=batch_definition)  # type: ignore[arg-type] # got DataFrame
     execution_engine: SparkDFExecutionEngine = build_spark_engine(
         spark=spark,
         df=df,
@@ -1099,11 +1097,11 @@ def build_spark_engine(
                 )
                 for record in df.to_records(index=False)
             ]
-            schema = df.columns.tolist()
+            schema = df.columns.tolist()  # type: ignore[assignment] # FIXME CoP
         else:
             data = df
 
-        df = spark.createDataFrame(data=data, schema=schema)
+        df = spark.createDataFrame(data=data, schema=schema)  # type: ignore[type-var,arg-type] # FIXME CoP
 
     conf: Iterable[Tuple[str, str]] = spark.sparkContext.getConf().getAll()
     spark_config: Dict[str, Any] = dict(conf)
