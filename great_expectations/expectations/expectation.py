@@ -538,7 +538,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                 "The condition_parser parameter is deprecated as of GX Core 1.9.0 "
                 "and will be removed in GX Core 2.0. Please use Condition objects "
                 "(e.g., Column('column_name') > 0) instead of string-based row conditions.",
-                DeprecationWarning,
+                DeprecationWarning,  # deprecated-v1.9.0
                 stacklevel=2,
             )
 
@@ -548,7 +548,7 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
                 "Passing a string to the row_condition parameter is deprecated as of GX Core 1.9.0 "
                 "and will be removed in GX Core 2.0. Please use Condition objects "
                 "(e.g., Column('column_name') > 0) instead of string-based row conditions.",
-                DeprecationWarning,
+                DeprecationWarning,  # deprecated-v1.9.0
                 stacklevel=2,
             )
             if is_great_expectations_condition_parser:
