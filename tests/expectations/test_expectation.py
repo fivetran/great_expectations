@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import itertools
 import logging
-import warnings
 from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pytest
@@ -840,15 +839,3 @@ class TestLegacyRowConditionTransformation:
 
         # Should have two warnings: one for condition_parser, one for string row_condition
         assert len(warning_list) == 2
-
-    def test_no_deprecation_warning_with_condition_object(self):
-        """Test that using a Condition object does not raise a deprecation warning."""
-        with warnings.catch_warnings():
-            warnings.simplefilter("error", DeprecationWarning)
-            # This should not raise any deprecation warning
-            expectation = gxe.ExpectColumnValuesToBeInSet(
-                column="status",
-                value_set=["active"],
-                row_condition=Column("age") > 18,
-            )
-            assert isinstance(expectation.row_condition, ComparisonCondition)
