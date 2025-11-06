@@ -25,12 +25,6 @@ Run the following terminal command to install the GX Cloud library with support 
 pip install 'great_expectations[s3]'
 ```
 
-:::note Want to use row conditions?
-GX Cloud library versions prior to 1.8.0 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you plan to use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.0 or later.
-    - multiple condition statements
-    - **is in**, **is not in**, or **is null** operators
-:::
-
 ## Get your credentials
 
 You'll need your user access token, organization ID, and workspace ID to set your environment variables. Don't commit your access token to your version control software.

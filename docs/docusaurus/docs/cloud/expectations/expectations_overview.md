@@ -165,7 +165,7 @@ Here are some examples of how to express complex row conditions:
 Keep the following requirements and limitations in mind when working with row conditions:
 
 - An Expectation can have up to 100 condition statements grouped in any number of condition blocks. 
-- [GX agent versions](/cloud/deploy/deploy_gx_agent.md#gx-agent-versioning) prior to 20251103.0 and [Cloud API versions](/docs/reference/) before 1.8.0 do not support the following row conditions options. If you use any of these aspects of row conditions and use the GX agent or the GX Cloud API, make sure your versions are sufficiently recent.
+- [GX agent versions](/cloud/deploy/deploy_gx_agent.md#gx-agent-versioning) prior to 20251103.0 and [Cloud API versions](/docs/reference/) before 1.8.1 do not support the following row conditions options. If you use any of these aspects of row conditions and use the GX agent or the GX Cloud API, make sure your versions are sufficiently recent.
    - multiple condition statements
    - **is in**, **is not in**, or **is null** operators
 
