@@ -94,8 +94,13 @@ Then, you can validate a batch of data.
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - Any Data Asset with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
-- [Python version 3.9 to 3.13](https://www.python.org/downloads/).
+- [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+   :::note Minimum version for row conditions
+   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
+      - multiple condition statements
+      - **is in**, **is not in**, or **is null** operators
+   :::
 
 ### Validate entire Data Asset
 
@@ -197,8 +202,13 @@ To do this you will first create a Validation Definition that links your data to
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - Any Data Asset with at least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
-- [Python version 3.9 to 3.13](https://www.python.org/downloads/).
+- [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+   :::note Minimum version for row conditions
+   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
+      - multiple condition statements
+      - **is in**, **is not in**, or **is null** operators
+   :::
 
 ### Define what to validate and how
 
