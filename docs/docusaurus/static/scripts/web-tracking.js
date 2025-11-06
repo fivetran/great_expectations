@@ -2,7 +2,7 @@
  * Common Room Signals.js Integration with SPA Navigation Tracking
  *
  * This script implements a queue-based tracking system that works even if Common Room's
- * signals.js script hasn't loaded yet (e.g., due to CSP or network issues).
+ * signals.js script hasn't loaded yet.
  *
  * How it works:
  * 1. Initial state (queue): We create window.signals as an array with methods (page, identify, form)
@@ -12,11 +12,9 @@
  * 2. After signals.js loads: Common Room's script automatically processes all queued calls
  *    and replaces window.signals with the actual functions that sends data to Common Room's servers.
  *
- * 3. Our tracking code: The trackPageview() function checks if signals.page is a function
- *    (CommonRoom implementation) or uses the queue (array). This ensures tracking works both
- *    before and after signals.js loads.
+ * 3. SPA tracking code: The trackPageview() queues up SPA page events in the signals queue
  *
- * SPA Navigation: We also set up listeners for browser history changes (popstate, pushState,
+ * SPA Navigation: Set up listeners for browser history changes (popstate, pushState,
  * replaceState) to track single-page app navigation, which doesn't trigger full page reloads.
  */
 (function () {
@@ -45,35 +43,19 @@
   let spaTrackingSetup = false
 
   // Function to track pageview
-  // According to Common Room docs: signals.page() or signals.page('https://example.com/page')
   function trackPageview() {
     const newPath = window.location.pathname
     if (newPath === currentPath) return // Skip if path hasn't changed
 
     currentPath = newPath
 
-    // Check if signals.js has loaded and replaced the queue
-    if (window.signals && typeof window.signals.page === 'function') {
-      try {
-        // Call with URL string as per Common Room documentation
-        window.signals.page(window.location.href)
-      } catch (error) {
-        // Silently fail - tracking errors shouldn't break the site
-      }
-    } else {
-      // Queue-based tracking (will be processed when signals.js loads)
-      if (window.signals && Array.isArray(window.signals)) {
-        try {
-          window.signals.page(window.location.href)
-        } catch (error) {
-          // Silently fail - tracking errors shouldn't break the site
-        }
-      }
+    if (window.signals && window.signals.page) {
+      window.signals.page(window.location.href)
     }
   }
 
   // Set up SPA tracking immediately (don't wait for script to load)
-  // This ensures tracking works even if signals.js fails to load due to CSP
+  // This ensures tracking works even before signals.js has loaded.
   function setupSPATracking() {
     if (spaTrackingSetup) return
     spaTrackingSetup = true
