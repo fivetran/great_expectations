@@ -1242,7 +1242,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         value_name = data.name or "value"
         return [
             {
-                index_name: convert_to_json_serializable(idx),  # type: ignore[call-overload] # FIXME CoP
+                index_name: convert_to_json_serializable(idx),  # type: ignore[call-overload,dict-item] # FIXME CoP
                 value_name: convert_to_json_serializable(val),  # type: ignore[dict-item] # FIXME CoP
             }
             for idx, val in data.items()
