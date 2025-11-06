@@ -31,8 +31,8 @@ module.exports = {
         apiKey: process.env.POSTHOG_API_KEY,
         enableInDevelopment: false,
         debug: false,
-        autocapture: false, // Disable autocapture to prevent duplicate pageviews
-        capture_pageview: 'history_change', // Enable SPA pageview tracking
+        // Use history_change for SPA pageview tracking
+        capture_pageview: 'history_change',
       }
     ],
   ],
