@@ -161,12 +161,7 @@ def _expecation_configuration_to_validation_result_pandas(
             batch,
         ],
     )
-    try:
-        result = expectation.validate_(validator)
-    finally:
-        # Ensure any connections are closed
-        if hasattr(engine, "close"):
-            engine.close()
+    result = expectation.validate_(validator)
     return result
 
 
