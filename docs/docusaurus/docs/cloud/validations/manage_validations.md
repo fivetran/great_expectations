@@ -118,7 +118,8 @@ To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud pr
            my_checkpoint=name
     ```
 
-2. Run the checkpoint
+2. Run the checkpoint.
+
    ```Python
    checkpoint = context.checkpoints.get(my_checkpoint)
 
@@ -131,9 +132,21 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 ### Validate a time-based subset of a Data Asset
 
-If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+Options for validating a time-based subset of a Data Asset depend on your Data Source type.
 
-TODO - filesystem data assets don't have the same batch definition options. need to figure out how to make path-based or regex-based batch definition for GX-managed Expectations on s3 then flesh out that option here. 
+
+<Tabs 
+   queryString="validation-interface"
+   defaultValue="ui"
+   values={[
+      {value: 'sql', label: 'SQL sources'},
+      {value: 'filesystem', label: 'Filesystem sources'}
+   ]}
+>
+
+<TabItem value="sql" label="SQL sources">
+
+If your SQL Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
 
 First, you partition your data
 
@@ -174,25 +187,102 @@ First, you partition your data
    context.update_datasource(ds)
    ```
 
-Then, you can validate a batch of data.
+Then, you can validate a batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed Checkpoint you can run. 
 
-1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
+1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
 
-2. Click a Data Asset in the **Data Assets** list.
+   ```Python 
+   import great_expectations as gx
+   context = gx.get_context()
 
-3. Go to the Validations tab.
+   checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
+   for name in checkpoint_names:
+       if "GX-Managed" in name and "my Data Asset name" in name:
+           my_checkpoint=name
+    ```
 
-3. Click **Validate**.
+2. Run the checkpoint with batch parameters passed as integers.
 
-4. Select one of the following options to **Specify a single Batch to validate**:
+   ```Python
+   checkpoint = context.checkpoints.get(my_checkpoint)
+   batch_parameters_daily = {"year": 2019, "month": 1, "day": 30}
 
-    - **Latest Batch**. Note that the latest Batch may still be recieving new data. For example, if you are batching by day and have new data arriving every hour, the latest batch will be any data that has arrived in the current day. The latest daily batch is not necessarily a full 24 hours worth of data. 
+   checkpoint.run(batch_parameters=batch_parameters_daily)
+   ```
 
-    - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-month** to identify the records to validate.
+</TabItem>
 
-6. Select **Code snippet**
+<TabItem value="filesystem" label="Filesystem sources">
 
-7. Run the generated code in the enviroment where you've saved your Cloud credentials as environment variables. 
+If your filesystem Data Asset has date-based filenames, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+
+First, you partition your data
+
+1. Define the Data Asset to batch
+
+   ```Python 
+   data_source_name = "my_data_source" 
+   data_asset_name = "my_data_asset 
+   ```
+
+2. Decide how you want to batch your data.
+
+   | Goal                                      | partitioner                  | parameter names        |
+   |-------------------------------------------|------------------------------|------------------------|
+   | Partition records by year                 | `FileNamePartitionerYearly`  | `year`                 |
+   | Partition records by year and month       | `FileNamePartitionerMonthly` | `year`, `month`        |
+   | Partition records by year, month, and day | `FileNamePartitionerDaily`   | `year`, `month`, `day` |
+
+3. Partition your data. This example demonstrates daily batches with the `FileNamePartitionerDaily` partitioner and `year`, `month`, and `day` parameter names. Refer to the above table for partitioners and parameters for other types of batches.
+
+   ```Python
+   import re
+   batching_regex = re.compile(r"my_file_name_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv")
+
+   import great_expectations as gx
+   from great_expectations.core.partitioners import FileNamePartitionerDaily
+
+   context = gx.get_context()
+   ds = context.data_sources.get(data_source_name)
+   asset = ds.get_asset(data_asset_name)
+
+   for bd in asset.batch_definitions:
+       if "GX-Managed" in bd.name:
+           bd.partitioner = FileNamePartitionerDaily(
+               regex=batching_regex,
+               sort_ascending=True,
+               param_names=("year", "month", "day")
+           )
+
+   context.update_datasource(ds)
+   ```
+
+Then, you can validate a batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed Checkpoint you can run. 
+
+1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
+
+   ```Python 
+   import great_expectations as gx
+   context = gx.get_context()
+
+   checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
+   for name in checkpoint_names:
+       if "GX-Managed" in name and "my Data Asset name" in name:
+           my_checkpoint=name
+    ```
+
+2. Run the checkpoint with batch parameters passed as strings.
+
+   ```Python
+   checkpoint = context.checkpoints.get(my_checkpoint)
+   batch_parameters_daily = {"year": "2019", "month": "01", "day": "30"}
+
+   checkpoint.run(batch_parameters=batch_parameters_daily)
+   ```
+
+</TabItem>
+</Tabs>
+
 
 </TabItem>
 
