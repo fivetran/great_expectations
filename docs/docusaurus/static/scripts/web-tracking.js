@@ -1,16 +1,13 @@
 /**
  * Common Room Signals.js Integration with SPA Navigation Tracking
  *
- * This script implements a queue-based tracking system that works even if Common Room's
- * signals.js script hasn't loaded yet.
- *
  * How it works:
  * 1. Initial state (queue): We create window.signals as an array with methods (page, identify, form)
  *    that push calls into the queue. This allows tracking calls to be made immediately,
  *    even before signals.js loads.
  *
  * 2. After signals.js loads: Common Room's script automatically processes all queued calls
- *    and replaces window.signals with the actual functions that sends data to Common Room's servers.
+ *    and sends data to Common Room's servers.
  *
  * 3. SPA tracking code: The trackPageview() queues up SPA page events in the signals queue
  *
