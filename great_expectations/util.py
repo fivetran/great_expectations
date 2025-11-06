@@ -1226,7 +1226,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         return data
 
     try:
-        if not isinstance(data, list) and pd.isna(data):  # type: ignore[arg-type] # FIXME CoP
+        if not isinstance(data, list) and pd.isna(data):  # FIXME CoP
             # pd.isna is functionally vectorized, but we only want to apply this to single objects
             # Hence, why we test for `not isinstance(list)`
             return None
@@ -1242,7 +1242,7 @@ def convert_to_json_serializable(  # noqa: C901, PLR0911, PLR0912 # FIXME CoP
         value_name = data.name or "value"
         return [
             {
-                index_name: convert_to_json_serializable(idx),  # type: ignore[call-overload] # FIXME CoP
+                index_name: convert_to_json_serializable(idx),  # type: ignore[dict-item] # FIXME CoP
                 value_name: convert_to_json_serializable(val),  # type: ignore[dict-item] # FIXME CoP
             }
             for idx, val in data.items()
