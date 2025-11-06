@@ -137,7 +137,7 @@ Options for validating a time-based subset of a Data Asset depend on your Data S
 
 <Tabs 
    queryString="validation-interface"
-   defaultValue="ui"
+   defaultValue="sql"
    values={[
       {value: 'sql', label: 'SQL sources'},
       {value: 'filesystem', label: 'Filesystem sources'}
