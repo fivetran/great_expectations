@@ -308,6 +308,7 @@
         },
         "Column": {
             "title": "Column",
+            "description": "--Public API--\nSpecify the column in a condition statement.",
             "type": "object",
             "properties": {
                 "name": {
@@ -336,7 +337,7 @@
         },
         "ComparisonCondition": {
             "title": "ComparisonCondition",
-            "description": "Base class for conditions.",
+            "description": "--Public API--Condition representing the comparison of a column with a parameter.",
             "type": "object",
             "properties": {
                 "type": {
@@ -359,12 +360,13 @@
             },
             "required": [
                 "column",
-                "operator"
+                "operator",
+                "parameter"
             ]
         },
         "NullityCondition": {
             "title": "NullityCondition",
-            "description": "Base class for conditions.",
+            "description": "--Public API--Condition representing the whether or not a column is null.",
             "type": "object",
             "properties": {
                 "type": {
@@ -396,7 +398,7 @@
         },
         "AndCondition": {
             "title": "AndCondition",
-            "description": "Represents an AND condition composed of multiple conditions.",
+            "description": "--Public API--Represents an AND condition composed of multiple conditions.",
             "type": "object",
             "properties": {
                 "type": {
@@ -421,7 +423,7 @@
         },
         "OrCondition": {
             "title": "OrCondition",
-            "description": "Represents an OR condition composed of multiple conditions.",
+            "description": "--Public API--Represents an OR condition composed of multiple conditions.",
             "type": "object",
             "properties": {
                 "type": {

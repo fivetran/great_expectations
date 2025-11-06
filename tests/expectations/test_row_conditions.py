@@ -1,6 +1,6 @@
 import pytest
 
-from great_expectations.expectations.row_conditions import (
+from great_expectations.expectations.legacy_row_conditions import (
     parse_condition_to_spark,
     parse_condition_to_sqlalchemy,
     parse_great_expectations_condition,

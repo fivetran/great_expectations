@@ -201,7 +201,7 @@ class SQLBatchTestSetup(BatchTestSetup[_ConfigT, TableAsset], ABC, Generic[_Conf
                 df = table_data.df.replace(np.nan, None)
                 values = list(df.to_dict("index").values())
                 max_params = 250 if dialect == GXSqlDialect.DATABRICKS else None
-                self._safe_bulk_insert(conn, table_data.table, values, max_params)
+                self._safe_bulk_insert(conn, table_data.table, values, max_params)  # type: ignore[arg-type] # FIXME
         cleanup()
 
     @override

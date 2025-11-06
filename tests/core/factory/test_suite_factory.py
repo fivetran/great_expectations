@@ -354,7 +354,7 @@ class TestSuiteFactoryAddOrUpdate:
         # assert
         assert created_suite.id
         data_context.suites.get(suite_name)
-        for exp, created_exp in zip(expectations, created_suite.expectations):
+        for exp, created_exp in zip(expectations, created_suite.expectations, strict=False):
             assert created_exp.id
             exp.id = ANY
             assert exp == created_exp
@@ -388,7 +388,7 @@ class TestSuiteFactoryAddOrUpdate:
 
         # assert
         assert updated_suite.id == existing_suite.id
-        for exp, created_exp in zip(expectations, updated_suite.expectations):
+        for exp, created_exp in zip(expectations, updated_suite.expectations, strict=False):
             assert created_exp.id
             exp.id = ANY
             assert exp == created_exp
@@ -428,13 +428,15 @@ class TestSuiteFactoryAddOrUpdate:
 
         # assert
         assert updated_suite.id == existing_suite.id
-        for exp, created_exp in zip(expectations, updated_suite.expectations):
+        for exp, created_exp in zip(expectations, updated_suite.expectations, strict=False):
             assert created_exp.id
             exp.id = ANY
             assert exp == created_exp
             assert created_exp.column == new_col_name  # type: ignore[attr-defined]  # column exists
 
-        for old_exp, new_exp in zip(existing_suite.expectations, updated_suite.expectations):
+        for old_exp, new_exp in zip(
+            existing_suite.expectations, updated_suite.expectations, strict=False
+        ):
             # expectations have been deleted and re added, not updated
             assert old_exp.id != new_exp.id
 

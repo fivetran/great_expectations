@@ -941,7 +941,7 @@ def _create_table_rendered_atomic_content(
                         schema=RendererSchema(type=col_type),
                         value=cell_value,
                     )
-                    for cell_value, col_type in zip(row, col_types)
+                    for cell_value, col_type in zip(row, col_types, strict=False)
                 ]
                 for row in rows
             ],

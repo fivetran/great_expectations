@@ -104,7 +104,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache: "pip"
           cache-dependency-path: |
             requirements-types.txt
@@ -181,12 +181,17 @@ jobs:
       SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
       SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
       SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
+      SNOWFLAKE_PRIVATE_KEY: ${{secrets.SNOWFLAKE_PRIVATE_KEY}}
       # cloud-specific
       AUTH0_DOMAIN: ${{secrets.AUTH0_DOMAIN}}
       AUTH0_API_AUDIENCE: ${{secrets.AUTH0_API_AUDIENCE}}
       AUTH0_MERCURY_API_CLIENT_ID: ${{secrets.AUTH0_MERCURY_API_CLIENT_ID}}
       AUTH0_MERCURY_API_CLIENT_SECRET: ${{secrets.AUTH0_MERCURY_API_CLIENT_SECRET}}
-      LD_SDK_KEY: ${{secrets.LD_SDK_KEY}}
+      LD_SDK_KEY: default
+      GX_LD_BASE_URI: "http://localhost:8765"
+      GX_LD_EVENTS_URI: "http://localhost:8765"
+      GX_LD_STREAM_URI: "http://localhost:8765"
+      LAUNCH_DARKLY_DEV_SERVER_ACCESS_TOKEN: ${{ secrets.LAUNCH_DARKLY_DEV_SERVER_ACCESS_TOKEN }}
       GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
       GX_SCHEDULER_EXECUTION_ROLE_ARN: ${{secrets.GX_SCHEDULER_EXECUTION_ROLE_ARN}}
       GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}}
@@ -216,7 +221,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache: "pip"
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
@@ -298,7 +303,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     runs-on: ${{ matrix.os }}
 
@@ -355,7 +360,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache: "pip"
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
@@ -401,7 +406,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache: "pip"
           cache-dependency-path: reqs/requirements-dev-test.txt
 
@@ -470,7 +475,11 @@ jobs:
       GX_CLOUD_ORGANIZATION_ID: ${{secrets.MERCURY_ORGANIZATION_ID}}
       GX_CLOUD_WORKSPACE_ID: ${{secrets.MERCURY_WORKSPACE_ID}}
       GX_CLOUD_ACCESS_TOKEN: ${{secrets.MERCURY_ACCESS_TOKEN}}
-      LD_SDK_KEY: ${{secrets.LD_SDK_KEY}}
+      LD_SDK_KEY: default
+      GX_LD_BASE_URI: "http://localhost:8765"
+      GX_LD_EVENTS_URI: "http://localhost:8765"
+      GX_LD_STREAM_URI: "http://localhost:8765"
+      LAUNCH_DARKLY_DEV_SERVER_ACCESS_TOKEN: ${{ secrets.LAUNCH_DARKLY_DEV_SERVER_ACCESS_TOKEN }}
       GX_SCHEDULER_LAMBDA_ARN: ${{secrets.GX_SCHEDULER_LAMBDA_ARN}}
       GX_SCHEDULER_EXECUTION_ROLE_ARN: ${{secrets.GX_SCHEDULER_EXECUTION_ROLE_ARN}}
       GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN: ${{secrets.GX_SCHEDULER_EVENTBRIDGE_DLQ_ARN}}
@@ -499,7 +508,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
             setup.py
@@ -573,7 +582,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache-dependency-path: |
             reqs/requirements-dev-test.txt
             setup.py
@@ -636,6 +645,7 @@ jobs:
       SNOWFLAKE_SCHEMA: ${{secrets.SNOWFLAKE_SCHEMA}}
       SNOWFLAKE_WAREHOUSE: ${{secrets.SNOWFLAKE_WAREHOUSE}}
       SNOWFLAKE_ROLE: ${{secrets.SNOWFLAKE_ROLE}}
+      SNOWFLAKE_PRIVATE_KEY: ${{secrets.SNOWFLAKE_PRIVATE_KEY}}
     permissions:
       id-token: write
       contents: read
@@ -659,7 +669,7 @@ jobs:
           - spark_connect
           - trino
           - clickhouse
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         exclude:
           # TODO: would like to adopt `actionlint` pre-commit hook
           # but false positive here and inability to do an inline ignore
@@ -760,11 +770,11 @@ jobs:
         markers:
           # - redshift
           - gx-redshift
-        python-version: ["3.9", "3.13"]
+        python-version: ["3.10", "3.13"]
         exclude:
-          - python-version: ${{ github.event_name == 'pull_request_target' && '3.9' }}
-          - python-version: ${{ github.event_name == 'merge_group' && '3.9' }}
-          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.9' }}
+          - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
+          - python-version: ${{ github.event_name == 'merge_group' && '3.10' }}
+          - python-version: ${{ github.event_name == 'workflow_dispatch' && '3.10' }}
 
     steps:
       - name: Checkout
@@ -814,29 +824,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: "${{ matrix.python-version }} ${{ matrix.markers }}"
-
-  py39-min-versions:
-    needs: [unit-tests, static-analysis, check-actor-permissions]
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
-          cache: "pip"
-          cache-dependency-path: reqs/requirements-dev-test.txt
-
-      - name: Install dependencies
-        run: pip install . -c ci/constraints-test/py39-min-install.txt -r reqs/requirements-dev-test.txt
-
-      - name: Run the tests
-        run: invoke ci-tests -m unit --xdist --slowest=10  --timeout=2.0
 
   py310-min-versions:
     needs: [unit-tests, static-analysis, check-actor-permissions]
@@ -939,7 +926,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache: "pip"
           cache-dependency-path: reqs/requirements-dev-test.txt
 
@@ -961,7 +948,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
           cache: "pip"
           cache-dependency-path: requirements.txt
 
@@ -980,7 +967,7 @@ jobs:
       GX_PYTHON_EXPERIMENTAL: true # allow for python 3.14+
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         exclude:
           - python-version: ${{ github.event_name == 'pull_request_target' && '3.10' }}
           - python-version: ${{ github.event_name == 'pull_request_target' && '3.11' }}
@@ -1016,7 +1003,6 @@ jobs:
         cloud-tests,
         integration-tests,
         marker-tests,
-        py39-min-versions,
         py310-min-versions,
         py311-min-versions,
         py312-min-versions,
@@ -1035,10 +1021,10 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.9
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
       - name: Update pip
         run: python -m pip install --upgrade pip
 
@@ -1067,7 +1053,6 @@ jobs:
         cloud-tests,
         integration-tests,
         marker-tests,
-        py39-min-versions,
         py310-min-versions,
         py311-min-versions,
         py312-min-versions,

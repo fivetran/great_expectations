@@ -8,6 +8,7 @@ from great_expectations.core.suite_parameters import (
 )
 from great_expectations.expectations.expectation import (
     ColumnPairMapExpectation,
+    _style_row_condition,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -26,7 +27,7 @@ from great_expectations.render.renderer_configuration import (
 )
 from great_expectations.render.util import (
     num_to_str,
-    parse_row_condition_string_pandas_engine,
+    parse_row_condition_string,
     substitute_none_for_missing,
 )
 
@@ -330,14 +331,14 @@ class ExpectColumnPairValuesToBeEqual(ColumnPairMapExpectation):
             template_str = "Values in $column_A and $column_B must be equal, at least $mostly_pct % of the time."  # noqa: E501 # FIXME CoP
 
         if params["row_condition"] is not None:
-            (
+            conditional_template_str = parse_row_condition_string(params["row_condition"])
+
+            template_str, styling = _style_row_condition(
                 conditional_template_str,
-                conditional_params,
-            ) = parse_row_condition_string_pandas_engine(params["row_condition"])
-            template_str = (
-                conditional_template_str + ", then " + template_str[0].lower() + template_str[1:]
+                template_str[0].lower() + template_str[1:],
+                params,
+                styling,
             )
-            params.update(conditional_params)
 
         return [
             RenderedStringTemplateContent(

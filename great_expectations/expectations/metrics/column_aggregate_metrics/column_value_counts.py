@@ -175,7 +175,7 @@ class ColumnValueCounts(ColumnAggregateMetricProvider):
         values: Iterable[Any]
         counts: Iterable[int]
         if len(value_counts) > 0:
-            values, counts = zip(*value_counts)
+            values, counts = zip(*value_counts, strict=False)
         else:
             values = []
             counts = []
