@@ -350,7 +350,19 @@ To help you to validate API-managed Expectations on an entire Data Asset with th
    validation_definition.run()
    ```
 
+5. Optional. Create a checkpoint so you can [trigger actions](/docs/cloud/alerts/trigger_actions) based on the validation results of your API-managed Expectations.  
 
+    ```Python
+    # Retrieve the validation definition
+    validation_definition = context.validation_definitions.get("my_validation_definition")
+
+    # Create a checkpoint
+    checkpoint_name = "my_checkpoint"
+    checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
+
+    # Save the checkpoint to the data context
+    checkpoint = context.checkpoints.add(checkpoint_config)
+    ```
 
 ### Validate a time-based subset of a Data Asset
 
@@ -421,14 +433,32 @@ First, you partition your data
    validation_definition = context.validation_definitions.add(validation_definition)
    ``` 
 
-Then, you can validate a batch of data. 
 
-1. Run the validation definition with batch parameters passed as integers.
+6. Run the validation definition with batch parameters passed as integers.
 
    ```Python 
    batch_parameters_yearly = {"year": 2019, "month": 1, "day": 30}
 
    validation_definition.run(batch_parameters=batch_parameters_yearly)
+    ```
+
+7. Optional. Create a checkpoint so you can [trigger actions](/docs/cloud/alerts/trigger_actions) based on the validation results of your API-managed Expectations.  
+
+    ```Python
+    # Retrieve the validation definition
+    validation_definition = context.validation_definitions.get("my_validation_definition")
+
+    # Create a checkpoint
+    checkpoint_name = "my_checkpoint"
+    checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
+
+    # Save the checkpoint to the data context
+    checkpoint = context.checkpoints.add(checkpoint_config)
+
+    # When you run the checkpoint, pass batch parameters as integers
+    batch_parameters_yearly = {"year": 2019, "month": 1, "day": 30}
+
+    checkpoint.run(batch_parameters=batch_parameters_yearly)
     ```
 
 </TabItem>
@@ -489,9 +519,7 @@ First, you partition your data
    validation_definition = context.validation_definitions.add(validation_definition)
    ``` 
 
-Then, you can validate a batch of data. 
-
-1. Run validation definition with batch parameters passed as strings
+6. Run validation definition with batch parameters passed as strings
 
    ```Python 
    batch_parameters_daily = {"year": "2019", "month": "1", "day": "30"}
@@ -500,6 +528,24 @@ Then, you can validate a batch of data.
     ```
    ```
 
+7. Optional. Create a checkpoint so you can [trigger actions](/docs/cloud/alerts/trigger_actions) based on the validation results of your API-managed Expectations.  
+
+    ```Python
+    # Retrieve the validation definition
+    validation_definition = context.validation_definitions.get("my_validation_definition")
+
+    # Create a checkpoint
+    checkpoint_name = "my_checkpoint"
+    checkpoint_config = gx.Checkpoint(name=checkpoint_name, validation_definitions=[validation_definition])
+
+    # Save the checkpoint to the data context
+    checkpoint = context.checkpoints.add(checkpoint_config)
+
+    # When you run the checkpoint, pass batch parameters as strings
+    batch_parameters_monthly = {"year": "2019", "month": "01"}
+
+    checkpoint.run(batch_parameters=batch_parameters_monthly)
+    ```
 </TabItem>
 </Tabs>
 
