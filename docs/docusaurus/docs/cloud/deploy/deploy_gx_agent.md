@@ -18,7 +18,10 @@ A local deployment of the GX Agent will allow you to test GX Cloud setup or proc
 
 ## Limitations
 
-Agent-enabled deployments do not support [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai-beta). To be able to generate AI-recommended Expectations or custom SQL, use a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- Agent-enabled deployments do not support [ExpectAI](/cloud/overview/accelerating_test_coverage.md#expectai-beta). To be able to generate AI-recommended Expectations or custom SQL, use a [fully-hosted deployment](/cloud/deploy/deployment_patterns.md).
+- [Agent versions](#gx-agent-versioning) prior to 20251103.0 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your agent is version 20251103.0 or later.
+   - multiple condition statements
+   - **is in**, **is not in**, or **is null** operators
 
 ## Prerequisites
 
