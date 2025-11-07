@@ -10,10 +10,75 @@ import Tabs from '@theme/Tabs';
 
 To explore your data and fine-tune your Expectations, run an ad hoc Validation as described in this page. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/docs/cloud/connect/connect_airflow.md).
 
-Options for ad hoc Validations depend on your Data Soure type and whether you are validating [GX-managed or API-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations.). 
+Workflows for ad hoc Validations vary based on the following factors:
+- whether you are validating [GX-managed or API-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations.)
+- whether you are validating your entire Data Asset or a time-based subset of it
+- your Data Source type 
 
 - GX-managed Expectations on Data Assets from Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources can be validated with the GX Cloud UI. 
 - All Expectations and all Data Sources can be validated with the GX Cloud API.
+
+
+<Tabs 
+   queryString="workflow-matrix"
+   defaultValue="ui"
+   values={[
+      {value: 'AlloyDB', label: 'AlloyDB'},
+      {value: 'Aurora', label: 'Aurora'}
+      {value: 'Amazon S3', label: 'Amazon S3'}
+      {value: 'Azure Blob Storage', label: 'Azure Blob Storage'}
+      {value: 'BigQuery', label: 'BigQuery'}
+      {value: 'Citus', label: 'Citus'}
+      {value: 'Databricks', label: 'Databricks'}
+      {value: 'Google Cloud Storage', label: 'Google Cloud Storage'}
+      {value: 'Neon', label: 'Neon'}
+      {value: 'PostgreSQL', label: 'PostgreSQL'}
+      {value: 'Redshift', label: 'Redshift'}
+      {value: 'Snowflake', label: 'Snowflake'}
+   ]}
+>
+
+<TabItem value="AlloyDB" label="AlloyDB">
+|                          | Entire Data Asset | Time-based subset of a Data Asset |
+|--------------------------|-------------------|-----------------------------------|
+| GX-managed Expectations  | 1                 | 2                                 |
+| API-managed Expectations | 3                 | 4                                 |
+</TabItem>
+<TabItem value="Aurora" label="Aurora">
+a
+</TabItem>
+<TabItem value="Amazon S3" label="Amazon S3">
+b
+</TabItem>
+<TabItem value="Azure Blob Storage" label="Azure Blob Storage">
+c
+</TabItem>
+<TabItem value="BigQuery" label="BigQuery">
+d
+</TabItem>
+<TabItem value="Citus" label="Citus">
+e
+</TabItem>
+<TabItem value="Databricks" label="Databricks">
+f
+</TabItem>
+<TabItem value="Google Cloud Storage" label="Google Cloud Storage">
+g
+</TabItem>
+<TabItem value="Neon" label="Neon">
+h
+</TabItem>
+<TabItem value="PostgreSQL" label="PostgreSQL">
+i
+</TabItem>
+<TabItem value="Redshift" label="Redshift">
+j
+</TabItem>
+<TabItem value="Snowflake" label="Snowflake">
+k
+</TabItem>
+
+</Tabs>
 
 No matter how you run your validations, historical validation results are available in the GX Cloud UI.
 
@@ -551,10 +616,6 @@ First, you partition your data
 
 
 When the Validation is complete, you can [view the results](#view-validation-run-history).
-
-
-
-Optional. Create a Checkpoint (lets you trigger actions)
 
 
 
