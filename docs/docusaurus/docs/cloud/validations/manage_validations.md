@@ -16,7 +16,7 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
 - Data Source type 
 
 
-| Expectations | Scope                       | Data Source                                                                                                                  | Workflow  |
+| Expectations | Scope                       | Data Source                                                                                                                  | Workflow  |
 |--------------|-----------------------------|------------------------------------------------------------------------------------------------------------------------------|-----------|
 | GX-managed   | Entire&nbsp;Data&nbsp;Asset | Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3       | Use UI to validate |
 | GX-managed   | Entire&nbsp;Data&nbsp;Asset | Azure&nbsp;Blob&nbsp;Storage<br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage                                               | Use API to retrieve and run a GX-managed Checkpoint |
