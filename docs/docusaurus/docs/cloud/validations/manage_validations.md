@@ -136,7 +136,7 @@ Options for validating a time-based subset of a Data Asset depend on your Data S
 
 
 <Tabs 
-   queryString="validation-interface"
+   queryString="source-type"
    defaultValue="sql"
    values={[
       {value: 'sql', label: 'SQL sources'},
@@ -218,11 +218,11 @@ If your filesystem Data Asset has date-based filenames, you can validate your da
 
 First, you partition your data
 
-1. Define the Data Asset to batch
+1. Define the Data Asset to batch.
 
    ```Python 
    data_source_name = "my_data_source" 
-   data_asset_name = "my_data_asset 
+   data_asset_name = "my_data_asset" 
    ```
 
 2. Decide how you want to batch your data.
@@ -310,105 +310,207 @@ To do this you will first create a Validation Definition that links your data to
       - **is in**, **is not in**, or **is null** operators
    :::
 
-### Define what to validate and how
+### Validate entire Data Asset
 
-First you will create a Batch Definition that identifies the records to validate. 
+To help you to validate API-managed Expectations on an entire Data Asset with the Cloud API, GX Cloud provides a GX-managed Batch Definition you can use to identify your data.
 
-1. Retrieve your Data Asset.
-
-   Replace the value of `datasource_name` with the name of your Data Source and the value of `asset_name` with the name of your Data Asset in the following code. Then execute it to retrieve an existing Data Source and Data Asset from your Data Context:
+1. Retrieve your Data Asset’s GX-managed Batch Definition.
 
    ```Python
    import great_expectations as gx
 
-   context = gx.get_context()
+   data_source_name = "my_data_source" 
+   data_asset_name = "my_data_asset" 
+   batch_definition_name = "my data asset - GX-Managed Batch Definition"
 
-   # Retrieve a Data Source
-   datasource_name = "my_datasource"
-   data_source = context.data_sources.get(datasource_name)
+   batch_definition = (
+       context.data_sources.get(data_source_name)
+       .get_asset(data_asset_name)
+       .get_batch_definition(batch_definition_name)
+   )
+   ```
+2. Retrieve your API-managed Expectation Suite.
 
-   # Get the Data Asset from the Data Source
-   asset_name = "MY_TABLE_ASSET"
-   data_asset = data_source.get_asset(asset_name)
+   ```Python
+   suite_name = "my_expectation_suite"
+   suite = context.suites.get(name=suite_name)
    ```
 
-2. Add a Batch Definition to the Data Asset.
+3. Create a Validation Definition that associates the Batch Definition with the Expectation Suite.
 
-   A Batch Definition specifies whether and how to divide a Data Asset for testing. Options for Batch Definitions depend on your Data Source type.
-   <Tabs 
+   ```Python
+   definition_name = "my_validation_definition"
+   validation_definition = gx.ValidationDefinition(
+       data=batch_definition, suite=suite, name=definition_name
+   )
+   ```
+4. Run the validation definition.
+
+   ```Python
+   validation_definition.run()
+   ```
+
+
+
+### Validate a time-based subset of a Data Asset
+
+
+Options for validating a time-based subset of a Data Asset depend on your Data Source type.
+
+
+<Tabs 
    queryString="source-type"
    defaultValue="sql"
    values={[
       {value: 'sql', label: 'SQL sources'},
-      {value: 'file', label: 'filesystem sources'},
+      {value: 'filesystem', label: 'Filesystem sources'}
    ]}
-   >
-   
-   <TabItem value="sql" label="SQL sources">
-   
-   SQL Data Sources such as  Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources ....
+>
+
+<TabItem value="sql" label="SQL sources">
+
+If your SQL Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+
+First, you partition your data
+
+1. Retrieve the data asset.
+
+   ```Python 
+   data_source_name = "my_data_source" 
+   data_asset_name = "my_data_asset 
+
+   import great_expectations as gx
+
+   context = gx.get_context()
+   ds = context.data_sources.get(data_source_name)
+   asset = ds.get_asset(data_asset_name)
+   ```
+
+2. Decide how you want to batch your data.
+
+   | Goal                                      | method                         |
+   |-------------------------------------------|--------------------------------|
+   | Partition records by year                 | `add_batch_definition_yearly`  |
+   | Partition records by year and month       | `add_batch_definition_monthly` |
+   | Partition records by year, month, and day | `add_batch_definition_daily`   |
+
+3. Partition your data. This example demonstrates daily batches with the `add_batch_definition_daily` method. Refer to the above table for partitioners and methods for other types of batches.
+
+   ```Python
+   date_column = "pickup_datetime"
+   daily_batch_definition = data_asset.add_batch_definition_daily(
+       name="DAILY", column=date_column
+   )
+   ```
+
+4. Retrieve your API-managed Expectation Suite.
+
+   ```Python
+   suite_name = "my_expectation_suite"
+   suite = context.suites.get(name=suite_name)
+   ```
+
+5. Create Validation definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
+
+   ```Python
+   definition_name = "my_validation_definition"
+   validation_definition = gx.ValidationDefinition(
+       data=batch_definition, suite=suite, name=definition_name
+   )
+
+   validation_definition = context.validation_definitions.add(validation_definition)
+   ``` 
+
+Then, you can validate a batch of data. 
+
+1. Run the validation definition with batch parameters passed as integers.
+
+   ```Python 
+   batch_parameters_yearly = {"year": 2019, "month": 1, "day": 30}
+
+   validation_definition.run(batch_parameters=batch_parameters_yearly)
+    ```
+
+</TabItem>
+
+<TabItem value="filesystem" label="Filesystem sources">
+
+If your filesystem Data Asset has date-based filenames, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+
+First, you partition your data
+
+1. Retrieve the data asset.
+
+   ```Python 
+   data_source_name = "my_data_source" 
+   data_asset_name = "my_data_asset 
+
+   import great_expectations as gx
+
+   context = gx.get_context()
+   ds = context.data_sources.get(data_source_name)
+   asset = ds.get_asset(data_asset_name)
+   ```
+
+2. Decide how you want to batch your data.
+
+   | Goal                                      | method                         | parameter names        |
+   |-------------------------------------------|--------------------------------|------------------------|
+   | Partition records by year                 | `add_batch_definition_yearly`  | `year`                 |
+   | Partition records by year and month       | `add_batch_definition_monthly` | `year`, `month`        |
+   | Partition records by year, month, and day | `add_batch_definition_daily`   | `year`, `month`, `day` |
+
+3. Partition your data. This example demonstrates daily batches with the `add_batch_definition_daily` method. Refer to the above table for methods and parameters for other types of batches.
+
+   ```Python
+   batch_definition_name = "daily_yellow_tripdata_sample"
+   batch_definition_regex = r"folder_with_data/yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
+
+   batch_definition = file_data_asset.add_batch_definition_daily(
+       name=batch_definition_name, regex=batch_definition_regex
+   )
+   ```
+
+4. Retrieve your API-managed Expectation Suite.
+
+   ```Python
+   suite_name = "my_expectation_suite"
+   suite = context.suites.get(name=suite_name)
+   ```
+
+5. Create Validation definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
+
+   ```Python
+   definition_name = "my_validation_definition"
+   validation_definition = gx.ValidationDefinition(
+       data=batch_definition, suite=suite, name=definition_name
+   )
+
+   validation_definition = context.validation_definitions.add(validation_definition)
+   ``` 
+
+Then, you can validate a batch of data. 
+
+1. Run validation definition with batch parameters passed as strings
+
+   ```Python 
+   batch_parameters_daily = {"year": "2019", "month": "1", "day": "30"}
+
+   validation_definition.run(batch_parameters=batch_parameters_daily)
+    ```
+   ```
+
+</TabItem>
+</Tabs>
 
 
-   <Tabs 
-   queryString="sql-batch-type"
-   defaultValue="sql-full-table"
-   values={[
-      {value: 'sql-full-table', label: 'Full table'},
-      {value: 'sql-partition', label: 'Time-based subset'}
-   ]}
-   >
-
-   <TabItem value="sql-full-table" label="Full table (SQL sources)">
-   a
-   </TabItem>
-
-   <TabItem value="sql-partition" label="Time-based subset (SQL sources)">
-   b
-   </TabItem>
-
-   </Tabs>
-
-   </TabItem>
-
-   <TabItem value="file" label="filesystem sources">
-   
-   Filesystem Sources such as Amazon S3 ....
-   <Tabs 
-   queryString="file-batch-type"
-   defaultValue="file-path"
-   values={[
-      {value: 'file-path', label: 'Single file'},
-      {value: 'file-partition', label: 'Time-based files'}
-   ]}
-   >
-
-   <TabItem value="file-path" label="Single file (filesystem sources)">
-   c
-   </TabItem>
-
-   <TabItem value="file-partition" label="Time-based files (filesystem sources)">
-   d
-   </TabItem>
-
-   </Tabs>
-
-   </TabItem>
+When the Validation is complete, you can [view the results](#view-validation-run-history).
 
 
-   </Tabs>
-
-3. other stuff
-
-Create a Validation Definition
-(associates expectation suite with data asset via batch definition)
 
 Optional. Create a Checkpoint (lets you trigger actions)
 
-### Run a Validation
 
-Can run Validation Definition directly
-
-Or if you created a Checkpoint, can run that
 
 ## View Validation run history
 
@@ -437,103 +539,3 @@ Or if you created a Checkpoint, can run that
     :::
 
 5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
-
-## PARKING LOT - might be useful later
-
-1. Retrieve your Data Asset.
-
-   Replace the value of `datasource_name` with the name of your Data Source and the value of `asset_name` with the name of your Data Asset in the following code. Then execute it to retrieve an existing Data Source and Data Asset from your GX Cloud organization:
-
-   ```Python
-   # Retrieve a Data Source
-   datasource_name = "my_datasource"
-   data_source = context.data_sources.get(datasource_name)
-
-   # Get the Data Asset from the Data Source
-   asset_name = "MY_TABLE_ASSET"
-   data_asset = data_source.get_asset(asset_name)
-   ```
-
-2. Add one or more Batch Definitions to the Data Asset.
-
-   A partitioned Batch Definition subdivides the records in a Data Asset based on the values in a specified field. GX Cloud currently supports partitioning Data Assets based on DATE or DATETIME fields. The records can be grouped by year, month, or day. A Data Asset can have multiple Batch Definitions as long as each Batch Definition has a unique name within that Data Asset.
-
-   Update the `date_column` variable and `name` parameters in the following snippet, then execute it to create partitioned Batch Definitions:
-
-   ```Python
-   date_column = "pickup_datetime"
-
-   daily_batch_definition = data_asset.add_batch_definition_daily(
-       name="DAILY", column=date_column
-   )
-
-   monthly_batch_definition = data_asset.add_batch_definition_monthly(
-       name="MONTHLY", column=date_column
-   )
-
-   yearly_batch_definition = data_asset.add_batch_definition_yearly(
-      name="YEARLY", column=date_column
-   )
-   ```
-
-4. Optional. Verify the Batch Definition is valid.
-
-   When retrieving a Batch from a partitioned Batch Definition, you can specify the date of the data to retrieve as shown in the following examples. If you do not specify a date, the most recent date in the data is returned by default.
-
-   ```Python
-   daily_batch = daily_batch_definition.get_batch(
-       batch_parameters={"year": 2020, "month": 1, "day": 14}
-   )
-   daily_batch.head()
-
-   monthly_batch = monthly_batch_definition.get_batch(
-       batch_parameters={"year": 2020, "month": 1}
-   )
-   monthly_batch.head()
-
-   yearly_batch = yearly_batch_definition.get_batch(
-       batch_parameters={"year": 2020}
-   )
-   yearly_batch.head()
-   ```
-
-5. Find the name of your GX-managed Expectation Suite
-
-   ```Python
-   # Get all Expectation Suites
-   all_suites = context.suites.all()
-
-   # Define the Data Asset name to match
-   asset_name = "my_asset"
-
-   # Find your Data Asset's GX-managed Expectation Suite
-   matching_suites = [
-      suite for suite in all_suites
-      if asset_name in suite.name and "GX-Managed" in suite.name
-   ]
-
-   # Print matching suite names
-   for suite in matching_suites:
-    print(suite.name)
-   ```
-
-6. Retrieve your Expectation Suite
-
-   Update the value of `expectation_suite_name` in the following code with the name of your Expectation Suite. Then execute the code to retrieve that Expectation Suite:
-
-   ```
-   expectation_suite_name = "my_expectation_suite"
-   expectation_suite = context.suites.get(name=expectation_suite_name)
-   ```
-
-5. Create a Validation Definition to associate your GX-managed Expectation Suite with your batched data.
-
-   Update the value of `definition_name` with a descriptive name that indicates the purpose of the Validation Definition. Then execute the code to create your Validation Definition:
-
-   ```Python
-   definition_name = "my_validation_definition"
-   batch_definition = "daily_batch"
-   validation_definition = gx.ValidationDefinition(
-   data=batch_definition, suite=expectation_suite, name=definition_name
-   )
-   ```
