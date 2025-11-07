@@ -16,9 +16,7 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
 - Data Source type 
 
 <style>
-.valign-top {
-  vertical-align: top;
-}
+.valign-top {vertical-align: top;}
 </style>
 
 <table><thead>
