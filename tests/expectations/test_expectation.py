@@ -806,3 +806,36 @@ class TestLegacyRowConditionTransformation:
         assert expectation.row_condition == PassThroughCondition(
             pass_through_filter='PClass=="1st"'
         )
+
+    def test_condition_parser_deprecation_warning(self):
+        """Test that using condition_parser raises a DeprecationWarning."""
+        with pytest.warns(DeprecationWarning):
+            gxe.ExpectColumnValuesToBeInSet(
+                column="status",
+                value_set=["active"],
+                row_condition='col("age") > 18',
+                condition_parser="great_expectations",
+            )
+
+    def test_string_row_condition_deprecation_warning(self):
+        """Test that passing a string to row_condition raises a DeprecationWarning."""
+        with pytest.warns(DeprecationWarning):
+            gxe.ExpectColumnValuesToBeInSet(
+                column="status",
+                value_set=["active"],
+                row_condition='col("age") > 18',
+                condition_parser="great_expectations",
+            )
+
+    def test_both_deprecation_warnings_triggered_together(self):
+        """Test that both warnings are raised when both deprecated features are used."""
+        with pytest.warns(DeprecationWarning) as warning_list:
+            gxe.ExpectColumnValuesToBeInSet(
+                column="status",
+                value_set=["active"],
+                row_condition='col("age") > 18',
+                condition_parser="great_expectations",
+            )
+
+        # Should have two warnings: one for condition_parser, one for string row_condition
+        assert len(warning_list) == 2

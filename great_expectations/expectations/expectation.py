@@ -532,7 +532,25 @@ class Expectation(pydantic.BaseModel, metaclass=MetaExpectation):
             ]
         )
 
+        # Warn if condition_parser is provided
+        if condition_parser is not None:
+            warnings.warn(
+                "The condition_parser parameter is deprecated as of GX Core 1.9.0 "
+                "and will be removed in GX Core 2.0. Please use Condition objects "
+                "(e.g., Column('column_name') > 0) instead of string-based row conditions.",
+                DeprecationWarning,  # deprecated-v1.9.0
+                stacklevel=2,
+            )
+
+        # Warn if row_condition is a string
         if isinstance(row_condition, str):
+            warnings.warn(
+                "Passing a string to the row_condition parameter is deprecated as of GX Core 1.9.0 "
+                "and will be removed in GX Core 2.0. Please use Condition objects "
+                "(e.g., Column('column_name') > 0) instead of string-based row conditions.",
+                DeprecationWarning,  # deprecated-v1.9.0
+                stacklevel=2,
+            )
             if is_great_expectations_condition_parser:
                 condition_obj = _convert_string_to_condition(row_condition)
                 values["row_condition"] = condition_obj
