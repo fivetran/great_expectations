@@ -40,20 +40,20 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
   <tr>
     <td rowspan="5">GX-managed</td>
     <td rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
-    <td>Databricks&nbsp;SQL<br>PostgreSQL<br>Redshift<br>Snowflake<br>AlloyDB<br>Aurora<br>Citus<br>Neon<br>S3</td>
+    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
     <td>Use UI to validate</td>
   </tr>
   <tr>
-    <td>Azure&nbsp;Blob&nbsp;Storage <br>BigQuery<br>Google&nbsp;Cloud&nbsp;Storage </td>
+    <td>Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
     <td>Use API to retrieve and run a GX-managed Checkpoint</td>
   </tr>
   <tr>
     <td rowspan="3">Time-based&nbsp;subset</td>
-    <td>Databricks&nbsp;SQL<br>PostgreSQL<br>Redshift<br>Snowflake<br>AlloyDB<br>Aurora<br>Citus<br>Neon</td>
+    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
     <td>Use UI to define a batch and validate</td>
   </tr>
   <tr>
-    <td>S3<br>Azure&nbsp;Blob&nbsp;Storage <br>Google&nbsp;Cloud&nbsp;Storage </td>
+    <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
     <td>Use API to define a batch based on regex filename matching then retrieve and run a GX-managed Checkpoint with batch parameters</td>
   </tr>
   <tr>
@@ -68,11 +68,11 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
   </tr>
   <tr>
     <td rowspan="2">Time-based&nbsp;subset   </td>
-    <td>Databricks&nbsp;SQL<br>PostgreSQL<br>Redshift<br>Snowflake<br>AlloyDB<br>Aurora<br>Citus<br>Neon<br>BigQuery</td>
+    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
     <td>Use API to define a batch based on values in a DATE or DATETIME column then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
   </tr>
   <tr>
-    <td>S3<br>Azure&nbsp;Blob&nbsp;Storage <br>Google&nbsp;Cloud&nbsp;Storage </td>
+    <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
     <td>Use API to define a batch based on regex filename matching then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
   </tr>
 </tbody></table>
