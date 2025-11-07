@@ -257,8 +257,9 @@ table.borderless tr:nth-child(2n) {
     background-color: transparent;
 }
 
-td.vertical-align-top {
+td.merged-rows {
     vertical-align: top;
+    background-color: white;
 }
 
 .center {
