@@ -21,16 +21,16 @@ Workflows for ad hoc Validations vary based on the following factors:
 
 <Tabs 
    queryString="workflow-matrix"
-   defaultValue="ui"
+   defaultValue="AlloyDB"
    values={[
       {value: 'AlloyDB', label: 'AlloyDB'},
       {value: 'Aurora', label: 'Aurora'}
-      {value: 'Amazon S3', label: 'Amazon S3'}
-      {value: 'Azure Blob Storage', label: 'Azure Blob Storage'}
+      {value: 'S3', label: 'Amazon S3'}
+      {value: 'Azure', label: 'Azure Blob Storage'}
       {value: 'BigQuery', label: 'BigQuery'}
       {value: 'Citus', label: 'Citus'}
       {value: 'Databricks', label: 'Databricks'}
-      {value: 'Google Cloud Storage', label: 'Google Cloud Storage'}
+      {value: 'GCS', label: 'Google Cloud Storage'}
       {value: 'Neon', label: 'Neon'}
       {value: 'PostgreSQL', label: 'PostgreSQL'}
       {value: 'Redshift', label: 'Redshift'}
@@ -47,10 +47,10 @@ Workflows for ad hoc Validations vary based on the following factors:
 <TabItem value="Aurora" label="Aurora">
 a
 </TabItem>
-<TabItem value="Amazon S3" label="Amazon S3">
+<TabItem value="S3" label="Amazon S3">
 b
 </TabItem>
-<TabItem value="Azure Blob Storage" label="Azure Blob Storage">
+<TabItem value="Azure" label="Azure Blob Storage">
 c
 </TabItem>
 <TabItem value="BigQuery" label="BigQuery">
@@ -62,7 +62,7 @@ e
 <TabItem value="Databricks" label="Databricks">
 f
 </TabItem>
-<TabItem value="Google Cloud Storage" label="Google Cloud Storage">
+<TabItem value="GCS" label="Google Cloud Storage">
 g
 </TabItem>
 <TabItem value="Neon" label="Neon">
