@@ -184,20 +184,23 @@ def _expecation_configuration_to_validation_result_sql(
         connection_string=connection_string,
         create_temp_table=False,
     )
-    datasource = context.data_sources.add_sqlite(
-        "my_test_datasource", connection_string=connection_string
-    )
-    asset = datasource.add_table_asset("my_asset", table_name="animal_names")
-    batch_definition = asset.add_batch_definition_whole_table("all of it")
-    validator = Validator(
-        execution_engine=engine,
-        data_context=context,
-        batches=[
-            batch_definition.get_batch(),
-        ],
-    )
-    result = expectation.validate_(validator)
-    return result
+    try:
+        datasource = context.data_sources.add_sqlite(
+            "my_test_datasource", connection_string=connection_string
+        )
+        asset = datasource.add_table_asset("my_asset", table_name="animal_names")
+        batch_definition = asset.add_batch_definition_whole_table("all of it")
+        validator = Validator(
+            execution_engine=engine,
+            data_context=context,
+            batches=[
+                batch_definition.get_batch(),
+            ],
+        )
+        result = expectation.validate_(validator)
+        return result
+    finally:
+        engine.close()
 
 
 @pytest.mark.sqlite

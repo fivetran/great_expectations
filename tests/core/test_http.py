@@ -2,7 +2,7 @@ from typing import Dict
 
 import pytest
 
-from great_expectations.core.http import DEFAULT_TIMEOUT, create_session
+from great_expectations.core.http import DEFAULT_TIMEOUT, _TimeoutHTTPAdapter, create_session
 
 
 @pytest.mark.unit
@@ -27,6 +27,7 @@ def test_session_factory_contains_appropriate_adapters() -> None:
 
     assert len(session.adapters) == 2
     for adapter in session.adapters.values():
+        assert isinstance(adapter, _TimeoutHTTPAdapter)
         assert adapter.timeout == DEFAULT_TIMEOUT
         retries = adapter.max_retries
         assert retries.total == retry_count

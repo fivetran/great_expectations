@@ -706,7 +706,7 @@ class ExpectQueryResultsToMatchComparison(BatchExpectation):
         `sorted(<TUPLES>, key=cmp_to_key(cls._null_safe_tuple_compare))`.
         None is treated as less than anything else.
         """
-        for x, y in zip(a, b):
+        for x, y in zip(a, b, strict=False):
             if x == y:
                 # elements match; go on to next element
                 continue

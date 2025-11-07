@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel", "versioneer", "typing_extensions>=4.1.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 plugins = [
     "pydantic.mypy",
     "sqlalchemy.ext.mypy.plugin"
@@ -238,7 +238,7 @@ warn_required_dynamic_aliases = true
 warn_untyped_fields = true
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 100
 lint.preview = true  # This enables preview rules for specified rules e.g. NPY201
 lint.explicit-preview-rules = true  # https://docs.astral.sh/ruff/preview/#selecting-single-preview-rules
@@ -633,6 +633,10 @@ filterwarnings = [
     # Example Actual Warning:
     # DeprecationWarning: The load_credentials_from_file method is deprecated because of a potential security risk.
     "ignore: The load_credentials_from_file method is deprecated because of a potential security risk.:DeprecationWarning",
+    # google.api_core
+    # Example Actual Warning:
+    # FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+    "ignore: You are using a Python version.*which Google will stop supporting in new releases of google.api_core:FutureWarning",
     # sqlalchemy
     # Example Actual Warning:
     # sqlalchemy.exc.RemovedIn20Warning: Deprecated API features detected! These feature(s) are not compatible with SQLAlchemy 2.0. To prevent incompatible upgrades prior to updating applications, ensure requirements files are pinned to "sqlalchemy<2.0". Set environment variable SQLALCHEMY_WARN_20=1 to show all deprecation warnings.  Set environment variable SQLALCHEMY_SILENCE_UBER_WARNING=1 to silence this message. (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
@@ -644,10 +648,6 @@ filterwarnings = [
     "ignore: Attempting to mutate a Context after a Connection was created. In the future, this will raise an exception",
     "ignore: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.:pytest_benchmark.logger.PytestBenchmarkWarning",
     "ignore: No data was collected\\. \\(no-data-collected\\):coverage.exceptions.CoverageWarning",
-    # Example Actual Warning: FutureWarning: You are using a Python version (3.9.23) past its end of life.
-    # Also matches: You are using a Python version (3.10.18) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04).
-    "ignore: You are using a Python version.*end of life:FutureWarning",
-    "ignore: .+ will no longer support Python 3.9.*:boto3.exceptions.PythonDeprecationWarning"
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
 ]
