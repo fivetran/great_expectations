@@ -30,6 +30,13 @@ DATA = pd.DataFrame(
     },
 )
 
+IDX_DATA = pd.DataFrame(
+    {
+        "customer_id": [1, 2, 3, 4, 5],
+        "email": ["a@x.com", "b@x.com", "c@x.com", "d@x.com", None],
+    }
+)
+
 try:
     from great_expectations.compatibility.pyspark import types as PYSPARK_TYPES
 
@@ -235,3 +242,28 @@ def test_include_unexpected_rows_sql(batch_for_datasource: Batch) -> None:
     # Check that null values appear in the unexpected rows data (represented as None)
     unexpected_rows_str = str(unexpected_rows_data)
     assert "None" in unexpected_rows_str or "null" in unexpected_rows_str.lower()
+
+
+@parameterize_batch_for_data_sources(
+    data_source_configs=JUST_PANDAS_DATA_SOURCES,
+    data=IDX_DATA,
+)
+def test_unexpected_index_column_names(batch_for_datasource: Batch) -> None:
+    """
+    Verify that when `unexpected_index_column_names` is requested via result_format,
+    ExpectColumnValuesToNotBeNull includes it in the result payload.
+    """
+    expectation = gxe.ExpectColumnValuesToNotBeNull(column="email")
+
+    result = batch_for_datasource.validate(
+        expectation,
+        result_format={
+            "result_format": "COMPLETE",
+            "unexpected_index_column_names": ["customer_id"],
+        },
+    )
+
+    assert not result.success
+    result_dict = result["result"]
+    assert "unexpected_index_column_names" in result_dict
+    assert result_dict["unexpected_index_column_names"] == ["customer_id"]

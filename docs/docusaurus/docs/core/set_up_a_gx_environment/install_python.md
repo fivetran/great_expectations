@@ -31,7 +31,7 @@ To use Great Expectations (GX) you need to install Python and the GX Core Python
    You should receive a response similar to the following:
 
    ```shell title="Terminal output"
-   Python 3.9.19
+   Python 3.13.9
    ```
 
 ## Optional. Create a virtual environment

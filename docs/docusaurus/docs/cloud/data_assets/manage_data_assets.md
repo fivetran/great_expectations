@@ -61,7 +61,7 @@ To add a Data Asset from an existing Data Source using the GX Cloud UI, complete
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
 - A [Data Source](/docs/cloud/connect/connect_lp).
-- [Python version 3.9 to 3.13](https://www.python.org/downloads/).
+- [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
 - Recommended. A [Python virtual environment](https://docs.python.org/3/library/venv.html).
 

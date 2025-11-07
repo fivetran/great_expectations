@@ -14,20 +14,20 @@ Learn how to use GX Cloud from a Python script or interpreter, such as a Jupyter
 
 ## Prepare your environment
 
-1. Download and install [Python](https://www.python.org/downloads/). GX supports Python versions 3.9 to 3.13.
+1. Download and install [Python](https://www.python.org/downloads/). GX supports Python versions 3.10 to 3.13.
 
 2. Download and install pip. See the [pip documentation](https://pip.pypa.io/en/stable/cli/pip/).
 
 
 ## Install GX
 
-1. Run the following command in an empty base directory inside a Python virtual environment:
+Run the following command in an empty base directory inside a Python virtual environment:
 
-    ```bash title="Terminal input"
-    pip install great_expectations
-    ```
+```bash title="Terminal input"
+pip install great_expectations
+```
 
-    It can take several minutes for the installation to complete.
+It can take several minutes for the installation to complete.
 
 ## Get your credentials
 

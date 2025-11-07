@@ -8,6 +8,10 @@ You can manually run a Validation using the GX Cloud UI. This is useful for expl
 
 :::tip Manual validations are for GX-managed Expectations only
 To run a validation for an [API-managed Expectation](/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations), use the GX Cloud UI to generate the necessary code. For the Data Asset of interest, go to the **Validations** tab, select the **Expectation Suite** that contains your API-managed Expectation, click the code snippet icon next to the **Validate** button, and then click **Generate snippet**.
+
+Note that if your Expectations use the following aspects of [row conditions](/cloud/expectations/expectations_overview.md#row-conditions), your GX library version must be >= 1.8.1.
+   - multiple condition statements
+   - **is in**, **is not in**, or **is null** operators
 :::
 
 <!-- [//]: # (TODO: To learn more about Validations, see Validator.) -->

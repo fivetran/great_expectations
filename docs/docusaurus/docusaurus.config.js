@@ -31,8 +31,8 @@ module.exports = {
         apiKey: process.env.POSTHOG_API_KEY,
         enableInDevelopment: false,
         debug: false,
-        // pageviews are handled by the web-tracking.js script
-        capture_pageview: false,
+        // Use history_change for SPA pageview tracking
+        capture_pageview: 'history_change',
       }
     ],
   ],
@@ -42,10 +42,6 @@ module.exports = {
       src: '/scripts/set-tab.js',
       async: true,
       defer: true
-    },
-    {
-      src: '/scripts/web-tracking.js',
-      async: true
     },
     {
       src: 'https://fast.wistia.net/assets/external/E-v1.js',
