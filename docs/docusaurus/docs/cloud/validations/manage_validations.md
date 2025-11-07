@@ -16,19 +16,6 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
 - Data Source type 
 
 
-| Expectations | Scope                       | Data Source                                                                                                                  | Workflow  |
-|--------------|-----------------------------|------------------------------------------------------------------------------------------------------------------------------|-----------|
-| GX-managed   | Entire&nbsp;Data&nbsp;Asset | Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3       | Use UI to validate |
-| GX-managed   | Entire&nbsp;Data&nbsp;Asset | Azure&nbsp;Blob&nbsp;Storage<br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage                                               | Use API to retrieve and run a GX-managed Checkpoint |
-| GX-managed   | Time-based&nbsp;subset      | Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon               | Use UI to define a batch and validate |
-| GX-managed   | Time-based&nbsp;subset      | S3<br />Azure&nbsp;Blob&nbsp;Storage<br />Google&nbsp;Cloud&nbsp;Storage                                                     | Use API to define a batch based on regex filename matching then retrieve and run a GX-managed Checkpoint with batch parameters |
-| GX-managed   | Time-based&nbsp;subset      | BigQuery                                                                                                                     | Use API to define a batch based on values in a DATE or DATETIME column then retrieve and run a GX-managed Checkpoint with batch parameters |
-| API-managed  | Entire&nbsp;Data&nbsp;Asset | All sources                                                                                                                  | Use API to associate the GX-managed Batch Definition with your API-managed Expectation suite via a Validation Definition, then run the Validation Definition |
-| API-managed  | Time-based&nbsp;subset      | Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery | Use API to define a batch based on values in a DATE or DATETIME column then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition |
-| API-managed  | Time-based&nbsp;subset      | S3<br />Azure&nbsp;Blob&nbsp;Storage<br />Google&nbsp;Cloud&nbsp;Storage                                                     | Use API to define a batch based on regex filename matching then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition |
-
-
-
 <table><thead>
   <tr>
     <th>Expectations</th>
@@ -38,42 +25,42 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
   </tr></thead>
 <tbody>
   <tr>
-    <td rowspan="5">GX-managed</td>
-    <td rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
-    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
-    <td>Use UI to validate</td>
+    <td style="vertical-align: top;" rowspan="5">GX-managed</td>
+    <td style="vertical-align: top;" rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
+    <td style="vertical-align: top;">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
+    <td style="vertical-align: top;"><a href="">Use the UI</a>:<br />Click the validate button in the UI</td>
   </tr>
   <tr>
-    <td>Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use API to retrieve and run a GX-managed Checkpoint</td>
+    <td style="vertical-align: top;">Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to retrieve and run a GX-managed Checkpoint</td>
   </tr>
   <tr>
-    <td rowspan="3">Time-based&nbsp;subset</td>
-    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
-    <td>Use UI to define a batch and validate</td>
+    <td style="vertical-align: top;" rowspan="3">Time-based&nbsp;subset</td>
+    <td style="vertical-align: top;">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
+    <td style="vertical-align: top;"><a href="">Use the UI</a>:<br />define a batch and validate</td>
   </tr>
   <tr>
-    <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use API to define a batch based on regex filename matching then retrieve and run a GX-managed Checkpoint with batch parameters</td>
+    <td style="vertical-align: top;">S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to define a batch based on regex filename matching then retrieve and run a GX-managed Checkpoint with batch parameters</td>
   </tr>
   <tr>
-    <td>BigQuery</td>
-    <td>Use API to define a batch based on values in a DATE or DATETIME column then retrieve and run a GX-managed Checkpoint with batch parameters</td>
+    <td style="vertical-align: top;">BigQuery</td>
+    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to define a batch based on values in a DATE or DATETIME column then retrieve and run a GX-managed Checkpoint with batch parameters</td>
   </tr>
   <tr>
-    <td rowspan="3">API-managed</td>
-    <td>Entire&nbsp;Data&nbsp;Asset</td>
-    <td>All sources</td>
-    <td>Use API to associate the GX-managed Batch Definition with your API-managed Expectation suite via a Validation Definition, then run the Validation Definition</td>
+    <td style="vertical-align: top;" rowspan="3">API-managed</td>
+    <td style="vertical-align: top;">Entire&nbsp;Data&nbsp;Asset</td>
+    <td style="vertical-align: top;">All sources</td>
+    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to associate the GX-managed Batch Definition with your API-managed Expectation suite via a Validation Definition, then run the Validation Definition</td>
   </tr>
   <tr>
-    <td rowspan="2">Time-based&nbsp;subset   </td>
-    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
-    <td>Use API to define a batch based on values in a DATE or DATETIME column then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
+    <td style="vertical-align: top;" rowspan="2">Time-based&nbsp;subset   </td>
+    <td style="vertical-align: top;">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
+    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to define a batch based on values in a DATE or DATETIME column then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
   </tr>
   <tr>
-    <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use API to define a batch based on regex filename matching then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
+    <td style="vertical-align: top;">S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to define a batch based on regex filename matching then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
   </tr>
 </tbody></table>
 
