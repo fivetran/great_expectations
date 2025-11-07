@@ -19,77 +19,16 @@ Workflows for ad hoc Validations vary based on the following factors:
 - All Expectations and all Data Sources can be validated with the GX Cloud API.
 
 
-<Tabs 
-   queryString="workflow-matrix"
-   defaultValue="AlloyDB"
-   values={[
-      {value: 'AlloyDB', label: 'AlloyDB'},
-      {value: 'Aurora', label: 'Aurora'},
-      {value: 'S3', label: 'Amazon S3'},
-      {value: 'Azure', label: 'Azure Blob Storage'},
-      {value: 'BigQuery', label: 'BigQuery'},
-      {value: 'Citus', label: 'Citus'},
-      {value: 'Databricks', label: 'Databricks'},
-      {value: 'GCS', label: 'Google Cloud Storage'},
-      {value: 'Neon', label: 'Neon'},
-      {value: 'PostgreSQL', label: 'PostgreSQL'},
-      {value: 'Redshift', label: 'Redshift'},
-      {value: 'Snowflake', label: 'Snowflake'}
-   ]}
->
-
-<TabItem value="AlloyDB" label="AlloyDB">
-|                          | Entire Data Asset | Time-based subset of a Data Asset |
-|--------------------------|-------------------|-----------------------------------|
-| GX-managed Expectations  | 1                 | 2                                 |
-| API-managed Expectations | 3                 | 4                                 |
-</TabItem>
-
-<TabItem value="Aurora" label="Aurora">
-a
-</TabItem>
-
-<TabItem value="S3" label="Amazon S3">
-b
-</TabItem>
-
-<TabItem value="Azure" label="Azure Blob Storage">
-c
-</TabItem>
-
-<TabItem value="BigQuery" label="BigQuery">
-d
-</TabItem>
-
-<TabItem value="Citus" label="Citus">
-e
-</TabItem>
-
-<TabItem value="Databricks" label="Databricks">
-f
-</TabItem>
-
-<TabItem value="GCS" label="Google Cloud Storage">
-g
-</TabItem>
-
-<TabItem value="Neon" label="Neon">
-h
-</TabItem>
-
-<TabItem value="PostgreSQL" label="PostgreSQL">
-i
-</TabItem>
-
-<TabItem value="Redshift" label="Redshift">
-j
-</TabItem>
-
-<TabItem value="Snowflake" label="Snowflake">
-k
-</TabItem>
-
-</Tabs>
+| Expectations | Scope             | Data Source                                                                             | Workflow                                                                                                                                                                                                             |
+|--------------|-------------------|-----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| GX-managed   | Entire Data Asset | Databricks SQL, PostgreSQL, Redshift, Snowflake, AlloyDB, Aurora, Citus, Neon, S3       | Use UI to validate                                                                                                                                                                                                   |
+| GX-managed   | Entire Data Asset | Azure Blob Storage, BigQuery, Google Cloud Storage                                      | Use API to retrieve and run a GX-managed Checkpoint                                                                                                                                                                  |
+| GX-managed   | Time-based subset | Databricks SQL, PostgreSQL, Redshift, Snowflake, AlloyDB, Aurora, Citus, Neon           | Use UI to define a batch and validate                                                                                                                                                                                |
+| GX-managed   | Time-based subset | S3, Azure Blob Storage, Google Cloud Storage                                            | Use API to define a batch based on regex filename matching then retrieve and run a GX-managed Checkpoint with batch parameters                                                                                       |
+| GX-managed   | Time-based subset | BigQuery                                                                                | Use API to define a batch based on values in a DATE or DATETIME column then retrieve and run a GX-managed Checkpoint with batch parameters                                                                           |
+| API-managed  | Entire Data Asset | All sources                                                                             | Use API to associate the GX-managed Batch Definition with your API-managed Expectation suite via a Validation Definition, then run the Validation Definition                                                         |
+| API-managed  | Time-based subset | Databricks SQL, PostgreSQL, Redshift, Snowflake, AlloyDB, Aurora, Citus, Neon, BigQuery | Use API to define a batch based on values in a DATE or DATETIME column then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition  |
+| API-managed  | Time-based subset | S3, Azure Blob Storage, Google Cloud Storage                                            | Use API to define a batch based on regex filename matching then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition              |
 
 No matter how you run your validations, historical validation results are available in the GX Cloud UI.
 
