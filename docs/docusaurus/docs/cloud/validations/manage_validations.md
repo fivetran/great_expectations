@@ -24,42 +24,42 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
   </tr></thead>
 <tbody>
   <tr>
-    <td style="vertical-align: top;" rowspan="5">GX-managed</td>
-    <td style="vertical-align: top;" rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
-    <td style="vertical-align: top;">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
-    <td style="vertical-align: top;"><a href="">Use the UI</a>:<br />Click the validate button in the UI</td>
+    <td class="vertical-align-top" rowspan="5">GX-managed</td>
+    <td class="vertical-align-top" rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
+    <td class="vertical-align-top">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
+    <td class="vertical-align-top"><a href="">Use the UI</a>:<br />Click the validate button in the UI</td>
   </tr>
   <tr>
-    <td style="vertical-align: top;">Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to retrieve and run a GX-managed Checkpoint</td>
+    <td class="vertical-align-top">Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td class="vertical-align-top"><a href="">Use the API</a>:<br />to retrieve and run a GX-managed Checkpoint</td>
   </tr>
   <tr>
-    <td style="vertical-align: top;" rowspan="3">Time-based&nbsp;subset</td>
-    <td style="vertical-align: top;">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
-    <td style="vertical-align: top;"><a href="">Use the UI</a>:<br />define a batch and validate</td>
+    <td class="vertical-align-top" rowspan="3">Time-based&nbsp;subset</td>
+    <td class="vertical-align-top">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
+    <td class="vertical-align-top"><a href="">Use the UI</a>:<br />define a batch and validate</td>
   </tr>
   <tr>
-    <td style="vertical-align: top;">S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to define a batch based on regex filename matching then retrieve and run a GX-managed Checkpoint with batch parameters</td>
+    <td class="vertical-align-top">S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td class="vertical-align-top"><a href="">Use the API</a>:<br />to define a batch based on regex filename matching then retrieve and run a GX-managed Checkpoint with batch parameters</td>
   </tr>
   <tr>
-    <td style="vertical-align: top;">BigQuery</td>
-    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to define a batch based on values in a DATE or DATETIME column then retrieve and run a GX-managed Checkpoint with batch parameters</td>
+    <td class="vertical-align-top">BigQuery</td>
+    <td class="vertical-align-top"><a href="">Use the API</a>:<br />to define a batch based on values in a DATE or DATETIME column then retrieve and run a GX-managed Checkpoint with batch parameters</td>
   </tr>
   <tr>
-    <td style="vertical-align: top;" rowspan="3">API-managed</td>
-    <td style="vertical-align: top;">Entire&nbsp;Data&nbsp;Asset</td>
-    <td style="vertical-align: top;">All sources</td>
-    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to associate the GX-managed Batch Definition with your API-managed Expectation suite via a Validation Definition, then run the Validation Definition</td>
+    <td class="vertical-align-top" rowspan="3">API-managed</td>
+    <td class="vertical-align-top">Entire&nbsp;Data&nbsp;Asset</td>
+    <td class="vertical-align-top">All sources</td>
+    <td class="vertical-align-top"><a href="">Use the API</a>:<br />to associate the GX-managed Batch Definition with your API-managed Expectation suite via a Validation Definition, then run the Validation Definition</td>
   </tr>
   <tr>
-    <td style="vertical-align: top;" rowspan="2">Time-based&nbsp;subset   </td>
-    <td style="vertical-align: top;">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
-    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to define a batch based on values in a DATE or DATETIME column then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
+    <td class="vertical-align-top" rowspan="2">Time-based&nbsp;subset   </td>
+    <td class="vertical-align-top">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
+    <td class="vertical-align-top"><a href="">Use the API</a>:<br />to define a batch based on values in a DATE or DATETIME column then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
   </tr>
   <tr>
-    <td style="vertical-align: top;">S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td style="vertical-align: top;"><a href="">Use the API</a>:<br />to define a batch based on regex filename matching then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
+    <td class="vertical-align-top">S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td class="vertical-align-top"><a href="">Use the API</a>:<br />to define a batch based on regex filename matching then associate your API-managed Expectation suite with your Batch Definition via a Validation Definition, then run the Validation Definition</td>
   </tr>
 </tbody></table>
 
