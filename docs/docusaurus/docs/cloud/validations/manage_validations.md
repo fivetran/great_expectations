@@ -24,16 +24,16 @@ Workflows for ad hoc Validations vary based on the following factors:
    defaultValue="AlloyDB"
    values={[
       {value: 'AlloyDB', label: 'AlloyDB'},
-      {value: 'Aurora', label: 'Aurora'}
-      {value: 'S3', label: 'Amazon S3'}
-      {value: 'Azure', label: 'Azure Blob Storage'}
-      {value: 'BigQuery', label: 'BigQuery'}
-      {value: 'Citus', label: 'Citus'}
-      {value: 'Databricks', label: 'Databricks'}
-      {value: 'GCS', label: 'Google Cloud Storage'}
-      {value: 'Neon', label: 'Neon'}
-      {value: 'PostgreSQL', label: 'PostgreSQL'}
-      {value: 'Redshift', label: 'Redshift'}
+      {value: 'Aurora', label: 'Aurora'},
+      {value: 'S3', label: 'Amazon S3'},
+      {value: 'Azure', label: 'Azure Blob Storage'},
+      {value: 'BigQuery', label: 'BigQuery'},
+      {value: 'Citus', label: 'Citus'},
+      {value: 'Databricks', label: 'Databricks'},
+      {value: 'GCS', label: 'Google Cloud Storage'},
+      {value: 'Neon', label: 'Neon'},
+      {value: 'PostgreSQL', label: 'PostgreSQL'},
+      {value: 'Redshift', label: 'Redshift'},
       {value: 'Snowflake', label: 'Snowflake'}
    ]}
 >
@@ -44,36 +44,47 @@ Workflows for ad hoc Validations vary based on the following factors:
 | GX-managed Expectations  | 1                 | 2                                 |
 | API-managed Expectations | 3                 | 4                                 |
 </TabItem>
+
 <TabItem value="Aurora" label="Aurora">
 a
 </TabItem>
+
 <TabItem value="S3" label="Amazon S3">
 b
 </TabItem>
+
 <TabItem value="Azure" label="Azure Blob Storage">
 c
 </TabItem>
+
 <TabItem value="BigQuery" label="BigQuery">
 d
 </TabItem>
+
 <TabItem value="Citus" label="Citus">
 e
 </TabItem>
+
 <TabItem value="Databricks" label="Databricks">
 f
 </TabItem>
+
 <TabItem value="GCS" label="Google Cloud Storage">
 g
 </TabItem>
+
 <TabItem value="Neon" label="Neon">
 h
 </TabItem>
+
 <TabItem value="PostgreSQL" label="PostgreSQL">
 i
 </TabItem>
+
 <TabItem value="Redshift" label="Redshift">
 j
 </TabItem>
+
 <TabItem value="Snowflake" label="Snowflake">
 k
 </TabItem>
