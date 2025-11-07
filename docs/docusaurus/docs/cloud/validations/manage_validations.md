@@ -10,13 +10,10 @@ import Tabs from '@theme/Tabs';
 
 To explore your data and fine-tune your Expectations, run an ad hoc Validation as described in this page. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/docs/cloud/connect/connect_airflow.md).
 
-Workflows for ad hoc Validations vary based on the following factors:
-- whether you are validating [GX-managed or API-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations.)
-- whether you are validating your entire Data Asset or a time-based subset of it
-- your Data Source type 
-
-- GX-managed Expectations on Data Assets from Databricks SQL, PostgreSQL, Redshift, or Snowflake Data Sources can be validated with the GX Cloud UI. 
-- All Expectations and all Data Sources can be validated with the GX Cloud API.
+Workflows for ad hoc Validations vary based on the following aspects of what you're validating:
+- [GX-managed vs. API-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations.)
+- Entire Data Asset vs a time-based subset of a Data Asset
+- Data Source type 
 
 
 | Expectations | Scope                       | Data Source                                                                                                                  | Workflow  |
