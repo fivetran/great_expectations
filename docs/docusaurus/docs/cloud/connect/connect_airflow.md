@@ -111,7 +111,7 @@ Apache Airflow is an orchestration tool that allows you to schedule and monitor 
 
 ## Clean up local Airflow environment
 
-1. Delete the local files and sqllite database
+1. Delete the local files and sqlite database
 
     ```bash title="Terminal input"
     rm -rf ~/airflow
