@@ -73,18 +73,18 @@ No matter how you run your validations, historical validation results are availa
 
 ## GX-managed Expectations, entire asset
 
-If your Data Source is Databricks SQL, PostgreSQL, Redshift, Snowflake, use the GX Cloud UI for ad hoc validations of GX-managed Expectations. For all other Data Sources, use the GX Cloud API to validate GX-managed Expectations. 
+If your Data Source is one of the following, you can use the GX Cloud UI to validate GX-managed Expectations for your entire Data Asset:
+- AlloyDB
+- Amazon S3
+- Aurora
+- Citus
+- Databricks SQL
+- Neon
+- PostgreSQL
+- Redshift
+- Snowflake
 
-## GX-managed Expectations, time-based subset
-
-## API-managed Expectations, entire asset
-
-## API-managed Expectations, time-based subset
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-## Validate GX-managed Expectations
-
-If your Data Source is Databricks SQL, PostgreSQL, Redshift, or Snowflake, use the GX Cloud UI for ad hoc validations of GX-managed Expectations. For all other Data Sources, use the GX Cloud API to validate GX-managed Expectations. 
+For all Data Sources, you can use the GX Cloud API to validate GX-managed Expectations for your entire Data Asset.
 
 <Tabs 
    queryString="validation-interface"
@@ -100,9 +100,9 @@ If your Data Source is Databricks SQL, PostgreSQL, Redshift, or Snowflake, use t
 ### Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
-- A Databricks SQL, PostgreSQL, Redshift, or Snowflake [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
+- A [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) from AlloyDB, Amazon S3, Aurora, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 
-### Validate entire Data Asset
+### Procedure
 
 1. In GX Cloud, select the relevant **Workspace** and then click **Data Assets**.
 
@@ -110,9 +110,83 @@ If your Data Source is Databricks SQL, PostgreSQL, Redshift, or Snowflake, use t
 
 3. Click **Validate**.
 
-When the Validation is complete, you can [view the results](#view-validation-run-history).
+</TabItem>
 
-### Validate a time-based subset of a Data Asset
+<TabItem value="api" label="API">
+
+### Prerequisites
+
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
+- Any [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
+- [Python version 3.10 to 3.13](https://www.python.org/downloads/).
+- [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+   :::note Minimum version for row conditions
+   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
+      - multiple condition statements
+      - **is in**, **is not in**, or **is null** operators
+   :::
+
+### Procedure
+
+To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud provides a GX-managed Checkpoint you can run. 
+
+1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
+
+   ```Python 
+   import great_expectations as gx
+   context = gx.get_context()
+
+   checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
+   for name in checkpoint_names:
+       if "GX-Managed" in name and "my Data Asset name" in name:
+           my_checkpoint=name
+    ```
+
+2. Run the checkpoint.
+
+   ```Python
+   checkpoint = context.checkpoints.get(my_checkpoint)
+
+   checkpoint.run()
+   ```
+
+</TabItem>
+</Tabs>
+
+When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
+
+## GX-managed Expectations, time-based subset
+
+If your Data Source is one of the following, you can use the GX Cloud UI to validate GX-managed Expectations for a time-based subset of your Data Asset:
+- AlloyDB
+- Aurora
+- Citus
+- Databricks SQL
+- Neon
+- PostgreSQL
+- Redshift
+- Snowflake
+
+For all Data Sources, you can use the GX Cloud API to validate GX-managed Expectations for a time-based subset of your Data Asset. Note that the code is different for SQL Data Sources vs. filesystem Data Sources.
+
+<Tabs 
+   queryString="validation-interface"
+   defaultValue="ui"
+   values={[
+      {value: 'ui', label: 'Partition and validate with the UI'},
+      {value: 'api', label: 'Partition and validate with the API'}
+   ]}
+>
+
+<TabItem value="ui" label="UI">
+
+### Prerequisites
+
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- A [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) from AlloyDB, Aurora, Citus, Databricks SQL, Neon, PostgreSQL, Redshift, or Snowflake with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations) and at least one DATE or DATETIME column.
+
+### Procedure
 
 If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
 
@@ -150,6 +224,7 @@ Then, you can validate a batch of data.
 
 5. Click **Run**.
 
+
 </TabItem>
 
 <TabItem value="api" label="API">
@@ -158,7 +233,8 @@ Then, you can validate a batch of data.
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
-- Any Data Asset with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
+- Any [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
+- Date indicators to partition on. For SQL Data Sources, you need at least one DATE or DATETIME column. For filesystem Data Sources your filenames must indicate the timeframe using a pattern that can be parsed with regex.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
    :::note Minimum version for row conditions
@@ -167,37 +243,9 @@ Then, you can validate a batch of data.
       - **is in**, **is not in**, or **is null** operators
    :::
 
-### Validate entire Data Asset
+### Procedure
 
-To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed Checkpoint you can run. 
-
-1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
-
-   ```Python 
-   import great_expectations as gx
-   context = gx.get_context()
-
-   checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
-   for name in checkpoint_names:
-       if "GX-Managed" in name and "my Data Asset name" in name:
-           my_checkpoint=name
-    ```
-
-2. Run the checkpoint.
-
-   ```Python
-   checkpoint = context.checkpoints.get(my_checkpoint)
-
-   checkpoint.run()
-   ```
-
-
-
-When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
-
-### Validate a time-based subset of a Data Asset
-
-Options for validating a time-based subset of a Data Asset depend on your Data Source type.
+The code for validating GX-managed Expectations on a time-based subset of a Data Asset depends on your Data Source type. For SQL Data Sources, you will partition your data based on values in a DATE or DATETIME column. For filesystem Data Sources, you will partition your data based on regex filename matching.
 
 
 <Tabs 
@@ -208,6 +256,7 @@ Options for validating a time-based subset of a Data Asset depend on your Data S
       {value: 'filesystem', label: 'Filesystem sources'}
    ]}
 >
+
 
 <TabItem value="sql" label="SQL sources">
 
@@ -346,27 +395,26 @@ Then, you can validate a batch of data. To allow you to validate GX-managed Expe
    ```
 
 </TabItem>
-</Tabs>
 
+</Tabs>
 
 </TabItem>
 
 </Tabs>
 
+When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
 
-When the Validation is complete, you can [view the results](#view-validation-run-history).
+## API-managed Expectations, entire asset
 
-## Validate API-managed Expectations
-
-For all types of Data Sources, use the GX Cloud API to validate API-managed Expectations. 
-
-To do this you will first create a Validation Definition that links your data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Defintion to a Checkpoint that associates your tests with conditional logic for responding to results. 
+To validate API-managed Expectations for your entire Data Asset, use the GX Cloud API. The process is the same regardless of your Data Source. You will first create a Validation Definition that links your data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Defintion to a Checkpoint that associates your tests with conditional logic for responding to results. 
 
 ### Prerequisites
 
 - A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
 - Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
-- Any Data Asset with at least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
+- Any Data Asset.
+- Date indicators to partition on. For SQL Data Sources, you need at least one DATE or DATETIME column. For filesystem Data Sources your filenames must indicate the timeframe using a pattern that can be parsed with regex.
+- At least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
    :::note Minimum version for row conditions
@@ -375,7 +423,6 @@ To do this you will first create a Validation Definition that links your data to
       - **is in**, **is not in**, or **is null** operators
    :::
 
-### Validate entire Data Asset
 
 To help you to validate API-managed Expectations on an entire Data Asset with the Cloud API, GX Cloud provides a GX-managed Batch Definition you can use to identify your data.
 
@@ -429,10 +476,32 @@ To help you to validate API-managed Expectations on an entire Data Asset with th
     checkpoint = context.checkpoints.add(checkpoint_config)
     ```
 
-### Validate a time-based subset of a Data Asset
+
+When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
+
+## API-managed Expectations, time-based subset
+
+To validate API-managed Expectations for a time-based subset of a Data Asset, use the GX Cloud API. Note that the code is different for SQL Data Sources vs. filesystem Data Sources.
+
+### Prerequisites
+
+- A [GX Cloud account](https://greatexpectations.io/cloud) with [Workspace Editor permissions](/docs/cloud/access/manage_access.md#roles-and-permissions) or greater.
+- Your [Cloud credentials](/docs/cloud/connect/connect_python.md#get-your-credentials) saved in your [environment variables](/docs/cloud/connect/connect_python.md#set-your-credentials-as-environment-variables).
+- Any Data Asset.
+- At least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
+- [Python version 3.10 to 3.13](https://www.python.org/downloads/).
+- [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
+   :::note Minimum version for row conditions
+   GX Cloud library versions prior to 1.8.1 do not support the following [row conditions](/cloud/expectations/expectations_overview.md#row-conditions) options. If you use any of these aspects of row conditions, make sure your GX Cloud library is version 1.8.1 or later.
+      - multiple condition statements
+      - **is in**, **is not in**, or **is null** operators
+   :::
 
 
-Options for validating a time-based subset of a Data Asset depend on your Data Source type.
+### Procedure 
+
+The code for validating API-managed Expectations on a time-based subset of a Data Asset depends on your Data Source type. For SQL Data Sources, you will partition your data based on values in a DATE or DATETIME column. For filesystem Data Sources, you will partition your data based on regex filename matching.
+
 
 
 <Tabs 
@@ -614,10 +683,7 @@ First, you partition your data
 </TabItem>
 </Tabs>
 
-
-When the Validation is complete, you can [view the results](#view-validation-run-history).
-
-
+When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
 
 ## View Validation run history
 
