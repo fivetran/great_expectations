@@ -17,7 +17,7 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
 
 The table below provides a summary of the workflow for each combination of factors and a link to detailed instructions.
 
-<table><thead>
+<table class="merged-rows"><thead>
   <tr>
     <th>Expectations</th>
     <th>Scope</th>
@@ -26,42 +26,42 @@ The table below provides a summary of the workflow for each combination of facto
   </tr></thead>
 <tbody>
   <tr>
-    <td class="merged-rows" rowspan="5">GX-managed</td>
-    <td class="merged-rows" rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
-    <td class="merged-rows">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
-    <td class="merged-rows"><a href="">Use the UI</a>:<br />- Click the **Validate** button.</td>
+    <td rowspan="5">GX-managed</td>
+    <td rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
+    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
+    <td><a href="">Use the UI</a>:<br />- Click the **Validate** button.</td>
   </tr>
   <tr>
-    <td class="merged-rows">Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td class="merged-rows"><a href="">Use the API</a>:<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint</td>
+    <td>Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td><a href="">Use the API</a>:<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint</td>
   </tr>
   <tr>
-    <td class="merged-rows" rowspan="3">Time-based subset</td>
-    <td class="merged-rows">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
-    <td class="merged-rows"><a href="">Use the UI</a>:<br /><br />- Define a batch.<br />- Click the **Validate** button.</td>
+    <td rowspan="3">Time-based subset</td>
+    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
+    <td><a href="">Use the UI</a>:<br /><br />- Define a batch.<br />- Click the **Validate** button.</td>
   </tr>
   <tr>
-    <td class="merged-rows">S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td class="merged-rows"><a href="">Use the API</a>:<br />- Define a batch based on regex filename matching<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters</td>
+    <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td><a href="">Use the API</a>:<br />- Define a batch based on regex filename matching<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters</td>
   </tr>
   <tr>
-    <td class="merged-rows">BigQuery</td>
-    <td class="merged-rows"><a href="">Use the API</a>::<br />- Define a batch based on values in a DATE or DATETIME column<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters</td>
+    <td>BigQuery</td>
+    <td><a href="">Use the API</a>::<br />- Define a batch based on values in a DATE or DATETIME column<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters</td>
   </tr>
   <tr>
-    <td class="merged-rows" rowspan="3">API-managed</td>
-    <td class="merged-rows">Entire&nbsp;Data&nbsp;Asset</td>
-    <td class="merged-rows">All sources</td>
-    <td class="merged-rows"><a href="">Use the API</a>:<br />- Retrieve your Data Asset's GX-managed Batch Definition<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition</td>
+    <td rowspan="3">API-managed</td>
+    <td>Entire&nbsp;Data&nbsp;Asset</td>
+    <td>All sources</td>
+    <td><a href="">Use the API</a>:<br />- Retrieve your Data Asset's GX-managed Batch Definition<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition</td>
   </tr>
   <tr>
-    <td class="merged-rows" rowspan="2">Time-based subset</td>
-    <td class="merged-rows">Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
-    <td class="merged-rows"><a href="">Use the API</a>:<br />- Define a batch based on values in a DATE or DATETIME column<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters</td>
+    <td rowspan="2">Time-based subset</td>
+    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
+    <td><a href="">Use the API</a>:<br />- Define a batch based on values in a DATE or DATETIME column<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters</td>
   </tr>
   <tr>
-    <td class="merged-rows">S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td class="merged-rows"><a href="">Use the API</a>:<br />- Define a batch based on regex filename matching<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters</td>
+    <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
+    <td><a href="">Use the API</a>:<br />- Define a batch based on regex filename matching<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters</td>
   </tr>
 </tbody></table>
 
