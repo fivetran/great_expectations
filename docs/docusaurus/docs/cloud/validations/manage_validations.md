@@ -29,39 +29,50 @@ The table below provides a summary of the workflow for each combination of facto
     <td rowspan="5">GX-managed</td>
     <td rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
     <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
-    <td><a href="">Use the UI</a>:<br />- Click the **Validate** button.</td>
+    <td>Use the UI:<br />
+      <ul>
+         <li>Click the **Validate** button.</li>
+      </ul><br />
+      <a href="">Jump to workflow</a>
+     </td>
   </tr>
   <tr>
     <td>Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td><a href="">Use the API</a>:<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint</td>
+    <td>Use the API:<br />
+      <ul>
+         <li>Retrieve your Data Asset’s GX-managed Checkpoint.</li>
+         <li>Run the Checkpoint.</li>
+      </ul><br />
+      <a href="">Jump to workflow</a>
+    </td>
   </tr>
   <tr>
     <td rowspan="3">Time-based subset</td>
-    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
-    <td><a href="">Use the UI</a>:<br /><br />- Define a batch.<br />- Click the **Validate** button.</td>
+    <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br /><a href="">Jump to workflow</a></td>
+    <td>Use the UI:<br /><br />- Define a batch.<br />- Click the **Validate** button.</td>
   </tr>
   <tr>
     <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td><a href="">Use the API</a>:<br />- Define a batch based on regex filename matching<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters</td>
+    <td>Use the API:<br />- Define a batch based on regex filename matching<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters<br /><a href="">Jump to workflow</a></td>
   </tr>
   <tr>
     <td>BigQuery</td>
-    <td><a href="">Use the API</a>::<br />- Define a batch based on values in a DATE or DATETIME column<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters</td>
+    <td>Use the API::<br />- Define a batch based on values in a DATE or DATETIME column<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters<br /><a href="">Jump to workflow</a></td>
   </tr>
   <tr>
     <td rowspan="3">API-managed</td>
     <td>Entire&nbsp;Data&nbsp;Asset</td>
     <td>All sources</td>
-    <td><a href="">Use the API</a>:<br />- Retrieve your Data Asset's GX-managed Batch Definition<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition</td>
+    <td>Use the API:<br />- Retrieve your Data Asset's GX-managed Batch Definition<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition<br /><a href="">Jump to workflow</a></td>
   </tr>
   <tr>
     <td rowspan="2">Time-based subset</td>
     <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
-    <td><a href="">Use the API</a>:<br />- Define a batch based on values in a DATE or DATETIME column<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters</td>
+    <td>Use the API:<br />- Define a batch based on values in a DATE or DATETIME column<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters<br /><a href="">Jump to workflow</a></td>
   </tr>
   <tr>
     <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td><a href="">Use the API</a>:<br />- Define a batch based on regex filename matching<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters</td>
+    <td>Use the API:<br />- Define a batch based on regex filename matching<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters<br /><a href="">Jump to workflow</a></td>
   </tr>
 </tbody></table>
 
