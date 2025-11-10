@@ -71,15 +71,15 @@ No matter how you run your validations, historical validation results are availa
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-## Validate GX-managed Expectations - entire Data Asset
+## GX-managed Expectations, entire asset
 
 If your Data Source is Databricks SQL, PostgreSQL, Redshift, Snowflake, use the GX Cloud UI for ad hoc validations of GX-managed Expectations. For all other Data Sources, use the GX Cloud API to validate GX-managed Expectations. 
 
-## Validate GX-managed Expectations - time-based subset of a Data Asset
+## GX-managed Expectations, time-based subset
 
-## Validate API-managed Expectations - entire Data Asset
+## API-managed Expectations, entire asset
 
-## Validate API-managed Expectations - time-based subset of a Data Asset
+## API-managed Expectations, time-based subset
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ## Validate GX-managed Expectations
