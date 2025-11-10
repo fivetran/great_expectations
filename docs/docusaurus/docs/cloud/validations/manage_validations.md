@@ -17,6 +17,9 @@ Workflows for ad hoc Validations vary based on the following aspects of what you
 - Entire Data Asset vs a time-based subset of a Data Asset
 - Data Source type 
 
+
+### Find your workflow
+
 The table below provides a summary of the workflow for each combination of factors and a link to detailed instructions.
 
 <table class="merged-rows"><thead>
@@ -24,7 +27,7 @@ The table below provides a summary of the workflow for each combination of facto
     <th>Expectations</th>
     <th>Scope</th>
     <th>Data Source</th>
-    <th>Workflow</th>
+    <th>Workflow summary and link to full instructions</th>
   </tr></thead>
 <tbody>
   <tr>
