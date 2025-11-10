@@ -29,11 +29,22 @@ The table below provides a summary of the workflow for each combination of facto
     <td rowspan="5">GX-managed</td>
     <td rowspan="2">Entire&nbsp;Data&nbsp;Asset</td>
     <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />S3</td>
-    <td>Use the UI:<ul><li>Click the **Validate** button.</li></ul><a href="">Jump to workflow</a></td>
+    <td>Use the UI:
+      <ul>
+      <li>Click the **Validate** button.</li>
+      </ul>
+      <a href="">Jump to workflow</a>
+    </td>
   </tr>
   <tr>
     <td>Azure&nbsp;Blob&nbsp;Storage <br />BigQuery<br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use the API:<ul><li>Retrieve your Data Asset’s GX-managed Checkpoint.</li><li>Run the Checkpoint.</li></ul><a href="">Jump to workflow</a></td>
+    <td>Use the API:
+      <ul>
+      <li>Retrieve your Data Asset’s GX-managed Checkpoint.</li>
+      <li>Run the Checkpoint.</li>
+      </ul>
+      <a href="">Jump to workflow</a>
+    </td>
   </tr>
   <tr>
     <td rowspan="3">Time-based subset</td>
