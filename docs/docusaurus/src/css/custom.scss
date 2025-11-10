@@ -257,9 +257,17 @@ table.borderless tr:nth-child(2n) {
     background-color: transparent;
 }
 
-table.merged-rows td {
+table.merged-rows {
     vertical-align: top;
-    background-color: white;
+    background-color: none;
+}
+
+table.merged-rows tr {
+    background-color: none;
+}
+
+table.merged-rows li {
+    font-size: 16px;
 }
 
 .center {
