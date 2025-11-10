@@ -257,13 +257,13 @@ table.borderless tr:nth-child(2n) {
     background-color: transparent;
 }
 
-table.merged-rows {
+table.merged-rows td {
     vertical-align: top;
     background-color: none;
 }
 
 table.merged-rows tr {
-    background-color: none;
+    background-color: transparent !important;
 }
 
 table.merged-rows li {
