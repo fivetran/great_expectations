@@ -15,7 +15,7 @@ To explore your data and fine-tune your Expectations, run an ad hoc Validation a
 Workflows for ad hoc Validations vary based on the following aspects of what you're validating:
 - Expectation type - [GX-managed or API-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 - Data scope - entire Data Asset or a time-based subset of a Data Asset.
-- Data Source - for example, Snowflake, Redshift, etc...
+- Data Source - for example, Snowflake, Redshift, etc....
 
 
 ### Find your workflow
@@ -135,7 +135,7 @@ To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud pro
 
 1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
 
-   ```Python 
+   ```Python title="Python" 
    import great_expectations as gx
    context = gx.get_context()
 
@@ -147,7 +147,7 @@ To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud pro
 
 2. Run the checkpoint.
 
-   ```Python
+   ```Python title="Python"
    checkpoint = context.checkpoints.get(my_checkpoint)
 
    checkpoint.run()
@@ -270,7 +270,7 @@ First, you partition your data
 
 1. Define the Data Asset to batch and the DATE or DATETIME column to partition on
 
-   ```Python 
+   ```Python title="Python"
    data_source_name = "my_data_source" 
    data_asset_name = "my_data_asset 
    column_name = "my_date_or_datetime_column"
@@ -286,7 +286,7 @@ First, you partition your data
 
 3. Partition your data. This example demonstrates daily batches with the `ColumnPartitionerDaily` partitioner and `partition_on_year_and_month_and_day` method. Refer to the above table for partitioners and methods for other types of batches.
 
-   ```Python
+   ```Python title="Python"
    import great_expectations as gx
    from great_expectations.core.partitioners import ColumnPartitionerDaily
 
@@ -309,7 +309,7 @@ Then, you can validate a batch of data. To allow you to validate GX-managed Expe
 
 1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
 
-   ```Python 
+   ```Python title="Python" 
    import great_expectations as gx
    context = gx.get_context()
 
@@ -321,7 +321,7 @@ Then, you can validate a batch of data. To allow you to validate GX-managed Expe
 
 2. Run the checkpoint with batch parameters passed as integers.
 
-   ```Python
+   ```Python title="Python"
    checkpoint = context.checkpoints.get(my_checkpoint)
    batch_parameters_daily = {"year": 2019, "month": 1, "day": 30}
 
@@ -338,7 +338,7 @@ First, you partition your data
 
 1. Define the Data Asset to batch.
 
-   ```Python 
+   ```Python title="Python" 
    data_source_name = "my_data_source" 
    data_asset_name = "my_data_asset" 
    ```
@@ -353,7 +353,7 @@ First, you partition your data
 
 3. Partition your data. This example demonstrates daily batches with the `FileNamePartitionerDaily` partitioner and `year`, `month`, and `day` parameter names. Refer to the above table for partitioners and parameters for other types of batches.
 
-   ```Python
+   ```Python title="Python"
    import re
    batching_regex = re.compile(r"my_file_name_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv")
 
@@ -379,7 +379,7 @@ Then, you can validate a batch of data. To allow you to validate GX-managed Expe
 
 1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
 
-   ```Python 
+   ```Python title="Python" 
    import great_expectations as gx
    context = gx.get_context()
 
@@ -391,7 +391,7 @@ Then, you can validate a batch of data. To allow you to validate GX-managed Expe
 
 2. Run the checkpoint with batch parameters passed as strings.
 
-   ```Python
+   ```Python title="Python"
    checkpoint = context.checkpoints.get(my_checkpoint)
    batch_parameters_daily = {"year": "2019", "month": "01", "day": "30"}
 
@@ -432,8 +432,9 @@ To help you to validate API-managed Expectations on an entire Data Asset with th
 
 1. Retrieve your Data Asset’s GX-managed Batch Definition.
 
-   ```Python
+   ```Python title="Python"
    import great_expectations as gx
+   context = gx.get_context()
 
    data_source_name = "my_data_source" 
    data_asset_name = "my_data_asset" 
@@ -447,14 +448,14 @@ To help you to validate API-managed Expectations on an entire Data Asset with th
    ```
 2. Retrieve your API-managed Expectation Suite.
 
-   ```Python
+   ```Python title="Python"
    suite_name = "my_expectation_suite"
    suite = context.suites.get(name=suite_name)
    ```
 
 3. Create a Validation Definition that associates the Batch Definition with the Expectation Suite.
 
-   ```Python
+   ```Python title="Python"
    definition_name = "my_validation_definition"
    validation_definition = gx.ValidationDefinition(
        data=batch_definition, suite=suite, name=definition_name
@@ -462,13 +463,13 @@ To help you to validate API-managed Expectations on an entire Data Asset with th
    ```
 4. Run the validation definition.
 
-   ```Python
+   ```Python title="Python"
    validation_definition.run()
    ```
 
 5. Optional. Create a checkpoint so you can [trigger actions](/docs/cloud/alerts/trigger_actions) based on the validation results of your API-managed Expectations.  
 
-    ```Python
+    ```Python title="Python"
     # Retrieve the validation definition
     validation_definition = context.validation_definitions.get("my_validation_definition")
 
@@ -528,7 +529,7 @@ First, you partition your data
 
 1. Retrieve the data asset.
 
-   ```Python 
+   ```Python title="Python" 
    data_source_name = "my_data_source" 
    data_asset_name = "my_data_asset 
 
@@ -549,7 +550,7 @@ First, you partition your data
 
 3. Partition your data. This example demonstrates daily batches with the `add_batch_definition_daily` method. Refer to the above table for partitioners and methods for other types of batches.
 
-   ```Python
+   ```Python title="Python"
    date_column = "pickup_datetime"
    daily_batch_definition = data_asset.add_batch_definition_daily(
        name="DAILY", column=date_column
@@ -558,14 +559,14 @@ First, you partition your data
 
 4. Retrieve your API-managed Expectation Suite.
 
-   ```Python
+   ```Python title="Python"
    suite_name = "my_expectation_suite"
    suite = context.suites.get(name=suite_name)
    ```
 
 5. Create Validation definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
 
-   ```Python
+   ```Python title="Python"
    definition_name = "my_validation_definition"
    validation_definition = gx.ValidationDefinition(
        data=batch_definition, suite=suite, name=definition_name
@@ -577,7 +578,7 @@ First, you partition your data
 
 6. Run the validation definition with batch parameters passed as integers.
 
-   ```Python 
+   ```Python title="Python" 
    batch_parameters_yearly = {"year": 2019, "month": 1, "day": 30}
 
    validation_definition.run(batch_parameters=batch_parameters_yearly)
@@ -585,7 +586,7 @@ First, you partition your data
 
 7. Optional. Create a checkpoint so you can [trigger actions](/docs/cloud/alerts/trigger_actions) based on the validation results of your API-managed Expectations.  
 
-    ```Python
+    ```Python title="Python"
     # Retrieve the validation definition
     validation_definition = context.validation_definitions.get("my_validation_definition")
 
@@ -612,7 +613,7 @@ First, you partition your data
 
 1. Retrieve the data asset.
 
-   ```Python 
+   ```Python title="Python" 
    data_source_name = "my_data_source" 
    data_asset_name = "my_data_asset 
 
@@ -633,7 +634,7 @@ First, you partition your data
 
 3. Partition your data. This example demonstrates daily batches with the `add_batch_definition_daily` method. Refer to the above table for methods and parameters for other types of batches.
 
-   ```Python
+   ```Python title="Python"
    batch_definition_name = "daily_yellow_tripdata_sample"
    batch_definition_regex = r"folder_with_data/yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 
@@ -644,14 +645,14 @@ First, you partition your data
 
 4. Retrieve your API-managed Expectation Suite.
 
-   ```Python
+   ```Python title="Python"
    suite_name = "my_expectation_suite"
    suite = context.suites.get(name=suite_name)
    ```
 
 5. Create Validation definition that associates your time-based Batch Definition with your API-managed Expectation Suite.
 
-   ```Python
+   ```Python title="Python"
    definition_name = "my_validation_definition"
    validation_definition = gx.ValidationDefinition(
        data=batch_definition, suite=suite, name=definition_name
@@ -662,16 +663,15 @@ First, you partition your data
 
 6. Run validation definition with batch parameters passed as strings
 
-   ```Python 
+   ```Python title="Python" 
    batch_parameters_daily = {"year": "2019", "month": "1", "day": "30"}
 
    validation_definition.run(batch_parameters=batch_parameters_daily)
-    ```
    ```
 
 7. Optional. Create a checkpoint so you can [trigger actions](/docs/cloud/alerts/trigger_actions) based on the validation results of your API-managed Expectations.  
 
-    ```Python
+    ```Python title="Python"
     # Retrieve the validation definition
     validation_definition = context.validation_definitions.get("my_validation_definition")
 
