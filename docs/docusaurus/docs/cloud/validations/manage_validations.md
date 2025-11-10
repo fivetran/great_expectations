@@ -38,30 +38,30 @@ The table below provides a summary of the workflow for each combination of facto
   <tr>
     <td rowspan="3">Time-based subset</td>
     <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon</td>
-    <td>Use the UI:<br /><br />- Define a batch.<br />- Click the **Validate** button.<br /><a href="">Jump to instructions</a></td>
+    <td>Use the UI:<ul><li>Choose a **Batch interval**.</li><li>Click the **Validate** button and select a batch to validate.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
   <tr>
     <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use the API:<br />- Define a batch based on regex filename matching<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters<br /><a href="">Jump to instructions</a></td>
+    <td>Use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based on regex filename matching.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with batch parameters passed as strings.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
   <tr>
     <td>BigQuery</td>
-    <td>Use the API:<br />- Define a batch based on values in a DATE or DATETIME column<br />- Retrieve your Data Asset's GX-managed Checkpoint<br />- Run the Checkpoint with batch parameters<br /><a href="">Jump to instructions</a></td>
+    <td>Use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based  values in a DATE or DATETIME column.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with batch parameters passed as integers.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
   <tr>
     <td rowspan="3">API-managed</td>
     <td>Entire&nbsp;Data&nbsp;Asset</td>
     <td>All sources</td>
-    <td>Use the API:<br />- Retrieve your Data Asset's GX-managed Batch Definition<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition<br /><a href="">Jump to instructions</a></td>
+    <td>Use the API:<ul><li>Retrieve your Data Asset's GX-managed Batch Definition.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via its GX-managed Batch Definition.</li><li>Run the Validation Definition.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
   <tr>
     <td rowspan="2">Time-based subset</td>
     <td>Databricks&nbsp;SQL<br />PostgreSQL<br />Redshift<br />Snowflake<br />AlloyDB<br />Aurora<br />Citus<br />Neon<br />BigQuery</td>
-    <td>Use the API:<br />- Define a batch based on values in a DATE or DATETIME column<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters<br /><a href="">Jump to instructions</a></td>
+    <td>Use the API:<ul><li>Create a Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via your Batch Definition.</li><li>Run the Validation Definition  with batch parameters passed as integers.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
   <tr>
     <td>S3<br />Azure&nbsp;Blob&nbsp;Storage <br />Google&nbsp;Cloud&nbsp;Storage </td>
-    <td>Use the API:<br />- Define a batch based on regex filename matching<br />- Associate it with your API-managed Expectations via a Validation Definition<br />- Run the Validation Definition with batch parameters<br /><a href="">Jump to instructions</a></td>
+    <td>Use the API:<ul><li>Create a Batch Definition to partition your data based on regex filename matching.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via your Batch Definition.</li><li>Run the Validation Definition  with batch parameters passed as strings.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
 </tbody></table>
 
