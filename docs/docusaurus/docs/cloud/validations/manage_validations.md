@@ -38,7 +38,7 @@ The table below provides a summary of the workflow for each combination of facto
     <td>Use the API:<ul><li>Retrieve your Data Asset’s GX-managed Checkpoint.</li><li>Run the Checkpoint.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
   <tr>
-    <td rowspan="3">Time-based subset</td>
+    <td rowspan="3">time interval</td>
     <td>AlloyDB<br />Aurora<br />Citus<br />Databricks SQL<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
     <td>Use the UI:<ul><li>Choose a **Batch interval**.</li><li>Click the **Validate** button and select a batch to validate.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
@@ -57,7 +57,7 @@ The table below provides a summary of the workflow for each combination of facto
     <td>Use the API:<ul><li>Retrieve your Data Asset's GX-managed Batch Definition.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via its GX-managed Batch Definition.</li><li>Run the Validation Definition.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
   <tr>
-    <td rowspan="2">Time-based subset</td>
+    <td rowspan="2">time interval</td>
     <td>AlloyDB<br />Aurora<br />BigQuery<br />Citus<br />Databricks SQL<br />Neon<br />PostgreSQL<br />Redshift<br />Snowflake</td>
     <td>Use the API:<ul><li>Create a Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Create a Validation Definition to associate your API-managed Expectations with your Data Asset via your Batch Definition.</li><li>Run the Validation Definition  with batch parameters passed as integers.</li></ul><a href="">Jump to instructions</a></td>
   </tr>
@@ -155,7 +155,7 @@ To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud pro
 
 When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
 
-### GX-managed Expectations, time-based subset
+### GX-managed Expectations, time interval
 
 If your Data Source is one of the following, you can use the GX Cloud UI to validate GX-managed Expectations for a time-based subset of your Data Asset:
 - AlloyDB
@@ -478,7 +478,7 @@ To help you to validate API-managed Expectations on an entire Data Asset with th
 
 When the Validation is complete, you can [view the results in the GX Cloud UI](#view-validation-run-history).
 
-### API-managed Expectations, time-based subset
+### API-managed Expectations, time interval
 
 To validate API-managed Expectations for a time-based subset of a Data Asset, use the GX Cloud API. Note that the code is different for SQL Data Sources vs. filesystem Data Sources.
 
