@@ -59,27 +59,45 @@ from great_expectations.execution_engine.partition_and_sample.sparkdf_data_sampl
     SparkDataSampler,
 )
 from great_expectations.execution_engine.sparkdf_batch_data import SparkDFBatchData
+from great_expectations.expectations.legacy_row_conditions import (
+    RowCondition,
+    RowConditionParserType,
+    parse_condition_to_spark,
+)
 from great_expectations.expectations.model_field_types import (
     CONDITION_PARSER_GREAT_EXPECTATIONS,
     CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
     CONDITION_PARSER_SPARK,
 )
 from great_expectations.expectations.row_conditions import (
-    RowCondition,
-    RowConditionParserType,
-    parse_condition_to_spark,
+    Condition,
+    Operator,
+    PassThroughCondition,
+    deserialize_row_condition,
 )
 from great_expectations.util import convert_to_json_serializable  # noqa: TID251 # FIXME CoP
 from great_expectations.validator.computed_metric import MetricValue  # noqa: TC001 # FIXME CoP
 
 if TYPE_CHECKING:
+    from great_expectations.compatibility.pyspark import DataFrame
     from great_expectations.datasource.fluent.spark_datasource import SparkConfig
+    from great_expectations.expectations.row_conditions import (
+        AndCondition,
+        ComparisonCondition,
+        NullityCondition,
+        OrCondition,
+    )
     from great_expectations.validator.metric_configuration import (
         MetricConfiguration,
         MetricConfigurationID,
     )
 
 logger = logging.getLogger(__name__)
+
+
+class InvalidRowConditionException(ValueError):
+    def __init__(self, value: Any) -> None:
+        super().__init__(f"Invalid row condition type: {type(value)}")
 
 
 def apply_dateutil_parse(column):
@@ -96,7 +114,7 @@ def apply_dateutil_parse(column):
     "The existing Spark context will be reused if possible. If a spark_config is passed that doesn't match "  # noqa: E501 # FIXME CoP
     "the existing config, the context will be stopped and restarted in local environments only.",
 )
-class SparkDFExecutionEngine(ExecutionEngine):
+class SparkDFExecutionEngine(ExecutionEngine[str]):
     """SparkDFExecutionEngine instantiates the ExecutionEngine API to support computations using Spark platform.
 
     This class holds an attribute `spark_df` which is a spark.sql.DataFrame.
@@ -624,6 +642,45 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
                 f"Unable to find reader_method {reader_method} in spark.",
             )
 
+    def _apply_row_condition_filter(
+        self, data: DataFrame, row_condition: Any, domain_kwargs: dict
+    ) -> DataFrame:
+        """Apply the row condition to the data.
+
+        Args:
+            data: The data to filter
+            row_condition: The row condition to apply to the data.
+            domain_kwargs: The domain kwargs containing the condition parser
+
+        Returns:
+            Filtered data
+        """
+
+        if isinstance(row_condition, dict):
+            row_condition = deserialize_row_condition(row_condition)
+        # Handle PassThroughCondition for legacy spark syntax
+        # Uses DataFrame.filter() directly with the pass-through string
+        if isinstance(row_condition, PassThroughCondition):
+            return data.filter(row_condition.pass_through_filter)
+        elif isinstance(row_condition, Condition):
+            # Handle other Condition objects using condition_to_filter_clause
+            parsed_condition = self.condition_to_filter_clause(row_condition)
+            return data.filter(parsed_condition)
+        else:
+            # Legacy string-based conditions
+            condition_parser = domain_kwargs.get("condition_parser", None)
+            if condition_parser == CONDITION_PARSER_SPARK and isinstance(row_condition, str):
+                return data.filter(row_condition)
+            elif condition_parser in [
+                CONDITION_PARSER_GREAT_EXPECTATIONS,
+                CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
+            ] and isinstance(row_condition, str):
+                return data.filter(parse_condition_to_spark(row_condition))
+            else:
+                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
+                    f"unrecognized condition_parser {condition_parser!s} for Spark execution engine"
+                )
+
     @override
     def get_domain_records(  # noqa: C901, PLR0912, PLR0915 # FIXME CoP
         self,
@@ -668,19 +725,7 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
         # Filtering by row condition.
         row_condition = domain_kwargs.get("row_condition", None)
         if row_condition:
-            condition_parser = domain_kwargs.get("condition_parser", None)
-            if condition_parser == CONDITION_PARSER_SPARK:
-                data = data.filter(row_condition)
-            elif condition_parser in [
-                CONDITION_PARSER_GREAT_EXPECTATIONS,
-                CONDITION_PARSER_GREAT_EXPECTATIONS_DEPRECATED,
-            ]:
-                parsed_condition = parse_condition_to_spark(row_condition)
-                data = data.filter(parsed_condition)
-            else:
-                raise GreatExpectationsError(  # noqa: TRY003 # FIXME CoP
-                    f"unrecognized condition_parser {condition_parser!s} for Spark execution engine"
-                )
+            data = self._apply_row_condition_filter(data, row_condition, domain_kwargs)
 
         # Filtering by filter_conditions
         filter_conditions: List[RowCondition] = domain_kwargs.get("filter_conditions", [])
@@ -924,3 +969,27 @@ illegal.  Please check your config."""  # noqa: E501 # FIXME CoP
     def head(self, n=5):
         """Returns dataframe head. Default is 5"""
         return self.dataframe.limit(n).toPandas()
+
+    @override
+    def _comparison_condition_to_filter_clause(self, condition: ComparisonCondition) -> str:
+        col, op, val = condition.column.name, condition.operator, condition.parameter
+        if op in (Operator.IN, Operator.NOT_IN):
+            values = ", ".join(map(repr, val))
+            connector = "IN" if op == Operator.IN else "NOT IN"
+            return f"{col} {connector} ({values})"
+        return f"{col} {op} {val!r}"
+
+    @override
+    def _nullity_condition_to_filter_clause(self, condition: NullityCondition) -> str:
+        col = condition.column.name
+        return f"{col} IS NULL" if condition.is_null else f"{col} IS NOT NULL"
+
+    @override
+    def _and_condition_to_filter_clause(self, condition: AndCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " AND ".join(parts) + ")"
+
+    @override
+    def _or_condition_to_filter_clause(self, condition: OrCondition) -> str:
+        parts = [self.condition_to_filter_clause(c) for c in condition.conditions]
+        return "(" + " OR ".join(parts) + ")"

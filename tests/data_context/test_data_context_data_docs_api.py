@@ -19,6 +19,10 @@ from great_expectations.data_context.types.resource_identifiers import (
     ValidationResultIdentifier,
 )
 from great_expectations.exceptions import DataContextError
+from great_expectations.expectations.conditions import (
+    AndCondition,
+    Column,
+)
 
 CHECKPOINT_NAME = "my_checkpoint"
 COLUMN_NAME = "my-column"
@@ -479,3 +483,40 @@ def test_view_validation_result(
     url_used = mock_open.call_args[0][0]
     assert url_used.startswith("file:///")
     assert url_used.endswith("abc123.html")
+
+
+@pytest.mark.filesystem
+def test_build_data_docs_with_expect_column_values_to_not_be_null_with_condition_object_row_condition(  # noqa: E501
+    empty_data_context: AbstractDataContext,
+):
+    context = empty_data_context
+    condition_age = Column("age") > 18
+    condition_name = Column("name") == "joe"
+    condition = AndCondition(conditions=[condition_age, condition_name])
+
+    suite = context.suites.add(
+        gx.ExpectationSuite(
+            name="test-suite-with-condition",
+            expectations=[
+                gx.expectations.ExpectColumnValuesToNotBeNull(
+                    column="my_column",
+                    row_condition=condition,
+                )
+            ],
+        )
+    )
+
+    expectation = suite.expectations[0]
+    config = expectation.configuration
+
+    assert isinstance(config.kwargs.get("row_condition"), dict)
+
+    rendered_content = gx.expectations.core.ExpectColumnValuesToNotBeNull._prescriptive_renderer(
+        configuration=config
+    )
+
+    assert rendered_content is not None
+    assert len(rendered_content) > 0
+
+    condition_content = rendered_content[0].string_template["params"]["condition_content"]
+    assert repr(condition) in condition_content

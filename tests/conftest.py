@@ -7,6 +7,7 @@ import logging
 import os
 import pathlib
 import random
+import re
 import shutil
 import string
 import urllib.parse
@@ -19,10 +20,11 @@ import numpy as np
 import packaging
 import pandas as pd
 import pytest
+import requests
+import responses
 import setuptools  # noqa: F401  # Import setuptools avoid distutils import order warning
 
 import great_expectations as gx
-from great_expectations.analytics.config import ENV_CONFIG
 from great_expectations.compatibility import pyspark
 from great_expectations.compatibility.sqlalchemy_compatibility_wrappers import (
     add_dataframe_to_db,
@@ -443,12 +445,6 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(marker)
 
 
-@pytest.fixture(autouse=True)
-def no_usage_stats(monkeypatch):
-    # Do not generate usage stats from test runs
-    monkeypatch.setattr(ENV_CONFIG, "gx_analytics_enabled", False)
-
-
 @pytest.fixture(scope="session", autouse=True)
 def preload_latest_gx_cache():
     """
@@ -465,6 +461,58 @@ def preload_latest_gx_cache():
     # teardown
     logger.info("Clearing _VersionChecker._LATEST_GX_VERSION_CACHE ")
     _VersionChecker._LATEST_GX_VERSION_CACHE = None
+
+
+@pytest.fixture(autouse=True)
+def block_unmocked_production_api_requests(request):
+    """
+    Blocks HTTP requests to production GX Cloud API in all tests.
+
+    Prevents tests from accidentally making requests to api.greatexpectations.io
+    with malformed tokens. When an unmocked request is attempted, the test will
+    fail with a clear error message showing the URL and how to mock it.
+
+    Only intercepts requests to api.greatexpectations.io - all other URLs
+    (localhost, fake APIs, etc.) pass through normally.
+
+    Respects existing mocks from the responses library.
+    """
+    # Patch requests.Session methods to intercept production API calls only
+    original_request = requests.Session.request
+    production_api_pattern = re.compile(r"https?://api\.greatexpectations\.io/")
+
+    def patched_request(self, method, url, **kwargs):
+        if production_api_pattern.match(url):
+            # Check if responses library is active - let it handle the request
+            if responses._default_mock._patcher is not None:
+                # responses is active, let it handle the request
+                return original_request(self, method, url, **kwargs)
+
+            # No mock registered - this is an unmocked production call
+            pytest.fail(
+                f"\n\n"
+                f"❌ UNMOCKED PRODUCTION API REQUEST DETECTED ❌\n"
+                f"Method: {method}\n"
+                f"URL: {url}\n\n"
+                f"This test attempted to make a real HTTP request to the production "
+                f"GX Cloud API.\nPlease add appropriate mocks for this request, "
+                f"for example:\n\n"
+                f"    @responses.activate\n"
+                f"    def test_...(...):\n"
+                f'        responses.add(responses.{method}, "{url}", json={{...}}, status=200)\n'
+                f"        # ... your test code ...\n\n"
+                f"Or using unittest.mock:\n\n"
+                f'    with mock.patch("requests.Session.{method.lower()}", '
+                f"autospec=True) as mock_{method.lower()}:\n"
+                f"        # Configure your mock here\n"
+                f"        mock_{method.lower()}.return_value = mock_response\n"
+                f"        # ... your test code ...\n"
+            )
+        # Allow all other requests to proceed normally
+        return original_request(self, method, url, **kwargs)
+
+    with mock.patch.object(requests.Session, "request", patched_request):
+        yield
 
 
 @pytest.fixture(scope="module")
@@ -1893,6 +1941,7 @@ def empty_cloud_context_fluent(cloud_api_fake, cloud_details: CloudDetails) -> C
     context = gx.get_context(
         cloud_access_token=cloud_details.access_token,
         cloud_organization_id=cloud_details.org_id,
+        cloud_workspace_id=cloud_details.workspace_id,
         cloud_base_url=cloud_details.base_url,
         cloud_mode=True,
     )

@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING, Literal, Type, Union
+from typing import TYPE_CHECKING, Literal, Optional, Type, Union
 
 from great_expectations._docs_decorators import public_api
-from great_expectations.compatibility.pydantic import (
-    AnyUrl,
-    BaseModel,
-    validator,
-)
+from great_expectations.compatibility.pydantic import AnyUrl, BaseModel, Field, validator
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.sql_datasource import SQLDatasource
@@ -52,6 +48,12 @@ class RedshiftConnectionDetails(BaseModel):
     port: int
     database: str
     sslmode: RedshiftSSLModes
+    schema_: Optional[str] = Field(
+        default=None, alias="schema", description="`schema` that the Datasource is mapped to."
+    )
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 @public_api
@@ -88,6 +90,8 @@ class RedshiftDatasource(SQLDatasource):
         else:
             raise TypeError("Invalid connection_string type: ", type(connection_string))  # noqa: TRY003
         connection_string = f"redshift+psycopg2://{connection_details.user}:{connection_details.password}@{connection_details.host}:{connection_details.port}/{connection_details.database}?sslmode={connection_details.sslmode.value}"
+        if connection_details.schema_:
+            connection_string += f"&options=-csearch_path%3D{connection_details.schema_}"
         return connection_string
 
     @property

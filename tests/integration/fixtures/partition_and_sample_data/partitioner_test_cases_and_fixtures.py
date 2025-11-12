@@ -60,7 +60,7 @@ class TaxiTestData:
     @staticmethod
     def years_in_taxi_data() -> List[datetime.datetime]:
         return (
-            pd.date_range(start="2018-01-01", end="2020-12-31", freq="AS").to_pydatetime().tolist()
+            pd.date_range(start="2018-01-01", end="2020-12-31", freq="YS").to_pydatetime().tolist()
         )
 
     def year_batch_identifier_data(self) -> List[dict]:
@@ -164,7 +164,9 @@ class TaxiTestData:
                 map(
                     ord,
                     hashlib.md5(
-                        str(tuple(zip(element.keys(), element.values()))).encode("utf-8")
+                        str(tuple(zip(element.keys(), element.values(), strict=False))).encode(
+                            "utf-8"
+                        )
                     ).hexdigest(),
                 )
             ),
@@ -178,9 +180,9 @@ class TaxiTestData:
         dictionary_element: dict
         for dictionary_element in multi_column_values:
             hash_code = hashlib.md5(
-                str(tuple(zip(dictionary_element.keys(), dictionary_element.values()))).encode(
-                    "utf-8"
-                )
+                str(
+                    tuple(zip(dictionary_element.keys(), dictionary_element.values(), strict=False))
+                ).encode("utf-8")
             ).hexdigest()
             if hash_code not in hash_codes:
                 unique_multi_column_values.append(dictionary_element)

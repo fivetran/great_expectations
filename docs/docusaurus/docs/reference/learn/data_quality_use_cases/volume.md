@@ -40,7 +40,7 @@ Ensures that the number of rows in a dataset falls within a specified range.
 ```
 
 :::tip Automate this rule with GX Cloud
-When you [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation), you can enable Anomaly Detection to catch volume changes that deviate from historical patterns.
+When you use the GX Cloud UI to [create a new Data Asset](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add an Expectation](/cloud/expectations/manage_expectations.md#add-an-expectation) you can enable Anomaly Detection to catch volume changes that deviate from historical patterns. Note that these conveniences have some [Data Source limitations](/docs/cloud/data_sources/manage_data_sources/#data-source-limitations).
 :::
 
 <small>View `ExpectTableRowCountToBeBetween` in the [Expectation Gallery](https://greatexpectations.io/expectations/expect_table_row_count_to_be_between).</small>
@@ -117,7 +117,7 @@ Use the GX Cloud UI to walk through the following steps.
 
 1. Create a Postgres Data Asset for the `volume_financial_transfers` table, using the connection string:
    ```python title="Connection string"
-   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality
+   postgresql+psycopg2://try_gx:try_gx@postgres.workshops.greatexpectations.io/gx_learn_data_quality?options=-csearch_path%3Dpublic
    ```
 
 2. Profile the Data Asset.

@@ -26,7 +26,7 @@ You should now be able to run the tests via `pytest --mssql`
 1. If you are seeing the following error:
 
     ```
-    E   ImportError: dlopen(/Users/phamt/code/work/great_expectations/gx_dev/lib/python3.9/site-packages/pyodbc.cpython-39-darwin.so, 0x0002): symbol not found in flat namespace '_SQLAllocHandle'
+    E   ImportError: dlopen(/Users/phamt/code/work/great_expectations/gx_dev/lib/python3.10/site-packages/pyodbc.cpython-310-darwin.so, 0x0002): symbol not found in flat namespace '_SQLAllocHandle'
     ```
 
     Reinstall pyodbc:

@@ -1,4 +1,4 @@
-from typing import Mapping, Optional
+from typing import TYPE_CHECKING, Mapping, Optional
 
 import pandas as pd
 import pytest
@@ -7,14 +7,19 @@ from great_expectations.compatibility.pydantic import BaseSettings
 from great_expectations.compatibility.typing_extensions import override
 from great_expectations.data_context import AbstractDataContext
 from great_expectations.datasource.fluent.sql_datasource import TableAsset
+from great_expectations.self_check.util import _get_snowflake_connect_args
 from tests.integration.sql_session_manager import SessionSQLEngineManager
 from tests.integration.test_utils.data_source_config.base import (
     BatchTestSetup,
     DataSourceTestConfig,
 )
 from tests.integration.test_utils.data_source_config.sql import (
+    ConnectionDetails,
     SQLBatchTestSetup,
 )
+
+if TYPE_CHECKING:
+    from great_expectations.types.connect_args import ConnectArgs
 
 
 class SnowflakeDatasourceTestConfig(DataSourceTestConfig):
@@ -51,24 +56,48 @@ class SnowflakeConnectionConfig(BaseSettings):
     """This class retrieves these values from the environment.
     If you're testing locally, you can use your Snowflake creds
     and test against your own Snowflake account.
+
+    Supports both password and key-pair authentication:
+    - For password auth: Set SNOWFLAKE_USER and SNOWFLAKE_PW
+    - For key-pair auth: Set SNOWFLAKE_USER and SNOWFLAKE_PRIVATE_KEY (base64-encoded)
     """
 
     SNOWFLAKE_USER: str
-    SNOWFLAKE_PW: str
+    SNOWFLAKE_PW: Optional[str] = None  # Optional when using key-pair auth
     SNOWFLAKE_ACCOUNT: str
     SNOWFLAKE_DATABASE: str
     SNOWFLAKE_WAREHOUSE: str
     SNOWFLAKE_ROLE: str
+    SNOWFLAKE_PRIVATE_KEY: Optional[str] = None  # base64-encoded private key
 
     @property
     def connection_string(self) -> str:
         # Note: we don't specify the schema here because it will be created dynamically, and we pass
         # it into the `data_sources.add_snowflake` call.
+
+        # When using private key auth, include colon with empty password
+        # The private key will be passed separately via connect_args
+        # Format: snowflake://user:@account (colon indicates password field, even if empty)
+        if self.SNOWFLAKE_PRIVATE_KEY:
+            user_auth = f"{self.SNOWFLAKE_USER}:"
+        elif self.SNOWFLAKE_PW:
+            user_auth = f"{self.SNOWFLAKE_USER}:{self.SNOWFLAKE_PW}"
+        else:
+            raise ValueError("Either SNOWFLAKE_PW or SNOWFLAKE_PRIVATE_KEY must be set")
+
         return (
-            f"snowflake://{self.SNOWFLAKE_USER}:{self.SNOWFLAKE_PW}"
+            f"snowflake://{user_auth}"
             f"@{self.SNOWFLAKE_ACCOUNT}/{self.SNOWFLAKE_DATABASE}"
             f"?warehouse={self.SNOWFLAKE_WAREHOUSE}&role={self.SNOWFLAKE_ROLE}"
         )
+
+    @property
+    def private_key(self) -> Optional[str]:
+        """Return the private key if using key-pair auth.
+
+        The private key should be base64-encoded in the SNOWFLAKE_PRIVATE_KEY env var.
+        """
+        return self.SNOWFLAKE_PRIVATE_KEY
 
 
 class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
@@ -76,6 +105,10 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
     @override
     def connection_string(self) -> str:
         return self.snowflake_connection_config.connection_string
+
+    @property
+    def private_key(self) -> Optional[str]:
+        return self.snowflake_connection_config.private_key
 
     @property
     @override
@@ -102,19 +135,62 @@ class SnowflakeBatchTestSetup(SQLBatchTestSetup[SnowflakeDatasourceTestConfig]):
         )
 
     @override
+    def _get_engine(self) -> tuple:
+        """Override to handle key-pair authentication for Snowflake."""
+
+        from sqlalchemy import create_engine
+
+        if self.engine_manager:
+            connection_details = ConnectionDetails(
+                connection_string=self.connection_string,
+            )
+            connect_args: ConnectArgs = {"private_key": self.private_key}
+            engine = self.engine_manager.get_engine(connection_details, connect_args=connect_args)
+            return engine, lambda: None
+        else:
+            # For key-pair auth, pass private key via connect_args
+            if private_key := self.snowflake_connection_config.private_key:
+                connect_args = _get_snowflake_connect_args(private_key)
+                engine = create_engine(url=self.connection_string, connect_args=connect_args)
+            else:
+                engine = create_engine(url=self.connection_string)
+            return engine, engine.dispose
+
+    @override
     def make_asset(self) -> TableAsset:
         schema = self.schema
         assert schema
-        return self.context.data_sources.add_snowflake(
-            name=self._random_resource_name(),
-            account=self.snowflake_connection_config.SNOWFLAKE_ACCOUNT,
-            user=self.snowflake_connection_config.SNOWFLAKE_USER,
-            password=self.snowflake_connection_config.SNOWFLAKE_PW,
-            database=self.snowflake_connection_config.SNOWFLAKE_DATABASE,
-            schema=schema,
-            warehouse=self.snowflake_connection_config.SNOWFLAKE_WAREHOUSE,
-            role=self.snowflake_connection_config.SNOWFLAKE_ROLE,
-        ).add_table_asset(
-            name=self._random_resource_name(),
-            table_name=self.table_name,
-        )
+
+        # Use key-pair auth if private key is present, otherwise password auth
+        if private_key := self.snowflake_connection_config.private_key:
+            return self.context.data_sources.add_snowflake(
+                name=self._random_resource_name(),
+                account=self.snowflake_connection_config.SNOWFLAKE_ACCOUNT,
+                user=self.snowflake_connection_config.SNOWFLAKE_USER,
+                private_key=private_key,
+                database=self.snowflake_connection_config.SNOWFLAKE_DATABASE,
+                schema=schema,
+                warehouse=self.snowflake_connection_config.SNOWFLAKE_WAREHOUSE,
+                role=self.snowflake_connection_config.SNOWFLAKE_ROLE,
+            ).add_table_asset(
+                name=self._random_resource_name(),
+                table_name=self.table_name,
+            )
+        else:
+            # Password auth - ensure password is set
+            password = self.snowflake_connection_config.SNOWFLAKE_PW
+            assert password is not None, "SNOWFLAKE_PW must be set when not using key-pair auth"
+
+            return self.context.data_sources.add_snowflake(
+                name=self._random_resource_name(),
+                account=self.snowflake_connection_config.SNOWFLAKE_ACCOUNT,
+                user=self.snowflake_connection_config.SNOWFLAKE_USER,
+                password=password,
+                database=self.snowflake_connection_config.SNOWFLAKE_DATABASE,
+                schema=schema,
+                warehouse=self.snowflake_connection_config.SNOWFLAKE_WAREHOUSE,
+                role=self.snowflake_connection_config.SNOWFLAKE_ROLE,
+            ).add_table_asset(
+                name=self._random_resource_name(),
+                table_name=self.table_name,
+            )

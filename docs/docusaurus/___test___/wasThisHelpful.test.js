@@ -14,12 +14,6 @@ global.fetch = jest.fn(() =>
 )
 
 describe('"Was this Helpful?" section', () => {
-  const posthog = {
-    capture: (eventName, content) => {}
-  }
-  Object.defineProperty(global.window, 'posthog', {
-    value: posthog
-  })
 
   test('Buttons should be enabled when they have not been clicked', () => {
     render(

@@ -25,18 +25,20 @@ This page provides instructions for working with Expectations. To learn about Ex
 4. Select a data quality issue to test for or an option for writing your own test.
 
    :::tip Options for accelerating test coverage
-   If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will default to warning severity, which you can edit later. If you instead want to create your own rules, click **Manual**.
-   
-   If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
+   If you are using a [supported Data Source](/docs/cloud/data_sources/manage_data_sources), you can use the following to speed up test creation:
+   - If you selected the **Schema**, **Volume**, or **Completeness** data quality issue, you will have the **Automatic** option to generate Expectations for [Anomaly Detection](/cloud/overview/accelerating_test_coverage.md#anomaly-detection). Generated Expectations will default to warning severity, which you can edit later. If you instead want to create your own rules, click **Manual**.
+   - If you selected custom **SQL**, you will have the option to **Generate SQL** with [ExpectAI (BETA)](#generate-sql). You can write your own SQL if you prefer.
    :::
 
 5. Select an Expectation type.
 
-6. Complete the mandatory and optional fields for the Expectation. A recurring [validation schedule](/cloud/schedules/manage_schedules.md) will be applied automatically to your Expectation. 
+6. Complete the mandatory and optional fields for the Expectation.
 
 7. Click **Save** or click **Save & Add More** and then repeat steps 4 through 7 to add additional Expectations.
 
-8. Optional. [Run a Validation](/cloud/validations/manage_validations.md).
+8. Optional. [Run an ad hoc Validation](/cloud/validations/manage_validations.md).
+
+9. Optional. Configure recurring Validations. See [Manage schedules](/docs/cloud/schedules/manage_schedules).
 
 
 ## Save time with ExpectAI <span class="beta">Beta</span>

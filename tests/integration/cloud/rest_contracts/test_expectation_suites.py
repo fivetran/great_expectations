@@ -120,7 +120,7 @@ def test_get_expectation_suite(
     path = pathlib.Path(
         "/",
         "api",
-        "v1",
+        "v2",
         "organizations",
         EXISTING_ORGANIZATION_ID,
         "workspaces",
@@ -160,7 +160,7 @@ def test_get_non_existent_expectation_suite(
     path = pathlib.Path(
         "/",
         "api",
-        "v1",
+        "v2",
         "organizations",
         EXISTING_ORGANIZATION_ID,
         "workspaces",
@@ -201,7 +201,7 @@ def test_get_expectation_suites(
     path = pathlib.Path(
         "/",
         "api",
-        "v1",
+        "v2",
         "organizations",
         EXISTING_ORGANIZATION_ID,
         "workspaces",
@@ -238,7 +238,7 @@ def test_get_expectation_suites(
             request_path=pathlib.Path(
                 "/",
                 "api",
-                "v1",
+                "v2",
                 "organizations",
                 EXISTING_ORGANIZATION_ID,
                 "workspaces",
@@ -281,7 +281,8 @@ def test_post_expectation_suite_request(
             request_path=pathlib.Path(
                 "/",
                 "api",
-                "v1organizations",
+                "v2",
+                "organizations",
                 EXISTING_ORGANIZATION_ID,
                 "workspaces",
                 EXISTING_WORKSPACE_ID,
@@ -324,7 +325,7 @@ def test_put_expectation_suite_request(
             request_path=pathlib.Path(
                 "/",
                 "api",
-                "v1",
+                "v2",
                 "organizations",
                 EXISTING_ORGANIZATION_ID,
                 "workspaces",

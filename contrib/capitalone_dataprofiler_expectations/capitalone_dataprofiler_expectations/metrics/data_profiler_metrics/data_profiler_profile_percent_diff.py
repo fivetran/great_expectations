@@ -51,7 +51,7 @@ class DataProfilerProfilePercentDiff(DataProfilerProfileMetricProvider):
         dr_columns = diff_report["data_stats"]
 
         percent_delta_data_stats = []
-        for pr_col, dr_col in zip(pr_columns, dr_columns):
+        for pr_col, dr_col in zip(pr_columns, dr_columns, strict=False):
             pr_stats = pr_col["statistics"]
             dr_stats = dr_col["statistics"]
             percent_delta_col = copy.deepcopy(dr_col)

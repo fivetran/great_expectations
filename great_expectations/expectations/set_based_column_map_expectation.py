@@ -14,6 +14,7 @@ from great_expectations.execution_engine import (
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
+    _style_row_condition,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metrics.map_metric_provider import (
@@ -28,7 +29,7 @@ from great_expectations.render.renderer_configuration import (
 )
 from great_expectations.render.util import (
     num_to_str,
-    parse_row_condition_string_pandas_engine,
+    parse_row_condition_string,
     substitute_none_for_missing,
 )
 from great_expectations.util import camel_to_snake
@@ -301,12 +302,14 @@ class SetBasedColumnMapExpectation(ColumnMapExpectation, ABC):
             template_str = "$column " + template_str
 
         if params["row_condition"] is not None:
-            (
+            conditional_template_str = parse_row_condition_string(params["row_condition"])
+
+            template_str, styling = _style_row_condition(
                 conditional_template_str,
-                conditional_params,
-            ) = parse_row_condition_string_pandas_engine(params["row_condition"])
-            template_str = conditional_template_str + ", then " + template_str
-            params.update(conditional_params)
+                template_str,
+                params,
+                styling,
+            )
 
         params_with_json_schema = {  # noqa: F841 # never used
             "column": {"schema": {"type": "string"}, "value": params.get("column")},

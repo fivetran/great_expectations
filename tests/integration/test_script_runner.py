@@ -13,7 +13,9 @@ import pathlib
 import shutil
 from typing import List
 
+import pandas
 import pytest
+import sqlalchemy
 from assets.scripts.build_gallery import execute_shell_command
 from docs.docusaurus.docs.components.examples_under_test import (
     docs_tests,
@@ -354,6 +356,7 @@ def prepare_cloud_env_vars(monkeypatch):
             monkeypatch.delenv(GXCloudEnvironmentVariable.BASE_URL, raising=False)
             monkeypatch.delenv(GXCloudEnvironmentVariable.ACCESS_TOKEN, raising=False)
             monkeypatch.delenv(GXCloudEnvironmentVariable.ORGANIZATION_ID, raising=False)
+            monkeypatch.delenv(GXCloudEnvironmentVariable.WORKSPACE_ID, raising=False)
 
     return _prepare_cloud_env_vars_callable
 
@@ -496,6 +499,24 @@ def _check_for_skipped_tests(  # noqa: C901, PLR0912 # FIXME CoP
     integration_test_fixture,
 ) -> None:
     """Enable scripts to be skipped based on pytest invocation flags."""
+    TESTS_TO_SKIP_FOR_SQLA_2_0_AND_PANDAS_2_2 = [
+        "expect_column_max_to_be_between_custom",
+        "partition_data_on_whole_table_snowflake",
+        "partition_data_on_whole_table_redshift",
+        "partition_data_on_datetime_redshift",
+        "partition_data_on_datetime_snowflake",
+        "deployment_patterns_redshift",
+    ]
+    IS_RUNNING_SQLA_2_0_AND_PANDAS_2_2 = (
+        sqlalchemy.__version__ < "2.0" and pandas.__version__ >= "2.2"
+    )
+    if (
+        IS_RUNNING_SQLA_2_0_AND_PANDAS_2_2
+        and integration_test_fixture.name in TESTS_TO_SKIP_FOR_SQLA_2_0_AND_PANDAS_2_2
+    ):
+        pytest.skip(
+            "This test requires sqlalchemy version 2.0 or higher and pandas version 2.2 or higher"
+        )
     dependencies = integration_test_fixture.backend_dependencies
     if not dependencies:
         return

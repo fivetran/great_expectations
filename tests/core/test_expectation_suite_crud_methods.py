@@ -318,6 +318,7 @@ def test_add_expectation_configurations(
         for (mine, theirs) in zip(
             single_expectation_suite.expectation_configurations,
             different_suite.expectation_configurations,
+            strict=False,
         )
     )
 

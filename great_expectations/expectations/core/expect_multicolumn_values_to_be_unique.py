@@ -7,6 +7,7 @@ from great_expectations.core.suite_parameters import (
 )
 from great_expectations.expectations.expectation import (
     ColumnMapExpectation,
+    _style_row_condition,
     render_suite_parameter_string,
 )
 from great_expectations.render import LegacyRendererType, RenderedStringTemplateContent
@@ -17,7 +18,7 @@ from great_expectations.render.renderer_configuration import (
 )
 from great_expectations.render.util import (
     num_to_str,
-    parse_row_condition_string_pandas_engine,
+    parse_row_condition_string,
     substitute_none_for_missing,
 )
 
@@ -186,15 +187,14 @@ class ExpectMulticolumnValuesToBeUnique(ColumnMapExpectation):
         params[f"column_list_{last_idx!s}"] = params["column_list"][last_idx]
 
         if params["row_condition"] is not None:
-            (
-                conditional_template_str,
-                conditional_params,
-            ) = parse_row_condition_string_pandas_engine(params["row_condition"])
-            template_str = (
-                conditional_template_str + ", then " + template_str[0].lower() + template_str[1:]
-            )
-            params.update(conditional_params)
+            conditional_template_str = parse_row_condition_string(params["row_condition"])
 
+            template_str, styling = _style_row_condition(
+                conditional_template_str,
+                template_str[0].lower() + template_str[1:],
+                params,
+                styling,
+            )
         return [
             RenderedStringTemplateContent(
                 **{

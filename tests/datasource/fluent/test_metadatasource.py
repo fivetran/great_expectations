@@ -262,7 +262,7 @@ class TestMetaDatasource:
         assert asset_types, "No asset types have been declared"
 
         registered_type_names = [FooBarDatasource._type_lookup.get(t) for t in asset_types]
-        for type_, name in zip(asset_types, registered_type_names):
+        for type_, name in zip(asset_types, registered_type_names, strict=False):
             print(f"`{type_.__name__}` registered as '{name}'")
             assert name, f"{type.__name__} could not be retrieved"
 
@@ -302,7 +302,7 @@ class TestMisconfiguredMetaDatasource:
     def test_ds_assets_type_field_not_set(self, empty_sources: DataSourceManager):
         with pytest.raises(
             TypeRegistrationError,
-            match="No `type` field found for `BadAssetDatasource.asset_types` -> `MissingTypeAsset` unable to register asset type",  # noqa: E501 # FIXME CoP
+            match=r"No `type` field found for `BadAssetDatasource.asset_types` -> `MissingTypeAsset` unable to register asset type",  # noqa: E501 # FIXME CoP
         ):
 
             class MissingTypeAsset(DataAsset):

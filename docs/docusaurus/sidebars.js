@@ -118,7 +118,7 @@ module.exports = {
       label: 'Customize Expectations',
       link: { type: 'doc', id: 'core/customize_expectations/customize_expectations' },
       items: [
-        { type: 'doc', id: 'core/customize_expectations/expectation_conditions' },
+        { type: 'doc', id: 'core/customize_expectations/row_conditions' },
         { type: 'doc', id: 'core/customize_expectations/define_a_custom_expectation_class' },
         { type: 'doc', id: 'core/customize_expectations/use_sql_to_define_a_custom_expectation' },
         { type: 'doc', id: 'core/customize_expectations/define_a_multi_source_expectation' }
@@ -172,6 +172,7 @@ module.exports = {
       label: 'Connect GX Cloud',
       link: { type: 'doc', id: 'cloud/connect/connect_lp' },
       items: [
+        'cloud/connect/connect_s3',
         'cloud/connect/connect_databrickssql',
         'cloud/connect/connect_postgresql',
         'cloud/connect/connect_redshift',
@@ -179,6 +180,11 @@ module.exports = {
         'cloud/connect/connect_airflow',
         'cloud/connect/connect_python'
       ]
+    },
+    {
+      type: 'doc',
+      label: 'Manage Data Sources',
+      id: 'cloud/data_sources/manage_data_sources'
     },
     {
       type: 'doc',
@@ -242,7 +248,16 @@ module.exports = {
     }
   ],
   learn: [
-    'reference/learn/migration_guide',
+    {
+      type: 'category',
+      label: 'GX in your data pipeline',
+      link: { type: 'doc', id: 'reference/learn/gx_in_your_data_pipeline/gx_in_your_data_pipeline_lp' },
+      items: [
+        'reference/learn/gx_in_your_data_pipeline/ingestion',
+        'reference/learn/gx_in_your_data_pipeline/transformation',
+        'reference/learn/gx_in_your_data_pipeline/delivery'
+      ]
+    },
     {
       type: 'category',
       label: 'Data quality use cases',

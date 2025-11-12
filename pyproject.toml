@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel", "versioneer", "typing_extensions>=4.1.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 plugins = [
     "pydantic.mypy",
     "sqlalchemy.ext.mypy.plugin"
@@ -212,7 +212,6 @@ module = [
     "mistune.*",
     "moto.*",
     "pact.*",
-    "posthog.*",
     "pyarrow.*",
     "pyfakefs.*",
     "pypd.*",
@@ -239,7 +238,7 @@ warn_required_dynamic_aliases = true
 warn_untyped_fields = true
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 100
 lint.preview = true  # This enables preview rules for specified rules e.g. NPY201
 lint.explicit-preview-rules = true  # https://docs.astral.sh/ruff/preview/#selecting-single-preview-rules
@@ -448,8 +447,8 @@ filterwarnings = [
     # the pkg_resources module distributed with setuptools has been deprecated
     # we should never use it but it is used in some of our dependencies
     # https://setuptools.pypa.io/en/latest/pkg_resources.html
+    "ignore: pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore: pkg_resources is deprecated as an API:UserWarning",
-
     # This warning is common during testing where we intentionally use a COMPLETE format even in cases that would
     # be potentially overly resource intensive in standard operation
     "ignore:Setting result format to COMPLETE for a SqlAlchemyDataset:UserWarning",
@@ -495,6 +494,8 @@ filterwarnings = [
     # UserWarning: Warning. An existing `config_variables.yml` was found here
     'ignore: Warning. An existing `config_variables.yml` was found here:UserWarning',
     # --------------------------------------- Great Expectations Deprecation Warnings ----------------------------------
+    "once:The condition_parser parameter is deprecated:DeprecationWarning",
+    "once:Passing a string to the row_condition parameter is deprecated:DeprecationWarning",
 
     # --------------------------------------- TEMPORARY IGNORES --------------------------------------------------------
     # The warnings in this section should be addressed (fixed or ignored) but are ignored here temporarily to help allow
@@ -630,6 +631,14 @@ filterwarnings = [
     # Example Actual Warning:
     # DeprecationWarning: Importing ErrorTree directly from the jsonschema package is deprecated and will become an ImportError. Import it from jsonschema.exceptions instead.
     "ignore: Importing ErrorTree directly from the jsonschema package is deprecated and will become an ImportError. Import it from jsonschema.exceptions instead.:DeprecationWarning",
+    # google-auth
+    # Example Actual Warning:
+    # DeprecationWarning: The load_credentials_from_file method is deprecated because of a potential security risk.
+    "ignore: The load_credentials_from_file method is deprecated because of a potential security risk.:DeprecationWarning",
+    # google.api_core
+    # Example Actual Warning:
+    # FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+    "ignore: You are using a Python version.*which Google will stop supporting in new releases of google.api_core:FutureWarning",
     # sqlalchemy
     # Example Actual Warning:
     # sqlalchemy.exc.RemovedIn20Warning: Deprecated API features detected! These feature(s) are not compatible with SQLAlchemy 2.0. To prevent incompatible upgrades prior to updating applications, ensure requirements files are pinned to "sqlalchemy<2.0". Set environment variable SQLALCHEMY_WARN_20=1 to show all deprecation warnings.  Set environment variable SQLALCHEMY_SILENCE_UBER_WARNING=1 to silence this message. (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)

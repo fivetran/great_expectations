@@ -10,7 +10,6 @@ module.exports = {
   tagline: 'Always know what to expect from your data.',
   url: 'https://docs.greatexpectations.io', // Url to your site with no trailing slash
   baseUrl: '/',
-  customFields: { posthogApiKey: process.env.POSTHOG_API_KEY },
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   favicon: '/img/gx-mark.png',
@@ -25,17 +24,17 @@ module.exports = {
         id: 'GTM-K63L45F' // GTM Container ID
       }
     ],
+    // PostHog plugin for documentation analytics only
     [
       'posthog-docusaurus',
       {
         apiKey: process.env.POSTHOG_API_KEY,
         enableInDevelopment: false,
-        debug: process.env.NODE_ENV === 'development',
-        autocapture: {
-          capture_pageview: false
-        }
+        debug: false,
+        // Use history_change for SPA pageview tracking
+        capture_pageview: 'history_change',
       }
-    ]
+    ],
   ],
 
   scripts: [
@@ -43,10 +42,6 @@ module.exports = {
       src: '/scripts/set-tab.js',
       async: true,
       defer: true
-    },
-    {
-      src: '/scripts/web-tracking.js',
-      async: true
     },
     {
       src: 'https://fast.wistia.net/assets/external/E-v1.js',
@@ -318,7 +313,7 @@ module.exports = {
           lastVersion: 'current',
           versions: {
             current: {
-              label: '1.6.3',
+              label: '1.9.0',
             },
             ['0.18']: {
               label: '0.18.21',

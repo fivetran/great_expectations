@@ -71,8 +71,8 @@ stages:
         steps:
           - task: UsePythonVersion@0
             inputs:
-              versionSpec: 3.9
-            displayName: "Use Python 3.9"
+              versionSpec: 3.10
+            displayName: "Use Python 3.10"
 
           - script: |
               pip install $(grep -E '^(black|invoke|ruff)' reqs/requirements-dev-contrib.txt)
@@ -92,8 +92,8 @@ stages:
         steps:
           - task: UsePythonVersion@0
             inputs:
-              versionSpec: "3.9"
-            displayName: "Use Python 3.9"
+              versionSpec: "3.10"
+            displayName: "Use Python 3.10"
 
           - script: |
               pip install .
@@ -128,8 +128,8 @@ stages:
         steps:
           - task: UsePythonVersion@0
             inputs:
-              versionSpec: "3.9"
-            displayName: "Use Python 3.9"
+              versionSpec: "3.10"
+            displayName: "Use Python 3.10"
 
           - bash: python -m pip install --upgrade pip
             displayName: "Update pip"
@@ -185,8 +185,8 @@ stages:
         steps:
           - task: UsePythonVersion@0
             inputs:
-              versionSpec: "3.9"
-            displayName: "Use Python 3.9"
+              versionSpec: "3.10"
+            displayName: "Use Python 3.10"
 
           - bash: python -m pip install --upgrade pip
             displayName: "Update pip"

@@ -11,6 +11,7 @@ from great_expectations.core.types import Comparable  # noqa: TC001 # FIXME CoP
 from great_expectations.expectations.expectation import (
     COLUMN_DESCRIPTION,
     ColumnAggregateExpectation,
+    _style_row_condition,
     render_suite_parameter_string,
 )
 from great_expectations.expectations.metadata_types import DataQualityIssues, SupportedDataSources
@@ -23,7 +24,7 @@ from great_expectations.render.renderer_configuration import (
 )
 from great_expectations.render.util import (
     handle_strict_min_max,
-    parse_row_condition_string_pandas_engine,
+    parse_row_condition_string,
     substitute_none_for_missing,
 )
 
@@ -353,15 +354,17 @@ class ExpectColumnSumToBeBetween(ColumnAggregateExpectation):
         if renderer_configuration.include_column_name:
             template_str = f"$column {template_str}"
 
-        if params["row_condition"] is not None:
-            (
-                conditional_template_str,
-                conditional_params,
-            ) = parse_row_condition_string_pandas_engine(params["row_condition"])
-            template_str = f"{conditional_template_str}, then {template_str}"
-            params.update(conditional_params)
-
         styling = runtime_configuration.get("styling") if runtime_configuration else None
+
+        if params["row_condition"] is not None:
+            conditional_template_str = parse_row_condition_string(params["row_condition"])
+
+            template_str, styling = _style_row_condition(
+                conditional_template_str,
+                template_str,
+                params,
+                styling,
+            )
         return [
             RenderedStringTemplateContent(
                 content_block_type="string_template",

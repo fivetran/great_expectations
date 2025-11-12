@@ -10,7 +10,7 @@ This page provides an overview of Expectation types and options. For instruction
 
 ## Available Expectations
 
-The following table lists the available GX Cloud Expectations.
+The following table lists the available GX Cloud Expectations. Note that some Data Sources do not support certain Expectations. Visit the [Expectations gallery](https://greatexpectations.io/expectations/) for details.
 
 | Data quality issue | Expectation                                            | Description                                                                                                                            | Dynamic Parameters? | Forecasted range? |
 |--------------------|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------|-------------------|
@@ -102,7 +102,7 @@ Keep the following limitations in mind when working with Multi-source Expectatio
 
 ## Anomaly Detection
 
-Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can automate Anomaly Detection Expectations when you [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation) for an existing Data Asset. You can also manually configure Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
+Anomaly Detection Expectations evolve with your data to detect deviations from historical patterns. To speed up their creation, you can generate Anomaly Detection Expectations when you use the GX Cloud UI to [create new Data Assets](/cloud/data_assets/manage_data_assets.md#add-a-data-asset-from-an-existing-data-source) or [add Expectations](/cloud/expectations/manage_expectations.md#add-an-expectation). Note that [some Data Sources](/docs/cloud/data_sources/manage_data_sources.md#data-source-limitations) don't support these options. All Data Sources support manual configuration of Anomaly Detection by adding Expectations with Dynamic Parameters or forecasted ranges.
 
 ### Dynamic Parameters
 
@@ -134,19 +134,41 @@ Keep the following in mind when working with forecasted ranges:
 - Expectations with forecasted ranges will always succeed for the first 2 validation runs. This is because GX Cloud needs at least 2 data points to produce a forecast.
 - Forecasted ranges are not supported for incrementally validated Batches of data.
 
-## Expectation condition
+## Row conditions
 
-The Expectation condition is an optional field that applies to any Expectation validating row-level data. This condition allows you to filter your data so that only a specific subset of your Batch is validated. Rows will be validated only when the condition is true.
+By default, Expectations apply to every row retrieved in a [Batch](/docs/cloud/expectations/manage_expectations.md#optional-define-a-batch). However, there are instances when an Expectation may not be relevant for every row. For example, you might expect that a column indicating the country of origin for a product should not be null when the product is an import. If it’s ok for the country of origin column to be null for products produced locally, then applying a nullness check for country of origin on every row in the Batch could result in many false negatives. To address this scenario, GX Cloud allows you to restrict Expectations to apply to only a subset of the data retrieved in a Batch.
 
-You will need to select:
+Row conditions support complex business logic through the following elements:
 
-- A column to check the condition against.
-- An operator that is used to compare the column against a parameter value.
-- A parameter that will be compared against each row in the selected column.
+- Condition statements that check a single column against a value or set of values. 
+- Condition blocks that combine multiple condition statements with an AND relationship between them. When multiple condition blocks exist, the blocks themselves have an OR relationship between them.
 
-![GX Cloud Expectation condition field](./expectation_images/expectation_condition_field.png)
 
-![GX Cloud Expectation with condition](./expectation_images/expectation_with_condition.png)
+Here are some examples of how to express complex row conditions:
+
+- **A and B**: Two condition statements within a single condition block.
+
+   ![product_category is in books, magazines, cards and purchase_amount is greater than 100](/img/a_and_b.png)
+
+- **A or B**: Two condition statements, each in its own condition block.
+
+   ![purchase_date is after 2025-10-31 or return_date is after 2025-10-31](/img/a_or_b.png)
+
+- **(A and B) or (C and D)**: Two condition statements in one condition block and two statements in another block.
+
+   ![return_date is not null and product_category is clothing or product_rating is less than or equal to 2 and purchase_amount is greater than or equal to 100](/img/a_and_b_or_c_and_d.png)
+
+- **A and (B or C)**: This pattern is not supported verbatim, but you can achieve the same result with **(A and B) or (A and C)** as two condition statements in one condition block and two statements in another block.
+
+   ![product_category is games and purchase_amount is greater than or equal to 250 or product_category is games and product rating is 5](/img/a_and_b_or_c.png)
+
+Keep the following requirements and limitations in mind when working with row conditions:
+
+- An Expectation can have up to 100 condition statements grouped in any number of condition blocks. 
+- [GX agent versions](/cloud/deploy/deploy_gx_agent.md#gx-agent-versioning) prior to 20251103.0 and [Cloud API versions](/docs/reference/) before 1.8.1 do not support the following row conditions options. If you use any of these aspects of row conditions and use the GX agent or the GX Cloud API, make sure your versions are sufficiently recent.
+   - multiple condition statements
+   - **is in**, **is not in**, or **is null** operators
+
 
 ## Failure severity
 
@@ -172,15 +194,16 @@ If you have both kinds of Expectations, they will be organized in separate table
 
 Here is a comparison of key characteristics of GX-managed and API-managed Expectations. 
 
-| Characteristic     | GX-managed Expectation                                                                                                                                                                                      | API-managed Expectation                                                                                                                                                                                     |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Edit               | [Edit parameters](/cloud/expectations/manage_expectations.md#edit-an-expectation) with the GX Cloud UI.                                                                                                     | [Edit parameters with the GX Cloud API](/reference/api/expectations/Expectation_class.mdx) or the GX Cloud UI.                                                                                              |
-| Batch              | Options depend on your Data Source. See [Manage Validations](/cloud/validations/manage_validations.md) for more information.                                                                                | Options depend on your Data Source. See [Manage Validations](/cloud/validations/manage_validations.md) for more information.                                                                                |
-| Validate           | Options depend on your Data Source and whether you want to validate your entire Data Asset or a time-based subset. See [Manage Validations](/cloud/validations/manage_validations.md) for more information. | Options depend on your Data Source and whether you want to validate your entire Data Asset or a time-based subset. See [Manage Validations](/cloud/validations/manage_validations.md) for more information. |
-| Validation Results | [Access results in the Validations tab](/cloud/validations/manage_validations.md#view-validation-run-history) of the GX Cloud UI.                                                                           | [Access results with the GX Cloud API](/core/trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format.md) or in the Validations tab of the GX Cloud UI.                               |
-| Schedule           | Keep default schedule or [edit schedule](/cloud/schedules/manage_schedules.md) in the GX Cloud UI.                                                                                                          | Not supported, use an [orchestrator](/cloud/connect/connect_airflow.md) to control recurring validations.                                                                                                   |
-| Expectation Suite  | Automatically organized in a hidden default Expectation Suite.                                                                                                                                              | Manually grouped into [custom Expectation Suites](/core/define_expectations/organize_expectation_suites.md) via the GX Cloud API.                                                                           |
-| Delete             | [Delete Expectation](/docs/cloud/expectations/manage_expectations/#delete-an-expectation) with the GX Cloud UI.                                                                                             | [Delete Expectation with the GX Cloud API](/reference/api/ExpectationSuite_class.mdx#great_expectations.ExpectationSuite.delete_expectation) or the GX Cloud UI.                                            |
+| Characteristic        | GX-managed Expectation                                                                                                                                                                                      | API-managed Expectation                                                                                                                                                                                     |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Edit                  | [Edit parameters](/cloud/expectations/manage_expectations.md#edit-an-expectation) with the GX Cloud UI.                                                                                                     | [Edit parameters with the GX Cloud API](/reference/api/expectations/Expectation_class.mdx) or the GX Cloud UI.                                                                                              |
+| Batch                 | Options depend on your Data Source. See [Manage Validations](/cloud/validations/manage_validations.md) for more information.                                                                                | Options depend on your Data Source. See [Manage Validations](/cloud/validations/manage_validations.md) for more information.                                                                                |
+| Ad hoc Validation     | Options depend on your Data Source and whether you want to validate your entire Data Asset or a time-based subset. See [Manage Validations](/cloud/validations/manage_validations.md) for more information. | Options depend on your Data Source and whether you want to validate your entire Data Asset or a time-based subset. See [Manage Validations](/cloud/validations/manage_validations.md) for more information. |
+| Recurring Validations | [Schedule Validations](/cloud/schedules/manage_schedules.md) in the GX Cloud UI.                                                                                                                            | Not supported, use an [orchestrator](/cloud/connect/connect_airflow.md) to control recurring validations.                                                                                                   |
+| Validation Results    | [Access results in the Validations tab](/cloud/validations/manage_validations.md#view-validation-run-history) of the GX Cloud UI.                                                                           | [Access results with the GX Cloud API](/core/trigger_actions_based_on_results/choose_a_result_format/choose_a_result_format.md) or in the Validations tab of the GX Cloud UI.                               |
+| Expectation Suite     | Automatically organized in a hidden default Expectation Suite.                                                                                                                                              | Manually grouped into [custom Expectation Suites](/core/define_expectations/organize_expectation_suites.md) via the GX Cloud API.                                                                           |
+| Delete                | [Delete Expectation](/docs/cloud/expectations/manage_expectations/#delete-an-expectation) with the GX Cloud UI.                                                                                             | [Delete Expectation with the GX Cloud API](/reference/api/ExpectationSuite_class.mdx#great_expectations.ExpectationSuite.delete_expectation) or the GX Cloud UI.                                            |
+
 
 :::note Hidden resources for GX-managed Expectations
 To support GX-managed Expectations, we create resources that you typically won't directly interact with. For example, we create a GX-managed Expectation Suite that we use to organize your Expectations. For some workflows you may need to work with these hidden resources, for example, you may need to [find the name of an automatically created Checkpoint](/cloud/connect/connect_airflow.md#create-a-dag-file-for-your-gx-cloud-checkpoint). But, typically you can ignore the existence of these hidden resources. 

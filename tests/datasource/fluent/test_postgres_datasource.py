@@ -16,7 +16,7 @@ import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
 import great_expectations.exceptions as ge_exceptions
-from great_expectations.compatibility.pydantic import ValidationError
+from great_expectations.compatibility.pydantic import ValidationError, networks
 from great_expectations.core.batch_spec import SqlAlchemyDatasourceBatchSpec
 from great_expectations.core.id_dict import IDDict
 from great_expectations.core.partitioners import (
@@ -38,6 +38,7 @@ from great_expectations.datasource.fluent.batch_request import (
     BatchParameters,
     BatchRequest,
 )
+from great_expectations.datasource.fluent.config_str import ConfigStr
 from great_expectations.datasource.fluent.interfaces import TestConnectionError
 from great_expectations.datasource.fluent.postgres_datasource import (
     PostgresDatasource,
@@ -1351,3 +1352,49 @@ def test_add_postgres_table_asset_with_batch_metadata(
         for i, year in enumerate(years):
             substituted_batch_metadata["year"] = year
             assert batches[i] == substituted_batch_metadata
+
+
+@pytest.mark.unit
+def test_connection_updating_templated_connection_string():
+    # Create datasource with templated connection string
+    conn_str = "postgresql://user:${MY_PASSWORD}@localhost/db"
+    datasource = PostgresDatasource(
+        name="my_postgres",
+        connection_string=conn_str,
+    )
+
+    # Verify initial connection_string is ConfigStr
+    assert isinstance(datasource.connection_string, ConfigStr)
+    assert datasource.connection_string.template_str == conn_str
+
+    # Assign a new templated connection string directly
+    new_conn_str = "postgresql://newuser:${NEW_PASSWORD}@newhost/newdb"
+    datasource.connection_string = new_conn_str
+
+    # Verify it's still a ConfigStr after assignment (not a plain str)
+    assert isinstance(datasource.connection_string, ConfigStr), (
+        f"Expected ConfigStr, got {type(datasource.connection_string)}. "
+        "This indicates validate_assignment is not enabled."
+    )
+    assert datasource.connection_string.template_str == new_conn_str
+
+
+@pytest.mark.unit
+def test_connection_updating_plain_connection_string():
+    # Create datasource with templated connection string
+    conn_str = "postgresql://user:${MY_PASSWORD}@localhost/db"
+    datasource = PostgresDatasource(
+        name="my_postgres",
+        connection_string=conn_str,
+    )
+
+    # Verify initial connection_string is ConfigStr
+    assert isinstance(datasource.connection_string, ConfigStr)
+    assert datasource.connection_string.template_str == conn_str
+
+    plain_conn_str = "postgresql://plainuser:plainpass@plainhost/plaindb"
+    datasource.connection_string = plain_conn_str
+    assert isinstance(datasource.connection_string, networks.PostgresDsn), (
+        f"Expected PostgresDsn for plain connection string, "
+        f"got {type(datasource.connection_string)}"
+    )

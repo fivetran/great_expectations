@@ -1228,6 +1228,9 @@ class SQLDatasource(Datasource):
     _TableAsset: Type[TableAsset] = pydantic.PrivateAttr(TableAsset)
     _QueryAsset: Type[QueryAsset] = pydantic.PrivateAttr(QueryAsset)
 
+    class Config:
+        validate_assignment = True
+
     @property
     @override
     def execution_engine_type(self) -> Type[SqlAlchemyExecutionEngine]:
