@@ -726,4 +726,4 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
     :::
 
 
-6. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
+5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
