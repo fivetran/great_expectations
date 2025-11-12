@@ -136,7 +136,7 @@ Keep the following in mind when working with forecasted ranges:
 
 ## Row conditions
 
-By default, Expectations apply to every row retrieved in a [Batch](/docs/cloud/expectations/manage_expectations.md#optional-define-a-batch). However, there are instances when an Expectation may not be relevant for every row. For example, you might expect that a column indicating the country of origin for a product should not be null when the product is an import. If it’s ok for the country of origin column to be null for products produced locally, then applying a nullness check for country of origin on every row in the Batch could result in many false negatives. To address this scenario, GX Cloud allows you to restrict Expectations to apply to only a subset of the data retrieved in a Batch.
+By default, Expectations apply to every row retrieved in a [Batch](/docs/cloud/expectations/manage_validations.md). However, there are instances when an Expectation may not be relevant for every row. For example, you might expect that a column indicating the country of origin for a product should not be null when the product is an import. If it’s ok for the country of origin column to be null for products produced locally, then applying a nullness check for country of origin on every row in the Batch could result in many false negatives. To address this scenario, GX Cloud allows you to restrict Expectations to apply to only a subset of the data retrieved in a Batch.
 
 Row conditions support complex business logic through the following elements:
 
