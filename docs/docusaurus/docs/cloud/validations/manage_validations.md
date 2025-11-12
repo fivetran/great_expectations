@@ -707,7 +707,9 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 3. Click the **Validations** tab.
 
-4. On the **Validations** page, do one or more of the following options:
+4. If you have multiple **Expectation Suites**, select the suite of interest.
+
+5. Do one or more of the following:
 
     - To view results for a specific Validation run, select an entry in the **Batches & run history** pane.
 
@@ -725,5 +727,4 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
    - **Batch** information is included for any Validation ran on a subset of a Data Asset. 
     :::
 
-
-5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
+6. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
