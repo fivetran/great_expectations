@@ -641,6 +641,8 @@ If your filesystem Data Asset has date-based filenames, you can validate your da
 
    ```Python title="Python"
    batch_definition_name = "my_daily_batch_definition"
+
+   # Update this regex to match the pattern of your date-based filenames
    batch_definition_regex = r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 
    batch_definition = file_data_asset.add_batch_definition_daily(
