@@ -707,22 +707,23 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 3. Click the **Validations** tab.
 
-4. On the **Validations** page, select one of the following options:
+4. On the **Validations** page, do one or more of the following options:
 
-    - To view only Validation run failures, click **Failures Only**.
+    - To view results for a specific Validation run, select an entry in the **Batches & run history** pane.
 
-    - To view the run history for specific Validation, select a Validation in the **Batches & run history** pane.
+       -  To view only Expectations that failed in the selected run, click **Failures only**.
     
     - To view the run history of all Validations, select **All Runs** to view a graph showing the Validation run history for all columns.
 
-       Optional. Hover over a success or [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) icon in the Validation timeline to view details about a specific Validation run, including the observed values.
+       - To view details about a specific Validation run in the Validation timeline, including the observed values, hover over a success or [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) icon
 
-       ![Provided details are: success, severity, run time, batch interval, batch column, batch name, and observed value.](/img/view_validation_timeline_detail.png)
+      ![Provided details are: success, severity, run time, batch interval, batch column, batch name, and observed value.](/img/view_validation_timeline_detail.png)
 
    :::tip Run history details
-   Depending on how your Data Assets are validated, you may find the following information on items in the **Batches & run history** pane.
+   Depending on how your Data Assets are validated, you may find the following information on entries in the **Batches & run history** pane.
    - A <img src="/img/calendar.png" alt="calendar icon" width="20" height="20"/> calendar icon indicates a Valdation ran by a GX-managed schedule.
    - **Batch** information is included for any Validation ran on a subset of a Data Asset. 
     :::
 
-5. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
+
+6. Optional. Click **Share** to copy the URL for the Validation Results and share them with other users in your workspace.
