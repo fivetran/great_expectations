@@ -133,7 +133,7 @@ For all Data Sources, you can use the GX Cloud API to validate GX-managed Expect
 
 To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
-1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
+1. Retrieve the GX-managed Checkpoint name. Replace `my_data_asset` in the code sample below with your Data Asset's name.
 
    ```Python title="Python" 
    import great_expectations as gx
@@ -141,7 +141,7 @@ To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud pro
 
    checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
    for name in checkpoint_names:
-       if "GX-Managed" in name and "my Data Asset name" in name:
+       if "GX-Managed" in name and "my_data_asset" in name:
            my_checkpoint=name
     ```
 
@@ -303,7 +303,7 @@ First, you partition your data
 
 Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
-1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
+1. Retrieve the GX-managed Checkpoint name. Replace `my_data_asset` in the code sample below with your Data Asset's name.
 
    ```Python title="Python" 
    import great_expectations as gx
@@ -311,7 +311,7 @@ Then, you can validate a Batch of data. To allow you to validate GX-managed Expe
 
    checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
    for name in checkpoint_names:
-       if "GX-Managed" in name and "my Data Asset name" in name:
+       if "GX-Managed" in name and "my_data_asset" in name:
            my_checkpoint=name
     ```
 
@@ -373,7 +373,7 @@ First, you partition your data
 
 Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
-1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
+1. Retrieve the GX-managed Checkpoint name. Replace `my_data_asset` in the code sample below with your Data Asset's name.
 
    ```Python title="Python" 
    import great_expectations as gx
@@ -381,7 +381,7 @@ Then, you can validate a Batch of data. To allow you to validate GX-managed Expe
 
    checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
    for name in checkpoint_names:
-       if "GX-Managed" in name and "my Data Asset name" in name:
+       if "GX-Managed" in name and "my_data_asset" in name:
            my_checkpoint=name
     ```
 
@@ -521,7 +521,7 @@ The code for validating API-managed Expectations on a time-based subset of a Dat
 
 If your SQL Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
-1. Retrieve the data asset.
+1. Retrieve the Data Asset.
 
    ```Python title="Python" 
    data_source_name = "my_data_source" 
@@ -604,7 +604,7 @@ If your SQL Data Asset has at least one DATE or DATETIME column, you can validat
 
 If your filesystem Data Asset has date-based filenames, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
-1. Retrieve the data asset.
+1. Retrieve the Data Asset.
 
    ```Python title="Python" 
    data_source_name = "my_data_source" 
