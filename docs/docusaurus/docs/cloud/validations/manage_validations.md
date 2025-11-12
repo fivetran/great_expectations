@@ -133,7 +133,13 @@ For all Data Sources, you can use the GX Cloud API to validate GX-managed Expect
 
 To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
-1. Retrieve the GX-managed Checkpoint name. Replace `my_data_asset` in the code sample below with your Data Asset's name.
+1. Define the Data Asset to validate.
+
+   ```Python title="Python" 
+   data_asset_name = "my_data_asset"
+   ```
+
+2. Retrieve the GX-managed Checkpoint name.
 
    ```Python title="Python" 
    import great_expectations as gx
@@ -141,11 +147,11 @@ To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud pro
 
    checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
    for name in checkpoint_names:
-       if "GX-Managed" in name and "my_data_asset" in name:
+       if "GX-Managed" in name and data_asset_name in name:
            my_checkpoint=name
     ```
 
-2. Run the Checkpoint.
+3. Run the Checkpoint.
 
    ```Python title="Python"
    checkpoint = context.checkpoints.get(my_checkpoint)
@@ -303,7 +309,13 @@ First, you partition your data
 
 Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
-1. Retrieve the GX-managed Checkpoint name. Replace `my_data_asset` in the code sample below with your Data Asset's name.
+1. Define the Data Asset to validate.
+
+   ```Python title="Python" 
+   data_asset_name = "my_data_asset"
+   ```
+
+2. Retrieve the GX-managed Checkpoint name.
 
    ```Python title="Python" 
    import great_expectations as gx
@@ -311,11 +323,11 @@ Then, you can validate a Batch of data. To allow you to validate GX-managed Expe
 
    checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
    for name in checkpoint_names:
-       if "GX-Managed" in name and "my_data_asset" in name:
+       if "GX-Managed" in name and data_asset_name in name:
            my_checkpoint=name
     ```
 
-2. Run the Checkpoint with Batch Parameters passed as integers.
+3. Run the Checkpoint with Batch Parameters passed as integers.
 
    ```Python title="Python"
    checkpoint = context.checkpoints.get(my_checkpoint)
@@ -373,7 +385,13 @@ First, you partition your data
 
 Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
-1. Retrieve the GX-managed Checkpoint name. Replace `my_data_asset` in the code sample below with your Data Asset's name.
+1. Define the Data Asset to validate.
+
+   ```Python title="Python" 
+   data_asset_name = "my_data_asset"
+   ```
+
+2. Retrieve the GX-managed Checkpoint name.
 
    ```Python title="Python" 
    import great_expectations as gx
@@ -381,11 +399,11 @@ Then, you can validate a Batch of data. To allow you to validate GX-managed Expe
 
    checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
    for name in checkpoint_names:
-       if "GX-Managed" in name and "my_data_asset" in name:
+       if "GX-Managed" in name and data_asset_name in name:
            my_checkpoint=name
     ```
 
-2. Run the Checkpoint with Batch Parameters passed as strings.
+3. Run the Checkpoint with Batch Parameters passed as strings.
 
    ```Python title="Python"
    checkpoint = context.checkpoints.get(my_checkpoint)
