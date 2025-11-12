@@ -482,7 +482,7 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 ### API-managed Expectations, time interval
 
-To validate API-managed Expectations for a time-based subset of a Data Asset, use the GX Cloud API. Note that the code is different for SQL Data Sources vs. filesystem Data Sources. You will first create a Validation Definition that links your data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Defintion to a Checkpoint that associates your tests with conditional logic for responding to results. 
+To validate API-managed Expectations for a time-based subset of a Data Asset, use the GX Cloud API. Note that the code is different for SQL Data Sources vs. filesystem Data Sources. You will first parition your data and create a Validation Definition that links your partioned data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Defintion to a Checkpoint that associates your tests with conditional logic for responding to results. 
 
 #### Prerequisites
 
@@ -520,8 +520,6 @@ The code for validating API-managed Expectations on a time-based subset of a Dat
 <TabItem value="sql" label="SQL sources">
 
 If your SQL Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
-
-First, you partition your data
 
 1. Retrieve the data asset.
 
@@ -605,8 +603,6 @@ First, you partition your data
 <TabItem value="filesystem" label="Filesystem sources">
 
 If your filesystem Data Asset has date-based filenames, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
-
-First, you partition your data
 
 1. Retrieve the data asset.
 
