@@ -8,7 +8,7 @@ toc_max_heading_level: 3
 import TabItem from '@theme/TabItem';
 import Tabs from '@theme/Tabs';
 
-To explore your data and fine-tune your Expectations, run an ad hoc Validation as described in this page. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/docs/cloud/connect/connect_airflow.md).
+To explore your data and fine-tune your Expectations, run an ad hoc Validation as described on this page. To run recurring Validations, use a [schedule](/docs/cloud/schedules/manage_schedules.md) or an [orchestrator](/docs/cloud/connect/connect_airflow.md).
 
 ## Run an ad hoc Validation
 
@@ -51,7 +51,7 @@ To help you find the right workflow for your particular combination of Expectati
   </tr>
   <tr>
     <td>BigQuery</td>
-    <td>Use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based  values in a DATE or DATETIME column.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with Batch Parameters passed as integers.</li></ul><a href="/docs/cloud/validations/manage_validations/?validation-interface=api&source-type=sql#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
+    <td>Use the API:<ul><li>Update your Data Asset’s GX-managed Batch Definition to partition your data based on values in a DATE or DATETIME column.</li><li>Retrieve your Data Asset's GX-managed Checkpoint.</li><li>Run the Checkpoint with Batch Parameters passed as integers.</li></ul><a href="/docs/cloud/validations/manage_validations/?validation-interface=api&source-type=sql#gx-managed-expectations-time-interval">Jump to full instructions</a></td>
   </tr>
   <tr>
     <td rowspan="3">API-managed</td>
@@ -222,7 +222,7 @@ Then, you can validate a Batch of data.
 
 2. Select one of the following options to **Specify a single Batch to validate**:
 
-    - **Latest Batch**. Note that the latest Batch may still be recieving new data. For example, if you are batching by day and have new data arriving every hour, the latest Batch will be any data that has arrived in the current day. The latest daily Batch is not necessarily a full 24 hours worth of data. 
+    - **Latest Batch**. Note that the latest Batch may still be receiving new data. For example, if you are batching by day and have new data arriving every hour, the latest Batch will be any data that has arrived in the current day. The latest daily Batch is not necessarily a full 24 hours worth of data. 
 
     - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-month** to identify the records to validate.
 
@@ -240,7 +240,7 @@ Then, you can validate a Batch of data.
 - Any [Data Asset](/docs/cloud/data_assets/manage_data_assets.md) with at least one [GX-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 - Date indicators to partition on.
    - For SQL Data Sources, you need at least one DATE or DATETIME column.
-   - For filesystem Data Sources your filenames must indicate the timeframe using a pattern that can be parsed with regex.
+   - For filesystem Data Sources, your filenames must indicate the timeframe using a pattern that can be parsed with regex.
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
    :::note Minimum version for row conditions
@@ -286,7 +286,7 @@ First, you partition your data
    | Partition records by year and month       | `ColumnPartitionerMonthly` | `partition_on_year_and_month`         |
    | Partition records by year, month, and day | `ColumnPartitionerDaily`   | `partition_on_year_and_month_and_day` |
 
-3. Partition your data. This example demonstrates daily Batches with the `ColumnPartitionerDaily` partitioner and `partition_on_year_and_month_and_day` method. Refer to the above table for partitioners and methods for other types of Batches.
+3. Partition your data. This example demonstrates daily Batches with the `ColumnPartitionerDaily` partitioner and the `partition_on_year_and_month_and_day` method. Refer to the above table for partitioners and methods for other types of Batches.
 
    ```Python title="Python"
    import great_expectations as gx
@@ -355,7 +355,7 @@ First, you partition your data
    | Partition records by year and month       | `FileNamePartitionerMonthly` | `year`, `month`        |
    | Partition records by year, month, and day | `FileNamePartitionerDaily`   | `year`, `month`, `day` |
 
-3. Partition your data. This example demonstrates daily Batches with the `FileNamePartitionerDaily` partitioner and `year`, `month`, and `day` parameter names. Refer to the above table for partitioners and parameters for other types of Batches.
+3. Partition your data. This example demonstrates daily Batches with the `FileNamePartitionerDaily` partitioner and the `year`, `month`, and `day` parameter names. Refer to the above table for partitioners and parameters for other types of Batches.
 
    ```Python title="Python"
    import re
@@ -418,7 +418,7 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 ### API-managed Expectations, entire asset
 
-To validate API-managed Expectations for your entire Data Asset, use the GX Cloud API. The process is the same regardless of your Data Source. You will first create a Validation Definition that links your data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Defintion to a Checkpoint that associates your tests with conditional logic for responding to results. 
+To validate API-managed Expectations for your entire Data Asset, use the GX Cloud API. The process is the same regardless of your Data Source. You will first create a Validation Definition that links your data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Definition to a Checkpoint that associates your tests with conditional logic for responding to results. 
 
 #### Prerequisites
 
@@ -436,7 +436,7 @@ To validate API-managed Expectations for your entire Data Asset, use the GX Clou
 
 #### Procedure
 
-To help you to validate API-managed Expectations on an entire Data Asset with the Cloud API, GX Cloud provides a GX-managed Batch Definition you can use to identify your data.
+To help you validate API-managed Expectations on an entire Data Asset with the Cloud API, GX Cloud provides a GX-managed Batch Definition you can use to identify your data.
 
 1. Retrieve your Data Asset’s GX-managed Batch Definition.
 
@@ -494,7 +494,7 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 ### API-managed Expectations, time interval
 
-To validate API-managed Expectations for a time-based subset of a Data Asset, use the GX Cloud API. Note that the code is different for SQL Data Sources vs. filesystem Data Sources. You will first parition your data and create a Validation Definition that links your partioned data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Defintion to a Checkpoint that associates your tests with conditional logic for responding to results. 
+To validate API-managed Expectations for a time-based subset of a Data Asset, use the GX Cloud API. Note that the code is different for SQL Data Sources vs. filesystem Data Sources. You will first partition your data and create a Validation Definition that links your partitioned data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Definition to a Checkpoint that associates your tests with conditional logic for responding to results. 
 
 #### Prerequisites
 
@@ -503,7 +503,7 @@ To validate API-managed Expectations for a time-based subset of a Data Asset, us
 - Any [Data Asset](/docs/cloud/data_assets/manage_data_assets.md).
 - Date indicators to partition on.
    - For SQL Data Sources, you need at least one DATE or DATETIME column.
-   - For filesystem Data Sources your filenames must indicate the timeframe using a pattern that can be parsed with regex.
+   - For filesystem Data Sources, your filenames must indicate the timeframe using a pattern that can be parsed with regex.
 - At least one [API-managed Expectation](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 - [Python version 3.10 to 3.13](https://www.python.org/downloads/).
 - [An installation of the Great Expectations Python library](https://pypi.org/project/great-expectations/).
@@ -717,13 +717,13 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
     
     - To view the run history of all Validations, select **All Runs** to view a graph showing the Validation run history for all columns.
 
-       - To view details about a specific Validation run in the Validation timeline, including the observed values, hover over a success or [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) icon
+       - To view details about a specific Validation run in the Validation timeline, including the observed values, hover over a success or [failure severity](/docs/cloud/expectations/expectations_overview.md#failure-severity) icon.
 
       ![Provided details are: success, severity, run time, batch interval, batch column, batch name, and observed value.](/img/view_validation_timeline_detail.png)
 
    :::tip Run history details
    Depending on how your Data Assets are validated, you may find the following information on entries in the **Batches & run history** pane.
-   - A <img src="/img/calendar.png" alt="calendar icon" width="20" height="20"/> calendar icon indicates a Valdation ran by a GX-managed schedule.
+   - A <img src="/img/calendar.png" alt="calendar icon" width="20" height="20"/> calendar icon indicates a Validation ran by a GX-managed schedule.
    - **Batch** information is included for any Validation ran on a subset of a Data Asset. 
     :::
 
