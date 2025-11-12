@@ -361,7 +361,7 @@ First, you partition your data
    import re
 
    # Update this regex to match the pattern of your date-based filenames
-   batching_regex = re.compile(r"my_file_name_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv")
+   batching_regex = re.compile(r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv")
 
    import great_expectations as gx
    from great_expectations.core.partitioners import FileNamePartitionerDaily
@@ -446,7 +446,7 @@ To help you to validate API-managed Expectations on an entire Data Asset with th
 
    data_source_name = "my_data_source" 
    data_asset_name = "my_data_asset" 
-   batch_definition_name = "my_data_asset - GX-Managed Batch Definition"
+   batch_definition_name = f"{data_asset_name} - GX-Managed Batch Definition"
 
    batch_definition = (
        context.data_sources.get(data_source_name)
@@ -558,7 +558,7 @@ If your SQL Data Asset has at least one DATE or DATETIME column, you can validat
 
    ```Python title="Python"
    batch_definition_name = "my_daily_batch_definition"
-   date_column = "my_datetime_column"
+   date_column = "my_date_or_datetime_column"
    daily_batch_definition = data_asset.add_batch_definition_daily(
        name=batch_definition_name, column=date_column
    )s
@@ -641,7 +641,7 @@ If your filesystem Data Asset has date-based filenames, you can validate your da
 
    ```Python title="Python"
    batch_definition_name = "my_daily_batch_definition"
-   batch_definition_regex = r"my_folder_with_data/filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
+   batch_definition_regex = r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 
    batch_definition = file_data_asset.add_batch_definition_daily(
        name=batch_definition_name, regex=batch_definition_regex
