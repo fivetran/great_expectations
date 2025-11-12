@@ -15,7 +15,7 @@ To explore your data and fine-tune your Expectations, run an ad hoc Validation a
 Workflows for ad hoc Validations vary based on the following aspects of what you're validating:
 - Expectation type - [GX-managed or API-managed Expectations](/docs/cloud/expectations/expectations_overview.md#gx-managed-vs-api-managed-expectations).
 - Data scope - entire Data Asset or a time-based subset of a Data Asset.
-- Data Source - for example, Snowflake, Redshift, etc....
+- Data Source - for example, Snowflake or Amazon S3.
 
 
 ### Find your workflow
