@@ -131,7 +131,7 @@ For all Data Sources, you can use the GX Cloud API to validate GX-managed Expect
 
 #### Procedure
 
-To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud provides a GX-managed Checkpoint you can run. 
+To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
 1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
 
@@ -190,7 +190,7 @@ For all Data Sources, you can use the GX Cloud API to validate GX-managed Expect
 
 #### Procedure
 
-If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+If your Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
 First, you partition your data.
 
@@ -260,7 +260,7 @@ The code for validating GX-managed Expectations on a time-based subset of a Data
 
 <TabItem value="sql" label="SQL sources">
 
-If your SQL Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+If your SQL Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
 First, you partition your data
 
@@ -301,7 +301,7 @@ First, you partition your data
    context.update_datasource(ds)
    ```
 
-Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed Checkpoint you can run. 
+Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
 1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
 
@@ -328,7 +328,7 @@ Then, you can validate a Batch of data. To allow you to validate GX-managed Expe
 
 <TabItem value="filesystem" label="Filesystem sources">
 
-If your filesystem Data Asset has date-based filenames, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+If your filesystem Data Asset has date-based filenames, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
 First, you partition your data
 
@@ -371,7 +371,7 @@ First, you partition your data
    context.update_datasource(ds)
    ```
 
-Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed Checkpoint you can run. 
+Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
 1. Retrieve the GX-managed Checkpoint name. Replace `my data asset name` in the code sample below with your Data Asset's name.
 
@@ -482,7 +482,7 @@ When the Validation is complete, you can [view the results in the GX Cloud UI](#
 
 ### API-managed Expectations, time interval
 
-To validate API-managed Expectations for a time-based subset of a Data Asset, use the GX Cloud API. Note that the code is different for SQL Data Sources vs. filesystem Data Sources.
+To validate API-managed Expectations for a time-based subset of a Data Asset, use the GX Cloud API. Note that the code is different for SQL Data Sources vs. filesystem Data Sources. You will first create a Validation Definition that links your data to your Expectations. Then you can run the Validation Definition to validate the referenced data against the associated Expectations for testing or data exploration. If you want to [trigger Actions](/docs/cloud/alerts/trigger_actions) based on the Validation Results, you will add your Validation Defintion to a Checkpoint that associates your tests with conditional logic for responding to results. 
 
 #### Prerequisites
 
@@ -519,7 +519,7 @@ The code for validating API-managed Expectations on a time-based subset of a Dat
 
 <TabItem value="sql" label="SQL sources">
 
-If your SQL Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+If your SQL Data Asset has at least one DATE or DATETIME column, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
 First, you partition your data
 
@@ -604,7 +604,7 @@ First, you partition your data
 
 <TabItem value="filesystem" label="Filesystem sources">
 
-If your filesystem Data Asset has date-based filenames, you can validate your data incrementally. To do this, you will first define how to partition your data and then select a specific time-based interval to validate.
+If your filesystem Data Asset has date-based filenames, you can validate your data incrementally. To do this, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
 First, you partition your data
 
@@ -661,7 +661,7 @@ First, you partition your data
 6. Run the Validation Definition with Batch Parameters passed as strings
 
    ```Python title="Python" 
-   batch_parameters_daily = {"year": "2019", "month": "1", "day": "30"}
+   batch_parameters_daily = {"year": "2019", "month": "01", "day": "30"}
 
    validation_definition.run(batch_parameters=batch_parameters_daily)
    ```
@@ -680,7 +680,7 @@ First, you partition your data
     checkpoint = context.checkpoints.add(checkpoint_config)
 
     # When you run the Checkpoint, pass Batch Parameters as strings
-    batch_parameters_daily = {"year": "2019", "month": "1", "day": "30"}
+    batch_parameters_daily = {"year": "2019", "month": "01", "day": "30"}
 
     checkpoint.run(batch_parameters=batch_parameters_daily)
     ```
