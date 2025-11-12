@@ -139,7 +139,7 @@ To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud pro
    data_asset_name = "my_data_asset"
    ```
 
-2. Retrieve the GX-managed Checkpoint name.
+2. Retrieve the name of the GX-managed Checkpoint for your Data Asset.
 
    ```Python title="Python" 
    import great_expectations as gx
@@ -309,17 +309,13 @@ First, you partition your data
 
 Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
-1. Define the Data Asset to validate.
-
-   ```Python title="Python" 
-   data_asset_name = "my_data_asset"
-   ```
-
-2. Retrieve the GX-managed Checkpoint name.
+1. Retrieve the name of the GX-managed Checkpoint for your Data Asset.
 
    ```Python title="Python" 
    import great_expectations as gx
    context = gx.get_context()
+
+   data_asset_name = "my_data_asset"
 
    checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
    for name in checkpoint_names:
@@ -327,7 +323,7 @@ Then, you can validate a Batch of data. To allow you to validate GX-managed Expe
            my_checkpoint=name
     ```
 
-3. Run the Checkpoint with Batch Parameters passed as integers.
+2. Run the Checkpoint with Batch Parameters passed as integers.
 
    ```Python title="Python"
    checkpoint = context.checkpoints.get(my_checkpoint)
@@ -363,6 +359,8 @@ First, you partition your data
 
    ```Python title="Python"
    import re
+
+   # Update this regex to match the pattern of your date-based filenames
    batching_regex = re.compile(r"my_file_name_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}).csv")
 
    import great_expectations as gx
@@ -385,17 +383,13 @@ First, you partition your data
 
 Then, you can validate a Batch of data. To allow you to validate GX-managed Expectations with the Cloud API, GX Cloud provides a GX-managed [Checkpoint](/docs/reference/api/Checkpoint_class) you can run. 
 
-1. Define the Data Asset to validate.
-
-   ```Python title="Python" 
-   data_asset_name = "my_data_asset"
-   ```
-
-2. Retrieve the GX-managed Checkpoint name.
+1. Retrieve the name of the GX-managed Checkpoint for your Data Asset.
 
    ```Python title="Python" 
    import great_expectations as gx
    context = gx.get_context()
+
+   data_asset_name = "my_data_asset"
 
    checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
    for name in checkpoint_names:
@@ -403,7 +397,7 @@ Then, you can validate a Batch of data. To allow you to validate GX-managed Expe
            my_checkpoint=name
     ```
 
-3. Run the Checkpoint with Batch Parameters passed as strings.
+2. Run the Checkpoint with Batch Parameters passed as strings.
 
    ```Python title="Python"
    checkpoint = context.checkpoints.get(my_checkpoint)
@@ -452,7 +446,7 @@ To help you to validate API-managed Expectations on an entire Data Asset with th
 
    data_source_name = "my_data_source" 
    data_asset_name = "my_data_asset" 
-   batch_definition_name = "my data asset - GX-Managed Batch Definition"
+   batch_definition_name = "my_data_asset - GX-Managed Batch Definition"
 
    batch_definition = (
        context.data_sources.get(data_source_name)
@@ -563,11 +557,11 @@ If your SQL Data Asset has at least one DATE or DATETIME column, you can validat
 3. Partition your data. This example demonstrates daily Batches with the `add_batch_definition_daily` method. Refer to the above table for partitioners and methods for other types of Batches.
 
    ```Python title="Python"
-   batch_definition_name = "daily_yellow_tripdata_sample"
-   date_column = "pickup_datetime"
+   batch_definition_name = "my_daily_batch_definition"
+   date_column = "my_datetime_column"
    daily_batch_definition = data_asset.add_batch_definition_daily(
        name=batch_definition_name, column=date_column
-   )
+   )s
    ```
 
 4. Retrieve your API-managed Expectation Suite.
@@ -582,7 +576,7 @@ If your SQL Data Asset has at least one DATE or DATETIME column, you can validat
    ```Python title="Python"
    definition_name = "my_validation_definition"
    validation_definition = gx.ValidationDefinition(
-       data=batch_definition, suite=suite, name=definition_name
+       data=daily_batch_definition, suite=suite, name=definition_name
    )
 
    validation_definition = context.validation_definitions.add(validation_definition)
@@ -646,8 +640,8 @@ If your filesystem Data Asset has date-based filenames, you can validate your da
 3. Partition your data. This example demonstrates daily Batches with the `add_batch_definition_daily` method. Refer to the above table for methods and parameters for other types of Batches.
 
    ```Python title="Python"
-   batch_definition_name = "daily_yellow_tripdata_sample"
-   batch_definition_regex = r"folder_with_data/yellow_tripdata_sample_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
+   batch_definition_name = "my_daily_batch_definition"
+   batch_definition_regex = r"my_folder_with_data/filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 
    batch_definition = file_data_asset.add_batch_definition_daily(
        name=batch_definition_name, regex=batch_definition_regex
