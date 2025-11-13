@@ -224,7 +224,7 @@ Then, you can validate a Batch of data.
 
     - **Latest Batch**. Note that the latest Batch may still be receiving new data. For example, if you are batching by day and have new data arriving every hour, the latest Batch will be any data that has arrived in the current day. The latest daily Batch is not necessarily a full 24 hours worth of data. 
 
-    - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-month** to identify the records to validate.
+    - **Custom Batch**, which will let you enter a specific period of time to validate based on how you've batched your data. For example, if you've batched your data by month, you'll be prompted to enter a **Year-Month** to identify the records to validate.
 
 3. Click **Run**.
 
