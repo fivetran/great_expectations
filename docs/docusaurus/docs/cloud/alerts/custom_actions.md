@@ -63,3 +63,5 @@ To create a custom Action, you subclass the `ValidationAction` class, overriding
 </TabItem>
 
 </Tabs>
+
+Now you can use your custom Action like you would any built-in Action. [Trigger actions](cloud/alerts/trigger_actions.md) to start automating responses to Validation Results.
