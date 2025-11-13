@@ -547,7 +547,7 @@ To validate your data incrementally, you will first define how to partition your
 
    context = gx.get_context()
    ds = context.data_sources.get(data_source_name)
-   asset = ds.get_asset(data_asset_name)
+   data_asset = ds.get_asset(data_asset_name)
    ```
 
 2. Decide how you want to batch your data. Reference the table below to determine the method to use to achieve your goal.
@@ -565,7 +565,7 @@ To validate your data incrementally, you will first define how to partition your
    date_column = "my_date_or_datetime_column"
    daily_batch_definition = data_asset.add_batch_definition_daily(
        name=batch_definition_name, column=date_column
-   )s
+   )
    ```
 
 4. Retrieve your API-managed Expectation Suite.
@@ -630,7 +630,7 @@ To validate your data incrementally, you will first define how to partition your
 
    context = gx.get_context()
    ds = context.data_sources.get(data_source_name)
-   asset = ds.get_asset(data_asset_name)
+   data_asset = ds.get_asset(data_asset_name)
    ```
 
 2. Decide how you want to batch your data. Reference the table below to determine the method and parameters to use to achieve your goal.
@@ -644,13 +644,15 @@ To validate your data incrementally, you will first define how to partition your
 3. Partition your data. This example demonstrates daily Batches with the `add_batch_definition_daily` method. Refer to the above table for methods and parameters for other types of Batches.
 
    ```Python title="Python"
+   import re
+   
    batch_definition_name = "my_daily_batch_definition"
 
    # Update this regex to match the pattern of your date-based filenames
    # This example matches a name like my_filename_2019-01-30.csv
    batch_definition_regex = r"my_filename_(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})\.csv"
 
-   batch_definition = file_data_asset.add_batch_definition_daily(
+   batch_definition = data_asset.add_batch_definition_daily(
        name=batch_definition_name, regex=batch_definition_regex
    )
    ```
