@@ -135,28 +135,17 @@ To help you validate GX-managed Expectations with the GX Cloud API, GX Cloud pro
 
 1. Define the Data Asset to validate.
 
-   ```Python title="Python" 
-   data_asset_name = "my_data_asset"
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - define asset"
    ```
 
 2. Retrieve the name of the GX-managed Checkpoint for your Data Asset.
 
-   ```Python title="Python" 
-   import great_expectations as gx
-   context = gx.get_context()
-
-   checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
-   for name in checkpoint_names:
-       if "GX-Managed" in name and data_asset_name in name:
-           my_checkpoint=name
-    ```
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - retrieve checkpoint"
+   ```
 
 3. Run the Checkpoint.
 
-   ```Python title="Python"
-   checkpoint = context.checkpoints.get(my_checkpoint)
-
-   checkpoint.run()
+   ```python title="Python" name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - run checkpoint"
    ```
 
 </TabItem>
@@ -645,7 +634,7 @@ To validate your data incrementally, you will first define how to partition your
 
    ```Python title="Python"
    import re
-   
+
    batch_definition_name = "my_daily_batch_definition"
 
    # Update this regex to match the pattern of your date-based filenames
