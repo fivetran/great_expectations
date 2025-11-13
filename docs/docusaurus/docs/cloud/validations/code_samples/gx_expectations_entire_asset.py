@@ -12,12 +12,13 @@ data_asset_name = "my_data_asset"
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - retrieve checkpoint">
 import great_expectations as gx
+
 context = gx.get_context()
 
 checkpoint_names = [checkpoint.name for checkpoint in context.checkpoints.all()]
 for name in checkpoint_names:
     if "GX-Managed" in name and data_asset_name in name:
-        my_checkpoint=name
+        my_checkpoint = name
 # </snippet>
 
 # <snippet name="docs/docusaurus/docs/cloud/validations/code_samples/gx_expectations_entire_asset.py - run checkpoint">
