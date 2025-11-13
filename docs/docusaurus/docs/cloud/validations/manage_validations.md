@@ -268,7 +268,7 @@ The code for validating GX-managed Expectations on a time-based subset of a Data
 
 To validate your data incrementally, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
-First, partition your data
+First, partition your data.
 
 1. Define the Data Asset to batch and the DATE or DATETIME column to partition on.
 
@@ -338,7 +338,7 @@ Then, you can validate a Batch of data. To help you validate GX-managed Expectat
 
 To validate your data incrementally, you will first define how to partition your data into Batches and then select a specific time-based Batch to validate.
 
-First, partition your data
+First, partition your data.
 
 1. Define the Data Asset to batch.
 
